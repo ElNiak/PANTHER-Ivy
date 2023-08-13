@@ -12,7 +12,7 @@ function kMinimumWindow : stream_pos
 function kLossReductionFactor: stream_pos
 
 # Period of time for persistent congestion to be established, specified as a PTO multiplier. Section 7.6 recommends a value of 3.  
-function kPersistentCongestionThreshold : quic_packet.idx
+function kPersistentCongestionThreshold : stream_pos
 
     
 
@@ -90,11 +90,11 @@ action on_congestion_event(sent_time_of_last_loss:microseconds) = {
 # acked_packets from sent_packets.In congestion avoidance, implementers that use an 
 # integer representation for congestion_window should be careful with division and 
 # can use the alternative approach suggested in Section 2.1 of [RFC3465].
-action on_packets_acked(acked_packets:quic_packet.arr) = {
-    var idx := acked_packets.begin;
-    while idx < acked_packets.end {
-        call on_packet_acked(acked_packets.value(idx));
-        idx := idx.next;
+action on_packets_acked(pn_space:quic_packet_type) = {
+    var idx : stream_pos := 0;
+    while idx < newly_acked_packets_end(pn_space) {
+        call on_packet_acked(newly_acked_packets(pn_space,idx));
+        idx := idx + 1;
     }
 }
 
@@ -121,18 +121,18 @@ action on_packet_acked(acked_packet:quic_packet) = {
 
 # This is invoked when DetectAndRemoveLostPackets deems packets lost.
 
-action on_packets_lost(lost_packets:quic_packet.arr) = {
+action on_packets_lost(pn_space:quic_packet_type) = {
     var sent_time_of_last_loss : microseconds := 0;
     # Remove lost packets from bytes_in_flight.
-    var idx := lost_packets.begin;
-    while idx < lost_packets.end {
-        if sent_packets_time_in_flight(lost_packets.value(idx).ptype,lost_packets.value(idx).seq_num) {
-            bytes_in_flight := bytes_in_flight - sent_packets_sent_bytes(lost_packets.value(idx).ptype,lost_packets.value(idx).seq_num);
-            if sent_time_of_last_loss < sent_packets_time_sent(lost_packets.value(idx).ptype,lost_packets.value(idx).seq_num) {
-                sent_time_of_last_loss := sent_packets_time_sent(lost_packets.value(idx).ptype,lost_packets.value(idx).seq_num);
+    var idx :stream_pos := 0;
+    while idx < lost_packets_end(pn_space) {
+        if sent_packets_time_in_flight(lost_packets(pn_space,idx).ptype,lost_packets(pn_space,idx).seq_num) {
+            bytes_in_flight := bytes_in_flight - sent_packets_sent_bytes(lost_packets(pn_space,idx).ptype,lost_packets(pn_space,idx).seq_num);
+            if sent_time_of_last_loss < sent_packets_time_sent(lost_packets(pn_space,idx).ptype,lost_packets(pn_space,idx).seq_num) {
+                sent_time_of_last_loss := sent_packets_time_sent(lost_packets(pn_space,idx).ptype,lost_packets(pn_space,idx).seq_num);
             }
         }
-        idx := idx.next;
+        idx := idx + 1;
     }
     # Congestion event if in-flight packets were lost
     if sent_time_of_last_loss ~= 0 {
@@ -142,15 +142,16 @@ action on_packets_lost(lost_packets:quic_packet.arr) = {
     # packets indicates persistent congestion.
     # Only consider packets sent after getting an RTT sample.
     if first_rtt_sample ~= 0 {
-        var pc_lost := quic_packet.arr.empty;
-        idx := lost_packets.begin;
-        while idx < lost_packets.end {
-              if sent_packets_time_sent(lost_packets.value(idx).ptype,lost_packets.value(idx).seq_num) > first_rtt_sample {
-                  pc_lost := pc_lost.append(lost_packets.value(idx));
+        pc_lost_end(pn_space) := 0;
+        idx : stream_pos := 0;
+        while idx < lost_packets_end(pn_space) {
+              if sent_packets_time_sent(lost_packets(pn_space,idx).ptype,lost_packets(pn_space,idx).seq_num) > first_rtt_sample {
+                  # pc_lost := pc_lost.append(lost_packets(pn_space,idx));
+                  pc_lost_end(pn_space) := pc_lost_end(pn_space) + 1;
               }  
-              idx := idx.next;
+              idx := idx + 1;
         }
-        if pc_lost.size >= kPersistentCongestionThreshold {
+        if pc_lost_end(pn_space) >= kPersistentCongestionThreshold {
             congestion_window := kMinimumWindow;
             congestion_recovery_start_time := 0;
         }
@@ -160,13 +161,13 @@ action on_packets_lost(lost_packets:quic_packet.arr) = {
 # When Initial or Handshake keys are discarded, packets sent in that space
 # no longer count toward bytes in flight.
 
-action remove_from_bytes_in_flight(discarded_packets:quic_packet.arr) = {
-    var idx := discarded_packets.begin;
-    while idx < discarded_packets.end {
-        if sent_packets_time_in_flight(discarded_packets.value(idx).ptype, discarded_packets.value(idx).seq_num) {
-            bytes_in_flight := bytes_in_flight - sent_packets_sent_bytes(discarded_packets.value(idx).ptype, discarded_packets.value(idx).seq_num);
+action remove_from_bytes_in_flight(pn_space:quic_packet_type) = {
+    var idx :stream_pos := 0;
+    while idx < sent_packets_end(pn_space) {
+        if sent_packets_time_in_flight(sent_packets(pn_space, idx).ptype, sent_packets(pn_space, idx).seq_num) {
+            bytes_in_flight := bytes_in_flight - sent_packets_sent_bytes(sent_packets(pn_space, idx).ptype, sent_packets(pn_space, idx).seq_num);
         }
-        idx := idx.next;
+        idx := idx + 1;
     }
 }
 

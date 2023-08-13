@@ -31,6 +31,7 @@ object quic_endpoint = {
         individual ep        : ip.endpoint
         individual tls_id    : tls_api.id
         individual enc_level : quic_packet_type
+        individual lost_pkt_num : pkt_num
 
         after init {
             enc_level := quic_packet_type.initial;
@@ -84,20 +85,24 @@ object quic_endpoint = {
                 # } 
                 else { 
                     var rnum := reference_pkt_num(ppkt,true);
-                    var res := prot.decrypt(tls_id,rnum,ppkt);
-                    if res.ok {
-                        var is_pad := is_padding_packet(res.payload); # For picoquic  client
-                        if is_pad { #is_pad | is_rand_pad
-                            call padding_packet_event(host,src,dst,ppkt);
-                        } else {
-                            var pkt := pkt_serdes.from_bytes(res.data);
-                            pkt.seq_num := prot.correct_pnum(rnum,pkt.seq_num,prot.get_pnum_len(res.data));
-                            call recv_packet(host,src,dst,pkt);
-                            call infer_tls_events(src,dst,pkt);   # infer any TLS events on server side
-                            call packet_event(src,dst,pkt);       # also an inferred event
-                        };
+                    if rnum = lost_pkt_num {
+                        call on_purpose_lost_packet_event(host,src,dst,last_zrtt_pkt);
                     } else {
-                        call undecryptable_packet_event(host,src,dst,ppkt);
+                        var res := prot.decrypt(tls_id,rnum,ppkt);
+                        if res.ok {
+                            var is_pad := is_padding_packet(res.payload); # For picoquic  client
+                            if is_pad { #is_pad | is_rand_pad
+                                call padding_packet_event(host,src,dst,ppkt);
+                            } else {
+                                var pkt := pkt_serdes.from_bytes(res.data);
+                                pkt.seq_num := prot.correct_pnum(rnum,pkt.seq_num,prot.get_pnum_len(res.data));
+                                call recv_packet(host,src,dst,pkt);
+                                call infer_tls_events(src,dst,pkt);   # infer any TLS events on server side
+                                call packet_event(src,dst,pkt);       # also an inferred event
+                            };
+                        } else {
+                            call undecryptable_packet_event(host,src,dst,ppkt);
+                        };
                     };
                 };
                 idx := idx.next;
@@ -185,6 +190,7 @@ object quic_endpoint = {
         individual ep        : ip.endpoint
         individual tls_id    : tls_api.id
         individual enc_level : quic_packet_type
+        individual lost_pkt_num : pkt_num
         # }
 
         after init {
@@ -197,6 +203,7 @@ object quic_endpoint = {
             } else {
                 ep.interface := ip.ivy;
             }
+            lost_pkt_num := 0xa; # 666666; # means we do not loss packet on purposes
         }
         
         action set_ep(e:ip.endpoint) = {
@@ -223,66 +230,74 @@ object quic_endpoint = {
                 if zrtt_pkt_set & ~zrtt_pkt_process {
                     zrtt_pkt_process := true;
                     var rnum := reference_pkt_num(last_zrtt_pkt,true);
-                    var res := prot.decrypt(tls_id,rnum,last_zrtt_pkt);
-                    var dcil : stream_pos := bfe[0][7](ppkt.value(5));
-                    var ikm := cid_to_bytes(0,1); # dcid
-                    if(~dcil = 0) {
-                        client_initial_dcil := dcil;
-                        ikm := ppkt.segment(6,6+dcil); # dcid
-                    };
-                    var dcid : cid := bytes_to_cid(ikm);
-                    call on_datagram_received(dst, dcid, ppkt);
-                    # call set_loss_detection_timer(dst, dcid);
-                    # if loss_detection_timer < time_api.c_timer.now_micros {
-                    #     call on_loss_detection_timeout();
-                    # };
-                    if res.ok {
-                        if ~(bversion = 0) {
-                            #for client test, 0rtt packet
-                            call tls_client_0rtt_response(src,dst,res.data);
-                        };
+                    if rnum = lost_pkt_num {
+                        call on_purpose_lost_packet_event(host,src,dst,last_zrtt_pkt);
                     } else {
-                        call undecryptable_packet_event(host,src,dst,last_zrtt_pkt);
-                    };
+                        var res := prot.decrypt(tls_id,rnum,last_zrtt_pkt);
+                        var dcil : stream_pos := bfe[0][7](ppkt.value(5));
+                        var ikm := cid_to_bytes(0,1); # dcid
+                        if(~dcil = 0) {
+                            client_initial_dcil := dcil;
+                            ikm := ppkt.segment(6,6+dcil); # dcid
+                        };
+                        var dcid : cid := bytes_to_cid(ikm);
+                        call on_datagram_received(dst, dcid, ppkt);
+                        # call set_loss_detection_timer(dst, dcid);
+                        # if loss_detection_timer < time_api.c_timer.now_micros {
+                        #     call on_loss_detection_timeout();
+                        # };
+                        if res.ok {
+                            if ~(bversion = 0) {
+                                #for client test, 0rtt packet
+                                call tls_client_0rtt_response(src,dst,res.data);
+                            };
+                        } else {
+                            call undecryptable_packet_event(host,src,dst,last_zrtt_pkt);
+                        };
+                    }
                 };
                 if bvand(ppkt.value(0),0xf0) = 0xc0 {
                     # for client test
                     call tls_client_initial_response(src,dst,ppkt)
                 };
                 var rnum := reference_pkt_num(ppkt,true);
-                var res := prot.decrypt(tls_id,rnum,ppkt);
-                if res.ok {
-                    var is_pad := is_padding_packet(res.payload); # For picoquic  client
-                    if is_pad { #is_pad | is_rand_pad
-                        call padding_packet_event(host,src,dst,ppkt);
-                    } else if tt = 0x10  & ~(bversion = 0) {
-                        #for client test, 0rtt packet
-                        call tls_client_0rtt_response(src,dst,res.data);
-                    } else {
-                        var pkt := pkt_serdes.from_bytes(res.data);
-                        pkt.seq_num := prot.correct_pnum(rnum,pkt.seq_num,prot.get_pnum_len(res.data));
-                        call recv_packet(host,src,dst,pkt);
-                        call infer_tls_events(src,dst,pkt);   # infer any TLS events on server side
-                        call packet_event(src,dst,pkt);       # also an inferred event
-                        if nclients > 1 {
-                            var cdx := the_cids.begin;
-                            while cdx < the_cids.end {
-                                var tcid := the_cids.value(cdx);
-                                if bvand(ppkt.value(0),0xf0) = 0xc0 & ~connected(tcid) { 
-                                    # for client test
-                                    call app_server_open_event(dst,src,tcid,pkt.src_cid);  # [1]
-                                };
-                                cdx := cdx.next;
-                            }
+                if rnum = lost_pkt_num {
+                    call on_purpose_lost_packet_event(host,src,dst,last_zrtt_pkt);
+                } else {
+                    var res := prot.decrypt(tls_id,rnum,ppkt);
+                    if res.ok {
+                        var is_pad := is_padding_packet(res.payload); # For picoquic  client
+                        if is_pad { #is_pad | is_rand_pad
+                            call padding_packet_event(host,src,dst,ppkt);
+                        } else if tt = 0x10  & ~(bversion = 0) {
+                            #for client test, 0rtt packet
+                            call tls_client_0rtt_response(src,dst,res.data);
                         } else {
-                            if bvand(ppkt.value(0),0xf0) = 0xc0 & ~connected(the_cid) { 
-                                # for client test
-                                call app_server_open_event(dst,src,the_cid,pkt.src_cid);  # [1]
+                            var pkt := pkt_serdes.from_bytes(res.data);
+                            pkt.seq_num := prot.correct_pnum(rnum,pkt.seq_num,prot.get_pnum_len(res.data));
+                            call recv_packet(host,src,dst,pkt);
+                            call infer_tls_events(src,dst,pkt);   # infer any TLS events on server side
+                            call packet_event(src,dst,pkt);       # also an inferred event
+                            if nclients > 1 {
+                                var cdx := the_cids.begin;
+                                while cdx < the_cids.end {
+                                    var tcid := the_cids.value(cdx);
+                                    if bvand(ppkt.value(0),0xf0) = 0xc0 & ~connected(tcid) { 
+                                        # for client test
+                                        call app_server_open_event(dst,src,tcid,pkt.src_cid);  # [1]
+                                    };
+                                    cdx := cdx.next;
+                                }
+                            } else {
+                                if bvand(ppkt.value(0),0xf0) = 0xc0 & ~connected(the_cid) { 
+                                    # for client test
+                                    call app_server_open_event(dst,src,the_cid,pkt.src_cid);  # [1]
+                                };
                             };
                         };
+                    } else {
+                        call undecryptable_packet_event(host,src,dst,ppkt);
                     };
-                } else {
-                    call undecryptable_packet_event(host,src,dst,ppkt);
                 };
                 idx := idx.next;
             };

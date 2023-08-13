@@ -6,6 +6,8 @@ include quic_stream
 #include quic_fsm_sending
 #include quic_fsm_receiving
 include quic_transport_error_code
+# include quic_rtt
+# include quic_congestion
 
 # The frame protocol
 # ==================
@@ -800,10 +802,14 @@ object frame = {
             if _generating {
                 require some_new_ack;
                 require f.largest_acked = max_acked(dcid,e);
-            } else {
-                call on_ack_received(dst_endpoint,f,e);
-            }
+            } 
+            # else { # error in ivy_to_cpp if called from here
+            #     call on_ack_received(dst_endpoint,f.largest_acked, f.ack_delay,e);
+            # }
 	    ...
+            if ~_generating {
+                call on_ack_received(dst_endpoint,f.largest_acked, f.ack_delay,e);
+            }
             force_new_ack := false;
             call enqueue_frame(scid,f,e,false,seq_num);
         }
@@ -1565,11 +1571,15 @@ object frame = { ...
         action handle(f:frame.ping,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
             require num_queued_frames(scid) > 0 -> e = queued_level(scid);
-            require need_send_ack_eliciting_application_packet | need_send_ack_eliciting_handshake_packet | need_send_ack_eliciting_initial_packet;
+            if _generating {
+                require need_send_ack_eliciting_application_packet | need_send_ack_eliciting_handshake_packet | need_send_ack_eliciting_initial_packet;
+            }
             ...
-            need_send_ack_eliciting_application_packet := false;
-            need_send_ack_eliciting_handshake_packet := false;
-            need_send_ack_eliciting_initial_packet := false;
+            if _generating {
+                need_send_ack_eliciting_application_packet := false;
+                need_send_ack_eliciting_handshake_packet := false;
+                need_send_ack_eliciting_initial_packet := false;
+            }
             call enqueue_frame(scid,f,e,false,seq_num);
         }
     }

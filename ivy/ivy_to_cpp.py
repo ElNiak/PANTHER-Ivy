@@ -1197,6 +1197,10 @@ def emit_action_gen(header,impl,name,action,classname):
     caname = varname(name)
     if name in im.module.before_export:
         action = im.module.before_export[name]
+    # print "-------------------"
+    # print name
+    # print classname
+    # print action
     def card(sort):
 #        res = sort_card(sort)
 #        if res is not None:
@@ -1246,7 +1250,8 @@ def emit_action_gen(header,impl,name,action,classname):
     for sym in syms:
         if sym in fsyms:
             sym = get_root(fsyms[sym])
-        if sym not in decld:
+        #print sym
+        if sym not in decld: # chris: TODO check impact of this hasattr(sym,'name') and
             if not sym.name.startswith('__ts') and sym not in old_pre_clauses.defidx and sym.name != '*>':
                 declare_symbol(header,sym,classname=classname)
             decld.add(sym)

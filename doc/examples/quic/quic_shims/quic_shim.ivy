@@ -257,6 +257,7 @@ import action padding_packet_event(host:endpoint_id,src:ip.endpoint,dst:ip.endpo
 
 # This received packets that are undecryptable
 import action undecryptable_packet_event(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:stream_data)
+import action on_purpose_lost_packet_event(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:stream_data)
 
 import action undefined_host_error(host:endpoint_id, s:net.socket, src:ip.endpoint)
 
