@@ -1003,7 +1003,10 @@ class WhileAction(Action):
         else:
             idx_sort = None
         #            raise IvyError(self,'cannot determine an index sort for loop')
+        print card
+        print idx_sort
         cardsort = card(idx_sort)
+        print cardsort
         sort_name = idx_sort if idx_sort is not None else "unknown sort"
         if cardsort is None:
             raise IvyError(self,'cannot determine an iteration bound for loop over {}'.format(sort_name))

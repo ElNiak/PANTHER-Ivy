@@ -62,7 +62,7 @@ class TkGraphWidget(TkCyCanvas,uu.WithMenuBar):
     def get_enabled(self,rel):
         if rel in self.rel_enabled:
             return self.rel_enabled[rel]
-        res = [IntVar(self,0),IntVar(self,0),IntVar(self,0),IntVar(self,0)]
+        res = [IntVar(self,1),IntVar(self,1),IntVar(self,1),IntVar(self,0)]
         self.rel_enabled[rel] = res
         return res
 
@@ -255,10 +255,18 @@ class TkGraphWidget(TkCyCanvas,uu.WithMenuBar):
 
     def export(self):
             tk = self.tk
-            f = tkFileDialog.asksaveasfilename(filetypes = [('dot files', '.dot')],title='Export graph as...',parent=self)
-            tk.eval('set myfd [open {' + f + '} w]')
-            tk.eval('$graph write $myfd dot')
-            tk.eval('close $myfd')
+            import json
+            json_object = json.dumps(self.g.cy_elements.elements, indent=4)
+ 
+            # Writing to sample.json
+            import os
+            os.system("chown root:root /tmp/cytoscape_config.json")
+            with open("/tmp/cytoscape_config.json", "w") as outfile:
+                outfile.write(json_object)
+            # f = tkFileDialog.asksaveasfilename(filetypes = [('dot files', '.dot')],title='Export graph as...',parent=self)
+            # tk.eval('set myfd [open {' + f + '} w]')
+            # tk.eval('$graph write $myfd dot')
+            # tk.eval('close $myfd')
 
     def node_from_cy_elem(self,elem):
         return self.g.concept_from_id(get_obj(elem))

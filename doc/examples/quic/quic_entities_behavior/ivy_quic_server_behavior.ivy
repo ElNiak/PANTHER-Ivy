@@ -221,12 +221,15 @@ after init {
 #   connection.  This Destination Connection ID is used to determine
 #   packet protection keys for Initial packets.
 
+
 after init {
     version_negociated := false;
 }
 
+
 before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
-    if _generating {
+    if _generating { # &
+        #require  ~connection_timeout;
         require client.ep.addr ~= 0;  # must have a client address to send to
         require src = server.ep;
         require dst = client.ep;
@@ -235,6 +238,7 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     	require pkt.long -> pkt.pversion = initial_version;  #version 29
 	    #call show_version(initial_version);
     } else {
+        # require ~connection_timeout;
 	    require pkt.long -> (pkt.pversion = initial_version | pkt.pversion = 0xfaceb002);  #version 29
 	    if pkt.long {
 	    	initial_version := pkt.pversion;

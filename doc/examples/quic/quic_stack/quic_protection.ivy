@@ -346,12 +346,7 @@ module quic_protection(tls_id,tls) = {
         }
     }
 
-    action retry_integrity_tag(odcil: stream_pos, odcid: cid,
-                               pversion: version,
-                               dcil: stream_pos, dcid: cid,
-                               scil: stream_pos, scid: cid,
-                               token : stream_data,
-                               seq:pkt_num,h:stream_pos,b:bool) returns (cipher:stream_data)
+    action retry_integrity_tag(odcil: stream_pos, odcid: cid, pversion: version, dcil: stream_pos, dcid: cid, scil: stream_pos, scid: cid, token : stream_data, seq:pkt_num,h:stream_pos,b:bool) returns (cipher:stream_data)
 
     implement retry_integrity_tag {
         # TODO useless, call directly  tls.compute_retry_integrity_tag
@@ -390,9 +385,7 @@ module quic_protection(tls_id,tls) = {
     }
 
     # FROM quic-tracker GetPacketSample
-    action get_packet_sample(header:header_info, packetByte: stream_data, 
-                             pnum_pos:stream_pos,hdr_len:stream_pos,sample_size:stream_pos) 
-    returns (sample: stream_data) = {
+    action get_packet_sample(header:header_info, packetByte: stream_data, pnum_pos:stream_pos,hdr_len:stream_pos,sample_size:stream_pos) returns (sample: stream_data) = {
         #var sample_length: stream_pos := 16;
         var pn_offset : stream_pos := 0;
         if header.hdr_long {
@@ -473,23 +466,20 @@ module quic_protection(tls_id,tls) = {
 
     # Get the length of a packet number at position `pos`
 
-    action get_pnum_len_b(pkt:stream_data) 
-    returns (pnum_len:stream_pos) = {
+    action get_pnum_len_b(pkt:stream_data) returns (pnum_len:stream_pos) = {
         <<<
         pnum_len = (pkt[0] & 0x3) + 1;
         >>>
     }
     
-    action get_pnum_len(pkt:stream_data) 
-    returns (pnum_len:stream_pos) = {
+    action get_pnum_len(pkt:stream_data) returns (pnum_len:stream_pos) = {
         var len_minus_one : stream_pos := bfe[0][1](pkt.value(0));
         pnum_len := len_minus_one + 1;
     }
 
     # Given the length of the packet number, get the number it encodes.
 
-    action get_pnum(pkt:stream_data,pnum_pos:stream_pos,pnum_len:stream_pos)
-    returns (seq:pkt_num) = {
+    action get_pnum(pkt:stream_data,pnum_pos:stream_pos,pnum_len:stream_pos) returns (seq:pkt_num) = {
         var data := pkt.segment(pnum_pos,pnum_pos + pnum_len);
         seq := 0;
         var idx:stream_pos := 0;

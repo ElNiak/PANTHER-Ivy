@@ -15,11 +15,7 @@ object tls_ser_server = {}
     //https://tools.ietf.org/id/draft-huitema-quic-ts-03.html
     
     //TODO
-    #if defined(IS_NOT_DOCKER) 
-        #include "/home/user/Documents/QUIC-RFC9000/QUIC-Ivy-Attacker/doc/examples/quic/quic_utils/quic_ser_deser.h"
-    #else 
-        #include "/tmp/QUIC-FormalVerification/QUIC-Ivy-Attacker/doc/examples/quic/quic_utils/quic_ser_deser.h"
-    #endif
+#include "/tmp/QUIC-FormalVerification/QUIC-Ivy-Attacker/doc/examples/quic/quic_utils/quic_ser_deser.h"
 
     class `tls_deser` : public ivy_binary_deser_128 {
     //class `tls_deser` : public ivy_binary_deser {
@@ -490,10 +486,11 @@ object tls_ser_server = {}
             std::vector<char> temp;
             temp.swap(res);
             int len = end-start;
-            // std::cerr << "ser-close_field: start : " << start << "\n";
-            // std::cerr << "ser-close_field: end : " << end << "\n";
-            // std::cerr << "ser-close_field: len : " << len << "\n";
-            // std::cerr << "ser-close_field: flb : " << flb << "\n";
+            std::cerr << "ser-close_field: start : " << start << "\n";
+            std::cerr << "ser-close_field: end : " << end << "\n";
+            std::cerr << "ser-close_field: len : " << len << "\n";
+            std::cerr << "ser-close_field: flb : " << flb << "\n";
+            std::cerr << "-------------------" << "\n";
             setn(len,flb);
             temp.swap(res); //[xx] remove
             std::copy(temp.begin(),temp.end(),res.begin()+start-flb); // [xx] remove

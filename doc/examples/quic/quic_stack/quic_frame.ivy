@@ -74,7 +74,7 @@ object frame = {
         variant this of frame = struct {
         
             largest_acked   : pkt_num,    # largest acknowledged packet number
-            ack_delay       : microsecs,  # delay of largest acked packet
+            ack_delay       : microseconds,  # delay of largest acked packet
             ack_ranges      : range.arr   # ack ranges
 			# ecnp            : bool,     # is this the final offset
 			# ecn_counts      : ecn.arr
@@ -110,7 +110,7 @@ object frame = {
         variant this of frame = struct {
         
             largest_acked   : pkt_num,    # largest acknowledged packet number
-            ack_delay       : microsecs,  # delay of largest acked packet
+            ack_delay       : microseconds,  # delay of largest acked packet
             ack_ranges      : range.arr   # ack ranges
 			# ecnp            : bool,     # is this the final offset
 			# ecn_counts      : ecn.arr
@@ -332,7 +332,7 @@ object frame = {
          variant this of frame = struct {
 			seq_num              : pkt_num,     # the sequence number 
             packet_tolerence     : stream_pos,  #maximum number of ack-eliciting packets after which the receiver sends an acknowledgement.
-            update_max_ack_delay : microsecs,
+            update_max_ack_delay : microseconds,
             ignore_order         : bool
          }
     } 
@@ -535,6 +535,7 @@ relation path_challenge_pending(C:cid,D:stream_data)
 function conn_total_data(C:cid) : stream_pos
 #Hamid
 relation queued_ack_eliciting(C:cid)
+relation queued_ack_eliciting_pkt(C:stream_pos)
 #Hamid
 
 #chris
@@ -571,11 +572,13 @@ function first_zrtt_pkt : cid
 relation zrtt_pkt_update 
 
 #relation is_stream_limit_test
-var is_stream_limit_test : bool
+relation is_stream_limit_test
 relation is_crypto_limit_test
 
 #TODO faire all retransmission
 relation stop_sending_in_bad_state
+
+relation newly_acked(S:stream_pos) 
 #chris
 
 after init {
@@ -610,6 +613,8 @@ after init {
     is_crypto_limit_test := false;
     last_cid_seq(C) := 0;
     zrtt_pkt_update := false;
+    newly_acked(S) := true;
+    queued_ack_eliciting_pkt(C) := false;
 #chris
 }
 
@@ -655,24 +660,120 @@ object frame = {
         action handle(f:frame.ack,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
 	around handle {
+            # ack_time := time_api.c_timer.now_micros;
+            # An endpoint generates an RTT sample on receiving an ACK frame that meets the following two conditions:
+            # 1. the largest acknowledged packet number is newly acknowledged, and
+            # 2. at least one of the newly acknowledged packets was ack-eliciting.
+
+            call show_pkt_num(seq_num);
+            call show_pkt_num(f.largest_acked);
+            call show_pkt_num(max_acked(dcid,e));
+            
+            # call show_latest_rtt(ack_time);
+            # call show_latest_rtt(send_time_of_largest_acked(f.largest_acked));
+            # call show_latest_rtt(latest_rtt(dcid));
+            # if ~_generating { # TODO should be done at serialization ?
+            #     #call show_newly_acked(newly_acked(f.largest_acked)); # Memory overflow
+            #     # TODO & queued_ack_eliciting(scid)  saved these packed -> in packet_event ?
+            #     if  newly_acked(seqnum_to_streampos(f.largest_acked)) & queued_ack_eliciting_pkt(seqnum_to_streampos(f.largest_acked)) { # newly_acked(seq_num) &
+            #         latest_rtt(dcid) := ack_time - send_time_of_largest_acked(f.largest_acked);
+            #         call show_latest_rtt(latest_rtt(dcid),dcid);
+                    
+            #         var tp := trans_params(dcid);
+            #         var max_delay := milliseconds_to_microseconds(max_ack_delay.value(tp).exponent_8);
+            #         if max_delay = 0 {
+            #             max_delay := 25*1000;
+            #         }
+            #         call show_latest_rtt(max_delay,dcid);
+            #         #  and ack-eliciting packets MUST be acknowledged at least once within the maximum ack delay.
+            #         require latest_rtt(dcid) < max_delay;
+            #         if first_rtt_sample {
+            #             min_rtt(dcid) := latest_rtt(dcid);
+            #             smoothed_rtt(dcid) := latest_rtt(dcid);
+            #             rttvar(dcid) := latest_rtt(dcid) / 2;
+            #             first_rtt_sample := false;
+            #         } else {
+            #             if latest_rtt(dcid) < min_rtt(dcid) {
+            #                 min_rtt(dcid) := latest_rtt(dcid);
+            #             }
+            #             # On subsequent RTT samples, smoothed_rtt(dcid) and rttvar(dcid) evolve as follows:
+            #             # ack_delay = min(Ack Delay in ACK Frame, max_ack_delay)
+                        
+            #             var local_ack_delay := f.ack_delay;
+            #             if local_ack_delay > max_delay {
+            #                 local_ack_delay := max_delay;
+            #             }
+            #             # adjusted_rtt = latest_rtt
+            #             var adjusted_rtt := latest_rtt(dcid);
+            #             # if (min_rtt(dcid) + ack_delay < latest_rtt):
+            #             #   adjusted_rtt = latest_rtt - ack_delay
+            #             if min_rtt(dcid) + local_ack_delay <  latest_rtt(dcid) {
+            #                 adjusted_rtt := latest_rtt(dcid) - local_ack_delay;
+            #             }
+            #             # smoothed_rtt(dcid) = 7/8 * smoothed_rtt(dcid) + 1/8 * adjusted_rtt
+            #             smoothed_rtt(dcid) := 7 * smoothed_rtt(dcid)/8 + adjusted_rtt/8;
+            #             # rttvar_sample = abs(smoothed_rtt(dcid) - adjusted_rtt)
+            #             var rttvar_sample := smoothed_rtt(dcid) - adjusted_rtt;
+            #             if rttvar_sample < 0 {
+            #                 rttvar_sample := 0-rttvar_sample;
+            #             }
+            #             # rttvar(dcid) = 3/4 * rttvar(dcid) + 1/4 * rttvar_sample
+            #             rttvar(dcid) := 3 * rttvar(dcid)/4 +  rttvar_sample/4;
+            #         }
+            #         call show_rttvar(rttvar(dcid),dcid);
+            #         call show_min_rtt(min_rtt(dcid),dcid);
+            #         call show_smoothed_rtt(smoothed_rtt(dcid),dcid);
+            #     }
+            #     newly_acked(seqnum_to_streampos(f.largest_acked)) := false;
+            #     call show_newly_acked(newly_acked(seqnum_to_streampos(f.largest_acked)));
+            #     call show_newly_acked(queued_ack_eliciting_pkt(seqnum_to_streampos(f.largest_acked)));
+            # };
+
             require connected(dcid) & connected_to(dcid) = scid;
             if _generating  {
             	require ~(e = quic_packet_type.initial) & ~(e = quic_packet_type.handshake); #& ~(e = quic_packet_type.handshake)
                 require ~conn_closed(scid);
+                # An endpoint measures the delays intentionally introduced between the time the 
+                # packet with the largest packet number is received and the time an acknowledgment 
+                # is sent. The endpoint encodes this delay in the Ack Delay field of an ACK frame; 
+                # see Section 19.3. This allows the receiver of the ACK to adjust for any intentional delays, 
+                # which is important for getting a better estimate of the path RTT when acknowledgments are delayed. 
+                # A packet might be held in the OS kernel or elsewhere on the host before being processed. 
+                # An endpoint MUST NOT include delays that it does not control when populating the
+                # Ack Delay field in an ACK frame.
+
+                # Scaling in this fashion allows for a larger range of values with a shorter encoding at 
+                # the cost of lower resolution. Because the receiver doesn't use the ACK Delay for Initial 
+                # and Handshake packets, a sender SHOULD send a value of 0. TODO
+                # var tp := trans_params(dcid);
+                # var delay := scale_ack_delay(microseconds_to_milliseconds(latest_rtt(dcid)), ack_delay_exponent.value(tp).exponent_8);
+                # call show_ack_delay(delay);
+                # f.ack_delay :=  delay;
             };
+            # else {
+            #     receiving_ack := true;
+            # };
 
             require e = quic_packet_type.handshake -> established_handshake_keys(scid);  # [4]
             require e = quic_packet_type.one_rtt -> established_1rtt_keys(scid);  # [4]
-            #Chris
-            #TODO ECN
+            # Chris
+            # TODO ECN
             require ~(e = quic_packet_type.version_negociation) & ~(e = quic_packet_type.retry) & ~(e = quic_packet_type.zero_rtt);
-            #Chris
+            # Chris
             require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+            
             var idx : frame.ack.range.idx := 0;
             var last := f.largest_acked;
             if max_acked(dcid,e) < last {
                 max_acked(dcid,e) := last;  # [3]
+                # send_time_of_largest_acked := time_api.c_timer.now_millis;
             };
+
+            # else {
+                
+            # };
+
+            
             require f.ack_ranges.end > 0;
             var some_new_ack := false;
             while idx < f.ack_ranges.end {
@@ -699,10 +800,12 @@ object frame = {
             if _generating {
                 require some_new_ack;
                 require f.largest_acked = max_acked(dcid,e);
+            } else {
+                call on_ack_received(dst_endpoint,f,e);
             }
 	    ...
             force_new_ack := false;
-            call enqueue_frame(scid,f,e,false);
+            call enqueue_frame(scid,f,e,false,seq_num);
         }
     }
 }
@@ -759,7 +862,7 @@ object frame = {
             }
 	    ...
             force_new_ack := false;
-            call enqueue_frame(scid,f,e,false);
+            call enqueue_frame(scid,f,e,false,seq_num);
         }
     }
 }
@@ -901,7 +1004,7 @@ object frame = { # TODO cleanup
                 stream_finished(dcid,f.id) := true;
             };
             if (~zero_rtt_allowed | zero_rtt_sent) & ~(e = quic_packet_type.zero_rtt) { #TODO
-                call enqueue_frame(scid,f,e,false);
+                call enqueue_frame(scid,f,e,false,seq_num);
             } else {
                 first_zrtt_pkt := dcid;
                 call enqueue_frame_rtt(scid,f,e,false);
@@ -957,7 +1060,7 @@ object frame = {
                 crypto_data_present(scid,e,idx) := true;  # [3]
                 idx := idx.next
             };
-            call enqueue_frame(scid,f,e,false);
+            call enqueue_frame(scid,f,e,false,seq_num);
             # TODO: is the following needed? Maybe it belongs somewhere else?
             if e = quic_packet_type.handshake {
                 established_1rtt_keys(scid) := true;
@@ -1016,7 +1119,7 @@ object frame = { ...
             if ~_generating {
                 call handle_transport_error(f.err_code);
             };
-            call enqueue_frame(scid,f,e,false);
+            call enqueue_frame(scid,f,e,false,seq_num);
         }
     }
 }
@@ -1065,7 +1168,7 @@ object frame = { ...
             };
             stream_seen(scid,f.id) := true;
             #receiving_ready := true;
-            call enqueue_frame(scid,f,e,false);
+            call enqueue_frame(scid,f,e,false,seq_num);
         }
     }
 }
@@ -1127,7 +1230,7 @@ object frame = { ...
 
 	        ...
 
-            call enqueue_frame(scid,f,e,false);
+            call enqueue_frame(scid,f,e,false,seq_num);
         }
     }
 }
@@ -1157,7 +1260,7 @@ object frame = { ...
 
 	        ...
 
-            call enqueue_frame(scid,f,e,false);
+            call enqueue_frame(scid,f,e,false,seq_num);
         }
     }
 }
@@ -1215,7 +1318,7 @@ object frame = { ...
             # if _generating {
             #     call _finalize;
             # };
-            call enqueue_frame(scid,f,e,false);
+            call enqueue_frame(scid,f,e,false,seq_num);
         }
     }
 }
@@ -1263,7 +1366,7 @@ object frame = { ...
             conn_closed(scid) := true;
             call handle_transport_error(f.err_code);
 	    ...
-            call enqueue_frame(scid,f,e,false);
+            call enqueue_frame(scid,f,e,false,seq_num);
         }
     }
 }
@@ -1302,7 +1405,7 @@ object frame = { ...
             }
 	    ...
             #receiving_ready := true;
-            call enqueue_frame(scid,f,e,false);
+            call enqueue_frame(scid,f,e,false,seq_num);
         }
     }
 }
@@ -1332,7 +1435,7 @@ object frame = { ...
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
             require num_queued_frames(scid) > 0 -> e = queued_level(scid);
 	    ...
-            call enqueue_frame(scid,f,e,false);
+            call enqueue_frame(scid,f,e,false,seq_num);
         }
     }
 }
@@ -1359,7 +1462,7 @@ object frame = { ...
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
             require num_queued_frames(scid) > 0 -> e = queued_level(scid);
 	    ...
-            call enqueue_frame(scid,f,e,false);
+            call enqueue_frame(scid,f,e,false,seq_num);
         }
     }
 }
@@ -1395,7 +1498,7 @@ object frame = { ...
             #  ms := f.id; #TODO not finished, should distinguish uni and bidi
 
 	    ...
-            call enqueue_frame(scid,f,e,false);
+            call enqueue_frame(scid,f,e,false,seq_num);
         }
     }
 }
@@ -1411,7 +1514,7 @@ object frame = { ...
             #  ms := f.id; #TODO not finished, should distinguish uni and bidi
 
 	    ...
-            call enqueue_frame(scid,f,e,false);
+            call enqueue_frame(scid,f,e,false,seq_num);
         }
     }
 }
@@ -1445,7 +1548,7 @@ object frame = { ...
                 max_data_val(scid) := f.pos;  # [2]
             }
 	    ...
-            call enqueue_frame(scid,f,e,false);
+            call enqueue_frame(scid,f,e,false,seq_num);
         }
     }
 }
@@ -1462,8 +1565,12 @@ object frame = { ...
         action handle(f:frame.ping,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
             require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+            require need_send_ack_eliciting_application_packet | need_send_ack_eliciting_handshake_packet | need_send_ack_eliciting_initial_packet;
             ...
-            call enqueue_frame(scid,f,e,false);
+            need_send_ack_eliciting_application_packet := false;
+            need_send_ack_eliciting_handshake_packet := false;
+            need_send_ack_eliciting_initial_packet := false;
+            call enqueue_frame(scid,f,e,false,seq_num);
         }
     }
 }
@@ -1487,7 +1594,7 @@ object frame = { ...
             #require e ~= quic_packet_type.retry & e ~= quic_packet_type.version_negociation;
             require ~conn_closed(scid); 
             ...
-            call enqueue_frame(scid,f,e,false);
+            call enqueue_frame(scid,f,e,false,seq_num);
         }
     }
 }
@@ -1503,7 +1610,7 @@ object frame = { ...
 #    object padding = { ...
 #        action handle(f:frame.padding,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 #	after handle {
-#            call enqueue_frame(scid,f,e,true);
+#            call enqueue_frame(scid,f,e,true,seq_num);
 #        }
 #    }
 #}
@@ -1529,7 +1636,7 @@ object frame = { ...
             if _generating {
                 handshake_done_send := true;
             };
-            call enqueue_frame(scid,f,e,false);
+            call enqueue_frame(scid,f,e,false,seq_num);
         }
     }
 }
@@ -1610,7 +1717,7 @@ object frame = { ...
                 max_seq_num(scid) := f.seq_num;
             };
             #Hamid 
-	        call enqueue_frame(scid,f,e,true);
+	        call enqueue_frame(scid,f,e,true,seq_num);
         }
     }
 }
@@ -1654,7 +1761,7 @@ object frame = { ...
             #Hamid
             # the connection id seqnum_to_cid is being retired, append it to an array and iterate over the array in packet
             #Hamid
-	        call enqueue_frame(scid,f,e,false);
+	        call enqueue_frame(scid,f,e,false,seq_num);
         }
     }
 }
@@ -1687,7 +1794,7 @@ object frame = { ...
             require ~path_challenge_pending(dcid,f.data);
             ...
             path_challenge_pending(dcid,f.data) := true;
-            call enqueue_frame(scid,f,e,true);
+            call enqueue_frame(scid,f,e,true,seq_num);
         }
     }
 }
@@ -1709,7 +1816,7 @@ object frame = { ...
             require path_challenge_pending(scid,f.data);
             ...
             path_challenge_pending(scid,f.data) := false;
-            call enqueue_frame(scid,f,e,true);
+            call enqueue_frame(scid,f,e,true,seq_num);
         }
     }
 }
@@ -1734,7 +1841,7 @@ object frame = { ...
             ...
 
             # call tls_api.upper.save_token(f.data);
-            call enqueue_frame(scid,f,e,false);
+            call enqueue_frame(scid,f,e,false,seq_num);
         }
     }
 }
@@ -1749,7 +1856,7 @@ object frame = { ...
 
 object frame = { ...
     object ack_frequency = { ...
-        action handle(f:frame.ack_frequency,scid:cid,dcid:cid,e:quic_packet_type)
+        action handle(f:frame.ack_frequency,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
@@ -1758,7 +1865,7 @@ object frame = { ...
             ...
 
             var tp := trans_params(dcid);
-            var min : microsecs := 0;
+            var min : microseconds := 0;
             if min_ack_delay.is_set(tp) {
                 min := min_ack_delay.value(trans_params(dcid)).exponent_8
             };
@@ -1773,7 +1880,7 @@ object frame = { ...
                 require f.seq_num > last_ack_freq_seq(scid);
                 last_ack_freq_seq(scid) := f.seq_num;
             };
-            call enqueue_frame(scid,f,e,false);
+            call enqueue_frame(scid,f,e,false,seq_num);
         }
     }
 }
@@ -1794,7 +1901,7 @@ object frame = {
             require ~conn_closed(scid);  # [8]
             require conn_seen(scid);  # [9]
 	        ...
-            call enqueue_frame(scid,f,e,false);
+            call enqueue_frame(scid,f,e,false,seq_num);
         }
     }
 }
@@ -1818,7 +1925,7 @@ object frame = {
 # 
 # The argument probing indicates that the frame is a probing frame, according to [9.1]
 # of the transport document( as of draft 23)
-action enqueue_frame(scid:cid, f:frame, e:quic_packet_type, probing:bool) = {
+action enqueue_frame(scid:cid, f:frame, e:quic_packet_type, probing:bool, seq: pkt_num) = {
     queued_frames(scid) := queued_frames(scid).append(f);
     num_queued_frames(scid) := queued_frames(scid).end;
     queued_level(scid) := e;
@@ -1837,6 +1944,7 @@ action enqueue_frame(scid:cid, f:frame, e:quic_packet_type, probing:bool) = {
 #Hamid
     if ~(f isa frame.ack) & ~(f isa frame.connection_close) { #& ~(f isa frame.padding){ & ~queued_ack_eliciting(scid)
 	    queued_ack_eliciting(scid) := true;
+        queued_ack_eliciting_pkt(seqnum_to_streampos(seq)) := true;  # TODO add client, vs server
     };
 #Hamid
 }
@@ -1984,8 +2092,39 @@ action max_additional_data(dcid:cid) returns (max:stream_pos) = {
 action min_ack_delay_check(dcid:cid) returns (ok:bool) = {
     ok := false;
     var tp := trans_params(dcid);
-    ok := min_ack_delay.value(tp).exponent_8 * 1000 < max_ack_delay.value(tp).exponent_8;
+    ok := min_ack_delay.value(tp).exponent_8  < milliseconds_to_microseconds(max_ack_delay.value(tp).exponent_8); # * 1000
 }
+
+action scale_ack_delay(delay:milliseconds, ack_delay_exponent:microsecs) returns (scaled:microseconds) = {
+   <<<
+    if (ack_delay_exponent == 0) {
+        ack_delay_exponent = 3;
+    }
+    std::cerr << "ack_delay_exponent " << ack_delay_exponent << "\n";
+    std::cerr << "delay " << delay << "\n";
+    std::cerr << "scaled " << delay * pow(ack_delay_exponent,2) << "\n";
+    scaled = delay * pow(ack_delay_exponent,2);
+   >>> 
+}
+
+action milliseconds_to_microseconds(delay:milliseconds) returns (scaled:microseconds) = {
+   <<<
+    scaled = delay * 1000;
+   >>> 
+}
+
+action microseconds_to_milliseconds(delay:microseconds) returns (scaled:milliseconds) = {
+   <<<
+    scaled = delay/1000;
+   >>> 
+}
+
+
+# action unscale_ack_delay(delay:milliseconds, ack_delay_exponent:microsecs) returns (scaled:microseconds) = {
+#    <<<
+
+#    >>> 
+# }
 
 # Check that the number of connection id proposed is not higher than active_connection_id_limit
 
@@ -1999,3 +2138,6 @@ action acti_coid_check(scid:cid,count:stream_pos) returns (ok:bool) = {
     };
 }
 
+import action show_ack_delay(t:microseconds)
+import action show_pkt_num(p:pkt_num)
+import action show_newly_acked(s:bool)

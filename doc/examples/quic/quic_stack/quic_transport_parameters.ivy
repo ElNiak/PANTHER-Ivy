@@ -60,7 +60,7 @@ object initial_max_stream_id_bidi = {
 
 object max_idle_timeout  = {
     variant this of transport_parameter = struct {  # tag = 3
-        seconds_16 : microsecs
+        seconds_16 : milliseconds
     }
     instantiate trans_params_ops(this)
 }
@@ -130,7 +130,7 @@ object initial_max_stream_data_uni = {
 
 object max_ack_delay = {
     variant this of transport_parameter = struct {  # tag = 12
-        exponent_8 : microsecs
+        exponent_8 : milliseconds
     }
     instantiate trans_params_ops(this)
 }
@@ -186,7 +186,7 @@ object enable_time_stamp = {
 
 object min_ack_delay  = {
     variant this of transport_parameter = struct {  # tag = 0xff02de1a
-        exponent_8 : microsecs
+        exponent_8 : microseconds
     }
     instantiate trans_params_ops(this)
 }

@@ -1968,8 +1968,10 @@ def module_to_cpp_class(classname,basename):
     
     #chris
     header.append("#include <inttypes.h>\n")
+    header.append("#include <math.h>\n")
     header.append("typedef __int128_t int128_t;\n")
     header.append("typedef __uint128_t uint128_t;\n")
+    
     
     declare_hash_thunk(header)
 

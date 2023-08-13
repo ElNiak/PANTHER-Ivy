@@ -13,7 +13,12 @@ include ivy_quic_server_behavior
 #
 
 include ivy_quic_server_standard_tp
+include quic_time
 
+after init {
+    call time_api.chrono_timer.start;
+    call time_api.c_timer.start;
+}
 # Note, we don't need a tester precondition for packet protocol
 # events, since the frame queue for the server end will always be
 # empty. This is because server frames are only inferred in response to
@@ -28,6 +33,10 @@ export frame.handshake_done.handle
 export packet_event
 export client_send_event
 export tls_recv_event
+
+export send_ack_eliciting_handshake_packet
+export send_ack_eliciting_initial_packet
+export frame.ping.handle
 #export frame.rst_stream.handle
 #export frame.max_stream_id.handle
 #export frame.connection_close.handle
@@ -46,6 +55,7 @@ export tls_recv_event
 export action _finalize = {
     require is_no_error;
     require conn_total_data(the_cid) > 0;
+    require respect_idle_timeout;
 }
 
 

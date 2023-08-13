@@ -316,6 +316,7 @@ def compile_app(self,old=False):
     if sym is not None:
         sym = old_sym(sym,old)
         return (sym)(*args)
+    im.module.sig.add_symbol('_generating',ivy_logic.BooleanSort()) #chris
     res = compile_field_reference(rep,args,self.lineno,old=old)
     return res
     
@@ -2235,7 +2236,7 @@ def ivy_compile(decls,mod=None,create_isolate=True,**kwargs):
         check_properties(mod)
         create_conj_actions(mod)
         handle_temporals(mod)
-        if create_isolate:
+        if create_isolate and hasattr(iso, 'create_isolate'): # chris
             iso.create_isolate(isolate.get(),mod,**kwargs)
             im.module.labeled_axioms.extend(im.module.labeled_props)
             im.module.theory_context().__enter__()

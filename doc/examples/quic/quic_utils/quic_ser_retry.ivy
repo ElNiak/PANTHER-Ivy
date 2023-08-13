@@ -14,11 +14,7 @@ object quic_ser_retry = {}
 
     //TODO
     //TODO
-    #if defined(IS_NOT_DOCKER) 
-        #include "/home/user/Documents/QUIC-RFC9000/QUIC-Ivy-Attacker/doc/examples/quic/quic_utils/quic_ser_deser.h"
-    #else 
-        #include "/tmp/QUIC-FormalVerification/QUIC-Ivy-Attacker/doc/examples/quic/quic_utils/quic_ser_deser.h"
-    #endif
+#include "/tmp/QUIC-FormalVerification/QUIC-Ivy-Attacker/doc/examples/quic/quic_utils/quic_ser_deser.h"
 
     class `quic_ser_retry` : public ivy_binary_ser_128 {
     //class `quic_ser_retry` : public ivy_binary_ser {

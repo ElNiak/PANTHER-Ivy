@@ -6,7 +6,7 @@ action make_transport_parameters returns (tp:quic_transport_parameters) = {
     var imd : initial_max_data;
     imd.stream_pos_32 := random_stream_pos(1,0xFFFFFFF);
     var it : max_idle_timeout;
-    it.seconds_16 := random_microsecs(0,0xFFFFFFF);
+    it.seconds_16 := 0xFFFFFFF; #random_microsecs(0,0xFFFFFFF);
     var imsdbr : initial_max_stream_data_bidi_remote;
     imsdbr.stream_pos_32 := random_stream_pos(1,0xFFFFFFF);
     var imsdu : initial_max_stream_data_uni;

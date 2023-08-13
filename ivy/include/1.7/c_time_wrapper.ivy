@@ -1,0 +1,254 @@
+#lang ivy1.7
+
+# https://gist.github.com/arxeiss/540e975b96b0d2c70c2be96a28da07e9
+
+# This is an implementation of the generic TimeMeasurement interface.
+# The parameters are:
+# TODO
+#
+
+module c_time_wrapper(timer) = {
+
+	object measures = {}          # struct holding the measures
+
+	<<< header
+
+	#include "time.h"
+	#include <sys/time.h>
+	#include <unordered_map>
+
+	class CTimeMeasuring;
+
+	>>>
+
+
+	<<< impl
+
+		struct CTimeMeasuring {
+			%`timer.start` start;
+			%`timer.timeout` timeout;
+			%`timer.now_micros` now_micros;
+			%`timer.now_millis` now_millis;
+			%`timer.now_micros_last_bp` now_micros_last_bp;
+			%`timer.now_millis_last_bp` now_millis_last_bp;
+		CTimeMeasuring(
+			const %`timer.start` start,
+			const %`timer.timeout` timeout,
+			const %`timer.now_micros` now_micros,
+			const %`timer.now_millis` now_millis,
+			const %`timer.now_micros_last_bp` now_micros_last_bp,
+			const %`timer.now_millis_last_bp` now_millis_last_bp
+		)
+		: start(start), timeout(timeout), now_micros(now_micros), now_millis(now_millis), now_micros_last_bp(now_micros_last_bp), now_millis_last_bp(now_millis_last_bp) {}
+		};
+
+		std::string last_bp_ms = "0";
+		std::string last_bp_micro = "0";
+		bool started = false;
+		struct timeval start;
+		std::unordered_map<std::string, struct timeval> breakpoints = std::unordered_map<std::string, struct timeval>();
+
+		bool startMeasuring() {
+			if (!started)
+			{
+				gettimeofday(&start, NULL);
+				started = true;
+				return true;
+			}
+			return false;
+		}
+
+		bool insertBreakpoint(std::string name) {
+			if (breakpoints.count(name) == 0)
+			{
+				struct timeval now;
+				gettimeofday(&now, NULL);
+				breakpoints[name] = now;
+				return true;
+			}
+			return false;
+		}
+
+		unsigned long  long  getTimeFromBeginning(bool microSeconds = false) {
+			struct timeval now;
+			gettimeofday(&now, NULL);
+			if (!started)
+			{
+				return -1;
+			}
+			if (microSeconds)
+			{	
+				unsigned long seconds  = now.tv_sec  - start.tv_sec;
+    			unsigned long useconds = now.tv_usec - start.tv_usec;
+				unsigned long mtime = 1000000 * seconds + useconds;
+				return mtime;
+			}
+			return now.tv_usec - start.tv_usec;
+		}
+
+		unsigned long  long  getTimeFromBreakpoint(std::string breakpoint, bool microSeconds = false) {
+			struct timeval now;
+			gettimeofday(&now, NULL);
+
+			struct timeval end = breakpoints[breakpoint];
+			
+			if (!started || breakpoints.count(breakpoint) == 0)
+			{
+				return -1;
+			}
+			if (microSeconds)
+			{
+				unsigned long seconds  = now.tv_sec  - end.tv_sec;
+    			unsigned long useconds = now.tv_usec - end.tv_usec;
+				unsigned long mtime = 1000000 * seconds + useconds;
+				return mtime;
+			}
+			return now.tv_usec - end.tv_usec;;
+		}
+
+		int msleep(long msec)
+		{
+			struct timespec ts;
+			int res;
+
+			if (msec < 0)
+			{
+				errno = EINVAL;
+				return -1;
+			}
+
+			ts.tv_sec = msec / 1000;
+			ts.tv_nsec = (msec % 1000) * 1000000;
+
+			do {
+				res = nanosleep(&ts, &ts);
+			} while (res && errno == EINTR);
+
+			return res;
+		}
+
+
+	>>>
+
+	<<< member
+
+	struct timeval start;
+	std::unordered_map<std::string, struct timeval> breakpoints;
+	CTimeMeasuring * `measures`;
+
+	>>>
+
+	<<< init
+
+		`measures` = new CTimeMeasuring(`timer.start`, `timer.timeout`, `timer.now_micros`, `timer.now_millis`, `timer.now_micros_last_bp`, `timer.now_millis_last_bp`);
+
+	>>>
+	# TODO probably, we will need some type of fingerprinting here to make sure that the time syscall are those we want in shadow
+	
+	object impl = {
+
+		implement start { # timer.start ??
+			<<<
+			std::cerr << "C time = start" << std::endl;
+			startMeasuring();
+			insertBreakpoint(last_bp_ms);
+			insertBreakpoint(last_bp_micro);
+			>>>
+		}
+
+		implement timeout {
+			<<<
+			if(started)
+			{
+				started = false;
+				std::cerr << "C time = timeout - timer started" << std::endl;
+			}
+			else 
+			{
+				std::cerr << "C time = timeout - timer not started" << std::endl;
+			}
+			
+			>>>
+		}
+
+		implement now_micros returns (i:microseconds) {
+			<<<
+			std::cerr << "C time = now_micros" << std::endl;
+			if(started) {
+				unsigned long  long  time = getTimeFromBeginning(true);
+				std::cerr << "C time = now_micros - timer started" << std::endl;
+				std::cerr << "C time = now_micros - time = " << time << std::endl;
+				i = time;
+			}
+			else {
+				std::cerr << "C time = now_micros - timer not started" << std::endl;
+			}
+			>>>
+		}
+
+		implement now_millis returns (i:milliseconds) {
+			<<<
+			std::cerr << "C time = now_millis" << std::endl;
+			if(started) {
+				unsigned long  long  time = getTimeFromBeginning(false);
+				std::cerr << "C time = now_millis - timer started" << std::endl;
+				std::cerr << "C time = now_millis - time = " << time << std::endl;
+				i = time;
+			} 
+			else {
+				std::cerr << "C time = now_millis - timer not started" << std::endl;
+			}
+			>>>
+		}
+
+		implement now_micros_last_bp returns (i:microseconds) {
+			<<<
+			std::cerr << "C time = now_micros_last_bp" << std::endl;
+			if(started) {
+				unsigned long  long  time = getTimeFromBreakpoint(last_bp_micro,true);
+				std::cerr << "C time = now_micros_last_bp - timer started" << std::endl;
+				std::cerr << "C time = now_micros_last_bp - time = " << time << std::endl;
+				int int_last_bp = stoi(last_bp_micro);
+				int_last_bp++;
+				last_bp_micro = std::to_string(int_last_bp);
+				insertBreakpoint(last_bp_micro);
+				i = time;
+			}
+			else {
+				std::cerr << "C time = now_micros_last_bp - timer not started" << std::endl;
+			}
+			>>>
+		}
+
+		implement now_millis_last_bp returns (i:milliseconds) {
+			<<<
+			std::cerr << "C time = now_millis_last_bp" << std::endl;
+			if(started) {
+				unsigned long  long  time = getTimeFromBreakpoint(last_bp_ms,false);
+				std::cerr << "C time = now_millis_last_bp - timer started" << std::endl;
+				std::cerr << "C time = now_millis_last_bp - time = " << time << std::endl;
+				int int_last_bp = stoi(last_bp_ms);
+				int_last_bp++;
+				last_bp_ms = std::to_string(int_last_bp);
+				insertBreakpoint(last_bp_ms);
+				i = time;
+			} 
+			else {
+				std::cerr << "C time = now_millis_last_bp - timer not started" << std::endl;
+			}
+			>>>
+		}
+
+		implement sleep(i:milliseconds) {
+			<<<
+			msleep(i);
+			>>>
+		}
+
+		trusted isolate iso = this
+
+    	attribute test = impl
+
+	}
+
+}

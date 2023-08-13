@@ -46,8 +46,12 @@ after packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
         call cipher_packet(ppkt);
         var pkts := prot.arr.empty;
         pkts := pkts.append(ppkt);
+        call on_packet_sent(src,dst,pkt, ppkt.size);
         call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
-    }
+    } 
+    # else {
+    #     require ~connection_timeout;
+    # }
 }
 
 after packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_vn) {

@@ -48,6 +48,8 @@ instance prot : quic_protection(tls_api.id,tls_api.upper)
 include quic_endpoint
 include quic_locale
 
+include quic_rtt
+include quic_congestion
 
 include ivy_quic_server
 include ivy_quic_client 
@@ -919,6 +921,12 @@ action cid_to_us(c:cid) returns(res:tls_api.id) = {
 action cidseq_to_seqnum(c:cid_seq) returns(res:pkt_num) = {
     <<<
     res = c.val;
+    >>>
+}
+
+action seqnum_to_streampos(c:pkt_num) returns(res:stream_pos) = {
+    <<<
+    res = c;
     >>>
 }
 

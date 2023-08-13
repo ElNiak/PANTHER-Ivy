@@ -1,5 +1,7 @@
 #lang ivy1.7
 
+# include collections
+# include order
 include quic_types
 include quic_transport_error_code
 include quic_frame
@@ -45,6 +47,50 @@ include quic_fsm_receiving
 # - *payload*: the payload, a sequence of frames  [8]
 
 object quic_packet = {
+    # type this 
+    # instance idx : unbounded_sequence
+    # instance arr : array(idx,this)
+
+    # object quic_packet_initial = {
+    #     variant this of quic_packet = struct {
+    #         ptype : quic_packet_type, # [2]
+    #         dst_cid : cid, # [4]
+    #         src_cid : cid, # [5]
+    #         seq_num : pkt_num, # [7]
+    #         payload : frame.arr # [8]
+    #     }
+    # }
+
+    # object quic_packet_handshake = {
+    #     variant this of quic_packet = struct {
+    #         ptype : quic_packet_type, # [2]
+    #         dst_cid : cid, # [4]
+    #         src_cid : cid, # [5]
+    #         seq_num : pkt_num, # [7]
+    #         payload : frame.arr # [8]
+    #     }
+    # }
+
+    # object quic_packet_one_rtt = {
+    #     variant this of quic_packet = struct {
+    #         ptype : quic_packet_type, # [2]
+    #         dst_cid : cid, # [4]
+    #         src_cid : cid, # [5]
+    #         seq_num : pkt_num, # [7]
+    #         payload : frame.arr # [8]
+    #     }
+    # }
+
+    # object quic_packet_zero_rtt = {
+    #     variant this of quic_packet = struct {
+    #         ptype : quic_packet_type, # [2]
+    #         dst_cid : cid, # [4]
+    #         src_cid : cid, # [5]
+    #         seq_num : pkt_num, # [7]
+    #         payload : frame.arr # [8]
+    #     }
+    # }
+
     type this = struct {
         ptype : quic_packet_type, # [2]
         pversion : version, # [3]
@@ -55,13 +101,17 @@ object quic_packet = {
         payload : frame.arr # [8]
     }
 
+    #Hamid
+    #instance retired_cids : array(idx, cid_seq)
+    #Hamid
+
     instance idx : unbounded_sequence
-    instance arr : array(idx,this)
+    instance arr : array(idx,this) 
+}
 
-    #Hamid
-    instance retired_cids : array(idx, cid_seq)
-    #Hamid
 
+object quic_packet = { 
+    ... 
     action long(pkt:this) returns(res:bool) = {
         res := pkt.ptype ~= quic_packet_type.one_rtt;
     }
@@ -83,8 +133,12 @@ object quic_packet = {
 # - `src`: the source endpoint
 # - `dst`: the destination endpoint
 # - `pkt` : the packet contents
-
 action packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) = {}
+
+action send_ack_eliciting_handshake_packet(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) = {}
+
+action send_ack_eliciting_initial_packet(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) = {}
+
 
 #action packet_event_multiple_src(src1:ip.endpoint,src2:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) = {}
 
@@ -184,6 +238,7 @@ relation connected(C:cid)
 function cid_to_aid(C:cid) : cid 
 relation cid_mapped(C:cid)
 
+
 #chris
 function cid_to_token(C:cid) : stream_data 
 function initial_token : stream_data 
@@ -212,10 +267,17 @@ relation first_initial_send
 function initial_scid : cid 
 function initial_dcid : cid 
 
+
+relation is_lost(C:cid,L:quic_packet_type,N:pkt_num)
+function is_retransmitted(P:frame.arr) : pkt_num
+
 #function cid_ip_mapped(D:ip.endpoint) :cid
 #relation cid_ip_mapped(D:ip.endpoint)
 #chris
 
+function dst_endpoint : ip.endpoint
+
+relation slept
 
 # Initial state
 # -------------
@@ -250,6 +312,8 @@ after init {
     tls_handshake_finished := false;
     first_initial_send := false;
     issued_zero_length_cid := false;
+    is_retransmitted(P) := 0;
+    slept := false;
     #chris
 }
 
@@ -324,10 +388,12 @@ after init {
 #   transport parameter is included with a zero-length value.
 
 around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
-    #call show_connected(connected(the_cid), connected_to(the_cid));
-
-    # TEMPORARY: Do not allow zero_rtt packets
-
+    idle_timeout := time_api.c_timer.now_micros_last_bp;
+    call show_current_idle_timeout(idle_timeout);
+    if ~_generating {
+        dst_endpoint := dst;
+    }
+   
     require pkt.ptype ~= quic_packet_type.zero_rtt & pkt.ptype ~= quic_packet_type.version_negociation & pkt.ptype ~= quic_packet_type.retry;
     
     # Extract the source and destination cid's and packet number from the packet.
@@ -337,6 +403,31 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     if cid_mapped(dcid) {
 	    dcid := cid_to_aid(dcid);
     };
+
+    is_retransmitted(pkt.payload) := is_retransmitted(pkt.payload) + 1;
+    call show_is_retransmitted(seqnum_to_streampos(pkt.seq_num),is_retransmitted(pkt.payload));
+    
+    # call show_is_retransmitted(pkt.payload,is_retransmitted(pkt.payload));
+    # if last_pkt_num(scid,pkt.ptype) > 3  & conn_total_data(the_cid) > 0 & ~slept{
+    #     call sleep_event;
+    #     call time_api.c_timer.sleep(microseconds_to_milliseconds(max_idle_timeout_used)+10);
+    #     slept := true;
+    # }
+
+    if max_idle_timeout_used > 0 {
+        if idle_timeout > max_idle_timeout_used  {
+            connection_timeout := true;
+        }
+    }
+
+
+    # & idle_timeout > pto_timeout*3
+    call show_current_idle_timeout(pto_timeout*3);
+    if ~_generating & connection_timeout & is_retransmitted(pkt.payload) < 2 & idle_timeout > pto_timeout*3 {
+        respect_idle_timeout := false;
+        call respect_idle_timeout_none;
+    }
+    
     require pkt.token.end ~= 0 -> (retry_sent(client_initial_rcid) | retry_recv(scid) | pkt.token = tls_api.upper.get_old_new_token);
 
     if (src = client_alt | dst = client_alt) & nclients = 1 {
@@ -396,6 +487,7 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
 
     require pkt.ptype = queued_level(scid);
 
+   
     # TEMPORARY: prevent big packet number jumps (work around minquic bug)
     # Removed for MVFST that start with big PKT_NUM -> OK now
     if  _generating {
@@ -409,6 +501,15 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
         # };
         #require pkt.seq_num < last_pkt_num(scid,pkt.ptype) + 0x1 & pkt.seq_num > last_pkt_num(scid,pkt.ptype);
     };
+    # else {
+    #     # An endpoint generates an RTT sample on receiving an ACK frame that meets the following two conditions:
+    #     # 1. the largest acknowledged packet number is newly acknowledged, and
+    #     # 2. at least one of the newly acknowledged packets was ack-eliciting.
+
+    #     if queued_ack_eliciting(scid) {
+
+    #     }
+    # };
     last_pkt_num(scid,pkt.ptype) := pkt.seq_num;
     require ~sent_pkt(scid,pkt.ptype,pkt.seq_num);  # [4]
     sent_pkt(scid,pkt.ptype,pkt.seq_num) := true;  # [1]
@@ -470,6 +571,7 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     if cid_mapped(dcid) {
 	    dcid := cid_to_aid(dcid);
     };
+    
 
     # TODO: the following should not be here
 
@@ -558,9 +660,477 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
 #Hamid
 }
 
+around send_ack_eliciting_handshake_packet(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
+    
+    require pkt.ptype = quic_packet_type.handshake;
+    require need_send_ack_eliciting_handshake_packet;
+    
+    # Extract the source and destination cid's and packet number from the packet.
+
+    var dcid := pkt.dst_cid;
+    var scid := pkt.src_cid;
+    if cid_mapped(dcid) {
+	    dcid := cid_to_aid(dcid);
+    };
+
+    
+    require pkt.token.end ~= 0 -> (retry_sent(client_initial_rcid) | retry_recv(scid) | pkt.token = tls_api.upper.get_old_new_token);
+
+    if (src = client_alt | dst = client_alt) & nclients = 1 {
+	    migration_done := true;
+    };
+
+    # Similarly, an endpoint MUST NOT reuse a connection ID when sending to
+    # more than one destination address.  
+
+    # The destination cid must represent an existing connection,
+    # except in the case of a client initial packet, when the
+    # destination cid may be the nonce cid chosen by the client for
+    # the given source cid. TODO: The standard says that on receiving
+    # the the server's cid, the clint must switch to it. However, we
+    # can't know when that server's cid has actually been received by
+    # the client. As an example, after the server sends its first
+    # initial packet, the client might still retransmit its initial
+    # packet using the nonce cid. In some cases, we can infer that the
+    # client has in fact seen the server's cid (for example, if it
+    # packet contains an ACK frame, or a CRYPTO frame that is
+    # reponsive to a server FRAME. This is trick to check, however,
+    # and the actual servers do not seem to check it.
+
+    require connected(dcid) |
+        pkt.ptype = quic_packet_type.initial
+        & is_client(scid)
+        & dcid = nonce_cid(scid);
+    
+
+    # On long headers, both cids are given. If the destination cid is
+    # connected, it must be connected to the source cid (otherwise it
+    # must be a nonce generated by a client). 
+    # On short headers (meaning one_rtt) the scid is not given, so we
+    # use the recorded value.
+
+    if pkt.long {
+        require connected(dcid) -> connected_to(dcid) = scid;
+    } else {
+        scid := connected_to(dcid);
+    };
+
+    if retry_sent(dcid) & ~_generating & ~zero_length_token & pkt.ptype = quic_packet_type.initial {
+        require dcid = client_initial_rcid;
+    };
+
+    # TEMPORARY: prevent big packet number jumps (work around minquic bug)
+    # Removed for MVFST that start with big PKT_NUM -> OK now
+    if  _generating {
+        # if ~is_client(scid) {
+        #     #client
+        #     require pkt.seq_num > last_pkt_num(scid,pkt.ptype);
+        #     require pkt.seq_num <= last_pkt_num(scid,pkt.ptype) + 0x15;
+        # } else {
+        #server
+        require pkt.seq_num = last_pkt_num(scid,pkt.ptype) + 0x1; # OK
+        # };
+        #require pkt.seq_num < last_pkt_num(scid,pkt.ptype) + 0x1 & pkt.seq_num > last_pkt_num(scid,pkt.ptype);
+    };
+    # else {
+    #     # An endpoint generates an RTT sample on receiving an ACK frame that meets the following two conditions:
+    #     # 1. the largest acknowledged packet number is newly acknowledged, and
+    #     # 2. at least one of the newly acknowledged packets was ack-eliciting.
+
+    #     if queued_ack_eliciting(scid) {
+
+    #     }
+    # };
+    last_pkt_num(scid,pkt.ptype) := pkt.seq_num;
+    require ~sent_pkt(scid,pkt.ptype,pkt.seq_num);  # [4]
+    sent_pkt(scid,pkt.ptype,pkt.seq_num) := true;  # [1]
+
+    # The payload may not be empty
+
+    require num_queued_frames(scid) > 0;  # [7]
+
+    # The payload must exactly match the queued frames.
+
+    require pkt.payload = queued_frames(scid);
+
+    # TEMPORARY: don't allow client migration during handshake
+
+    require conn_seen(scid) & pkt.long & is_client(scid) -> conn_requested(src,dst,scid);
+
+    # Packet must be sent to the endpoint from which the highest numbered
+    # packet has been received. ~queued_challenge(dcid) & 
+    #call show_probing(dcid ,hi_non_probing(dcid));
+    require  conn_seen(dcid) -> hi_non_probing_endpoint(dcid,dst);  # [10]
+
+    # TEMPORARY: do not apply ack-only rule to generated packets
+    # This can be removed when we have a frame queue per encryption level
+
+    #call show_ack_credit(scid, ack_credit(scid), queued_ack_eliciting(scid), queued_non_ack(scid), pkt.seq_num);
+    require ~_generating & ~queued_non_ack(scid) -> ack_credit(scid) > 0;  # [5]
+
+    #Hamid - This is wrong, because if there is no ack credits, it prevents from sending a packet 
+    #        containing only a CONNECTION_CLOSE frame but we want to stop packets that contain only ACKs 
+    #    require ~_generating & ~queued_ack_eliciting(scid) -> ack_credit(scid) > 0;
+    #Hamid
+
+    # QUESTION: THis sentence is from draft-18 section 13.1: "An
+    #   endpoint MUST NOT send a packet containing only an ACK frame
+    #   in response to a packet containing only ACK or PADDING frames,
+    #   even if there are packet gaps which precede the received
+    #   packet." Do we interpret this to mean that an ack-only packet
+    #   cannot ack *only* ack-only packets?  Or that an ack-only
+    #   packet cannot ack *any* ack-only packets?
+    
+    # If the sender is in the draining state, this is the draining packet.
+    # Make sure that a draining packet has not previously been sent and
+    # that the packet contains a connection_close frame;
+
+    if conn_draining(scid) {
+        require ~draining_pkt_sent(scid) & queued_close(scid);
+    };
+
+    ...
+
+    # Here, we have the updates to the packet protocol state.
+
+    # TEMPORARY: The following are repeated because currently locals defined in
+    # the "before" section cannot be accessed in the "after" section.
+
+    var dcid := pkt.dst_cid;
+    var scid := pkt.src_cid if pkt.long else connected_to(dcid);
+
+    if cid_mapped(dcid) {
+	    dcid := cid_to_aid(dcid);
+    };
+    
+    # if is
+
+    # TODO: the following should not be here
+
+    if pkt.ptype = quic_packet_type.initial {
+        initial_token := pkt.token;
+        # An initial packet with an unseen destination cid is a connection request.
+        if ~conn_seen(dcid)  {
+            if ~zero_rtt_sent {
+                call show_initial_request_initial;
+                call tls_client_initial_request(src,dst,dcid,pkt.pversion,src_tls_id(src));
+            };
+            conn_requested(src,dst,scid) := true;
+        };
+        cid_to_token(dcid) := pkt.token;
+    };
+
+    conn_seen(scid) := true;  # [1]
+
+    # Update the ack credits. A non-ack packet sent to a destination
+    # increases the destination's ack credit. An ack packet decreases
+    # the sender's ack credit.
+
+#Hamid
+
+#    if queued_non_ack(scid) {
+#	ack_credit(dcid) := ack_credit(dcid) + 1;
+#    } else {
+#	ack_credit(scid) := ack_credit(scid) - 1;
+#    };
+
+    if queued_ack_eliciting(scid) {
+       ack_credit(dcid) := ack_credit(dcid) + 1;
+    };
+    if ~queued_non_ack(scid) {
+       ack_credit(scid) := ack_credit(scid) - 1;
+    };
+
+#Hamid
+
+    # If this is a non-probing packet, update the highest non-probing
+    # packet number seen on from this aid.
+    # QUESTION: what if two different paths send the same packet number?
+    # QUESTION: how do you compare packet numbers with different encryption levels?
+
+    if queued_non_probing(scid) {
+        if pkt.ptype = quic_packet_type.one_rtt {
+            if pkt.seq_num >= hi_non_probing(scid) {
+                hi_non_probing(scid) := pkt.seq_num;
+                hi_non_probing_endpoint(scid,src) := true;
+            }
+        } else {
+            hi_non_probing_endpoint(scid,src) := true;
+        }
+    };
+
+    # If the packet contains a close frame, then set `pkt_has_close`
+
+    if queued_close(scid) {
+        pkt_has_close(scid,pkt.ptype,pkt.seq_num) := true;
+    };
+
+    # If the sender is in the draining state, this is the draining packet.
+
+    if conn_draining(scid) {
+        draining_pkt_sent(scid) := true
+    };
+
+    if pkt.ptype = quic_packet_type.initial & ~first_initial_send & zero_rtt_allowed {
+        first_initial_send := true;
+        initial_scid := scid;
+        initial_dcid := dcid;
+        queued_level(the_cid) := quic_packet_type.zero_rtt; # todo multiple client
+    } else {
+        first_initial_send := false;
+    };
+
+    # The queued frames are deleted
+    
+    queued_frames(scid) := frame.arr.empty;
+    queued_non_probing(scid) := false;
+    queued_non_ack(scid) := false;
+    queued_close(scid) := false;
+    num_queued_frames(scid) := 0;
+#Hamid
+    queued_ack_eliciting(scid) := false;
+#Hamid
+    need_send_ack_eliciting_handshake_packet := false
+}
+
+around send_ack_eliciting_initial_packet(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
+    
+    require pkt.ptype = quic_packet_type.initial;
+
+    require need_send_ack_eliciting_initial_packet;
+    
+    # Extract the source and destination cid's and packet number from the packet.
+
+    var dcid := pkt.dst_cid;
+    var scid := pkt.src_cid;
+    if cid_mapped(dcid) {
+	    dcid := cid_to_aid(dcid);
+    };
+
+    
+    require pkt.token.end ~= 0 -> (retry_sent(client_initial_rcid) | retry_recv(scid) | pkt.token = tls_api.upper.get_old_new_token);
+
+    if (src = client_alt | dst = client_alt) & nclients = 1 {
+	    migration_done := true;
+    };
+
+    # Similarly, an endpoint MUST NOT reuse a connection ID when sending to
+    # more than one destination address.  
+
+    # The destination cid must represent an existing connection,
+    # except in the case of a client initial packet, when the
+    # destination cid may be the nonce cid chosen by the client for
+    # the given source cid. TODO: The standard says that on receiving
+    # the the server's cid, the clint must switch to it. However, we
+    # can't know when that server's cid has actually been received by
+    # the client. As an example, after the server sends its first
+    # initial packet, the client might still retransmit its initial
+    # packet using the nonce cid. In some cases, we can infer that the
+    # client has in fact seen the server's cid (for example, if it
+    # packet contains an ACK frame, or a CRYPTO frame that is
+    # reponsive to a server FRAME. This is trick to check, however,
+    # and the actual servers do not seem to check it.
+
+    require connected(dcid) |
+        pkt.ptype = quic_packet_type.initial
+        & is_client(scid)
+        & dcid = nonce_cid(scid);
+    
+
+    # On long headers, both cids are given. If the destination cid is
+    # connected, it must be connected to the source cid (otherwise it
+    # must be a nonce generated by a client). 
+    # On short headers (meaning one_rtt) the scid is not given, so we
+    # use the recorded value.
+
+    if pkt.long {
+        require connected(dcid) -> connected_to(dcid) = scid;
+    } else {
+        scid := connected_to(dcid);
+    };
+
+    if retry_sent(dcid) & ~_generating & ~zero_length_token & pkt.ptype = quic_packet_type.initial {
+        require dcid = client_initial_rcid;
+    };
+
+    # TEMPORARY: prevent big packet number jumps (work around minquic bug)
+    # Removed for MVFST that start with big PKT_NUM -> OK now
+    if  _generating {
+        # if ~is_client(scid) {
+        #     #client
+        #     require pkt.seq_num > last_pkt_num(scid,pkt.ptype);
+        #     require pkt.seq_num <= last_pkt_num(scid,pkt.ptype) + 0x15;
+        # } else {
+        #server
+        require pkt.seq_num = last_pkt_num(scid,pkt.ptype) + 0x1; # OK
+        # };
+        #require pkt.seq_num < last_pkt_num(scid,pkt.ptype) + 0x1 & pkt.seq_num > last_pkt_num(scid,pkt.ptype);
+    };
+    # else {
+    #     # An endpoint generates an RTT sample on receiving an ACK frame that meets the following two conditions:
+    #     # 1. the largest acknowledged packet number is newly acknowledged, and
+    #     # 2. at least one of the newly acknowledged packets was ack-eliciting.
+
+    #     if queued_ack_eliciting(scid) {
+
+    #     }
+    # };
+    last_pkt_num(scid,pkt.ptype) := pkt.seq_num;
+    require ~sent_pkt(scid,pkt.ptype,pkt.seq_num);  # [4]
+    sent_pkt(scid,pkt.ptype,pkt.seq_num) := true;  # [1]
+
+    # The payload may not be empty
+
+    require num_queued_frames(scid) > 0;  # [7]
+
+    # The payload must exactly match the queued frames.
+
+    require pkt.payload = queued_frames(scid);
+
+    # TEMPORARY: don't allow client migration during handshake
+
+    require conn_seen(scid) & pkt.long & is_client(scid) -> conn_requested(src,dst,scid);
+
+    # Packet must be sent to the endpoint from which the highest numbered
+    # packet has been received. ~queued_challenge(dcid) & 
+    #call show_probing(dcid ,hi_non_probing(dcid));
+    require  conn_seen(dcid) -> hi_non_probing_endpoint(dcid,dst);  # [10]
+
+    # TEMPORARY: do not apply ack-only rule to generated packets
+    # This can be removed when we have a frame queue per encryption level
+
+    #call show_ack_credit(scid, ack_credit(scid), queued_ack_eliciting(scid), queued_non_ack(scid), pkt.seq_num);
+    require ~_generating & ~queued_non_ack(scid) -> ack_credit(scid) > 0;  # [5]
+
+    #Hamid - This is wrong, because if there is no ack credits, it prevents from sending a packet 
+    #        containing only a CONNECTION_CLOSE frame but we want to stop packets that contain only ACKs 
+    #    require ~_generating & ~queued_ack_eliciting(scid) -> ack_credit(scid) > 0;
+    #Hamid
+
+    # QUESTION: THis sentence is from draft-18 section 13.1: "An
+    #   endpoint MUST NOT send a packet containing only an ACK frame
+    #   in response to a packet containing only ACK or PADDING frames,
+    #   even if there are packet gaps which precede the received
+    #   packet." Do we interpret this to mean that an ack-only packet
+    #   cannot ack *only* ack-only packets?  Or that an ack-only
+    #   packet cannot ack *any* ack-only packets?
+    
+    # If the sender is in the draining state, this is the draining packet.
+    # Make sure that a draining packet has not previously been sent and
+    # that the packet contains a connection_close frame;
+
+    if conn_draining(scid) {
+        require ~draining_pkt_sent(scid) & queued_close(scid);
+    };
+
+    ...
+
+    # Here, we have the updates to the packet protocol state.
+
+    # TEMPORARY: The following are repeated because currently locals defined in
+    # the "before" section cannot be accessed in the "after" section.
+
+    var dcid := pkt.dst_cid;
+    var scid := pkt.src_cid if pkt.long else connected_to(dcid);
+
+    if cid_mapped(dcid) {
+	    dcid := cid_to_aid(dcid);
+    };
+    
+    # if is
+
+    # TODO: the following should not be here
+
+    if pkt.ptype = quic_packet_type.initial {
+        initial_token := pkt.token;
+        # An initial packet with an unseen destination cid is a connection request.
+        if ~conn_seen(dcid)  {
+            if ~zero_rtt_sent {
+                call show_initial_request_initial;
+                call tls_client_initial_request(src,dst,dcid,pkt.pversion,src_tls_id(src));
+            };
+            conn_requested(src,dst,scid) := true;
+        };
+        cid_to_token(dcid) := pkt.token;
+    };
+
+    conn_seen(scid) := true;  # [1]
+
+    # Update the ack credits. A non-ack packet sent to a destination
+    # increases the destination's ack credit. An ack packet decreases
+    # the sender's ack credit.
+
+#Hamid
+
+#    if queued_non_ack(scid) {
+#	ack_credit(dcid) := ack_credit(dcid) + 1;
+#    } else {
+#	ack_credit(scid) := ack_credit(scid) - 1;
+#    };
+
+    if queued_ack_eliciting(scid) {
+       ack_credit(dcid) := ack_credit(dcid) + 1;
+    };
+    if ~queued_non_ack(scid) {
+       ack_credit(scid) := ack_credit(scid) - 1;
+    };
+
+#Hamid
+
+    # If this is a non-probing packet, update the highest non-probing
+    # packet number seen on from this aid.
+    # QUESTION: what if two different paths send the same packet number?
+    # QUESTION: how do you compare packet numbers with different encryption levels?
+
+    if queued_non_probing(scid) {
+        if pkt.ptype = quic_packet_type.one_rtt {
+            if pkt.seq_num >= hi_non_probing(scid) {
+                hi_non_probing(scid) := pkt.seq_num;
+                hi_non_probing_endpoint(scid,src) := true;
+            }
+        } else {
+            hi_non_probing_endpoint(scid,src) := true;
+        }
+    };
+
+    # If the packet contains a close frame, then set `pkt_has_close`
+
+    if queued_close(scid) {
+        pkt_has_close(scid,pkt.ptype,pkt.seq_num) := true;
+    };
+
+    # If the sender is in the draining state, this is the draining packet.
+
+    if conn_draining(scid) {
+        draining_pkt_sent(scid) := true
+    };
+
+    if pkt.ptype = quic_packet_type.initial & ~first_initial_send & zero_rtt_allowed {
+        first_initial_send := true;
+        initial_scid := scid;
+        initial_dcid := dcid;
+        queued_level(the_cid) := quic_packet_type.zero_rtt; # todo multiple client
+    } else {
+        first_initial_send := false;
+    };
+
+    # The queued frames are deleted
+    
+    queued_frames(scid) := frame.arr.empty;
+    queued_non_probing(scid) := false;
+    queued_non_ack(scid) := false;
+    queued_close(scid) := false;
+    num_queued_frames(scid) := 0;
+#Hamid
+    queued_ack_eliciting(scid) := false;
+#Hamid
+    need_send_ack_eliciting_initial_packet := false;
+}
+
 
 import action show_initial_request_initial
-
+import action show_is_retransmitted(p:stream_pos, c_time:pkt_num)
+import action respect_idle_timeout_none
 
 # Procedures
 # ==========    
@@ -696,13 +1266,40 @@ action handle_client_transport_parameters(src:ip.endpoint,dst:ip.endpoint,scid:c
         require retry_source_connection_id.is_set(trans_params(scid));
         require retry_source_connection_id.value(trans_params(scid)).rcid = client_initial_rcid; # todo generalize
     };
+
+    if max_ack_delay.is_set(trans_params(scid)) {
+        max_ack_delay_tp := milliseconds_to_microseconds(max_ack_delay.value(trans_params(scid)).exponent_8);
+        call show_max_ack_delay(max_ack_delay_tp);
+    }
     
     # [7]
     if min_ack_delay.is_set(trans_params(scid)) & max_ack_delay.is_set(trans_params(scid)) {
-        var min_ack_milli := min_ack_delay.value(trans_params(scid)).exponent_8 * 1000;
-        require  min_ack_milli < max_ack_delay.value(trans_params(scid)).exponent_8;  # [1]
+        var min_ack_milli := min_ack_delay.value(trans_params(scid)).exponent_8; #  * 1000;
+        require  min_ack_milli < milliseconds_to_microseconds(max_ack_delay.value(trans_params(scid)).exponent_8);  # [1]
     };
 
+    # Chris
+    # If a max_idle_timeout is specified by either endpoint in its transport parameters (Section 18.2), the connection is silently closed 
+    # and its state is discarded when it remains idle for longer than the minimum of the max_idle_timeout value advertised by both endpoints.
+    # -> An endpoint that sends packets close to the effective timeout risks having them be discarded at the peer, since the idle timeout 
+    # period might have expired at the peer before these packets arrive.
+    if max_idle_timeout.is_set(trans_params(scid)) {
+        if is_client_hello {
+            max_idle_timeout_client := milliseconds_to_microseconds(max_idle_timeout.value(trans_params(scid)).seconds_16)
+        } else {
+            max_idle_timeout_server := milliseconds_to_microseconds(max_idle_timeout.value(trans_params(scid)).seconds_16)
+        }
+        if max_idle_timeout_client = 0 {
+            max_idle_timeout_used := max_idle_timeout_server;
+        } else if max_idle_timeout_server = 0 {
+            max_idle_timeout_used := max_idle_timeout_server;
+        } else if max_idle_timeout_server < max_idle_timeout_client {
+            max_idle_timeout_used := max_idle_timeout_server;
+        } else {
+            max_idle_timeout_used := max_idle_timeout_client;
+        }
+        call max_idle_timeout_update(max_idle_timeout_used);
+    }
     # var initial_max_stream_data_uni_server_0rtt : stream_pos_32;
     # var initial_max_stream_data_bidi_remote_server_0rtt : stream_pos_32;
     # var initial_max_data_server_0rtt : stream_pos_32;
@@ -710,6 +1307,7 @@ action handle_client_transport_parameters(src:ip.endpoint,dst:ip.endpoint,scid:c
     # var initial_max_stream_id_bidi_server_0rtt : stream_pos_32;
     # var active_connection_id_limit_server_0rtt : stream_pos_32;
     # [6-0rtt]
+    
     if zero_rtt_server_test & ~is_client_hello {
         if initial_max_stream_data_uni.is_set(trans_params(scid)) {
             require initial_max_stream_data_uni.value(trans_params(scid)).stream_pos_32 >= initial_max_stream_data_uni_server_0rtt; # todo generalize
@@ -755,7 +1353,11 @@ action handle_client_transport_parameters(src:ip.endpoint,dst:ip.endpoint,scid:c
 }
 
 import action show_enc_level(e:quic_packet_type)
-
+import action max_idle_timeout_update(e:microseconds)
+import action show_current_idle_timeout(e:microseconds)
+import action show_probing_time(e:microseconds)
+import action show_max_ack_delay(e:microseconds)
+import action sleep_event
 import action show_cond(e:bool)
 
 import action show_cid(e:cid)

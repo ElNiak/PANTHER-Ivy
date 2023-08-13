@@ -28,7 +28,7 @@ object forged_datagram = {
         src_port : ip.port, # [2]
         dst_port : ip.port, # [3]
         checksum : stream_data, # [4]
-        payload : quic_packet.arr # [8]
+        payload : quic_packet # [8]
     }
 
     instance idx : unbounded_sequence

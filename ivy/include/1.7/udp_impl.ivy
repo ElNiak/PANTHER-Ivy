@@ -210,7 +210,7 @@ object impl(me:host) = {
 	action open(addr:ip.endpoint) returns (s:socket) = {
 	    <<< impure
 		s = make_udp_socket();
-		if(addr.addr != 0x7f000001) {
+		if(false) {
 			std::cerr << "open SOCKET " << s << std::endl;
 			is_vnet = true;
 			char * dev = strdup("lo"); //TODO

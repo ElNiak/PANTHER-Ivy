@@ -91,23 +91,23 @@ implementation {
     }
 }
 
-action random_microsecs(min:microsecs,max:microsecs) returns (res:microsecs)
+action random_microsecs(min:milliseconds,max:milliseconds) returns (res:milliseconds)
 
-action greater_microsecs(min:microsecs) returns (res:microsecs)
+action greater_microsecs(min:milliseconds) returns (res:milliseconds)
 
-action lower_microsecs(max:microsecs) returns (res:microsecs)
+action lower_microsecs(max:milliseconds) returns (res:milliseconds)
 
 implementation {
-    implement random_microsecs(min:microsecs,max:microsecs) {
+    implement random_microsecs(min:milliseconds,max:milliseconds) {
        <<<
        srand((unsigned) time(0)); //fixed or random seed ?
        res = 0;
-       res = ::rand()%(max-min+1) + min;
+       res = ::rand()%(max-min+1) + min*1000;
        std::cerr << "between random: " << res << "\n";
        >>>
     }
 
-    implement greater_microsecs(min:microsecs) {
+    implement greater_microsecs(min:milliseconds) {
        <<<
        srand((unsigned) time(0)); //fixed or random seed ?
        res = 0;
@@ -116,7 +116,7 @@ implementation {
        >>>
     }
 
-    implement lower_microsecs(max:microsecs) {
+    implement lower_microsecs(max:milliseconds) {
        <<<
        srand((unsigned) time(0)); //fixed or random seed ?
        res = 0;

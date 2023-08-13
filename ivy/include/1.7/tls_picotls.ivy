@@ -932,13 +932,13 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         // Read the certificate, if we are a server
 
         if (is_server) { //segfautl ??
-            int r = ptls_load_certificates(ctx, "leaf_cert.pem");
+            int r = ptls_load_certificates(ctx, "/tmp/QUIC-FormalVerification/QUIC-Ivy-Attacker/doc/examples/quic/leaf_cert.pem");
             std::cerr << "ptls_load_certificates "  << r << std::endl;
             /* Read the certificate file */
             if (r != 0) {
-                std::cerr << "could not load certificate file leaf_cert.pem\n";
+                std::cerr << "could not load certificate file hardcoded leaf_cert.pem\n";
                 exit(1);
-            } else if(set_sign_certificate_from_key_file("leaf_cert.key", ctx)) {
+            } else if(set_sign_certificate_from_key_file("/tmp/QUIC-FormalVerification/QUIC-Ivy-Attacker/doc/examples/quic/leaf_cert.key", ctx)) {
                 std::cerr << "could not load key file leaf_cert.key\n";
                 exit(1);
             }
@@ -1132,13 +1132,13 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         // Read the certificate, if we are a server
 
         if (is_server) { //segfautl ??
-            int r = ptls_load_certificates(ctx, "leaf_cert.pem");
+            int r = ptls_load_certificates(ctx, "/tmp/QUIC-FormalVerification/QUIC-Ivy/doc/examples/quic/leaf_cert.pem");
             std::cerr << "ptls_load_certificates "  << r << std::endl;
             /* Read the certificate file */
             if (r != 0) {
                 std::cerr << "could not load certificate file leaf_cert.pem\n";
                 exit(1);
-            } else if(set_sign_certificate_from_key_file("leaf_cert.key", ctx)) {
+            } else if(set_sign_certificate_from_key_file("/tmp/QUIC-FormalVerification/QUIC-Ivy/doc/examples/quic/leaf_cert.key", ctx)) {
                 std::cerr << "could not load key file leaf_cert.key\n";
                 exit(1);
             }
@@ -1384,10 +1384,10 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         // Read the certificate, if we are a server
         if (is_server) {
             /* Read the certificate file */
-            if (ptls_load_certificates(ctx, "leaf_cert.pem") != 0) {
+            if (ptls_load_certificates(ctx, "/tmp/QUIC-FormalVerification/QUIC-Ivy/doc/examples/quic/leaf_cert.pem") != 0) {
                  std::cerr << "could not load certificate file leaf_cert.pem\n";
                  exit(1);
-            } else if(set_sign_certificate_from_key_file("leaf_cert.key", ctx)) {
+            } else if(set_sign_certificate_from_key_file("/tmp/QUIC-FormalVerification/QUIC-Ivy/doc/examples/quic/leaf_cert.key", ctx)) {
                 std::cerr << "could not load key file leaf_cert.key\n";
                 exit(1);
             }
@@ -2114,7 +2114,9 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         // For now, we assume that the epochs come in order
         size_t in_epoch = ptls_get_read_epoch(s->gs);
         picotls_do_handshake(s,in_epoch,&(s->input[0]),s->input.size());
+	std::cerr << "before clear"   << std::endl;
         s->input.clear();
+	std::cerr << "after clear"   << std::endl;
         >>>
     }
 

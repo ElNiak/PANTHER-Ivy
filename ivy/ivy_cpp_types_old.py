@@ -380,6 +380,175 @@ BASECLASS CLASSNAME::random_x(){
     def rand(self):
             return '((rand()%{}) + {})'.format(self.card(),self.loval) # TODO: let user control random string generation
 
+
+
+class MillisecondsBV(XBV):
+    """ A type that represents a large range of integers using a small a
+    bit vector. It maintains a mapping from bit vector values to
+    string values. Each time a new string constant is introduces, it
+    is given an entry in the table. This can fail, however, if the
+    number of string constants exceeds the number of bit vector
+    values.  
+    std::chrono::milliseconds 	duration</*signed integer type of at least 45 bits*/, std::milli>
+    """
+    def __init__(self,classname,loval,hival,bits):
+        """ bits is the number of bits in the bit vector representation """
+        add_once_global("""
+    struct MillisecondsClass {
+        MillisecondsClass() : val(0) {}
+        MillisecondsClass(long long val) : val(val) {}
+        long long val;
+        size_t __hash() const {return val;}
+    };
+""")
+        add_once_global("std::ostream& operator<<(std::ostream&s, const MillisecondsClass &v) {return s << v.val;}\n")
+        add_once_global("bool operator==(const MillisecondsClass &x, const MillisecondsClass &y) {return x.val == y.val;}\n")
+        self.loval = loval
+        self.hival = hival
+        XBV.__init__(self,classname,bits,baseclass='MillisecondsClass',constructors="CLASSNAME(long long v) : BASECLASS(v) {}")
+
+    def emit_templates(self):
+        XBV.emit_templates(self)
+        add_impl(
+"""
+std::ostream &operator <<(std::ostream &s, const CLASSNAME &t){
+    s << t.val;
+    return s;
+}
+template <>
+CLASSNAME _arg<CLASSNAME>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
+    if (args[idx].fields.size())
+        throw out_of_bounds(idx);
+    CLASSNAME res;
+//    res.val = atoll(args[idx].atom.c_str());
+    std::istringstream s(args[idx].atom.c_str());
+    s.unsetf(std::ios::dec);
+    s.unsetf(std::ios::hex);
+    s.unsetf(std::ios::oct);
+    s  >> res.val;
+//    unsigned long long res = atoll(args[idx].atom.c_str());
+    return res;
+}
+template <>
+void __ser<CLASSNAME>(ivy_ser &res, const CLASSNAME &inp) {
+    res.set(inp.val);
+}
+template <>
+void __deser<CLASSNAME>(ivy_deser &inp, CLASSNAME &res) {
+    inp.get(res.val);
+}
+
+template <>
+void __ser<CLASSNAME>(ivy_ser_128 &res, const CLASSNAME &inp) {
+    res.set((int128_t)inp.val);
+}
+template <>
+void __deser<CLASSNAME>(ivy_deser_128 &inp, CLASSNAME &res) {
+    int128_t temp;
+    inp.get(temp);
+    res = temp;
+}
+BASECLASS CLASSNAME::random_x(){
+    milliseconds ms = duration_cast< milliseconds >(
+        system_clock::now().time_since_epoch()
+    );
+    return ms; //TODO check
+}
+""".replace('BITS',str(self.bits)).replace('CLASSNAME',self.short_name()).replace('BASECLASS',self.baseclass).replace('LOVAL',str(self.loval)).replace('HIVAL',str(self.hival)).replace('RAND',self.rand()))
+
+    def card(self):
+        return self.hival - self.loval + 1 # Note this is cardinality of the int type, not the bit vector type
+
+    def literal(self,s):
+        return str(s)
+
+    def rand(self):
+            return  '((duration_cast< milliseconds >(system_clock::now().time_since_epoch())))'   #'((rand()%{}) + {})'.format(self.card(),self.loval) # TODO: let user control random string generation
+
+
+class MicrosecondsBV(XBV):
+    """ A type that represents a large range of integers using a small a
+    bit vector. It maintains a mapping from bit vector values to
+    string values. Each time a new string constant is introduces, it
+    is given an entry in the table. This can fail, however, if the
+    number of string constants exceeds the number of bit vector
+    values.  
+    std::chrono::microseconds 	duration</*signed integer type of at least 55 bits*/, std::micro>
+    """
+    def __init__(self,classname,loval,hival,bits):
+        """ bits is the number of bits in the bit vector representation """
+        add_once_global("""
+    struct MicrosecondsClass {
+        MicrosecondsClass() : val(0) {}
+        MicrosecondsClass(long long val) : val(val) {}
+        long long val;
+        size_t __hash() const {return val;}
+    };
+""")
+        add_once_global("std::ostream& operator<<(std::ostream&s, const MicrosecondsClass &v) {return s << v.val;}\n")
+        add_once_global("bool operator==(const MicrosecondsClass &x, const MicrosecondsClass &y) {return x.val == y.val;}\n")
+        self.loval = loval
+        self.hival = hival
+        XBV.__init__(self,classname,bits,baseclass='MicrosecondsClass',constructors="CLASSNAME(long long v) : BASECLASS(v) {}")
+
+    def emit_templates(self):
+        XBV.emit_templates(self)
+        add_impl(
+"""
+std::ostream &operator <<(std::ostream &s, const CLASSNAME &t){
+    s << t.val;
+    return s;
+}
+template <>
+CLASSNAME _arg<CLASSNAME>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
+    if (args[idx].fields.size())
+        throw out_of_bounds(idx);
+    CLASSNAME res;
+//    res.val = atoll(args[idx].atom.c_str());
+    std::istringstream s(args[idx].atom.c_str());
+    s.unsetf(std::ios::dec);
+    s.unsetf(std::ios::hex);
+    s.unsetf(std::ios::oct);
+    s  >> res.val;
+//    unsigned long long res = atoll(args[idx].atom.c_str());
+    return res;
+}
+template <>
+void __ser<CLASSNAME>(ivy_ser &res, const CLASSNAME &inp) {
+    res.set(inp.val);
+}
+template <>
+void __deser<CLASSNAME>(ivy_deser &inp, CLASSNAME &res) {
+    inp.get(res.val);
+}
+
+template <>
+void __ser<CLASSNAME>(ivy_ser_128 &res, const CLASSNAME &inp) {
+    res.set((int128_t)inp.val);
+}
+template <>
+void __deser<CLASSNAME>(ivy_deser_128 &inp, CLASSNAME &res) {
+    int128_t temp;
+    inp.get(temp);
+    res = temp;
+}
+BASECLASS CLASSNAME::random_x(){
+    //return RAND;
+    __int64 microseconds_since_epoch = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
+    return microseconds_since_epoch;
+}
+""".replace('BITS',str(self.bits)).replace('CLASSNAME',self.short_name()).replace('BASECLASS',self.baseclass).replace('LOVAL',str(self.loval)).replace('HIVAL',str(self.hival)).replace('RAND',self.rand()))
+
+    def card(self):
+        return self.hival - self.loval + 1 # Note this is cardinality of the int type, not the bit vector type
+
+    def literal(self,s):
+        return str(s)
+
+    def rand(self):
+            return  'duration_cast<microseconds>(system_clock::now().time_since_epoch()).count()' #'((rand()%{}) + {})'.format(self.card(),self.loval) # TODO: let user control random string generation
+
+
 class LongBV(XBVI):
     """ A type that represents a large range of integers using a long a
     bit vector. It maintains a mapping from bit vector values to

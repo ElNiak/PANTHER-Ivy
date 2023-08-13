@@ -53,9 +53,7 @@ action tls_send_event(src:ip.endpoint,dst:ip.endpoint,scid:cid,
 
 # Note: the bytes received are in the range `[lo,hi)`.
 
-action tls_recv_event(src:ip.endpoint, dst:ip.endpoint, scid:cid,
-                      dcid:cid, e:quic_packet_type, lo: stream_pos,
-                      hi : stream_pos)
+action tls_recv_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, e:quic_packet_type, lo: stream_pos, hi : stream_pos)
 
 #
 # TLS keys established event
@@ -255,8 +253,7 @@ after init {
 
 import action show_test
 
-before tls_send_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, data : stream_data,
-                      pos : stream_pos, e:quic_packet_type, tls_id:tls_api.id) {
+before tls_send_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, data : stream_data, pos : stream_pos, e:quic_packet_type, tls_id:tls_api.id) {
     
     var jdx := data.begin;
     if retry_sent(scid) & ~crypto_reset(dcid) { # TODO retest
@@ -349,6 +346,7 @@ after tls_keys_established_event {
     } else if e = quic_packet_type.handshake {
         established_handshake_keys(scid) := true
     } else if e = quic_packet_type.one_rtt {
+        call on_pn_space_discarded(dst_endpoint,scid,e);
         established_1rtt_keys(scid) := true
     } 
 }
