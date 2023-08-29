@@ -336,7 +336,7 @@ before frame.retire_connection_id.handle(f:frame.retire_connection_id,scid:cid,d
 
 before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid) {
     if _generating {
-        require conn_total_data(the_cid) > 30; # tricks
+        require conn_total_data(the_cid) > 1000; # tricks
         require scid = the_cid;
         require f.err_code = 0;
     } else {
@@ -411,6 +411,11 @@ after init {
 }
 
 around client_send_event {
+    is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
+    # require _generating -> is_not_sleeping;
+    if _generating {
+        
+    };
     require s = current_stream;
     var tp := trans_params(the_cid);
 

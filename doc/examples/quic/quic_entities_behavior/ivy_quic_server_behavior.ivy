@@ -444,6 +444,11 @@ before frame.max_data.handle(f:frame.max_data,scid:cid,dcid:cid) {
 action client_send_event(src:ip.endpoint, dst:ip.endpoint, dcid:cid, s : stream_id, end : stream_pos)
     
 around client_send_event {
+    is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
+    # require _generating -> is_not_sleeping;
+    #if _generating {
+    
+    #};
     require stream_seen(dcid,s); # TODO: wait until client request is finished?
     require src = server.ep;
     require dst = client.ep;

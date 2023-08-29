@@ -35,13 +35,16 @@ include quic_shim
 #
 
 after packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
-    if _generating {  # & ~conn_closed(pkt.the_cid)
+    if _generating & is_not_sleeping {  # & ~conn_closed(pkt.the_cid) # TODO
+        
         var spkt := pkt_serdes.to_bytes(pkt);
         var rnum := reference_pkt_num(spkt,false);
         var tls_id := src_tls_id(src);
         var ppkt := prot.encrypt(tls_id,rnum,spkt);
         var pkts := prot.arr.empty;
         pkts := pkts.append(ppkt);
+        call on_packet_sent(src,dst,pkt, ppkt.size);
+        total_data_sent := total_data_sent + ppkt.size;
         call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
     }
 }
@@ -54,6 +57,7 @@ after packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_vn) {
         # var ppkt := prot.encrypt(tls_id,rnum,spkt); # no encryption ?
         var pkts := prot.arr.empty;
         pkts := pkts.append(spkt);
+        total_data_sent := total_data_sent + spkt.size;
         call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
     }
 }
@@ -63,6 +67,7 @@ after packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_retry) 
         var spkt := pkt_serdes_retry.to_bytes(pkt);
         var pkts := prot.arr.empty;
         pkts := pkts.append(spkt);
+        total_data_sent := total_data_sent + spkt.size;
         call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
     }
 }
@@ -75,6 +80,7 @@ after packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_coa
         var rnum := reference_pkt_num(spkt,false);
         var ppkt := prot.encrypt_rtt(tls_id,rnum,spkt);
         pkts := pkts.append(ppkt);
+        total_data_sent := total_data_sent + ppkt.size;
         call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
         zero_rtt_sent := true;
     }
@@ -89,6 +95,7 @@ after packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_0rtt) {
         var rnum := reference_pkt_num(spkt,false);
         var ppkt := prot.encrypt_rtt(tls_id,rnum,spkt);
         pkts := pkts.append(ppkt);
+        total_data_sent := total_data_sent + ppkt.size;
         call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
         zero_rtt_sent := true;
     }

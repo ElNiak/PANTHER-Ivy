@@ -12,33 +12,14 @@ include ivy_quic_client_behavior
 # parameters should be selected randomly by some event.
 #
 
+include ivy_quic_client_ext_min_ack_tp
 
-include random_value
 
-action make_transport_parameters returns (tp:quic_transport_parameters) = {
-    var imsdbl : initial_max_stream_data_bidi_local;
-    imsdbl.stream_pos_32 := random_stream_pos(1,0xFFFFFFF);
-    var imd : initial_max_data;
-    imd.stream_pos_32 := random_stream_pos(1,0xFFFFFFF);
-    var it : max_idle_timeout;
-    it.seconds_16 := random_microsecs(0,0xFFFFFFF);
-    var imsdbr : initial_max_stream_data_bidi_remote;
-    imsdbr.stream_pos_32 := random_stream_pos(1,0xFFFFFFF);
-    var imsdu : initial_max_stream_data_uni;
-    imsdu.stream_pos_32 := random_stream_pos(1,0xFFFFFFF);
-    tp.transport_parameters := tp.transport_parameters.append(imsdbl);
-    tp.transport_parameters := tp.transport_parameters.append(imd);
-    tp.transport_parameters := tp.transport_parameters.append(it);
-    tp.transport_parameters := tp.transport_parameters.append(imsdbr);
-    tp.transport_parameters := tp.transport_parameters.append(imsdu);
+include quic_time
 
-    var icid : initial_source_connection_id; #TODO update v29
-    icid.scid := the_cid;
-    tp.transport_parameters := tp.transport_parameters.append(icid);
-
-    var min_d : min_ack_delay;
-    min_d.exponent_8 := 0x200; # TODO random
-    tp.transport_parameters := tp.transport_parameters.append(min_d);
+after init {
+    call time_api.c_timer.start;
+    #call time_api.chrono_timer.start;
 }
 
 after init {
@@ -59,7 +40,8 @@ after init {
 # that include this one.
 
 export frame.ack.handle
-#export frame.ack_frequency.handle
+export frame.ack_frequency.handle
+export frame.immediate_ack.handle
 export frame.stream.handle
 export frame.crypto.handle
 export frame.path_response.handle
@@ -67,6 +49,10 @@ export packet_event
 export client_send_event
 export tls_recv_event
 
+
+export send_ack_eliciting_handshake_packet
+export send_ack_eliciting_initial_packet
+export frame.ping.handle
 #export frame.retire_connection_id.handle
 #export frame.rst_stream.handle
 #export frame.max_stream_id.handle

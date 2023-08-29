@@ -49,9 +49,9 @@ action make_transport_parameters returns (tp:quic_transport_parameters) = {
     max_streams_uni.stream_id_16 := random_stream_id(4,0xFFFFFFF); # TODO 
     tp.transport_parameters := tp.transport_parameters.append(max_streams_uni);
 
-    # var max_ack_dela : max_ack_delay; #TODO update rfc9000
-    # max_ack_dela.exponent_8 := random_microsecs(4,0xFFFFFFF);
-    # tp.transport_parameters := tp.transport_parameters.append(max_ack_dela);
+    var max_ack_dela : max_ack_delay; #TODO update rfc9000
+    max_ack_dela.exponent_8 := 0xa; #random_microsecs(4,0xFFFFFFF);
+    tp.transport_parameters := tp.transport_parameters.append(max_ack_dela);
 
     var max_packet_z : max_packet_size; #TODO update v29
     max_packet_z.stream_pos_16 := 1500;

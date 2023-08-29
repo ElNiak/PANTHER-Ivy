@@ -38,7 +38,7 @@ include quic_shim
 
 after packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
    # if src = server.ep  {
-    if dst_is_generated(src) { # _generating & ~conn_closed(pkt.the_cid) {  & ~conn_closed(pkt.the_cid)
+    if dst_is_generated(src) & is_not_sleeping { # _generating & ~conn_closed(pkt.the_cid) {  & ~conn_closed(pkt.the_cid)
         var spkt := pkt_serdes.to_bytes(pkt);
         var rnum := reference_pkt_num(spkt,false);
         call clear_packet(src,dst,rnum,spkt);
@@ -46,6 +46,7 @@ after packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
         call cipher_packet(ppkt);
         var pkts := prot.arr.empty;
         pkts := pkts.append(ppkt);
+        total_data_sent := total_data_sent + ppkt.size;
         call on_packet_sent(src,dst,pkt, ppkt.size);
         call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
     } 
@@ -60,6 +61,7 @@ after packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_vn) {
         var spkt := pkt_serdes_vn.to_bytes(pkt);
         var pkts := prot.arr.empty;
         pkts := pkts.append(spkt);
+        total_data_sent := total_data_sent + spkt.size;
         call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
     }
 }
@@ -70,6 +72,7 @@ after packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_retry) 
         var spkt := pkt_serdes_retry.to_bytes(pkt);
         var pkts := prot.arr.empty;
         pkts := pkts.append(spkt);
+        total_data_sent := total_data_sent + spkt.size;
         call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
     }
 }
@@ -84,6 +87,7 @@ after packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_coa
         call cipher_packet(ppkt);
         var pkts := prot.arr.empty;
         pkts := pkts.append(ppkt);
+        total_data_sent := total_data_sent + ppkt.size;
         call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
         zero_rtt_sent := true;
     }
@@ -99,6 +103,7 @@ after packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_0rtt) {
         call cipher_packet(ppkt);
         var pkts := prot.arr.empty;
         pkts := pkts.append(ppkt);
+        total_data_sent := total_data_sent + ppkt.size;
         call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
         zero_rtt_sent := true;
     }

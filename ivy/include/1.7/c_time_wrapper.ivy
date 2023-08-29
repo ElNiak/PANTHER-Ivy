@@ -46,7 +46,12 @@ module c_time_wrapper(timer) = {
 		std::string last_bp_micro = "0";
 		bool started = false;
 		struct timeval start;
-		std::unordered_map<std::string, struct timeval> breakpoints = std::unordered_map<std::string, struct timeval>();
+
+		unsigned long  long fake_sleep_ms_duration = 0;
+		unsigned long  long fake_sleep_ms_start = 0; //seems to have bug with breakpoint
+
+		std::unordered_map<std::string, unsigned long  long> breakpoints_ms = std::unordered_map<std::string, unsigned long  long>();
+		std::unordered_map<std::string, unsigned long  long> breakpoints_sec = std::unordered_map<std::string, unsigned long  long>();
 
 		bool startMeasuring() {
 			if (!started)
@@ -59,13 +64,21 @@ module c_time_wrapper(timer) = {
 		}
 
 		bool insertBreakpoint(std::string name) {
-			if (breakpoints.count(name) == 0)
+			if (breakpoints_ms.count(name) == 0)
 			{
 				struct timeval now;
 				gettimeofday(&now, NULL);
-				breakpoints[name] = now;
+				std::cerr << "insertBreakpoint: name = " << name <<  std::endl;
+				std::cerr << "insertBreakpoint: now.tv_sec = " << now.tv_sec<<  std::endl;
+				std::cerr << "insertBreakpoint: now.tv_usec = " << now.tv_usec<<  std::endl;
+				breakpoints_ms[name]  = now.tv_usec;
+				breakpoints_sec[name] = now.tv_sec;
 				return true;
 			}
+			std::cerr << "insertBreakpoint: name false = " << name <<  std::endl;
+			unsigned long  long end_ms = breakpoints_ms[name];
+			std::cerr << "insertBreakpoint: end_ms false = " << end_ms <<  std::endl;
+			std::cerr << "insertBreakpoint: breakpoints_ms.count(name) false = " << breakpoints_ms.count(name) <<  std::endl;
 			return false;
 		}
 
@@ -83,27 +96,32 @@ module c_time_wrapper(timer) = {
 				unsigned long mtime = 1000000 * seconds + useconds;
 				return mtime;
 			}
-			return now.tv_usec - start.tv_usec;
+			return (now.tv_sec*1000LL + now.tv_usec/1000) - (start.tv_sec*1000LL + start.tv_usec/1000);
 		}
 
 		unsigned long  long  getTimeFromBreakpoint(std::string breakpoint, bool microSeconds = false) {
 			struct timeval now;
 			gettimeofday(&now, NULL);
 
-			struct timeval end = breakpoints[breakpoint];
+			unsigned long  long end_ms = breakpoints_ms[breakpoint];
+			unsigned long  long end_sec = breakpoints_sec[breakpoint];
 			
-			if (!started || breakpoints.count(breakpoint) == 0)
+			if (!started || breakpoints_ms.count(breakpoint) == 0)
 			{
 				return -1;
 			}
 			if (microSeconds)
 			{
-				unsigned long seconds  = now.tv_sec  - end.tv_sec;
-    			unsigned long useconds = now.tv_usec - end.tv_usec;
+				unsigned long seconds  = now.tv_sec  - end_sec;
+    			unsigned long useconds = now.tv_usec - end_ms;
 				unsigned long mtime = 1000000 * seconds + useconds;
 				return mtime;
 			}
-			return now.tv_usec - end.tv_usec;;
+			std::cerr << "getTimeFromBreakpoint: breakpoint  = " << breakpoint <<  std::endl;
+			std::cerr << "getTimeFromBreakpoint: now.tv_usec = " << now.tv_usec <<  std::endl;
+			//std::cerr << "getTimeFromBreakpoint: end = " << end <<  std::endl;
+			std::cerr << "getTimeFromBreakpoint: end.tv_usec = " << end_ms<<  std::endl;
+			return (now.tv_sec*1000LL + now.tv_usec/1000) - (end_sec*1000LL + end_ms/1000);
 		}
 
 		int msleep(long msec)
@@ -242,6 +260,61 @@ module c_time_wrapper(timer) = {
 		implement sleep(i:milliseconds) {
 			<<<
 			msleep(i);
+			>>>
+		}
+
+		implement sleep_fake(i:milliseconds)returns (r:milliseconds) {
+			<<<
+			if(started) {
+				const char * s = "fake_sleep";
+				fake_sleep_ms_duration = i;
+				unsigned long  long  time = getTimeFromBeginning(false);
+				fake_sleep_ms_start = time;
+				std::cerr << "C time = sleep_fake - timer started" << std::endl;
+				std::cerr << "C time = sleep_fake - time = " << time << std::endl;
+				std::cerr << "C time = sleep_fake - fake_sleep_ms_duration = " << fake_sleep_ms_duration << std::endl;
+				//unsigned long  long  time_fb = getTimeFromBreakpoint(std::string(s),false);
+				//std::cerr << "C time = sleep_fake - time_fb = " << time_fb << std::endl;
+				insertBreakpoint(std::string(s));
+				unsigned long  long  time_fb2 = getTimeFromBreakpoint(std::string(s),false);
+				std::cerr << "C time = sleep_fake - time_fb2 = " << time_fb2 << std::endl;
+				
+				r = time;
+			} 
+			else {
+				std::cerr << "C time = sleep_fake - timer not started" << std::endl;
+			}
+			>>>
+		}
+
+		implement is_sleep_fake_timeout returns (b:bool) {
+			<<<
+			if(started) {
+				if(fake_sleep_ms_duration == 0)
+				{
+					b = true;
+				} 
+				else {
+					const char * s = "fake_sleep";
+					unsigned long  long  time_now = getTimeFromBeginning(false);
+					unsigned long  long  time = getTimeFromBreakpoint(std::string(s),false);
+					std::cerr << "C time = is_sleep_fake_timeout - timer started" << std::endl;
+					std::cerr << "C time = is_sleep_fake_timeout - time = " << time << std::endl;
+					//std::cerr << "C time = is_sleep_fake_timeout - time_now - time = " << time_now - time << std::endl;
+					std::cerr << "C time = is_sleep_fake_timeout - fake_sleep_ms_duration = " << fake_sleep_ms_duration << std::endl;
+					if(fake_sleep_ms_duration <= time) {
+						std::cerr << "C time = is_sleep_fake_timeout - true = " << std::endl;
+						b = true;
+					}
+					else {
+						std::cerr << "C time = is_sleep_fake_timeout - false = " << std::endl;
+						b = false;
+					}
+				}
+			} 
+			else {
+				std::cerr << "C time = is_sleep_fake_timeout - timer not started" << std::endl;
+			}
 			>>>
 		}
 

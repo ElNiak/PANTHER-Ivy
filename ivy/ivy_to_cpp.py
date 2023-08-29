@@ -3642,7 +3642,8 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
     """.replace('thing',thing).replace('actname',username).replace('methodname',varname(actname)).replace('numargs',str(len(action.formal_params))).replace('getargs',getargs))
                 emit_repl_boilerplate2(header,impl,classname)
 
-
+                print "test_iter ="
+                print opt_test_iters.get()
                 impl.append("int "+ opt_main.get() + "(int argc, char **argv){\n")
                 impl.append("        int test_iters = TEST_ITERS;\n".replace('TEST_ITERS',opt_test_iters.get()))
                 impl.append("        int runs = TEST_RUNS;\n".replace('TEST_RUNS',opt_test_runs.get()))

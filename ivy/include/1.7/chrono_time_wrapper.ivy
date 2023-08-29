@@ -46,6 +46,8 @@ module chrono_time_wrapper(timer) = {
 		bool chrono_started = false;
 		std::chrono::high_resolution_clock::time_point chrono_start;
 		std::unordered_map<std::string, std::chrono::high_resolution_clock::time_point> chrono_breakpoints = std::unordered_map<std::string, std::chrono::high_resolution_clock::time_point>();
+		unsigned long  long chrono_fake_sleep_ms_duration = 0;
+		unsigned long  long chrono_fake_sleep_ms_start = 0; //seems to have bug with breakpoint
 
 		bool chrono_startMeasuring() {
 			if (!chrono_started)
@@ -88,6 +90,27 @@ module chrono_time_wrapper(timer) = {
 				return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - chrono_breakpoints[breakpoint]).count();
 			}
 			return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - chrono_breakpoints[breakpoint]).count();
+		}
+
+		int chrono_msleep(long msec)
+		{
+			struct timespec ts;
+			int res;
+
+			if (msec < 0)
+			{
+				errno = EINVAL;
+				return -1;
+			}
+
+			ts.tv_sec = msec / 1000;
+			ts.tv_nsec = (msec % 1000) * 1000000;
+
+			do {
+				res = nanosleep(&ts, &ts);
+			} while (res && errno == EINTR);
+
+			return res;
 		}
 
 	>>>
@@ -196,6 +219,63 @@ module chrono_time_wrapper(timer) = {
 			}
 			>>>
 		}
+
+		implement sleep(i:milliseconds) {
+			<<<
+			chrono_msleep(i);
+			>>>
+		}
+
+		implement sleep_fake(i:milliseconds) returns (r:milliseconds) {
+			<<<
+			if(started) {
+				chrono_fake_sleep_ms_duration = i;
+				unsigned long  long  time = getTimeFromBeginning(false);
+				chrono_fake_sleep_ms_start = time;
+				std::cerr << "C time = sleep_fake - timer started" << std::endl;
+				std::cerr << "C time = sleep_fake - time = " << time << std::endl;
+				std::cerr << "C time = sleep_fake - fake_sleep_ms_duration = " << chrono_fake_sleep_ms_duration << std::endl;
+				unsigned long  long  time_fb = getTimeFromBreakpoint("fakesleep",false);
+				std::cerr << "C time = sleep_fake - time_fb = " << time_fb << std::endl;
+				insertBreakpoint("fakesleep");
+				unsigned long  long  time_fb2 = getTimeFromBreakpoint("fakesleep",false);
+				std::cerr << "C time = sleep_fake - time_fb2 = " << time_fb2 << std::endl;
+				
+				r = time;
+			} 
+			else {
+				std::cerr << "C time = sleep_fake - timer not started" << std::endl;
+			}
+			>>>
+		}
+
+		implement is_sleep_fake_timeout returns (b:bool) {
+			<<<
+			if(started) {
+				if(chrono_fake_sleep_ms_duration == 0)
+				{
+					b = true;
+				} 
+				else {
+					unsigned long  long  time_now = getTimeFromBeginning(false);
+					unsigned long  long  time = getTimeFromBreakpoint("fake_sleep",false);
+					std::cerr << "C time = is_sleep_fake_timeout - timer started" << std::endl;
+					std::cerr << "C time = is_sleep_fake_timeout - time = " << time << std::endl;
+					std::cerr << "C time = is_sleep_fake_timeout - fake_sleep_ms_duration = " << chrono_fake_sleep_ms_duration << std::endl;
+					if(chrono_fake_sleep_ms_duration <= time - chrono_fake_sleep_ms_start) {
+						b = true;
+					}
+					else {
+						b = false;
+					}
+				}
+			} 
+			else {
+				std::cerr << "C time = is_sleep_fake_timeout - timer not started" << std::endl;
+			}
+			>>>
+		}
+
 
 		trusted isolate iso = this
 

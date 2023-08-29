@@ -50,9 +50,7 @@ action app_server_open_event(src:ip.endpoint,dst:ip.endpoint,scid:cid,dcid:cid)
 # - `pos` : the offset in the stream of the data bytes
 # - `close` : true if the client is closing the stream
 
-action app_send_event(src:ip.endpoint, dst:ip.endpoint, dcid:cid,
-                      s : stream_id, data : stream_data,
-                      pos : stream_pos, close : bool)
+action app_send_event(src:ip.endpoint, dst:ip.endpoint, dcid:cid, s : stream_id, data : stream_data, pos : stream_pos, close : bool)
 
 
 

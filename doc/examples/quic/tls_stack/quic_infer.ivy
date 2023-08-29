@@ -27,6 +27,8 @@ action infer_tls_events(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) = {
     var dcid := pkt.dst_cid;
     var sq   := pkt.seq_num;
 
+    call show_seqnum(sq);
+
     # On short headers, the scid is not given, so we use the recorded value
 
     if ~pkt.long {
@@ -64,7 +66,7 @@ action infer_tls_events(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) = {
     while idx < pkt.payload.end {
         var f := pkt.payload.value(idx);
         if some(cf:frame.crypto) f *> cf {
-            call show_biatch_2(dst);
+            # call show_biatch_2(dst);
             call tls_send_event(src,dst,scid,dcid,cf.data,cf.offset,e,src_tls_id(src));
         };
         if some(sf:frame.stream) f *> sf {

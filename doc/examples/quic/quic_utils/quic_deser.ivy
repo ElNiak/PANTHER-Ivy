@@ -48,7 +48,11 @@ object quic_deser = {}
 
     #define QUIC_DESER_FAKE_CHECKSUM_LENGTH 0
     //TODO
-#include "/tmp/QUIC-FormalVerification/QUIC-Ivy-Attacker/doc/examples/quic/quic_utils/quic_ser_deser.h"
+    #if defined(IS_NOT_DOCKER) 
+        #include "/home/user/Documents/QUIC-RFC9000/QUIC-Ivy-Attacker/doc/examples/quic/quic_utils/quic_ser_deser.h"
+    #else 
+         #include "/tmp/QUIC-FormalVerification/QUIC-Ivy-Attacker/doc/examples/quic/quic_utils/quic_ser_deser.h"
+    #endif
     int scid_h = 8;
     int dcid_h = 8;
 
@@ -100,10 +104,11 @@ object quic_deser = {}
               quic_path_challenge_data,
               quic_retire_connection_id_seq_num,
               quic_handshake_done,
+              quic_immediate_ack,
               quic_ack_frequency, //seq_num
-              quic_ack_frequency_packet_tolerence,
-              quic_ack_frequency_update_max_ack_delay,
-              quic_ack_frequency_ignore_order,
+              quic_ack_frequency_ack_eliciting_threshold,
+              quic_ack_frequency_request_max_ack_delay,
+              quic_ack_frequency_reordering_threshold,
               quic_padding,
               quic_unknow,
               quic_ping,
@@ -286,33 +291,7 @@ object quic_deser = {}
             case quic_ping:
             case quic_unknow:
             case quic_handshake_done: // TODO ?
-            case quic_ack_frequency: //TODO
-            /*{
-                get_var_int(res);
-		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency\n"; 
-                state = quic_ack_frequency_packet_tolerence;
-            }
-            break;
-            case quic_ack_frequency_packet_tolerence: 
-            {
-                get_var_int(res);
-		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency_packet_tolerence\n"; 
-                state = quic_ack_frequency_update_max_ack_delay;
-            }
-            break;
-            case quic_ack_frequency_update_max_ack_delay: 
-            {
-                get_var_int(res);
-		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency_update_max_ack_delay\n"; 
-                state = quic_ack_frequency_ignore_order;
-            }
-            break;
-            case quic_ack_frequency_ignore_order:
-            {
-		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency_ignore_order\n"; 
-                getn(res,1);
-            }
-            break;*/
+            case quic_immediate_ack:
             case quic_s_retry_token:
             {
 		        //std::cerr << "sourceID quic_s_retry_token 1 " <<  std::hex <<  res << "\n";
@@ -459,6 +438,34 @@ object quic_deser = {}
             break;
             case quic_retire_connection_id_seq_num:
             {
+                get_var_int(res);
+            }
+            break;
+            case quic_ack_frequency: //TODO
+            {
+                get_var_int(res);
+		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency\n"; 
+                state = quic_ack_frequency_ack_eliciting_threshold;
+            }
+            break;
+            case quic_ack_frequency_ack_eliciting_threshold: 
+            {
+                get_var_int(res);
+		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency_ack_eliciting_threshold\n"; 
+                state = quic_ack_frequency_request_max_ack_delay;
+            }
+            break;
+            case quic_ack_frequency_request_max_ack_delay: 
+            {
+                get_var_int(res);
+		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency_request_max_ack_delay\n"; 
+                state = quic_ack_frequency_reordering_threshold;
+            }
+            break;
+            case quic_ack_frequency_reordering_threshold:
+            {
+		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency_reordering_threshold\n"; 
+                //getn(res,1);
                 get_var_int(res);
             }
             break;
@@ -618,9 +625,13 @@ object quic_deser = {}
                         state = quic_ack_frequency;
                         return 23;
                     }
+                    if (frame_type == 0xAC) { //0x40af
+                        state = quic_immediate_ack;
+                        return 24;
+                    }
                     if (frame_type == 0x42) {
                         state = quic_unknow;
-                        return 24;
+                        return 25;
                     }
                 }
                 /*if (frame_type == 0x00) {
@@ -671,13 +682,13 @@ object quic_deser = {}
                 return more(1);
 
             //TODO
-            if (state == quic_ack_frequency_ignore_order)
+            if (state == quic_ack_frequency_reordering_threshold)
                     return data_remaining-- > 0;
             if (state == quic_ack_frequency)
                     return data_remaining-- > 0;
-            if (state == quic_ack_frequency_update_max_ack_delay)
+            if (state == quic_ack_frequency_request_max_ack_delay)
                     return data_remaining-- > 0;
-            if (state == quic_ack_frequency_packet_tolerence)
+            if (state == quic_ack_frequency_ack_eliciting_threshold)
                     return data_remaining-- > 0;
 
 

@@ -11,6 +11,8 @@ module c_time(microseconds, milliseconds) = {
     action now_micros_last_bp returns (i:microseconds)
     action now_millis_last_bp returns (i:milliseconds)
     action sleep(i:milliseconds) 
+    action sleep_fake(i:milliseconds) returns (r:milliseconds)
+    action is_sleep_fake_timeout returns (b:bool)
 
     object spec = {
     }

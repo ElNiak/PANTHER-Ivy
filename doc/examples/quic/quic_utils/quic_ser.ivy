@@ -14,7 +14,11 @@ object quic_ser = {}
 
     //TODO
     //TODO
-#include "/tmp/QUIC-FormalVerification/QUIC-Ivy-Attacker/doc/examples/quic/quic_utils/quic_ser_deser.h"
+    #if defined(IS_NOT_DOCKER) 
+        #include "/home/user/Documents/QUIC-RFC9000/QUIC-Ivy-Attacker/doc/examples/quic/quic_utils/quic_ser_deser.h"
+    #else 
+         #include "/tmp/QUIC-FormalVerification/QUIC-Ivy-Attacker/doc/examples/quic/quic_utils/quic_ser_deser.h"
+    #endif
     
     class `quic_ser` : public ivy_binary_ser_128 {
     //class `quic_ser` : public ivy_binary_ser {
@@ -67,10 +71,11 @@ object quic_ser = {}
               quic_ping,
               quic_unknow,
               quic_malicious,
+              quic_immediate_ack, //seq_num
               quic_ack_frequency, //seq_num
-              quic_ack_frequency_packet_tolerence,
-              quic_ack_frequency_update_max_ack_delay,
-              quic_ack_frequency_ignore_order,
+              quic_ack_frequency_ack_eliciting_threshold,
+              quic_ack_frequency_request_max_ack_delay,
+              quic_ack_frequency_reordering_threshold,
               quic_s_done} state;
         bool long_format;
         char hdr_type;
@@ -221,33 +226,7 @@ object quic_ser = {}
             case quic_ping:
             case quic_unknow:
             case quic_handshake_done: // TODO
-            case quic_ack_frequency: //TODO
-            /*{
-                set_var_int(res);
-		        //std::cerr << "ser: quic_ack_frequency   = quic_ack_frequency\n"; 
-                state = quic_ack_frequency_packet_tolerence;
-            }
-            break;
-            case quic_ack_frequency_packet_tolerence:
-            {
-                set_var_int(res);
-		        //std::cerr << "ser: quic_ack_frequency   = quic_ack_frequency_packet_tolerence\n"; 
-                state = quic_ack_frequency_update_max_ack_delay;
-            }
-            break;
-            case quic_ack_frequency_update_max_ack_delay: 
-            {
-                set_var_int(res);
-		        //std::cerr << "ser: quic_ack_frequency   = quic_ack_frequency_update_max_ack_delay\n"; 
-                state = quic_ack_frequency_ignore_order;
-            }
-            break;
-            case quic_ack_frequency_ignore_order: 
-            {
-		        //std::cerr << "ser: quic_ack_frequency   = quic_ack_frequency_ignore_order\n"; 
-                setn(res,1);
-            }
-            break;*/
+            case quic_immediate_ack:
             case quic_s_retry_token:
             {   
                // int128_t packet_size = res.size();
@@ -410,6 +389,34 @@ object quic_ser = {}
                 set_var_int(res);
             }
             break;
+            case quic_ack_frequency: //TODO
+            {
+                set_var_int(res);
+		        //std::cerr << "ser: quic_ack_frequency   = quic_ack_frequency\n"; 
+                state = quic_ack_frequency_ack_eliciting_threshold;
+            }
+            break;
+            case quic_ack_frequency_ack_eliciting_threshold:
+            {
+                set_var_int(res);
+		        //std::cerr << "ser: quic_ack_frequency   = quic_ack_frequency_ack_eliciting_threshold\n"; 
+                state = quic_ack_frequency_request_max_ack_delay;
+            }
+            break;
+            case quic_ack_frequency_request_max_ack_delay: 
+            {
+                set_var_int(res);
+		        //std::cerr << "ser: quic_ack_frequency   = quic_ack_frequency_request_max_ack_delay\n"; 
+                state = quic_ack_frequency_reordering_threshold;
+            }
+            break;
+            case quic_ack_frequency_reordering_threshold: 
+            {
+		        //std::cerr << "ser: quic_ack_frequency   = quic_ack_frequency_reordering_threshold\n"; 
+                //setn(res,1);
+                set_var_int(res);
+            }
+            break;
             default:
             //std::cerr << "quic_ser 2\n";  
             throw deser_err();
@@ -535,12 +542,17 @@ object quic_ser = {}
                     sz = 2;
                 }
                 else if (tag == 24) {
+                    state = quic_immediate_ack;
+                    frame_type = 0x40AC; // 0100 0000 AC
+                    sz = 2;
+                }
+                else if (tag == 25) {
                     state = quic_unknow;
                     frame_type = 0x4042; 
                     sz = 2;                
                 }
-                else if (tag == 25) {
-                    //std::cerr << "quic_ser malicious\n";  
+                else if (tag == 26) {
+                    std::cerr << "quic_ser malicious\n";  
                     state = quic_malicious;
                     frame_type = 0x4041; 
                     sz = 2;  

@@ -16,7 +16,7 @@ include ivy_quic_server_standard_tp
 include quic_time
 
 after init {
-    call time_api.chrono_timer.start;
+    call time_api.c_timer.start;
     call time_api.c_timer.start;
 }
 # Note, we don't need a tester precondition for packet protocol
@@ -34,9 +34,6 @@ export packet_event
 export client_send_event
 export tls_recv_event
 
-export send_ack_eliciting_handshake_packet
-export send_ack_eliciting_initial_packet
-export frame.ping.handle
 #export frame.rst_stream.handle
 #export frame.max_stream_id.handle
 #export frame.connection_close.handle
