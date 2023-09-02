@@ -122,6 +122,7 @@ function packets_to_retransmit(E: quic_packet_type, I:stream_pos) : frame.arr
 function packets_to_retransmit_end(E: quic_packet_type) : stream_pos
 
 relation ack_eliciting_packet_in_flight
+relation ack_eliciting_packet_in_flight_per_space(E: quic_packet_type)
 
 # QUIC uses a probe timeout (PTO; see Section 6.2), with a timer based on TCP's retransmission timeout (RTO) computation; 
 # see [RFC6298]. QUIC's PTO includes the peer's maximum expected acknowledgment delay instead of using a fixed minimum timeout.
@@ -264,7 +265,7 @@ action abs(x:microseconds) returns (z:microseconds) = {
 # Timers set in the past fire immediately.Pseudocode for SetLossDetectionTimer 
 # follows (where the "^" operator represents exponentiation):
 
-action get_pto_time_and_space(dcid:cid) returns (pto_timeout_res:microseconds, pto_space:quic_packet_type) = {
+action get_pto_time_and_space(dst:ip.endpoint, dcid:cid) returns (pto_timeout_res:microseconds, pto_space:quic_packet_type) = {
     var max := 4 * rttvar(dcid);
     if max < kGranularity {
         max := kGranularity;
@@ -273,28 +274,43 @@ action get_pto_time_and_space(dcid:cid) returns (pto_timeout_res:microseconds, p
 
     # Anti-deadlock PTO starts from the current time
     if ~ack_eliciting_packet_in_flight {
-        pto_timeout_res := duration + time_api.c_timer.now_micros;
-        if established_handshake_keys(dcid) {
-            pto_space := quic_packet_type.handshake;
-        } 
-        else {
-            pto_space := quic_packet_type.initial;
-        }
-    }
+        if ~peer_completed_address_validation(dst, dcid) {
+            pto_timeout_res := duration + time_api.c_timer.now_micros;
+            if established_handshake_keys(dcid) {
+                pto_space := quic_packet_type.handshake;
+            } 
+            else {
+                pto_space := quic_packet_type.initial;
+            }
+         };
+    } else {
+        # TODO should loop on all packet number spaces, but strange
+        var temp_pto_timeout_res : microseconds := 0xFFFFFF; # infinity
+        
+        var temp_pto_space := quic_packet_type.initial;
+        var t := time_of_last_ack_eliciting_packet(temp_pto_space) + duration;
+        if t < temp_pto_timeout_res {
+            pto_timeout_res := t;
+            pto_space := temp_pto_space;
+        };
 
-    # TODO should loop on all packet number spaces, but strange
-
-    var temp_pto_timeout_res : microseconds := 0xFFFFFF; # infinity
-    var temp_pto_space := quic_packet_type.one_rtt;
-
-    duration := duration + max_ack_delay_tp * pow(pto_count,2);
-    var t := time_of_last_ack_eliciting_packet(quic_packet_type.one_rtt) + duration;
-
-    if t < temp_pto_timeout_res {
-        pto_timeout_res := t;
-        pto_space := quic_packet_type.one_rtt;
+        temp_pto_space := quic_packet_type.handshake;
+        t := time_of_last_ack_eliciting_packet(temp_pto_space) + duration;
+        if t < temp_pto_timeout_res {
+            pto_timeout_res := t;
+            pto_space := temp_pto_space;
+        };
+        
+        temp_pto_space := quic_packet_type.one_rtt;
+        if peer_completed_address_validation(dst, dcid) {
+            duration := duration + max_ack_delay_tp * pow(pto_count,2);
+            t := time_of_last_ack_eliciting_packet(temp_pto_space) + duration;
+            if t < temp_pto_timeout_res {
+                pto_timeout_res := t;
+                pto_space := temp_pto_space;
+            };
+        };
     };
-
     call show_get_pto_time_and_space(pto_timeout_res, pto_space);
 }
 
@@ -330,7 +346,7 @@ action set_loss_detection_timer(dst:ip.endpoint, dcid: cid) = {
     call show_get_loss_time_space(earliest_loss_time, space);
 
     if earliest_loss_time ~= 0 {
-        loss_detection_timer :=  time_api.c_timer.now_micros;
+        loss_detection_timer :=  earliest_loss_time;
     } else {
         if anti_amplification_limit_reached { # (dst, dcid)
            loss_detection_timer := 0;
@@ -341,12 +357,14 @@ action set_loss_detection_timer(dst:ip.endpoint, dcid: cid) = {
                 # However, the client needs to arm the timer if the
                 # server might be blocked by the anti-amplification limit.
                 loss_detection_timer := 0;
+            } else {
+                var pto_timeout_t : microseconds;
+                var pto_space : quic_packet_type;
+                (pto_timeout_t, pto_space) := get_pto_time_and_space(dst,dcid);
+                loss_detection_timer := pto_timeout_t;
+                pto_timeout := pto_timeout_t;
             }
-            var pto_timeout_t : microseconds;
-            var pto_space : quic_packet_type;
-            (pto_timeout_t, pto_space) := get_pto_time_and_space(dcid);
-            loss_detection_timer := pto_timeout_t;
-            pto_timeout := pto_timeout_t;
+            
         }
     };
     call show_loss_detection_timer(loss_detection_timer);
@@ -366,7 +384,6 @@ action on_loss_detection_timeout(dst:ip.endpoint, dcid: cid) = {
         call on_packets_lost(pn_space);
         call set_loss_detection_timer(dst, dcid);
     } else {
-
         if ~ack_eliciting_packet_in_flight & ~peer_completed_address_validation(dst, dcid) {
             # Client sends an anti-deadlock packet: Initial is padded
             # to earn more anti-amplification credit,
@@ -383,12 +400,18 @@ action on_loss_detection_timeout(dst:ip.endpoint, dcid: cid) = {
             # If neither is available, send a single PING frame.
             var pto_timeout_t : microseconds;
             var pto_space : quic_packet_type;
-            (pto_timeout_t, pto_space) := get_pto_time_and_space(dcid);
+            (pto_timeout_t, pto_space) := get_pto_time_and_space(dst,dcid);
             loss_detection_timer := pto_timeout_t;
             pto_timeout := pto_timeout_t;
             # TODO SendOneOrTwoAckElicitingPackets(pn_space)
-            need_send_ack_eliciting_application_packet := true;
-        }
+            if pn_space = quic_packet_type.initial {
+                need_send_ack_eliciting_initial_packet := true;
+            } else if pn_space = quic_packet_type.handshake {
+                need_send_ack_eliciting_handshake_packet := true;
+            } else {
+                need_send_ack_eliciting_application_packet := true;
+            };
+        };
         pto_count := pto_count + 1;
         call set_loss_detection_timer(dst, dcid);
     };
@@ -400,62 +423,68 @@ action on_loss_detection_timeout(dst:ip.endpoint, dcid: cid) = {
 
 action detect_and_remove_lost_packets(pn_space:quic_packet_type, dcid:cid) = {
     loss_time(pn_space) := 0;
-    # var lost_packets_temp := quic_packet.arr.empty;
     var max := smoothed_rtt(dcid);
     if max < latest_rtt(dcid) {
         max := latest_rtt(dcid);
-    }
-    var loss_delay := kTimeThreshold * max;
+    };
 
+    var loss_delay := kTimeThreshold * max;
     if loss_delay < kGranularity {
         loss_delay := kGranularity;
-    }
+    };
+
+    var tp := trans_params(dcid);
 
     var lost_send_time := time_api.c_timer.now_micros - loss_delay;
-
     var send_packets_size := sent_packets_end(pn_space);
     sent_packets_end(pn_space) := 0;
     lost_packets_end(pn_space) := 0;
-    #var send_packets_copy := sent_packets(pn_space);
-    # var send_packets_copy :=  quic_packet.arr.empty;
-    # var idx := sent_packets(pn_space).begin;
-    # while idx < sent_packets(pn_space).end {
-    #     send_packets_copy := send_packets_copy.append(sent_packets(pn_space).value(idx));
-    #     idx := sent_packets(pn_space).next;
-    # };
-    # sent_packets(pn_space) := quic_packet.arr.empty;
     var idx : stream_pos := 0;
     call show_detect_and_remove_lost_packets(lost_send_time, loss_delay, send_packets_size);
     while idx < send_packets_size {
         var current_pkt := sent_packets(pn_space,idx);
         # TODO
-        if current_pkt.seq_num < largest_acked_packet(pn_space) {
-            if sent_packets_time_sent(pn_space, current_pkt.seq_num) <= lost_send_time {
-                # sent_packets(pn_space).remove(idx);
-                # TODO also do that in other relations
-                # lost_packets_temp := lost_packets_temp.append(current_pkt);
-                lost_packets(pn_space,lost_packets_end(pn_space)) := current_pkt;
-                lost_packets_end(pn_space) := lost_packets_end(pn_space) + 1;
-            } else {
-                sent_packets(pn_space,sent_packets_end(pn_space)) := current_pkt;
-                sent_packets_end(pn_space) := sent_packets_end(pn_space) + 1;
-                # sent_packets(pn_space) := sent_packets(pn_space).append(current_pkt); # like removing if not added
+        if current_pkt.seq_num <= largest_acked_packet(pn_space) {
+            if min_ack_delay.is_set(tp) {
+                if sent_packets_time_sent(pn_space, current_pkt.seq_num) <= lost_send_time |
+                    largest_acked_packet(pn_space) >= current_pkt.seq_num + streampos_to_seqnum(ack_out_of_order_val(dcid)) {
+                    lost_packets(pn_space,lost_packets_end(pn_space)) := current_pkt;
+                    lost_packets_end(pn_space) := lost_packets_end(pn_space) + 1;
+                } 
+                else {
+                    sent_packets(pn_space,sent_packets_end(pn_space)) := current_pkt;
+                    sent_packets_end(pn_space) := sent_packets_end(pn_space) + 1;
+                    if loss_time(pn_space) = 0 {
+                        loss_time(pn_space) := sent_packets_time_sent(pn_space, current_pkt.seq_num) + loss_delay;
+                    } 
+                    else {
+                        var min := loss_time(pn_space);
+                        if min > sent_packets_time_sent(pn_space, current_pkt.seq_num) + loss_delay {
+                            loss_time(pn_space) := sent_packets_time_sent(pn_space, current_pkt.seq_num) + loss_delay;
+                        }
+                    }
+                };
             }
-        }
-        else {
-            #sent_packets(pn_space) := sent_packets(pn_space).append(current_pkt);
-            sent_packets(pn_space,sent_packets_end(pn_space)) := current_pkt;
-            sent_packets_end(pn_space) := sent_packets_end(pn_space) + 1;
-            if loss_time(pn_space) = 0 {
-                loss_time(pn_space) := sent_packets_time_sent(pn_space, current_pkt.seq_num) + loss_delay;
-            } 
             else {
-                var min := loss_time(pn_space);
-                if min > sent_packets_time_sent(pn_space, current_pkt.seq_num) + loss_delay {
-                    loss_time(pn_space) := sent_packets_time_sent(pn_space, current_pkt.seq_num) + loss_delay;
-                }
+                if sent_packets_time_sent(pn_space, current_pkt.seq_num) <= lost_send_time |
+                    largest_acked_packet(pn_space) >= current_pkt.seq_num + streampos_to_seqnum(kPacketThreshold) {
+                    lost_packets(pn_space,lost_packets_end(pn_space)) := current_pkt;
+                    lost_packets_end(pn_space) := lost_packets_end(pn_space) + 1;
+                } else {
+                    sent_packets(pn_space,sent_packets_end(pn_space)) := current_pkt;
+                    sent_packets_end(pn_space) := sent_packets_end(pn_space) + 1;
+                    if loss_time(pn_space) = 0 {
+                        loss_time(pn_space) := sent_packets_time_sent(pn_space, current_pkt.seq_num) + loss_delay;
+                    } 
+                    else {
+                        var min := loss_time(pn_space);
+                        if min > sent_packets_time_sent(pn_space, current_pkt.seq_num) + loss_delay {
+                            loss_time(pn_space) := sent_packets_time_sent(pn_space, current_pkt.seq_num) + loss_delay;
+                        }
+                    }
+                };
             }
-        }
+        };
         idx := idx + 1;
     };
     # lost_packets := lost_packets_temp;
@@ -520,7 +549,6 @@ action on_ack_received(dst:ip.endpoint, largest_acked:pkt_num, ack_delay:microse
     if largest_acked_packet(pn_space) = 0xFFFFFF { # infinity
         largest_acked_packet(pn_space) := largest_acked;
     } else {
-        largest_acked_packet(pn_space) := largest_acked_packet(pn_space);
         if largest_acked > largest_acked_packet(pn_space) {
             largest_acked_packet(pn_space) := largest_acked;
         }
@@ -673,9 +701,11 @@ action on_packet_sent(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet, sent_byte
 
     var idx : stream_pos := 0;
     ack_eliciting_packet_in_flight := false;
+    ack_eliciting_packet_in_flight_per_space(pkt.ptype) := false;
     while idx < sent_packets_end(pkt.ptype) {
         if queued_ack_eliciting_pkt(seqnum_to_streampos(sent_packets(pkt.ptype,idx).seq_num)) {
             ack_eliciting_packet_in_flight := true;
+            ack_eliciting_packet_in_flight_per_space(pkt.ptype) := true;
         }
         idx := idx + 1;
     }

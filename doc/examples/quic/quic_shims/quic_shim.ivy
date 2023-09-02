@@ -236,7 +236,7 @@ implement net.recv(host:endpoint_id, s:net.socket, src:ip.endpoint, pkts:prot.ar
     call show_socket(s);
     if host = endpoint_id.server {        # for client test (tested implem = client <-> ivy implem = server)
         call server.behavior(host,s,src,pkts);
-    } else if host = endpoint_id.client { # for server test (tested implem = server <-> ivy implem = client)
+    } else if host = endpoint_id.client | host = endpoint_id.client_alt  { # for server test (tested implem = server <-> ivy implem = client)
         call client.behavior(host,s,src,pkts);
     } else if host = endpoint_id.mim {
         call mim_agent.behavior(host,s,src,pkts);
@@ -380,7 +380,7 @@ after tls.handshake_data_event(src : ip.endpoint, dst : ip.endpoint, data:stream
 after tls_client_initial_request(src:ip.endpoint,dst:ip.endpoint,nonce:cid, pversion:version, id:tls_api.id) {
     client_initial_scil := scid_size_pos(false);
     var ikm := cid_to_bytes(nonce,dcid_size_cl(retry_response(the_cid))); 
-    call show_set_initial_keys(ikm);
+    call show_set_initial_keys(ikm, id);
     # call show_version(pversion);
     var salt : stream_data := stream_data.empty;
 
@@ -625,14 +625,14 @@ after tls_client_initial_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_d
             salt := salt.append(0x0a);
         };
 
-        call show_set_initial_keys(ikm);
+        call show_set_initial_keys(ikm, 0);
         call tls_api.upper.set_initial_keys(0,salt,ikm);
         
         initial_keys_set(dcid) := true;
     }
 }
 
-import action show_set_initial_keys(ik: stream_data)
+import action show_set_initial_keys(ik: stream_data, id: tls_api.id)
 import action show_version(ver:version)
 import action show_kk
 

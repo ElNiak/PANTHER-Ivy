@@ -60,6 +60,7 @@ instance server : quic_endpoint(1,role.server)
 
 after init {
     client.set_tls_id(0);
+    second_client.set_tls_id(0); # TODO to avoid error
     server.set_tls_id(1);
     call botan.upper.create(0,false);
     call botan.upper.create(1,true);

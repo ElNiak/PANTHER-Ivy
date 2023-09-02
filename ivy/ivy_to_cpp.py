@@ -5733,6 +5733,7 @@ def emit_repl_boilerplate3test(header,impl,classname):
             }
         }            
     }
+    
     FINALIZE
 #ifdef _WIN32
                 Sleep(final_ms);  // HACK: wait for late responses
@@ -5755,6 +5756,19 @@ def emit_repl_boilerplate3test(header,impl,classname):
 
 
 """.replace('classname',classname).replace('FINALIZE',final_code))
+
+    # impl.append("""
+    # void atexit_handler_1()
+    # {
+    #     std::cout << "At exit #1\n";
+    #     FINALIZE
+    # }
+    
+    # void atexit_handler_2()
+    # {
+    #     std::cout << "At exit #2\n";
+    #     FINALIZE
+    # }""")
 
 def emit_boilerplate1(header,impl,classname):
     header.append("""

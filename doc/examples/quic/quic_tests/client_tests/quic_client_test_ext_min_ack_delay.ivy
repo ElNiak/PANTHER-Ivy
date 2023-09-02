@@ -27,6 +27,24 @@ after init {
 # Note: some of these are commented out. They are added in other files
 # that include this one.
 
+before frame.ack_frequency.handle(f:frame.ack_frequency,scid:cid,dcid:cid) {
+    if _generating {
+        require client.ep.addr ~= 0;         
+        require scid = the_cid;
+        force_ack_frequency := true;
+    } 
+}
+
+
+before frame.immediate_ack.handle(f:frame.immediate_ack,scid:cid,dcid:cid) {
+    if _generating {
+        require client.ep.addr ~= 0;
+        require scid = the_cid;
+        force_immediate_ack := true;
+    } 
+}
+
+
 export frame.ack.handle
 export frame.ack_frequency.handle
 export frame.immediate_ack.handle

@@ -331,7 +331,7 @@ object frame = {
 
     # (0xaf) 
     # https://tools.ietf.org/html/draft-iyengar-quic-delayed-ack-02
-    object ack_frequency = {
+    object ack_frequency = { # TODO could be moved BUT need to refactor the deser/ser in csq 
         # ACK_FREQUENCY  frame frames are a variant of frame and contains nothing
 		# 1 byte frame to increase the size of a packet
          variant this of frame = struct {
@@ -397,7 +397,7 @@ object frame = {
 object frame = {
     ...
     action handle(f:this,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num) = {
-        is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
+        # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
         # require (~is_not_sleeping -> ~_generating);
         # require (_generating -> is_not_sleeping);
         if _generating {
@@ -551,6 +551,7 @@ relation queued_close(C:cid)
 function num_queued_frames(C:cid) : frame.idx
 function num_queued_frames_rtt(C:cid) : frame.idx
 relation path_challenge_pending(C:cid,D:stream_data)
+relation path_challenge_sent(C:cid)
 function conn_total_data(C:cid) : stream_pos
 #Hamid
 relation queued_ack_eliciting(C:cid)
@@ -706,13 +707,12 @@ object frame = {
         ...
         action handle(f:frame.ack,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
-	around handle {
-            call is_generating(_generating);
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
+	around handle {call is_generating(_generating);
+            # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
             # require (~is_not_sleeping -> ~_generating);
             # require (_generating -> is_not_sleeping);
-            if _generating {
-                
+            var tp := trans_params(dcid);
+            if min_ack_delay.is_set(tp)  {
             };
             
             # ack_time := time_api.c_timer.now_micros;
@@ -754,9 +754,10 @@ object frame = {
 
             call show_ack_eliciting_threshold_current_val(ack_eliciting_threshold_current_val(scid));
             call show_ack_eliciting_threshold_current_val(ack_eliciting_threshold_current_val(dcid));
-
             call show_ack_eliciting_threshold_val(ack_eliciting_threshold_val(scid));
             call show_ack_eliciting_threshold_val(ack_eliciting_threshold_val(dcid));
+
+
             
             require f.ack_ranges.end > 0;
             var some_new_ack := false;
@@ -823,12 +824,6 @@ object frame = {
         action handle(f:frame.ack_ecn,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
 	around handle {
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-            # require (_generating  -> is_not_sleeping);
-            # require (~is_not_sleeping -> ~_generating);
-            if _generating {
-                
-            };
             require connected(dcid) & connected_to(dcid) = scid;
             if _generating  {
             	require ~(e = quic_packet_type.initial) & ~(e = quic_packet_type.handshake); #& ~(e = quic_packet_type.handshake)
@@ -932,12 +927,6 @@ object frame = { # TODO cleanup
         action handle(f:frame.stream,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
 	around handle {
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-            # require (_generating  -> is_not_sleeping);
-            # require (~is_not_sleeping -> ~_generating);
-            if _generating {
-                
-            };
             # if  e = quic_packet_type.one_rtt { #  & established_0rtt_keys(scid)
             #     require connected(dcid) & connected_to(dcid) = scid;
             #     require e = quic_packet_type.one_rtt & established_1rtt_keys(scid); #  | e = quic_packet_type.zero_rtt & established_0rtt_keys(scid) 
@@ -1055,12 +1044,6 @@ object frame = {
         action handle(f:frame.crypto,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
 	around handle {
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-            # require (_generating  -> is_not_sleeping);
-            # require (~is_not_sleeping -> ~_generating);
-            if _generating {
-                
-            };
 	        #if ~scid=0 {
             require num_queued_frames(scid) > 0 -> e = queued_level(scid);
 	        #};
@@ -1127,12 +1110,6 @@ object frame = { ...
         action handle(f:frame.rst_stream,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
 	around handle {
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-            # require (_generating  -> is_not_sleeping);
-            # require (~is_not_sleeping -> ~_generating);
-            if _generating {
-                
-            };
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);  # [6]
             require num_queued_frames(scid) > 0 -> e = queued_level(scid);
@@ -1182,8 +1159,7 @@ object frame = { ...
     object stop_sending = { ...
         action handle(f:frame.stop_sending,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
-	around handle {
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
+	around handle {# is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
             # require (_generating  -> is_not_sleeping);
             if _generating {
                 
@@ -1245,8 +1221,7 @@ object frame = { ...
     object max_streams = { ...
         action handle(f:frame.max_streams,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
-	around handle {
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
+	around handle {# is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
             # require (_generating  -> is_not_sleeping);
             if _generating {
                 
@@ -1281,8 +1256,7 @@ object frame = { ...
     object max_streams_bidi = { ...
         action handle(f:frame.max_streams_bidi,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
-	around handle {
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
+	around handle {# is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
             # require (_generating  -> is_not_sleeping);
             if _generating {
                 
@@ -1350,12 +1324,7 @@ object frame = { ...
     object connection_close = { ...
         action handle(f:frame.connection_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle{
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-            # require (_generating  -> is_not_sleeping);
-            # require (~is_not_sleeping -> ~_generating);
-            if _generating {
-                
-            };
+            
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt -> established_1rtt_keys(scid);
             require e = quic_packet_type.handshake -> established_handshake_keys(scid);
@@ -1413,12 +1382,7 @@ object frame = { ...
     object application_close = { ...
         action handle(f:frame.application_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle{
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-            # require (_generating  -> is_not_sleeping);
-            # require (~is_not_sleeping -> ~_generating);
-            if _generating {
-                
-            };
+            
             require connected(dcid) & connected_to(dcid) = scid;
             #require e ~= quic_packet_type.initial;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
@@ -1461,12 +1425,6 @@ object frame = { ...
     object max_stream_data = { ...
         action handle(f:frame.max_stream_data,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-            # require (_generating  -> is_not_sleeping);
-            # require (~is_not_sleeping -> ~_generating);
-            if _generating {
-                
-            };
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
             require num_queued_frames(scid) > 0 -> e = queued_level(scid);
@@ -1503,12 +1461,6 @@ object frame = { ...
     object stream_data_blocked = { ...
         action handle(f:frame.stream_data_blocked,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-            # require (_generating  -> is_not_sleeping);
-            # require (~is_not_sleeping -> ~_generating);
-            if _generating {
-                
-            };
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
             require num_queued_frames(scid) > 0 -> e = queued_level(scid);
@@ -1536,12 +1488,6 @@ object frame = { ...
     object data_blocked = { ...
         action handle(f:frame.data_blocked,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-            # require (_generating  -> is_not_sleeping);
-            # require (~is_not_sleeping -> ~_generating);
-            if _generating {
-                
-            };
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
             require num_queued_frames(scid) > 0 -> e = queued_level(scid);
@@ -1575,12 +1521,6 @@ object frame = { ...
     object streams_blocked = { ...
         action handle(f:frame.streams_blocked,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-            # require (_generating  -> is_not_sleeping);
-            # require (~is_not_sleeping -> ~_generating);
-            if _generating {
-                
-            };
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
             require num_queued_frames(scid) > 0 -> e = queued_level(scid);
@@ -1597,12 +1537,6 @@ object frame = { ...
     object streams_blocked_bidi = { ...
         action handle(f:frame.streams_blocked_bidi,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-            # require (_generating  -> is_not_sleeping);
-            # require (~is_not_sleeping -> ~_generating);
-            if _generating {
-                
-            };
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
             require num_queued_frames(scid) > 0 -> e = queued_level(scid);
@@ -1635,12 +1569,6 @@ object frame = { ...
     object max_data = { ...
         action handle(f:frame.max_data,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-            # require (_generating  -> is_not_sleeping);
-            # require (~is_not_sleeping -> ~_generating);
-            if _generating {
-                
-            };
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
             require num_queued_frames(scid) > 0 -> e = queued_level(scid);
@@ -1666,12 +1594,6 @@ object frame = { ...
     object ping = { ...
         action handle(f:frame.ping,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-            # require (_generating  -> is_not_sleeping);
-            # require (~is_not_sleeping -> ~_generating);
-            if _generating {
-                
-            };
            
             require e = quic_packet_type.one_rtt -> established_1rtt_keys(scid);
             require e = quic_packet_type.handshake -> established_handshake_keys(scid);
@@ -1701,12 +1623,6 @@ object frame = { ...
     object unknown_frame = { ...
         action handle(f:frame.unknown_frame,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-            # require (_generating  -> is_not_sleeping);
-            # require (~is_not_sleeping -> ~_generating);
-            if _generating {
-                
-            };
             require connected(dcid) & connected_to(dcid) = scid;
             require num_queued_frames(scid) > 0 -> e = queued_level(scid);
             #volontary at any time or not ?
@@ -1747,12 +1663,7 @@ object frame = { ...
     object handshake_done = { ...
         action handle(f:frame.handshake_done,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle { 
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-            # require (_generating  -> is_not_sleeping);
-            # require (~is_not_sleeping -> ~_generating);
-            if _generating {
-                
-            };
+            
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);  # [3]
             require e ~= quic_packet_type.initial;
@@ -1804,12 +1715,6 @@ object frame = { ...
     object new_connection_id = { ...
         action handle(f:frame.new_connection_id,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-            # require (_generating  -> is_not_sleeping);
-            # require (~is_not_sleeping -> ~_generating);
-            if _generating {
-                
-            };
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
             require num_queued_frames(scid) > 0 -> e = queued_level(scid); #Will change with implementing TODO
@@ -1877,14 +1782,7 @@ object frame = { ...
 object frame = { ...
     object retire_connection_id = { ...
         action handle(f:frame.retire_connection_id,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
-	    around handle {
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-            # require (_generating  -> is_not_sleeping);
-            # require (~is_not_sleeping -> ~_generating);
-            if _generating {
-                
-            };
-            require connected(dcid) & connected_to(dcid) = scid;
+	    around handle {require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
             # Will change with implementing TODO
             require num_queued_frames(scid) > 0 -> e = queued_level(scid); 
@@ -1928,15 +1826,14 @@ object frame = { ...
 object frame = { ...
     object path_challenge = { ...
         action handle(f:frame.path_challenge,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
-	around handle {
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-            # require (_generating  -> is_not_sleeping);
-            # require (~is_not_sleeping -> ~_generating);
-            if _generating {
-                
-            };
-            require connected(dcid) & connected_to(dcid) = scid;
+	around handle {require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
+            require handshake_done_recv | handshake_done_send;
+            # if _generating {
+            #     require handshake_done_send;
+            # } else {
+            #     require handshake_done_recv;
+            # };
             require num_queued_frames(scid) > 0 -> e = queued_level(scid);
             require f.data.end = 8;
             require ~path_challenge_pending(dcid,f.data);
@@ -1956,21 +1853,19 @@ object frame = { ...
 object frame = { ...
     object path_response = { ...
         action handle(f:frame.path_response,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
-	around handle {
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-            # require (_generating  -> is_not_sleeping);
-            # require (~is_not_sleeping -> ~_generating);
-            if _generating {
-                
-            };
+	around handle { 
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
+            if _generating {
+                require ~path_challenge_sent(dcid); # avoid auto response
+            };
             require num_queued_frames(scid) > 0 -> e = queued_level(scid);
             require f.data.end = 8;
             require path_challenge_pending(scid,f.data);
             ...
             path_challenge_pending(scid,f.data) := false;
             path_validated := true; # TODO
+            path_validated_pkt_num := seq_num;
             call enqueue_frame(scid,f,e,true,seq_num);
         }
     }
@@ -1986,12 +1881,6 @@ object frame = { ...
     object new_token = { ...
         action handle(f:frame.new_token,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-            # require (_generating  -> is_not_sleeping);
-            # require (~is_not_sleeping -> ~_generating);
-            if _generating {
-                
-            };
             # TODO for now we save token in clinet & server
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
@@ -2007,99 +1896,7 @@ object frame = { ...
     }
 }
 
-# #### ack_frequency event
-# TODO
-# ack_frequency frames    Delaying acknowledgements as much as possible reduces both work done
-#   by the endpoints and network load.  An endpoint's loss detection and
-#   congestion control mechanisms however need to be tolerant of this
-#   delay at the peer.  An endpoint signals its tolerance to its peer
-#   using an ACK_FREQUENCY frame, shown below:
-
-object frame = { ...
-    object ack_frequency = { ...
-        action handle(f:frame.ack_frequency,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
-	around handle {
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-            # require (_generating  -> is_not_sleeping);
-            # require (~is_not_sleeping -> ~_generating);
-            if _generating {
-                
-            };
-            require connected(dcid) & connected_to(dcid) = scid;
-            require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
-            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
-
-            var tp := trans_params(scid);
-            require  min_ack_delay.is_set(tp);
-
-            var min : microseconds := min_ack_delay.value(trans_params(scid)).exponent_8;
-            require f.ack_eliciting_threshold > 0;
-            require f.request_max_ack_delay > min; 
-            require f.reordering_threshold = 1 | f.reordering_threshold = 0;
-            if first_ack_freq_received {
-                require f.seq_num = 0;
-                first_ack_freq_received := false;
-            } else {
-                require f.seq_num > last_ack_freq_seq(scid);
-                last_ack_freq_seq(scid) := f.seq_num;
-            };
-            ...
-
-            if ~_generating {
-                ack_eliciting_threshold_val(scid) := f.ack_eliciting_threshold;
-                # On receiving a valid value in this field, the endpoint MUST 
-                # update its max_ack_delay to the value provided by the peer.
-                max_ack_delay_tp :=  f.request_max_ack_delay
-            }
- 
-            call enqueue_frame(scid,f,e,false,seq_num);
-        }
-    }
-}
-
-# #### immediate_ack event
-# A sender can use an ACK_FREQUENCY frame to reduce the number of 
-# acknowledgements sent by a receiver, but doing so increases the
-#  likelihood that time-sensitive feedback is delayed as well. 
-#  For example, as described in Section 8.3, delaying acknowledgements 
-#  can increase the time it takes for a sender to detect packet loss. 
-#  Sending an IMMEDIATE_ACK frame can help mitigate this problem.
-
-# An IMMEDIATE_ACK frame can be useful in other situations as well. 
-# For example, if a sender wants an immediate RTT measurement or 
-# if a sender wants to establish receiver liveness as quickly as possible. 
-# PING frames (Section 19.2 of [QUIC-TRANSPORT]) are ack-eliciting, but 
-# if a PING frame is sent without an IMMEDIATE_ACK frame, the receiver might 
-# not immediately send an ACK based on its local ACK strategy.
-
-# By definition IMMEDIATE_ACK frames are ack-eliciting. An endpoint 
-# SHOULD send a packet containing an ACK frame immediately upon receiving 
-# an IMMEDIATE_ACK frame. An endpoint MAY delay sending an ACK frame despite 
-# receiving an IMMEDIATE_ACK frame. For example, an endpoint might do this if 
-# a large number of received packets contain an IMMEDIATE_ACK or if the endpoint is 
-# under heavy load.
-
-object frame = { ...
-    object immediate_ack = { ...
-        action handle(f:frame.immediate_ack,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
-	around handle {
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-            # require (_generating  -> is_not_sleeping);
-            # require (~is_not_sleeping -> ~_generating);
-            if _generating {
-                
-            };
-            require connected(dcid) & connected_to(dcid) = scid;
-            require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
-            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
-            var tp := trans_params(scid);
-            require  min_ack_delay.is_set(tp);
-            ...
-            call enqueue_frame(scid,f,e,false,seq_num);
-        }
-    }
-}
-
+include quic_ack_frequency_extension
 
 object frame = {
     ...
@@ -2108,12 +1905,6 @@ object frame = {
         action handle(f:frame.malicious_frame,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
 	around handle {
-            is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-            # require (_generating  -> is_not_sleeping);
-            # require (~is_not_sleeping -> ~_generating);
-            if _generating {
-                
-            };
             require tls_handshake_finished;
 
             require connected(dcid) & connected_to(dcid) = scid;
@@ -2313,14 +2104,7 @@ action max_additional_data(dcid:cid) returns (max:stream_pos) = {
     max := max - conn_total_data(dcid);  # note the substraction is saturating
 }
 
-#  An endpoint's min_ack_delay MUST NOT be greater than the its
-#  max_ack_delay. 
 
-action min_ack_delay_check(dcid:cid) returns (ok:bool) = {
-    ok := false;
-    var tp := trans_params(dcid);
-    ok := min_ack_delay.value(tp).exponent_8  < milliseconds_to_microseconds(max_ack_delay.value(tp).exponent_8); # * 1000
-}
 
 action scale_ack_delay(delay:milliseconds, ack_delay_exponent:microsecs) returns (scaled:microseconds) = {
    <<<
@@ -2331,18 +2115,6 @@ action scale_ack_delay(delay:milliseconds, ack_delay_exponent:microsecs) returns
     std::cerr << "delay " << delay << "\n";
     std::cerr << "scaled " << delay * pow(ack_delay_exponent,2) << "\n";
     scaled = delay * pow(ack_delay_exponent,2);
-   >>> 
-}
-
-action milliseconds_to_microseconds(delay:milliseconds) returns (scaled:microseconds) = {
-   <<<
-    scaled = delay * 1000;
-   >>> 
-}
-
-action microseconds_to_milliseconds(delay:microseconds) returns (scaled:milliseconds) = {
-   <<<
-    scaled = delay/1000;
    >>> 
 }
 

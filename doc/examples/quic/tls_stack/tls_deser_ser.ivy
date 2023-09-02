@@ -242,7 +242,7 @@ object tls_ser_server = {}
 	        long long mask;
             getn(tag,bytes);
             std::cerr << "tag v1: " << tag << "\n";  
-
+            std::cerr << "bytes v1: " << bytes << "\n"; 
 	        u_int tag_int = (u_int) tag;  //TODO change could be dangerous
             int tag_size = (tag_int >> 6) & ((1 << 2) -1);
             if(tag_size == 0) {
@@ -262,6 +262,11 @@ object tls_ser_server = {}
             bool is_unknow = false;
             if(tag > 0x0f && tag != 0x002a && tag != 0x0029)
                 is_unknow = true;
+            
+            //if(tag == 0x00C0)
+            //    is_unknow = false;
+
+            std::cerr <<  "is_unknow: " <<  is_unknow << "\n";
 
             if(tag == 0x002a || tag == 0x0029)
                 tag_size = 2;
@@ -326,10 +331,11 @@ object tls_ser_server = {}
                 tag_final = tag;
             }
 
-
+            unsigned long long casted_tag = (unsigned long long)(tag_final & 0xFFFFFFFFFFFFFFFF);
 	        std::cerr << "value_size: " << value_size << "\n";
-            //std::cerr << "tag v2: " << tag_final << "\n";
-  
+            std::cerr << "tag v2: " <<  casted_tag  << "\n";
+            if(casted_tag == 4278509082) 
+                tag_final = -4611686014148878822; //TODO hack
             for (int i = 0; i < tags.size(); i++) {
                // std::cerr << "tags[i]: " << tags[i] << "\n";
                // std::cerr << "tls_tags_map[tags[i]]: " << tls_tags_map[tags[i]] << "\n";

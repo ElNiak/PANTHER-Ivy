@@ -37,7 +37,8 @@ include quic_shim
 
 
 after packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
-   # if src = server.ep  {
+    is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
+    # if src = server.ep  {
     if dst_is_generated(src) & is_not_sleeping { # _generating & ~conn_closed(pkt.the_cid) {  & ~conn_closed(pkt.the_cid)
         var spkt := pkt_serdes.to_bytes(pkt);
         var rnum := reference_pkt_num(spkt,false);

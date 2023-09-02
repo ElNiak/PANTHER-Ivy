@@ -109,6 +109,7 @@ object quic_endpoint = {
                             if is_pad { #is_pad | is_rand_pad
                                 call padding_packet_event(host,src,dst,ppkt);
                             } else {
+                                call clear_packet(src,dst,rnum,res.data);
                                 var pkt := pkt_serdes.from_bytes(res.data);
                                 pkt.seq_num := prot.correct_pnum(rnum,pkt.seq_num,prot.get_pnum_len(res.data));
                                 if pkt.seq_num = lost_pkt_num {
@@ -316,6 +317,7 @@ object quic_endpoint = {
                             #for client test, 0rtt packet
                             call tls_client_0rtt_response(src,dst,res.data);
                         } else {
+                            call clear_packet(src,dst,rnum,res.data);
                             var pkt := pkt_serdes.from_bytes(res.data);
                             pkt.seq_num := prot.correct_pnum(rnum,pkt.seq_num,prot.get_pnum_len(res.data));
                             # if pkt.seq_num = lost_pkt_num {

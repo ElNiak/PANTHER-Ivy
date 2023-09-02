@@ -45,6 +45,7 @@ include ivy_quic_mim_behavior
 after init {
     sock_alt := net.open(endpoint_id.client,client_server.ep_in);
     client.set_tls_id(0);
+    second_client.set_tls_id(0); # TODO to avoid error
     server.set_tls_id(1);
     var extns := tls_extensions.empty;
     extns := extns.append(make_transport_parameters);

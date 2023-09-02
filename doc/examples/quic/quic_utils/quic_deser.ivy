@@ -520,6 +520,7 @@ object quic_deser = {}
                 */
 
                 frame_type = ft;
+                std::cerr << "recv frame_type = " << frame_type << "\n";
                 if (frame_type == 0x01) {
                     state = quic_ping;
                     return 0;

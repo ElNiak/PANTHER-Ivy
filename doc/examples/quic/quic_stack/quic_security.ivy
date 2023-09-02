@@ -254,7 +254,7 @@ after init {
 import action show_test
 
 before tls_send_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, data : stream_data, pos : stream_pos, e:quic_packet_type, tls_id:tls_api.id) {
-    is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
+    # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
     if _generating {
         
     };
@@ -323,7 +323,7 @@ before tls_send_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, data
 # - The crypto position is is updated to the end of the received data.  [3]
 
 around tls_recv_event {
-    is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
+    # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
     ## require (~is_not_sleeping -> ~_generating);
     # require (_generating -> is_not_sleeping);
     #if _generating {

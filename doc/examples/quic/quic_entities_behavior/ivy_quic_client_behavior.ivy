@@ -411,7 +411,7 @@ after init {
 }
 
 around client_send_event {
-    is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
+    # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
     # require _generating -> is_not_sleeping;
     if _generating {
         

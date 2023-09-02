@@ -27,6 +27,7 @@ after init {
     sock_alt := net.open(endpoint_id.client_alt,client_alt);
     sock_vn := sock; # net.open(endpoint_id.client_vn,client_vn);
     client.set_tls_id(0);
+    second_client.set_tls_id(0); # TODO to avoid error
     server.set_tls_id(1);
     var extns := tls_extensions.empty;
     extns := extns.append(make_transport_parameters);

@@ -26,6 +26,7 @@ after init {
     sock_alt := net.open(endpoint_id.client_alt,client_alt);
     sock_vn := sock; # net.open(endpoint_id.client_vn,client_vn);
     client.set_tls_id(0);
+    second_client.set_tls_id(0); # TODO to avoid error
     server.set_tls_id(1);
     var extns := tls_extensions.empty;
     extns := extns.append(make_transport_parameters);
@@ -48,7 +49,7 @@ export tls_recv_event
 #export frame.retire_connection_id.handle
 #export frame.rst_stream.handle
 #export frame.max_stream_id.handle
-export frame.connection_close.handle # TODO
+# export frame.connection_close.handle # TODO
 #export frame.max_stream_data.handle
 #export frame.max_data.handle
 
