@@ -251,16 +251,14 @@ implement tls_api.lower.send(tls_id:tls_api.id, bytes:stream_data, lev:tls_api.l
     };
     var scid := tls_id_to_cid(tls_id);
     call show_tls_lower_send(bytes);
-    call tls_send_event(tls_id_to_src(tls_id), tls_id_to_dst(tls_id), scid,
-                        0, bytes,crypto_data_end(scid,e),e);
+    call tls_send_event(tls_id_to_src(tls_id), tls_id_to_dst(tls_id), scid, 0, bytes,crypto_data_end(scid,e),e);
 }
 
 import action show_tls_lower_send(bytes:stream_data)
 
 # The following is just for debugging purposes.
 
-after tls_send_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, data : stream_data,
-                     pos:stream_pos, e:quic_packet_type) {
+after tls_send_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, data : stream_data, pos:stream_pos, e:quic_packet_type) {
     call show_tls_send_event(src,dst,scid,dcid,data,pos,e);
 }
 

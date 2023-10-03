@@ -4,7 +4,7 @@ include order
 include quic_infer
 include file
 # include quic_locale
-include ivy_quic_shim_client
+# include ivy_quic_shim_client # call twice packet_event with timeout & dead tests
 include random_value
 
 
@@ -413,9 +413,9 @@ after init {
 around client_send_event {
     # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
     # require _generating -> is_not_sleeping;
-    if _generating {
+    # if _generating {
         
-    };
+    # };
     require s = current_stream;
     var tp := trans_params(the_cid);
 

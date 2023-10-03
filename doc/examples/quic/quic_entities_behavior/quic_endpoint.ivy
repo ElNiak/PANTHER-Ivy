@@ -98,11 +98,15 @@ object quic_endpoint = {
                         };
                         var dcid : cid := bytes_to_cid(ikm);
                         total_data_received := total_data_received + ppkt.size;
-                        if total_data_received > 3 * total_data_sent {
-                            if ~address_validated {
-                                anti_amplification_limit_reached := true;
-                            }
-                        };
+                        # if total_data_received > 3 * total_data_sent { # Only for server
+                        #     call show_data_received(total_data_received);
+                        #     call show_data_sent(total_data_sent);
+                        #     if ~address_validated {
+                        #         anti_amplification_limit_reached := true;
+                        #     } else {
+                        #         anti_amplification_limit_reached := false;
+                        #     }
+                        # };
                         call on_datagram_received(dst, dcid, ppkt);
                         if res.ok {
                             var is_pad := is_padding_packet(res.payload); # For picoquic  client
@@ -118,7 +122,7 @@ object quic_endpoint = {
                                     call recv_packet(host,src,dst,pkt);
                                     call infer_tls_events(src,dst,pkt);   # infer any TLS events on server side
                                     call packet_event(src,dst,pkt);       # also an inferred event
-                                    call on_packet_recv(src,dst,pkt,last_datagram_received_size);
+                                    call on_packet_received(src,dst,pkt,last_datagram_received_size);
                                 };
                             };
                         } else {
@@ -136,6 +140,8 @@ object quic_endpoint = {
             };
             last_datagram_received_size := 0;
         }
+        import action show_data_received(s:stream_pos)
+        import action show_data_sent(s:stream_pos)
         import action show_rnum(s:pkt_num)
     }
 
@@ -266,8 +272,12 @@ object quic_endpoint = {
                         var dcid : cid := bytes_to_cid(ikm);
                         total_data_received := total_data_received + ppkt.size;
                         if total_data_received > 3 * total_data_sent {
+                            call show_data_received(total_data_received);
+                            call show_data_sent(total_data_sent);
                             if ~address_validated {
                                 anti_amplification_limit_reached := true;
+                            } else {
+                                anti_amplification_limit_reached := false;
                             }
                         };
                         call on_datagram_received(dst, dcid, ppkt);
@@ -304,8 +314,12 @@ object quic_endpoint = {
                     var dcid : cid := bytes_to_cid(ikm);
                     total_data_received := total_data_received + ppkt.size;
                     if total_data_received > 3 * total_data_sent {
+                        call show_data_received(total_data_received);
+                        call show_data_sent(total_data_sent);
                         if ~address_validated {
                             anti_amplification_limit_reached := true;
+                        } else {
+                            anti_amplification_limit_reached := false;
                         }
                     };
                     call on_datagram_received(dst, dcid, ppkt);
@@ -326,7 +340,7 @@ object quic_endpoint = {
                                 call recv_packet(host,src,dst,pkt);
                                 call infer_tls_events(src,dst,pkt);   # infer any TLS events on server side
                                 call packet_event(src,dst,pkt);       # also an inferred event
-                                call on_packet_recv(src,dst,pkt,last_datagram_received_size);
+                                call on_packet_received(src,dst,pkt,last_datagram_received_size);
                                 if nclients > 1 {
                                     var cdx := the_cids.begin;
                                     while cdx < the_cids.end {
@@ -359,7 +373,8 @@ object quic_endpoint = {
             };
             last_datagram_received_size := 0;
         }
-
+        import action show_data_received(s:stream_pos)
+        import action show_data_sent(s:stream_pos)
         import action show_rnum(s:pkt_num)
     }
 

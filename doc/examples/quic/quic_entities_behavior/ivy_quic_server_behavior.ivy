@@ -3,7 +3,7 @@
 include order
 include quic_infer
 include file
-include ivy_quic_shim_server
+# include ivy_quic_shim_server
 # include quic_locale
 include random_value
 
@@ -380,6 +380,7 @@ before frame.max_stream_data.handle(f:frame.max_stream_data,scid:cid,dcid:cid) {
 
 # Generate stream_data_blocked frames only for the client.
 
+
 before frame.stream_data_blocked.handle(f:frame.stream_data_blocked,scid:cid,dcid:cid) {
     if _generating {
         require client.ep.addr ~= 0;
@@ -389,6 +390,7 @@ before frame.stream_data_blocked.handle(f:frame.stream_data_blocked,scid:cid,dci
 }
 
 before frame.ping.handle(f:frame.ping,scid:cid,dcid:cid) {
+    call show_generating(_generating);
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;
@@ -411,7 +413,7 @@ before frame.handshake_done.handle(f:frame.handshake_done,scid:cid,dcid:cid) {
 before frame.new_token.handle(f:frame.new_token,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid;
-        #call handle_sending_ack(f.largest_acked);
+        # call handle_sending_ack(f.largest_acked);
     } 
     # else {
     #     call tls_api.upper.save_token(f.data);
@@ -478,8 +480,7 @@ attribute stream_pos.cardinality = 16
 #attribute ip.addr.override = bv[1]
 #attribute ip.port.override = bv[1]
 
-action show_tls_send_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, data:stream_data,
-                           pos:stream_pos, e:quic_packet_type, tls_id:tls_api.id) = {}
+action show_tls_send_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, data:stream_data, pos:stream_pos, e:quic_packet_type, tls_id:tls_api.id) = {}
 
 import show_tls_send_event
 

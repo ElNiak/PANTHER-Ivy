@@ -2024,6 +2024,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         <<< impure
         std::cerr << "encrypt_aead start l " << l << "\n";
         std::cerr << "encrypt_aead start c " << c << "\n";
+        std::cerr << "encrypt_aead start seq " << seq << "\n";
 	    picotls_connection *s = `cid_map`[c];
         ptls_aead_context_t *aead = (ptls_aead_context_t *)(s->crypto_context[l].aead_encrypt);
         std::cerr << "encrypt_aead aead " << aead << "\n";

@@ -110,13 +110,13 @@ relation sent_packets_in_flight(E: quic_packet_type,S: pkt_num)
 function sent_packets_sent_bytes(E: quic_packet_type,S: pkt_num) : stream_pos # frame.arr
 
 
-function recv_packets(E: quic_packet_type, I:stream_pos) : quic_packet
-function recv_packets_end(E: quic_packet_type) : stream_pos
-function recv_packets_packet_number(E: quic_packet_type,S: pkt_num) : pkt_num
-function recv_packets_time_sent(E: quic_packet_type,S: pkt_num) : microseconds
-relation recv_packets_ack_eliciting(E: quic_packet_type,S: pkt_num)
-relation recv_packets_in_flight(E: quic_packet_type,S: pkt_num)
-function recv_packets_sent_bytes(E: quic_packet_type,S: pkt_num) : stream_pos # frame.arr
+function received_packets(E: quic_packet_type, I:stream_pos) : quic_packet
+function received_packets_end(E: quic_packet_type) : stream_pos
+function received_packets_packet_number(E: quic_packet_type,S: pkt_num) : pkt_num
+function received_packets_time_sent(E: quic_packet_type,S: pkt_num) : microseconds
+relation received_packets_ack_eliciting(E: quic_packet_type,S: pkt_num)
+relation received_packets_in_flight(E: quic_packet_type,S: pkt_num)
+function received_packets_sent_bytes(E: quic_packet_type,S: pkt_num) : stream_pos # frame.arr
 
 function packets_to_retransmit(E: quic_packet_type, I:stream_pos) : frame.arr
 function packets_to_retransmit_end(E: quic_packet_type) : stream_pos
@@ -132,7 +132,7 @@ relation ack_eliciting_packet_in_flight_per_space(E: quic_packet_type)
 # a PTO expiration if it still has available congestion window. This occurs when a sender is application limited and the PTO timer expires. 
 # This is more aggressive than TCP's RTO mechanism when application limited, but identical when not application limited
 
-function send_time_of_largest_acked(S:pkt_num) : microseconds
+function sent_time_of_largest_acked(S:pkt_num) : microseconds
 function ack_time : microseconds
 
 # Maximum reordering in packets before packet threshold loss detection considers a packet lost. The value recommended in Section 6.1.1 is 3.
@@ -179,9 +179,9 @@ function local_ack_delay_exponent_tp : microseconds
 # validation_timeout = max(3*PTO, 6*kInitialRtt)
 function validation_timeout : microseconds
 
-relation need_send_ack_eliciting_initial_packet
-relation need_send_ack_eliciting_handshake_packet
-relation need_send_ack_eliciting_application_packet
+relation need_sent_ack_eliciting_initial_packet
+relation need_sent_ack_eliciting_handshake_packet
+relation need_sent_ack_eliciting_application_packet
 
 # QUIC allows probe packets to temporarily exceed the congestion window whenever the timer expires
 
@@ -193,12 +193,14 @@ function minimum_congestion_window : stream_pos
 
 relation pn_space_discarded
 
+relation is_idle
+
 # QUIC treats loss of a packet containing handshake data the same as other losses.
 
 after init {
-    need_send_ack_eliciting_initial_packet := false;
-    need_send_ack_eliciting_handshake_packet := false;
-    need_send_ack_eliciting_application_packet := false;
+    need_sent_ack_eliciting_initial_packet := false;
+    need_sent_ack_eliciting_handshake_packet := false;
+    need_sent_ack_eliciting_application_packet := false;
 
     loss_detection_timer := 0;
     pto_count := 0; 
@@ -238,6 +240,7 @@ after init {
     lost_packets_end(E) := 0;
     pc_lost_end(E) := 0;
     pn_space_discarded := false;
+    is_idle := false;
 }
 
 import action show_latest_rtt(t:microseconds,c:cid)
@@ -381,19 +384,23 @@ action on_loss_detection_timeout(dst:ip.endpoint, dcid: cid) = {
         # var lost_packets := 
         detect_and_remove_lost_packets(pn_space,dcid);
         # assert(!lost_packets.empty())
-        call on_packets_lost(pn_space);
-        call set_loss_detection_timer(dst, dcid);
+        if lost_packets_end(pn_space) > 0 {
+            call on_packets_lost(pn_space);
+            call set_loss_detection_timer(dst, dcid);
+        };
     } else {
         if ~ack_eliciting_packet_in_flight & ~peer_completed_address_validation(dst, dcid) {
             # Client sends an anti-deadlock packet: Initial is padded
             # to earn more anti-amplification credit,
             # a Handshake packet proves address ownership.
-            if ~established_handshake_keys(dcid) {
+            if established_handshake_keys(dcid) {
                 # TODO SendOneAckElicitingHandshakePacket()
-                need_send_ack_eliciting_handshake_packet := true;
+                call show_need_sent_ack_eliciting_handshake_packet;
+                need_sent_ack_eliciting_handshake_packet := true;
             } else {
                 # TODO SendOneAckElicitingPaddedInitialPacket()
-                need_send_ack_eliciting_initial_packet := true;
+                call show_need_sent_ack_eliciting_initial_packet;
+                need_sent_ack_eliciting_initial_packet := true;
             }
         } else {
             # PTO. Send new data if available, else retransmit old data.
@@ -405,17 +412,24 @@ action on_loss_detection_timeout(dst:ip.endpoint, dcid: cid) = {
             pto_timeout := pto_timeout_t;
             # TODO SendOneOrTwoAckElicitingPackets(pn_space)
             if pn_space = quic_packet_type.initial {
-                need_send_ack_eliciting_initial_packet := true;
+                call show_need_sent_ack_eliciting_initial_packet;
+                need_sent_ack_eliciting_initial_packet := true;
             } else if pn_space = quic_packet_type.handshake {
-                need_send_ack_eliciting_handshake_packet := true;
+                call show_need_sent_ack_eliciting_handshake_packet;
+                need_sent_ack_eliciting_handshake_packet := true;
             } else {
-                need_send_ack_eliciting_application_packet := true;
+                call show_need_sent_ack_eliciting_application_packet;
+                need_sent_ack_eliciting_application_packet := true;
             };
         };
         pto_count := pto_count + 1;
         call set_loss_detection_timer(dst, dcid);
     };
 }
+
+import action show_need_sent_ack_eliciting_initial_packet
+import action show_need_sent_ack_eliciting_handshake_packet
+import action show_need_sent_ack_eliciting_application_packet
 
 # DetectAndRemoveLostPackets is called every time an ACK is received or the time
 # threshold loss detection timer expires. This function operates on the sent_packets 
@@ -435,18 +449,18 @@ action detect_and_remove_lost_packets(pn_space:quic_packet_type, dcid:cid) = {
 
     var tp := trans_params(dcid);
 
-    var lost_send_time := time_api.c_timer.now_micros - loss_delay;
-    var send_packets_size := sent_packets_end(pn_space);
+    var lost_sent_time := time_api.c_timer.now_micros - loss_delay;
+    var sent_packets_size := sent_packets_end(pn_space);
     sent_packets_end(pn_space) := 0;
     lost_packets_end(pn_space) := 0;
     var idx : stream_pos := 0;
-    call show_detect_and_remove_lost_packets(lost_send_time, loss_delay, send_packets_size);
-    while idx < send_packets_size {
+    call show_detect_and_remove_lost_packets(lost_sent_time, loss_delay, sent_packets_size);
+    while idx < sent_packets_size {
         var current_pkt := sent_packets(pn_space,idx);
         # TODO
         if current_pkt.seq_num <= largest_acked_packet(pn_space) {
             if min_ack_delay.is_set(tp) {
-                if sent_packets_time_sent(pn_space, current_pkt.seq_num) <= lost_send_time |
+                if sent_packets_time_sent(pn_space, current_pkt.seq_num) <= lost_sent_time |
                     largest_acked_packet(pn_space) >= current_pkt.seq_num + streampos_to_seqnum(ack_out_of_order_val(dcid)) {
                     lost_packets(pn_space,lost_packets_end(pn_space)) := current_pkt;
                     lost_packets_end(pn_space) := lost_packets_end(pn_space) + 1;
@@ -466,7 +480,7 @@ action detect_and_remove_lost_packets(pn_space:quic_packet_type, dcid:cid) = {
                 };
             }
             else {
-                if sent_packets_time_sent(pn_space, current_pkt.seq_num) <= lost_send_time |
+                if sent_packets_time_sent(pn_space, current_pkt.seq_num) <= lost_sent_time |
                     largest_acked_packet(pn_space) >= current_pkt.seq_num + streampos_to_seqnum(kPacketThreshold) {
                     lost_packets(pn_space,lost_packets_end(pn_space)) := current_pkt;
                     lost_packets_end(pn_space) := lost_packets_end(pn_space) + 1;
@@ -517,12 +531,12 @@ import action show_loss_detection_timeout
 
 # DetectAndRemoveAckedPackets finds packets that are newly acknowledged and removes them from sent_packets.
 action detect_and_remove_acked_packets(largest_acked:pkt_num, pn_space:quic_packet_type) = {
-    var send_packets_size := sent_packets_end(pn_space);
+    var sent_packets_size := sent_packets_end(pn_space);
     sent_packets_end(pn_space) := 0;
     newly_acked_packets_end(pn_space) := 0;
     var idx : stream_pos := 0;
-    if send_packets_size > 0 {
-        while idx < send_packets_size {
+    if sent_packets_size > 0 {
+        while idx < sent_packets_size {
             var current_pkt := sent_packets(pn_space,idx);
             if current_pkt.seq_num <= largest_acked {
                 # acked
@@ -537,7 +551,7 @@ action detect_and_remove_acked_packets(largest_acked:pkt_num, pn_space:quic_pack
             idx := idx + 1;
         };
     };
-    call show_detect_and_remove_acked_packets(largest_acked, send_packets_size, newly_acked_packets_end(pn_space), sent_packets_end(pn_space));
+    call show_detect_and_remove_acked_packets(largest_acked, sent_packets_size, newly_acked_packets_end(pn_space), sent_packets_end(pn_space));
 }
 
 # When an ACK frame is received, it may newly acknowledge any number of packets.
@@ -586,8 +600,8 @@ action on_ack_received(dst:ip.endpoint, largest_acked:pkt_num, ack_delay:microse
         #     call process_ecn(ack,pn_space);
         # }
 
-        #var lost_packets := 
         detect_and_remove_lost_packets(pn_space,largest_acked_pkt.dst_cid);
+        call show_detect_and_remove_lost_packets_size(pn_space,lost_packets_end(pn_space));
         if lost_packets_end(pn_space) > 0 {
             call on_packets_lost(pn_space);
         }
@@ -604,15 +618,16 @@ action on_ack_received(dst:ip.endpoint, largest_acked:pkt_num, ack_delay:microse
     }
 }
 
+import action show_detect_and_remove_lost_packets_size(pn_space:quic_packet_type,lost_packets_end:stream_pos)
 import action show_on_ack_received(largest_acked:pkt_num, ack_delay:microseconds, pn_space:quic_packet_type)
 
 action on_ack_sent(largest_acked:pkt_num, pn_space:quic_packet_type)  returns (ack_delay:microseconds) = {
     # An endpoint measures the delays intentionally introduced between the time the packet with the largest
     # packet number is received and the time an acknowledgment is sent.
-    var ack_send_time := time_api.c_timer.now_micros;
-    var ack_delay_non_encoded := recv_packets_time_sent(pn_space,largest_acked) - ack_send_time;
+    var ack_sent_time := time_api.c_timer.now_micros;
+    var ack_delay_non_encoded := received_packets_time_sent(pn_space,largest_acked) - ack_sent_time;
     ack_delay := ack_delay_non_encoded / pow(2, local_ack_delay_exponent_tp);
-    call show_on_ack_sent(largest_acked, ack_delay,ack_send_time, ack_delay_non_encoded, pn_space, pow(2, local_ack_delay_exponent_tp));
+    call show_on_ack_sent(largest_acked, ack_delay,ack_sent_time, ack_delay_non_encoded, pn_space, pow(2, local_ack_delay_exponent_tp));
 }
 
 import action show_on_ack_sent(largest_acked:pkt_num, ack_delay:microseconds, ack_delasy:microseconds, ack_delay_non_encoded:microseconds, pn_space:quic_packet_type, pow_ack_delay_exponent_tp:microseconds)
@@ -689,7 +704,7 @@ import action show_on_pn_space_discarded(pn_space:quic_packet_type)
 # After a packet is sent, information about the packet is stored. The parameters to OnPacketSent are described in detail above in Appendix A.1.1. 
 
 action on_packet_sent(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet, sent_bytes:stream_pos) = {
-    send_time_of_largest_acked(pkt.seq_num) := time_api.c_timer.now_micros;
+    sent_time_of_largest_acked(pkt.seq_num) := time_api.c_timer.now_micros;
      # After a packet is sent, information about the packet is stored
     sent_packets_end(pkt.ptype) := sent_packets_end(pkt.ptype) + 1;
     sent_packets(pkt.ptype,sent_packets_end(pkt.ptype)) := pkt;
@@ -720,25 +735,25 @@ action on_packet_sent(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet, sent_byte
     call set_loss_detection_timer(dst, pkt.dst_cid);
 }
 
-action on_packet_recv(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet, sent_bytes:stream_pos) = {
+action on_packet_received(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet, sent_bytes:stream_pos) = {
      # After a packet is recv, information about the packet is stored
-    recv_packets_end(pkt.ptype) := recv_packets_end(pkt.ptype) + 1;
-    recv_packets(pkt.ptype,recv_packets_end(pkt.ptype)) := pkt;
-    recv_packets_packet_number(pkt.ptype,pkt.seq_num) := pkt.seq_num;
-    recv_packets_time_sent(pkt.ptype,pkt.seq_num) := time_api.c_timer.now_micros;
-    recv_packets_ack_eliciting(pkt.ptype,pkt.seq_num) := queued_ack_eliciting_pkt(seqnum_to_streampos(pkt.seq_num));
-    recv_packets_in_flight(pkt.ptype,pkt.seq_num) := true;
-    recv_packets_sent_bytes(pkt.ptype,pkt.seq_num) := sent_bytes; # TODO
+    received_packets_end(pkt.ptype) := received_packets_end(pkt.ptype) + 1;
+    received_packets(pkt.ptype,received_packets_end(pkt.ptype)) := pkt;
+    received_packets_packet_number(pkt.ptype,pkt.seq_num) := pkt.seq_num;
+    received_packets_time_sent(pkt.ptype,pkt.seq_num) := time_api.c_timer.now_micros;
+    received_packets_ack_eliciting(pkt.ptype,pkt.seq_num) := queued_ack_eliciting_pkt(seqnum_to_streampos(pkt.seq_num));
+    received_packets_in_flight(pkt.ptype,pkt.seq_num) := true;
+    received_packets_sent_bytes(pkt.ptype,pkt.seq_num) := sent_bytes; # TODO
 
     call show_seqnum_to_streampos(seqnum_to_streampos(pkt.seq_num));
-    call show_on_packet_recv(recv_packets_end(pkt.ptype), recv_packets_packet_number(pkt.ptype,pkt.seq_num), recv_packets_time_sent(pkt.ptype,pkt.seq_num), recv_packets_ack_eliciting(pkt.ptype,pkt.seq_num), sent_packets_in_flight(pkt.ptype,pkt.seq_num), recv_packets_sent_bytes(pkt.ptype,pkt.seq_num));
+    call show_on_packet_received(received_packets_end(pkt.ptype), received_packets_packet_number(pkt.ptype,pkt.seq_num), received_packets_time_sent(pkt.ptype,pkt.seq_num), received_packets_ack_eliciting(pkt.ptype,pkt.seq_num), sent_packets_in_flight(pkt.ptype,pkt.seq_num), received_packets_sent_bytes(pkt.ptype,pkt.seq_num));
 }
 
 import action show_get_loss_time_space(t:microseconds, s:quic_packet_type)
-import action show_detect_and_remove_lost_packets(lost_send_time:microseconds, loss_delay:microseconds, send_packets_size:stream_pos)
-import action show_detect_and_remove_acked_packets(largest_acked:pkt_num, send_packets_size:stream_pos, newly_acked_packets_end:stream_pos, sent_packets_end:stream_pos)
+import action show_detect_and_remove_lost_packets(lost_sent_time:microseconds, loss_delay:microseconds, sent_packets_size:stream_pos)
+import action show_detect_and_remove_acked_packets(largest_acked:pkt_num, sent_packets_size:stream_pos, newly_acked_packets_end:stream_pos, sent_packets_end:stream_pos)
 import action show_on_packet_sent(sent_packets_end:stream_pos, sent_packets_packet_number:pkt_num, sent_packets_time_sent:microseconds, sent_packets_ack_eliciting:bool, sent_packets_in_flight:bool, sent_packets_sent_bytes:stream_pos, ack_eliciting_packet_in_flight:bool)
-import action show_on_packet_recv(sent_packets_end:stream_pos, sent_packets_packet_number:pkt_num, sent_packets_time_sent:microseconds, sent_packets_ack_eliciting:bool, sent_packets_in_flight:bool, sent_packets_sent_bytes:stream_pos)
+import action show_on_packet_received(sent_packets_end:stream_pos, sent_packets_packet_number:pkt_num, sent_packets_time_sent:microseconds, sent_packets_ack_eliciting:bool, sent_packets_in_flight:bool, sent_packets_sent_bytes:stream_pos)
 
 import action show_include_ack_eliciting(res:bool, pn_space:quic_packet_type)
 import action show_largest_acked_packet(largest_acked:pkt_num, largest_acked2d:pkt_num, pn_space:quic_packet_type)

@@ -1,0 +1,60 @@
+#lang ivy1.7
+
+# a fake deserializer for quic
+
+object ping_deser = {}
+
+<<< member
+
+    class `ping_deser`;
+
+>>>
+
+<<< impl
+
+    class `ping_deser` : public ivy_binary_deser_128 {
+        enum {ping_s_init} state;
+        int token_length = 5;
+
+    public:
+        ping_deser(const std::vector<char> &inp) : ivy_binary_deser_128(inp),state(ping_s_init) {
+        }
+        virtual void  get(int128_t &res) {
+            switch (state) {
+            case ping_s_init:
+            {
+                getn(res,1);
+            }
+            break;
+            default:
+                std::cerr << "ping_deser 3\n";  
+                throw deser_err();
+            }
+        }
+
+        virtual int open_tag(const std::vector<std::string> &tags) {
+            std::cerr << "state          = " << state << "\n";  
+            std::cerr << "ping_deser 2\n";  
+            throw deser_err();
+        }
+
+        virtual bool open_list_elem() {
+            if (state == ping_s_init)
+                return more(1);
+            std::cerr << "ping_deser 1\n";  
+            throw deser_err();
+        }
+
+        void open_list() {
+        }
+        void close_list() {
+        }
+        void close_list_elem() {}
+
+        virtual void close_tag() {
+        }
+
+        ~ping_deser(){}
+    };
+
+>>>

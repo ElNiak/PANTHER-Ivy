@@ -50,6 +50,7 @@ module quic_protection(tls_id,tls) = {
     import action show_pkt(l:stream_data)
 
     implement encrypt {
+        
         var h := get_header_info(pkt,false);
         var level := get_level(pkt);
         var sample_size : stream_pos := tls.iv_size(c,level);

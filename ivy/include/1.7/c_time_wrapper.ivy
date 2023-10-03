@@ -146,6 +146,31 @@ module c_time_wrapper(timer) = {
 		}
 
 
+		// Function to handle the timer expiration and send SIGUSR1
+		void timer_handler(int signum) {
+			if (signum == SIGALRM) {
+				// Timeout occurred; send SIGUSR1
+				std::cerr <<  "Timeout occurred. Sending SIGUSR1...\n";
+				kill(getpid(), SIGUSR1);
+			} else {
+				std::cerr << "Received signal "<< signum << "\n";
+				// Handle other signals as needed
+			}
+		}
+
+		void timer_handler_generate(int signum) {
+			if (signum == SIGALRM) {
+				// Timeout occurred; send SIGUSR1
+				std::cerr <<  "Timeout occurred. Sending SIGUSR3...\n";
+				//kill(getpid(), SIGUSR1);
+				//kill(getpid(), SIGUSR3);
+				sigqueue(getpid(), SIGUSR3, sigdata); //not implemented in shadow
+			} else { 
+				std::cerr << "Received signal "<< signum << "\n";
+				// Handle other signals as needed
+			}
+		}
+
 	>>>
 
 	<<< member
@@ -227,10 +252,15 @@ module c_time_wrapper(timer) = {
 				std::cerr << "C time = now_micros_last_bp - timer started" << std::endl;
 				std::cerr << "C time = now_micros_last_bp - time = " << time << std::endl;
 				int int_last_bp = stoi(last_bp_micro);
+				/*if(int_last_bp == 0) {
+					i = 0;
+				} else {*/
+				i = time;
+				//}
 				int_last_bp++;
 				last_bp_micro = std::to_string(int_last_bp);
 				insertBreakpoint(last_bp_micro);
-				i = time;
+				
 			}
 			else {
 				std::cerr << "C time = now_micros_last_bp - timer not started" << std::endl;
@@ -246,10 +276,14 @@ module c_time_wrapper(timer) = {
 				std::cerr << "C time = now_millis_last_bp - timer started" << std::endl;
 				std::cerr << "C time = now_millis_last_bp - time = " << time << std::endl;
 				int int_last_bp = stoi(last_bp_ms);
+				/*if(int_last_bp == 0) {
+					i = 0;
+				} else {*/
+				i = time;
+				//}
 				int_last_bp++;
 				last_bp_ms = std::to_string(int_last_bp);
 				insertBreakpoint(last_bp_ms);
-				i = time;
 			} 
 			else {
 				std::cerr << "C time = now_millis_last_bp - timer not started" << std::endl;
@@ -283,6 +317,105 @@ module c_time_wrapper(timer) = {
 			} 
 			else {
 				std::cerr << "C time = sleep_fake - timer not started" << std::endl;
+			}
+			>>>
+		}
+
+
+		implement sleep_signal(i:milliseconds)returns (r:milliseconds) {
+			<<<
+			if(started) {
+				sigset_t sigs;
+				sigemptyset(&sigs);
+				sigaddset(&sigs, SIGUSR2);
+				sigset_t sigs2;
+				sigemptyset(&sigs);
+				sigaddset(&sigs2, SIGUSR1);
+				// struct timespec timeout = { .tv_sec = i/1000 };
+				// sigprocmask(SIG_BLOCK, &sigs, NULL);
+
+				// Send SIGUSR2
+				kill(getpid(), SIGUSR2);
+
+				//sigtimedwait(&sigs, NULL, &timeout);
+
+				// Set up a signal handler for SIGALRM
+				struct sigaction sa;
+				sa.sa_handler = timer_handler;
+				sa.sa_flags = SA_RESTART | SA_NOCLDSTOP;
+				sigemptyset(&sa.sa_mask);
+
+				if (sigaction(SIGALRM, &sa, NULL) == -1) {
+					perror("sigaction");
+					return 1;
+				}
+
+				// Set up a timer to expire in milliseconds (e.g., 1000 milliseconds or 1 second)
+				struct itimerval timer;
+				timer.it_value.tv_sec = i/1000;           // Initial timer value seconds
+				timer.it_value.tv_usec = 0; //i * 1000;    // Initial timer value microseconds (1000 milliseconds)
+				timer.it_interval.tv_sec = 0;        // Interval timer value seconds (0 for a one-shot timer)
+				timer.it_interval.tv_usec = 0;       // Interval timer value microseconds
+
+				if (setitimer(ITIMER_REAL, &timer, NULL) == -1) {
+					perror("setitimer");
+					return 1;
+				}
+				std::cerr << "C time = sleep_signal - i = " << i << std::endl;
+				
+				r = i;
+			} 
+			else {
+				std::cerr << "C time = sleep_signal - timer not started" << std::endl;
+			}
+			>>>
+		}
+
+		implement sleep_signal_and_generate(i:milliseconds)returns (r:milliseconds) {
+			<<<
+			if(started) {
+				sigset_t sigs;
+				sigemptyset(&sigs);
+				sigaddset(&sigs, SIGUSR2);
+				sigset_t sigs2;
+				sigemptyset(&sigs);
+				sigaddset(&sigs2, SIGUSR1);
+				// struct timespec timeout = { .tv_sec = i/1000 };
+				// sigprocmask(SIG_BLOCK, &sigs, NULL);
+
+				// Send SIGUSR2
+				kill(getpid(), SIGUSR2);
+
+				//sigtimedwait(&sigs, NULL, &timeout);
+
+				// Set up a signal handler for SIGALRM
+				struct sigaction sa;
+				sa.sa_handler = timer_handler_generate;
+				sa.sa_flags = SA_RESTART | SA_NOCLDSTOP;
+				sigemptyset(&sa.sa_mask);
+
+				if (sigaction(SIGALRM, &sa, NULL) == -1) {
+					perror("sigaction");
+					return 1;
+				}
+
+				// Set up a timer to expire in milliseconds (e.g., 1000 milliseconds or 1 second)
+				struct itimerval timer;
+				timer.it_value.tv_sec = i/1000;           // Initial timer value seconds
+				timer.it_value.tv_usec = 0; //i * 1000;    // Initial timer value microseconds (1000 milliseconds)
+				timer.it_interval.tv_sec = 0;        // Interval timer value seconds (0 for a one-shot timer)
+				timer.it_interval.tv_usec = 0;       // Interval timer value microseconds
+
+				if (setitimer(ITIMER_REAL, &timer, NULL) == -1) {
+					perror("setitimer");
+					return 1;
+				}
+				std::cerr << "C time = sleep_signal - i = " << i << std::endl;
+				
+				r = i;
+			} 
+			else {
+				std::cerr << "C time = sleep_signal - timer not started" << std::endl;
 			}
 			>>>
 		}

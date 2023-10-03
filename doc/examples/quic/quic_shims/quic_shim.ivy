@@ -233,6 +233,7 @@ after init {
 
 
 implement net.recv(host:endpoint_id, s:net.socket, src:ip.endpoint, pkts:prot.arr) {
+    # call show_current_time(time_api.c_timer.now_micros_last_bp);
     call show_socket(s);
     if host = endpoint_id.server {        # for client test (tested implem = client <-> ivy implem = server)
         call server.behavior(host,s,src,pkts);

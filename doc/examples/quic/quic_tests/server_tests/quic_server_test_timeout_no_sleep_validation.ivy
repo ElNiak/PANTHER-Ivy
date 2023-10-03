@@ -3,7 +3,7 @@
 include order
 include quic_infer
 include file
-include ivy_quic_shim_client
+include ivy_quic_shim_client_timeout
 include quic_locale
 
 include ivy_quic_client_behavior
@@ -202,17 +202,17 @@ export tls_recv_event
 # import action show_is_sleep_fake_timeout(is_sleep_fake_timeout:bool)
 
 import action show_last_pkt_num_for_cid(pktnum:pkt_num,dst_cid:cid,ptype:quic_packet_type, div:pkt_num)
-export send_ack_eliciting_handshake_packet
-export send_ack_eliciting_initial_packet
-export send_ack_eliciting_application_packet
-export frame.ping.handle
+# export send_ack_eliciting_handshake_packet
+# export send_ack_eliciting_initial_packet
+# export send_ack_eliciting_application_packet
+# export frame.ping.handle
 
 export action _finalize = {
     # chris TODO 
     require is_no_error;
     require conn_total_data(the_cid) > 0;
     require ~connection_closed; # silent close
-    require ~ (recv_packets_time_sent(quic_packet_type.one_rtt, streampos_to_seqnum(recv_packets_end(quic_packet_type.one_rtt))) - milliseconds_to_microseconds(sleep_start) > max_idle_timeout_used + 0x10);
-    require recv_packets_time_sent(quic_packet_type.one_rtt, streampos_to_seqnum(recv_packets_end(quic_packet_type.one_rtt))) - milliseconds_to_microseconds(sleep_start) <= max_idle_timeout_used + 0x10;
+    require ~ (received_packets_time_sent(quic_packet_type.one_rtt, streampos_to_seqnum(received_packets_end(quic_packet_type.one_rtt))) - milliseconds_to_microseconds(sleep_start) > max_idle_timeout_used + 0x10);
+    require received_packets_time_sent(quic_packet_type.one_rtt, streampos_to_seqnum(received_packets_end(quic_packet_type.one_rtt))) - milliseconds_to_microseconds(sleep_start) <= max_idle_timeout_used + 0x10;
     #call 
 }

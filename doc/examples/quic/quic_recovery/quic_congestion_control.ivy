@@ -143,12 +143,12 @@ action on_packets_lost(pn_space:quic_packet_type) = {
     # Reset the congestion window if the loss of these
     # packets indicates persistent congestion.
     # Only consider packets sent after getting an RTT sample.
-    if first_rtt_sample ~= 0 {
+    if first_rtt_sample ~= 0 {    # call show_is_sleep_fake_timeout(is_not_sleeping);
+
         pc_lost_end(pn_space) := 0;
         idx : stream_pos := 0;
         while idx < lost_packets_end(pn_space) {
               if sent_packets_time_sent(lost_packets(pn_space,idx).ptype,lost_packets(pn_space,idx).seq_num) > first_rtt_sample {
-                  # pc_lost := pc_lost.append(lost_packets(pn_space,idx));
                   pc_lost_end(pn_space) := pc_lost_end(pn_space) + 1;
               }  
               idx := idx + 1;

@@ -1,0 +1,57 @@
+#lang ivy1.7
+
+# Here, we define functions for QUIC packet packet protection.
+
+include ping_byte_stream
+include collections
+
+module ping_array = {
+    instance idx : unbounded_sequence
+    instance arr : array(idx,stream_data)
+}
+
+object ping_packet = {
+    type this = struct {
+        data : stream_data
+     }
+    instance idx : unbounded_sequence
+    instance arr : array(idx,this) 
+}
+
+object pong_packet = {
+    type this = struct {
+        data : stream_data
+    }
+    instance idx : unbounded_sequence
+    instance arr : array(idx,this) 
+}
+
+function ping_length  : stream_pos
+
+function current_time : milliseconds
+relation enough_wait
+
+action ping_event(src:ip.endpoint,dst:ip.endpoint,pkt:ping_packet) = {}
+
+import action show_current_time(now:milliseconds)
+
+before ping_event(src:ip.endpoint,dst:ip.endpoint,pkt:ping_packet) {
+    current_time := time_api.c_timer.now_millis;
+    call show_current_time(current_time);
+    
+    if _generating {
+        require pkt.data = ping_data; # TODO when not quic
+    }
+}
+
+action pong_event(src:ip.endpoint,dst:ip.endpoint,pkt:pong_packet) = {}
+
+before pong_event(src:ip.endpoint,dst:ip.endpoint,pkt:pong_packet) {
+    current_time := time_api.c_timer.now_millis;
+    call show_current_time(current_time);
+    enough_wait := current_time = 3000;
+    if ~_generating {
+        require enough_wait;
+    }
+    require pkt.data = ping_data; # TODO
+}

@@ -1976,6 +1976,8 @@ def module_to_cpp_class(classname,basename):
     header.append("#include <math.h>\n")
     header.append("typedef __int128_t int128_t;\n")
     header.append("typedef __uint128_t uint128_t;\n")
+    header.append("#include <signal.h>\n")
+    header.append("int call_generating = 1;\n")
     
     
     declare_hash_thunk(header)
@@ -2060,6 +2062,8 @@ def module_to_cpp_class(classname,basename):
 #include <unistd.h>
 #define _open open
 #define _dup2 dup2
+#define SIGUSR3 SIGWINCH
+union sigval sigdata;
 #endif
 #include <string.h>
 #include <stdio.h>
@@ -2070,6 +2074,12 @@ def module_to_cpp_class(classname,basename):
 #endif
 """)
     impl.append("typedef {} ivy_class;\n".format(classname))
+    # impl.append("""
+    # struct SignalData {
+    #     {}_repl* ivy_ptr;
+    #     double value2;
+    # };
+    # """.format(classname))
     impl.append("std::ofstream __ivy_out;\n")
     impl.append("std::ofstream __ivy_modelfile;\n")
     impl.append("void __ivy_exit(int code){exit(code);}\n")
@@ -3094,9 +3104,7 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
         return z3::expr(e.ctx(),q);
     }
     return(e);
-}
-
-""")
+}""")
 
     for sort_name in [s for s in sorted(il.sig.sorts) if isinstance(il.sig.sorts[s],il.EnumeratedSort)]:
         csname = varname(sort_name)
@@ -3721,6 +3729,34 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
         __ivy_out.basic_ios<char>::rdbuf(std::cout.rdbuf());
     argc = pargs.size();
     argv = &pargs[0];
+    //chris 
+    struct sigaction sa;
+	sa.sa_handler = signal1_handler_generating;
+	sa.sa_flags = SA_RESTART;
+	sigemptyset(&sa.sa_mask);
+
+	if (sigaction(SIGUSR1, &sa, NULL) == -1) {
+		perror("sigaction");
+		return 1;
+	}
+    struct sigaction sa2;
+	sa2.sa_handler = signal2_handler_generating;
+	sa2.sa_flags = SA_RESTART;
+	sigemptyset(&sa2.sa_mask);
+
+	if (sigaction(SIGUSR2, &sa2, NULL) == -1) {
+		perror("sigaction");
+		return 1;
+	}
+ 
+    /*if (signal(SIGUSR1, signal1_handler_generating) == SIG_ERR) {
+        perror("Signal1 registration failed");
+        return 1;
+    }
+    if (signal(SIGUSR2, signal2_handler_generating) == SIG_ERR) {
+        perror("Signal2 registration failed");
+        return 1;
+    }*/
 """)
                 impl.append("    if (argc == "+str(len(pos_params)+2)+"){\n")
                 impl.append("        argc--;\n")
@@ -5215,6 +5251,7 @@ int ask_ret(long long bound) {
             __ivy_exit(1);
         }
     }
+        
     """.replace('classname',classname).replace('CLOSE_TRACE','__ivy_out << "}" << std::endl;' if opt_trace.get() else ''))
 
     emit_param_decls(impl,classname+'_repl',im.module.params)
@@ -5247,11 +5284,182 @@ int ask_ret(long long bound) {
 
     impl.append("""
     };
-""")
+    struct SignalData {
+        classname* ivy_ptr;
+        std::vector<gen *>  *generators_ref;
+        std::vector<double> *weights_ref;
+    };
+""".replace('classname',classname))
 
     impl.append("""
 // Override methods to implement low-level network service
 
+    
+    //chris
+    void signal1_handler_generating(int signo) {
+        std::cerr << "call_generating = 1 -> NOT SLEEPING\\n";
+        std::cerr << signo << "\\n";
+        call_generating = 1;
+    }
+    
+    void signal2_handler_generating(int signo) {
+        std::cerr << "call_generating = 0 -> SLEEPING\\n";
+        std::cerr << signo << "\\n";
+        call_generating = 0;
+    }
+    
+    void signal3_handler_generating(int signo, siginfo_t *info, void *context) {
+        call_generating = 1;
+        struct SignalData *data_recvd = (struct SignalData *)info->si_value.sival_ptr;
+        std::cerr << "-> force generating\\n";
+        std::cerr << signo << "\\n";
+        double totalweight = 1.0;
+        bool do_over = false;
+        double frnd = 0.0;
+        int num_gens = 1; //chris maybe 2 ?
+        double choices = totalweight + 5.0;
+        if (do_over) {
+           do_over = false;
+        }  else {
+            frnd = choices * (((double)rand())/(((double)RAND_MAX)+1.0));
+        }
+        // std::cout << "frnd = " << frnd << std::endl;
+        if (frnd < totalweight) {
+            int idx = 0;
+            double sum = 0.0;
+            while (idx < num_gens-1) {
+                sum += (data_recvd->weights_ref)->at(idx);
+                if (frnd < sum)
+                    break;
+                idx++;
+            }
+            gen &g = *(data_recvd->generators_ref)->at(idx);
+            data_recvd->ivy_ptr->__lock();
+#ifdef _WIN32
+            LARGE_INTEGER before;
+            QueryPerformanceCounter(&before);
+#endif      
+            bool sat = false;
+            if (call_generating) {
+                data_recvd->ivy_ptr->_generating = true;
+                sat = g.generate(*data_recvd->ivy_ptr);
+            } 
+#ifdef _WIN32
+            LARGE_INTEGER after;
+            QueryPerformanceCounter(&after);
+//            __ivy_out << "idx: " << idx << " sat: " << sat << " time: " << (((double)(after.QuadPart-before.QuadPart))/freq.QuadPart) << std::endl;
+#endif
+            if (sat){
+                g.execute(*data_recvd->ivy_ptr);
+                data_recvd->ivy_ptr->_generating = false;
+                data_recvd->ivy_ptr->__unlock();
+#ifdef _WIN32
+                Sleep(sleep_ms);
+#endif
+            }
+            else {
+                data_recvd->ivy_ptr->_generating = false;
+                data_recvd->ivy_ptr->__unlock();
+                //cycle--;
+            }
+            //continue;
+        }
+
+
+        fd_set rdfds;
+        FD_ZERO(&rdfds);
+        int maxfds = 0;
+
+        for (unsigned i = 0; i < readers.size(); i++) {
+            reader *r = readers[i];
+            int fds = r->fdes();
+            if (fds >= 0) {
+                FD_SET(fds,&rdfds);
+            }
+            if (fds > maxfds)
+                maxfds = fds;
+        }
+
+#ifdef _WIN32
+        int timer_min = 15;
+#else
+        int timer_min = 5;
+        if(const char* env_p2 = std::getenv("TIMEOUT_IVY")) { 
+            timer_min = std::stoi(std::string(env_p2));
+        }
+#endif
+
+        struct timeval timeout;
+        timeout.tv_sec = timer_min/1000;
+        timeout.tv_usec = 1000 * (timer_min % 1000);
+
+#ifdef _WIN32
+        int foo;
+        if (readers.size() == 0){  // winsock can't handle empty fdset!
+            Sleep(timer_min);
+            foo = 0;
+        }
+        else
+            foo = select(maxfds+1,&rdfds,0,0,&timeout);
+#else
+        int foo = select(maxfds+1,&rdfds,0,0,&timeout);
+        //chris: self-pipe trick
+        while (foo == -1 & errno == EINTR) {
+            std::cerr << "select failed - restart with self pipe trick " << std::endl;
+            foo = select(maxfds+1,&rdfds,0,0,&timeout);
+            continue;
+        }
+            
+#endif
+
+        if (foo < 0)
+#ifdef _WIN32
+            {std::cerr << "select failed: " << WSAGetLastError() << std::endl; __ivy_exit(1);}
+#else
+            {perror("select failed"); __ivy_exit(1);}
+#endif
+        
+        if (foo == 0){
+           // std::cout << "TIMEOUT\\n";            
+           //cycle--;
+           for (unsigned i = 0; i < timers.size(); i++){
+               if (timer_min >= timers[i]->ms_delay()) {
+                   //cycle++;
+                   break;
+               }
+           }
+           for (unsigned i = 0; i < timers.size(); i++)
+               timers[i]->timeout(timer_min);
+        }
+        else {
+            int fdc = 0;
+            for (unsigned i = 0; i < readers.size(); i++) {
+                reader *r = readers[i];
+                if (FD_ISSET(r->fdes(),&rdfds))
+                    fdc++;
+            }
+            // std::cout << "fdc = " << fdc << std::endl;
+            int fdi = fdc * (((double)rand())/(((double)RAND_MAX)+1.0));
+            fdc = 0;
+            for (unsigned i = 0; i < readers.size(); i++) {
+                reader *r = readers[i];
+                if (FD_ISSET(r->fdes(),&rdfds)) {
+                    if (fdc == fdi) {
+                        // std::cout << "reader = " << i << std::endl;
+                        r->read();
+                        if (r->background()) {
+                           //cycle--;
+                           do_over = true;
+                        }
+                        break;
+                    }
+                    fdc++;
+
+                }
+            }
+        }
+    }
+    
 bool is_white(int c) {
     return (c == ' ' || c == '\\t' || c == '\\n' || c == '\\r');
 }
@@ -5561,7 +5769,22 @@ def emit_repl_boilerplate3test(header,impl,classname):
         my_init_gen.generate(ivy);
         std::vector<gen *> generators;
         std::vector<double> weights;
+        struct sigaction sa3;
+        sa3.sa_sigaction = signal3_handler_generating;
+        sa3.sa_flags = SA_RESTART | SA_SIGINFO;
+        sigemptyset(&sa3.sa_mask);
+                
 
+        if (sigaction(SIGUSR3, &sa3, NULL) == -1) {
+            perror("sigaction");
+            return 1;
+        }
+        struct SignalData signal_data;
+        signal_data.ivy_ptr = &ivy;
+        signal_data.generators_ref = &generators;
+        signal_data.weights_ref = &weights;
+        sigdata.sival_ptr = &signal_data;
+        
 """)
     totalweight = 0.0
     num_public_actions = 0
@@ -5598,7 +5821,6 @@ def emit_repl_boilerplate3test(header,impl,classname):
     double frnd = 0.0;
     bool do_over = false;
     for(int cycle = 0; cycle < test_iters; cycle++) {
-
 //        std::cout << "totalweight = " << totalweight << std::endl;
 //        double choices = totalweight + readers.size() + timers.size();
         double choices = totalweight + 5.0;
@@ -5612,7 +5834,7 @@ def emit_repl_boilerplate3test(header,impl,classname):
             int idx = 0;
             double sum = 0.0;
             while (idx < num_gens-1) {
-                sum += weights[idx];
+                sum += weights[idx]; // should not be execute with num_gen=1
                 if (frnd < sum)
                     break;
                 idx++;
@@ -5622,9 +5844,12 @@ def emit_repl_boilerplate3test(header,impl,classname):
 #ifdef _WIN32
             LARGE_INTEGER before;
             QueryPerformanceCounter(&before);
-#endif
-            ivy._generating = true;
-            bool sat = g.generate(ivy);
+#endif      
+            bool sat = false;
+            if (call_generating) {
+                ivy._generating = true;
+                sat = g.generate(ivy);
+            } 
 #ifdef _WIN32
             LARGE_INTEGER after;
             QueryPerformanceCounter(&after);
@@ -5684,6 +5909,13 @@ def emit_repl_boilerplate3test(header,impl,classname):
             foo = select(maxfds+1,&rdfds,0,0,&timeout);
 #else
         int foo = select(maxfds+1,&rdfds,0,0,&timeout);
+        //chris: self-pipe trick
+        while (foo == -1 & errno == EINTR) {
+            std::cerr << "select failed - restart with self pipe trick " << std::endl;
+            foo = select(maxfds+1,&rdfds,0,0,&timeout);
+            continue;
+        }
+            
 #endif
 
         if (foo < 0)
