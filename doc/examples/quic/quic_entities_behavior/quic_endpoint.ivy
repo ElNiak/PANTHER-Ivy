@@ -1,6 +1,7 @@
 #lang ivy1.7
 
 include quic_locale
+include quic_network_controler
 
 object endpoint_id = {
     type this = {client, client_alt, client_vn, server, server_alt, mim, victim, client_server, attacker}
@@ -116,14 +117,14 @@ object quic_endpoint = {
                                 call clear_packet(src,dst,rnum,res.data);
                                 var pkt := pkt_serdes.from_bytes(res.data);
                                 pkt.seq_num := prot.correct_pnum(rnum,pkt.seq_num,prot.get_pnum_len(res.data));
-                                if pkt.seq_num = lost_pkt_num {
-                                    call on_purpose_lost_packet_event(host,src,dst,last_zrtt_pkt);
-                                } else {
+                                # if pkt.seq_num = lost_pkt_num {
+                                #     call on_purpose_lost_packet_event(host,src,dst,last_zrtt_pkt);
+                                # } else {
                                     call recv_packet(host,src,dst,pkt);
                                     call infer_tls_events(src,dst,pkt);   # infer any TLS events on server side
                                     call packet_event(src,dst,pkt);       # also an inferred event
                                     call on_packet_received(src,dst,pkt,last_datagram_received_size);
-                                };
+                                # };
                             };
                         } else {
                             call undecryptable_packet_event(host,src,dst,ppkt);

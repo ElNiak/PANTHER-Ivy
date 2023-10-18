@@ -18,6 +18,9 @@
 
 # TODO 
 
+import action show_generating(b:bool)
+
+
 action infer_tls_events(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) = {
     #call infer_tls;
     # Stream frames on id 0 indicate that a `tls_send_event` has occurred.
@@ -61,7 +64,7 @@ action infer_tls_events(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) = {
     if conn_requested(dst,src,dcid) & ~connected(dcid) & ~connected(scid) { # & ~negocation_of_version &  ~version_negociated 
         call app_server_open_event(src,dst,scid,dcid);
     };
-
+    # call show_generating(_generating);
     var idx := pkt.payload.begin;
     while idx < pkt.payload.end {
         var f := pkt.payload.value(idx);

@@ -49,9 +49,15 @@ object ping_endpoint = {
             var idx := pkts.begin;
             while idx < pkts.end {
                 var ppkt := pkts.value(idx);
-                var pkt := pong_serdes.from_bytes(ppkt);
+                var pkt := ping_packet_serdes.from_bytes(ppkt);
                 call recv_pong(host,src,dst,pkt);
-                call pong_event(src,dst,pkt);       # also an inferred event
+                var jdx := pkt.payload.begin;
+                while jdx < pkt.payload.end {
+                    var f := pkt.payload.value(jdx);
+                    call f.handle();
+                    jdx := jdx.next;
+                };
+                call ping_packet_event(src,dst,pkt);       # also an inferred event
                 idx := idx.next;
             };  
         }
@@ -96,9 +102,15 @@ object ping_endpoint = {
             while idx < pkts.end {
                 var ppkt := pkts.value(idx);
                 var tls_id := src_tls_id(dst); # todo multiple
-                var pkt := ping_serdes.from_bytes(ppkt);
+                var pkt := ping_packet_serdes.from_bytes(ppkt);
                 call recv_ping(host,src,dst,pkt);
-                call ping_event(src,dst,pkt);       # also an inferred event
+                var jdx := pkt.payload.begin;
+                while jdx < pkt.payload.end {
+                    var f := pkt.payload.value(jdx);
+                    call f.handle();
+                    jdx := jdx.next;
+                };
+                call ping_packet_event(src,dst,pkt);       # also an inferred event
                 idx := idx.next;
             };
         }

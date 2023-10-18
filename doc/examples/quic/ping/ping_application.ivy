@@ -5,18 +5,18 @@ include ping_byte_stream
 action app_send_event(src:ip.endpoint, dst:ip.endpoint, data : stream_data, pos : stream_pos, close : bool)
 
 function ping_data : stream_data
-function ping_data_end : stream_pos
+function ping_packet_end : stream_pos
 function ping_pos : stream_pos
-function ping_data_finished : bool
+function ping_packet_finished : bool
 
 after init {
     ping_pos := 0;
-    ping_data_finished := false;
+    ping_packet_finished := false;
 }
 
 after app_send_event {
     var send_end := pos + data.end;
-    require ~(send_end > ping_data_end & ping_data_finished);  # [4]
+    require ~(send_end > ping_packet_end & ping_packet_finished);  # [4]
     var end := ping_data.end;
     if end < send_end {
         end := send_end
@@ -31,8 +31,8 @@ after app_send_event {
 	    ping_data := ping_data.set(pos+idx,data.value(idx));
 	    idx := idx.next
     };
-    ping_data_end := end;  # [1]
+    ping_packet_end := end;  # [1]
     if close {
-        ping_data_finished := true;  # [3]
+        ping_packet_finished := true;  # [3]
     }
 }

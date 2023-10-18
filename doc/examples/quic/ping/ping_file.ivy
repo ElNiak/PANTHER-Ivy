@@ -92,7 +92,6 @@ module binary_input_file(data,cont) = {
             }
             std::vector<char> buf;
             ivy_socket_deser_128 ds(`fildes`,buf);  // initializer deserializer with zero bytes
-            //ivy_socket_deser ds(`fildes`,buf);    // initializer deserializer with zero bytes
             while (ds.more(1)) {
                 //long long res;
                 int128_t res;

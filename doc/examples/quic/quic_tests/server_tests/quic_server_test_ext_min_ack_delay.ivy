@@ -59,7 +59,7 @@ before frame.immediate_ack.handle(f:frame.immediate_ack,scid:cid,dcid:cid) {
 
 export frame.ack.handle
 export frame.ack_frequency.handle
-export frame.immediate_ack.handle
+# export frame.immediate_ack.handle
 export frame.stream.handle
 export frame.crypto.handle
 export frame.path_response.handle
@@ -68,9 +68,9 @@ export client_send_event
 export tls_recv_event
 
 
-export send_ack_eliciting_handshake_packet
-export send_ack_eliciting_initial_packet
-export frame.ping.handle
+# export send_ack_eliciting_handshake_packet
+# export send_ack_eliciting_initial_packet
+# export frame.ping.handle
 #export frame.retire_connection_id.handle
 #export frame.rst_stream.handle
 #export frame.max_stream_id.handle
@@ -83,6 +83,7 @@ export frame.ping.handle
 # We use this action to make some heuristic checks, for example that some
 # data was actually received from the server. We can add advice to this
 # action with additional checks.
+
 
 export action _finalize = {
     # chris TODO 

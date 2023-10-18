@@ -554,6 +554,12 @@ function conn_total_data(C:cid) : stream_pos
 #Hamid
 relation queued_ack_eliciting(C:cid)
 relation queued_ack_eliciting_pkt(C:stream_pos) # TODO
+function num_ack_eliciting_pkt : stream_pos
+function num_ack_pkt : stream_pos
+
+
+import action show_num_ack_eliciting_pkt(s:stream_pos)
+import action show_num_ack_pkt(s:stream_pos)
 #Hamid
 
 #chris
@@ -613,6 +619,7 @@ relation newly_acked(S:stream_pos)
 # sends an ACK frame for every other ack-eliciting packet, as specified in Section 
 # 13.2.2 of [QUIC-TRANSPORT], which corresponds to a value of 1.
 function ack_eliciting_threshold_val(C:cid) : stream_pos
+function current_ack_frequency(C:cid) : stream_pos
 function ack_eliciting_threshold_current_val(C:cid) : stream_pos
 function ack_out_of_order_val(C:cid) : stream_pos
 function ack_out_of_order_current_val(C:cid) : stream_pos
@@ -654,11 +661,14 @@ after init {
     newly_acked(S) := true;
     queued_ack_eliciting_pkt(C) := false;
 
-    ack_eliciting_threshold_val(C) := 1;
+    ack_eliciting_threshold_val(C) := 0;
     ack_eliciting_threshold_current_val(C) := 0;
 
     ack_out_of_order_val(C) := 1;
     ack_out_of_order_current_val(C) := 0;
+
+    num_ack_eliciting_pkt := 0;
+    num_ack_pkt := 0;
 #chris
 }
 
@@ -698,20 +708,31 @@ after init {
 var force_new_ack : bool
 
 import action is_generating(b:bool)
-
+import action is_ack_frequency_respected(b:bool)
 object frame = {
     ...
     object ack = {
         ...
         action handle(f:frame.ack,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
-	around handle {call is_generating(_generating);
+	around handle {
+            #call is_generating(_generating);
             # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
             # require (~is_not_sleeping -> ~_generating);
             # require (_generating -> is_not_sleeping);
             # var tp := trans_params(dcid);
             # if min_ack_delay.is_set(tp)  {
             # };
+
+            if  ~_generating {
+                # On receiving an ACK_FREQUENCY frame and updating its max_ack_delay and Ack-Eliciting Threshold values (Section 4), 
+                # the endpoint sends an acknowledgement when one of the following conditions are met:
+                # Since the last acknowledgement was sent, the number of received ack-eliciting packets is greater than the Ack-Eliciting Threshold.
+                # Since the last acknowledgement was sent, max_ack_delay amount of time has passed.
+                call is_ack_frequency_respected(num_ack_eliciting_pkt > ack_eliciting_threshold_val(scid));
+                call is_ack_frequency_respected(num_ack_eliciting_pkt > ack_eliciting_threshold_val(dcid));
+                num_ack_eliciting_pkt := 0;
+            }
             
             # ack_time := time_api.c_timer.now_micros;
             # An endpoint generates an RTT sample on receiving an ACK frame that meets the following two conditions:
@@ -773,11 +794,11 @@ object frame = {
                             conn_draining(scid) := true  # [5]
                         };
                         if ~acked_pkt(dcid,e,jdx) {
-                            if ack_eliciting_threshold_current_val(dcid) >= ack_eliciting_threshold_val(dcid) {
+                            #if ack_eliciting_threshold_current_val(dcid) >= ack_eliciting_threshold_val(dcid) {
                                 some_new_ack := true;
                                 call show_ack_generated;
                                 ack_eliciting_threshold_current_val(dcid) := 0;
-                            };
+                            #};
                         };
                     acked_pkt(dcid,e,jdx) := true;
                     jdx := jdx + 1
@@ -2006,7 +2027,7 @@ action enqueue_frame(scid:cid, f:frame, e:quic_packet_type, probing:bool, seq: p
             # call show_seqnum_to_streampos(seqnum_to_streampos(seq));
             # call show_seqnum_to_streampos(seqnum_to_streampos(last_pkt_num(scid,e) + 0x1));
         };
-    };
+    }
     #Hamid
 }
 

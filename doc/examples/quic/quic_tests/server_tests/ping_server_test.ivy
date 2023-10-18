@@ -15,7 +15,10 @@ after init {
     server.set_tls_id(1);
 }
 
-export ping_event
+# export ping_event
+export frame.ping.handle
+export frame.timestamp.handle
+export ping_packet_event
 export client_send_event
 
 export action _finalize = {

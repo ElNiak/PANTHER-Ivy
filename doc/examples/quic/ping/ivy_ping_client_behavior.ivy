@@ -48,26 +48,20 @@ after init {
     http_request := http_request_file.read;
 }
 
-before ping_event(src:ip.endpoint,dst:ip.endpoint,pkt:ping_packet) {
+before ping_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:ping_packet) {
     if _generating {
         require src = client.ep;
         require dst = server.ep;
     }
 }
 
-before pong_event(src:ip.endpoint,dst:ip.endpoint,pkt:pong_packet) {
-    if _generating {
-        require src = client.ep;
-        require dst = server.ep;
-    }
-}
 
 action client_send_event(src:ip.endpoint, dst:ip.endpoint, end : stream_pos)
 
 around client_send_event {
     require src = client.ep;
     require dst = server.ep;
-    require ping_length = ping_data_end;
+    require ping_length = ping_packet_end;
     require ping_length < end & end <= http_request.end;
     ...
     while end < http_request.end & http_request.value(end) ~= 10 {

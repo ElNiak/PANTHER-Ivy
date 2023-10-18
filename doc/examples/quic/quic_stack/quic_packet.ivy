@@ -428,6 +428,12 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
 
     var dcid := pkt.dst_cid;
     var scid := pkt.src_cid;
+
+    call show_num_ack_eliciting_pkt(num_ack_eliciting_pkt);
+    call show_num_ack_pkt(num_ack_pkt);
+
+    # call show_num_ack_eliciting_pkt(num_ack_eliciting_pkt(scid));
+    # call show_num_ack_pkt(num_ack_pkt(scid));
     
     if cid_mapped(dcid) {
 	    dcid := cid_to_aid(dcid);
@@ -656,8 +662,15 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
 #    };
 
     if queued_ack_eliciting(scid) {
-       ack_credit(dcid) := ack_credit(dcid) + 1;
-       ack_eliciting_threshold_current_val(scid) := ack_eliciting_threshold_current_val(scid) + 1;
+        if _generating {
+            num_ack_eliciting_pkt := num_ack_eliciting_pkt + 1;
+        }
+        ack_eliciting_threshold_current_val(dcid) := ack_eliciting_threshold_current_val(dcid) + 1;
+        ack_credit(dcid) := ack_credit(dcid) + 1;
+    } else {
+        if ~_generating {
+            num_ack_pkt:= num_ack_pkt + 1;
+        }
     };
     if ~queued_non_ack(scid) {
        ack_credit(scid) := ack_credit(scid) - 1;
@@ -1139,7 +1152,10 @@ around send_ack_eliciting_application_packet(src:ip.endpoint,dst:ip.endpoint,pkt
 #    };
 
     if queued_ack_eliciting(scid) {
-       ack_credit(dcid) := ack_credit(dcid) + 1;
+        # num_ack_eliciting_pkt(scid) := num_ack_eliciting_pkt(scid) + 1;
+        ack_credit(dcid) := ack_credit(dcid) + 1;
+    } else {
+        # num_ack_pkt(scid) := num_ack_pkt(scid) + 1;
     };
     if ~queued_non_ack(scid) {
        ack_credit(scid) := ack_credit(scid) - 1;

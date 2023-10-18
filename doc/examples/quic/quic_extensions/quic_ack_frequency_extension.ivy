@@ -6,6 +6,12 @@
 #   congestion control mechanisms however need to be tolerant of this
 #   delay at the peer.  An endpoint signals its tolerance to its peer
 #   using an ACK_FREQUENCY frame, shown below:
+
+# The min_ack_delay transport parameter is a unilateral indication of support for receiving 
+# ACK_FREQUENCY frames. If an endpoint sends the transport parameter, the peer is allowed to 
+# send ACK_FREQUENCY frames independent of whether it also sends the min_ack_delay transport 
+# parameter or not.
+
 import action is_min_ack_set(b:bool)
 
 var force_immediate_ack : bool
@@ -32,10 +38,24 @@ var force_ack_frequency : bool
 #     }
 #  }
 
+relation ack_frequency_pending
+
+after init {
+    ack_frequency_pending := false;
+}
+
+import action ack_freq_generated
+
 object frame = { ...
     object ack_frequency = { ...
         action handle(f:frame.ack_frequency,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
+            if _generating {
+                require ~ack_frequency_pending;
+                call ack_freq_generated;
+                num_ack_eliciting_pkt := 0;
+                num_ack_pkt := 0;
+            }
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
             require (num_queued_frames(scid) > 0) -> e = queued_level(scid);
@@ -45,8 +65,12 @@ object frame = { ...
             require  min_ack_delay.is_set(tp) | max_ack_delay.is_set(tp2);
             var ignore_order := (f.reordering_threshold = 0);
             var min : microseconds := min_ack_delay.value(trans_params(dcid)).exponent_8;
-            require f.ack_eliciting_threshold >= 0;
-            require f.request_max_ack_delay >= min; 
+            if _generating {
+                require f.ack_eliciting_threshold = 4;
+            } else{
+                require f.ack_eliciting_threshold > 0; # >= should be but picoquic bug with that
+            }
+            require f.request_max_ack_delay >= min;  # picoquic error
             #require f.reordering_threshold = 1 | f.reordering_threshold = 0;
             require f.reordering_threshold >= 0;
             if first_ack_freq_received {
@@ -78,7 +102,8 @@ object frame = { ...
                     max_ack_delay_tp :=  f.request_max_ack_delay
                 }
             }
-            force_ack_frequency := true;
+            ack_frequency_pending := true;
+            force_ack_frequency := false;
             call enqueue_frame(scid,f,e,false,seq_num);
         }
     }

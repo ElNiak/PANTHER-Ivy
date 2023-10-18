@@ -3,7 +3,7 @@
 
 include quic_types # should be change
 include ping_application
-include ping_data
+include ping_packet
 
 include ping_time
 include udp_impl
@@ -55,7 +55,9 @@ object ping_prot_deser = {}
     class `ping_prot_deser` : public ivy_binary_deser_128 {
         int data_remaining;
     public:
-        ping_prot_deser(const std::vector<char> &inp) : ivy_binary_deser_128(inp) {}
+        ping_prot_deser(const std::vector<char> &inp) : ivy_binary_deser_128(inp) {
+            data_remaining = inp.size();
+        }
 
         void  get(int128_t &res) {
             getn(res,1);
@@ -70,10 +72,13 @@ object ping_prot_deser = {}
         }
 
         bool open_list_elem() {
+            /*
             if (!more(1)) {
                 return false;
             }
-            bool res = data_remaining-- > 0;
+            */
+            bool res = data_remaining-- >= 0;
+            //if(data_remaining == 0) pos++;
             return res;
         }
         void close_list_elem() {
@@ -113,10 +118,9 @@ implement net.recv(host:endpoint_id, s:net.socket, src:ip.endpoint, pkts:pingd.a
 }
 
 import action recv_ping(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:ping_packet)
-import action recv_pong(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:pong_packet)
+import action recv_pong(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:ping_packet)
 
 import action undefined_host_error(host:endpoint_id, s:net.socket, src:ip.endpoint)
 
-instance ping_serdes : serdes(ping_packet,stream_data,ping_ser,ping_deser)
-instance pong_serdes : serdes(pong_packet,stream_data,ping_ser,ping_deser)
+instance ping_packet_serdes : serdes(ping_packet,stream_data,ping_ser,ping_deser)
 

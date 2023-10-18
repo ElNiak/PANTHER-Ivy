@@ -50,15 +50,8 @@ after init {
     http_response := http_response_file.read;
 }
 
-before pong_event(src:ip.endpoint,dst:ip.endpoint,pkt:pong_packet) {
-    if _generating { 
-        require client.ep.addr ~= 0;  # must have a client address to send to
-        require src = server.ep;
-        require dst = client.ep;
-    }
-}
 
-before ping_event(src:ip.endpoint,dst:ip.endpoint,pkt:ping_packet) {
+before ping_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:ping_packet) {
     if _generating { 
         require client.ep.addr ~= 0;  # must have a client address to send to
         require src = server.ep;
@@ -71,7 +64,7 @@ action client_send_event(src:ip.endpoint, dst:ip.endpoint, end : stream_pos)
 around client_send_event {
     require src = server.ep;
     require dst = client.ep;
-    require ping_length = ping_data_end;
+    require ping_length = ping_packet_end;
     require ping_length < end & end <= http_response.end;
     ...
     while end < http_response.end & http_response.value(end) ~= 10 {
