@@ -97,6 +97,8 @@ module udp_wrapper(addr,pkt,me,port_base) = {
 		    	ivy_binary_deser_128 ds(buf);
 		    	__deser(ds,pkt);
 	            if (ds.pos < buf.size()){
+					std::cerr << buf.size() << std::endl; 
+					std::cerr << ds.pos << std::endl; 
 					 std::cout << "udp" << std::endl; 
 					 throw deser_err();
 				}

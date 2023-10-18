@@ -136,6 +136,8 @@ module udp_impl(host,pkt,ser,des) = {
 				if (ds.pos < buf.size()) {
 					//std::cerr << pkt << std::endl; 
 					//std::cerr << ds << std::endl; 
+					std::cerr << buf.size() << std::endl; 
+					std::cerr << ds.pos << std::endl; 
 					std::cerr << "udp impl" << std::endl; 
 					throw deser_err();
 				}

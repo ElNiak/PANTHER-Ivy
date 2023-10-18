@@ -420,6 +420,41 @@ module c_time_wrapper(timer) = {
 			>>>
 		}
 
+		implement non_blocking_sleep_signal_and_generate(i:milliseconds)returns (r:milliseconds) {
+			<<<
+			if(started) {
+				// Set up a signal handler for SIGALRM
+				struct sigaction sa;
+				sa.sa_handler = timer_handler_generate;
+				sa.sa_flags = SA_RESTART | SA_NOCLDSTOP;
+				sigemptyset(&sa.sa_mask);
+
+				if (sigaction(SIGALRM, &sa, NULL) == -1) {
+					perror("sigaction");
+					return 1;
+				}
+
+				// Set up a timer to expire in milliseconds (e.g., 1000 milliseconds or 1 second)
+				struct itimerval timer;
+				timer.it_value.tv_sec = i/1000;           // Initial timer value seconds
+				timer.it_value.tv_usec = 0; //i * 1000;    // Initial timer value microseconds (1000 milliseconds)
+				timer.it_interval.tv_sec = 0;        // Interval timer value seconds (0 for a one-shot timer)
+				timer.it_interval.tv_usec = 0;       // Interval timer value microseconds
+
+				if (setitimer(ITIMER_REAL, &timer, NULL) == -1) {
+					perror("setitimer");
+					return 1;
+				}
+				std::cerr << "C time = sleep_signal - i = " << i << std::endl;
+				
+				r = i;
+			} 
+			else {
+				std::cerr << "C time = sleep_signal - timer not started" << std::endl;
+			}
+			>>>
+		}
+
 		implement is_sleep_fake_timeout returns (b:bool) {
 			<<<
 			if(started) {
