@@ -102,8 +102,8 @@ def build_picotls():
 
     os.chdir('submodules/picotls')
 
-    do_cmd('git submodule init')
-    do_cmd('git submodule update')
+    # do_cmd('git submodule init')
+    # do_cmd('git submodule update')
 
     
     if platform.system() == 'Windows':
