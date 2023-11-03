@@ -1,0 +1,45 @@
+#ivy lang1.7
+
+include order
+include bgp_infer
+include file
+include random_value
+
+action endpoint_to_pid(src:ip.endpoint) returns (pid:endpoint_id) = {
+    pid := endpoint_id.speaker;
+}
+
+action socket_endpoint(host:endpoint_id,s:net.socket) returns (src:ip.endpoint) = {
+    src := speaker.ep;
+}
+
+action endpoint_to_socket(src:ip.endpoint) returns (socket:net.socket) = {
+    socket := sock;
+}
+
+action dst_is_generated(dst:ip.endpoint) returns (res:bool) = {
+    res := dst = speaker.ep;
+}
+
+action speaker_send_event(src:ip.endpoint, dst:ip.endpoint, end : stream_pos)
+
+around speaker_send_event {
+    require src = speaker.ep;
+    require dst = client.ep;
+    require bgp_length = ping_packet_end;
+    require bgp_length < end & end <= http_response.end;
+    ...
+    while end < http_response.end & http_response.value(end) ~= 10 {
+        end := end.next
+    };
+    if end < http_response.end {
+        end := end.next
+    };
+    var data := http_response.segment(bgp_length,end);
+    call app_send_event(src,dst,data,bgp_length,true);
+}
+
+
+attribute radix=16       # print in hex
+
+interpret version -> bv[32]

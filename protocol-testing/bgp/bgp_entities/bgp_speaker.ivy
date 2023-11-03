@@ -1,0 +1,75 @@
+#ivy lang1.7
+
+include bgp_type
+
+object endpoint_id = {
+    type this = {speaker}
+}
+
+#    BGP speaker
+#       A router that implements BGP.
+
+object bgp_speaker = {
+
+    type this
+
+    module speaker(address: ip.addr, id: bgp_id) = {
+        variant this of bgp_speaker = struct { }
+
+        individual ep        : ip.endpoint
+        # individual mode : 
+
+        after init {
+            ep.protocol = ip.tcp;
+            ep.address = address;
+            ep.port = 179;
+            
+            if ep.addr = 0x7f000001 { # TODO is_mim not used
+                ep.interface := ip.lo;
+            } else {
+                ep.interface := ip.ivy;
+            }
+        }
+
+        action set_ep(e:ip.endpoint) = {
+            ep := e;
+        }
+
+        action behavior(host:endpoint_id, s:net.socket, src:ip.endpoint, pkts:prot.arr) = {
+            var dst := socket_endpoint(host,s);  # because net API doesn't tell us the dst
+            var idx := pkts.begin;
+            while idx < pkts.end {
+                var ppkt := pkts.value(idx);
+                # Do some stuff
+                var pkt := bgp_message_serdes.from_bytes(ppkt);
+                if pkt.bgp_type = bgp_type.open {
+                    var open_mess := bgp_open_message_serdes.from_bytes(pkt.payload);
+                    call recv_bgp_open_message(host,s,src,open_mess,pkt);
+                    call bgp_open_message_event(src, dst, open_mess);
+                } else if pkt.bgp_type = bgp_type.update {
+                    var update_mess := bgp_update_message_serdes.from_bytes(pkt.payload);
+                    call recv_bgp_update_message(host,s,src,update_mess,pkt);
+                    call bgp_update_message_event(src, dst, update_mess);
+                } else if pkt.bgp_type = bgp_type.notification {
+                    var notification_mess := bgp_notification_message_serdes.from_bytes(pkt.payload);
+                    call recv_bgp_notification_message(host,s,src,notification_mess,pkt);
+                    call bgp_notification_message_event(src, dst, notification_mess);
+                } else if pkt.bgp_type = bgp_type.keepalive {
+                    var keepalive_mess := bgp_keepalive_message_serdes.from_bytes(pkt.payload);
+                    call recv_bgp_keepalive_message(host,s,src,keepalive_mess,pkt);
+                    call bgp_keepalive_message_event(src, dst, keepalive_mess);
+                } else {
+                    call unknown_bgp_message(host,s,src);
+                };
+                idx := idx.next;
+            };
+        }
+
+        import action unknown_bgp_message(host:endpoint_id, s:net.socket, src:ip.endpoint) 
+        import action recv_bgp_open_message(host:endpoint_id, s:net.socket, src:ip.endpoint, mess:bgp_open_message, header:bgp_header_message)
+        import action recv_bgp_update_message(host:endpoint_id, s:net.socket, src:ip.endpoint, mess:bgp_update_message, header:bgp_header_message)
+        import action recv_bgp_notification_message(host:endpoint_id, s:net.socket, src:ip.endpoint, mess:bgp_notification_message, header:bgp_header_message)
+        import action recv_bgp_keepalive_message(host:endpoint_id, s:net.socket, src:ip.endpoint, mess:bgp_keepalive_message, header:bgp_header_message)
+    }
+
+}

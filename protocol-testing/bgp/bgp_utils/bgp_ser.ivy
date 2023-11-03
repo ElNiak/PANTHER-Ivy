@@ -1,0 +1,97 @@
+#lang ivy1.7
+
+# a fake serializer for BGP
+
+object bgp_ser = {}
+
+<<< member
+
+    class `bgp_ser`;
+
+>>>
+
+<<< impl
+    
+    class `bgp_ser` : public ivy_binary_ser_128 {
+        enum {bgp_s_init,
+              bgp_s_frame,
+              bgp_s_time,
+              bgp_s_payload} state;
+        long frame_type;
+
+    public:
+        bgp_ser() : state(bgp_s_init) {
+        }
+        virtual void  set(int128_t res) {
+            switch (state) {
+            case bgp_s_init:
+            {
+                state = bgp_s_payload;
+            }
+            break;
+            case bgp_s_frame:
+            {
+                setn(res,1);
+            }
+            break;
+            case bgp_s_time:
+            {
+                setn(res, 8);
+            }
+            break;
+            default:
+            std::cerr << "deser_err 42 "  << "\n";  
+            throw deser_err();
+            }
+        }
+
+
+        virtual void open_tag(int tag, const std::string &) {
+            if (state == bgp_s_payload || state == bgp_s_init) {
+                int sz = 1;
+                if (tag == 0) {
+                    frame_type = 0x01;
+                    state = bgp_s_frame;
+                }
+                else if (tag == 1) {
+                    state = bgp_s_frame;
+                    frame_type = 0x02;
+                }
+                else if (tag == 2) {
+                    state = bgp_s_time;
+                    frame_type = 0x03;
+                }
+                else {
+                    std::cerr << "saw frame tag " << tag << "\n";  
+                    throw deser_err();
+	            }
+                setn(frame_type,sz);
+                return;
+            }
+            std::cerr << "deser_err 43 " << tag << "\n";  
+            std::cerr << "deser_err 43 " << state << "\n";  
+            throw deser_err();
+        }
+
+        virtual void open_list_elem() {
+        }
+
+        void open_list(int len) {
+
+        }
+        void close_list() {
+            if (state == bgp_s_payload) {
+                state = bgp_s_init;
+            }
+
+        }
+        void close_list_elem() {}
+
+        virtual void close_tag() {
+            state = bgp_s_payload;
+        }
+
+        ~bgp_ser(){}
+    };
+
+>>>

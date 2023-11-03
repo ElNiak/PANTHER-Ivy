@@ -1,0 +1,24 @@
+#lang ivy1.7
+
+include order
+include bgp_infer
+include file
+include bgp_shim
+include random_value
+
+parameter client_addr : ip.addr = 0x0a000001 # 0x7f000001
+parameter client_id   : bgp_id = 4987
+
+# create a client and server. the client has an instance of TLS
+
+instance bgp_instance : bgp_speaker.speaker(client_addr,client_id)
+
+# An ip endpoint for the client to migrate to.
+
+# We create sockets and bind them to the addresses that the client can use.
+
+# TODO create socket for client & server
+# TODO associate these data to the entities itself
+var sock : net.socket
+
+

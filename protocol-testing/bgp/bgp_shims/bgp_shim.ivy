@@ -1,0 +1,79 @@
+#lang ivy1.7
+
+include bgp_types # should be change
+include bgp_application
+include bgp_packet
+
+include bgp_time
+include deserializer
+include ip
+include serdes
+
+include bgp_prot_deser_ser
+include bgp_protection
+
+include bgp_deser
+include bgp_ser
+
+include bgp_autonomous_system
+include bgp_speaker
+
+implement net.recv(host:endpoint_id, s:net.socket, src:ip.endpoint, pkts:bgp_messages.arr) {
+    # call show_current_time(time_api.c_timer.now_micros_last_bp);
+    if host = endpoint_id.speaker {        # for client test (tested implem = client <-> ivy implem = server)
+        call speaker.behavior(host,s,src,pkts);
+    } else {
+        # ERROR
+        call undefined_host_error(host,s,src);
+    };
+}
+
+after bgp_open_message_event(src:ip.endpoint,dst:ip.endpoint,bpg_message:bgp_open_message, header:bgp_header_message){
+    if _generating {
+        var h := bgp_message_serdes.to_bytes(pkt);
+        var spkt := bgp_open_message_serdes.to_bytes(pkt);
+        var pkts := bgp_messages.arr.empty;
+        pkts := pkts.append(h);
+        pkts := pkts.append(spkt);
+        call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
+    }
+}
+
+after bgp_update_message_event(src:ip.endpoint,dst:ip.endpoint,bpg_message:bgp_update_message, header:bgp_header_message){
+    if _generating {
+        var h := bgp_message_serdes.to_bytes(pkt);
+        var spkt := bgp_update_message_serdes.to_bytes(pkt);
+        var pkts := bgp_messages.arr.empty;
+        pkts := pkts.append(h);
+        pkts := pkts.append(spkt);
+        call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
+    }
+}
+
+after bgp_keepalive_message_event(src:ip.endpoint,dst:ip.endpoint,bpg_message:bgp_keepalive_message, header:bgp_header_message){
+    if _generating {
+        var h := bgp_message_serdes.to_bytes(pkt);
+        var spkt := bgp_keepalive_message_serdes.to_bytes(pkt);
+        var pkts := bgp_messages.arr.empty;
+        pkts := pkts.append(h);
+        pkts := pkts.append(spkt);
+        call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
+    }
+}
+
+after bgp_notification_message_event(src:ip.endpoint,dst:ip.endpoint,bpg_message:bgp_notification_message, header:bgp_header_message){
+    if _generating {
+        var h := bgp_message_serdes.to_bytes(pkt);
+        var spkt := bgp_notification_message_serdes.to_bytes(pkt);
+        var pkts := bgp_messages.arr.empty;
+        pkts := pkts.append(h);
+        pkts := pkts.append(spkt);
+        call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
+    }
+}
+
+instance bgp_message_serdes              : serdes(bgp_header_message,stream_data,bgp_ser,bgp_deser)
+instance bgp_open_message_serdes         : serdes(bgp_open_message,stream_data,bgp_ser_open,bgp_deser_open)
+instance bgp_update_message_serdes       : serdes(bgp_update_message,stream_data,bgp_ser_update,bgp_deser_update)
+instance bgp_keepalive_message_serdes    : serdes(bgp_keepalive_message,stream_data,bgp_ser_keepalive,bgp_deser_keepalive)
+instance bgp_notification_message_serdes : serdes(bgp_notification_message,stream_data,bgp_ser_notification,bgp_deser_notification)

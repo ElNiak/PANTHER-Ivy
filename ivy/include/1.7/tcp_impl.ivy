@@ -1,5 +1,7 @@
 #lang ivy1.7
 
+include ip
+
 # This is an implementation of a generic TCP endpoint. It allows you to create point-to-point,
 # non-duplicating, ordered connections that transfer sequences of messages. The parameters are:
 #
@@ -11,7 +13,9 @@
 # If the environment does not set up a configuration, the the endpoint has IP address 127.0.0.1
 # and port number port_base + me.
 
-module tcp_impl(addr,pkt,me,port_base) = {
+module tcp_impl(addr,pkt,me,port_base,ser,des) = {
+
+    type socket
 
 # These empty objects are used to hold C++ values.
 
@@ -266,7 +270,7 @@ module tcp_impl(addr,pkt,me,port_base) = {
 
             `pkt` pkt;                      // holds received message
             //ivy_socket_deser ds(sock,buf);  // initializer deserialize with any leftover bytes
-            ivy_socket_deser_128 ds(sock,buf);  // initializer deserialize with any leftover bytes
+            //ivy_socket_deser_128 ds(sock,buf);  // initializer deserialize with any leftover bytes
             buf.clear();                    // clear the leftover bytes
 
             try {
@@ -342,7 +346,7 @@ module tcp_impl(addr,pkt,me,port_base) = {
             // if queue has been closed asynchrononously, close the socket. 
 
             if (qclosed) {
-                // std::cerr << "CLOSING " << sock << std::endl;
+                std::cerr << "CLOSING " << sock << std::endl;
                 ::close(sock);
                 connected = false;
                 return;
@@ -364,7 +368,7 @@ module tcp_impl(addr,pkt,me,port_base) = {
 
             // Get the address of the other from the configuration
 
-            // std::cerr << "ENTERING CONNECT " << sock << std::endl;
+            std::cerr << "ENTERING CONNECT " << sock << std::endl;
 
             ivy -> __lock();               // can be asynchronous, so must lock ivy!
             struct sockaddr_in myaddr;
@@ -374,7 +378,7 @@ module tcp_impl(addr,pkt,me,port_base) = {
 
             // Call connect to make connection
 
-            // std::cerr << "CONNECTING sock=" << sock << "other=" << other << std::endl;
+            std::cerr << "CONNECTING sock=" << sock << "other=" << other << std::endl;
 
             int res = ::connect(sock,(sockaddr *)&myaddr,sizeof(myaddr));
 
@@ -431,7 +435,7 @@ module tcp_impl(addr,pkt,me,port_base) = {
             struct sockaddr_in myaddr;
             get_tcp_addr(ivy,my_id,myaddr);
 
-                    std::cerr << "binding id: " << my_id << " port: " << ntohs(myaddr.sin_port) << std::endl;
+            std::cerr << "binding id: " << my_id << " port: " << ntohs(myaddr.sin_port) << std::endl;
 
             // Bind the socket to our address
             if (::bind(sock, (struct sockaddr *)&myaddr, sizeof(myaddr)) < 0)
@@ -616,8 +620,8 @@ module tcp_impl(addr,pkt,me,port_base) = {
     implement send(s:socket,p:pkt) returns (ok:bool) {
         <<< impure
                 //ivy_binary_ser sr;
-                ivy_binary_ser_128 sr;
-                __ser(sr,p);
+                //ivy_binary_ser_128 sr;
+                __ser(ser,p);
 //                std::cerr << "SENDING\n";
 
                 // if the send queue for this sock doesn's exist, it isn't open,
