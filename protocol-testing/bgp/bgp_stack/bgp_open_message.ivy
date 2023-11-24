@@ -1,4 +1,4 @@
-#ivy lang1.7
+#lang ivy1.7
 
 
 #    After a TCP connection is established, the first message sent by each
@@ -87,6 +87,14 @@
 #    The minimum length of the OPEN message is 29 octets (including the
 #    message header).
 
+include bgp_optional_params
+
+function queued_opt_param : optional_parameter.arr
+function queued_opt_param_len : stream_pos
+
+relation open_message_recv(I:bgp_id)
+
+
 object bgp_open_message = {
     type this = struct {
         pversion: version,         
@@ -100,4 +108,12 @@ object bgp_open_message = {
     instance arr : array(idx,this) 
 }
 
-action bgp_open_message_event(src:ip.endpoint,dst:ip.endpoint,bpg_message:bgp_open_message, header:bgp_header_message) = {}
+action bgp_open_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_open_message) = {}
+
+around bgp_open_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_open_message) {
+    require isup(bgpid_to_endpoint(src));
+    require ~open_message_recv(src);
+    ...
+    require isup(bgpid_to_endpoint(src));
+    open_message_recv(src) := true;
+}

@@ -1,4 +1,4 @@
-#ivy lang1.7
+#lang ivy1.7
 
 #    UPDATE messages are used to transfer routing information between BGP
 #    peers.  The information in the UPDATE message can be used to
@@ -98,11 +98,26 @@ object bgp_update_message = {
         withdraw_routes : withdraw_route.arr,
         total_path_attr_len : stream_pos,
         path_attrs : path_attr.arr,
-        network_layer_reach_infos : network_layer_reach_info.arr
+        network_layer_reach_infos : network_layer_reach_info
     }
 
     instance idx : unbounded_sequence
     instance arr : array(idx,this) 
 }
 
-action bgp_update_message_event(src:ip.endpoint,dst:ip.endpoint,bpg_message:bgp_update_message, header: bgp_header_message) = {}
+action bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_message) = {}
+relation bgp_update_event
+around  bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_message) {
+    require isup(bgpid_to_endpoint(src));
+    require open_message_recv(src) & open_message_recv(dst);
+    require origin_present(src);
+    require num_queued_path_attr(src) >= 0;
+    require bgp_message.path_attrs = queued_path_attr(src);
+    bgp_update_event := true;
+    ...
+    require isup(bgpid_to_endpoint(src));
+    
+    origin_present(src) := false;
+    queued_path_attr(src) := path_attr.arr.empty;
+    num_queued_path_attr(src) := 0;
+}

@@ -1,4 +1,4 @@
-#ivy lang1.7
+#lang ivy1.7
 
 #    BGP does not use any TCP-based, keep-alive mechanism to determine if
 #    peers are reachable.  Instead, KEEPALIVE messages are exchanged
@@ -22,4 +22,11 @@ object bgp_keepalive_message = {
 }
 
 
-action bgp_keepalive_message_event(src:ip.endpoint,dst:ip.endpoint,bpg_message:bgp_keepalive_message, header: bgp_header_message) = {}
+action bgp_keepalive_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_keepalive_message) = {}
+
+around  bgp_keepalive_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_keepalive_message) {
+    require isup(bgpid_to_endpoint(src));
+    require open_message_recv(src) & open_message_recv(dst);
+    ...
+    require isup(bgpid_to_endpoint(src))
+}

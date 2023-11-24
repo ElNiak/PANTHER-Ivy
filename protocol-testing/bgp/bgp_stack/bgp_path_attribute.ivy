@@ -1,4 +1,4 @@
-#ivy lang1.7
+#lang ivy1.7
 
 
 #   Path Attributes:
@@ -114,9 +114,9 @@ object path_attr = {
     object as_path = {
         object as_path_segment = {
             type this = struct {
-                segment_type: stream_pos,
-                segment_len: stream_pos,
-                segment_value: stream_pos
+                segment_type : segmenttype,
+                segment_len  : autonomous_system.idx,
+                segment_value: autonomous_system.arr
             }
             instance idx : unbounded_sequence
             instance arr : array(idx,this) 
@@ -188,7 +188,7 @@ object path_attr = {
 
     object aggregator = {
         variant this of path_attr = struct {
-            as_num: stream_pos,
+            as_num: autonomous_system,
             ip_addr: ip.addr
         }
     }
@@ -200,32 +200,78 @@ object path_attr = {
 
 object path_attr = {
     ...
-    action handle(f:this) = {
+    action handle(f:this, src:bgp_id, dst:bgp_id) = {
         require false; # this generic action should never be called
     }
 }
 
+function queued_path_attr(C:bgp_id)     : path_attr.arr
+function num_queued_path_attr(C:bgp_id) : path_attr.idx
+function path_attr_size(C:bgp_id)       : stream_pos
+
+function queued_segment_type(C:bgp_id,I:path_attr.as_path.as_path_segment.idx)      : segmenttype
+function queued_segment_value(C:bgp_id,I:path_attr.as_path.as_path_segment.idx)     : autonomous_system.arr
+function num_queued_segment_value(C:bgp_id,I:path_attr.as_path.as_path_segment.idx) : autonomous_system.idx
+function num_queued_as_path(C:bgp_id)                                               : path_attr.as_path.as_path_segment.idx
+
+# ORIGIN is a well-known mandatory attribute that defines the origin of the path information.
+relation origin_present(C:bgp_id)
 
 object path_attr = {
     ...
     object origin = {
         ...
-        action handle(f:path_attr.origin)
+        action handle(f:path_attr.origin, src:bgp_id, dst:bgp_id)
 
         around handle {
+            # TODO use an action to make this general 
+            # require src = bgp_ivy_instance.bgpid;
+            # require dst = bgp_impl_instance.bgpid;
+            require open_message_recv(src) & open_message_recv(dst);
+            require ~origin_present(src);
             ...
+            path_attr_size(src) := path_attr_size(src) + 1 + 1 + 1 + 1;
+            call enqueue_path_attr(src,f);
         }
     }
+}
+
+action as_idx_to_stream_pos(c:autonomous_system.idx) returns(res:stream_pos) = {
+    <<<
+    res = c;
+    >>>
 }
 
 object path_attr = {
     ...
     object as_path = {
         ...
-        action handle(f:path_attr.as_path)
+        action handle(f:path_attr.as_path, src:bgp_id, dst:bgp_id)
 
         around handle {
+            var idx : path_attr.as_path.as_path_segment.idx := 0;
+            require open_message_recv(src) & open_message_recv(dst);
+            require f.path.end > 0; # & f.path.end = num_queued_as_path(src);
+
+            while idx < f.path.end {
+                var aspath := f.path.value(idx);
+                require queued_segment_type(src,idx) = 1 | queued_segment_type(src,idx) = 2;
+                require aspath.segment_type  = queued_segment_type(src,idx); 
+                require aspath.segment_len   = num_queued_segment_value(src,idx);
+                require aspath.segment_value = queued_segment_value(src,idx);
+                path_attr_size(src) := path_attr_size(src) + 1 + 2 * as_idx_to_stream_pos(aspath.segment_len);
+                idx := idx.next;
+            };
             ...
+            path_attr_size(src) := path_attr_size(src) + 1 + 1 + 2 + 1;
+            var jdx : path_attr.as_path.as_path_segment.idx := 0;
+            while jdx < num_queued_as_path(src) {
+                queued_segment_type(src,jdx) := 0;
+                num_queued_segment_value(src,jdx) := 0;
+                queued_segment_value(src,jdx) := autonomous_system.arr.empty;
+                jdx := jdx.next;
+            };
+            num_queued_as_path(src) := 0;
         }
     }
 }
@@ -234,11 +280,11 @@ object path_attr = {
     ...
     object next_hop = {
         ...
-        action handle(f:path_attr.next_hop)
+        action handle(f:path_attr.next_hop, src:bgp_id, dst:bgp_id)
 
-        around handle {
-            ...
-        }
+        # around handle {
+        #     ...
+        # }
     }
 }
 
@@ -246,11 +292,11 @@ object path_attr = {
     ...
     object multi_exit_disc = {
         ...
-        action handle(f:path_attr.multi_exit_disc)
+        action handle(f:path_attr.multi_exit_disc, src:bgp_id, dst:bgp_id)
 
-        around handle {
-            ...
-        }
+        # around handle {
+        #     ...
+        # }
     }
 }
 
@@ -258,11 +304,11 @@ object path_attr = {
     ...
     object local_pref = {
         ...
-        action handle(f:path_attr.local_pref)
+        action handle(f:path_attr.local_pref, src:bgp_id, dst:bgp_id)
 
-        around handle {
-            ...
-        }
+        # around handle {
+        #     ...
+        # }
     }
 }
 
@@ -270,23 +316,18 @@ object path_attr = {
     ...
     object atomic_aggregate = {
         ...
-        action handle(f:path_attr.atomic_aggregate)
+        action handle(f:path_attr.atomic_aggregate, src:bgp_id, dst:bgp_id)
 
-        around handle {
-            ...
-        }
+        # around handle {
+        #     ...
+        # }
     }
 }
 
-
-object path_attr = {
-    ...
-    object atomic_aggregate = {
-        ...
-        action handle(f:path_attr.atomic_aggregate)
-
-        around handle {
-            ...
-        }
-    }
+action enqueue_path_attr(src:bgp_id, f:path_attr) = {
+    queued_path_attr(src)     := queued_path_attr(src).append(f);
+    num_queued_path_attr(src) := queued_path_attr(src).end;
+    if ~(f isa path_attr.origin){ #& ~(f isa frame.padding){
+        origin_present(src) := true;
+    };
 }

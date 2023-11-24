@@ -1,4 +1,4 @@
-#ivy lang1.7
+#lang ivy1.7
 
 
 #    A NOTIFICATION message is sent when an error condition is detected.
@@ -73,11 +73,40 @@
 
 object bgp_notification_message = {
     type this = struct {
-        error_code: err_code,
-        error_subcode: err_subcode,
-        data: stream_data
+        error_code: bgp_error_code,
+        error_subcode: bgp_error_subcode,
+        data: stream_data # TODO for now we cannot knwo the size of the message, use envvar ?
     }
 }
 
 
-action bgp_notification_message_event(src:ip.endpoint,dst:ip.endpoint,bpg_message:bgp_notification_message, header: bgp_header_message) = {}
+action bgp_notification_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_notification_message) = {}
+
+around bgp_notification_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_notification_message) {
+    require isup(bgpid_to_endpoint(src));
+    require open_message_recv(src) & open_message_recv(dst);
+    
+    require bgp_message.error_code = bgp_error_code.header_mess_error |
+            bgp_message.error_code = bgp_error_code.open_mess_error   | 
+            bgp_message.error_code = bgp_error_code.update_mess_error   |    
+            bgp_message.error_code = bgp_error_code.hold_timer_expire   |    
+            bgp_message.error_code = bgp_error_code.fsm_error   | 
+            bgp_message.error_code = bgp_error_code.cease_error;      
+    
+    # TODO modify the deser/ser
+    # require bgp_message.error_code =  bgp_error_code.header_mess_error -> 
+    #     (bgp_message.error_subcode = bgp_error_subcode.type_bgp_header_error_subcode.code.connection_not_synchronized |
+    #      bgp_message.error_subcode = bgp_error_subcode.type_bgp_header_error_subcode.code.bad_message_length |
+    #      bgp_message.error_subcode = bgp_error_subcode.type_bgp_header_error_subcode.code.bad_message_type);
+    
+    # require bgp_message.error_code =  bgp_error_code.open_mess_error -> 
+    #     (bgp_message.error_subcode = bgp_open_error_subcode.unsupported_version_number |
+    #      bgp_message.error_subcode = bgp_open_error_subcode.bad_peer_as |
+    #      bgp_message.error_subcode = bgp_open_error_subcode.bad_bgp_identifier |
+    #      bgp_message.error_subcode = bgp_open_error_subcode.unsupported_optional_parameter |
+    #      bgp_message.error_subcode = bgp_open_error_subcode.unacceptable_hold_time |
+    #      bgp_message.error_subcode = bgp_open_error_subcode.unsupported_capability);
+    # # require bgp_message.error_code = 3 -> (bgp_message.error_subcode >= 1 & bgp_message.error_subcode <= 11);
+    ...
+    require isup(bgpid_to_endpoint(src));
+}

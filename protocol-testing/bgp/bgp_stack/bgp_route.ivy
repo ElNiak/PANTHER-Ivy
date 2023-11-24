@@ -1,4 +1,4 @@
-#ivy lang1.7
+#lang ivy1.7
 
     #   Withdrawn Routes:
 
@@ -29,7 +29,7 @@
 object withdraw_route = {
     type this = struct {
         len: stream_pos,
-        route_prefix: prefix
+        route_prefix: stream_data
     }
     instance idx : unbounded_sequence
     instance arr : array(idx,this) 

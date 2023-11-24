@@ -2,33 +2,35 @@
 
 include tcp_impl
 
-module bgp_network(addr,pkt,ser,des) = {
+module bgp_network(pkt,ser,des) = {
 
     type socket
 
     # calls
 
-    action close(self:addr,s:socket)
+    action close(self:bgp_id,s:socket)
 
-    action connect(self:addr,other:addr) returns (s:socket)
+    action connect(self:bgp_id,other:bgp_id, other_ip:ip.addr) returns (s:socket)
 
-    action send(self:addr,s:socket,p:pkt) returns (ok:bool)
+    action connect_accept(self:bgp_id,other:bgp_id, other_ip:ip.addr) returns (s:socket)
+
+    action send(self:bgp_id,s:socket, other:bgp_id,p:pkt) returns (ok:bool)
 
     # callbacks
 
-    action accept(self:addr,s:socket,other:addr)
+    action accept(self:bgp_id,s:socket,other:bgp_id)
 
-    action recv(self:addr,s:socket,p:pkt)
+    action recv(self:bgp_id,s:socket,p:pkt)
 
-    action failed(self:addr,s:socket)
+    action failed(self:bgp_id,s:socket)
 
-    action connected(self:addr,s:socket)
+    action connected(self:bgp_id,s:socket)
     
-    var open(A:addr,S:socket) : bool
-    var req(A1:addr,S1:socket,A2:addr) : bool
-    var ack(A1:addr,S1:socket) : bool
-    var conn(A1:addr,S1:socket,A2:addr,S2:socket) : bool
-    var sent_to(A:addr,S:socket,P:pkt) : bool
+    var open(A:bgp_id,S:socket) : bool
+    var req(A1:bgp_id,S1:socket,A2:bgp_id) : bool
+    var ack(A1:bgp_id,S1:socket) : bool
+    var conn(A1:bgp_id,S1:socket,A2:bgp_id,S2:socket) : bool
+    var sent_to(A:bgp_id,S:socket,P:pkt) : bool
         
     object spec =  {
 
@@ -42,12 +44,15 @@ module bgp_network(addr,pkt,ser,des) = {
         }
 
 
-        after connect {
+        around connect {
+            call tcp_connect;
+            ...
             assume ~open(self,s) & ~req(self,s,A) & ~ack(self,s); # can't return socket in use
             req(self,s,other) := true;
         }
 
         around accept {
+            call tcp_accept;
             require exists S. req(other,S,self);
             require ~open(self,s) & ~req(self,s,A) & ~ack(self,s); # can't return socket in use
             ...
@@ -61,6 +66,7 @@ module bgp_network(addr,pkt,ser,des) = {
         }
 
         around connected {
+            call tcp_connected;
             require ack(self,s);
             ...
             open(self,s) := true;
@@ -68,21 +74,24 @@ module bgp_network(addr,pkt,ser,des) = {
         }
 
         around send {
+            call tcp_send;
             require open(self,s);
             ...
             if ok {
-                if some (other:addr,s2:socket) conn(self,s,other,s2) {
+                if some (other:bgp_id,s2:socket) conn(self,s,other,s2) {
                     sent_to(other,s2,p) := true
                 }
             } 
         }
 
         before recv {
+            call tcp_recv;
             require open(self,s);
             require sent_to(self,s,p);
         }            
 
         around close {
+            call tcp_close;
             require open(self,s);
             ...
             open(self,s) := false;
@@ -92,6 +101,7 @@ module bgp_network(addr,pkt,ser,des) = {
         }
 
         around failed {
+            call tcp_failed;
             require exists A. req(self,s,A) | ack(self,s) | open(self,s);
             ...
             open(self,s) := false;
@@ -100,6 +110,14 @@ module bgp_network(addr,pkt,ser,des) = {
             sent_to(self,s,P) := false;
             conn(A,S,self,s) := false;
         }
+
+        import action tcp_accept
+        import action tcp_recv
+        import action tcp_connected
+        import action tcp_send
+        import action tcp_close
+        import action tcp_failed
+        import action tcp_connect
         
         invariant ~(open(A,S) & (req(A,S,A1) | ack(A,S))) & ~(req(A,S,A1) & ack(A,S))
         invariant req(A,S,A1) & req(A,S,A2) -> A1 = A2
@@ -109,11 +127,17 @@ module bgp_network(addr,pkt,ser,des) = {
 
     
     implementation {
-        instance impl(X:addr) : tcp_impl(addr,pkt,X,179,)
+        instance impl : tcp_impl(pkt, bgp_ivy_instance.bgpid, bgp_ivy_instance.ep.addr ,179,ser,des)
     }
 
     isolate iso = this
     attribute test = impl
 }
 
-instance net : bgp_network(endpoint_id,prot.arr,bgp_prot_ser,bgp_prot_deser)
+instance net : bgp_network(bm.arr,bgp_prot_ser,bgp_prot_deser)
+
+# An ip endpoint for the client to migrate to.
+
+# We create sockets and bind them to the addresses that the client can use.
+
+var sock : net.socket

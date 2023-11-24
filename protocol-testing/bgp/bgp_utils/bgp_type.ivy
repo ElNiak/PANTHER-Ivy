@@ -22,12 +22,11 @@ type milliseconds
 
 # This 16-octet field is included for compatibility; it MUST be set to all ones.
 type marker_id
+interpret marker_id -> longbv[1][16][16]
 
-type err_code
-type err_subcode
+type segmenttype
+
+
 
 type prefix
-
-object bgp_message_type = {
-    type this = {open,update,notification, keepalive} 
-}
+# interpret prefix -> stream_data

@@ -410,7 +410,7 @@ object impl(me:host) = {
 		if (::getsockname(s, (struct sockaddr *)&sin, &len) == -1)
 			perror("getsockname");
 		else
-			std::cerr <<  "port number " << ntohs(sin.sin_port)  << std::endl;
+		std::cerr <<  "port number " << ntohs(sin.sin_port)  << std::endl;
 		std::cerr << "sending to id: " << x << std::endl;
 		std::cerr << "sending to id: " << me << " addr: " << ntohl(dstaddr.sin_addr.s_addr) << " port: " << ntohs(dstaddr.sin_port) << std::endl;
 		`ser` sr;

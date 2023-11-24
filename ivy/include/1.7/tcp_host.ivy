@@ -229,8 +229,8 @@ module tcp_host(endpoint,data) = {
 
             buf.resize(2048);
             int newbytes;
-	    if ((newbytes = ::read(sock,&buf[0],2048)) < 0)
-		 { perror("read failed"); exit(1); }
+            if ((newbytes = ::read(sock,&buf[0],2048)) < 0)
+            { perror("read failed"); exit(1); }
 
             // copy received bytes into the result
 
@@ -392,8 +392,8 @@ module tcp_host(endpoint,data) = {
                 { perror("accept failed"); exit(1); }
 
             `endpoint` other;
-	    other.addr = ntohl(other_addr.sin_addr.s_addr);
-	    other.port = ntohs(other_addr.sin_port);
+            other.addr = ntohl(other_addr.sin_addr.s_addr);
+            other.port = ntohs(other_addr.sin_port);
 
             // Run the "accept" callback. Since it's async, we must lock.
             ivy->__lock();
