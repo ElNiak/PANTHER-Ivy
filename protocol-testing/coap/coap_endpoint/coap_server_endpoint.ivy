@@ -1,0 +1,24 @@
+#lang ivy1.7
+
+# Description: Models the server-side behavior, including message generation and response handling.
+include coap_message
+
+# Module for CoAP Server Endpoint
+module coap_server_endpoint {
+
+    # Import necessary modules or types
+    # Define state variables
+    var current_response: coap_message
+
+    # Actions
+    action receive_request(client:ip.endpoint, request:coap_message) = {
+        # Logic to process the request and prepare a response
+        # current_response := ...
+    }
+
+    action send_response(client:ip.endpoint) = {
+        # Logic to send the current_response to the client
+    }
+
+    # Additional actions and definitions as needed
+}

@@ -6,13 +6,19 @@ include ping_application
 include ping_packet
 
 include ping_time
-include udp_impl
+####
+# 0. TODO John:  c'est les includes de base pour genere des event
+include udp_impl # vs tcp_impl
 include deserializer
 include ip
 include serdes
+####
 
 object ping_prot_ser = {}
 
+# 1. TODO John: <protocol_name>_prot_ser + <protocol_name>_prot_deser
+# Cela permet de parser(_deser)/generer(_ser) des packets/datagram
+# au niveau "raw", i.e bytes par bytes
 <<< member
 
     class `ping_prot_ser`;
@@ -70,13 +76,7 @@ object ping_prot_deser = {}
         }
 
         bool open_list_elem() {
-            /*
-            if (!more(1)) {
-                return false;
-            }
-            */
             bool res = data_remaining-- >= 0;
-            //if(data_remaining == 0) pos++;
             return res;
         }
         void close_list_elem() {
@@ -98,6 +98,7 @@ relation zero_rtt_allowed # useless
 
 instance pingd : ping_array
 
+# 0. TODO John: On instancie le network
 instance net : udp_impl(endpoint_id,pingd.arr,ping_prot_ser,ping_prot_deser)
 
 include ping_server
@@ -120,5 +121,6 @@ import action recv_pong(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:pin
 
 import action undefined_host_error(host:endpoint_id, s:net.socket, src:ip.endpoint)
 
+# 0. TODO John: On instancie le serdes
 instance ping_packet_serdes : serdes(ping_packet,stream_data,ping_ser,ping_deser)
 
