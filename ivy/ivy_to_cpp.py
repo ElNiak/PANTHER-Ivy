@@ -2126,7 +2126,9 @@ DWORD WINAPI TimerThreadFunction( LPVOID lpParam )
 void * _thread_reader(void *rdr_void) {
     reader *rdr = (reader *) rdr_void;
     rdr->bind();
+    std::cerr << "starting reader thread" << std::endl;
     while(rdr->running()) {
+        std::cerr << "reading" << std::endl;
         rdr->read();
     }
     delete rdr;
@@ -2169,6 +2171,7 @@ void CLASSNAME::install_reader(reader *r) {
         thread_ids.push_back(h);
     #else
         pthread_t thread;
+        std::cerr << "creating reader thread" << std::endl;
         int res = pthread_create(&thread, NULL, _thread_reader, r);
         if (res) {
             std::cerr << "failed to create thread" << std::endl;
@@ -2219,6 +2222,7 @@ std::vector<timer *> timers;
 bool initializing = false;
 
 void CLASSNAME::install_reader(reader *r) {
+    std::cerr << "installing reader 2" << std::endl;
     readers.push_back(r);
     if (!::initializing)
         r->bind();
@@ -2242,6 +2246,7 @@ void CLASSNAME::install_thread(reader *r) {
         thread_ids.push_back(h);
     #else
         pthread_t thread;
+        std::cerr << "creating reader thread" << std::endl;
         int res = pthread_create(&thread, NULL, _thread_reader, r);
         if (res) {
             std::cerr << "failed to create thread" << std::endl;
