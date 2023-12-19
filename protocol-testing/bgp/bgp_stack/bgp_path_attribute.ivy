@@ -229,8 +229,10 @@ object path_attr = {
             # require dst = bgp_impl_instance.bgpid;
             require open_message_recv(src) & open_message_recv(dst);
             require ~origin_present(src);
+            require header_type = bgp_message_type.update_mess;
             ...
             path_attr_size(src) := path_attr_size(src) + 1 + 1 + 1 + 1;
+            origin_present(src) := true;
             call enqueue_path_attr(src,f);
         }
     }
@@ -252,9 +254,14 @@ object path_attr = {
             var idx : path_attr.as_path.as_path_segment.idx := 0;
             require open_message_recv(src) & open_message_recv(dst);
             require f.path.end > 0; # & f.path.end = num_queued_as_path(src);
-
+            require header_type = bgp_message_type.update_mess;
             while idx < f.path.end {
                 var aspath := f.path.value(idx);
+                if ~_generating {
+                    queued_segment_type(src,idx) := aspath.segment_type;
+                    num_queued_segment_value(src,idx) := aspath.segment_value.end;
+                    queued_segment_value(src,idx) := aspath.segment_value;
+                };
                 require queued_segment_type(src,idx) = 1 | queued_segment_type(src,idx) = 2;
                 require aspath.segment_type  = queued_segment_type(src,idx); 
                 require aspath.segment_len   = num_queued_segment_value(src,idx);
@@ -272,6 +279,7 @@ object path_attr = {
                 jdx := jdx.next;
             };
             num_queued_as_path(src) := 0;
+            call enqueue_path_attr(src,f);
         }
     }
 }
@@ -282,9 +290,12 @@ object path_attr = {
         ...
         action handle(f:path_attr.next_hop, src:bgp_id, dst:bgp_id)
 
-        # around handle {
-        #     ...
-        # }
+        around handle {
+            require open_message_recv(src) & open_message_recv(dst);
+            ...
+            path_attr_size(src) := path_attr_size(src) + 1 + 1 + 1 + 4;
+            call enqueue_path_attr(src,f);
+        }
     }
 }
 
@@ -294,9 +305,12 @@ object path_attr = {
         ...
         action handle(f:path_attr.multi_exit_disc, src:bgp_id, dst:bgp_id)
 
-        # around handle {
-        #     ...
-        # }
+        around handle {
+            require open_message_recv(src) & open_message_recv(dst);
+            ...
+            path_attr_size(src) := path_attr_size(src) + 1 + 1 + 1 + 4;
+            call enqueue_path_attr(src,f);
+        }
     }
 }
 
@@ -306,9 +320,12 @@ object path_attr = {
         ...
         action handle(f:path_attr.local_pref, src:bgp_id, dst:bgp_id)
 
-        # around handle {
-        #     ...
-        # }
+        around handle {
+            require open_message_recv(src) & open_message_recv(dst);
+            ...
+            path_attr_size(src) := path_attr_size(src) + 1 + 1 + 1 + 4;
+            call enqueue_path_attr(src,f);
+        }
     }
 }
 
@@ -318,9 +335,12 @@ object path_attr = {
         ...
         action handle(f:path_attr.atomic_aggregate, src:bgp_id, dst:bgp_id)
 
-        # around handle {
-        #     ...
-        # }
+        around handle {
+            require open_message_recv(src) & open_message_recv(dst);
+            ...
+            path_attr_size(src) := path_attr_size(src) + 2 +1 + 1 + 1 +  4;
+            call enqueue_path_attr(src,f);
+        }
     }
 }
 

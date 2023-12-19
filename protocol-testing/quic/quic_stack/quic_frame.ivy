@@ -1423,9 +1423,9 @@ object frame = { ...
             #require e ~= quic_packet_type.initial;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
             #require e = quic_packet_type.handshake -> established_handshake_keys(scid);
-             if _generating  {
-# require ~need_sent_ack_eliciting_application_packet & ~need_sent_ack_eliciting_handshake_packet & ~need_sent_ack_eliciting_initial_packet;
-};
+            if _generating  {
+                # require ~need_sent_ack_eliciting_application_packet & ~need_sent_ack_eliciting_handshake_packet & ~need_sent_ack_eliciting_initial_packet;
+            };
             require num_queued_frames(scid) > 0 -> e = queued_level(scid);
             require connected(scid) & connected_to(scid) = dcid;
             require f.reason_phrase_length = f.reason_phrase.end;

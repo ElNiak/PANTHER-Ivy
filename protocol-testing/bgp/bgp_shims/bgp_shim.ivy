@@ -99,6 +99,7 @@ after bgp_header_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_header_mess
         pkts := pkts.append(spkt);
         var ok := net.send(src,endpoint_to_socket(src),dst,pkts);
         header_payload := stream_data.empty;
+        #sheader_payload.end := 0;
         header_length  := 0;
         call send_bgp_header_message(src,dst,bgp_message);
     }
@@ -110,7 +111,6 @@ after bgp_open_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_open_message)
     if _generating {
         var spkt := bgp_open_message_serdes.to_bytes(bgp_message);
         header_payload := spkt;
-        header_length := 29;
         call send_bgp_open_message(src,dst,bgp_message);
     }
 }

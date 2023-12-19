@@ -57,6 +57,7 @@ before bgp_header_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_header_mes
         require src = bgp_ivy_instance.bgpid;
         require dst = bgp_impl_instance.bgpid;
         require header_length > 0;
+        require header_payload.end > 0;
         # 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
         # require bgp_message.marker = 0xffffffffffffffff;
         bgp_message.marker := 0xffffffffffffffff; #0xffffffffffffffffffffffffffffffff;
@@ -79,6 +80,7 @@ before bgp_open_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_open_message
         require bgp_message.bgp_identifier = bgp_ivy_instance.bgpid;
         require bgp_message.opt_parm_len = queued_opt_param_len;
         require bgp_message.opt_params = queued_opt_param;
+        header_length := 29;
     }
 }
 
@@ -91,6 +93,7 @@ before bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_mes
         require bgp_message.withdraw_routes_len = 0;
         require bgp_message.withdraw_routes = withdraw_route.arr.empty;
         header_type   := bgp_message_type.update_mess;
+        header_length := 19 + path_attr_size(src) + 1 + 2 + 4
         # require total_path_attr_len
     }
 }

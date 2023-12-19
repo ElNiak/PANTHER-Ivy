@@ -68,18 +68,29 @@ around bgp_header_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_header_mes
         if bgp_message.bgp_type = bgp_message_type.open_mess {
             var open_mess := bgp_open_message_serdes.from_bytes(bgp_message.payload);
             call recv_bgp_open_message(src,dst, open_mess,bgp_message);
+            header_type := bgp_message_type.open_mess;
             call bgp_open_message_event(src, dst, open_mess);
         } else if bgp_message.bgp_type = bgp_message_type.update_mess {
             var update_mess := bgp_update_message_serdes.from_bytes(bgp_message.payload);
             call recv_bgp_update_message(src,dst,update_mess,bgp_message);
+            header_type := bgp_message_type.update_mess;
+            var idx := update_mess.path_attrs.begin;
+            while idx < update_mess.path_attrs.end {
+                var f := update_mess.path_attrs.value(idx);
+                call infer_path_attr(src,dst,f);
+                call f.handle(src,dst);
+                idx := idx.next
+            }
             call bgp_update_message_event(src, dst, update_mess);
         } else if bgp_message.bgp_type = bgp_message_type.notification_mess {
             var notification_mess := bgp_notification_message_serdes.from_bytes(bgp_message.payload);
             call recv_bgp_notification_message(src,dst,notification_mess,bgp_message);
+            header_type := bgp_message_type.notification_mess;
             call bgp_notification_message_event(src, dst, notification_mess);
         } else if bgp_message.bgp_type = bgp_message_type.keepalive_mess {
             var keepalive_mess := bgp_keepalive_message_serdes.from_bytes(bgp_message.payload);
             call recv_bgp_keepalive_message(src,dst, keepalive_mess,bgp_message);
+            header_type := bgp_message_type.keepalive_mess;
             call bgp_keepalive_message_event(src, dst, keepalive_mess);
         } else {
             call unknown_bgp_message(src, dst, bgp_message);
@@ -92,3 +103,4 @@ import action recv_bgp_open_message(src:bgp_id, dst:bgp_id, mess:bgp_open_messag
 import action recv_bgp_update_message(src:bgp_id, dst:bgp_id, mess:bgp_update_message, header:bgp_header_message)
 import action recv_bgp_notification_message(src:bgp_id, dst:bgp_id, mess:bgp_notification_message, header:bgp_header_message)
 import action recv_bgp_keepalive_message(src:bgp_id, dst:bgp_id, mess:bgp_keepalive_message, header:bgp_header_message)
+import action infer_path_attr(scid:bgp_id,dcid:bgp_id,f:path_attr)

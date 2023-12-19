@@ -80,12 +80,13 @@ object bgp_notification_message = {
 }
 
 
-action bgp_notification_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_notification_message) = {}
+action   bgp_notification_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_notification_message) = {}
+relation is_errored(C:bgp_id)
 
 around bgp_notification_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_notification_message) {
     require isup(bgpid_to_endpoint(src));
     require open_message_recv(src) & open_message_recv(dst);
-    
+    require is_errored(src);
     require bgp_message.error_code = bgp_error_code.header_mess_error |
             bgp_message.error_code = bgp_error_code.open_mess_error   | 
             bgp_message.error_code = bgp_error_code.update_mess_error   |    
