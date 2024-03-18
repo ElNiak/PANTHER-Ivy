@@ -8,6 +8,9 @@ proofs, and supports a use model in which the human protocol designer
 and the automated tool interact to expose errors and prove
 correctness.
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10819553.svg)](https://doi.org/10.5281/zenodo.10819553)
+
+
 # Installation
 ## Linux
 On Debian-based Linux ditributions such as Ubuntu, download and install the file `ms-ivy_X.X_YYYY.deb` where `X.X` is the IVy version and `YYYY` is the machine architecture. Use your system’s package manager to install this package, or the following commands:
