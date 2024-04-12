@@ -1,20 +1,26 @@
 #lang ivy1.7
 
 # Global CoAP Protocol Implementation
+include coap_connection
 
-include coap_message
 include coap_serializer
 include coap_deserializer
 include coap_client_endpoint
 include coap_server_endpoint
 
+include coap_time
+
+include udp_impl
+include ip
+include serdes
+
+instance serializer   : coap_serializer
+instance deserializer : coap_deserializer
+
 # State variables and instances
 var current_request: coap_message
 var current_response: coap_message
 var awaiting_response: bool
-
-instance serializer : coap_serializer
-instance deserializer : coap_deserializer
 
 # Initialize state
 after init {
@@ -23,7 +29,7 @@ after init {
 
 # Actions for client endpoint
 action client_send_request(server:ip.endpoint, request:coap_message) = {
-    current_request := request
+    current_request   := request
     awaiting_response := true
     # Serialize and send the request
     # Logic to send the request to the server

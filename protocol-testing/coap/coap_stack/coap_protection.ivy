@@ -1,0 +1,65 @@
+#lang ivy1.7
+
+include serdes
+
+object coap_prot_ser = {}
+
+<<< member
+
+    class `coap_prot_ser`;
+
+>>>
+
+<<< impl
+
+    class `coap_prot_ser` : public ivy_binary_ser_128 {
+    public:
+
+        void open_list(int) {
+        }
+
+        virtual void  set(int128_t res) {
+            setn(res,1);
+        }    
+    };
+
+>>>
+
+object coap_prot_deser = {}
+
+<<< member
+
+    class `ping_prot_deser`;
+
+>>>
+
+<<< impl
+
+    class `coap_prot_deser` : public ivy_binary_deser_128 {
+        int data_remaining;
+    public:
+        coap_prot_deser(const std::vector<char> &inp) : ivy_binary_deser_128(inp) {
+            data_remaining = inp.size();
+        }
+
+        void  get(int128_t &res) {
+            getn(res,1);
+        }    
+
+        unsigned char peek(unsigned p) {
+            return more(p-pos+1) ? inp[p] : 0;
+        }
+            
+        void open_list() {
+            return;
+        }
+
+        bool open_list_elem() {
+            bool res = data_remaining-- >= 0;
+            return res;
+        }
+        void close_list_elem() {
+        }
+    };
+
+>>>
