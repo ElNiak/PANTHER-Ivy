@@ -5,14 +5,14 @@
 
 object coap_message = {
     type this = struct {
-        version : stream_pos,         # [1]
-        mtype : coap_type,      # [2]
-        token_len : stream_pos,       # [3]
-        code : coap_code,       # [4]
-        message_id : wostream_posrd,      # [5]
-        token : stream_data,       # [6]
-        options : coap_option.arr, # [7]
-        payload : stream_data   # [8]
+        version    : stream_pos,         # [1]
+        mtype      : coap_type,          # [2]
+        token_len  : stream_pos,         # [3]
+        code       : coap_code,          # [4]
+        message_id : stream_pos,         # [5]
+        token      : stream_data,        # [6]
+        options    : coap_option.arr,    # [7]
+        payload    : stream_data         # [8]
     }
 
     instance idx : unbounded_sequence

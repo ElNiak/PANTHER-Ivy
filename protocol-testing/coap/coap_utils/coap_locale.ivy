@@ -2,7 +2,7 @@
 
 include udp_impl
 include tls_msg
-#include quic_types
+#include coap_types
 
 #interpret cid -> longbv[1][13][20]
 # This file provides the interface to the test locale. This includes
@@ -14,5 +14,5 @@ object tls_api = {
     instance upper : tls_intf(id,stream_pos,stream_data,lower,tls_extensions,tls_hand_extensions,tls_ser,pkt_num)
 }    
 
-instance net : udp_impl(endpoint_id,prot.arr,quic_prot_ser,quic_prot_deser)
+instance net : udp_impl(endpoint_id,prot.arr,coap_prot_ser,coap_prot_deser)
 
