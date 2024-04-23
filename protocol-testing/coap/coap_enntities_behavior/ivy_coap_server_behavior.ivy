@@ -49,7 +49,7 @@ action src_tls_id(src:ip.endpoint) returns (tls_id:tls_api.id) = {
 # --------------------------------------------------------------------------
 
 var http_response : stream_data
-instance http_response_file : binary_input_file(stream_data,cid)
+instance http_response_file : binary_input_file(stream_data,id)
 
 after init {
     http_response := http_response_file.read;

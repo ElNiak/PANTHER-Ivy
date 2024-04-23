@@ -1,0 +1,40 @@
+#lang ivy1.7
+
+# object coap_message_method = {
+#     type this = {
+#         GET,
+#         POST,
+#         DELETE,
+#         PUT
+#     }
+# }
+
+object message_method = {
+
+    object get = {
+        variant this of message_method = struct {
+
+        }
+    }
+
+    object post = {
+        variant this of message_method = struct {
+
+        }
+    }
+
+    object delete = {
+        variant this of message_method = struct {
+
+        }
+    }
+
+    object put = {
+        variant this of message_method = struct {
+
+        }
+    }
+
+    instance idx : unbounded_sequence
+    instance arr : array(idx, this) 
+}

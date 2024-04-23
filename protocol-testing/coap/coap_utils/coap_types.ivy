@@ -11,10 +11,10 @@
 # *server*. It is unclear whether a given client/server pair may have
 # multipl connections established simultaneously.
 
-# A *cid* is a connection identifier. Connection identifiers are
+# A *id* is a connection identifier. Connection identifiers are
 # uniquely associated to connections and are not reused. The exception
-# is that the first cid sent by a client in an Initial packet may be
-# replaced by ther server with a different cid, which is used by all
+# is that the first id sent by a client in an Initial packet may be
+# replaced by ther server with a different id, which is used by all
 # subsequent packets associated with the connection.
 
 
@@ -25,9 +25,9 @@
 
 # ### Connection identifiers
 
-# The type `cid` represents a cid as a 64-bit unsigned integer.
+# The type `id` represents a id as a 64-bit unsigned integer.
 
-type cid
+type id
 
 # ### Application identifiers
 #
@@ -35,12 +35,12 @@ type cid
 # application endpoint, that is, one of the two communicating
 # applications in a QUIC connection, either at the server or the
 # client end of the connection. For now we identify an aid with a
-# cid, in particular, the first cid used by the given application
-# endpoint. Thus, the type aid is an alias for cid. TODO: this will
-# have to change for endpoints that use zero-length cid's, since the
-# cid's in this acse are not unique. 
+# id, in particular, the first id used by the given application
+# endpoint. Thus, the type aid is an alias for id. TODO: this will
+# have to change for endpoints that use zero-length id's, since the
+# id's in this acse are not unique. 
 
-alias aid = cid
+alias aid = id
 
 type itoken
 

@@ -4,19 +4,21 @@
 include coap_message
 
 # Define CoAP error types
-type coap_error_type = enum {
-    MALFORMED_MESSAGE,
-    COMMUNICATION_ERROR,
-    UNAUTHORIZED_ACCESS,
-    NOT_FOUND,
-    METHOD_NOT_ALLOWED,
-    UNSUPPORTED_CONTENT_FORMAT
-    # Add other error types as needed
+object coap_error_type = {
+    type this = {
+        MALFORMED_MESSAGE,
+        COMMUNICATION_ERROR,
+        UNAUTHORIZED_ACCESS,
+        NOT_FOUND,
+        METHOD_NOT_ALLOWED,
+        UNSUPPORTED_CONTENT_FORMAT
+        # Add other error types as needed
+    }
 }
 
 # Structure for CoAP error
 type coap_error = struct {
-    error_type : coap_error_type,
+    error_type    : coap_error_type,
     error_message : string
 }
 

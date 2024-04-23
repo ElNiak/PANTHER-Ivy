@@ -11,7 +11,7 @@
 # From a coap packet event, infer unobserved TLS events
 
 #
-# TODO: as of version 11, each role has its own cid, so connections
+# TODO: as of version 11, each role has its own id, so connections
 # are not renamed at the clinet side on a server hello. This code
 # is commented and should be removed [1].
 #
@@ -201,9 +201,9 @@ action infer_tls_events_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:coap_packet_0rt
 
 
 import action infer_tls
-import action app_server_open_event_1rtt(src:ip.endpoint,dst:ip.endpoint,scid:cid,dcid:cid)
-import action app_server_open_event_0rtt(src:ip.endpoint,dst:ip.endpoint,scid:cid,dcid:cid)
-import action app_server_open_event_retry(src:ip.endpoint,dst:ip.endpoint,scid:cid,dcid:cid)
-import action app_server_open_event_vn(src:ip.endpoint,dst:ip.endpoint,scid:cid,dcid:cid)
-import action infer_frame(scid:cid,dcid:cid,f:frame)
+import action app_server_open_event_1rtt(src:ip.endpoint,dst:ip.endpoint,scid:id,dcid:id)
+import action app_server_open_event_0rtt(src:ip.endpoint,dst:ip.endpoint,scid:id,dcid:id)
+import action app_server_open_event_retry(src:ip.endpoint,dst:ip.endpoint,scid:id,dcid:id)
+import action app_server_open_event_vn(src:ip.endpoint,dst:ip.endpoint,scid:id,dcid:id)
+import action infer_frame(scid:id,dcid:id,f:frame)
 

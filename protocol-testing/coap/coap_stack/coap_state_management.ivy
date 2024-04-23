@@ -5,14 +5,16 @@
 import coap_message
 
 # Define possible states for a CoAP interaction
-type coap_interaction_state = enum {
-    IDLE,
-    REQUEST_SENT,
-    RESPONSE_RECEIVED,
-    COMPLETED,
-    OBSERVING,
-    ERROR
-    # Additional states can be added as needed
+object coap_interaction_state = {
+    type this = {
+        IDLE,
+        REQUEST_SENT,
+        RESPONSE_RECEIVED,
+        COMPLETED,
+        OBSERVING,
+        ERROR
+        # Additional states can be added as needed
+    }
 }
 
 # Structure to represent the state of a CoAP interaction
