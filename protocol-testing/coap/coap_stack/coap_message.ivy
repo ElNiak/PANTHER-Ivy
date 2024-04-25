@@ -44,6 +44,22 @@ object coap_message = {
     instance arr : array(idx, this) 
 }
 
+relation reliable_transmission(I:id)
+relation is_ack_msg(I:id)
+relation is_rst_msg(I:id)
+function retransmission_count(I:id) : stream_pos
+function max_retransmit(I:id) : stream_pos
+relation valid_msg_id(I:id)
+
+after init {
+    reliable_transmission(I) := false;
+    is_ack_msg(I) := false;
+    is_rst_msg(I) := false;
+    retransmission_count(I) := 0;
+    valid_msg_id(I) := true;
+    max_retransmit(I) := 4;
+}
+
 # Define coap_type, coap_code, coap_option, and other types as needed
 
 action coap_message_event(src:ip.endpoint,dst:ip.endpoint,pkt:coap_message) = {}

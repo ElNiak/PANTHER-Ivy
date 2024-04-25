@@ -1,37 +1,55 @@
 #lang ivy1.7
 
-# object coap_message_method = {
-#     type this = {
-#         GET,
-#         POST,
-#         DELETE,
-#         PUT
-#     }
-# }
+object coap_message_method = {
+    type this = {
+        GET,
+        POST,
+        DELETE,
+        PUT
+    }
+}
 
 object message_method = {
 
-    object get = {
+    object request = {
         variant this of message_method = struct {
-
+            req_type : coap_message_method
+            res_path : stream_data
         }
     }
+#                               0 1 2 3 4 5 6 7
+#                              +-+-+-+-+-+-+-+-+
+#                              |class|  detail |
+#                              +-+-+-+-+-+-+-+-+
 
-    object post = {
+#                   Figure 9: Structure of a Response Code
+
+#    The upper three bits of the 8-bit Response Code number define the
+#    class of response.  The lower five bits do not have any
+#    categorization role; they give additional detail to the overall class
+#    (Figure 9).
+
+#    As a human-readable notation for specifications and protocol
+#    diagnostics, CoAP code numbers including the Response Code are
+#    documented in the format "c.dd", where "c" is the class in decimal,
+#    and "dd" is the detail as a two-digit decimal.  For example,
+#    "Forbidden" is written as 4.03 -- indicating an 8-bit code value of
+#    hexadecimal 0x83 (4*0x20+3) or decimal 131 (4*32+3).
+
+#    There are 3 classes of Response Codes:
+
+#    2 - Success:  The request was successfully received, understood, and
+#       accepted.
+
+#    4 - Client Error:  The request contains bad syntax or cannot be
+#       fulfilled.
+
+#    5 - Server Error:  The server failed to fulfill an apparently valid
+#       request.
+    object response = {
         variant this of message_method = struct {
-
-        }
-    }
-
-    object delete = {
-        variant this of message_method = struct {
-
-        }
-    }
-
-    object put = {
-        variant this of message_method = struct {
-
+            code_class   : stream_data
+            code_detail  : stream_data
         }
     }
 
