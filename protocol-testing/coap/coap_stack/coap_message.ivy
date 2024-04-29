@@ -1,5 +1,8 @@
 #lang ivy1.7
 
+include coap_types
+include coap_message_method
+
 # Description: Defines the CoAP message format, including headers, payload, 
 # and options.
 
@@ -53,11 +56,11 @@ relation valid_msg_id(I:id)
 
 after init {
     reliable_transmission(I) := false;
-    is_ack_msg(I) := false;
-    is_rst_msg(I) := false;
-    retransmission_count(I) := 0;
-    valid_msg_id(I) := true;
-    max_retransmit(I) := 4;
+    is_ack_msg(I)            := false;
+    is_rst_msg(I)            := false;
+    retransmission_count(I)  := 0;
+    valid_msg_id(I)          := true;
+    max_retransmit(I)        := 4;
 }
 
 # Define coap_type, coap_code, coap_option, and other types as needed
@@ -66,7 +69,7 @@ action coap_message_event(src:ip.endpoint,dst:ip.endpoint,pkt:coap_message) = {}
 
 around coap_message_event(src:ip.endpoint,dst:ip.endpoint,pkt:coap_message) = {
     # Each message contains a Message ID used to detect duplicates and for optional reliability
-    #   16-bit size enables up to about 250 messages per second from one endpoint to another with default protocol parameters.
+    # 16-bit size enables up to about 250 messages per second from one endpoint to another with default protocol parameters.
 
 
     ...

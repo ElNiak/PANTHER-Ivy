@@ -1,4 +1,5 @@
 #lang ivy1.7
+import coap_uri
 
 object coap_message_method = {
     type this = {
@@ -9,12 +10,58 @@ object coap_message_method = {
     }
 }
 
+object coap_message_code_class = {
+    type this = {
+        SUCCESS,
+        CLIENT_ERROR,
+        SERVER_ERROR
+    }
+}
+
+object coap_message_code_definition = {
+    type this = {
+        # SUCCESS
+        CREATED,
+        DELETED,
+        VALID,
+        CHANGED,
+        CONTENT,
+        # CLIENT_ERROR
+        BAD_REQUEST,
+        UNAUTHORIZED,
+        BAD_OPTION,
+        FORBIDDEN,
+        NOT_FOUND,
+        METHOD_NOT_ALLOWED,
+        NOT_ACCEPTABLE,
+        REQUEST_ENTITY_INCOMPLETE,
+        PRECONDITION_FAILED,
+        REQUEST_ENTITY_TOO_LARGE,
+        UNSUPPORTED_CONTENT_FORMAT,
+        # SERVER_ERROR
+        INTERNAL_SERVER_ERROR,
+        NOT_IMPLEMENTED,
+        BAD_GATEWAY,
+        SERVICE_UNAVAILABLE,
+        GATEWAY_TIMEOUT,
+        PROXYING_NOT_SUPPORTED
+    }
+}
+
 object message_method = {
+
+    type this
+
+    # A CoAP request consists of the method to be applied to the resource,
+    # the identifier of the resource, a payload and Internet media type (if
+    # any), and optional metadata about the request.
 
     object request = {
         variant this of message_method = struct {
             req_type : coap_message_method
-            res_path : stream_data
+            res_id   : stream_data
+            payload  : stream_data
+            metadata : stream_data
         }
     }
 #                               0 1 2 3 4 5 6 7
@@ -48,11 +95,47 @@ object message_method = {
 #       request.
     object response = {
         variant this of message_method = struct {
-            code_class   : stream_data
-            code_detail  : stream_data
+            code_class   : coap_message_code_class
+            code_detail  : coap_message_code_definition
+            payload      : stream_data
         }
     }
 
     instance idx : unbounded_sequence
     instance arr : array(idx, this) 
+
+    action handle(r: this, src:ip.endpoint,dst:ip.endpoint, i:id)  = {
+        require false;
+    }
+}
+
+relation is_idempotent
+
+object message_method = {
+    ...
+    object request = {
+        ...
+        action handle(r: message_method.request, src:ip.endpoint,dst:ip.endpoint, i:id)
+
+        around handle {
+            
+            ...
+
+        }
+    }
+}
+
+
+object message_method = {
+    ...
+    object response = {
+        ...
+        action handle(r: message_method.response, src:ip.endpoint,dst:ip.endpoint, i:id)
+
+        around handle {
+            
+            ...
+
+        }
+    }
 }

@@ -22,7 +22,6 @@
 #    /                               /
 #    \                               \
 #    +-------------------------------+
-
 #                           Figure 8: Option Format
 
 object coap_option_type = {
@@ -134,7 +133,7 @@ object coap_option = {
     type this = struct {
         option_number : stream_pos,   # [1] Option number
         option_length : stream_pos,   # [2] Length of the option value
-        option_value : stream_data    # [3] Option value
+        option_value  : stream_data    # [3] Option value
     }
 
     instance idx : unbounded_sequence
