@@ -11,7 +11,7 @@ action endpoint_id_addr(ep_id : endpoint_id) returns (ep:ip.endpoint) = {
     ep.port := client_port if ep_id = endpoint_id.client
                else server_port;
 }
-# tests achievements
+
 object coap_endpoint = {
     type this
 
