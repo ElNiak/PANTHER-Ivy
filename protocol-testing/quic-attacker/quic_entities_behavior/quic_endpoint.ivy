@@ -856,7 +856,7 @@ object quic_endpoint = {
             call net.send(endpoint_id.victim,sock_victim,dst,pkts_mim);
         }
 
-        # TODO more flexible -> in test configuration phase ?
+        # TODO more flexible -> in test spec
         action configure_NAT_attack_in(server_ep:ip.port) = {
             <<< 
                 //  -o lo
@@ -1048,14 +1048,6 @@ object quic_endpoint = {
         }
     }
 
-    
-    module cnc_ep(address:ip.addr, port: ip.port) = {
-        
-    }
-
-    module bot_ep(address:ip.addr, port:ip.port) = {
-
-    }
 
     module victim_ep(address:ip.addr,port:ip.port) = { 
         variant this of quic_endpoint = struct { }
