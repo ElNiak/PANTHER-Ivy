@@ -228,8 +228,8 @@ object quic_deser_vn = {}
 
         virtual bool open_list_elem() {
             if (state == quic_s_supported_version) {
-                // We must use/take in count the padding frame since Picoquic client sometimes send packet
-                // only with 1 padding frame which make fails the requirement saying that a 
+                // We must use/take in count the padding quic_frame since Picoquic client sometimes send packet
+                // only with 1 padding quic_frame which make fails the requirement saying that a 
                 // packet cannot be empty
                 //while ((fence == 0 || pos < fence) && more(1) && inp[pos] == 0)
                 //   pos++;  // skip padding frames

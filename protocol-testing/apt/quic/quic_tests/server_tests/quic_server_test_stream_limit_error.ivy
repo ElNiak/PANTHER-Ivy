@@ -38,10 +38,10 @@ after init {
 # To restrict the generated events, we use the built-in predicate
 # "_generating" that is true if this is a generated event.
 #
-# This is the mirror constraint for the stream frame protocol. We add
+# This is the mirror constraint for the stream quic_frame protocol. We add
 # some requirements to make the tests more interesting. In particular,
 # we don't want the tester to produce lots of tiny frames (or empty
-# ones) so we require that a stream frame send all of the available
+# ones) so we require that a stream quic_frame send all of the available
 # stream data. 
 #
 # TODO: We reuquire tje `off` and `len` bits to be true. Maybe these should
@@ -50,11 +50,11 @@ after init {
 #       The first byte in the stream has an offset of 0.  The largest offset
 #   delivered on a stream - the sum of the offset and data length -
 #   cannot exceed 2^62-1, as it is not possible to provide flow control
-#   credit for that data.  Receipt of a frame that exceeds this limit
+#   credit for that data.  Receipt of a quic_frame that exceeds this limit
 #   MUST be treated as a connection error of type FRAME_ENCODING_ERROR or
 #   FLOW_CONTROL_ERROR.
 
-before frame.stream.handle(f:frame.stream,scid:cid,dcid:cid,e:quic_packet_type) {
+before quic_frame.stream.handle(f:quic_frame.stream,scid:cid,dcid:cid,e:quic_packet_type) {
     if _generating {
         require scid = the_cid;
         require connected(the_cid) & dcid = connected_to(the_cid);
@@ -70,7 +70,7 @@ before frame.stream.handle(f:frame.stream,scid:cid,dcid:cid,e:quic_packet_type) 
 # Note: requiring the `err_code` is zero on non-generated frames means that
 # we stop the test if the peer reports a protocol error. 
 
-before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid) {
+before quic_frame.connection_close.handle(f:quic_frame.connection_close,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid;
     } else {
@@ -80,7 +80,7 @@ before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid)
 
 # Generate application_close frames only for the environment process(es).
 
-before frame.application_close.handle(f:frame.application_close,scid:cid,dcid:cid) {
+before quic_frame.application_close.handle(f:quic_frame.application_close,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid;
     }
@@ -92,19 +92,19 @@ before frame.application_close.handle(f:frame.application_close,scid:cid,dcid:ci
 # Note: some of these are commented out. They are added in other files
 # that include this one.
 
-export frame.ack.handle
-export frame.stream.handle
-export frame.crypto.handle
-export frame.path_response.handle
+export quic_frame.ack.handle
+export quic_frame.stream.handle
+export quic_frame.crypto.handle
+export quic_frame.path_response.handle
 export packet_event
 export client_send_event
 export tls_recv_event
-#export frame.new_connection_id.handle
-#export frame.retire_connection_id.handle
-#export frame.rst_stream.handle
-#export frame.max_stream_id.handle
-#export frame.connection_close.handle
-#export frame.max_stream_data.handle
+#export quic_frame.new_connection_id.handle
+#export quic_frame.retire_connection_id.handle
+#export quic_frame.rst_stream.handle
+#export quic_frame.max_stream_id.handle
+#export quic_frame.connection_close.handle
+#export quic_frame.max_stream_data.handle
 
 # Final check
 #

@@ -230,17 +230,17 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
 # To restrict the generated events, we use the built-in predicate
 # "_generating" that is true if this is a generated event.
 #
-# This is the mirror constraint for the stream frame protocol. We add
+# This is the mirror constraint for the stream quic_frame protocol. We add
 # some requirements to make the tests more interesting. In particular,
 # we don't want the tester to produce lots of tiny frames (or empty
-# ones) so we require that a stream frame send all of the available
+# ones) so we require that a stream quic_frame send all of the available
 # stream data. 
 #
 # TODO: We reuquire tje `off` and `len` bits to be true. Maybe these should
 # determined in the low-level packet encoding stage.
 
 
-before frame.stream.handle(f:frame.stream,scid:cid,dcid:cid,e:quic_packet_type) {
+before quic_frame.stream.handquic_framequic_frame.stream,scid:cid,dcid:cid,e:quic_packet_type) {
     if _generating {
         require scid = the_cid;
         if ~zero_rtt_server_test | zero_rtt_sent {
@@ -256,7 +256,7 @@ before frame.stream.handle(f:frame.stream,scid:cid,dcid:cid,e:quic_packet_type) 
 
 # We have something similar for crypto frames
 
-before frame.crypto.handle(f:frame.crypto,scid:cid,dcid:cid,e:quic_packet_type) {
+before quic_frame.crypto.handquic_framequic_frame.crypto,scid:cid,dcid:cid,e:quic_packet_type) {
     if _generating {
         require scid = the_cid;
         require f.length > 0;
@@ -270,7 +270,7 @@ before frame.crypto.handle(f:frame.crypto,scid:cid,dcid:cid,e:quic_packet_type) 
 # ACK's to have at least on previously unacked sequenc number. There
 # should be a better way to do this.
 
-before frame.ack.handle(f:frame.ack,scid:cid,dcid:cid) {
+before quic_frame.ack.handquic_framequic_frame.ack,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid;
         force_new_ack := true;
@@ -280,7 +280,7 @@ before frame.ack.handle(f:frame.ack,scid:cid,dcid:cid) {
 
 # Generate rst_stream frames only for the environment process(es).
 
-before frame.rst_stream.handle(f:frame.rst_stream,scid:cid,dcid:cid) {
+before quic_frame.rst_stream.handquic_framequic_frame.rst_stream,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid;
         require f.id = 4;
@@ -288,7 +288,7 @@ before frame.rst_stream.handle(f:frame.rst_stream,scid:cid,dcid:cid) {
 }
 
 
-before frame.new_token.handle(f:frame.new_token,scid:cid,dcid:cid) {
+before quic_frame.new_token.handquic_framequic_frame.new_token,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid;
         #call handle_sending_ack(f.largest_acked);
@@ -300,7 +300,7 @@ before frame.new_token.handle(f:frame.new_token,scid:cid,dcid:cid) {
 
 # Generate stop_sending frames only for the environment process(es).
 
-before frame.stop_sending.handle(f:frame.stop_sending,scid:cid,dcid:cid) {
+before quic_frame.stop_sending.handquic_framequic_frame.stop_sending,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid;
         require f.id = 4;
@@ -309,20 +309,20 @@ before frame.stop_sending.handle(f:frame.stop_sending,scid:cid,dcid:cid) {
 
 # Generate max_streams frames only for the environment process(es).
 
-before frame.max_streams.handle(f:frame.max_streams,scid:cid,dcid:cid) {
+before quic_frame.max_streams.handquic_framequic_frame.max_streams,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid;
     }
 }
 
-before frame.new_connection_id.handle(f:frame.new_connection_id,scid:cid,dcid:cid) {
+before quic_frame.new_connection_id.handquic_framequic_frame.new_connection_id,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid;
     }
 }
 
 
-before frame.retire_connection_id.handle(f:frame.retire_connection_id,scid:cid,dcid:cid) {
+before quic_frame.retire_connection_id.handquic_framequic_frame.retire_connection_id,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid;
     }
@@ -334,7 +334,7 @@ before frame.retire_connection_id.handle(f:frame.retire_connection_id,scid:cid,d
 # Note: requiring the `err_code` is zero on non-generated frames means that
 # we stop the test if the peer reports a protocol error. 
 
-before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid) {
+before quic_frame.connection_close.handquic_framequic_frame.connection_close,scid:cid,dcid:cid) {
     if _generating {
         require conn_total_data(the_cid) > 1000; # tricks
         require scid = the_cid;
@@ -347,7 +347,7 @@ before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid)
 
 # Generate application_close frames only for the environment process(es).
 
-before frame.application_close.handle(f:frame.application_close,scid:cid,dcid:cid) {
+before quic_frame.application_close.handquic_framequic_frame.application_close,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid;
     } else {
@@ -359,7 +359,7 @@ before frame.application_close.handle(f:frame.application_close,scid:cid,dcid:ci
 # Generate max_stream_data frames only for the environment process(es), and only for
 # a restricted range of frames (so we don't throttle all of the data).
 
-before frame.max_stream_data.handle(f:frame.max_stream_data,scid:cid,dcid:cid) {
+before quic_frame.max_stream_data.handquic_framequic_frame.max_stream_data,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid;
         require 4 <= f.id & f.id <= 16;
@@ -367,9 +367,9 @@ before frame.max_stream_data.handle(f:frame.max_stream_data,scid:cid,dcid:cid) {
 }
 
 # Generate stream_data_blocked frames only for the environment process(es).
-# We restrict the frame id.
+# We restrict the quic_frame id.
 
-before frame.stream_data_blocked.handle(f:frame.stream_data_blocked,scid:cid,dcid:cid) {
+before quic_frame.stream_data_blocked.handquic_framequic_frame.stream_data_blocked,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid;
         require f.id = 4;
@@ -380,7 +380,7 @@ before frame.stream_data_blocked.handle(f:frame.stream_data_blocked,scid:cid,dci
 # non-generated frames, we check that the max_data value doesn't decrease.
 # This is not forbidden, but it seems like a good thing to check.
 
-before frame.max_data.handle(f:frame.max_data,scid:cid,dcid:cid) {
+before quic_frame.max_data.handquic_framequic_frame.max_data,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid;
         require f.pos = 4000;
@@ -471,8 +471,8 @@ interpret pkt_num -> bv[32]
 interpret error_code -> bv[16]
 interpret stream_id -> bv[16]
 
-attribute frame.idx.cardinality = 1
-attribute frame.ack.range.idx.cardinality = 1
+attribute quic_frame.idx.cardinality = 1
+attribute quic_frame.ack.range.idx.cardinality = 1
 attribute pkt_num.cardinality = 1
 attribute stream_pos.cardinality = 4
 #attribute ip.addr.override = bv[1]

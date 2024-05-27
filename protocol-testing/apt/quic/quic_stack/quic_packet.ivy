@@ -28,7 +28,7 @@ include quic_fsm_receiving
 # and destination cid, protocol version (long format only), and a
 # packet sequence number. An initial packet also has a *retry token*, which
 # is a (possibly empty) sequence of bytes.  The *payload* of the
-# packet consists of a sequence of *frames* (see frame.ivy).
+# packet consists of a sequence of *frames* (see quic_frame.ivy).
 
 # TODO: retry and one_rtt packet types
 
@@ -57,7 +57,7 @@ object quic_packet = {
     #         dst_cid : cid, # [4]
     #         src_cid : cid, # [5]
     #         seq_num : pkt_num, # [7]
-    #         payload : frame.arr # [8]
+    #         payload : quic_frame.arr # [8]
     #     }
     # }
 
@@ -67,7 +67,7 @@ object quic_packet = {
     #         dst_cid : cid, # [4]
     #         src_cid : cid, # [5]
     #         seq_num : pkt_num, # [7]
-    #         payload : frame.arr # [8]
+    #         payload : quic_frame.arr # [8]
     #     }
     # }
 
@@ -77,7 +77,7 @@ object quic_packet = {
     #         dst_cid : cid, # [4]
     #         src_cid : cid, # [5]
     #         seq_num : pkt_num, # [7]
-    #         payload : frame.arr # [8]
+    #         payload : quic_frame.arr # [8]
     #     }
     # }
 
@@ -87,7 +87,7 @@ object quic_packet = {
     #         dst_cid : cid, # [4]
     #         src_cid : cid, # [5]
     #         seq_num : pkt_num, # [7]
-    #         payload : frame.arr # [8]
+    #         payload : quic_frame.arr # [8]
     #     }
     # }
 
@@ -98,7 +98,7 @@ object quic_packet = {
         src_cid : cid, # [5]
         token : stream_data, # [6]
         seq_num : pkt_num, # [7]
-        payload : frame.arr # [8]
+        payload : quic_frame.arr # [8]
     }
 
     #Hamid
@@ -165,7 +165,7 @@ action send_ack_eliciting_application_packet(src:ip.endpoint,dst:ip.endpoint,pkt
 #
 # - For each aid C, `draining_pkt_sent(C)` is true if the single
 #   packet allowed to be sent in transition to the draining state has been sent.
-#   This one packet must contain a connection_close frame with error code 0.
+#   This one packet must contain a connection_close quic_frame with error code 0.
 #   TODO: we don't check the error code.
 #
 # - For each endpoint aid C, last_pkt_num(C,L) represents the
@@ -194,7 +194,7 @@ action send_ack_eliciting_application_packet(src:ip.endpoint,dst:ip.endpoint,pkt
 #
 # - The predicate `connected(C)` indicates that the peer of
 #   aid `C` has been determined.  This occurs conceptually when a
-#   server produces a server hello frame.
+#   server produces a server hello quic_frame.
 #
 # - The function `connected_to(C)` maps the aid `C` to its peer, if
 #   the peer has been determined.
@@ -216,7 +216,7 @@ action send_ack_eliciting_application_packet(src:ip.endpoint,dst:ip.endpoint,pkt
 #   non-probing packet of aid `C` was at some time sent from endpopint `E`.
 #
 # - The relation `pkt_has_close(C,L,N)` is true if packet number `N` sent 
-#   by aid `C` contained a CONNECTION_CLOSE frame.
+#   by aid `C` contained a CONNECTION_CLOSE quic_frame.
 #
 # - The relation cid_mapped(C) is true when connection ID C has been provided as new connection ID for a connection
 #   and becomes false when the C is retired
@@ -270,7 +270,7 @@ function initial_dcid : cid
 
 
 relation is_lost(C:cid,L:quic_packet_type,N:pkt_num)
-function is_retransmitted(P:frame.arr) : pkt_num
+function is_retransmitted(P:quic_frame.arr) : pkt_num
 
 #function cid_ip_mapped(D:ip.endpoint) :cid
 #relation cid_ip_mapped(D:ip.endpoint)
@@ -398,7 +398,7 @@ after init {
 #   transport parameter is included with a zero-length value.
 
 import action show_is_sleep_fake_timeon_dataout(is_sleep_fake_timeout:bool)
-import action show_queued_frames(scid:cid,queued_frames:frame.arr)
+import action show_queued_frames(scid:cid,queued_frames:quic_frame.arr)
 import action show_current_time(t:milliseconds)
 
 around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
@@ -499,7 +499,7 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     # initial packet, the client might still retransmit its initial
     # packet using the nonce cid. In some cases, we can infer that the
     # client has in fact seen the server's cid (for example, if it
-    # packet contains an ACK frame, or a CRYPTO frame that is
+    # packet contains an ACK quic_frame, or a CRYPTO quic_frame that is
     # reponsive to a server FRAME. This is trick to check, however,
     # and the actual servers do not seem to check it.
 
@@ -545,7 +545,7 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
         #require pkt.seq_num < last_pkt_num(scid,pkt.ptype) + 0x1 & pkt.seq_num > last_pkt_num(scid,pkt.ptype);
     };
     # else {
-    #     # An endpoint generates an RTT sample on receiving an ACK frame that meets the following two conditions:
+    #     # An endpoint generates an RTT sample on receiving an ACK quic_frame that meets the following two conditions:
     #     # 1. the largest acknowledged packet number is newly acknowledged, and
     #     # 2. at least one of the newly acknowledged packets was ack-eliciting.
 
@@ -564,7 +564,7 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     # The payload must exactly match the queued frames.
     if _generating {
         if packets_to_retransmit_end(pkt.ptype) > 0 {
-            var paylo := packets_to_retransmit(pkt.ptype,packets_to_retransmit_end(pkt.ptype));# TODO change and put that at frame level
+            var paylo := packets_to_retransmit(pkt.ptype,packets_to_retransmit_end(pkt.ptype));# TODO change and put that at quic_frame level
             require pkt.payload = paylo;
             packets_to_retransmit_end(pkt.ptype) := packets_to_retransmit_end(pkt.ptype) - 1;
             call show_retransmit_lost_packet(paylo);
@@ -591,18 +591,18 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     require  conn_seen(dcid) -> hi_non_probing_endpoint(dcid,dst);  # [10]
 
     # TEMPORARY: do not apply ack-only rule to generated packets
-    # This can be removed when we have a frame queue per encryption level
+    # This can be removed when we have a quic_frame queue per encryption level
 
     call show_ack_credit(scid, ack_credit(scid), queued_ack_eliciting(scid), queued_non_ack(scid), pkt.seq_num);
     require ~_generating & ~queued_non_ack(scid) -> ack_credit(scid) > 0;  # [5]
 
     #Hamid - This is wrong, because if there is no ack credits, it prevents from sending a packet 
-    #        containing only a CONNECTION_CLOSE frame but we want to stop packets that contain only ACKs 
+    #        containing only a CONNECTION_CLOSE quic_frame but we want to stop packets that contain only ACKs 
     #    require ~_generating & ~queued_ack_eliciting(scid) -> ack_credit(scid) > 0;
     #Hamid
 
     # QUESTION: THis sentence is from draft-18 section 13.1: "An
-    #   endpoint MUST NOT send a packet containing only an ACK frame
+    #   endpoint MUST NOT send a packet containing only an ACK quic_frame
     #   in response to a packet containing only ACK or PADDING frames,
     #   even if there are packet gaps which precede the received
     #   packet." Do we interpret this to mean that an ack-only packet
@@ -611,7 +611,7 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     
     # If the sender is in the draining state, this is the draining packet.
     # Make sure that a draining packet has not previously been sent and
-    # that the packet contains a connection_close frame;
+    # that the packet contains a connection_close quic_frame;
 
     if conn_draining(scid) {
         require ~draining_pkt_sent(scid) & queued_close(scid);
@@ -694,7 +694,7 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
         }
     };
 
-    # If the packet contains a close frame, then set `pkt_has_close`
+    # If the packet contains a close quic_frame, then set `pkt_has_close`
 
     if queued_close(scid) {
         pkt_has_close(scid,pkt.ptype,pkt.seq_num) := true;
@@ -717,7 +717,7 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
 
     # The queued frames are deleted
     
-    queued_frames(scid) := frame.arr.empty;
+    queued_frames(scid) := quic_frame.arr.empty;
     queued_non_probing(scid) := false;
     queued_non_ack(scid) := false;
     queued_close(scid) := false;
@@ -727,7 +727,7 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
 #Hamid
 }
 
-import action show_retransmit_lost_packet(paylo:frame.arr) 
+import action show_retransmit_lost_packet(paylo:quic_frame.arr) 
 
 import action show_connection_timeout(idle_timeout:microseconds, max_idle_timeout_used:microseconds, pto_timeout:microseconds)
 
@@ -770,7 +770,7 @@ around send_ack_eliciting_handshake_packet(src:ip.endpoint,dst:ip.endpoint,pkt:q
     # initial packet, the client might still retransmit its initial
     # packet using the nonce cid. In some cases, we can infer that the
     # client has in fact seen the server's cid (for example, if it
-    # packet contains an ACK frame, or a CRYPTO frame that is
+    # packet contains an ACK quic_frame, or a CRYPTO quic_frame that is
     # reponsive to a server FRAME. This is trick to check, however,
     # and the actual servers do not seem to check it.
 
@@ -810,7 +810,7 @@ around send_ack_eliciting_handshake_packet(src:ip.endpoint,dst:ip.endpoint,pkt:q
         #require pkt.seq_num < last_pkt_num(scid,pkt.ptype) + 0x1 & pkt.seq_num > last_pkt_num(scid,pkt.ptype);
     };
     # else {
-    #     # An endpoint generates an RTT sample on receiving an ACK frame that meets the following two conditions:
+    #     # An endpoint generates an RTT sample on receiving an ACK quic_frame that meets the following two conditions:
     #     # 1. the largest acknowledged packet number is newly acknowledged, and
     #     # 2. at least one of the newly acknowledged packets was ack-eliciting.
 
@@ -840,18 +840,18 @@ around send_ack_eliciting_handshake_packet(src:ip.endpoint,dst:ip.endpoint,pkt:q
     require  conn_seen(dcid) -> hi_non_probing_endpoint(dcid,dst);  # [10]
 
     # TEMPORARY: do not apply ack-only rule to generated packets
-    # This can be removed when we have a frame queue per encryption level
+    # This can be removed when we have a quic_frame queue per encryption level
 
     #call show_ack_credit(scid, ack_credit(scid), queued_ack_eliciting(scid), queued_non_ack(scid), pkt.seq_num);
     require ~_generating & ~queued_non_ack(scid) -> ack_credit(scid) > 0;  # [5]
 
     #Hamid - This is wrong, because if there is no ack credits, it prevents from sending a packet 
-    #        containing only a CONNECTION_CLOSE frame but we want to stop packets that contain only ACKs 
+    #        containing only a CONNECTION_CLOSE quic_frame but we want to stop packets that contain only ACKs 
     #    require ~_generating & ~queued_ack_eliciting(scid) -> ack_credit(scid) > 0;
     #Hamid
 
     # QUESTION: THis sentence is from draft-18 section 13.1: "An
-    #   endpoint MUST NOT send a packet containing only an ACK frame
+    #   endpoint MUST NOT send a packet containing only an ACK quic_frame
     #   in response to a packet containing only ACK or PADDING frames,
     #   even if there are packet gaps which precede the received
     #   packet." Do we interpret this to mean that an ack-only packet
@@ -860,7 +860,7 @@ around send_ack_eliciting_handshake_packet(src:ip.endpoint,dst:ip.endpoint,pkt:q
     
     # If the sender is in the draining state, this is the draining packet.
     # Make sure that a draining packet has not previously been sent and
-    # that the packet contains a connection_close frame;
+    # that the packet contains a connection_close quic_frame;
 
     if conn_draining(scid) {
         require ~draining_pkt_sent(scid) & queued_close(scid);
@@ -936,7 +936,7 @@ around send_ack_eliciting_handshake_packet(src:ip.endpoint,dst:ip.endpoint,pkt:q
         }
     };
 
-    # If the packet contains a close frame, then set `pkt_has_close`
+    # If the packet contains a close quic_frame, then set `pkt_has_close`
 
     if queued_close(scid) {
         pkt_has_close(scid,pkt.ptype,pkt.seq_num) := true;
@@ -959,7 +959,7 @@ around send_ack_eliciting_handshake_packet(src:ip.endpoint,dst:ip.endpoint,pkt:q
 
     # The queued frames are deleted
     
-    queued_frames(scid) := frame.arr.empty;
+    queued_frames(scid) := quic_frame.arr.empty;
     queued_non_probing(scid) := false;
     queued_non_ack(scid) := false;
     queued_close(scid) := false;
@@ -1010,7 +1010,7 @@ around send_ack_eliciting_application_packet(src:ip.endpoint,dst:ip.endpoint,pkt
     # initial packet, the client might still retransmit its initial
     # packet using the nonce cid. In some cases, we can infer that the
     # client has in fact seen the server's cid (for example, if it
-    # packet contains an ACK frame, or a CRYPTO frame that is
+    # packet contains an ACK quic_frame, or a CRYPTO quic_frame that is
     # reponsive to a server FRAME. This is trick to check, however,
     # and the actual servers do not seem to check it.
 
@@ -1050,7 +1050,7 @@ around send_ack_eliciting_application_packet(src:ip.endpoint,dst:ip.endpoint,pkt
         #require pkt.seq_num < last_pkt_num(scid,pkt.ptype) + 0x1 & pkt.seq_num > last_pkt_num(scid,pkt.ptype);
     };
     # else {
-    #     # An endpoint generates an RTT sample on receiving an ACK frame that meets the following two conditions:
+    #     # An endpoint generates an RTT sample on receiving an ACK quic_frame that meets the following two conditions:
     #     # 1. the largest acknowledged packet number is newly acknowledged, and
     #     # 2. at least one of the newly acknowledged packets was ack-eliciting.
 
@@ -1080,18 +1080,18 @@ around send_ack_eliciting_application_packet(src:ip.endpoint,dst:ip.endpoint,pkt
     require  conn_seen(dcid) -> hi_non_probing_endpoint(dcid,dst);  # [10]
 
     # TEMPORARY: do not apply ack-only rule to generated packets
-    # This can be removed when we have a frame queue per encryption level
+    # This can be removed when we have a quic_frame queue per encryption level
 
     #call show_ack_credit(scid, ack_credit(scid), queued_ack_eliciting(scid), queued_non_ack(scid), pkt.seq_num);
     require ~_generating & ~queued_non_ack(scid) -> ack_credit(scid) > 0;  # [5]
 
     #Hamid - This is wrong, because if there is no ack credits, it prevents from sending a packet 
-    #        containing only a CONNECTION_CLOSE frame but we want to stop packets that contain only ACKs 
+    #        containing only a CONNECTION_CLOSE quic_frame but we want to stop packets that contain only ACKs 
     #    require ~_generating & ~queued_ack_eliciting(scid) -> ack_credit(scid) > 0;
     #Hamid
 
     # QUESTION: THis sentence is from draft-18 section 13.1: "An
-    #   endpoint MUST NOT send a packet containing only an ACK frame
+    #   endpoint MUST NOT send a packet containing only an ACK quic_frame
     #   in response to a packet containing only ACK or PADDING frames,
     #   even if there are packet gaps which precede the received
     #   packet." Do we interpret this to mean that an ack-only packet
@@ -1100,7 +1100,7 @@ around send_ack_eliciting_application_packet(src:ip.endpoint,dst:ip.endpoint,pkt
     
     # If the sender is in the draining state, this is the draining packet.
     # Make sure that a draining packet has not previously been sent and
-    # that the packet contains a connection_close frame;
+    # that the packet contains a connection_close quic_frame;
 
     if conn_draining(scid) {
         require ~draining_pkt_sent(scid) & queued_close(scid);
@@ -1179,7 +1179,7 @@ around send_ack_eliciting_application_packet(src:ip.endpoint,dst:ip.endpoint,pkt
         }
     };
 
-    # If the packet contains a close frame, then set `pkt_has_close`
+    # If the packet contains a close quic_frame, then set `pkt_has_close`
 
     if queued_close(scid) {
         pkt_has_close(scid,pkt.ptype,pkt.seq_num) := true;
@@ -1202,7 +1202,7 @@ around send_ack_eliciting_application_packet(src:ip.endpoint,dst:ip.endpoint,pkt
 
     # The queued frames are deleted
     
-    queued_frames(scid) := frame.arr.empty;
+    queued_frames(scid) := quic_frame.arr.empty;
     queued_non_probing(scid) := false;
     queued_non_ack(scid) := false;
     queued_close(scid) := false;
@@ -1256,7 +1256,7 @@ around send_ack_eliciting_initial_packet(src:ip.endpoint,dst:ip.endpoint,pkt:qui
     # initial packet, the client might still retransmit its initial
     # packet using the nonce cid. In some cases, we can infer that the
     # client has in fact seen the server's cid (for example, if it
-    # packet contains an ACK frame, or a CRYPTO frame that is
+    # packet contains an ACK quic_frame, or a CRYPTO quic_frame that is
     # reponsive to a server FRAME. This is trick to check, however,
     # and the actual servers do not seem to check it.
 
@@ -1296,7 +1296,7 @@ around send_ack_eliciting_initial_packet(src:ip.endpoint,dst:ip.endpoint,pkt:qui
         #require pkt.seq_num < last_pkt_num(scid,pkt.ptype) + 0x1 & pkt.seq_num > last_pkt_num(scid,pkt.ptype);
     # };
     # else {
-    #     # An endpoint generates an RTT sample on receiving an ACK frame that meets the following two conditions:
+    #     # An endpoint generates an RTT sample on receiving an ACK quic_frame that meets the following two conditions:
     #     # 1. the largest acknowledged packet number is newly acknowledged, and
     #     # 2. at least one of the newly acknowledged packets was ack-eliciting.
 
@@ -1326,18 +1326,18 @@ around send_ack_eliciting_initial_packet(src:ip.endpoint,dst:ip.endpoint,pkt:qui
     require  conn_seen(dcid) -> hi_non_probing_endpoint(dcid,dst);  # [10]
 
     # TEMPORARY: do not apply ack-only rule to generated packets
-    # This can be removed when we have a frame queue per encryption level
+    # This can be removed when we have a quic_frame queue per encryption level
 
     #call show_ack_credit(scid, ack_credit(scid), queued_ack_eliciting(scid), queued_non_ack(scid), pkt.seq_num);
     require ~_generating & ~queued_non_ack(scid) -> ack_credit(scid) > 0;  # [5]
 
     #Hamid - This is wrong, because if there is no ack credits, it prevents from sending a packet 
-    #        containing only a CONNECTION_CLOSE frame but we want to stop packets that contain only ACKs 
+    #        containing only a CONNECTION_CLOSE quic_frame but we want to stop packets that contain only ACKs 
     #    require ~_generating & ~queued_ack_eliciting(scid) -> ack_credit(scid) > 0;
     #Hamid
 
     # QUESTION: THis sentence is from draft-18 section 13.1: "An
-    #   endpoint MUST NOT send a packet containing only an ACK frame
+    #   endpoint MUST NOT send a packet containing only an ACK quic_frame
     #   in response to a packet containing only ACK or PADDING frames,
     #   even if there are packet gaps which precede the received
     #   packet." Do we interpret this to mean that an ack-only packet
@@ -1346,7 +1346,7 @@ around send_ack_eliciting_initial_packet(src:ip.endpoint,dst:ip.endpoint,pkt:qui
     
     # If the sender is in the draining state, this is the draining packet.
     # Make sure that a draining packet has not previously been sent and
-    # that the packet contains a connection_close frame;
+    # that the packet contains a connection_close quic_frame;
 
     if conn_draining(scid) {
         require ~draining_pkt_sent(scid) & queued_close(scid);
@@ -1422,7 +1422,7 @@ around send_ack_eliciting_initial_packet(src:ip.endpoint,dst:ip.endpoint,pkt:qui
         }
     };
 
-    # If the packet contains a close frame, then set `pkt_has_close`
+    # If the packet contains a close quic_frame, then set `pkt_has_close`
 
     if queued_close(scid) {
         pkt_has_close(scid,pkt.ptype,pkt.seq_num) := true;
@@ -1445,7 +1445,7 @@ around send_ack_eliciting_initial_packet(src:ip.endpoint,dst:ip.endpoint,pkt:qui
 
     # The queued frames are deleted
     
-    queued_frames(scid) := frame.arr.empty;
+    queued_frames(scid) := quic_frame.arr.empty;
     queued_non_probing(scid) := false;
     queued_non_ack(scid) := false;
     queued_close(scid) := false;

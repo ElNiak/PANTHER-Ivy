@@ -28,7 +28,7 @@ include byte_stream
 # and destination cid, protocol version (long format only), and a
 # packet sequence number. An initial packet also has a *retry token*, which
 # is a (possibly empty) sequence of bytes.  The *payload* of the
-# packet consists of a sequence of *frames* (see frame.ivy).
+# packet consists of a sequence of *frames* (see quic_frame.ivy).
 
 # TODO: retry and one_rtt packet types
 
@@ -54,7 +54,7 @@ object replayed_quic_packet_0rtt = {
         dst_cid : cid, # [4]
         src_cid : cid, # [5]
         seq_num : pkt_num, # [7]
-        payload : frame.arr # [8]
+        payload : quic_frame.arr # [8]
     }
 
     instance idx : unbounded_sequence
@@ -203,7 +203,7 @@ action replayed_packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:replayed_q
 # Address validation is especially important with 0-RTT because a server
 #    potentially sends a significant amount of data to a client in
 #    response to 0-RTT data.
-#    The server uses the NEW_TOKEN frame Section 19.7 to provide the
+#    The server uses the NEW_TOKEN quic_frame Section 19.7 to provide the
 #    client with an address validation token that can be used to validate
 #    future connections.
 
@@ -225,7 +225,7 @@ action replayed_packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:replayed_q
 #    A client MUST NOT send 0-RTT packets once it starts processing 1-RTT
 #    packets from the server.  This means that 0-RTT packets cannot
 #    contain any response to frames from 1-RTT packets.  For instance, a
-#    client cannot send an ACK frame in a 0-RTT packet, because that can
+#    client cannot send an ACK quic_frame in a 0-RTT packet, because that can
 #    only acknowledge a 1-RTT packet.  An acknowledgment for a 1-RTT
 #    packet MUST be carried in a 1-RTT packet.
 #
@@ -251,7 +251,7 @@ action replayed_packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:replayed_q
 
 # A client that sends CONNECTION_CLOSE in a 0-RTT packet cannot be
 #       assured of the server has accepted 0-RTT and so sending a
-#       CONNECTION_CLOSE frame in an Initial packet makes it more likely
+#       CONNECTION_CLOSE quic_frame in an Initial packet makes it more likely
 #       that the server can receive the close signal, even if the
 #       application error code might not be received.
 
@@ -345,7 +345,7 @@ around replayed_packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:replayed_q
 
 
     # QUESTION: THis sentence is from draft-18 section 13.1: "An
-    #   endpoint MUST NOT send a packet containing only an ACK frame
+    #   endpoint MUST NOT send a packet containing only an ACK quic_frame
     #   in response to a packet containing only ACK or PADDING frames,
     #   even if there are packet gaps which precede the received
     #   packet." Do we interpret this to mean that an ack-only packet
@@ -388,7 +388,7 @@ around replayed_packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:replayed_q
 
     zero_rtt_sent := true;
 
-    queued_frames_rtt(scid) := frame.arr.empty;
+    queued_frames_rtt(scid) := quic_frame.arr.empty;
     queued_non_probing(scid) := false;
     queued_non_ack(scid) := false;
     queued_close(scid) := false;

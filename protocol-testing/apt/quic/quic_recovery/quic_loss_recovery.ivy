@@ -107,7 +107,7 @@ function sent_packets_packet_number(E: quic_packet_type,S: pkt_num) : pkt_num
 function sent_packets_time_sent(E: quic_packet_type,S: pkt_num) : microseconds
 relation sent_packets_ack_eliciting(E: quic_packet_type,S: pkt_num)
 relation sent_packets_in_flight(E: quic_packet_type,S: pkt_num)
-function sent_packets_sent_bytes(E: quic_packet_type,S: pkt_num) : stream_pos # frame.arr
+function sent_packets_sent_bytes(E: quic_packet_type,S: pkt_num) : stream_pos # quic_frame.arr
 
 
 function received_packets(E: quic_packet_type, I:stream_pos) : quic_packet
@@ -116,9 +116,9 @@ function received_packets_packet_number(E: quic_packet_type,S: pkt_num) : pkt_nu
 function received_packets_time_sent(E: quic_packet_type,S: pkt_num) : microseconds
 relation received_packets_ack_eliciting(E: quic_packet_type,S: pkt_num)
 relation received_packets_in_flight(E: quic_packet_type,S: pkt_num)
-function received_packets_sent_bytes(E: quic_packet_type,S: pkt_num) : stream_pos # frame.arr
+function received_packets_sent_bytes(E: quic_packet_type,S: pkt_num) : stream_pos # quic_frame.arr
 
-function packets_to_retransmit(E: quic_packet_type, I:stream_pos) : frame.arr
+function packets_to_retransmit(E: quic_packet_type, I:stream_pos) : quic_frame.arr
 function packets_to_retransmit_end(E: quic_packet_type) : stream_pos
 
 relation ack_eliciting_packet_in_flight
@@ -404,7 +404,7 @@ action on_loss_detection_timeout(dst:ip.endpoint, dcid: cid) = {
             }
         } else {
             # PTO. Send new data if available, else retransmit old data.
-            # If neither is available, send a single PING frame.
+            # If neither is available, send a single PING quic_frame.
             var pto_timeout_t : microseconds;
             var pto_space : quic_packet_type;
             (pto_timeout_t, pto_space) := get_pto_time_and_space(dst,dcid);
@@ -554,7 +554,7 @@ action detect_and_remove_acked_packets(largest_acked:pkt_num, pn_space:quic_pack
     call show_detect_and_remove_acked_packets(largest_acked, sent_packets_size, newly_acked_packets_end(pn_space), sent_packets_end(pn_space));
 }
 
-# When an ACK frame is received, it may newly acknowledge any number of packets.
+# When an ACK quic_frame is received, it may newly acknowledge any number of packets.
 
 action on_ack_received(dst:ip.endpoint, largest_acked:pkt_num, ack_delay:microseconds, pn_space:quic_packet_type) = {
     call show_on_ack_received(largest_acked, ack_delay, pn_space);

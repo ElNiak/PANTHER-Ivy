@@ -27,7 +27,7 @@ include ivy_quic_server_0rtt_tp
 
 # Generate max_streams frames only for the client.
 
-before frame.max_streams_bidi.handle(f:frame.max_streams_bidi,scid:cid,dcid:cid) {
+before quic_frame.max_streams_bidi.handquic_framequic_frame.max_streams_bidi,scid:cid,dcid:cid) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;
@@ -37,7 +37,7 @@ before frame.max_streams_bidi.handle(f:frame.max_streams_bidi,scid:cid,dcid:cid)
 
 # Generate connection_close frames only for the client.
 
-before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid) {
+before quic_frame.connection_close.handquic_framequic_frame.connection_close,scid:cid,dcid:cid) {
     if _generating {
         require conn_total_data(the_cid) > 30; # tricks
         require last_pkt_num(the_cid,quic_packet_type.one_rtt) > 5;
@@ -54,7 +54,7 @@ before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid)
 
 # Generate connection_close frames only for the client.
 
-before frame.application_close.handle(f:frame.application_close,scid:cid,dcid:cid,e:quic_packet_type) {
+before quic_frame.application_close.handquic_framequic_frame.application_close,scid:cid,dcid:cid,e:quic_packet_type) {
     if _generating {
         require conn_total_data(the_cid) > 30; # tricks
         require last_pkt_num(the_cid,quic_packet_type.one_rtt) > 5;
@@ -71,62 +71,62 @@ before frame.application_close.handle(f:frame.application_close,scid:cid,dcid:ci
 }
 
 
-before frame.max_stream_data.handle(f:frame.max_stream_data,scid:cid,dcid:cid,e:quic_packet_type) {
+before quic_frame.max_stream_data.handquic_framequic_frame.max_stream_data,scid:cid,dcid:cid,e:quic_packet_type) {
     if _generating {
         require f.pos = 32 | f.pos = 16;
     }
 }
 
-before frame.stream_data_blocked.handle(f:frame.stream_data_blocked,scid:cid,dcid:cid,e:quic_packet_type) {
+before quic_frame.stream_data_blocked.handquic_framequic_frame.stream_data_blocked,scid:cid,dcid:cid,e:quic_packet_type) {
     if _generating {
         require f.pos > 32;
     }
 }
 
-before frame.max_data.handle(f:frame.max_data,scid:cid,dcid:cid,e:quic_packet_type) {
+before quic_frame.max_data.handquic_framequic_frame.max_data,scid:cid,dcid:cid,e:quic_packet_type) {
     if _generating {
         require f.pos = 2048 | f.pos = 40;
     }
 }
 
-export frame.ack.handle
-export frame.stream.handle
-export frame.crypto.handle
-export frame.path_response.handle #challenge ?
-export frame.handshake_done.handle
-#attribute frame.handshake_done.handle.weight = "0.02"
+export quic_frame.ack.handle
+export quic_frame.stream.handle
+export quic_frame.crypto.handle
+export quic_frame.path_response.handle #challenge ?
+export quic_frame.handshake_done.handle
+#attribute quic_frame.handshake_done.handle.weight = "0.02"
 export packet_event
 export client_send_event
 export tls_recv_event
-#export frame.rst_stream.handle
-#export frame.max_streams_bidi.handle
-#export frame.connection_close.handle # for quinn no closing co
-#export frame.max_stream_data.handle
+#export quic_frame.rst_stream.handle
+#export quic_frame.max_streams_bidi.handle
+#export quic_frame.connection_close.handle # for quinn no closing co
+#export quic_frame.max_stream_data.handle
 
-#export frame.max_streams.handle
-#export frame.max_stream_data.handle
-#export frame.max_data.handle
-#export frame.stream_blocked.handle
-#export frame.rst_stream.handle
-# attribute frame.rst_stream.handle.weight = "0.02"
-# attribute frame.max_streams.handle.weight = "0.02"
-# attribute frame.max_stream_data.handle.weight = "0.02"
-# attribute frame.max_data.handle.weight = "0.02"
+#export quic_frame.max_streams.handle
+#export quic_frame.max_stream_data.handle
+#export quic_frame.max_data.handle
+#export quic_frame.stream_blocked.handle
+#export quic_frame.rst_stream.handle
+# attribute quic_frame.rst_stream.handle.weight = "0.02"
+# attribute quic_frame.max_streams.handle.weight = "0.02"
+# attribute quic_frame.max_stream_data.handle.weight = "0.02"
+# attribute quic_frame.max_data.handle.weight = "0.02"
 
 
-export frame.connection_close.handle
-# attribute frame.connection_close.handle.weight = "0.02"
+export quic_frame.connection_close.handle
+# attribute quic_frame.connection_close.handle.weight = "0.02"
 #if zero_rtt_server_test {
-#export frame.application_close.handle # TODO need to be close for picoquic, but not for quant
+#export quic_frame.application_close.handle # TODO need to be close for picoquic, but not for quant
 #}
-#attribute frame.application_close.handle.weight = "0.02"
+#attribute quic_frame.application_close.handle.weight = "0.02"
 
-# export frame.stop_sending.handle
+# export quic_frame.stop_sending.handle
 
 
 
-#export frame.ping.handle
-#attribute frame.ping.handle.weight = "0.02"
+#export quic_frame.ping.handle
+#attribute quic_frame.ping.handle.weight = "0.02"
 
 # Final check
 #

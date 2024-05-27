@@ -20,16 +20,16 @@ after init {
     call time_api.c_timer.start;
 }
 # Note, we don't need a tester precondition for packet protocol
-# events, since the frame queue for the server end will always be
+# events, since the quic_frame queue for the server end will always be
 # empty. This is because server frames are only inferred in response to
 # a server packet event, which immediately dequeues them.
 
-export frame.ack.handle
-export frame.stream.handle
-export frame.crypto.handle
-export frame.path_response.handle #challenge ?
-export frame.handshake_done.handle
-#attribute frame.handshake_done.handle.weight = "0.02"
+export quic_frame.ack.handle
+export quic_frame.stream.handle
+export quic_frame.crypto.handle
+export quic_frame.path_response.handle #challenge ?
+export quic_frame.handshake_done.handle
+#attribute quic_frame.handshake_done.handle.weight = "0.02"
 export packet_event
 export client_send_event
 export tls_recv_event
@@ -63,7 +63,7 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
 
 export send_ack_eliciting_handshake_packet
 export send_ack_eliciting_initial_packet
-export frame.ping.handle
+export quic_frame.ping.handle
 
 export action _finalize = {
     # chris TODO 

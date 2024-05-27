@@ -40,7 +40,7 @@ action make_transport_parameters returns (tp:quic_transport_parameters) = {
     # preferred_address (0x0d):  The server's preferred address is used to
     #   The Connection ID and Stateless Reset Token fields of a preferred
     #   address are identical in syntax and semantics to the corresponding
-    #   fields of a NEW_CONNECTION_ID frame (Section 19.15).  A server
+    #   fields of a NEW_CONNECTION_ID quic_frame (Section 19.15).  A server
     #   that chooses a zero-length connection ID MUST NOT provide a
     #   preferred address.  Similarly, a server MUST NOT include a zero-
     #   length connection ID in this transport parameter.  A client MUST
@@ -65,7 +65,7 @@ action make_transport_parameters returns (tp:quic_transport_parameters) = {
 
 # Generate connection_close frames only for the client.
 
-before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid) {
+before quic_frame.connection_close.handle(f:quic_frame.connection_close,scid:cid,dcid:cid) {
     if _generating {
         require client.ep.addr ~= 0;         
         require scid = the_cid;
@@ -76,7 +76,7 @@ before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid)
 
 # Generate connection_close frames only for the client.
 
-before frame.application_close.handle(f:frame.application_close,scid:cid,dcid:cid) {
+before quic_frame.application_close.handle(f:quic_frame.application_close,scid:cid,dcid:cid) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;
@@ -88,20 +88,20 @@ before frame.application_close.handle(f:frame.application_close,scid:cid,dcid:ci
 # Note: some of these are commented out. They are added in other files
 # that include this one.
 
-export frame.ack.handle
-export frame.stream.handle
-export frame.crypto.handle
-export frame.path_response.handle
-export frame.handshake_done.handle
+export quic_frame.ack.handle
+export quic_frame.stream.handle
+export quic_frame.crypto.handle
+export quic_frame.path_response.handle
+export quic_frame.handshake_done.handle
 export packet_event
 export client_send_event
 export tls_recv_event
-#export frame.new_connection_id.handle
-#export frame.retire_connection_id.handle
-#export frame.rst_stream.handle
-#export frame.max_stream_id.handle
-#export frame.connection_close.handle
-#export frame.max_stream_data.handle
+#export quic_frame.new_connection_id.handle
+#export quic_frame.retire_connection_id.handle
+#export quic_frame.rst_stream.handle
+#export quic_frame.max_stream_id.handle
+#export quic_frame.connection_close.handle
+#export quic_frame.max_stream_data.handle
 
 # Final check
 #

@@ -194,7 +194,7 @@ before send_ack_eliciting_application_packet(src:ip.endpoint,dst:ip.endpoint,pkt
 }
 
 
-before frame.stream.handle(f:frame.stream,scid:cid,dcid:cid,e:quic_packet_type) {
+before quic_frame.stream.handquic_framequic_frame.stream,scid:cid,dcid:cid,e:quic_packet_type) {
     if _generating {
         require ~is_idle;
     };
@@ -203,7 +203,7 @@ before frame.stream.handle(f:frame.stream,scid:cid,dcid:cid,e:quic_packet_type) 
 
 # We have something similar for crypto frames
 
-before frame.crypto.handle(f:frame.crypto,scid:cid,dcid:cid,e:quic_packet_type) {
+before quic_frame.crypto.handquic_framequic_frame.crypto,scid:cid,dcid:cid,e:quic_packet_type) {
     if _generating {
         require ~is_idle;
     }
@@ -214,7 +214,7 @@ before frame.crypto.handle(f:frame.crypto,scid:cid,dcid:cid,e:quic_packet_type) 
 # ACK's to have at least on previously unacked sequenc number. There
 # should be a better way to do this.
 
-before frame.ack.handle(f:frame.ack,scid:cid,dcid:cid) {
+before quic_frame.ack.handquic_framequic_frame.ack,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid;
         force_new_ack := true;
@@ -224,14 +224,14 @@ before frame.ack.handle(f:frame.ack,scid:cid,dcid:cid) {
 
 # Generate rst_stream frames only for the environment process(es).
 
-before frame.rst_stream.handle(f:frame.rst_stream,scid:cid,dcid:cid) {
+before quic_frame.rst_stream.handquic_framequic_frame.rst_stream,scid:cid,dcid:cid) {
     if _generating {
         require ~is_idle;
     }
 }
 
 
-before frame.new_token.handle(f:frame.new_token,scid:cid,dcid:cid) {
+before quic_frame.new_token.handquic_framequic_frame.new_token,scid:cid,dcid:cid) {
     if _generating {
         require ~is_idle;
     } 
@@ -239,7 +239,7 @@ before frame.new_token.handle(f:frame.new_token,scid:cid,dcid:cid) {
 
 # Generate stop_sending frames only for the environment process(es).
 
-before frame.stop_sending.handle(f:frame.stop_sending,scid:cid,dcid:cid) {
+before quic_frame.stop_sending.handquic_framequic_frame.stop_sending,scid:cid,dcid:cid) {
     if _generating {
         require ~is_idle;
     }
@@ -247,20 +247,20 @@ before frame.stop_sending.handle(f:frame.stop_sending,scid:cid,dcid:cid) {
 
 # Generate max_streams frames only for the environment process(es).
 
-before frame.max_streams.handle(f:frame.max_streams,scid:cid,dcid:cid) {
+before quic_frame.max_streams.handquic_framequic_frame.max_streams,scid:cid,dcid:cid) {
     if _generating {
         require ~is_idle;
     }
 }
 
-before frame.new_connection_id.handle(f:frame.new_connection_id,scid:cid,dcid:cid) {
+before quic_frame.new_connection_id.handquic_framequic_frame.new_connection_id,scid:cid,dcid:cid) {
     if _generating {
         require ~is_idle;
     }
 }
 
 
-before frame.retire_connection_id.handle(f:frame.retire_connection_id,scid:cid,dcid:cid) {
+before quic_frame.retire_connection_id.handquic_framequic_frame.retire_connection_id,scid:cid,dcid:cid) {
     if _generating {
         require ~is_idle;    }
 }
@@ -271,7 +271,7 @@ before frame.retire_connection_id.handle(f:frame.retire_connection_id,scid:cid,d
 # Note: requiring the `err_code` is zero on non-generated frames means that
 # we stop the test if the peer reports a protocol error. 
 
-before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid) {
+before quic_frame.connection_close.handquic_framequic_frame.connection_close,scid:cid,dcid:cid) {
     if _generating {
         require ~is_idle;
     } 
@@ -279,7 +279,7 @@ before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid)
 
 # Generate application_close frames only for the environment process(es).
 
-before frame.application_close.handle(f:frame.application_close,scid:cid,dcid:cid) {
+before quic_frame.application_close.handquic_framequic_frame.application_close,scid:cid,dcid:cid) {
     if _generating {
         require ~is_idle;
     } 
@@ -288,16 +288,16 @@ before frame.application_close.handle(f:frame.application_close,scid:cid,dcid:ci
 # Generate max_stream_data frames only for the environment process(es), and only for
 # a restricted range of frames (so we don't throttle all of the data).
 
-before frame.max_stream_data.handle(f:frame.max_stream_data,scid:cid,dcid:cid) {
+before quic_frame.max_stream_data.handquic_framequic_frame.max_stream_data,scid:cid,dcid:cid) {
     if _generating {
         require ~is_idle;
     }
 }
 
 # Generate stream_data_blocked frames only for the environment process(es).
-# We restrict the frame id.
+# We restrict the quic_frame id.
 
-before frame.stream_data_blocked.handle(f:frame.stream_data_blocked,scid:cid,dcid:cid) {
+before quic_frame.stream_data_blocked.handquic_framequic_frame.stream_data_blocked,scid:cid,dcid:cid) {
     if _generating {
         require ~is_idle;
     }
@@ -307,7 +307,7 @@ before frame.stream_data_blocked.handle(f:frame.stream_data_blocked,scid:cid,dci
 # non-generated frames, we check that the max_data value doesn't decrease.
 # This is not forbidden, but it seems like a good thing to check.
 
-before frame.max_data.handle(f:frame.max_data,scid:cid,dcid:cid) {
+before quic_frame.max_data.handquic_framequic_frame.max_data,scid:cid,dcid:cid) {
     if _generating {
         require ~is_idle;
     }
@@ -324,21 +324,21 @@ before client_send_event {
 # Note: some of these are commented out. They are added in other files
 # that include this one.
 
-export frame.ack.handle
-export frame.stream.handle
-export frame.crypto.handle
-# export frame.path_challenge.handle
-export frame.path_response.handle
+export quic_frame.ack.handle
+export quic_frame.stream.handle
+export quic_frame.crypto.handle
+# export quic_frame.path_challenge.handle
+export quic_frame.path_response.handle
 export packet_event
 export client_send_event
 export tls_recv_event
-#export frame.new_connection_id.handle
-#export frame.retire_connection_id.handle
-#export frame.rst_stream.handle
-#export frame.max_stream_id.handle
-# export frame.connection_close.handle # TODO
-#export frame.max_stream_data.handle
-#export frame.max_data.handle
+#export quic_frame.new_connection_id.handle
+#export quic_frame.retire_connection_id.handle
+#export quic_frame.rst_stream.handle
+#export quic_frame.max_stream_id.handle
+# export quic_frame.connection_close.handle # TODO
+#export quic_frame.max_stream_data.handle
+#export quic_frame.max_data.handle
 
 # import action show_is_sleep_fake_timeout(is_sleep_fake_timeout:bool)
 
@@ -346,7 +346,7 @@ import action show_last_pkt_num_for_cid(pktnum:pkt_num,dst_cid:cid,ptype:quic_pa
 # export send_ack_eliciting_handshake_packet
 # export send_ack_eliciting_initial_packet
 # export send_ack_eliciting_application_packet
-# export frame.ping.handle
+# export quic_frame.ping.handle
 
 export action _finalize = {
     # chris TODO 

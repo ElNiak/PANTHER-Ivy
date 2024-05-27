@@ -26,7 +26,7 @@ include quic_fsm_receiving
 # and destination cid, protocol version (long format only), and a
 # packet sequence number. An initial packet also has a *retry token*, which
 # is a (possibly empty) sequence of bytes.  The *payload* of the
-# packet consists of a sequence of *frames* (see frame.ivy).
+# packet consists of a sequence of *frames* (see quic_frame.ivy).
 
 # TODO: retry and one_rtt packet types
 
@@ -77,7 +77,7 @@ object forged_quic_packet = {
         src_cid : cid, # [5]
         token : stream_data, # [6]
         seq_num : pkt_num, # [7]
-        payload : frame.arr # [8]
+        payload : quic_frame.arr # [8]
     }
 
     instance idx : unbounded_sequence
@@ -204,7 +204,7 @@ around forged_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_quic_packe
     # initial packet, the client might still retransmit its initial
     # packet using the nonce cid. In some cases, we can infer that the
     # client has in fact seen the server's cid (for example, if it
-    # packet contains an ACK frame, or a CRYPTO frame that is
+    # packet contains an ACK quic_frame, or a CRquic_framequic_frame that is
     # reponsive to a server FRAME. This is trick to check, however,
     # and the actual servers do not seem to check it.
 
@@ -270,18 +270,18 @@ around forged_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_quic_packe
     require  conn_seen(dcid) -> hi_non_probing_endpoint(dcid,dst);  # [10]
 
     # TEMPORARY: do not apply ack-only rule to generated packets
-    # This can be removed when we have a frame queue per encryption level
+    # This can be removed when we have a quic_frame queue per encryption level
 
     #call show_ack_credit(scid, ack_credit(scid), queued_ack_eliciting(scid), queued_non_ack(scid), pkt.seq_num);
     require ~_generating & ~queued_non_ack(scid) -> ack_credit(scid) > 0;  # [5]
 
     #Hamid - This is wrong, because if there is no ack credits, it prevents from sending a packet 
-    #        containing only a CONNECTION_CLOSE frame but we want to stop packets that contain only ACKs 
+    #        containing only a CONNECTION_CLOSE quic_frame but we want to stop packets that contain only ACKs 
     #    require ~_generating & ~queued_ack_eliciting(scid) -> ack_credit(scid) > 0;
     #Hamid
 
     # QUESTION: THis sentence is from draft-18 section 13.1: "An
-    #   endpoint MUST NOT send a packet containing only an ACK frame
+    #   endpoint MUST NOT send a packet containing only an ACK quic_frame
     #   in response to a packet containing only ACK or PADDING frames,
     #   even if there are packet gaps which precede the received
     #   packet." Do we interpret this to mean that an ack-only packet
@@ -290,7 +290,7 @@ around forged_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_quic_packe
     
     # If the sender is in the draining state, this is the draining packet.
     # Make sure that a draining packet has not previously been sent and
-    # that the packet contains a connection_close frame;
+    # that the packet contains a connection_close quic_frame;
 
     if conn_draining(scid) {
         require ~draining_pkt_sent(scid) & queued_close(scid);
@@ -364,7 +364,7 @@ around forged_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_quic_packe
         }
     };
 
-    # If the packet contains a close frame, then set `pkt_has_close`
+    # If the packet contains a close quic_frame, then set `pkt_has_close`
 
     if queued_close(scid) {
         pkt_has_close(scid,pkt.ptype,pkt.seq_num) := true;
@@ -387,7 +387,7 @@ around forged_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_quic_packe
 
     # The queued frames are deleted
     
-    queued_frames(scid) := frame.arr.empty;
+    queued_frames(scid) := quic_frame.arr.empty;
     queued_non_probing(scid) := false;
     queued_non_ack(scid) := false;
     queued_close(scid) := false;

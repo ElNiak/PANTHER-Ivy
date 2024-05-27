@@ -9,41 +9,41 @@ include quic_transport_error_code
 # include quic_loss_recovery
 # include quic_congestion_control
 
-# The frame protocol
+# The quic_frame protocol
 # ==================
 #
-# The frame protocol is defined by a sequence of frame events.
+# The quic_frame protocol is defined by a sequence of quic_frame events.
 # This protocol is layered on the packet protocol, such that
-# each packet event contains a sub-sequence of the frame events.
+# each packet event contains a sub-sequence of the quic_frame events.
 #
-# The frame events are subdivided into variants called frame types.
-# For each frame type, we define an event `handle` corresponding
-# to the generation of a frame and its transfer to the packet protocol
+# The quic_frame events are subdivided into variants called quic_frame types.
+# For each quic_frame type, we define an event `handle` corresponding
+# to the generation of a quic_frame and its transfer to the packet protocol
 # for transmission. Frame events effect the protocol state by
 # enqueueing frames to be encapsulated into packets. The effect of
-# this is that frame and packet events are interleaved, such that the
+# this is that quic_frame and packet events are interleaved, such that the
 # frames in each packet occur immediately before the packet event in
 # the same order in which they occur in the packet payload. TODO:
 # While this ordering seems sensible from a semantic point of view,
 # implementations might transmit frames out of order. Requiring
-# frame events to be in order might complicate a modular proof of the
+# quic_frame events to be in order might complicate a modular proof of the
 # implementation.
 #
-# Each frame has an encryption level (which is the same as the packet
+# Each quic_frame has an encryption level (which is the same as the packet
 # type it will be encapsulated in). The enryption level determines
 # the keys used to protect to protect that packet payload. Only frames
 # of the same encryption level may be encapsulated in the same packet
 # (however, multiple packets may be concatenated in a single UDP
 # datagram). This requirement is enforced by requiring that every
-# frame queue contains only frames of the same encryption level. The
-# frame handler for each type enforces this condition.
+# quic_frame queue contains only frames of the same encryption level. The
+# quic_frame handler for each type enforces this condition.
 
 # Data structures
 # ===============
 
 # WARNING Order define tag used in quic_ser & quic_deser
 
-object frame = {
+object quic_frame = {
 
     # The base type for frames
 
@@ -53,7 +53,7 @@ object frame = {
     # (0x01)
     object ping = {
         # Ping frames contain no data, check peers still alive
-        variant this of frame = struct {
+        variant this of quic_frame = struct {
 
         }
     }
@@ -61,7 +61,6 @@ object frame = {
 
     # (0x02) 
     object ack = {
-
         object range = {
             type this = struct {
                 gap : pkt_num,       # gap, or zero for first range
@@ -71,10 +70,9 @@ object frame = {
             instance arr : array(idx,this)
         }
 		
-        # Ack frames are a variant of frame
+        # Ack frames are a variant of quic_frame
 
-        variant this of frame = struct {
-        
+        variant this of quic_frame = struct {
             largest_acked   : pkt_num,    # largest acknowledged packet number
             ack_delay       : microseconds,  # delay of largest acked packet
             ack_ranges      : range.arr   # ack ranges
@@ -107,9 +105,9 @@ object frame = {
         #     instance arr : array(idx,this)
         # }
 		
-        # Ack frames are a variant of frame
+        # Ack frames are a variant of quic_frame
 
-        variant this of frame = struct {
+        variant this of quic_frame = struct {
         
             largest_acked   : pkt_num,       # largest acknowledged packet number
             ack_delay       : microseconds,  # delay of largest acked packet
@@ -125,8 +123,8 @@ object frame = {
 
     # (0x04) RESET_STREAM Frame
     object rst_stream = {
-        # RESET_STREAM frames are a variant of frame
-        variant this of frame = struct {
+        # RESET_STREAM frames are a variant of quic_frame
+        variant this of quic_frame = struct {
         
             id              : stream_id,  # id of stream being reset
             err_code        : error_code, # the error code
@@ -137,8 +135,8 @@ object frame = {
 
     # (0x05)
     object stop_sending = {
-        # Stop sending frames are a variant of frame.
-        variant this of frame = struct {
+        # Stop sending frames are a variant of quic_frame.
+        variant this of quic_frame = struct {
             id                : stream_id,  # the stream id
             err_code          : error_code  # the error code
         }
@@ -146,8 +144,8 @@ object frame = {
 
     # (0x06)
 	object crypto = {
-        # Crypto frames are a variant of frame
-        variant this of frame = struct {
+        # Crypto frames are a variant of quic_frame
+        variant this of quic_frame = struct {
             offset : stream_pos,       # the stream offset (zero if ~off)
             length : stream_pos,       # length of the data
             data : stream_data         # the stream data
@@ -157,8 +155,8 @@ object frame = {
 
     # (0x07)    
 	object new_token = {
-        # New token frames are a variant of frame.
-        variant this of frame = struct {
+        # New token frames are a variant of quic_frame.
+        variant this of quic_frame = struct {
             length : stream_pos,                  # length of the token
             data : stream_data                    # the token
         }
@@ -167,9 +165,9 @@ object frame = {
     # (0x08 -> 0x0f)
     object stream = {
 
-        # Stream frames are a variant of frame
+        # Stream frames are a variant of quic_frame
 
-        variant this of frame = struct {
+        variant this of quic_frame = struct {
             off : bool,        # is there an offset field
             len : bool,        # is there a length field
             fin : bool,        # is this the final offset
@@ -181,23 +179,23 @@ object frame = {
         }
     }
 
-    # (0x10) The MAX_DATA frame is used in flow control to inform the
+    # (0x10) The MAX_DATA quic_frame is used in flow control to inform the
     # peer of the maximum amount of data that can be sent on the connection
     # as a whole.
     object max_data = {
-        # Max data frames are a variant of frame.
-        variant this of frame = struct {
+        # Max data frames are a variant of quic_frame.
+        variant this of quic_frame = struct {
             pos               : stream_pos  # max number of bytes
         }
     }
 
 
-    # (0x11) The MAX_STREAM_DATA frame is used in flow control to
+    # (0x11) The MAX_STREAM_DATA quic_frame is used in flow control to
     # inform a peer of the maximum amount of data that can be sent on a
     # stream
 	object max_stream_data = {
-        # Max stream data frames are a variant of frame.
-        variant this of frame = struct {
+        # Max stream data frames are a variant of quic_frame.
+        variant this of quic_frame = struct {
             id                : stream_id,  # the stream id
             pos               : stream_pos  # max number of bytes
         }
@@ -205,16 +203,16 @@ object frame = {
 
     # (0x12) 
     object max_streams = {  # TODO: handle cases of MAX_STREAMS for bidi and uni
-        # max_streams frames are a variant of frame.
-        variant this of frame = struct {
+        # max_streams frames are a variant of quic_frame.
+        variant this of quic_frame = struct {
             id              : stream_id  # maximum stream id 
         }
     }
 
     # (0x13) 
     object max_streams_bidi = {  # TODO: handle cases of MAX_STREAMS for bidi and uni
-        # max_streams frames are a variant of frame.
-        variant this of frame = struct {
+        # max_streams frames are a variant of quic_frame.
+        variant this of quic_frame = struct {
             id              : stream_id  # maximum stream id 
         }
     }
@@ -222,16 +220,16 @@ object frame = {
 
     # (0x14) DATA_BLOCKED FRAME 
     object data_blocked = {
-        # data_blocked frames are a variant of frame.
-        variant this of frame = struct {
+        # data_blocked frames are a variant of quic_frame.
+        variant this of quic_frame = struct {
             pos               : stream_pos  # max number of bytes
         }
     }  
 
     # (0x15) STREAM_DATA_BLOCKED 
     object stream_data_blocked = {
-        # Stream blocked frames are a variant of frame.
-        variant this of frame = struct {
+        # Stream blocked frames are a variant of quic_frame.
+        variant this of quic_frame = struct {
             id                : stream_id,  # the stream id
             pos               : stream_pos  # max number of bytes
         }
@@ -239,16 +237,16 @@ object frame = {
 
     # (0x16)
     object streams_blocked = { # TODO: handle bidi and uni cases => create streams_blocked_uni and streams_blocked_bidi + serializer
-        # Stream id blocked frames are a variant of frame.
-        variant this of frame = struct {
+        # Stream id blocked frames are a variant of quic_frame.
+        variant this of quic_frame = struct {
             id                : cid  # the stream id (we use cid for the 16 bytes)
         }
     }
 
     # (0x17)
     object streams_blocked_bidi = { # TODO: handle bidi and uni cases => create streams_blocked_uni and streams_blocked_bidi + serializer
-        # Stream id blocked frames are a variant of frame.
-        variant this of frame = struct {
+        # Stream id blocked frames are a variant of quic_frame.
+        variant this of quic_frame = struct {
             id                : cid  # the stream id (we use cid for the 16 bytes)
         }
     }
@@ -256,9 +254,9 @@ object frame = {
     # (0x18) 
     object new_connection_id = {
         
-        # New connection id frames are a variant of frame.
+        # New connection id frames are a variant of quic_frame.
 
-        variant this of frame = struct {
+        variant this of quic_frame = struct {
             seq_num                : cid_seq,     # the sequence number of the new cid
             retire_prior_to        : cid_seq,     # retire seq nums prior to this
             length                 : cid_length,  # the length of the new cid in bytes
@@ -271,9 +269,9 @@ object frame = {
     # (0x19)
     object retire_connection_id = {
         
-        # Retire connection id frames are a variant of frame.
+        # Retire connection id frames are a variant of quic_frame.
 
-        variant this of frame = struct {
+        variant this of quic_frame = struct {
             seq_num                : cid_seq     # the sequence number of the new cid
         }
         
@@ -281,24 +279,24 @@ object frame = {
 
     # (0x1a)
     object path_challenge = {
-        # Path challenge frames are a variant of frame.
-        variant this of frame = struct {
+        # Path challenge frames are a variant of quic_frame.
+        variant this of quic_frame = struct {
             data : stream_data                    # 8-byte payload
         }
     }
 
     # (0x1b)
     object path_response = {
-        # Path response frames are a variant of frame.
-        variant this of frame = struct {
+        # Path response frames are a variant of quic_frame.
+        variant this of quic_frame = struct {
             data : stream_data                    # 8-byte payload
         }
     }
     
     # (0x1c or 0x1d) 
     object connection_close = {
-        # Connection close frames are a variant of frame.
-        variant this of frame = struct {
+        # Connection close frames are a variant of quic_frame.
+        variant this of quic_frame = struct {
             err_code               : error_code, # the error code
             frame_type             : error_code, # TODO: not the real type
             reason_phrase_length   : stream_pos, # number of bytes in reason phrase
@@ -310,8 +308,8 @@ object frame = {
 
     # (0x1d) NOT PRESENT ANYMORE TOCHECK IF CAN BE REMOVED TODO
     object application_close = {
-        # Application close frames are a variant of frame.
-        variant this of frame = struct {
+        # Application close frames are a variant of quic_frame.
+        variant this of quic_frame = struct {
             err_code               : error_code, # the error code
             reason_phrase_length   : stream_pos, # number of bytes in reason phrase
             reason_phrase          : stream_data # bytes of reason phrase
@@ -321,8 +319,8 @@ object frame = {
     	
     #(0x1e) HANDSHAKE_DONE 
     object handshake_done = {
-        # HANDSHAKE_DONE frames are a variant of frame.
-        variant this of frame = struct {
+        # HANDSHAKE_DONE frames are a variant of quic_frame.
+        variant this of quic_frame = struct {
 
         }
     }
@@ -332,9 +330,9 @@ object frame = {
     # (0xaf) 
     # https://tools.ietf.org/html/draft-iyengar-quic-delayed-ack-02
     object ack_frequency = { # TODO could be moved BUT need to refactor the deser/ser in csq 
-        # ACK_FREQUENCY  frame frames are a variant of frame and contains nothing
-		# 1 byte frame to increase the size of a packet
-         variant this of frame = struct {
+        # ACK_FREQUENCY  quic_frame frames are a variant of quic_frame and contains nothing
+		# 1 byte quic_frame to increase the size of a packet
+         variant this of quic_frame = struct {
 			seq_num                     : pkt_num,     # the sequence number 
             ack_eliciting_threshold     : stream_pos,  #maximum number of ack-eliciting packets after which the receiver sends an acknowledgement.
             request_max_ack_delay       : microseconds,
@@ -344,23 +342,23 @@ object frame = {
 
     # (0xac) 
     object immediate_ack = {
-        # IMMEDIATE_ACK  frame frames are a variant of frame and contains nothing
-		# 1 byte frame to increase the size of a packet
-         variant this of frame = struct {
+        # IMMEDIATE_ACK  quic_frame frames are a variant of quic_frame and contains nothing
+		# 1 byte quic_frame to increase the size of a packet
+         variant this of quic_frame = struct {
          }
     } 
 
     # (0x42) 
     object unknown_frame = {
-        # unknown_frame  frame frames are a variant of frame and contains nothing
-        variant this of frame = struct {
+        # unknown_frame  quic_frame frames are a variant of quic_frame and contains nothing
+        variant this of quic_frame = struct {
         }
     } 
 
     # (0xtbd) 
     object malicious_frame = {
-        # unknown_frame  frame frames are a variant of frame and contains nothing
-        variant this of frame = struct {
+        # unknown_frame  quic_frame frames are a variant of quic_frame and contains nothing
+        variant this of quic_frame = struct {
             data: stream_data
         }
     } 
@@ -368,9 +366,9 @@ object frame = {
 
 	# (0x00) implicit in parsing
     #object padding = {
-        # PADDING frame frames are a variant of frame and contains nothing
-		# 1 byte frame to increase the size of a packet
-    #    variant this of frame = struct {
+        # PADDING quic_frame frames are a variant of quic_frame and contains nothing
+		# 1 byte quic_frame to increase the size of a packet
+    #    variant this of quic_frame = struct {
 			
     #    }
     #}    
@@ -385,16 +383,16 @@ object frame = {
 
 #
 # The generic event for frames is specialized for each
-# frame type.  Its arguments are:
+# quic_frame type.  Its arguments are:
 #
-# - `f`: the frame contents
+# - `f`: the quic_frame contents
 # - `scid`: the source aid
 # - `dcid`: the destination aid
 # - `e`: the encryption level
-# - `seq_num`: the packet number where the frame is
+# - `seq_num`: the packet number where the quic_frame is
 
 
-object frame = {
+object quic_frame = {
     ...
     action handle(f:this,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num) = {
         # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
@@ -405,12 +403,12 @@ object frame = {
     }
 }
 
-# TODO: we assume here that a frame can only be sent at a given
+# TODO: we assume here that a quic_frame can only be sent at a given
 # encryption level if the keys for that level have already been
 # established.  For 1rtt frames this means that a TLS finish message
-# must have bee sent in some prior frame. This is helpful to prevent
+# must have bee sent in some prior quic_frame. This is helpful to prevent
 # the peer from dropping packets in tests, but not realistic, since
-# packet re-ordering could cause the 1rtt frame to be received before
+# packet re-ordering could cause the 1rtt quic_frame to be received before
 # the required handshake message.  In principle, we should allow this
 # case, but reduce its probability in testing.
 
@@ -446,11 +444,11 @@ object frame = {
 #
 # - For aid C,and stream id S, `stream_finished(C,S)` indicates that
 #   the stream transmitted to C on stream id S is finished (that is, a
-#   FIN frame has been sent).
+#   FIN quic_frame has been sent).
 #
 # - For each aid C,and stream id S, `stream_reset(C,S)` indicates that
 #   the stream transmitted to C on stream id S is reset (that is, a
-#   RESET_STREAM frame has been sent).
+#   RESET_STREAM quic_frame has been sent).
 #
 # - For each aid C,and stream kind K, `max_stream_set(C,K)`
 #   indicates that the maximum stream id has been declared.
@@ -465,17 +463,17 @@ object frame = {
 #   currently queued frames for aid C
 #
 #   TODO: Currently we can only queue frames of the same packet type,
-#   We should have a separate frame queue for each packet type. 
+#   We should have a separate quic_frame queue for each packet type. 
 #
 # - The relation `queued_non_probing(C)` indicates that one of the queued
-#   frames at aid `C` contains a non-probing frame. This is a frame
+#   frames at aid `C` contains a non-probing quic_frame. This is a quic_frame
 #   other than path challenge, new connection id and padding.
 #
 # - The relation `queued_non_ack(C)` indicates that one or more of the queued
-#   frames at aid `C` is not an ACK frame with padding.
+#   frames at aid `C` is not an ACK quic_frame with padding.
 #
 # - The relation `queued_close(C)` indicates that one or more of the queued
-#   frames at aid `C` is a CONNECTION_CLOSE or APPLICATION_CLOSE frame.
+#   frames at aid `C` is a CONNECTION_CLOSE or APPLICATION_CLOSE quic_frame.
 #
 # - The function num_queued_frames(C:cid) gives the number of frames
 #   queue at aid `C`.
@@ -490,41 +488,41 @@ object frame = {
 #
 #Hamid
 # - The relation `queued_ack_eliciting(C)` indicates that one or more of the queued
-#   frames at aid `C` is an ACK eliciting frame, i.e. according to draft 24, frames other than ACK, PADDING, CONNECTION_CLOSE
+#   frames at aid `C` is an ACK eliciting quic_frame, i.e. according to draft 24, frames other than ACK, PADDING, CONNECTION_CLOSE
 #Hamid
 #
 #chris 
-# - the function `queued_level_type(C:cid,T:quic_packet_type) : frame.arr` is used to  queue frames a separate frame queue for each packet type.  TODO
-# - the relation `send_retire_cid(C:cid,S:stream_id)` is used to say that the next frame should be a retire_CID frame
-# - the function `max_rtp_num(C:cid) : cid_seq``is used to get the maximum retire_prior_to field in new_cid frame
-# - STREAM frame retransmission: 13.3.  Retransmission of Information
+# - the function `queued_level_type(C:cid,T:quic_packet_type) : quic_frame.arr` is used to  queue frames a separate quic_frame queue for each packet type.  TODO
+# - the relation `send_retire_cid(C:cid,S:stream_id)` is used to say that the next quic_frame should be a retire_CID quic_frame
+# - the function `max_rtp_num(C:cid) : cid_seq``is used to get the maximum retire_prior_to field in new_cid quic_frame
+# - STREAM quic_frame retransmission: 13.3.  Retransmission of Information
 #    *  Application data sent in STREAM frames is retransmitted in new
 #       STREAM frames unless the endpoint has sent a RESET_STREAM for that
-#       stream.  Once an endpoint sends a RESET_STREAM frame, no further
+#       stream.  Once an endpoint sends a RESET_STREAM quic_frame, no further
 #       STREAM frames are needed.
-# We can consider that a STREAM frame is retransmitted if we receive a Frame twice with the same
+# We can consider that a STREAM quic_frame is retransmitted if we receive a Frame twice with the same
 # information. For that we use more or less the same approach than Copy-On-Write for memory
-# We use a reference count (count_stream_frame) for each STREAM frame that we get. 0 meaning no reference, 1 = received once, ect
-# If count_stream_frame > 1 => this frame has been retransmitted and stream_frame_restransmitted is true
-# - RESET_STREAM frame retransmission =  same approach
+# We use a reference count (count_stream_frame) for each STREAM quic_frame that we get. 0 meaning no reference, 1 = received once, ect
+# If count_stream_frame > 1 => this quic_frame has been retransmitted and stream_frame_restransmitted is true
+# - RESET_STREAM quic_frame retransmission =  same approach
 #   *  Cancellation of stream transmission, as carried in a RESET_STREAM
-#      frame, is sent until acknowledged or until all stream data is
+#      quic_frame, is sent until acknowledged or until all stream data is
 #      acknowledged by the peer (that is, either the "Reset Recvd" or
 #      "Data Recvd" state is reached on the sending part of the stream).
-#      The content of a RESET_STREAM frame MUST NOT change when it is
+#      The content of a RESET_STREAM quic_frame MUST NOT change when it is
 #      sent again.
-# - STREAM_DATA_BLOCKED frame retransmission =  same approach
+# - STREAM_DATA_BLOCKED quic_frame retransmission =  same approach
 #   *  Blocked signals are carried in DATA_BLOCKED, STREAM_DATA_BLOCKED,
 #      and STREAMS_BLOCKED frames.  DATA_BLOCKED frames have connection
 #      scope, STREAM_DATA_BLOCKED frames have stream scope, and
 #      STREAMS_BLOCKED frames are scoped to a specific stream type.  New
-#      frames are sent if packets containing the most recent frame for a
+#      frames are sent if packets containing the most recent quic_frame for a
 #      scope is lost, but only while the endpoint is blocked on the
 #      corresponding limit.  These frames always include the limit that
 #      is causing blocking at the time that they are transmitted.
-# - first_ack_freq_received return true if we received the first ack_freq frame
+# - first_ack_freq_received return true if we received the first ack_freq quic_frame
 # - last_ack_freq_seq(C:cid) return the seqnum associated to the last ack_frequency
-#                            frame received 
+#                            quic_frame received 
 #chris
 
 relation stream_seen(C:cid,S:stream_id)
@@ -538,16 +536,16 @@ relation stream_reset(C:cid,S:stream_id)
 relation max_stream_set(C:cid,K:stream_kind)
 function max_stream(C:cid,K:stream_kind) : stream_id 
 #function max_stream_id(C:cid,K:stream_kind) : cid
-function queued_frames(C:cid) : frame.arr
-function queued_frames_rtt(C:cid) : frame.arr
+function queued_frames(C:cid) : quic_frame.arr
+function queued_frames_rtt(C:cid) : quic_frame.arr
 function queued_level(C:cid) : quic_packet_type
 function queued_level_rtt(C:cid) : quic_packet_type
 relation queued_non_probing(C:cid)
 relation queued_non_ack(C:cid)
 relation queued_challenge(C:cid)
 relation queued_close(C:cid)
-function num_queued_frames(C:cid) : frame.idx
-function num_queued_frames_rtt(C:cid) : frame.idx
+function num_queued_frames(C:cid) : quic_frame.idx
+function num_queued_frames_rtt(C:cid) : quic_frame.idx
 relation path_challenge_pending(C:cid,D:stream_data)
 relation path_challenge_sent(C:cid)
 function conn_total_data(C:cid) : stream_pos
@@ -563,7 +561,7 @@ import action show_num_ack_pkt(s:stream_pos)
 #Hamid
 
 #chris
-function queued_level_type(C:cid,T:quic_packet_type) : frame.arr
+function queued_level_type(C:cid,T:quic_packet_type) : quic_frame.arr
 relation send_retire_cid(C:cid)
 function max_rtp_num(C:cid) : cid_seq
 
@@ -580,7 +578,7 @@ relation sdb_frame_restransmitted(S:stream_id)
 function first_ack_freq_received : bool
 # The largest packet number among all received ack-eliciting packets.
 function largest_unacked : pkt_num
-# The Largest Acknowledged value sent in an ACK frame.
+# The Largest Acknowledged value sent in an ACK quic_frame.
 function largest_acked   : pkt_num
 # Packets with packet numbers between the Largest Unacked and Largest Acked that have not yet been received.
 function unreported_missing : pkt_num
@@ -612,11 +610,11 @@ relation newly_acked(S:stream_pos)
 
 
 # A variable-length integer representing the maximum number of ack-eliciting packets 
-# the recipient of this frame receives before sending an acknowledgment. A receiving 
-# endpoint SHOULD send at least one ACK frame when more than this number of 
+# the recipient of this quic_frame receives before sending an acknowledgment. A receiving 
+# endpoint SHOULD send at least one ACK quic_frame when more than this number of 
 # ack-eliciting packets have been received. A value of 0 results in a receiver 
 # immediately acknowledging every ack-eliciting packet. By default, an endpoint 
-# sends an ACK frame for every other ack-eliciting packet, as specified in Section 
+# sends an ACK quic_frame for every other ack-eliciting packet, as specified in Section 
 # 13.2.2 of [QUIC-TRANSPORT], which corresponds to a value of 1.
 function ack_eliciting_threshold_val(C:cid) : stream_pos
 function current_ack_frequency(C:cid) : stream_pos
@@ -675,7 +673,7 @@ after init {
 
 # #### ACK event
 
-# The set of packet numbers acknowledged by an ACK frame is determined
+# The set of packet numbers acknowledged by an ACK quic_frame is determined
 # by the `largest_ack` field and the `ack_blocks` field. Each ACK
 # block acknowledges packet numbers in the inclusive range `[last - gap, last -
 # gap - blocks]` where `gap` and `ranges` are the fields of the ACK
@@ -697,9 +695,9 @@ after init {
 #   and `N` is the packet number [2].
 # - The greatest acked packet is also tracked in `max_acked(C,e)` [3]
 #
-# - If a packet with a connection_close frame of either type is acknowledged
+# - If a packet with a connection_close quic_frame of either type is acknowledged
 #   the sending aid enters the draining state. Note that observing the ack of
-#   a connection close frame is the only way we can detect that it was received.
+#   a connection close quic_frame is the only way we can detect that it was received.
 #   
 
 # TEMPORARY: use this to enforce new acks in testing. Without this,
@@ -709,11 +707,11 @@ var force_new_ack : bool
 
 import action is_generating(b:bool)
 import action is_ack_frequency_respected(b:bool)
-object frame = {
+object quic_frame = {
     ...
     object ack = {
         ...
-        action handle(f:frame.ack,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.ack,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
 	around handle {
             #call is_generating(_generating);
@@ -725,7 +723,7 @@ object frame = {
             # };
 
             if  ~_generating {
-                # On receiving an ACK_FREQUENCY frame and updating its max_ack_delay and Ack-Eliciting Threshold values (Section 4), 
+                # On receiving an ACK_FREQUENCY quic_frame and updating its max_ack_delay and Ack-Eliciting Threshold values (Section 4), 
                 # the endpoint sends an acknowledgement when one of the following conditions are met:
                 # Since the last acknowledgement was sent, the number of received ack-eliciting packets is greater than the Ack-Eliciting Threshold.
                 # Since the last acknowledgement was sent, max_ack_delay amount of time has passed.
@@ -735,7 +733,7 @@ object frame = {
             }
             
             # ack_time := time_api.c_timer.now_micros;
-            # An endpoint generates an RTT sample on receiving an ACK frame that meets the following two conditions:
+            # An endpoint generates an RTT sample on receiving an ACK quic_frame that meets the following two conditions:
             # 1. the largest acknowledged packet number is newly acknowledged, and
             # 2. at least one of the newly acknowledged packets was ack-eliciting.
 
@@ -745,12 +743,12 @@ object frame = {
                 require ~conn_closed(scid);
                 # An endpoint measures the delays intentionally introduced between the time the 
                 # packet with the largest packet number is received and the time an acknowledgment 
-                # is sent. The endpoint encodes this delay in the Ack Delay field of an ACK frame; 
+                # is sent. The endpoint encodes this delay in the Ack Delay field of an ACK quic_frame; 
                 # see Section 19.3. This allows the receiver of the ACK to adjust for any intentional delays, 
                 # which is important for getting a better estimate of the path RTT when acknowledgments are delayed. 
                 # A packet might be held in the OS kernel or elsewhere on the host before being processed. 
                 # An endpoint MUST NOT include delays that it does not control when populating the
-                # Ack Delay field in an ACK frame.
+                # Ack Delay field in an ACK quic_frame.
 
                 # Scaling in this fashion allows for a larger range of values with a shorter encoding at 
                 # the cost of lower resolution. Because the receiver doesn't use the ACK Delay for Initial 
@@ -765,7 +763,7 @@ object frame = {
             # Chris
             require num_queued_frames(scid) > 0 -> e = queued_level(scid);
             
-            var idx : frame.ack.range.idx := 0;
+            var idx : quic_frame.ack.range.idx := 0;
             var last := f.largest_acked;
             if max_acked(dcid,e) < last {
                 max_acked(dcid,e) := last;  # [3]
@@ -837,11 +835,11 @@ import action show_ack_generated
 import action show_ack_eliciting_threshold_current_val(val:stream_pos)
 import action show_ack_eliciting_threshold_val(val:stream_pos)
 
-object frame = {
+object quic_frame = {
     ...
     object ack_ecn = {
         ...
-        action handle(f:frame.ack_ecn,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.ack_ecn,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
 	around handle {
             require connected(dcid) & connected_to(dcid) = scid;
@@ -856,7 +854,7 @@ object frame = {
             #require ~(e = quic_packet_type.version_negociation) & ~(e = quic_packet_type.retry);
             #Chris
             require num_queued_frames(scid) > 0 -> e = queued_level(scid);
-            var idx : frame.ack_ecn.range.idx := 0;
+            var idx : quic_frame.ack_ecn.range.idx := 0;
             var last := f.largest_acked;
             if max_acked(dcid,e) < last {
                 max_acked(dcid,e) := last;  # [3]
@@ -902,11 +900,11 @@ object frame = {
 #
 # Requirements:
 #
-# - The upper bound of the stream frame may not exceed the current
+# - The upper bound of the stream quic_frame may not exceed the current
 #   value of `max_stream_data_val` for the given destination and cid, if
 #   it has been set [2].
 #
-# - If the stream is finished, the the frame offset plus length must
+# - If the stream is finished, the the quic_frame offset plus length must
 #   not exceed the stream length [5].
 #
 # - The stream id must be less than or equal to
@@ -922,7 +920,7 @@ object frame = {
 # - The 1rtt keys have been established [11].
 #
 # - If the sender as reset the stream to a given length, then the
-#   end of the stream frame data must not exceed the reset length [13].
+#   end of the stream quic_frame data must not exceed the reset length [13].
 
 # Effects:
 #
@@ -940,11 +938,11 @@ object frame = {
 #   all streams, including any unreceived gaps.
 #
 
-object frame = { # TODO cleanup
+object quic_frame = { # TODO cleanup
     ...
     object stream = {
         ...
-        action handle(f:frame.stream,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.stream,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
 	around handle {
             # if  e = quic_packet_type.one_rtt { #  & established_0rtt_keys(scid)
@@ -1061,11 +1059,11 @@ object frame = { # TODO cleanup
 #
 # - The length of the crypto stream and the present bits are updated. [3]
 
-object frame = {
+object quic_frame = {
     ...
     object crypto = {
         ...
-        action handle(f:frame.crypto,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.crypto,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
 	around handle {
 	        #if ~scid=0 {
@@ -1119,7 +1117,7 @@ import action show_crypto_length(pkt:stream_pos)
 # - Stream id must not exceed maximim stream id for the stream kind [4].
 # - QUESTION: Can a previously reset stream be reset?
 # - The final stream position may not be lesser than that of any previous
-#   stream frame for the same stream id [1].
+#   stream quic_frame for the same stream id [1].
 # - The connection must not have been closed by the source endpoint [5].
 # - The encryption level must be 0rtt or 1rtt [6].
 # - If stream was previously reset or finished, final offset must be same [7].
@@ -1132,9 +1130,9 @@ import action show_crypto_length(pkt:stream_pos)
 # Question: Where is it written that reset stream frames cannot occur in
 # initial or handshake packets?
 
-object frame = { ...
+object quic_frame = { ...
     object rst_stream = { ...
-        action handle(f:frame.rst_stream,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.rst_stream,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
 	around handle {
             require connected(dcid) & connected_to(dcid) = scid;
@@ -1168,7 +1166,7 @@ object frame = { ...
 #
 # Requirements:
 #
-# - Receiving a STOP_SENDING frame for a
+# - Receiving a STOP_SENDING quic_frame for a
 #   locally-initiated stream that has not yet been created MUST be
 #   treated as a connection error of type STREAM_STATE_ERROR.. [8] (FSM)
 # - Stream id must not exceed maximim stream id for the stream kind [4].
@@ -1179,14 +1177,14 @@ object frame = { ...
 # Effects:
 #
 #   (None)
-#   An endpoint that receives a STOP_SENDING frame
-#   MUST send a RESET_STREAM frame if the stream is in the Ready or Send
+#   An endpoint that receives a STOP_SENDING quic_frame
+#   MUST send a RESET_STREAM quic_frame if the stream is in the Ready or Send
 #   state
 #
 
-object frame = { ...
+object quic_frame = { ...
     object stop_sending = { ...
-        action handle(f:frame.stop_sending,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.stop_sending,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
 	around handle {# is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
             # require (_generating  -> is_not_sleeping);
@@ -1247,9 +1245,9 @@ object frame = { ...
 # var some_max_streams : bool;
 #  var ms;
 
-object frame = { ...
+object quic_frame = { ...
     object max_streams = { ...
-        action handle(f:frame.max_streams,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.max_streams,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
 	around handle {# is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
             # require (_generating  -> is_not_sleeping);
@@ -1283,9 +1281,9 @@ object frame = { ...
     }
 }
 
-object frame = { ...
+object quic_frame = { ...
     object max_streams_bidi = { ...
-        action handle(f:frame.max_streams_bidi,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.max_streams_bidi,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
 	around handle {# is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
             # require (_generating  -> is_not_sleeping);
@@ -1327,7 +1325,7 @@ object frame = { ...
 # endpoint closing the connection will not send or receive any further data on the connection,
 # so it is as if all the open streams are reset by this operation.
 #
-# A connection close frame can occur at any time. 
+# A connection close quic_frame can occur at any time. 
 #
 # Questions:
 #
@@ -1352,9 +1350,9 @@ object frame = { ...
 # - The connection state is set to closed for the source endpoint.
 #
 
-object frame = { ...
+object quic_frame = { ...
     object connection_close = { ...
-        action handle(f:frame.connection_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.connection_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle{
             
             require connected(dcid) & connected_to(dcid) = scid;
@@ -1393,11 +1391,11 @@ object frame = { ...
 # seems reasonable to assume that the endpoint closing the connection
 # will not send or receive any further data on the connection, so it
 # is as if all the open streams are reset by this operation. In the
-# standard, an APPLICATION_CLOSE frame is described as
-# CONNECTION_CLOSE frame with a special tag field. Here, we use a
+# standard, an APPLICATION_CLOSE quic_frame is described as
+# CONNECTION_CLOSE quic_frame with a special tag field. Here, we use a
 # distinct variant type to represent it.
 #
-# An application close frame can occur at any time. 
+# An application close quic_frame can occur at any time. 
 #
 # Questions:
 #
@@ -1414,9 +1412,9 @@ object frame = { ...
 # - The connection state is set to closed for the source endpoint.
 #
 
-object frame = { ...
+object quic_frame = { ...
     object application_close = { ...
-        action handle(f:frame.application_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.application_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle{
             
             require connected(dcid) & connected_to(dcid) = scid;
@@ -1450,8 +1448,8 @@ object frame = { ...
 # Requirements
 #
 # - The stream must be open for receiving at the source endpoint [1].
-#   (A MAX_STREAM_DATA frame can be sent for streams in the Recv state;)
-#   (Receiving a MAX_STREAM_DATA frame for a locally-
+#   (A MAX_STREAM_DATA quic_frame can be sent for streams in the Recv state;)
+#   (Receiving a MAX_STREAM_DATA quic_frame for a locally-
 #    initiated stream that has not yet been created MUST be treated as a
 #    connection error of type STREAM_STATE_ERROR)
 
@@ -1460,9 +1458,9 @@ object frame = { ...
 #   the max stream data limit for the given stream is updated [2].
 #
 
-object frame = { ...
+object quic_frame = { ...
     object max_stream_data = { ...
-        action handle(f:frame.max_stream_data,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.max_stream_data,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
@@ -1492,16 +1490,16 @@ object frame = { ...
 # - Connection must be established
 #chris
 # - The stream must be open for receiving at the destination endpoint [1]
-#   An endpoint that receives a STREAM_DATA_BLOCKED frame for a send-only
+#   An endpoint that receives a STREAM_DATA_BLOCKED quic_frame for a send-only
 #   stream MUST terminate the connection with error STREAM_STATE_ERROR.
 #chris 
 # Effects
 #
 # (None)
 
-object frame = { ...
+object quic_frame = { ...
     object stream_data_blocked = { ...
-        action handle(f:frame.stream_data_blocked,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.stream_data_blocked,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
@@ -1529,9 +1527,9 @@ object frame = { ...
 #
 # (None)
 
-object frame = { ...
+object quic_frame = { ...
     object data_blocked = { ...
-        action handle(f:frame.data_blocked,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.data_blocked,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
@@ -1557,17 +1555,17 @@ object frame = { ...
 # - Connection must be established
 #chris
 # A STREAMS_BLOCKED (by sender)
-# frame of type 0x16 is used to indicate reaching the bidirectional
-# stream limit, and a STREAMS_BLOCKED frame of type 0x17 is used to
+# quic_frame of type 0x16 is used to indicate reaching the bidirectional
+# stream limit, and a STREAMS_BLOCKED quic_frame of type 0x17 is used to
 # indicate reaching the unidirectional stream limit. => receiver should increase max_stream (TODO)
 #chris
 # Effects
 #
 # (None)
 
-object frame = { ...
+object quic_frame = { ...
     object streams_blocked = { ...
-        action handle(f:frame.streams_blocked,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.streams_blocked,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
@@ -1584,9 +1582,9 @@ object frame = { ...
     }
 }
 
-object frame = { ...
+object quic_frame = { ...
     object streams_blocked_bidi = { ...
-        action handle(f:frame.streams_blocked_bidi,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.streams_blocked_bidi,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
@@ -1619,9 +1617,9 @@ object frame = { ...
 #   the max data limit for the connection is updated [2].
 #
 
-object frame = { ...
+object quic_frame = { ...
     object max_data = { ...
-        action handle(f:frame.max_data,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.max_data,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
@@ -1646,9 +1644,9 @@ object frame = { ...
 # be used to keep a connection alive.
 #
 
-object frame = { ...
+object quic_frame = { ...
     object ping = { ...
-        action handle(f:frame.ping,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.ping,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
             require e = quic_packet_type.handshake -> established_handshake_keys(scid);
             require e = quic_packet_type.one_rtt -> established_1rtt_keys(scid);
@@ -1683,9 +1681,9 @@ object frame = { ...
 # be used to keep a connection alive.
 #
 
-object frame = { ...
+object quic_frame = { ...
     object unknown_frame = { ...
-        action handle(f:frame.unknown_frame,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.unknown_frame,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
             require connected(dcid) & connected_to(dcid) = scid;
             require num_queued_frames(scid) > 0 -> e = queued_level(scid);
@@ -1707,9 +1705,9 @@ object frame = { ...
 # be used to keep a connection alive.
 #
 
-#object frame = { ...
+#object quic_frame = { ...
 #    object padding = { ...
-#        action handle(f:frame.padding,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+#        action handle(f:quic_frame.padding,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 #	after handle {
 #            call enqueue_frame(scid,f,e,true,seq_num);
 #        }
@@ -1723,9 +1721,9 @@ object frame = { ...
 # be used to say handshake is done TODO
 #
 
-object frame = { ...
+object quic_frame = { ...
     object handshake_done = { ...
-        action handle(f:frame.handshake_done,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.handshake_done,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle { 
             
             require connected(dcid) & connected_to(dcid) = scid;
@@ -1755,9 +1753,9 @@ object frame = { ...
 #
 # - length field less than 1 and greater than 20 are invalid [1]
 # - An endpoint that is sending packets with a zero-length Destination
-#   Connection ID MUST treat receipt of a NEW_CONNECTION_ID frame as a
+#   Connection ID MUST treat receipt of a NEW_CONNECTION_ID quic_frame as a
 #   connection error of type PROTOCOL_VIOLATION. [2] 
-# - Receipt of the same frame multiple times MUST NOT be treated as a connection
+# - Receipt of the same quic_frame multiple times MUST NOT be treated as a connection
 #   error. [3]
 # - The Retire Prior To field MUST be less than or equal to the Sequence Number field [4]
 #
@@ -1765,19 +1763,19 @@ object frame = { ...
 #
 # - A receiver MUST ignore any Retire Prior To fields that do not increase the
 #   largest received Retire Prior To value [5]
-# - An endpoint that receives a NEW_CONNECTION_ID frame with a sequence
+# - An endpoint that receives a NEW_CONNECTION_ID quic_frame with a sequence
 #   number smaller than the Retire Prior To field of a previously
-#   received NEW_CONNECTION_ID frame MUST send a corresponding
-#   RETIRE_CONNECTION_ID frame that retires the newly received connection
+#   received NEW_CONNECTION_ID quic_frame MUST send a corresponding
+#   RETIRE_CONNECTION_ID quic_frame that retires the newly received connection
 #   ID, unless it has already done so for that sequence number. [6] 
 # -  An endpoint that selects a zero-length connection ID during the	
 #    handshake cannot issue a new connection ID.  [7]
 #
 #chris
 
-object frame = { ...
+object quic_frame = { ...
     object new_connection_id = { ...
-        action handle(f:frame.new_connection_id,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.new_connection_id,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
@@ -1833,19 +1831,19 @@ object frame = { ...
 # RETIRE_CONNECTION_ID frames are used to tell the sender of the new connection id that the connection id will no longer be used.
 #
 # Requirements:
-#  - Receipt of a RETIRE_CONNECTION_ID frame containing a sequence number
+#  - Receipt of a RETIRE_CONNECTION_ID quic_frame containing a sequence number
 #    greater than any previously sent to the peer MUST be treated as a
 #    connection error of type PROTOCOL_VIOLATION. [1]
-#  - The sequence number specified in a RETIRE_CONNECTION_ID frame MUST
+#  - The sequence number specified in a RETIRE_CONNECTION_ID quic_frame MUST
 #    NOT refer to the Destination Connection ID field of the packet in
-#    which the frame is contained.  The peer MAY treat this as a
+#    which the quic_frame is contained.  The peer MAY treat this as a
 #    connection error of type PROTOCOL_VIOLATION. [2]
 #  - An endpoint that is sending packets with a zero-length Destination
-#    Connection ID MUST treat receipt of a NEW_CONNECTION_ID frame as a
+#    Connection ID MUST treat receipt of a NEW_CONNECTION_ID quic_frame as a
 #    connection error of type PROTOCOL_VIOLATION. [3] TODO
-object frame = { ...
+object quic_frame = { ...
     object retire_connection_id = { ...
-        action handle(f:frame.retire_connection_id,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.retire_connection_id,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	    around handle {require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
             # Will change with implementing TODO
@@ -1887,9 +1885,9 @@ object frame = { ...
 # not a retransmission, however, it is unclear that this is the
 # intention of the standard.
 
-object frame = { ...
+object quic_frame = { ...
     object path_challenge = { ...
-        action handle(f:frame.path_challenge,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.path_challenge,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
             require handshake_done_recv | handshake_done_send;
@@ -1912,11 +1910,11 @@ object frame = { ...
 # #### PATH_RESPONSE event
 #
 # PATH_RESPONSE frames are used to verify ownership of an endpoint in
-# response to a path_challenge frame.
+# response to a path_challenge quic_frame.
 
-object frame = { ...
+object quic_frame = { ...
     object path_response = { ...
-        action handle(f:frame.path_response,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.path_response,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle { 
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
@@ -1941,9 +1939,9 @@ object frame = { ...
 # NEW_TOKEN frames are sent by the server to provide the client a
 # token for establishing a new connection.
 
-object frame = { ...
+object quic_frame = { ...
     object new_token = { ...
-        action handle(f:frame.new_token,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.new_token,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
             # TODO for now we save token in clinet & server
             require connected(dcid) & connected_to(dcid) = scid;
@@ -1962,11 +1960,11 @@ object frame = { ...
 
 include quic_ack_frequency_extension
 
-object frame = {
+object quic_frame = {
     ...
     object malicious_frame = {
         ...
-        action handle(f:frame.malicious_frame,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.malicious_frame,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
 	around handle {
             require tls_handshake_finished;
@@ -1988,37 +1986,37 @@ object frame = {
 # ----------
 
 # Frame events cause frames to be enqueued for transmission in a
-# packet. This action enqueues a frame.
+# packet. This action enqueues a quic_frame.
 #
 # Effects:
 #
-# - Appends frame to the frame queue for the given source endpoint and cid.
+# - Appends quic_frame to the quic_frame queue for the given source endpoint and cid.
 # - Updates auxiliary functions `num_queued_frames` and `queued_level`.
 #
 # Note: the auxilary functions contain redundant information that is useful for
 # specifying packet events. By encoding history information in this way, we make
 # it easier for constraint solvers to construct tests.
 # 
-# The argument probing indicates that the frame is a probing frame, according to [9.1]
+# The argument probing indicates that the quic_frame is a probing quic_frame, according to [9.1]
 # of the transport document( as of draft 23)
-action enqueue_frame(scid:cid, f:frame, e:quic_packet_type, probing:bool, seq: pkt_num) = {
+action enqueue_frame(scid:cid, f:quic_frame, e:quic_packet_type, probing:bool, seq: pkt_num) = {
     queued_frames(scid) := queued_frames(scid).append(f);
     num_queued_frames(scid) := queued_frames(scid).end;
     queued_level(scid) := e;
     if ~probing {
         queued_non_probing(scid) := true;
     };
-    if ~(f isa frame.ack){ #& ~(f isa frame.padding){
+    if ~(f isa quic_frame.ack){ #& ~(f isa quic_frame.padding){
         queued_non_ack(scid) := true;
     };
-    if  f isa frame.path_challenge {
+    if  f isa quic_frame.path_challenge {
         queued_challenge(scid) := true;
     };
-    if (f isa frame.connection_close) | (f isa frame.application_close) {
+    if (f isa quic_frame.connection_close) | (f isa quic_frame.application_close) {
         queued_close(scid) := true;
     };
     #Hamid
-    if ~(f isa frame.ack) & ~(f isa frame.connection_close) { #& ~(f isa frame.padding){ & ~queued_ack_eliciting(scid)
+    if ~(f isa quic_frame.ack) & ~(f isa quic_frame.connection_close) { #& ~(f isa quic_frame.padding){ & ~queued_ack_eliciting(scid)
 	    queued_ack_eliciting(scid) := true;
         if _generating {
             queued_ack_eliciting_pkt(seqnum_to_streampos(last_pkt_num(scid,e) + 0x1)) := true;  # TODO add client, vs server
@@ -2031,11 +2029,11 @@ action enqueue_frame(scid:cid, f:frame, e:quic_packet_type, probing:bool, seq: p
     #Hamid
 }
 
-action enqueue_frame_rtt(scid:cid, f:frame, e:quic_packet_type, probing:bool) = {
+action enqueue_frame_rtt(scid:cid, f:quic_frame, e:quic_packet_type, probing:bool) = {
     queued_frames_rtt(scid) := queued_frames_rtt(scid).append(f);
     num_queued_frames_rtt(scid) := queued_frames_rtt(scid).end;
     queued_level_rtt(scid) := e;
-    if ~(f isa frame.ack){ #& ~(f isa frame.padding){
+    if ~(f isa quic_frame.ack){ #& ~(f isa quic_frame.padding){
         queued_non_ack(scid) := true;
     };
 }
@@ -2102,7 +2100,7 @@ action stream_max_data(dcid:cid,id:stream_id, e:quic_packet_type) returns (max:s
 # - Four times the aid's `initial_max_stream_id_bidi` transport
 #   parameter, if the stream is bidirectional [4].
 #
-# - The stream id parameter of any MAX_STREAM_ID frame sent by the
+# - The stream id parameter of any MAX_STREAM_ID quic_frame sent by the
 #   aid, if it is of the same kind.
 
 action stream_id_allowed(dcid:cid,id:stream_id,e: quic_packet_type) returns (ok:bool) = {
@@ -2152,7 +2150,7 @@ action cid_to_stream_id(c:cid,len:cid_length) returns(res:stream_id) = {
 
 # The procedure computes the maximum number of additional bytes that a given
 # destination aid can receive, based on the `initial_max_data` transport parameter
-# and the highest position sent by the aid in a max data frame. This is computed as the
+# and the highest position sent by the aid in a max data quic_frame. This is computed as the
 # maximum of these two values, less the total data already received.
 
 action max_additional_data(dcid:cid) returns (max:stream_pos) = {

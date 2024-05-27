@@ -3,7 +3,7 @@
 
 include ping_types # should be change
 include ping_application
-include ping_packet
+include packet.ping_packet
 
 include ping_time
 ####
@@ -116,11 +116,11 @@ implement net.recv(host:endpoint_id, s:net.socket, src:ip.endpoint, pkts:pingd.a
     };
 }
 
-import action recv_ping(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:ping_packet)
-import action recv_pong(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:ping_packet)
+import action recv_ping(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet)
+import action recv_pong(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet)
 
 import action undefined_host_error(host:endpoint_id, s:net.socket, src:ip.endpoint)
 
 # 0. TODO John: On instancie le serdes
-instance ping_packet_serdes : serdes(ping_packet,stream_data,ping_ser,ping_deser)
+instance packet.ping_packet_serdes : serdes(packet.ping_packet,stream_data,ping_ser,ping_deser)
 
