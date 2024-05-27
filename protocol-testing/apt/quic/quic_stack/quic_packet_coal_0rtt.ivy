@@ -28,7 +28,7 @@ include byte_stream
 # and destination cid, protocol version (long format only), and a
 # packet sequence number. An initial packet also has a *retry token*, which
 # is a (possibly empty) sequence of bytes.  The *payload* of the
-# packet consists of a sequence of *frames* (see frame.ivy).
+# packet consists of a sequence of *frames* (see quic_frame.ivy).
 
 # TODO: retry and one_rtt packet types
 
@@ -56,14 +56,14 @@ object quic_packet_coal_0rtt = {
         src_cid_i : cid, # [5]
         token_i : stream_data, # [6]
         seq_num_i : pkt_num, # [7]
-        payload_i : frame.arr, # [8]
+        payload_i : quic_frame.arr, # [8]
         # 0rtt packet
         ptype : quic_packet_type, # [2]
         pversion : version, # [3]
         dst_cid : cid, # [4]
         src_cid : cid, # [5]
         seq_num : pkt_num, # [7]
-        payload : frame.arr # [8]
+        payload : quic_frame.arr # [8]
     }
 
     instance idx : unbounded_sequence
@@ -181,7 +181,7 @@ around packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_co
     require  conn_seen(dcid_i) -> hi_non_probing_endpoint(dcid_i,dst);  # [10]
 
     # TEMPORARY: do not apply ack-only rule to generated packets
-    # This can be removed when we have a frame queue per encryption level
+    # This can be removed when we have a quic_frame queue per encryption level
 
     #call show_ack_credit(scid, ack_credit(scid), queued_ack_eliciting(scid), queued_non_ack(scid), pkt.seq_num);
     require ~_generating & ~queued_non_ack(scid_i) -> ack_credit(scid_i) > 0;  # [5]
@@ -222,7 +222,7 @@ around packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_co
 
 
     # QUESTION: THis sentence is from draft-18 section 13.1: "An
-    #   endpoint MUST NOT send a packet containing only an ACK frame
+    #   endpoint MUST NOT send a packet containing only an ACK quic_frame
     #   in response to a packet containing only ACK or PADDING frames,
     #   even if there are packet gaps which precede the received
     #   packet." Do we interpret this to mean that an ack-only packet
@@ -285,7 +285,7 @@ around packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_co
 
     zero_rtt_sent := true;
 
-    queued_frames_rtt(scid) := frame.arr.empty;
+    queued_frames_rtt(scid) := quic_frame.arr.empty;
     queued_non_probing(scid) := false;
     queued_non_ack(scid) := false;
     queued_close(scid) := false;
@@ -344,7 +344,7 @@ around packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_co
         }
     };
 
-    # If the packet contains a close frame, then set `pkt_has_close`
+    # If the packet contains a close quic_frame, then set `pkt_has_close`
 
     if queued_close(scid_i) {
         pkt_has_close(scid_i,pkt.ptype_i,pkt.seq_num_i) := true;
@@ -372,7 +372,7 @@ around packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_co
 
     # The queued frames are deleted
     
-    queued_frames(scid_i) := frame.arr.empty;
+    queued_frames(scid_i) := quic_frame.arr.empty;
     queued_non_probing(scid_i) := false;
     queued_non_ack(scid_i) := false;
     queued_close(scid_i) := false;

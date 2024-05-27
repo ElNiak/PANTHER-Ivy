@@ -40,7 +40,7 @@ object endpoint = {
             var idx := pkts.begin;
             while idx < pkts.end {
                 var ppkt := pkts.value(idx);
-                var pkt := ping_packet_serdes.from_bytes(ppkt);
+                var pkt := packet.ping_packet_serdes.from_bytes(ppkt);
                 call recv_pong(host,src,dst,pkt);
                 var jdx := pkt.payload.begin;
                 while jdx < pkt.payload.end {
@@ -93,7 +93,7 @@ object endpoint = {
             while idx < pkts.end {
                 var ppkt := pkts.value(idx);
                 var tls_id := src_tls_id(dst); # todo multiple
-                var pkt := ping_packet_serdes.from_bytes(ppkt);
+                var pkt := packet.ping_packet_serdes.from_bytes(ppkt);
                 call recv_ping(host,src,dst,pkt);
                 var jdx := pkt.payload.begin;
                 while jdx < pkt.payload.end {

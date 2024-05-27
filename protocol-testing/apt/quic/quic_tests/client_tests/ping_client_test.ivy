@@ -26,8 +26,8 @@ before ping_packet_event {
     }
 }
 
-export frame.pong.handle
-export frame.timestamp.handle
+export quic_frame.pong.handle
+export quic_frame.timestamp.handle
 export ping_packet_event
 export client_send_event
 

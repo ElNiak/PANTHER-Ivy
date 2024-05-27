@@ -31,20 +31,20 @@ include ivy_quic_server_0rtt_tp
 # Note: some of these are commented out. They are added in other files
 # that include this one.
 
-export frame.ack.handle
-export frame.stream.handle
-export frame.crypto.handle
-export frame.path_response.handle
-export frame.handshake_done.handle
+export quic_frame.ack.handle
+export quic_frame.stream.handle
+export quic_frame.crypto.handle
+export quic_frame.path_response.handle
+export quic_frame.handshake_done.handle
 export packet_event
 export client_send_event
 export tls_recv_event
-#export frame.new_connection_id.handle
-#export frame.retire_connection_id.handle
-#export frame.rst_stream.handle
-#export frame.max_stream_id.handle
-#export frame.connection_close.handle
-#export frame.max_stream_data.handle
+#export quic_frame.new_connection_id.handle
+#export quic_frame.retire_connection_id.handle
+#export quic_frame.rst_stream.handle
+#export quic_frame.max_stream_id.handle
+#export quic_frame.connection_close.handle
+#export quic_frame.max_stream_data.handle
 
 # Final check
 #

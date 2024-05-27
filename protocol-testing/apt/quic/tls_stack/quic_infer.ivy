@@ -68,17 +68,17 @@ action infer_tls_events(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) = {
     var idx := pkt.payload.begin;
     while idx < pkt.payload.end {
         var f := pkt.payload.value(idx);
-        if some(cf:frame.crypto) f *> cf {
+        if some(cf:quic_frame.crypto) f *> cf {
             # call show_biatch_2(dst);
             call tls_send_event(src,dst,scid,dcid,cf.data,cf.offset,e,src_tls_id(src));
         };
-        if some(sf:frame.stream) f *> sf {
+        if some(sf:quic_frame.stream) f *> sf {
                 # require sf.offset <= stream_app_data_end(dcid,sf.id);  # TODO: deal with gaps in stream
                 # var data := sf.data.segment(stream_app_data_end(dcid,sf.id) - sf.offset,sf.data.end);
             call app_server_open_event_1rtt(src,dst,scid,dcid);    
             call app_send_event(src,dst,dcid,sf.id,sf.data,sf.offset,sf.fin)
         };
-        #if some(pf:frame.padding) f *> pf {
+        #if some(pf:quic_frame.padding) f *> pf {
             # do nothing
         #} else {
         call infer_frame(scid,dcid,f);
@@ -179,16 +179,16 @@ action infer_tls_events_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_0rt
     var idx := pkt.payload.begin;
     while idx < pkt.payload.end {
         var f := pkt.payload.value(idx);
-        # if some(cf:frame.crypto) f *> cf {
+        # if some(cf:quic_frame.crypto) f *> cf {
         #     call tls_send_event(src,dst,scid,dcid,cf.data,cf.offset,e)
         # };
-        if some(sf:frame.stream) f *> sf {
+        if some(sf:quic_frame.stream) f *> sf {
             # require sf.offset <= stream_app_data_end(dcid,sf.id);  # TODO: deal with gaps in stream
             # var data := sf.data.segment(stream_app_data_end(dcid,sf.id) - sf.offset,sf.data.end);
             call app_server_open_event_0rtt(src,dst,scid,dcid);
             call app_send_event(src,dst,dcid,sf.id,sf.data,sf.offset,sf.fin)
         };
-        #if some(pf:frame.padding) f *> pf {
+        #if some(pf:quic_frame.padding) f *> pf {
             # do nothing
         #} else {
             call infer_frame(scid,dcid,f);
@@ -205,5 +205,5 @@ import action app_server_open_event_1rtt(src:ip.endpoint,dst:ip.endpoint,scid:ci
 import action app_server_open_event_0rtt(src:ip.endpoint,dst:ip.endpoint,scid:cid,dcid:cid)
 import action app_server_open_event_retry(src:ip.endpoint,dst:ip.endpoint,scid:cid,dcid:cid)
 import action app_server_open_event_vn(src:ip.endpoint,dst:ip.endpoint,scid:cid,dcid:cid)
-import action infer_frame(scid:cid,dcid:cid,f:frame)
+import action infer_frame(scid:cid,dcid:cid,f:quic_frame)
 

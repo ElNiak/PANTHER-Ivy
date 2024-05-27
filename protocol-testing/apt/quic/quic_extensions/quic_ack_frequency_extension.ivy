@@ -5,7 +5,7 @@
 #   by the endpoints and network load.  An endpoint's loss detection and
 #   congestion control mechanisms however need to be tolerant of this
 #   delay at the peer.  An endpoint signals its tolerance to its peer
-#   using an ACK_FREQUENCY frame, shown below:
+#   using an ACK_FREQUENCY quic_frame, shown below:
 
 # The min_ack_delay transport parameter is a unilateral indication of support for receiving 
 # ACK_FREQUENCY frames. If an endpoint sends the transport parameter, the peer is allowed to 
@@ -46,9 +46,9 @@ after init {
 
 import action ack_freq_generated
 
-object frame = { ...
+object quic_frame = { ...
     object ack_frequency = { ...
-        action handle(f:frame.ack_frequency,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.ack_frequency,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {
             if _generating {
                 require ~ack_frequency_pending;
@@ -110,30 +110,30 @@ object frame = { ...
 }
 
 # #### immediate_ack event
-# A sender can use an ACK_FREQUENCY frame to reduce the number of 
+# A sender can use an ACK_FREQUENCY quic_frame to reduce the number of 
 # acknowledgements sent by a receiver, but doing so increases the
 #  likelihood that time-sensitive feedback is delayed as well. 
 #  For example, as described in Section 8.3, delaying acknowledgements 
 #  can increase the time it takes for a sender to detect packet loss. 
-#  Sending an IMMEDIATE_ACK frame can help mitigate this problem.
+#  Sending an IMMEDIATE_ACK quic_frame can help mitigate this problem.
 
-# An IMMEDIATE_ACK frame can be useful in other situations as well. 
+# An IMMEDIATE_ACK quic_frame can be useful in other situations as well. 
 # For example, if a sender wants an immediate RTT measurement or 
 # if a sender wants to establish receiver liveness as quickly as possible. 
 # PING frames (Section 19.2 of [QUIC-TRANSPORT]) are ack-eliciting, but 
-# if a PING frame is sent without an IMMEDIATE_ACK frame, the receiver might 
+# if a PING quic_frame is sent without an IMMEDIATE_ACK quic_frame, the receiver might 
 # not immediately send an ACK based on its local ACK strategy.
 
 # By definition IMMEDIATE_ACK frames are ack-eliciting. An endpoint 
-# SHOULD send a packet containing an ACK frame immediately upon receiving 
-# an IMMEDIATE_ACK frame. An endpoint MAY delay sending an ACK frame despite 
-# receiving an IMMEDIATE_ACK frame. For example, an endpoint might do this if 
+# SHOULD send a packet containing an ACK quic_frame immediately upon receiving 
+# an IMMEDIATE_ACK quic_frame. An endpoint MAY delay sending an ACK quic_frame despite 
+# receiving an IMMEDIATE_ACK quic_frame. For example, an endpoint might do this if 
 # a large number of received packets contain an IMMEDIATE_ACK or if the endpoint is 
 # under heavy load.
 
-object frame = { ...
+object quic_frame = { ...
     object immediate_ack = { ...
-        action handle(f:frame.immediate_ack,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.immediate_ack,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 	around handle {      
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);

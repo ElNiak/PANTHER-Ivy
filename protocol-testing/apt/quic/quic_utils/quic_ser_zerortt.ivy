@@ -598,7 +598,7 @@ object quic_ser_zerortt = {}
                     frame_type = 0x00;
                 }*/
 	            else {
-                    //std::cerr << "saw frame tag " << tag << "\n";  
+                    //std::cerr << "saw quic_frame tag " << tag << "\n";  
                     throw deser_err();
 	            }
                 setn(frame_type,sz);
@@ -709,7 +709,7 @@ object quic_ser_zerortt = {}
                     frame_type = 0x00;
                 }*/
 	            else {
-                    //std::cerr << "saw frame tag " << tag << "\n";  
+                    //std::cerr << "saw quic_frame tag " << tag << "\n";  
                     throw deser_err();
 	            }
                 setn(frame_type,sz);

@@ -183,21 +183,21 @@ before send_ack_eliciting_application_packet(src:ip.endpoint,dst:ip.endpoint,pkt
 # Note: some of these are commented out. They are added in other files
 # that include this one.
 
-export frame.ack.handle
-export frame.stream.handle
-export frame.crypto.handle
-export frame.path_challenge.handle
-# export frame.path_response.handle
+export quic_frame.ack.handle
+export quic_frame.stream.handle
+export quic_frame.crypto.handle
+export quic_frame.path_challenge.handle
+# export quic_frame.path_response.handle
 export packet_event
 export client_send_event
 export tls_recv_event
-#export frame.new_connection_id.handle
-#export frame.retire_connection_id.handle
-#export frame.rst_stream.handle
-#export frame.max_stream_id.handle
-# export frame.connection_close.handle # TODO
-#export frame.max_stream_data.handle
-#export frame.max_data.handle
+#export quic_frame.new_connection_id.handle
+#export quic_frame.retire_connection_id.handle
+#export quic_frame.rst_stream.handle
+#export quic_frame.max_stream_id.handle
+# export quic_frame.connection_close.handle # TODO
+#export quic_frame.max_stream_data.handle
+#export quic_frame.max_data.handle
 
 # import action show_is_sleep_fake_timeout(is_sleep_fake_timeout:bool)
 
@@ -205,7 +205,7 @@ import action show_last_pkt_num_for_cid(pktnum:pkt_num,dst_cid:cid,ptype:quic_pa
 export send_ack_eliciting_handshake_packet
 export send_ack_eliciting_initial_packet
 export send_ack_eliciting_application_packet
-export frame.ping.handle
+export quic_frame.ping.handle
 
 export action _finalize = {
     # chris TODO 

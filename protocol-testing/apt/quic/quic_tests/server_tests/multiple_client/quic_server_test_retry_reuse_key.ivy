@@ -202,16 +202,16 @@ import action show_token_retry(v:stream_data)
 # To restrict the generated events, we use the built-in predicate
 # "_generating" that is true if this is a generated event.
 #
-# This is the mirror constraint for the stream frame protocol. We add
+# This is the mirror constraint for the stream quic_frameframeframe protocol. We add
 # some requirements to make the tests more interesting. In particular,
 # we don't want the tester to produce lots of tiny frames (or empty
-# ones) so we require that a stream frame send all of the available
+# ones) so we require that a stream quic_frameframeframe send all of the available
 # stream data. 
 #
 # TODO: We reuquire tje `off` and `len` bits to be true. Maybe these should
 # determined in the low-level packet encoding stage.
 
-before frame.stream.handle(f:frame.stream,scid:cid,dcid:cid,e:quic_packet_type) {
+before quic_frameframeframe.streamquic_framequic_framequic_frame.stream,scid:cid,dcid:cid,e:quic_packet_type) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
         require (connected(the_cid) & dcid = connected_to(the_cid)) | (connected(the_cid_alt) & dcid = connected_to(the_cid_alt));
@@ -225,7 +225,7 @@ before frame.stream.handle(f:frame.stream,scid:cid,dcid:cid,e:quic_packet_type) 
 
 # We have something similar for crypto frames
 
-before frame.crypto.handle(f:frame.crypto,scid:cid,dcid:cid,e:quic_packet_type) {
+before quic_frameframeframe.cryptoquic_framequic_framequic_frame.crypto,scid:cid,dcid:cid,e:quic_packet_type) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
         require f.length > 0;
@@ -246,7 +246,7 @@ before frame.crypto.handle(f:frame.crypto,scid:cid,dcid:cid,e:quic_packet_type) 
 # ACK's to have at least on previously unacked sequenc number. There
 # should be a better way to do this.
 
-before frame.ack.handle(f:frame.ack,scid:cid,dcid:cid) {
+before quic_frameframeframe.ackquic_framequic_framequic_frame.ack,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
         force_new_ack := true;
@@ -256,7 +256,7 @@ before frame.ack.handle(f:frame.ack,scid:cid,dcid:cid) {
 
 # Generate rst_stream frames only for the environment process(es).
 
-before frame.rst_stream.handle(f:frame.rst_stream,scid:cid,dcid:cid) {
+before quic_frameframeframe.rst_streamquic_framequic_framequic_frame.rst_stream,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
         require f.id = 4;
@@ -265,7 +265,7 @@ before frame.rst_stream.handle(f:frame.rst_stream,scid:cid,dcid:cid) {
 
 # Generate stop_sending frames only for the environment process(es).
 
-before frame.stop_sending.handle(f:frame.stop_sending,scid:cid,dcid:cid) {
+before quic_frameframeframe.stop_sendingquic_framequic_framequic_frame.stop_sending,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
         require f.id = 4;
@@ -274,20 +274,20 @@ before frame.stop_sending.handle(f:frame.stop_sending,scid:cid,dcid:cid) {
 
 # Generate max_streams frames only for the environment process(es).
 
-before frame.max_streams.handle(f:frame.max_streams,scid:cid,dcid:cid) {
+before quic_frameframeframe.max_streamsquic_framequic_framequic_frame.max_streams,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
     }
 }
 
-before frame.new_connection_id.handle(f:frame.new_connection_id,scid:cid,dcid:cid) {
+before quic_frameframeframe.new_connection_idquic_framequic_framequic_frame.new_connection_id,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
     }
 }
 
 
-before frame.retire_connection_id.handle(f:frame.retire_connection_id,scid:cid,dcid:cid) {
+before quic_frameframeframe.retire_connection_idquic_framequic_framequic_frame.retire_connection_id,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
     }
@@ -299,7 +299,7 @@ before frame.retire_connection_id.handle(f:frame.retire_connection_id,scid:cid,d
 # Note: requiring the `err_code` is zero on non-generated frames means that
 # we stop the test if the peer reports a protocol error. 
 
-before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid) {
+before quic_frameframeframe.connection_closequic_framequic_framequic_frame.connection_close,scid:cid,dcid:cid) {
     if _generating {
         require (scid = the_cid & conn_total_data(the_cid) > 100) & (scid = the_cid_alt & conn_total_data(the_cid_alt) > 100);
         require f.err_code = 0;
@@ -311,7 +311,7 @@ before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid)
 
 # Generate application_close frames only for the environment process(es).
 
-before frame.application_close.handle(f:frame.application_close,scid:cid,dcid:cid) {
+before quic_frameframeframe.application_closequic_framequic_framequic_frame.application_close,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
         require (conn_total_data(the_cid) > 30) & (conn_total_data(the_cid_alt) > 30); # tricks
@@ -325,7 +325,7 @@ before frame.application_close.handle(f:frame.application_close,scid:cid,dcid:ci
 # Generate max_stream_data frames only for the environment process(es), and only for
 # a restricted range of frames (so we don't throttle all of the data).
 
-before frame.max_stream_data.handle(f:frame.max_stream_data,scid:cid,dcid:cid) {
+before quic_frameframeframe.max_stream_dataquic_framequic_framequic_frame.max_stream_data,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
         require 4 <= f.id & f.id <= 16;
@@ -333,9 +333,9 @@ before frame.max_stream_data.handle(f:frame.max_stream_data,scid:cid,dcid:cid) {
 }
 
 # Generate stream_data_blocked frames only for the environment process(es).
-# We restrict the frame id.
+# We restrict the quic_frameframeframe id.
 
-before frame.stream_data_blocked.handle(f:frame.stream_data_blocked,scid:cid,dcid:cid) {
+before quic_frameframeframe.stream_data_blockedquic_framequic_framequic_frame.stream_data_blocked,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
         require f.id = 4;
@@ -346,7 +346,7 @@ before frame.stream_data_blocked.handle(f:frame.stream_data_blocked,scid:cid,dci
 # non-generated frames, we check that the max_data value doesn't decrease.
 # This is not forbidden, but it seems like a good thing to check.
 
-before frame.max_data.handle(f:frame.max_data,scid:cid,dcid:cid) {
+before quic_frameframeframe.max_dataquic_framequic_framequic_frame.max_data,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
         require f.pos = 4000;
@@ -401,22 +401,22 @@ around client_send_event {
 # Note: some of these are commented out. They are added in other files
 # that include this one.
 
-export frame.ack.handle
-export frame.stream.handle
-export frame.crypto.handle
-export frame.path_response.handle
+export quic_frameframeframe.ack.handle
+export quic_frameframeframe.stream.handle
+export quic_frameframeframe.crypto.handle
+export quic_frameframeframe.path_response.handle
 export packet_event
 export client_send_event
 export tls_recv_event
-#export frame.new_connection_id.handle
-#export frame.retire_connection_id.handle
-#export frame.rst_stream.handle
-#export frame.max_stream_id.handle
-export frame.connection_close.handle
-#export frame.max_stream_data.handle
-#export frame.max_data.handle
-attribute frame.crypto.handle.weight = "5"
-attribute frame.path_response.handle.weight = "5"
+#export quic_frameframeframe.new_connection_id.handle
+#export quic_frameframeframe.retire_connection_id.handle
+#export quic_frameframeframe.rst_stream.handle
+#export quic_frameframeframe.max_stream_id.handle
+export quic_frameframeframe.connection_close.handle
+#export quic_frameframeframe.max_stream_data.handle
+#export quic_frameframeframe.max_data.handle
+attribute quic_frameframeframe.crypto.handle.weight = "5"
+attribute quic_frameframeframe.path_response.handle.weight = "5"
 
 # Final check
 #

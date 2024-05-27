@@ -23,11 +23,11 @@ function max_datagram_size : stream_pos
 
 
 # The highest value reported for the ECN-CE counter in the packet number space by the peer in an 
-# ACK frame. This value is used to detect increases in the reported ECN-CE counter.
+# ACK quic_frame. This value is used to detect increases in the reported ECN-CE counter.
 function ecn_ce_counters(E:quic_packet_type) : stream_pos
 
 # The sum of the size in bytes of all sent packets that contain at least one ack-eliciting or 
-# PADDING frame and have not been acknowledged or declared lost. 
+# PADDING quic_frame and have not been acknowledged or declared lost. 
 # The size does not include IP or UDP overhead, but does include the QUIC header and 
 # Authenticated Encryption with Associated Data (AEAD) overhead. Packets only containing ACK 
 # frames do not count toward bytes_in_flight to ensure congestion control does not impede congestion feedback.
@@ -75,8 +75,8 @@ action on_congestion_event(sent_time_of_last_loss:microseconds) = {
     }
 }
 
-# This is invoked when an ACK frame with an ECN section is received from the peer.
-# action process_ecn(ecn:frame.ack_ecn, pn_space:quic_packet_type) = {
+# This is invoked when an ACK quic_frame with an ECN section is received from the peer.
+# action process_ecn(ecn:quic_frame.ack_ecn, pn_space:quic_packet_type) = {
 #     # // If the ECN-CE counter reported by the peer has increased,
 #     # // this could be a new congestion event.
 #     if ecn.ecn_counts > ecn_ce_counters(pn_space) {

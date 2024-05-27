@@ -3,33 +3,30 @@
 include collections
 include order
 
-object frame = {
-
-    # The base type for frames
-
+object ping_frame = {
+    # The base type for ping_frames
     type this
-
 
     # (0x01)
     object ping = {
-        # Ping frames contain no data, check peers still alive
-        variant this of frame = struct {
+        # Ping ping_frames contain no data, check peers still alive
+        variant this of ping_frame = struct {
             data : stream_data
         }
     }
 
     # (0x02)
     object pong = {
-        # Pong frames contain no data, check peers still alive
-        variant this of frame = struct {
+        # Pong ping_frames contain no data, check peers still alive
+        variant this of ping_frame = struct {
             data : stream_data
         }
     }
 
     # (0x03)
     object timestamp = {
-        # Timestamp frames contain no data, check peers still alive
-        variant this of frame = struct {
+        # Timestamp ping_frames contain no data, check peers still alive
+        variant this of ping_frame = struct {
             time : milliseconds
         }
     }
@@ -38,32 +35,31 @@ object frame = {
     instance arr : array(idx,this)
 }       
 
-function queued_frames : frame.arr
-function num_queued_frames : frame.idx
+function queued_ping_frames : ping_frame.arr
+function num_queued_ping_frames : ping_frame.idx
 
 relation ping_frame_pending
 relation timestamp_frame_pending
 
-
 function estimated_latency : milliseconds
 
 after init {
-    ping_frame_pending := false;
+    ping_frame_pending      := false;
     timestamp_frame_pending := false;
 }
 
-object frame = {
+object ping_frame = {
     ...
     action handle(f:this) = {
         require false; 
     }
 }
 
-object frame = {
+object ping_frame = {
     ...
     object ping = {
         ...
-        action handle(f:frame.ping)
+        action handle(f:ping_frame.ping)
 
         around handle {
             current_time := time_api.c_timer.now_millis_last_bp;
@@ -81,11 +77,13 @@ object frame = {
     }
 }
 
-object frame = {
+object ping_frame
+ = {
     ...
     object pong = {
         ...
-        action handle(f:frame.pong)
+        action handle(f:ping_frame
+.pong)
 
         around handle {
             if _generating {
@@ -106,11 +104,13 @@ object frame = {
     }
 }
 
-object frame = {
+object ping_frame
+ = {
     ...
     object timestamp = {
         ...
-        action handle(f:frame.timestamp)
+        action handle(f:ping_frame
+.timestamp)
 
         around handle {
             if _generating {
@@ -129,7 +129,8 @@ object frame = {
 
 import action show_estimated_latency(l:milliseconds)
 
-action enqueue_frame(f:frame) = {
+action enqueue_frame(f:ping_frame
+) = {
     queued_frames := queued_frames.append(f);
     num_queued_frames := queued_frames.end;
 }

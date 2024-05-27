@@ -35,7 +35,7 @@ include quic_shim
 # mapped to an open socket. This map is provided by `endpoint_to_socket`.
 #
 
-import action show_pkt_payload(load:frame.arr)
+import action show_pkt_payload(load:quic_frame.arr)
 after packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
     # if src = server.ep  {
@@ -43,13 +43,13 @@ after packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
         if ~is_not_sleeping {
             call show_pkt_payload(pkt.payload);
             var idx := pkt.payload.begin;
-            var new_pkt_payload := frame.arr.empty;
+            var new_pkt_payload := quic_frame.arr.empty;
             while idx < pkt.payload.end {
                 var f := pkt.payload.value(idx);
-                if some(sf:frame.stream) f *> sf {
+                if some(sf:quic_frame.stream) f *> sf {
                     # no stream data is sent when sleeping
                 }
-                else if some(pf:frame.ping) f *> pf {
+                else if some(pf:quic_frame.ping) f *> pf {
                     # no stream data is sent when sleeping
                 }
                 else {

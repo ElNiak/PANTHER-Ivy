@@ -213,8 +213,8 @@ object quic_deser_retry = {}
 
         virtual bool open_list_elem() {
             if (state == quic_s_retry_token) {
-                // We must use/take in count the padding frame since Picoquic client sometimes send packet
-                // only with 1 padding frame which make fails the requirement saying that a 
+                // We must use/take in count the padding quic_frame since Picoquic client sometimes send packet
+                // only with 1 padding quic_frame which make fails the requirement saying that a 
                 // packet cannot be empty
                /*while ((fence == 0 || pos < fence) && more(1) && inp[pos] == 0)
                    pos++;  // skip padding frames
@@ -222,8 +222,8 @@ object quic_deser_retry = {}
                return token_count < token_len; //(fence == 0 || pos < fence) && more(1);
             }
             if (quic_s_retry_integrity_tag) {
-                // We must use/take in count the padding frame since Picoquic client sometimes send packet
-                // only with 1 padding frame which make fails the requirement saying that a 
+                // We must use/take in count the padding quic_frame since Picoquic client sometimes send packet
+                // only with 1 padding quic_frame which make fails the requirement saying that a 
                 // packet cannot be empty
                /*while ((fence == 0 || pos < fence) && more(1) && inp[pos] == 0)
                    pos++;  // skip padding frames

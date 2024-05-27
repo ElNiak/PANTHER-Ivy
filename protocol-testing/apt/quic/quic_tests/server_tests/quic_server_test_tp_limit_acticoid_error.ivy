@@ -38,9 +38,9 @@ action make_transport_parameters returns (tp:quic_transport_parameters) = {
     max_streams_bidi.stream_id_16 := random_stream_id(4,0xFFFFFFF);
     tp.transport_parameters := tp.transport_parameters.append(max_streams_bidi);
 
-    #   A NEW_CONNECTION_ID frame might cause an endpoint to add some active
+    #   A NEW_CONNECTION_ID quic_frameframeframe might cause an endpoint to add some active
     #    connection IDs and retire others based on the value of the Retire
-    #    Prior To field.  After processing a NEW_CONNECTION_ID frame and
+    #    Prior To field.  After processing a NEW_CONNECTION_ID quic_frameframeframe and
     #    adding and retiring active connection IDs, if the number of active
     #    connection IDs exceeds the value advertised in its
     #    active_connection_id_limit transport parameter, an endpoint MUST
@@ -63,15 +63,15 @@ after init {
     call tls_api.upper.create(0,false,extns);  # false means this instance of tls is not a server
 }
 
-    #   A NEW_CONNECTION_ID frame might cause an endpoint to add some active
+    #   A NEW_CONNECTION_ID quic_frameframeframe might cause an endpoint to add some active
     #    connection IDs and retire others based on the value of the Retire
-    #    Prior To field.  After processing a NEW_CONNECTION_ID frame and
+    #    Prior To field.  After processing a NEW_CONNECTION_ID quic_frameframeframe and
     #    adding and retiring active connection IDs, if the number of active
     #    connection IDs exceeds the value advertised in its
     #    active_connection_id_limit transport parameter, an endpoint MUST
     #    close the connection with an error of type CONNECTION_ID_LIMIT_ERROR.
 
-before frame.new_connection_id.handle(f:frame.new_connection_id,scid:cid,dcid:cid) {
+before quic_frameframeframe.new_connection_idquic_framequic_framequic_frame.new_connection_id,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid;
     }
@@ -82,7 +82,7 @@ before frame.new_connection_id.handle(f:frame.new_connection_id,scid:cid,dcid:ci
 # Note: requiring the `err_code` is zero on non-generated frames means that
 # we stop the test if the peer reports a protocol error. 
 
-before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid) {
+before quic_frameframeframe.connection_closequic_framequic_framequic_frame.connection_close,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid;
     } else {
@@ -92,27 +92,27 @@ before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid)
 
 # Generate application_close frames only for the environment process(es).
 
-before frame.application_close.handle(f:frame.application_close,scid:cid,dcid:cid) {
+before quic_frameframeframe.application_closequic_framequic_framequic_frame.application_close,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid;
     }
 }
-export frame.ack.handle
-export frame.stream.handle
-export frame.crypto.handle
-export frame.path_response.handle
+export quic_frameframeframe.ack.handle
+export quic_frameframeframe.stream.handle
+export quic_frameframeframe.crypto.handle
+export quic_frameframeframe.path_response.handle
 export packet_event
 export client_send_event
 export tls_recv_event
 
-export frame.new_connection_id.handle
-attribute frame.new_connection_id.handle.weight = "5"
+export quic_frameframeframe.new_connection_id.handle
+attribute quic_frameframeframe.new_connection_id.handle.weight = "5"
 
-#export frame.retire_connection_id.handle
-#export frame.rst_stream.handle
-#export frame.max_stream_id.handle
-#export frame.connection_close.handle
-#export frame.max_stream_data.handle
+#export quic_frameframeframe.retire_connection_id.handle
+#export quic_frameframeframe.rst_stream.handle
+#export quic_frameframeframe.max_stream_id.handle
+#export quic_frameframeframe.connection_close.handle
+#export quic_frameframeframe.max_stream_data.handle
 
 # Final check
 #

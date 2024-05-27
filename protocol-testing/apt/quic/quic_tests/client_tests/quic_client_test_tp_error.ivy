@@ -43,7 +43,7 @@ action make_transport_parameters returns (tp:quic_transport_parameters) = {
 
     # ack_delay_exponent (0x0a):  The acknowledgement delay exponent is an
     #  integer value indicating an exponent used to decode the ACK Delay
-    #  field in the ACK frame (Section 19.3).  If this value is absent, a
+    #  field in the ACK quic_frame (Section 19.3).  If this value is absent, a
     #  default value of 3 is assumed (indicating a multiplier of 8).
     #  Values above 20 are invalid.
 
@@ -55,7 +55,7 @@ action make_transport_parameters returns (tp:quic_transport_parameters) = {
 
 # Generate connection_close frames only for the client.
 
-before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid) {
+before quic_frame.connection_close.handquic_framequic_frame.connection_close,scid:cid,dcid:cid) {
     if _generating {
         require client.ep.addr ~= 0;         
         require scid = the_cid;
@@ -66,7 +66,7 @@ before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid)
 
 # Generate connection_close frames only for the client.
 
-before frame.application_close.handle(f:frame.application_close,scid:cid,dcid:cid) {
+before quic_frame.application_close.handquic_framequic_frame.application_close,scid:cid,dcid:cid) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;
@@ -77,20 +77,20 @@ before frame.application_close.handle(f:frame.application_close,scid:cid,dcid:ci
 # Note: some of these are commented out. They are added in other files
 # that include this one.
 
-export frame.ack.handle
-export frame.stream.handle
-export frame.crypto.handle
-export frame.path_response.handle
-export frame.handshake_done.handle
+export quic_frame.ack.handle
+export quic_frame.stream.handle
+export quic_frame.crypto.handle
+export quic_frame.path_response.handle
+export quic_frame.handshake_done.handle
 export packet_event
 export client_send_event
 export tls_recv_event
-#export frame.new_connection_id.handle
-#export frame.retire_connection_id.handle
-#export frame.rst_stream.handle
-#export frame.max_stream_id.handle
-#export frame.connection_close.handle
-#export frame.max_stream_data.handle
+#export quic_frame.new_connection_id.handle
+#export quic_frame.retire_connection_id.handle
+#export quic_frame.rst_stream.handle
+#export quic_frame.max_stream_id.handle
+#export quic_frame.connection_close.handle
+#export quic_frame.max_stream_data.handle
 
 # Final check
 #

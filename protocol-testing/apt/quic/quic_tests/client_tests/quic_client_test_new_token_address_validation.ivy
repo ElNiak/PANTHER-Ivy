@@ -6,7 +6,7 @@
 #    potentially sends a significant amount of data to a client in
 #    response to 0-RTT data.
 
-#    The server uses the NEW_TOKEN frame Section 19.7 to provide the
+#    The server uses the NEW_TOKEN quic_frame Section 19.7 to provide the
 #    client with an address validation token that can be used to validate
 #    future connections.  The client includes this token in Initial
 #    packets to provide address validation in a future connection.  The
@@ -16,7 +16,7 @@
 #    discard any Initial packet that does not carry the expected token.
 
 #    Unlike the token that is created for a Retry packet, which is used
-#    immediately, the token sent in the NEW_TOKEN frame might be used
+#    immediately, the token sent in the NEW_TOKEN quic_frame might be used
 #    after some period of time has passed.  Thus, a token SHOULD have an
 #    expiration time, which could be either an explicit expiration time or
 #    an issued timestamp that can be used to dynamically calculate the
@@ -27,7 +27,7 @@
 #    allow values to be linked by an observer to the connection on which
 #    it was issued, unless the values are encrypted.  For example, it
 #    cannot include the previous connection ID or addressing information.
-#    A server MUST ensure that every NEW_TOKEN frame it sends is unique
+#    A server MUST ensure that every NEW_TOKEN quic_frame it sends is unique
 #    across all clients, with the exception of those sent to repair losses
 #    of previously sent NEW_TOKEN frames.  Information that allows the
 #    server to distinguish between tokens from Retry and NEW_TOKEN MAY be
@@ -37,7 +37,7 @@
 #    different connections; validating the port is therefore unlikely to
 #    be successful.
 
-#    A token received in a NEW_TOKEN frame is applicable to any server
+#    A token received in a NEW_TOKEN quic_frame is applicable to any server
 #    that the connection is considered authoritative for (e.g., server
 #    names included in the certificate).  When connecting to a server for
 #    which the client retains an applicable and unused token, it SHOULD
@@ -53,7 +53,7 @@
 #    A token allows a server to correlate activity between the connection
 #    where the token was issued and any connection where it is used.
 #    Clients that want to break continuity of identity with a server MAY
-#    discard tokens provided using the NEW_TOKEN frame.  In comparison, a
+#    discard tokens provided using the NEW_TOKEN quic_frame.  In comparison, a
 #    token obtained in a Retry packet MUST be used immediately during the
 #    connection attempt and cannot be used in subsequent connection
 #    attempts.
@@ -70,7 +70,7 @@
 
 #    Note:  The rationale for treating the client as unvalidated rather
 #       than discarding the packet is that the client might have received
-#       the token in a previous connection using the NEW_TOKEN frame, and
+#       the token in a previous connection using the NEW_TOKEN quic_frame, and
 #       if the server has lost state, it might be unable to validate the
 #       token at all, leading to connection failure if the packet is
 #       discarded.
@@ -117,7 +117,7 @@ include ivy_quic_server_standard_tp
 
 # Generate connection_close frames only for the client.
 
-before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid) {
+before quic_frame.connection_close.handquic_framequic_frame.connection_close,scid:cid,dcid:cid) {
     if _generating {
         require client.ep.addr ~= 0;         
         require scid = the_cid;
@@ -128,7 +128,7 @@ before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid)
 
 # Generate connection_close frames only for the client.
 
-before frame.application_close.handle(f:frame.application_close,scid:cid,dcid:cid) {
+before quic_frame.application_close.handquic_framequic_frame.application_close,scid:cid,dcid:cid) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;
@@ -136,7 +136,7 @@ before frame.application_close.handle(f:frame.application_close,scid:cid,dcid:ci
 }
 
 
-before frame.new_token.handle(f:frame.new_token,scid:cid,dcid:cid) {
+before quic_frame.new_token.handquic_framequic_frame.new_token,scid:cid,dcid:cid) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;
@@ -148,22 +148,22 @@ before frame.new_token.handle(f:frame.new_token,scid:cid,dcid:cid) {
 # Note: some of these are commented out. They are added in other files
 # that include this one.
 
-export frame.ack.handle
-export frame.stream.handle
-export frame.crypto.handle
-export frame.path_response.handle
-export frame.handshake_done.handle
+export quic_frame.ack.handle
+export quic_frame.stream.handle
+export quic_frame.crypto.handle
+export quic_frame.path_response.handle
+export quic_frame.handshake_done.handle
 export packet_event
 export client_send_event
 export tls_recv_event
-#export frame.new_connection_id.handle
-#export frame.retire_connection_id.handle
-#export frame.rst_stream.handle
-#export frame.max_stream_id.handle
-#export frame.connection_close.handle
-#export frame.max_stream_data.handle
+#export quic_frame.new_connection_id.handle
+#export quic_frame.retire_connection_id.handle
+#export quic_frame.rst_stream.handle
+#export quic_frame.max_stream_id.handle
+#export quic_frame.connection_close.handle
+#export quic_frame.max_stream_data.handle
 
-export frame.new_token.handle
+export quic_frame.new_token.handle
 
 
 # Final check

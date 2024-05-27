@@ -547,7 +547,7 @@ object quic_deser = {}
                     state = quic_crypto_offset;
                     return 5;
                 }
-                if (frame_type == 0x07) {  // new token frame
+                if (frame_type == 0x07) {  // new token quic_frame
                     state = quic_crypto_length;  // new token equivalent to this
                     return 6;
                 }
@@ -555,7 +555,7 @@ object quic_deser = {}
                     state = quic_stream_off;
                     return 7;
                 }
-                if (frame_type == 0x10) {  // new token frame
+                if (frame_type == 0x10) {  // new token quic_frame
                     state = quic_reset_final_offset;  // max_data equivalent to this
                     return 8;
                 }
@@ -650,8 +650,8 @@ object quic_deser = {}
 
         virtual bool open_list_elem() {
             if (state == quic_s_payload) {
-                // We must use/take in count the padding frame since Picoquic client sometimes send packet
-                // only with 1 padding frame which make fails the requirement saying that a 
+                // We must use/take in count the padding quic_frame since Picoquic client sometimes send packet
+                // only with 1 padding quic_frame which make fails the requirement saying that a 
                 // packet cannot be empty
                while ((fence == 0 || pos < fence) && more(1) && inp[pos] == 0)
                    pos++;  // skip padding frames
@@ -667,8 +667,8 @@ object quic_deser = {}
             if (state == quic_s_retry_token)
                 return data_remaining-- > 0;
             //if (state == quic_s_retry_token) {
-                // We must use/take in count the padding frame since Picoquic client sometimes send packet
-                // only with 1 padding frame which make fails the requirement saying that a 
+                // We must use/take in count the padding quic_frame since Picoquic client sometimes send packet
+                // only with 1 padding quic_frame which make fails the requirement saying that a 
                 // packet cannot be empty
                /*while ((fence == 0 || pos < fence) && more(1) && inp[pos] == 0)
                    pos++;  // skip padding frames

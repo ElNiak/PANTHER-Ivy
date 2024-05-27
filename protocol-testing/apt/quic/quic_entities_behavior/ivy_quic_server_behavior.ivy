@@ -261,13 +261,13 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
 # the tester. We can determine this using the built-in predicate
 # "_generating".
 
-# This is the tester constraint for the stream frame protocol. We add some requirements
+# This is the tester constraint for the stream quic_frame protocol. We add some requirements
 # to make the tests more interesting. In particular, we don't want the tester to
-# produce lots of tiny frames (or empty ones) so we require that a stream frame
+# produce lots of tiny frames (or empty ones) so we require that a stream quic_frame
 # send all of the available stream data. We never allow the fin bt to be set, since
 # we don't really have good rules for this yet.
 
-before frame.stream.handle(f:frame.stream,scid:cid,dcid:cid,e:quic_packet_type) {
+before quic_frame.stream.handle(f:quic_frame.stream,scid:cid,dcid:cid,e:quic_packet_type) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;
@@ -289,9 +289,9 @@ before frame.stream.handle(f:frame.stream,scid:cid,dcid:cid,e:quic_packet_type) 
 #
 # TEMPORARY: we require the server to send crypto frames in order of encryption level from initial to
 # handshake to 1rtt. This is because we are prohibiting retransmissions, so an early-arriving handshake
-# frame would be dropped because keys are not available and then permanently lost [1]. (nb:chris: other before)
+# quic_frame would be dropped because keys are not available and then permanently lost [1]. (nb:chris: other before)
 
-before frame.crypto.handle(f:frame.crypto,scid:cid,dcid:cid,e:quic_packet_type) {
+before quic_frame.crypto.handle(f:quic_frame.crypto,scid:cid,dcid:cid,e:quic_packet_type) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;
@@ -307,7 +307,7 @@ before frame.crypto.handle(f:frame.crypto,scid:cid,dcid:cid,e:quic_packet_type) 
 
 # Generate ack frames only for the client.
 
-before frame.ack.handle(f:frame.ack,scid:cid,dcid:cid) {
+before quic_frame.ack.handle(f:quic_frame.ack,scid:cid,dcid:cid) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;
@@ -317,7 +317,7 @@ before frame.ack.handle(f:frame.ack,scid:cid,dcid:cid) {
 
 # Generate rst_stream frames only for the client.
 
-before frame.rst_stream.handle(f:frame.rst_stream,scid:cid,dcid:cid) {
+before quic_frame.rst_stream.handle(f:quic_frame.rst_stream,scid:cid,dcid:cid) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;
@@ -327,7 +327,7 @@ before frame.rst_stream.handle(f:frame.rst_stream,scid:cid,dcid:cid) {
 
 # Generate stop_sending frames only for the client.
 
-before frame.stop_sending.handle(f:frame.stop_sending,scid:cid,dcid:cid) {
+before quic_frame.stop_sending.handle(f:quic_frame.stop_sending,scid:cid,dcid:cid) {
     if _generating {
         require client.ep.addr ~= 0;       
         require scid = the_cid;
@@ -337,7 +337,7 @@ before frame.stop_sending.handle(f:frame.stop_sending,scid:cid,dcid:cid) {
 
 # Generate max_streams frames only for the client.
 
-before frame.max_streams.handle(f:frame.max_streams,scid:cid,dcid:cid) {
+before quic_frame.max_streams.handle(f:quic_frame.max_streams,scid:cid,dcid:cid) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;
@@ -346,7 +346,7 @@ before frame.max_streams.handle(f:frame.max_streams,scid:cid,dcid:cid) {
 
 # Generate connection_close frames only for the client.
 
-before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid) {
+before quic_frame.connection_close.handle(f:quic_frame.connection_close,scid:cid,dcid:cid) {
     if _generating {
         require client.ep.addr ~= 0;         
         require scid = the_cid;
@@ -358,7 +358,7 @@ before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid)
 
 # Generate connection_close frames only for the client.
 
-before frame.application_close.handle(f:frame.application_close,scid:cid,dcid:cid) {
+before quic_frame.application_close.handle(f:quic_frame.application_close,scid:cid,dcid:cid) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;
@@ -370,7 +370,7 @@ before frame.application_close.handle(f:frame.application_close,scid:cid,dcid:ci
 
 # Generate max_stream_data frames only for the client.
 
-before frame.max_stream_data.handle(f:frame.max_stream_data,scid:cid,dcid:cid) {
+before quic_frame.max_stream_data.handle(f:quic_frame.max_stream_data,scid:cid,dcid:cid) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;
@@ -381,7 +381,7 @@ before frame.max_stream_data.handle(f:frame.max_stream_data,scid:cid,dcid:cid) {
 # Generate stream_data_blocked frames only for the client.
 
 
-before frame.stream_data_blocked.handle(f:frame.stream_data_blocked,scid:cid,dcid:cid) {
+before quic_frame.stream_data_blocked.handle(f:quic_frame.stream_data_blocked,scid:cid,dcid:cid) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;
@@ -389,7 +389,7 @@ before frame.stream_data_blocked.handle(f:frame.stream_data_blocked,scid:cid,dci
     }
 }
 
-before frame.ping.handle(f:frame.ping,scid:cid,dcid:cid) {
+before quic_frame.ping.handle(f:quic_frame.ping,scid:cid,dcid:cid) {
     call show_generating(_generating);
     if _generating {
         require client.ep.addr ~= 0;
@@ -399,7 +399,7 @@ before frame.ping.handle(f:frame.ping,scid:cid,dcid:cid) {
 
 import action show_connected(c1:bool, c2:cid)
 
-before frame.handshake_done.handle(f:frame.handshake_done,scid:cid,dcid:cid) {
+before quic_frame.handshake_done.handle(f:quic_frame.handshake_done,scid:cid,dcid:cid) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;
@@ -410,7 +410,7 @@ before frame.handshake_done.handle(f:frame.handshake_done,scid:cid,dcid:cid) {
     }
 }
 
-before frame.new_token.handle(f:frame.new_token,scid:cid,dcid:cid) {
+before quic_frame.new_token.handle(f:quic_frame.new_token,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid;
         # call handle_sending_ack(f.largest_acked);
@@ -422,7 +422,7 @@ before frame.new_token.handle(f:frame.new_token,scid:cid,dcid:cid) {
 
 # Generate max_data frames only for the client.
 
-before frame.max_data.handle(f:frame.max_data,scid:cid,dcid:cid) {
+before quic_frame.max_data.handle(f:quic_frame.max_data,scid:cid,dcid:cid) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;
@@ -473,8 +473,8 @@ interpret version -> bv[32]
 interpret pkt_num -> bv[32]
 interpret error_code -> bv[16]
 interpret stream_id -> bv[16]
-attribute frame.idx.cardinality = 1
-attribute frame.ack.range.idx.cardinality = 1
+attribute quic_frame.idx.cardinality = 1
+attribute quic_frame.ack.range.idx.cardinality = 1
 attribute pkt_num.cardinality = 1
 attribute stream_pos.cardinality = 16
 #attribute ip.addr.override = bv[1]

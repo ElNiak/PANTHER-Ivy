@@ -181,21 +181,21 @@ before forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged
 # Note: some of these are commented out. They are added in other files
 # that include this one.
 
-export frame.ack.handle
-export frame.stream.handle
-export frame.crypto.handle
-export frame.path_response.handle
-export frame.handshake_done.handle
+export quic_frame.ack.handle
+export quic_frame.stream.handle
+export quic_frame.crypto.handle
+export quic_frame.path_response.handle
+export quic_frame.handshake_done.handle
 export packet_event
 export packet_event_vn
 export client_send_event
 export tls_recv_event
-#export frame.new_connection_id.handle
-#export frame.retire_connection_id.handle
-#export frame.rst_stream.handle
-#export frame.max_stream_id.handle
-#export frame.connection_close.handle
-#export frame.max_stream_data.handle
+#export quic_frame.new_connection_id.handle
+#export quic_frame.retire_connection_id.handle
+#export quic_frame.rst_stream.handle
+#export quic_frame.max_stream_id.handle
+#export quic_frame.connection_close.handle
+#export quic_frame.max_stream_data.handle
 
 #export forged_packet_event_vn
 export forward_packet_to_client_event
@@ -222,24 +222,24 @@ export forward_packet_to_server_event
 
 #export modify_protected_packet_event # used when forwarding packet
 
-# export frame.max_streams.handle
-# export frame.max_stream_data.handle
-# export frame.max_data.handle
-# #export frame.stream_blocked.handle
-# export frame.rst_stream.handle
-# attribute frame.rst_stream.handle.weight = "0.02"
-# attribute frame.max_streams.handle.weight = "0.02"
-# attribute frame.max_stream_data.handle.weight = "0.02"
-# attribute frame.max_data.handle.weight = "0.02"
+# export quic_frame.max_streams.handle
+# export quic_frame.max_stream_data.handle
+# export quic_frame.max_data.handle
+# #export quic_frame.stream_blocked.handle
+# export quic_frame.rst_stream.handle
+# attribute quic_frame.rst_stream.handle.weight = "0.02"
+# attribute quic_frame.max_streams.handle.weight = "0.02"
+# attribute quic_frame.max_stream_data.handle.weight = "0.02"
+# attribute quic_frame.max_data.handle.weight = "0.02"
 
 
-# export frame.connection_close.handle
-# attribute frame.connection_close.handle.weight = "0.02"
+# export quic_frame.connection_close.handle
+# attribute quic_frame.connection_close.handle.weight = "0.02"
 
-#export frame.application_close.handle
-#attribute frame.application_close.handle.weight = "0.02"
+#export quic_frame.application_close.handle
+#attribute quic_frame.application_close.handle.weight = "0.02"
 
-# export frame.stop_sending.handle
+# export quic_frame.stop_sending.handle
 
 
 # Final check
