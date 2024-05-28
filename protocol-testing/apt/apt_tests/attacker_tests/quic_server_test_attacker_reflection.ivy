@@ -29,7 +29,7 @@ after init {
     call tls_api.upper.create(0,false,extns);  # false means this instance of tls is not a server
 }
 
-before forged_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_quic_packet) {
+before forged_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_quic_packet) {
     if _generating {
         #require ~negocation_of_version(src);
         var tp := trans_params(the_cid);

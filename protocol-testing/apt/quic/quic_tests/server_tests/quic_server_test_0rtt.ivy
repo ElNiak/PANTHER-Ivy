@@ -53,7 +53,7 @@ after init {
     zero_rtt_allowed := true;
 }
 
-before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
+before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     if _generating {
         require zero_rtt_sent;
         var tp := trans_params(the_cid);
@@ -84,7 +84,7 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     };
 }
 
-before packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_coal_0rtt) {
+before packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_coal_0rtt) {
     if _generating {
         #require established_0rtt_keys(the_cid); # := true;
         #require pkt.ptype ~= quic_packet_type.initial;

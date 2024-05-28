@@ -247,8 +247,8 @@ implement net.recv(host:endpoint_id, s:net.socket, src:ip.endpoint, pkts:prot.ar
 # For logging purposes. This logs the decoded packets received from the network, before
 # event inference. 
 
-import action app_server_open_event_show(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet,cid1 : cid, cid2: cid)
-import action recv_packet(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet)
+import action app_server_open_event_show(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet,cid1 : cid, cid2: cid)
+import action recv_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
 import action recv_packet_mim(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data)
 import action padding_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data)
 
@@ -718,7 +718,7 @@ after tls_client_version_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_d
 import action recv_vn_packet(src:ip.endpoint,dst:ip.endpoint,spkt: stream_data)
 import action recv_vn_packet_nn(src:ip.endpoint,dst:ip.endpoint,spkt: stream_data)
 import action recv_vn_packet_v(src:ip.endpoint,dst:ip.endpoint,spkt: version)
-import action recv_vn_pkt(src:ip.endpoint,dst:ip.endpoint,spkt: quic_packet_vn)
+import action recv_vn_pkt(src:ip.endpoint,dst:ip.endpoint,spkt: packet.quic_packet_vn)
 
 import action recv_r_pkt(src:ip.endpoint,dst:ip.endpoint,dl: stream_pos, dc:cid, sl: stream_pos, sc:cid )
 import action recv_v_pkt(src:ip.endpoint,dst:ip.endpoint,dl: stream_pos, dc:cid, sl: stream_pos, sc:cid, v: versions )
@@ -790,8 +790,8 @@ after tls_client_0rtt_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_data
 #TODO no error trigger by impl when retry without parameter => tocheck
 
 import action recv_retry_packet(src:ip.endpoint,dst:ip.endpoint,spkt: stream_data)
-import action recv_retry_pkt(src:ip.endpoint,dst:ip.endpoint,spkt: quic_packet_retry)
-import action recv_0rtt_pkt(src:ip.endpoint,dst:ip.endpoint,spkt: quic_packet_0rtt)
+import action recv_retry_pkt(src:ip.endpoint,dst:ip.endpoint,spkt: packet.quic_packet_retry)
+import action recv_0rtt_pkt(src:ip.endpoint,dst:ip.endpoint,spkt: packet.quic_packet_0rtt)
 
 import action version_not_found_event
 
@@ -864,11 +864,11 @@ action is_random_padding_packet(spkt:stream_data) returns (is_padding:bool) = {
 # To send and receive packets, we need to serialize and deserialize them.
 # This object allows that.
 
-instance pkt_serdes : serdes(quic_packet,stream_data,quic_ser,quic_deser)
-instance pkt_serdes_vn : serdes(quic_packet_vn,stream_data,quic_ser_vn,quic_deser_vn)
-instance pkt_serdes_retry : serdes(quic_packet_retry,stream_data,quic_ser_retry,quic_deser_retry)
-instance pkt_serdes_0rtt_coal : serdes(quic_packet_coal_0rtt,stream_data,quic_ser_zerortt,quic_deser_zerortt)
-instance pkt_serdes_0rtt : serdes(quic_packet_0rtt,stream_data,quic_ser_zerortt,quic_deser_zerortt)
+instance pkt_serdes : serdes(packet.quic_packet,stream_data,quic_ser,quic_deser)
+instance pkt_serdes_vn : serdes(packet.quic_packet_vn,stream_data,quic_ser_vn,quic_deser_vn)
+instance pkt_serdes_retry : serdes(packet.quic_packet_retry,stream_data,quic_ser_retry,quic_deser_retry)
+instance pkt_serdes_0rtt_coal : serdes(packet.quic_packet_coal_0rtt,stream_data,quic_ser_zerortt,quic_deser_zerortt)
+instance pkt_serdes_0rtt : serdes(packet.quic_packet_0rtt,stream_data,quic_ser_zerortt,quic_deser_zerortt)
 
 
 # Convert a CID to bytes. TODO: This doesn't belong here and it shouldn't

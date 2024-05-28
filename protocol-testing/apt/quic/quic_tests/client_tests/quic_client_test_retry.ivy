@@ -54,7 +54,7 @@ action make_transport_parameters returns (tp:quic_transport_parameters) = {
 # Restrict generation to packets from the designated client endpoints
 # to the server endpoint.
 
-before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
+before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     if _generating {
         require pkt.ptype = quic_packet_type.initial -> retry_response(client_initial_rcid); #  pkt.ptype = quic_packet_type.initial -> retry_response retry_sent &  
         require client.ep.addr ~= 0;  # must have a client address to send to
@@ -86,7 +86,7 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     }
 }
 
-before packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_retry) {
+before packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_retry) {
     if _generating {
         require ~retry_sent(client_initial_rcid);
         require client.ep.addr ~= 0;  # must have a client address to send to

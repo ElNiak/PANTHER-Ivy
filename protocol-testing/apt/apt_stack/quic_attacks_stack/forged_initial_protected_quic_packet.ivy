@@ -32,7 +32,7 @@ include quic_fsm_receiving
 
 # ### Packet
 
-# The type `quic_packet` represents packet. 
+# The type `packet.quic_packet` represents packet. 
 
 # The fields are:
 #
@@ -44,26 +44,30 @@ include quic_fsm_receiving
 # - *seq_num*: the packet sequence number  [7]
 # - *payload*: the payload, a sequence of frames  [8]
 
-object forged_protected_quic_packet = {
-    type this = struct {
-        ptype : quic_packet_type, # [2]
-        pversion : version, # [3]
-        dst_cid : cid, # [4]
-        src_cid : cid, # [5]
-        token : stream_data, # [6]
-        seq_num : pkt_num, # [7]
-        payload : quic_frame.arr # [8]
-    }
+object packet.forged_protected_quic_packet = {
+     ...
 
-    instance idx : unbounded_sequence
-    instance arr : array(idx,this)
+    object forged_protected_quic_packet = {
+        variant this of packet = struct {
+            ptype : quic_packet_type, # [2]
+            pversion : version, # [3]
+            dst_cid : cid, # [4]
+            src_cid : cid, # [5]
+            token : stream_data, # [6]
+            seq_num : pkt_num, # [7]
+            payload : quic_frame.arr # [8]
+        }
 
-    #Hamid
-    instance retired_cids : array(idx, cid_seq)
-    #Hamid
+        instance idx : unbounded_sequence
+        instance arr : array(idx,this)
 
-    action long(pkt:this) returns(res:bool) = {
-        res := pkt.ptype ~= quic_packet_type.one_rtt;
+        #Hamid
+        instance retired_cids : array(idx, cid_seq)
+        #Hamid
+
+        action long(pkt:this) returns(res:bool) = {
+            res := pkt.ptype ~= quic_packet_type.one_rtt;
+        }
     }
 }
 
@@ -84,9 +88,9 @@ object forged_protected_quic_packet = {
 # - `dst`: the destination endpoint
 # - `pkt` : the packet contents
 
-action modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_protected_quic_packet) = {}
+action modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_protected_quic_packet) = {}
 
-#action forged_packet_event_multiple_src(src1:ip.endpoint,src2:ip.endpoint,dst:ip.endpoint,pkt:forged_protected_quic_packet) = {}
+#action forged_packet_event_multiple_src(src1:ip.endpoint,src2:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_protected_quic_packet) = {}
 
 # Packet protocol state
 # ---------------------
@@ -184,7 +188,7 @@ after init {
 #   If a zero-length connection ID is selected, the corresponding
 #   transport parameter is included with a zero-length value.
 
-around modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_protected_quic_packet) {
+around modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_protected_quic_packet) {
     #call show_connected(connected(the_cid), connected_to(the_cid));
 
     # TEMPORARY: Do not allow zero_rtt packets
@@ -226,7 +230,7 @@ around modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_
     # initial packet, the client might still retransmit its initial
     # packet using the nonce cid. In some cases, we can infer that the
     # client has in fact seen the server's cid (for example, if it
-    # packet contains an ACK quic_frame, or a CRquic_framequic_frame that is
+    # packet contains an ACK quic_frame, or a CRYPTO quic_frame that is
     # reponsive to a server FRAME. This is trick to check, however,
     # and the actual servers do not seem to check it.
 

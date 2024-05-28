@@ -146,7 +146,7 @@ after init {
 #    Connection ID field of the Retry packet in the Destination Connection
 #    ID field of subsequent packets that it sends.
 
-before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
+before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     if _generating {
         require src = client.ep | src = second_client.ep;
         #require (pkt.ptype = quic_packet_type.initial & src = client.ep -> pkt.dst_cid = server_cid) & (pkt.ptype = quic_packet_type.initial & src = second_client.ep -> pkt.dst_cid = server_cid_alt);

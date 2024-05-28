@@ -38,7 +38,7 @@ after init {
     is_mim := true;
 }
 
-after modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_protected_quic_packet) {
+after modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_protected_quic_packet) {
     if _generating {  # & ~conn_closed(pkt.the_cid)
         # var idx := pkt.begin;
         # while idx < pkt.end {
@@ -112,7 +112,7 @@ after replay_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_p
     }
 }
 
-after forged_packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:forged_quic_packet_vn) {
+after forged_packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_quic_packet_vn) {
     if _generating {  # & ~conn_closed(pkt.the_cid)
         var spkt := forged_pkt_serdes_vn.to_bytes(pkt);
         # var rnum := reference_pkt_num(spkt,false);
@@ -124,7 +124,7 @@ after forged_packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:forged_quic_pac
     }
 }
 
-after forged_packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:forged_quic_packet_retry,inpkt:quic_packet_retry) {
+after forged_packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_quic_packet_retry,inpkt:packet.quic_packet_retry) {
     if _generating {  # & ~conn_closed(pkt.the_cid)
         var spkt := forged_pkt_serdes_retry.to_bytes(pkt);
         var pkts := prot.arr.empty;
@@ -133,7 +133,7 @@ after forged_packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:forged_quic_
     }
 }
 
-after replayed_packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:replayed_quic_packet_0rtt) {
+after replayed_packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.replayed_quic_packet_0rtt) {
     if _generating {  # & ~conn_closed(pkt.the_cid)
         var spkt := replayed_pkt_serdes_0rtt.to_bytes(pkt);
         var pkts := prot.arr.empty;

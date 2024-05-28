@@ -28,7 +28,7 @@ object forged_datagram = {
         src_port : ip.port, # [2]
         dst_port : ip.port, # [3]
         checksum : stream_data, # [4]
-        payload : quic_packet # [8]
+        payload : packet.quic_packet # [8]
     }
 
     instance idx : unbounded_sequence
@@ -52,7 +52,7 @@ object forged_datagram = {
 
 action forged_datagram_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_datagram) = {}
 
-#action packet_event_multiple_src(src1:ip.endpoint,src2:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) = {}
+#action packet_event_multiple_src(src1:ip.endpoint,src2:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) = {}
 
 # Packet protocol state
 # ---------------------

@@ -54,12 +54,12 @@ object endpoint = {
         individual ppkt_saved : stream_data
         
         individual ppkt_to_be_replayed_to_server : forged_pkts
-        function ppkt_to_be_forwarded_to_server(C:stream_pos) : forged_pkts
+        function   ppkt_to_be_forwarded_to_server(C:stream_pos) : forged_pkts
         individual cppkt_forwarded_to_server : stream_pos
         individual last_cppkt_forwarded_to_server : stream_pos
 
         individual force_client_forward : bool  # useless for now
-        function ppkt_to_be_forwarded_to_client(C:stream_pos) : forged_pkts
+        function   ppkt_to_be_forwarded_to_client(C:stream_pos) : forged_pkts
         individual cppkt_forwarded_to_client : stream_pos
         individual last_cppkt_forwarded_to_client : stream_pos
 
@@ -78,7 +78,7 @@ object endpoint = {
 
         individual wait_forward : bool # TODO remove
 
-        function max_retransmit(E:quic_packet_type,S:ip.endpoint) : stream_pos
+        function   max_retransmit(E:quic_packet_type,S:ip.endpoint) : stream_pos
 
 
         after init {

@@ -26,7 +26,7 @@ after init {
     call tls_api.upper.create(0,false,extns);  # false means this instance of tls is not a server
 }
 
-before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
+before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     if _generating {
         var tp := trans_params(the_cid);
         if version_negociated {
