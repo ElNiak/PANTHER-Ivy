@@ -34,7 +34,7 @@ include quic_fsm_receiving
 
 # ### Packet
 
-# The type `quic_packet` represents packet. 
+# The type `packet.quic_packet` represents packet. 
 
 # The fields are:
 #
@@ -46,13 +46,14 @@ include quic_fsm_receiving
 # - *seq_num*: the packet sequence number  [7]
 # - *payload*: the payload, a sequence of frames  [8]
 
-object quic_packet = {
+object packet = {
+    ...
     # type this 
     # instance idx : unbounded_sequence
     # instance arr : array(idx,this)
 
     # object quic_packet_initial = {
-    #     variant this of quic_packet = struct {
+    #     variant this of packet.quic_packet = struct {
     #         ptype : quic_packet_type, # [2]
     #         dst_cid : cid, # [4]
     #         src_cid : cid, # [5]
@@ -62,7 +63,7 @@ object quic_packet = {
     # }
 
     # object quic_packet_handshake = {
-    #     variant this of quic_packet = struct {
+    #     variant this of packet.quic_packet = struct {
     #         ptype : quic_packet_type, # [2]
     #         dst_cid : cid, # [4]
     #         src_cid : cid, # [5]
@@ -72,7 +73,7 @@ object quic_packet = {
     # }
 
     # object quic_packet_one_rtt = {
-    #     variant this of quic_packet = struct {
+    #     variant this of packet.quic_packet = struct {
     #         ptype : quic_packet_type, # [2]
     #         dst_cid : cid, # [4]
     #         src_cid : cid, # [5]
@@ -82,7 +83,7 @@ object quic_packet = {
     # }
 
     # object quic_packet_zero_rtt = {
-    #     variant this of quic_packet = struct {
+    #     variant this of packet.quic_packet = struct {
     #         ptype : quic_packet_type, # [2]
     #         dst_cid : cid, # [4]
     #         src_cid : cid, # [5]
@@ -91,31 +92,30 @@ object quic_packet = {
     #     }
     # }
 
-    type this = struct {
-        ptype : quic_packet_type, # [2]
-        pversion : version, # [3]
-        dst_cid : cid, # [4]
-        src_cid : cid, # [5]
-        token : stream_data, # [6]
-        seq_num : pkt_num, # [7]
-        payload : quic_frame.arr # [8]
-    }
+    object quic_packet_0rtt = {
+        variant this of packet = struct {
+            ptype : quic_packet_type, # [2]
+            pversion : version, # [3]
+            dst_cid : cid, # [4]
+            src_cid : cid, # [5]
+            token : stream_data, # [6]
+            seq_num : pkt_num, # [7]
+            payload : quic_frame.arr # [8]
+        }
 
-    #Hamid
-    #instance retired_cids : array(idx, cid_seq)
-    #Hamid
+        #Hamid
+        #instance retired_cids : array(idx, cid_seq)
+        #Hamid
 
-    instance idx : unbounded_sequence
-    instance arr : array(idx,this) 
-}
+        instance idx : unbounded_sequence
+        instance arr : array(idx,this) 
 
-
-object quic_packet = { 
-    ... 
-    action long(pkt:this) returns(res:bool) = {
-        res := pkt.ptype ~= quic_packet_type.one_rtt;
+        action long(pkt:this) returns(res:bool) = {
+            res := pkt.ptype ~= quic_packet_type.one_rtt;
+        }
     }
 }
+
 
 # Note: Short header are considered to have scid of 0 so it is quite important to use this value
 
@@ -133,16 +133,16 @@ object quic_packet = {
 # - `src`: the source endpoint
 # - `dst`: the destination endpoint
 # - `pkt` : the packet contents
-action packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) = {}
+action packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) = {}
 
-action send_ack_eliciting_handshake_packet(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) = {}
+action send_ack_eliciting_handshake_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) = {}
 
-action send_ack_eliciting_initial_packet(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) = {}
+action send_ack_eliciting_initial_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) = {}
 
-action send_ack_eliciting_application_packet(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) = {}
+action send_ack_eliciting_application_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) = {}
 
 
-#action packet_event_multiple_src(src1:ip.endpoint,src2:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) = {}
+#action packet_event_multiple_src(src1:ip.endpoint,src2:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) = {}
 
 # Packet protocol state
 # ---------------------
@@ -401,7 +401,7 @@ import action show_is_sleep_fake_timeon_dataout(is_sleep_fake_timeout:bool)
 import action show_queued_frames(scid:cid,queued_frames:quic_frame.arr)
 import action show_current_time(t:milliseconds)
 
-around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
+around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
     call show_current_time(time_api.c_timer.now_millis_last_bp);
     # call show_is_sleep_fake_timeout(is_not_sleeping);
@@ -731,7 +731,7 @@ import action show_retransmit_lost_packet(paylo:quic_frame.arr)
 
 import action show_connection_timeout(idle_timeout:microseconds, max_idle_timeout_used:microseconds, pto_timeout:microseconds)
 
-around send_ack_eliciting_handshake_packet(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
+around send_ack_eliciting_handshake_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
     # require _generating -> is_not_sleeping;
     # require (_generating  -> is_not_sleeping);
@@ -970,7 +970,7 @@ around send_ack_eliciting_handshake_packet(src:ip.endpoint,dst:ip.endpoint,pkt:q
     need_sent_ack_eliciting_handshake_packet := false
 }
 
-around send_ack_eliciting_application_packet(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
+around send_ack_eliciting_application_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
     # require _generating -> is_not_sleeping;
     # require (_generating  -> is_not_sleeping);
@@ -1214,7 +1214,7 @@ around send_ack_eliciting_application_packet(src:ip.endpoint,dst:ip.endpoint,pkt
 }
 
 
-around send_ack_eliciting_initial_packet(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
+around send_ack_eliciting_initial_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
     # require _generating -> is_not_sleeping;
     #require (_generating  -> is_not_sleeping);

@@ -43,7 +43,7 @@ after init {
     slept := false;
 }
 
-before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
+before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     #call show_last_pkt_num_for_cid(last_pkt_num(pkt.src_cid,quic_packet_type.one_rtt),pkt.src_cid,quic_packet_type.one_rtt,last_pkt_num(pkt.src_cid,quic_packet_type.one_rtt)/2);
     # TODO check with & without handshake_done_recv
     # # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
@@ -72,7 +72,7 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     }
 }
 
-before send_ack_eliciting_handshake_packet(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
+before send_ack_eliciting_handshake_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     if _generating {
         var tp := trans_params(the_cid);
         if version_negociated {
@@ -107,7 +107,7 @@ before send_ack_eliciting_handshake_packet(src:ip.endpoint,dst:ip.endpoint,pkt:q
     };
 }
 
-before send_ack_eliciting_initial_packet(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
+before send_ack_eliciting_initial_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     if _generating {
         var tp := trans_params(the_cid);
         if version_negociated {
@@ -142,7 +142,7 @@ before send_ack_eliciting_initial_packet(src:ip.endpoint,dst:ip.endpoint,pkt:qui
     };
 }
 
-before send_ack_eliciting_application_packet(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
+before send_ack_eliciting_application_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     if _generating {
         var tp := trans_params(the_cid);
         if version_negociated {

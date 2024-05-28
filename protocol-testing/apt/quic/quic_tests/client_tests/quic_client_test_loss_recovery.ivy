@@ -8,7 +8,7 @@ after init {
     slept := false;
 }
 
-before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
+before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     if _generating {
         if last_pkt_num(pkt.src_cid,quic_packet_type.one_rtt)/5 = 1  & conn_total_data(the_cid) > 0 & ~slept {  # 
             var idle_timeout_forced := max_idle_timeout_used;

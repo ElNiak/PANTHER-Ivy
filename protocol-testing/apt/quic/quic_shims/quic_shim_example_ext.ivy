@@ -261,9 +261,9 @@ implement net.recv(host:endpoint_id, s:net.socket, src:ip.endpoint, pkts:prot.ar
 # event inference. 
 
 
-import action recv_packet(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet)
+import action recv_packet(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
 import action recv_packet_mim(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:stream_data)
-import action recv_protected_packet_mim(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:forged_protected_quic_packet)
+import action recv_protected_packet_mim(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_protected_quic_packet)
 
 import action recv_packet_target(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:stream_data)
 import action padding_packet_event(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:stream_data)
@@ -733,7 +733,7 @@ after tls_client_version_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_d
     };
 }
 
-import action recv_vn_pkt(src:ip.endpoint,dst:ip.endpoint,spkt: quic_packet_vn)
+import action recv_vn_pkt(src:ip.endpoint,dst:ip.endpoint,spkt: packet.quic_packet_vn)
 
 after tls_client_retry_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_data) {
     header_retry := bfe[0][7](spkt.value(0));
@@ -812,8 +812,8 @@ after tls_client_0rtt_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_data
 
 #TODO no error trigger by impl when retry without parameter => tocheck
 
-import action recv_retry_pkt(src:ip.endpoint,dst:ip.endpoint,spkt: quic_packet_retry)
-import action recv_0rtt_pkt(src:ip.endpoint,dst:ip.endpoint,spkt: quic_packet_0rtt)
+import action recv_retry_pkt(src:ip.endpoint,dst:ip.endpoint,spkt: packet.quic_packet_retry)
+import action recv_0rtt_pkt(src:ip.endpoint,dst:ip.endpoint,spkt: packet.quic_packet_0rtt)
 import action version_not_found_event
 
 
@@ -899,20 +899,20 @@ action is_random_padding_packet(spkt:stream_data) returns (is_padding:bool) = {
 # To send and receive packets, we need to serialize and deserialize them.
 # This object allows that.
 
-instance pkt_serdes : serdes(quic_packet,stream_data,quic_ser,quic_deser)
-instance pkt_serdes_vn : serdes(quic_packet_vn,stream_data,quic_ser_vn,quic_deser_vn)
-instance pkt_serdes_retry : serdes(quic_packet_retry,stream_data,quic_ser_retry,quic_deser_retry)
-instance pkt_serdes_0rtt_coal : serdes(quic_packet_coal_0rtt,stream_data,quic_ser_zerortt,quic_deser_zerortt)
-instance pkt_serdes_0rtt : serdes(quic_packet_0rtt,stream_data,quic_ser_zerortt,quic_deser_zerortt)
+instance pkt_serdes : serdes(packet.quic_packet,stream_data,quic_ser,quic_deser)
+instance pkt_serdes_vn : serdes(packet.quic_packet_vn,stream_data,quic_ser_vn,quic_deser_vn)
+instance pkt_serdes_retry : serdes(packet.quic_packet_retry,stream_data,quic_ser_retry,quic_deser_retry)
+instance pkt_serdes_0rtt_coal : serdes(packet.quic_packet_coal_0rtt,stream_data,quic_ser_zerortt,quic_deser_zerortt)
+instance pkt_serdes_0rtt : serdes(packet.quic_packet_0rtt,stream_data,quic_ser_zerortt,quic_deser_zerortt)
 
 # To send and receive packets (for MiM agent), we need to serialize and deserialize them.
 # This object allows that.
 
-instance forged_protected_pkt_serdes : serdes(forged_protected_quic_packet,stream_data,quic_ser_forged,quic_deser_forged)
-instance forged_pkt_serdes : serdes(forged_quic_packet,stream_data,quic_ser,quic_deser)
-instance forged_pkt_serdes_vn : serdes(forged_quic_packet_vn,stream_data,quic_ser_vn,quic_deser_vn)
-instance forged_pkt_serdes_retry : serdes(forged_quic_packet_retry,stream_data,quic_ser_retry,quic_deser_retry)
-instance replayed_pkt_serdes_0rtt : serdes(replayed_quic_packet_0rtt,stream_data,quic_ser_zerortt,quic_deser_zerortt)
+instance forged_protected_pkt_serdes : serdes(packet.forged_protected_quic_packet,stream_data,quic_ser_forged,quic_deser_forged)
+instance forged_pkt_serdes : serdes(packet.forged_quic_packet,stream_data,quic_ser,quic_deser)
+instance forged_pkt_serdes_vn : serdes(packet.forged_quic_packet_vn,stream_data,quic_ser_vn,quic_deser_vn)
+instance forged_pkt_serdes_retry : serdes(packet.forged_quic_packet_retry,stream_data,quic_ser_retry,quic_deser_retry)
+instance replayed_pkt_serdes_0rtt : serdes(packet.replayed_quic_packet_0rtt,stream_data,quic_ser_zerortt,quic_deser_zerortt)
 
 # Convert a CID to bytes. TODO: This doesn't belong here and it shouldn't
 # be written in C++!

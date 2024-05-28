@@ -177,7 +177,7 @@ after init {
     # initial_version := 0x00000001; # 0xff00001d; #
 }
 
-before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
+before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     if _generating {
         var tp := trans_params(the_cid);
         if version_negociated {

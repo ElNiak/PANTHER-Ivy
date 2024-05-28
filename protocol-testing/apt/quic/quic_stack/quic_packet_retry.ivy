@@ -34,7 +34,7 @@ include byte_stream
 
 # ### Packet
 
-# The type `quic_packet` represents packet. 
+# The type `packet.quic_packet` represents packet. 
 
 # The fields are:
 #
@@ -48,25 +48,28 @@ include byte_stream
 
 interpret itoken -> longbv[1][13][16]
 
-object quic_packet_retry = {
-    type this = struct {
-        ptype : quic_packet_type, # [2]
-        pversion : version, # [3]
-        dst_cid : cid, # [4]
-        src_cid : cid, # [5]
-        token : stream_data, # [6] TODO props
-        integrity_token : itoken # [6] 16 bytes
-    }
+object packet = {
+    ...
+    object quic_packet_retry = {
+        variant this of packet = struct {
+            ptype : quic_packet_type, # [2]
+            pversion : version, # [3]
+            dst_cid : cid, # [4]
+            src_cid : cid, # [5]
+            token : stream_data, # [6] TODO props
+            integrity_token : itoken # [6] 16 bytes
+        }
 
-    instance idx : unbounded_sequence
-    instance arr : array(idx,this)
+        instance idx : unbounded_sequence
+        instance arr : array(idx,this)
 
-    #Hamid
-    instance retired_cids : array(idx, cid_seq)
-    #Hamid
+        #Hamid
+        instance retired_cids : array(idx, cid_seq)
+        #Hamid
 
-    action long(pkt:this) returns(res:bool) = {
-        res := pkt.ptype ~= quic_packet_type.one_rtt;
+        action long(pkt:this) returns(res:bool) = {
+            res := pkt.ptype ~= quic_packet_type.one_rtt;
+        }
     }
 }
 
@@ -87,7 +90,7 @@ object quic_packet_retry = {
 # - `dst`: the destination endpoint
 # - `pkt` : the packet contents
 
-action packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_retry) = {}
+action packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_retry) = {}
 
 # Packet protocol state
 # ---------------------
@@ -175,7 +178,7 @@ after init {
 }
 
 
-around packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_retry) {    
+around packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_retry) {    
     # Extract the source and destination cid's and packet number from the packet.
     var dcid := pkt.dst_cid;
     var scid := pkt.src_cid;

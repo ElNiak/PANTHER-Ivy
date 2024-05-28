@@ -98,7 +98,7 @@ action on_packets_acked(pn_space:quic_packet_type) = {
     }
 }
 
-action on_packet_acked(acked_packet:quic_packet) = {
+action on_packet_acked(acked_packet:packet.quic_packet) = {
     if sent_packets_in_flight(acked_packet.ptype,acked_packet.seq_num) {
         bytes_in_flight := bytes_in_flight - sent_packets_sent_bytes(acked_packet.ptype,acked_packet.seq_num);
         # Do not increase congestion_window if application

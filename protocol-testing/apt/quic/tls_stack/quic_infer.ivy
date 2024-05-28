@@ -21,7 +21,7 @@
 import action show_generating(b:bool)
 
 
-action infer_tls_events(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) = {
+action infer_tls_events(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) = {
     #call infer_tls;
     # Stream frames on id 0 indicate that a `tls_send_event` has occurred.
     # TODO: ignore duplicate frames.
@@ -90,7 +90,7 @@ action infer_tls_events(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) = {
 
 import action show_biatch_2(src:ip.endpoint)
 
-action infer_tls_events_vn(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_vn) = {
+action infer_tls_events_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_vn) = {
     # Stream frames on id 0 indicate that a `tls_send_event` has occurred.
     # TODO: ignore duplicate frames.
 
@@ -118,7 +118,7 @@ action infer_tls_events_vn(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_vn) =
     };
 }
 
-action infer_tls_events_retry(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_retry) = {
+action infer_tls_events_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_retry) = {
 
     # Stream frames on id 0 indicate that a `tls_send_event` has occurred.
     # TODO: ignore duplicate frames.
@@ -147,7 +147,7 @@ action infer_tls_events_retry(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_re
     };
 }
 
-action infer_tls_events_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_0rtt) = {
+action infer_tls_events_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_0rtt) = {
 
     # Stream frames on id 0 indicate that a `tls_send_event` has occurred.
     # TODO: ignore duplicate frames.

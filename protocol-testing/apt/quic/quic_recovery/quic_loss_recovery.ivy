@@ -11,12 +11,12 @@ include quic_locale
 # include quic_transport_error_code
 # include quic_frame
 
-# module quic_packet_arr(quic_packet) = {
+# module quic_packet_arr(packet.quic_packet) = {
 #     instance jdx : unbounded_sequence
-#     instance arr : array(jdx,quic_packet)
+#     instance arr : array(jdx,packet.quic_packet)
 # }
 
-# instance quic_packet : quic_packet_arr(quic_packet)
+# instance packet.quic_packet : quic_packet_arr(packet.quic_packet)
 
 # QUIC uses separate packet number spaces for each encryption level, except 0-RTT and all generations of 1-RTT keys use the same packet number space. 
 # Separate packet number spaces ensures that the acknowledgment of packets sent with one level of encryption will not cause spurious retransmission of 
@@ -89,19 +89,19 @@ function loss_time(E: quic_packet_type) : microseconds
 #   sent_packets[pn_space][packet_number].in_flight = in_flight
 #   sent_packets[pn_space][packet_number].sent_bytes = sent_bytes
 
-# TODO  error: cannot determine an iteration bound for loop over quic_packet.idx
-# function sent_packets(E: quic_packet_type) : quic_packet.arr
+# TODO  error: cannot determine an iteration bound for loop over packet.quic_packet.idx
+# function sent_packets(E: quic_packet_type) : packet.quic_packet.arr
 
-function newly_acked_packets(E: quic_packet_type, I:stream_pos) : quic_packet
+function newly_acked_packets(E: quic_packet_type, I:stream_pos) : packet.quic_packet
 function newly_acked_packets_end(E: quic_packet_type) : stream_pos
 
-function lost_packets(E: quic_packet_type, I:stream_pos) : quic_packet
+function lost_packets(E: quic_packet_type, I:stream_pos) : packet.quic_packet
 function lost_packets_end(E: quic_packet_type) : stream_pos
 
-function pc_lost(E: quic_packet_type, I:stream_pos) : quic_packet
+function pc_lost(E: quic_packet_type, I:stream_pos) : packet.quic_packet
 function pc_lost_end(E: quic_packet_type) : stream_pos
 
-function sent_packets(E: quic_packet_type, I:stream_pos) : quic_packet
+function sent_packets(E: quic_packet_type, I:stream_pos) : packet.quic_packet
 function sent_packets_end(E: quic_packet_type) : stream_pos
 function sent_packets_packet_number(E: quic_packet_type,S: pkt_num) : pkt_num
 function sent_packets_time_sent(E: quic_packet_type,S: pkt_num) : microseconds
@@ -110,7 +110,7 @@ relation sent_packets_in_flight(E: quic_packet_type,S: pkt_num)
 function sent_packets_sent_bytes(E: quic_packet_type,S: pkt_num) : stream_pos # quic_frame.arr
 
 
-function received_packets(E: quic_packet_type, I:stream_pos) : quic_packet
+function received_packets(E: quic_packet_type, I:stream_pos) : packet.quic_packet
 function received_packets_end(E: quic_packet_type) : stream_pos
 function received_packets_packet_number(E: quic_packet_type,S: pkt_num) : pkt_num
 function received_packets_time_sent(E: quic_packet_type,S: pkt_num) : microseconds
@@ -234,7 +234,7 @@ after init {
 
     anti_amplification_limit_reached := false;
 
-    #sent_packets(E) := quic_packet.arr.empty;
+    #sent_packets(E) := packet.quic_packet.arr.empty;
     sent_packets_end(E) := 0;
     newly_acked_packets_end(E) := 0;
     lost_packets_end(E) := 0;
@@ -703,7 +703,7 @@ import action show_on_pn_space_discarded(pn_space:quic_packet_type)
 
 # After a packet is sent, information about the packet is stored. The parameters to OnPacketSent are described in detail above in Appendix A.1.1. 
 
-action on_packet_sent(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet, sent_bytes:stream_pos) = {
+action on_packet_sent(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet, sent_bytes:stream_pos) = {
     sent_time_of_largest_acked(pkt.seq_num) := time_api.c_timer.now_micros;
      # After a packet is sent, information about the packet is stored
     sent_packets_end(pkt.ptype) := sent_packets_end(pkt.ptype) + 1;
@@ -735,7 +735,7 @@ action on_packet_sent(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet, sent_byte
     call set_loss_detection_timer(dst, pkt.dst_cid);
 }
 
-action on_packet_received(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet, sent_bytes:stream_pos) = {
+action on_packet_received(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet, sent_bytes:stream_pos) = {
      # After a packet is recv, information about the packet is stored
     received_packets_end(pkt.ptype) := received_packets_end(pkt.ptype) + 1;
     received_packets(pkt.ptype,received_packets_end(pkt.ptype)) := pkt;

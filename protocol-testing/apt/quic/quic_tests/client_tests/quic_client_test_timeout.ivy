@@ -40,7 +40,7 @@ after init {
     slept := false;
 }
 
-before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
+before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     if ~_generating {
         if last_pkt_num(the_cid,quic_packet_type.one_rtt) > 5  & ~slept & handshake_done_send{  # 
             var idle_timeout_forced := max_idle_timeout_used;

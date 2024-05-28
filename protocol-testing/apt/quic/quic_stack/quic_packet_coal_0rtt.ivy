@@ -34,7 +34,7 @@ include byte_stream
 
 # ### Packet
 
-# The type `quic_packet` represents packet. 
+# The type `packet.quic_packet` represents packet. 
 
 # The fields are:
 #
@@ -46,35 +46,39 @@ include byte_stream
 # - *seq_num*: the packet sequence number  [7]
 # - *payload*: the payload, a sequence of frames  [8]
 
-object quic_packet_coal_0rtt = {
+object packet = {
     # coalesed
-    type this = struct {
-        # Initial packet
-        ptype_i : quic_packet_type, # [2]
-        pversion_i : version, # [3]
-        dst_cid_i : cid, # [4]
-        src_cid_i : cid, # [5]
-        token_i : stream_data, # [6]
-        seq_num_i : pkt_num, # [7]
-        payload_i : quic_frame.arr, # [8]
-        # 0rtt packet
-        ptype : quic_packet_type, # [2]
-        pversion : version, # [3]
-        dst_cid : cid, # [4]
-        src_cid : cid, # [5]
-        seq_num : pkt_num, # [7]
-        payload : quic_frame.arr # [8]
-    }
+    ...
 
-    instance idx : unbounded_sequence
-    instance arr : array(idx,this)
+    object quic_packet_coal_0rtt = {
+        variant this of packet = struct {
+            # Initial packet
+            ptype_i : quic_packet_type, # [2]
+            pversion_i : version, # [3]
+            dst_cid_i : cid, # [4]
+            src_cid_i : cid, # [5]
+            token_i : stream_data, # [6]
+            seq_num_i : pkt_num, # [7]
+            payload_i : quic_frame.arr, # [8]
+            # 0rtt packet
+            ptype : quic_packet_type, # [2]
+            pversion : version, # [3]
+            dst_cid : cid, # [4]
+            src_cid : cid, # [5]
+            seq_num : pkt_num, # [7]
+            payload : quic_frame.arr # [8]
+        }
 
-    #Hamid
-    instance retired_cids : array(idx, cid_seq)
-    #Hamid
+        instance idx : unbounded_sequence
+        instance arr : array(idx,this)
 
-    action long(pkt:this) returns(res:bool) = {
-        res := pkt.ptype ~= quic_packet_type.one_rtt;
+        #Hamid
+        instance retired_cids : array(idx, cid_seq)
+        #Hamid
+
+        action long(pkt:this) returns(res:bool) = {
+            res := pkt.ptype ~= quic_packet_type.one_rtt;
+        }
     }
 }
 
@@ -95,7 +99,7 @@ object quic_packet_coal_0rtt = {
 # - `dst`: the destination endpoint
 # - `pkt` : the packet contents
 
-action packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_coal_0rtt) = {}
+action packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_coal_0rtt) = {}
 
 # Packet protocol state
 # ---------------------
@@ -116,7 +120,7 @@ action packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_co
 # --------------------------
 
 
-around packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_coal_0rtt) {    
+around packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_coal_0rtt) {    
     # Extract the source and destination cid's and packet number from the packet.
 
     require pkt.src_cid = pkt.src_cid_i; #[B:2]

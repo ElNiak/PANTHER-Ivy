@@ -34,7 +34,7 @@ include quic_shim
 # mapped to an open socket. This map is provided by `endpoint_to_socket`.
 #
 
-after packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
+after packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
     if _generating & is_not_sleeping {  # & ~conn_closed(pkt.the_cid) # TODO
         var spkt := pkt_serdes.to_bytes(pkt);
@@ -50,7 +50,7 @@ after packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     }
 }
 
-after packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_vn) {
+after packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_vn) {
     if _generating {  # & ~conn_closed(pkt.the_cid)
         var spkt := pkt_serdes_vn.to_bytes(pkt);
         # var rnum := reference_pkt_num(spkt,false);
@@ -63,7 +63,7 @@ after packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_vn) {
     }
 }
 
-after packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_retry) {
+after packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_retry) {
     if _generating {  # & ~conn_closed(pkt.the_cid)
         var spkt := pkt_serdes_retry.to_bytes(pkt);
         var pkts := prot.arr.empty;
@@ -73,7 +73,7 @@ after packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_retry) 
     }
 }
 
-after packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_coal_0rtt) {
+after packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_coal_0rtt) {
     if _generating {  # & ~conn_closed(pkt.the_cid)
         var spkt := pkt_serdes_0rtt_coal.to_bytes(pkt);
         var pkts := prot.arr.empty;
@@ -88,7 +88,7 @@ after packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_coa
 }
 
 
-after packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_0rtt) {
+after packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_0rtt) {
     if _generating {  # & ~conn_closed(pkt.the_cid)
         var spkt := pkt_serdes_0rtt.to_bytes(pkt);
         var pkts := prot.arr.empty;

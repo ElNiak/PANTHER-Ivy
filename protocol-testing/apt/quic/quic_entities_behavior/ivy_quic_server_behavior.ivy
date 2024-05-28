@@ -227,7 +227,7 @@ after init {
 }
 
 
-before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
+before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     if _generating { # &
         #require  ~connection_timeout;
         require client.ep.addr ~= 0;  # must have a client address to send to
@@ -487,7 +487,7 @@ import show_tls_send_event
 # Print a packet on stdout. In the compiled tester importing `show_packet`
 # causes calls to be logged to stdout.
 
-action show_packet(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet)
+action show_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
 import show_packet
 
 import action show_level_offset_length(e:quic_packet_type,offset:stream_pos,length:stream_pos)

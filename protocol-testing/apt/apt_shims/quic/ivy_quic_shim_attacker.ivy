@@ -35,7 +35,7 @@ include ivy_quic_shim_client
 # mapped to an open socket. This map is provided by `endpoint_to_socket`.
 #
 
-after forged_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_quic_packet) {
+after forged_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_quic_packet) {
     if _generating {  # & ~conn_closed(pkt.the_cid)
         var spkt := forged_pkt_serdes.to_bytes(pkt);
         var rnum := reference_pkt_num(spkt,false);
