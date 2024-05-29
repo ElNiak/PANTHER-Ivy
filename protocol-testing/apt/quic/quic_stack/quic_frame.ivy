@@ -329,26 +329,6 @@ object quic_frame = {
 
     #TODO EXTENSION Frames
 
-    # (0xaf) 
-    # https://tools.ietf.org/html/draft-iyengar-quic-delayed-ack-02
-    object ack_frequency = { # TODO could be moved BUT need to refactor the deser/ser in csq 
-        # ACK_FREQUENCY  quic_frame frames are a varianquic_framequic_frame and contains nothing
-		# 1 byte quic_frame to increase the size of a packet
-         variant this of quic_frame = struct {
-			seq_num                     : pkt_num,     # the sequence number 
-            ack_eliciting_threshold     : stream_pos,  #maximum number of ack-eliciting packets after which the receiver sends an acknowledgement.
-            request_max_ack_delay       : microseconds,
-            reordering_threshold        : stream_pos
-         }
-    } 
-
-    # (0xac) 
-    object immediate_ack = {
-        # IMMEDIATE_ACK  quic_frame frames are a varianquic_framequic_frame and contains nothing
-		# 1 byte quic_frame to increase the size of a packet
-         variant this of quic_frame = struct {
-         }
-    } 
 
     # (0x42) 
     object unknown_frame = {
@@ -929,7 +909,7 @@ object quic_frame = {
 # - If the fin bit is set, the stream is marked as finished.
 #
 # - The total amount of data received on the connection is
-#   updated. Note this reflects the total of the observed length of
+#   updated. Note this reflects the total oframe.streamf the observed length of
 #   all streams, including any unreceived gaps.
 #
 
