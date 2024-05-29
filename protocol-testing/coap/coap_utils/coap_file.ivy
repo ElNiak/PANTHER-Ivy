@@ -51,7 +51,7 @@ module binary_input_file(data,cont) = {
         if(session_file != NULL) {
             std::cerr << "PROOTPATH 5b " << session_file<< "\n";
             pathname2 += session_file;
-            pathname2 += "/Protocols-Ivy/doc/examples/coap/coap_utils/";
+            pathname2 += "/pfv-ivy/doc/examples/coap/coap_utils/";
             pathname = pathname2 + pathname;
         } else {
             pathname = "/usr/local/lib/python2.7/dist-packages/ms_ivy-1.8.24-py2.7.egg/ivy/include/1.7/" + pathname; //TODO fix, for namespace, else bug
