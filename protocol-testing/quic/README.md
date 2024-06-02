@@ -55,7 +55,7 @@ to these layers:
 
 - Application: quic_application.ivy
 - Security: quic_security.ivy
-- Frame: quic_frame.ivy
+- Frame: frame.ivy
 - Packet: quic_packet.ivy
 - Protection: quic_protection.ivy
 
