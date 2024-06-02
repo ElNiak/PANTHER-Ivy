@@ -16,9 +16,9 @@ object tls_ser_server = {}
     
     //TODO
     #if defined(IS_NOT_DOCKER) 
-        #include "/home/user/Documents/coap-RFC9000/pfv-ivy/doc/examples/coap/coap_utils/coap_ser_deser.h"
+        #include "/home/user/Documents/coap-RFC9000/panther-ivy/doc/examples/coap/coap_utils/coap_ser_deser.h"
     #else 
-        #include "/app/pfv-ivy/protocol-testing/coap/coap_utils/coap_ser_deser.h"
+        #include "/app/panther-ivy/protocol-testing/coap/coap_utils/coap_ser_deser.h"
     #endif
 
     class `tls_deser` : public ivy_binary_deser_128 {

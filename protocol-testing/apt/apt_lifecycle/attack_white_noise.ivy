@@ -1,5 +1,7 @@
 #ivy lang1.7 
 
+include apt_packet
+
 # Injecting random or meaningless packets into network 
 # traffic to overwhelm the network, disrupt legitimate 
 # communications, or mask malicious activities.
@@ -9,7 +11,9 @@
     #Description: Overwhelming a network or service with a flood of traffic to make 
     # it unavailable to legitimate users.
 
-action launch_udp_flood() = {}
+action launch_udp_flood() = {
+    require pkt = udp_packet;
+}
 
 action launch_tcp_flood() = {}
 
