@@ -35,7 +35,7 @@ action endpoint_id_addr(ep_id : endpoint_id) returns (ep:ip.endpoint) = {
                 else (malicious_client_port if ep_id = endpoint_id.malicious_client
                 else (malicious_server_port if ep_id = endpoint_id.malicious_server
                 else (c2_server_port if ep_id = endpoint_id.c2_server
-                else (bot_port))))))));
+                else (bot_port)))))))));
 
 }
 

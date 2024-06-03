@@ -9,6 +9,7 @@ include ivy_quic_shim_mim
 include quic_locale
 include random_value
 # include ivy_quic_mim
+include apt_shim
 
 after init {
     # mim_server_target.set_ep(server.ep);
@@ -24,7 +25,7 @@ after init {
     server.ep.interface := ip.ivy;
 }
 
-include ivy_quic_mim_behavior
+include ivy_man_in_the_middle_behavior
 
 after init {
     client_port_vn := 4986;

@@ -7,6 +7,7 @@ include ivy_quic_shim_client
 include random_value
 include quic_locale
 include ivy_quic_client_behavior
+include apt_shim
 
 #
 # We fix the initial transport parameters here. TODO: In principle these
@@ -54,7 +55,7 @@ after init {
 #   length connection ID MUST treat receipt of a RETIRE_CONNECTION_ID
 #   quic_frame as a connection error of type PROTOCOL_VIOLATION.
 
-before quic_frame.retire_connection_id.handquic_framequic_frame.retire_connection_id,scid:cid,dcid:cid) {
+before quic_frame.retire_connection_id.handle(f:quic_frame.retire_connection_id,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid;
 	    require connected(the_cid) & dcid = connected_to(the_cid);
@@ -70,7 +71,7 @@ before quic_frame.retire_connection_id.handquic_framequic_frame.retire_connectio
 
 # https://github.com/NTAP/quant/issues/68
 
-before quic_frame.new_connection_id.handquic_framequic_frame.new_connection_id,scid:cid,dcid:cid) {
+before quic_frame.new_connection_id.handle(f:quic_frame.new_connection_id,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid;
 	    require f.length = 8; #[1]
