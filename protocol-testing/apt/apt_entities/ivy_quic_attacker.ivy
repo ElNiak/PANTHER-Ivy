@@ -14,7 +14,7 @@ include quic_endpoint
 # instance client : endpoint(endpoint_id.client)
 # instance server : endpoint(endpoint_id.server)
 
-instance attacker : endpoint.attacker_ep(client_addr,client_port)
+instance quic_attacker : endpoint.attacker_ep(client_addr,client_port)
 
 # We create sockets and bind them to the addresses that the client can use.
 

@@ -44,10 +44,11 @@ include ip
 # - *seq_num*: the packet sequence number  [7]
 # - *payload*: the payload, a sequence of frames  [8]
 
-object packet.forged_protected_quic_packet = {
+object packet = {
+
      ...
 
-    object forged_protected_quic_packet = {
+    object forged_protected_initial_quic_packet = {
         variant this of packet = struct {
             ptype : quic_packet_type, # [2]
             pversion : version, # [3]
@@ -88,9 +89,9 @@ object packet.forged_protected_quic_packet = {
 # - `dst`: the destination endpoint
 # - `pkt` : the packet contents
 
-action modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_protected_quic_packet) = {}
+action modify_protected_initial_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_protected_initial_quic_packet) = {}
 
-#action forged_packet_event_multiple_src(src1:ip.endpoint,src2:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_protected_quic_packet) = {}
+#action forged_packet_event_multiple_src(src1:ip.endpoint,src2:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_protected_initial_quic_packet) = {}
 
 # Packet protocol state
 # ---------------------
@@ -188,7 +189,7 @@ after init {
 #   If a zero-length connection ID is selected, the corresponding
 #   transport parameter is included with a zero-length value.
 
-around modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_protected_quic_packet) {
+around modify_protected_initial_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_protected_initial_quic_packet) {
     #call show_connected(connected(the_cid), connected_to(the_cid));
 
     # TEMPORARY: Do not allow zero_rtt packets

@@ -19,19 +19,19 @@ action endpoint_id_addr(ep_id : endpoint_id) returns (ep:ip.endpoint) = {
     ep.addr := target_addr if ep_id = endpoint_id.target | ep_id = endpoint_id.target_alt  
                 else (client_addr if ep_id = endpoint_id.client
                 else (server_addr if ep_id = endpoint_id.server
-                else (client_vn_addr if ep_id = endpoint_id.client_vn
+                # else (client_vn_addr if ep_id = endpoint_id.client_vn
                 else (mim_addr if ep_id = endpoint_id.man_in_the_middle
                 else (malicious_client_addr if ep_id = endpoint_id.malicious_client
                 else (malicious_server_addr if ep_id = endpoint_id.malicious_server
                 else (c2_server_addr if ep_id = endpoint_id.c2_server
-                else (bot_addr))))))));
+                else (bot_addr)))))));
 
     ep.port := target_port if ep_id = endpoint_id.target
                 else (target_alt_port if ep_id = endpoint_id.target_alt
                 else (client_port if ep_id = endpoint_id.client
                 else (server_port if ep_id = endpoint_id.server
                 else (client_vn_port if ep_id = endpoint_id.client_vn
-                else (mim_port_in if ep_id = endpoint.man_in_the_middle
+                else (mim_port_in if ep_id = endpoint_id.man_in_the_middle
                 else (malicious_client_port if ep_id = endpoint_id.malicious_client
                 else (malicious_server_port if ep_id = endpoint_id.malicious_server
                 else (c2_server_port if ep_id = endpoint_id.c2_server
@@ -71,7 +71,7 @@ object endpoint = {
         individual ppkt_to_be_reflected_to_target : forged_pkts
     
         individual ppkt_to_be_forge : stream_data
-        individual ppkt_to_be_forge_parsed : forged_protected_quic_packet
+        individual ppkt_to_be_forge_parsed : packet.forged_protected_quic_packet
         individual enc_level_ppkt_to_be_forge : quic_packet_type
 
         individual init_cids : bool # TODO remove
@@ -147,7 +147,7 @@ object endpoint = {
                     fake_client.set_ep(mim_client_target.ep);
                     fake_client.ep.interface := ip.lo;
                     # TODO only for server tests
-                    sock_mim_client := net.listen(endpoint_id.mim,fake_client.ep);
+                    sock_mim_client := net.listen(endpoint_id.man_in_the_middle,fake_client.ep);
                 }; 
             } 
 
@@ -309,7 +309,7 @@ object endpoint = {
             # forward packet
             var pkts_mim := prot.arr.empty;
             pkts_mim := pkts_mim.append(ppkt);
-            call net.send(endpoint_id.mim,endpoint_to_socket(src),dst,pkts_mim);
+            call net.send(endpoint_id.man_in_the_middle,endpoint_to_socket(src),dst,pkts_mim);
         }
 
         action replay_packet(ppkt:stream_data,host:endpoint_id, s:net.socket, src:ip.endpoint) = {
@@ -317,7 +317,7 @@ object endpoint = {
             var dst := socket_endpoint(host,s);
             var pkts_mim := prot.arr.empty;
             pkts_mim := pkts_mim.append(ppkt);
-            call net.send(endpoint_id.mim,endpoint_to_socket(src),dst,pkts_mim);
+            call net.send(endpoint_id.man_in_the_middle,endpoint_to_socket(src),dst,pkts_mim);
         }
 
         # TODO use serializer

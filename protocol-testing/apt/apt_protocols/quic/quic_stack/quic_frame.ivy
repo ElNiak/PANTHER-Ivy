@@ -1960,17 +1960,17 @@ action enqueue_frame(scid:cid, f:quic_frame, e:quic_packet_type, probing:bool, s
     if ~probing {
         queued_non_probing(scid) := true;
     };
-    if ~(f isa quic_frame.ack){ #& ~(fquic_framequic_frame.padding){
+    if ~(f isa quic_frame.ack){ #& ~(quic_frame.padding){
         queued_non_ack(scid) := true;
     };
     if  f isa quic_frame.path_challenge {
         queued_challenge(scid) := true;
     };
-    if (f isa quic_frame.connection_close) | (fquic_framequic_frame.application_close) {
+    if (f isa quic_frame.connection_close) | (f isa quic_frame.application_close) {
         queued_close(scid) := true;
     };
     #Hamid
-    if ~(f isa quic_frame.ack) & ~(fquic_framequic_frame.connection_close) { #quic_frame isa quic_frame.padding){ & ~queued_ack_eliciting(scid)
+    if ~(f isa quic_frame.ack) & ~(f isa quic_frame.connection_close) { #quic_frame isa quic_frame.padding){ & ~queued_ack_eliciting(scid)
 	    queued_ack_eliciting(scid) := true;
         if _generating {
             queued_ack_eliciting_pkt(seqnum_to_streampos(last_pkt_num(scid,e) + 0x1)) := true;  # TODO add client, vs server
@@ -1987,7 +1987,7 @@ action enqueue_frame_rtt(scid:cid, f:quic_frame, e:quic_packet_type, probing:boo
     queued_frames_rtt(scid) := queued_frames_rtt(scid).append(f);
     num_queued_frames_rtt(scid) := queued_frames_rtt(scid).end;
     queued_level_rtt(scid) := e;
-    if ~(f isa quic_frame.ack){ #& ~(fquic_framequic_frame.padding){
+    if ~(f isa quic_frame.ack){ #& ~(quic_frame.padding){
         queued_non_ack(scid) := true;
     };
 }

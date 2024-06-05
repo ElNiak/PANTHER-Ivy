@@ -36,7 +36,7 @@ instance tls_hand_extensions : vector(tls.handshake)
 
 action endpoint_to_pid(src:ip.endpoint) returns (pid:endpoint_id) = {
     if src = attacker.ep {
-        pid := endpoint_id.attacker;
+        pid := endpoint_id.malicious_server;
     } 
     # else if src = client_alt {
     #     pid:= endpoint_id.client_alt;
