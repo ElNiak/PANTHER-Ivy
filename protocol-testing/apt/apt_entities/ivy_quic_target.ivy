@@ -11,6 +11,14 @@ include quic_endpoint
 
 parameter target_addr : ip.addr = 0x0a000401
 parameter target_port : ip.port = 4430
+
+parameter target_alt_addr : ip.addr = 0x0a000401
+parameter target_alt_port : ip.port = 4430
+
+# TODO
+parameter client_vn_addr : ip.addr = 0x0a000401
+parameter client_vn_port : ip.port = 4430
+
 parameter is_target : bool = false
 
 instance target_agent : endpoint.target_ep(target_addr,target_port)

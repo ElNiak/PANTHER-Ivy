@@ -11,6 +11,6 @@ include ivy_quic_shim_mim
 # -------------
 
 after init {
-    sock_mim_server := net.listen(endpoint_id.mim,server.ep);
+    sock_mim_server := net.listen(endpoint_id.man_in_the_middle,server.ep);
     mim_agent.set_tls_id(4); # 0 is default value, we dont wont that
 }

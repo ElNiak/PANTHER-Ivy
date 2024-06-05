@@ -1,7 +1,7 @@
 #lang ivy1.7
 
 include quic_connection
-include attack_connection
+include quic_attack_connection
 include tls_msg
 include serdes
 include quic_deser
@@ -243,11 +243,11 @@ implement net.recv(host:endpoint_id, s:net.socket, src:ip.endpoint, pkts:prot.ar
             call server.behavior(host,s,src,pkts);
         } else if host = endpoint_id.client | host = endpoint_id.client_alt  { # for server test (tested implem = server <-> ivy implem = client)
             call client.behavior(host,s,src,pkts);
-        } else if host = endpoint_id.mim {
+        } else if host = endpoint_id.man_in_the_middle {
             call mim_agent.behavior(host,s,src,pkts);
         } else if host = endpoint_id.target {
             call target_agent.behavior(host,s,src,pkts);
-        } else if host = endpoint_id.attacker {
+        } else if host = endpoint_id.malicious_server {
             call attacker.behavior(host,s,src,pkts);
         } else {
             # ERROR
@@ -494,7 +494,7 @@ after tls_client_initial_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_d
         }
     } else {
         # client.set_ep(src); # TODO: migration?
-        #if ~endpoint_to_pid(src) = endpoint_id.mim {
+        #if ~endpoint_to_pid(src) = endpoint_id.man_in_the_middle {
         call client.set_ep(src);
         #client.ep.interface := ip.lo;
         #}
@@ -769,7 +769,7 @@ after tls_client_0rtt_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_data
         }
     } else {
         #client.set_ep(src); # TODO: migration?
-        #if ~endpoint_to_pid(src) = endpoint_id.mim {
+        #if ~endpoint_to_pid(src) = endpoint_id.man_in_the_middle {
         call client.set_ep(src);
         #}
     }
