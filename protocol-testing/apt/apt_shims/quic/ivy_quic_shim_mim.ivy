@@ -39,11 +39,11 @@ after init {
     is_mim := true;
 }
 
-after modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_protected_quic_packet) {
+after modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_protected_quic_packet) {
     if _generating {  # & ~conn_closed(pkt.the_cid)
         # var idx := pkt.begin;
         # while idx < pkt.end {
-            var spkt := forged_protected_pkt_serdes.to_bytes(pkt); # .value(idx)
+            var spkt := malicious_protected_pkt_serdes.to_bytes(pkt); # .value(idx)
             # var rnum := reference_pkt_num(spkt,false);
             # var tls_id := src_tls_id(src);
             # var ppkt := prot.encrypt(tls_id,rnum,spkt);
@@ -55,7 +55,7 @@ after modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.f
     }
 }
 
-after forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_pkts) {
+after forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:malicious_pkts) {
     if _generating {  # & ~conn_closed(pkt.the_cid)
         var idx := pkt.begin;
         
@@ -78,7 +78,7 @@ after forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_
 }
 
 
-after forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_pkts) {
+after forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:malicious_pkts) {
     if _generating {  # & ~conn_closed(pkt.the_cid)
         var idx := pkt.begin;
 
@@ -101,7 +101,7 @@ after forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_
     }
 }
 
-after replay_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_pkts) {
+after replay_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:malicious_pkts) {
     if _generating {  # & ~conn_closed(pkt.the_cid)
         var idx := pkt.begin;
         while idx < pkt.end {
@@ -113,9 +113,9 @@ after replay_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_p
     }
 }
 
-after forged_packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_quic_packet_vn) {
+after malicious_packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_quic_packet_vn) {
     if _generating {  # & ~conn_closed(pkt.the_cid)
-        var spkt := forged_pkt_serdes_vn.to_bytes(pkt);
+        var spkt := malicious_pkt_serdes_vn.to_bytes(pkt);
         # var rnum := reference_pkt_num(spkt,false);
         # var tls_id := dst_tls_id(dst);
         # var ppkt := prot.encrypt(tls_id,rnum,spkt); # no encryption ?
@@ -125,9 +125,9 @@ after forged_packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_q
     }
 }
 
-after forged_packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_quic_packet_retry,inpkt:packet.quic_packet_retry) {
+after malicious_packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_quic_packet_retry,inpkt:packet.quic_packet_retry) {
     if _generating {  # & ~conn_closed(pkt.the_cid)
-        var spkt := forged_pkt_serdes_retry.to_bytes(pkt);
+        var spkt := malicious_pkt_serdes_retry.to_bytes(pkt);
         var pkts := prot.arr.empty;
         pkts := pkts.append(spkt);
         call net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts);

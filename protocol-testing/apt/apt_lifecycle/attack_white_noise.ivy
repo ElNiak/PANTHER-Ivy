@@ -11,29 +11,7 @@ include apt_packet
     #Description: Overwhelming a network or service with a flood of traffic to make 
     # it unavailable to legitimate users.
 
-action udp_flood() = {
-    require pkt = udp_packet;
-}
-
-action tcp_flood() = {}
-
-action icmp_flood() = {}
-
-action smurf_attack() = {}
-
-action http_flood() = {}
-
-action slowloris() = {}
-
-action dns_flood() = {}
-
-action reflected_dns_flood() = {}
-
-action smtp_flood() = {}
-
-action ftp_flood() = {}
-
-action ssh_flood() = {}
+# see apt_packet.ivy
 
 # 2. Distributed Denial-of-Service (DDoS) Attacks
 

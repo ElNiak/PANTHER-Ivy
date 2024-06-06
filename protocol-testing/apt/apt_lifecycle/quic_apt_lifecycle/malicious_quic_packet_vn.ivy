@@ -32,7 +32,7 @@ include ip
 
 # ### Packet
 
-# The type `packet.forged_quic_packet_vn` represents packet. 
+# The type `packet.malicious_quic_packet_vn` represents packet. 
 
 # The fields are:
 #
@@ -47,7 +47,7 @@ include ip
 object packet = {
     ...
 
-    object forged_quic_packet_vn = {
+    object malicious_quic_packet_vn = {
         variant this of packet = struct {
             ptype : quic_packet_type, # [2]
             pversion : version, # [3]
@@ -79,7 +79,7 @@ object packet = {
 # - `pkt` : the packet contents
 # - `inpkt`: original packet from server or client that can be used as template with small modification
 
-action forged_packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_quic_packet_vn) = {}
+action malicious_packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_quic_packet_vn) = {}
 
 # Packet protocol state
 # ---------------------
@@ -106,7 +106,7 @@ action forged_packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_
 #
 # Create/Forge new Version Negociation packet
 
-around forged_packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_quic_packet_vn) {
+around malicious_packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_quic_packet_vn) {
         # Extract the source and destination cid's and packet number from the packet.
 
     var dcid := pkt.dst_cid;

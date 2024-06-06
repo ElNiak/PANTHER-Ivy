@@ -51,7 +51,7 @@ interpret itoken -> longbv[1][13][16]
 object packet = {
     ...
 
-    object forged_quic_packet_retry = {
+    object malicious_quic_packet_retry = {
         variant this of packet = struct {
             ptype : quic_packet_type, # [2]
             pversion : version, # [3]
@@ -91,7 +91,7 @@ object packet = {
 # - `dst`: the destination endpoint
 # - `pkt` : the packet contents
 
-action forged_packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_quic_packet_retry,inpkt:packet.quic_packet_retry) = {}
+action malicious_packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_quic_packet_retry,inpkt:packet.quic_packet_retry) = {}
 
 # Packet protocol state
 # ---------------------
@@ -162,7 +162,7 @@ after init {
 
 }
 
-around forged_packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_quic_packet_retry, inpkt:packet.quic_packet_retry) {    
+around malicious_packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_quic_packet_retry, inpkt:packet.quic_packet_retry) {    
     # Extract the source and destination cid's and packet number from the packet.
     var dcid := pkt.dst_cid;
     var scid := pkt.src_cid;

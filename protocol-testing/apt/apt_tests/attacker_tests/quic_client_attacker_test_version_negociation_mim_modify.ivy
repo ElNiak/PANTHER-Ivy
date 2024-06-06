@@ -103,7 +103,7 @@ before packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_vn
 }
 
 # Like forward packet but with modification of packets
-before modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_protected_quic_packet) {
+before modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_protected_quic_packet) {
     if _generating {
         require mim_client_target.ep.addr ~= 0;  # must have a client address to send to
         require src = mim_agent.ep_out;
@@ -113,7 +113,7 @@ before modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.
     } 
 }
 
-before forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_pkts) {
+before forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:malicious_pkts) {
     if _generating {
         require mim_client_target.ep.addr ~= 0;  # must have a client address to send to
         require src = mim_agent.ep_out;
@@ -123,7 +123,7 @@ before forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged
     } 
 }
 
-before forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_pkts) {
+before forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:malicious_pkts) {
     if _generating {
         require mim_client_target.ep.addr ~= 0;  # must have a client address to send to
         require src = mim_agent.ep_out;
@@ -155,7 +155,7 @@ export tls_recv_event
 #export quic_frame.connection_close.handle
 #export quic_frame.max_stream_data.handle
 
-# export forged_packet_event_vn
+# export malicious_packet_event_vn
 
 export modify_protected_packet_event
 export forward_packet_to_client_event

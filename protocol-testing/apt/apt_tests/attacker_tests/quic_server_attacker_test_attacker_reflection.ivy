@@ -31,7 +31,7 @@ after init {
     call tls_api.upper.create(0,false,extns);  # false means this instance of tls is not a server
 }
 
-before forged_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_quic_packet) {
+before malicious_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_quic_packet) {
     if _generating {
         #require ~negocation_of_version(src);
         var tp := trans_params(the_cid);
@@ -76,7 +76,7 @@ export quic_frame.ack.handle
 export quic_frame.stream.handle
 export quic_frame.crypto.handle
 export quic_frame.path_response.handle
-export forged_packet_event
+export malicious_packet_event
 export attacker_send_event
 export tls_recv_event
 #export quic_frame.new_connection_id.handle

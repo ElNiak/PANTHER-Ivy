@@ -53,13 +53,13 @@ object endpoint = {
         individual ppkt_saved_b : bool
         individual ppkt_saved : stream_data
         
-        individual ppkt_to_be_replayed_to_server : forged_pkts
-        function   ppkt_to_be_forwarded_to_server(C:stream_pos) : forged_pkts
+        individual ppkt_to_be_replayed_to_server : malicious_pkts
+        function   ppkt_to_be_forwarded_to_server(C:stream_pos) : malicious_pkts
         individual cppkt_forwarded_to_server : stream_pos
         individual last_cppkt_forwarded_to_server : stream_pos
 
         individual force_client_forward : bool  # useless for now
-        function   ppkt_to_be_forwarded_to_client(C:stream_pos) : forged_pkts
+        function   ppkt_to_be_forwarded_to_client(C:stream_pos) : malicious_pkts
         individual cppkt_forwarded_to_client : stream_pos
         individual last_cppkt_forwarded_to_client : stream_pos
 
@@ -68,10 +68,10 @@ object endpoint = {
         individual forward_turn : bool
         individual forward_turn_count : stream_pos
         
-        individual ppkt_to_be_reflected_to_target : forged_pkts
+        individual ppkt_to_be_reflected_to_target : malicious_pkts
     
         individual ppkt_to_be_forge : stream_data
-        individual ppkt_to_be_forge_parsed : packet.forged_protected_quic_packet
+        individual ppkt_to_be_forge_parsed : packet.malicious_protected_quic_packet
         individual enc_level_ppkt_to_be_forge : quic_packet_type
 
         individual init_cids : bool # TODO remove
@@ -106,8 +106,8 @@ object endpoint = {
 
             max_retransmit(E,S) := 0;
 
-            # ppkt_to_be_forwarded_to_server(C) := forged_pkts.empty;
-            # ppkt_to_be_forwarded_to_client(C) := forged_pkts.empty;
+            # ppkt_to_be_forwarded_to_server(C) := malicious_pkts.empty;
+            # ppkt_to_be_forwarded_to_client(C) := malicious_pkts.empty;
             # Allow to keep coalesced packed
             cppkt_forwarded_to_server := 0;
             cppkt_forwarded_to_client := 0;
@@ -214,7 +214,7 @@ object endpoint = {
 
                         # if pkt_type = enc_level_ppkt_to_be_forge & is_long {
                         #     ppkt_to_be_forge := rppkt;
-                        #     ppkt_to_be_forge_parsed := forged_protected_pkt_serdes.from_bytes(ppkt_to_be_forge);
+                        #     ppkt_to_be_forge_parsed := malicious_protected_pkt_serdes.from_bytes(ppkt_to_be_forge);
                         #     call recv_protected_packet_mim(host,src,dst,ppkt_to_be_forge_parsed);
                         # }
                         #max_retransmit(pkt_type,src) := max_retransmit(pkt_type,src) + 1;
@@ -222,7 +222,7 @@ object endpoint = {
                         ppkt_to_be_forwarded_to_server(cppkt_forwarded_to_server) := ppkt_to_be_forwarded_to_server(cppkt_forwarded_to_server).append(rppkt);
                         # force_client_forward := true;
                         # } else {
-                        #     ppkt_to_be_forwarded_to_server := forged_pkts.empty;
+                        #     ppkt_to_be_forwarded_to_server := malicious_pkts.empty;
                         #     force_client_forward := false;
                         # }
                     } else if src = mim_server_target.ep {
@@ -604,14 +604,14 @@ object endpoint = {
         individual ep         : ip.endpoint
         individual tls_id     : tls_api.id
         individual enc_level  : quic_packet_type
-        individual ppkt_recvd : forged_pkts
+        individual ppkt_recvd : malicious_pkts
 
         after init {
             enc_level := quic_packet_type.initial;
             ep.protocol := ip.udp;
             ep.addr := address;
             ep.port := port;
-            ppkt_recvd := forged_pkts.empty;
+            ppkt_recvd := malicious_pkts.empty;
         }
         
         action set_ep(e:ip.endpoint) = {

@@ -263,7 +263,7 @@ implement net.recv(host:endpoint_id, s:net.socket, src:ip.endpoint, pkts:prot.ar
 
 import action recv_packet(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
 import action recv_packet_mim(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:stream_data)
-import action recv_protected_packet_mim(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_protected_quic_packet)
+import action recv_protected_packet_mim(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_protected_quic_packet)
 
 import action recv_packet_target(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:stream_data)
 import action padding_packet_event(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:stream_data)
@@ -908,10 +908,10 @@ instance pkt_serdes_0rtt : serdes(packet.quic_packet_0rtt,stream_data,quic_ser_z
 # To send and receive packets (for MiM agent), we need to serialize and deserialize them.
 # This object allows that.
 
-instance forged_protected_pkt_serdes : serdes(packet.forged_protected_quic_packet,stream_data,quic_ser_forged,quic_deser_forged)
-instance forged_pkt_serdes : serdes(packet.forged_quic_packet,stream_data,quic_ser,quic_deser)
-instance forged_pkt_serdes_vn : serdes(packet.forged_quic_packet_vn,stream_data,quic_ser_vn,quic_deser_vn)
-instance forged_pkt_serdes_retry : serdes(packet.forged_quic_packet_retry,stream_data,quic_ser_retry,quic_deser_retry)
+instance malicious_protected_pkt_serdes : serdes(packet.malicious_protected_quic_packet,stream_data,quic_ser_forged,quic_deser_forged)
+instance malicious_pkt_serdes : serdes(packet.malicious_quic_packet,stream_data,quic_ser,quic_deser)
+instance malicious_pkt_serdes_vn : serdes(packet.malicious_quic_packet_vn,stream_data,quic_ser_vn,quic_deser_vn)
+instance malicious_pkt_serdes_retry : serdes(packet.malicious_quic_packet_retry,stream_data,quic_ser_retry,quic_deser_retry)
 instance replayed_pkt_serdes_0rtt : serdes(packet.replayed_quic_packet_0rtt,stream_data,quic_ser_zerortt,quic_deser_zerortt)
 
 # Convert a CID to bytes. TODO: This doesn't belong here and it shouldn't
