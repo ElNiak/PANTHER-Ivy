@@ -93,7 +93,7 @@ before packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_vn
         require negocation_of_version(dst);
         require client.ep.addr ~= 0;  # must have a client address to send to
         # require dst = client.ep;
-        forged_packet_send := true;
+        malicious_packet_send := true;
         require (src = server.ep & dst = client.ep); #| (src = server.ep & dst = mim_agent.ep); # Either we manually forge version negociation
         require pkt.dst_cid = client_initial_scid;
         require pkt.src_cid = client_initial_dcid;
@@ -106,7 +106,7 @@ before packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_vn
 
 # Event of MiM Agent -> TODO put that more clearly
 # Like forward packet but with modification of packets
-before modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_protected_quic_packet) {
+before modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_protected_quic_packet) {
     if _generating {
         require mim_client_target.ep.addr ~= 0;  # must have a client address to send to
         require src = mim_agent.ep_out;
@@ -116,7 +116,7 @@ before modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.
     } 
 }
 
-before forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_pkts) {
+before forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:malicious_pkts) {
     if _generating {
         require mim_client_target.ep.addr ~= 0;  # must have a client address to send to
         #require;
@@ -127,7 +127,7 @@ before forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged
     } 
 }
 
-before forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_pkts) {
+before forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:malicious_pkts) {
     if _generating {
         require mim_client_target.ep.addr ~= 0;  # must have a client address to send to
         #require;
@@ -141,13 +141,13 @@ before forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged
 }
 
 # Event of MiM Agent -> TODO put that more clearly
-# before modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_protected_quic_packet) {
+# before modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_protected_quic_packet) {
 #     if _generating {
 #         #require initial_version ~= 0x00000001; 
 #         require negocation_of_version(dst);
 #         require client.ep.addr ~= 0;  # must have a client address to send to
 #         # require dst = client.ep;
-#         forged_packet_send := true;
+#         malicious_packet_send := true;
 #         require (src = mim_agent.ep_out & dst = client.ep); #| (src = server.ep & dst = mim_agent.ep); # Either we manually forge version negociation
 #         require pkt.dst_cid = client_initial_scid;
 #         require pkt.src_cid = client_initial_dcid;

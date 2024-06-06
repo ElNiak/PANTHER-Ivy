@@ -44,12 +44,12 @@ include ip
 # - *seq_num*: the packet sequence number  [7]
 # - *payload*: the payload, a sequence of frames  [8]
 
-instance forged_pkts : array(index,stream_data)
+instance malicious_pkts : array(index,stream_data)
 
 object packet = {
    ...
 
-    object forged_protected_quic_packet = {
+    object malicious_protected_quic_packet = {
         variant this of packet = struct {
             ptype : quic_packet_type, # [2]
             pversion : version, # [3]
@@ -76,7 +76,7 @@ object packet = {
 object packet = {
     ...
 
-    object forged_quic_packet = {
+    object malicious_quic_packet = {
         variant this of packet = struct {
             ptype : quic_packet_type, # [2]
             pversion : version, # [3]
@@ -117,17 +117,17 @@ object packet = {
 # - `dst`: the destination endpoint
 # - `pkt` : the packet contents
 
-action forged_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_quic_packet) = {}
+action malicious_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_quic_packet) = {}
 
-action modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_protected_quic_packet) = {}
+action modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_protected_quic_packet) = {}
 
-action forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_pkts) = {}
+action forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:malicious_pkts) = {}
 
-action forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_pkts) = {}
+action forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:malicious_pkts) = {}
 
-action replay_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_pkts) = {}
+action replay_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:malicious_pkts) = {}
 
-action reflect_packet_to_target_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_pkts) = {}
+action reflect_packet_to_target_event(src:ip.endpoint,dst:ip.endpoint,pkt:malicious_pkts) = {}
 
 
 # Packet protocol state
@@ -144,7 +144,7 @@ action reflect_packet_to_target_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged
 
 relation packed_forwarded(P:stream_data)
 
-relation packed_forwarded_arr(P:forged_pkts)
+relation packed_forwarded_arr(P:malicious_pkts)
 
 # Initial state
 # -------------
@@ -170,7 +170,7 @@ after init {
 # - The packet payload may not be empty [7].
 #
 
-around forged_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_quic_packet) {
+around malicious_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_quic_packet) {
    #call show_connected(connected(the_cid), connected_to(the_cid));
 
     # TEMPORARY: Do not allow zero_rtt packets
@@ -408,7 +408,7 @@ around forged_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_qui
 
 # Create/Forge new long packet based on previously received packets. 
 
-around modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.forged_protected_quic_packet) {
+around modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_protected_quic_packet) {
     require mim_agent.nat_configured;
     require src ~= dst;
     require ~(src = mim_agent.ep_out & dst = mim_agent.ep_in);
@@ -427,7 +427,7 @@ around modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.
     mim_agent.forward_turn := true;
 }
 
-around forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_pkts) {
+around forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:malicious_pkts) {
     require pkt.end > 0;
     require mim_agent.nat_configured;
     require src ~= dst;
@@ -450,12 +450,12 @@ around forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged
     #     idx := idx.next; 
     # };
     packed_forwarded_arr(pkt) := true;
-    mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_cppkt_forwarded_to_client) := forged_pkts.empty;  # help solver
+    mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_cppkt_forwarded_to_client) := malicious_pkts.empty;  # help solver
     mim_agent.force_server_forward := false;
     mim_agent.forward_turn := false;
 }
 
-around forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_pkts) {
+around forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:malicious_pkts) {
     require pkt.end > 0;
     require mim_agent.nat_configured;
     require src ~= dst;
@@ -477,13 +477,13 @@ around forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged
     #     idx := idx.next; 
     # };
     packed_forwarded_arr(pkt) := true;
-    mim_agent.ppkt_to_be_forwarded_to_server(mim_agent.last_cppkt_forwarded_to_server) := forged_pkts.empty;
+    mim_agent.ppkt_to_be_forwarded_to_server(mim_agent.last_cppkt_forwarded_to_server) := malicious_pkts.empty;
     mim_agent.force_client_forward := false;
     mim_agent.forward_turn := true;
 }
 
 
-around replay_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_pkts) {
+around replay_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:malicious_pkts) {
     require pkt.end > 0;
     require mim_agent.nat_configured;
     require src ~= dst;
@@ -504,12 +504,12 @@ around replay_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_
     #     idx := idx.next; 
     # };
     packed_forwarded_arr(pkt) := true;
-    mim_agent.ppkt_to_be_replayed_to_server := forged_pkts.empty;
+    mim_agent.ppkt_to_be_replayed_to_server := malicious_pkts.empty;
     mim_agent.force_client_forward := false;
     mim_agent.forward_turn := true;
 }
 
-around reflect_packet_to_target_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_pkts) {
+around reflect_packet_to_target_event(src:ip.endpoint,dst:ip.endpoint,pkt:malicious_pkts) {
     require pkt.end > 0;
     require mim_agent.nat_configured;
     require src ~= dst;
@@ -530,7 +530,7 @@ around reflect_packet_to_target_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged
     #     idx := idx.next; 
     # };
     packed_forwarded_arr(pkt) := true;
-    mim_agent.ppkt_to_be_reflected_to_target := forged_pkts.empty;  # help solver
+    mim_agent.ppkt_to_be_reflected_to_target := malicious_pkts.empty;  # help solver
     mim_agent.force_server_forward := false;
    # mim_agent.forward_turn := false;
 }

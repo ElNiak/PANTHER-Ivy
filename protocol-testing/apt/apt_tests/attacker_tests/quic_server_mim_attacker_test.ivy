@@ -53,7 +53,7 @@ after init {
 import action show_is_mim(b:bool)
 
 
-before forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_pkts) {
+before forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:malicious_pkts) {
     if _generating {
         require mim_client_target.ep.addr ~= 0;  # must have a client address to send to
         #require;
@@ -64,7 +64,7 @@ before forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged
     } 
 }
 
-before forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_pkts) {
+before forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:malicious_pkts) {
     if _generating {
         require mim_client_target.ep.addr ~= 0;  # must have a client address to send to
         #require;

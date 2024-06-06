@@ -1,0 +1,23 @@
+#lang ivy1.7    
+
+object packet = {
+    
+    type this 
+
+    instance idx : unbounded_sequence
+    instance arr : array(idx,this) 
+
+    # Normal behavior
+
+    action handle(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
+        require false; 
+    }
+
+    ## White noise
+
+    # 1. Denial-of-Service (DoS) Attacks
+
+    action flood(src:ip.endpoint,dst:ip.endpoint, pkt:this) = {
+        require false; 
+    }
+}

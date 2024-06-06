@@ -35,6 +35,14 @@ object ping_frame = {
     instance arr : array(idx,this)
 }       
 
+object ping_frame = {
+    ...
+    action handle(f:this) = {
+        require false; 
+    }
+}
+
+
 function queued_ping_frames : ping_frame.arr
 function num_queued_ping_frames : ping_frame.idx
 
@@ -48,12 +56,6 @@ after init {
     timestamp_frame_pending := false;
 }
 
-object ping_frame = {
-    ...
-    action handle(f:this) = {
-        require false; 
-    }
-}
 
 object ping_frame = {
     ...
@@ -72,18 +74,16 @@ object ping_frame = {
             ...
             ping_frame_pending := true;
             timestamp_frame_pending := true;
-            call enqueue_frame(f);
+            call enqueue_ping_frame(f);
         }
     }
 }
 
-object ping_frame
- = {
+object ping_frame = {
     ...
     object pong = {
         ...
-        action handle(f:ping_frame
-.pong)
+        action handle(f:ping_frame.pong)
 
         around handle {
             if _generating {
@@ -99,18 +99,16 @@ object ping_frame
             ...
             ping_frame_pending := false;
             timestamp_frame_pending := true;
-            call enqueue_frame(f);
+            call enqueue_ping_frame(f);
         }
     }
 }
 
-object ping_frame
- = {
+object ping_frame = {
     ...
     object timestamp = {
         ...
-        action handle(f:ping_frame
-.timestamp)
+        action handle(f:ping_frame.timestamp)
 
         around handle {
             if _generating {
@@ -122,15 +120,14 @@ object ping_frame
             require timestamp_frame_pending;
             ...
             timestamp_frame_pending := false;
-            call enqueue_frame(f);
+            call enqueue_ping_frame(f);
         }
     }
 }
 
 import action show_estimated_latency(l:milliseconds)
 
-action enqueue_frame(f:ping_frame
-) = {
+action enqueue_ping_frame(f:ping_frame) = {
     queued_frames := queued_frames.append(f);
     num_queued_frames := queued_frames.end;
 }
