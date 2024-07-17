@@ -24,7 +24,7 @@ include ivy_man_in_the_middle_behavior
 
 after init {
     call show_is_mim(is_mim);
-    sock_mim_client := net.listen(endpoint_id.man_in_the_middle,client.ep);
+    sock_mim_client := quic_net.listen(endpoint_id.man_in_the_middle,client.ep);
     # mim_server_target.set_ep(server.ep);
     server.ep.interface := ip.ivy;
 }
@@ -39,9 +39,9 @@ after init {
 }
 
 after init {
-    sock := net.open(endpoint_id.client,client.ep);
-    sock_alt := sock; #net.open(endpoint_id.client_alt,client_alt);
-    sock_vn := sock; # net.open(endpoint_id.client_vn,client_vn);
+    sock := quic_net.open(endpoint_id.client,client.ep);
+    sock_alt := sock; #quic_net.open(endpoint_id.client_alt,client_alt);
+    sock_vn := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
     client.set_tls_id(0);
     second_client.set_tls_id(0); # TODO to avoid error
     server.set_tls_id(1);

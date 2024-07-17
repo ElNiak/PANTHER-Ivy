@@ -45,21 +45,13 @@ action endpoint_to_pid(src:ip.endpoint) returns (pid:endpoint_id) = {
 
 # Get the IP endpoint associated to a host id and socket number.
 
-action socket_endpoint(host:endpoint_id,s:net.socket) returns (src:ip.endpoint) = {
+action socket_endpoint(host:endpoint_id,s:quic_net.socket) returns (src:ip.endpoint) = {
     src := client.ep if host = endpoint_id.client else (client_vn if version_negociated else client_alt)
-}
-
-action socket_endpoint_mim(host:endpoint_id,s:net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
-    dst := client.ep if (is_mim_standalone | src = mim_server_target.ep) else server.ep;
-}
-
-action endpoint_to_socket_mim(src:ip.endpoint) returns (socket:net.socket) = {
-    socket := sock_mim_client if src = mim_client_target.ep else sock_mim_server; #  & ~malicious_packet_send
 }
 
 # Get the socket number associated to an IP endpoint.
 
-action endpoint_to_socket(src:ip.endpoint) returns (socket:net.socket) = {
+action endpoint_to_socket(src:ip.endpoint) returns (socket:quic_net.socket) = {
     if src = client.ep {
         socket := sock;
     } else if src = client_alt {

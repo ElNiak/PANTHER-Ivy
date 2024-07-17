@@ -11,7 +11,7 @@ include random_value
 # include ivy_quic_mim
 include ivy_quic_server_behavior
 include ivy_man_in_the_middle_behavior
-
+include apt_shim
 
 # NB: need bigger timeout (at least 90 sec)
 
@@ -130,7 +130,7 @@ before forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:malici
         #require;
         require src = mim_agent.ep_out;
         require dst = mim_client_target.ep;
-        require pkt = mim_agent.ppkt_to_be_forwarded_to_client;
+        require pkt = mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_cppkt_forwarded_to_server);
         #require pkt = mim_agent.ppkt_to_be_forwarded_to_server; # TODO put relation ?
     } 
 }
@@ -141,7 +141,7 @@ before forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:malici
         #require;
         require src = mim_agent.ep_out;
         require dst = mim_server_target.ep;
-        require pkt = mim_agent.ppkt_to_be_forwarded_to_server;        #require ;
+        require pkt = mim_agent.ppkt_to_be_forwarded_to_server(mim_agent.last_cppkt_forwarded_to_server);  # TODO check      #require ;
         #require ;
         #require pkt = mim_agent.ppkt_to_be_forwarded_to_server; # TODO put relation ?
     } 

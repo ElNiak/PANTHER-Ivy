@@ -70,11 +70,11 @@ after init {
 
 # We create sockets and bind them to the addresses that the client can use.
 
-instance sockets : array(idx,net.socket)
+instance sockets : array(idx,quic_net.socket)
 
-var sock : net.socket
-var sock_alt : net.socket
-var sock_vn : net.socket
+var sock : quic_net.socket
+var sock_alt : quic_net.socket
+var sock_vn : quic_net.socket
 
 instance tls_extensions : vector(tls.extension)
 instance tls_hand_extensions : vector(tls.handshake)
@@ -101,13 +101,13 @@ action endpoint_to_pid(src:ip.endpoint) returns (pid:endpoint_id) = {
 
 # Get the IP endpoint associated to a host id and socket number.
 
-action socket_endpoint(host:endpoint_id,s:net.socket) returns (src:ip.endpoint) = {
+action socket_endpoint(host:endpoint_id,s:quic_net.socket) returns (src:ip.endpoint) = {
     src := client.ep if host = endpoint_id.client else (client_vn if version_negociated else client_alt)
 }
     
 # Get the socket number associated to an IP endpoint.
 
-action endpoint_to_socket(src:ip.endpoint) returns (socket:net.socket) = {
+action endpoint_to_socket(src:ip.endpoint) returns (socket:quic_net.socket) = {
     if src = client.ep {
         socket := sock;
     } else if src = client_alt {

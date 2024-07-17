@@ -212,8 +212,8 @@ the `src` directory of Chromium:
 
     ./out/Debug/quic_server \
       --quic_response_cache_dir=/tmp/quic-data/www.example.org \
-      --certificate_file=net/tools/quic/certs/out/leaf_cert.pem \
-      --key_file=net/tools/quic/certs/out/leaf_cert.pkcs8 --quic-enable-version-99
+      --certificate_file=quic_net/tools/quic/certs/out/leaf_cert.pem \
+      --key_file=quic_net/tools/quic/certs/out/leaf_cert.pkcs8 --quic-enable-version-99
 
 To run the test client:
 

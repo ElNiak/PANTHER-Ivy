@@ -66,7 +66,7 @@ before quic_frame.application_close.handle(f:quic_frame.application_close,scid:c
     } else {
         require is_no_error;
         call _finalize;
-        #call net.close(endpoint_id.client,sock);
+        #call quic_net.close(endpoint_id.client,sock);
     }
 }
 
@@ -138,5 +138,5 @@ export quic_frame.connection_close.handle
 export action _finalize = {
     require is_no_error;
     require conn_total_data(the_cid) > 0;
-    #call net.close(endpoint_id.client,sock);
+    #call quic_net.close(endpoint_id.client,sock);
 }

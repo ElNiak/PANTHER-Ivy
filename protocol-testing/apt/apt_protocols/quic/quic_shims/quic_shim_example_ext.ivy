@@ -65,7 +65,7 @@ include ivy_quic_mim
 # When a UDP datagram arrives, decrypt it, deserialize it, then
 # generate a `packet_event`.
 #
-# Note: the net API deserializes the datagram into a sequence of
+# Note: the quic_net API deserializes the datagram into a sequence of
 # packets.  Thus, we have to iterate over the packets. If a packet
 # is undecryptable, we call the action `undecryptable_packet_event`.
 # This is not necessarily a protocol error, as an undecryptable
@@ -233,7 +233,7 @@ after init {
 }
 
 
-implement net.recv(host:endpoint_id, s:net.socket, src:ip.endpoint, pkts:prot.arr) {
+implement quic_net.recv(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:prot.arr) {
     # call show_current_time(time_api.c_timer.now_micros_last_bp);
     call show_socket(s);
     if(is_lost_recv_example_ext_ack_freq) {
@@ -272,11 +272,11 @@ import action padding_packet_event(host:endpoint_id,src:ip.endpoint,dst:ip.endpo
 import action undecryptable_packet_event(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:stream_data)
 import action on_purpose_lost_packet_event(host:endpoint_id,src:ip.endpoint,pkt:prot.arr)
 
-import action undefined_host_error(host:endpoint_id, s:net.socket, src:ip.endpoint)
+import action undefined_host_error(host:endpoint_id, s:quic_net.socket, src:ip.endpoint)
 
 import action show_last_datagram_size(size:stream_pos)
 
-import action show_socket(n:net.socket)
+import action show_socket(n:quic_net.socket)
 
 # Security event shims
 # --------------------

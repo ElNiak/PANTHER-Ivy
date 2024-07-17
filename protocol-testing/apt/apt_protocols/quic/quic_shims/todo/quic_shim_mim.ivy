@@ -51,7 +51,7 @@ include quic_locale
 # When a UDP datagram arrives, decrypt it, deserialize it, then
 # generate a `packet_event`.
 #
-# Note: the net API deserializes the datagram into a sequence of
+# Note: the quic_net API deserializes the datagram into a sequence of
 # packets.  Thus, we have to iterate over the packets. If a packet
 # is undecryptable, we call the action `undecryptable_packet_event`.
 # This is not necessarily a protocol error, as an undecryptable
@@ -127,20 +127,20 @@ after init {
 action test returns (is_padding:bool) = {
     <<<
     is_padding = true;
-    std::cerr <<  "net.recv 1"  << "\n";
+    std::cerr <<  "quic_net.recv 1"  << "\n";
     >>>
 }
 
 action test2 returns (is_padding:bool) = {
     <<<
     is_padding = true;
-    std::cerr <<  "net.recv 2 "  << "\n";
+    std::cerr <<  "quic_net.recv 2 "  << "\n";
     >>>
 }
 
-implement net.recv(host:endpoint_id, s:net.socket, src:ip.endpoint, pkts:prot.arr) {
+implement quic_net.recv(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:prot.arr) {
     var t := test;
-    var dst := socket_endpoint(host,s);  # because net API doesn't tell us the dst
+    var dst := socket_endpoint(host,s);  # because quic_net API doesn't tell us the dst
     var idx := pkts.begin;
 
     # todo put global
@@ -178,7 +178,7 @@ implement net.recv(host:endpoint_id, s:net.socket, src:ip.endpoint, pkts:prot.ar
             # forward packet
             var pkts_mim := prot.arr.empty;
             pkts_mim := pkts_mim.append(ppkt);
-            #call net.send(endpoint_id.server,endpoint_to_socket(src),dst,pkts_mim);
+            #call quic_net.send(endpoint_id.server,endpoint_to_socket(src),dst,pkts_mim);
             client.set_ep(src); # TODO: migration?
             negocation_of_version := true;
             var dcil : stream_pos := bfe[0][7](ppkt.value(5));

@@ -6,6 +6,7 @@ include quic_stream
 #include quic_fsm_sending
 #include quic_fsm_receiving
 include quic_transport_error_code
+include quic_h3_error_code
 # include quic_loss_recovery
 # include quic_congestion_control
 
@@ -1152,6 +1153,7 @@ object frame = { ...
 	    ...
             if ~_generating {
                 call handle_transport_error(f.err_code);
+                call handle_h3_error(f.err_code);
             };
             call enqueue_frame(scid,f,e,false,seq_num);
         }
@@ -1205,6 +1207,7 @@ object frame = { ...
 	    ...
             if ~_generating {
                 call handle_transport_error(f.err_code);
+                call handle_h3_error(f.err_code);
             };
             stream_seen(scid,f.id) := true;
             #receiving_ready := true;
@@ -1374,6 +1377,7 @@ object frame = { ...
             }; 
             conn_closed(scid) := true;
             call handle_transport_error(f.err_code);
+            call handle_h3_error(f.err_code);
 	    ...
             # if _generating {
             #     call _finalize;
@@ -1429,6 +1433,7 @@ object frame = { ...
             require f.reason_phrase_length = f.reason_phrase.end;
             conn_closed(scid) := true;
             call handle_transport_error(f.err_code);
+            call handle_h3_error(f.err_code);
             if ~_generating {
                 connection_closed := true;
             };

@@ -5,6 +5,7 @@ include quic_infer
 include file
 include ivy_quic_shim_attacker
 include quic_locale
+include ivy_man_in_the_middle_behavior
 include ivy_quic_attacker_behavior
 include apt_shim
 
@@ -16,13 +17,13 @@ include apt_shim
 include ivy_quic_client_standard_tp
 
 after init {
-    sock_target := net.open(endpoint_id.target,target_agent.ep);
+    sock_target := quic_net.open(endpoint_id.target,target_agent.ep);
 }
 
 after init {
-    sock_attacker := net.open(endpoint_id.malicious_server,attacker.ep);
-    sock_alt := net.open(endpoint_id.client_alt,client_alt);
-    sock_vn := sock_attacker; # net.open(endpoint_id.client_vn,client_vn);
+    sock_attacker := quic_net.open(endpoint_id.malicious_server,attacker.ep);
+    sock_alt := quic_net.open(endpoint_id.client_alt,client_alt);
+    sock_vn := sock_attacker; # quic_net.open(endpoint_id.client_vn,client_vn);
     attacker.set_tls_id(0);
     server.set_tls_id(1);
     call attacker.configure_NAT_attack_in_spoof_hack(server.ep.port,target_agent.ep.port);

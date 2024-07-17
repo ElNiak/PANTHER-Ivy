@@ -37,8 +37,8 @@ object endpoint = {
             tls_id := e;
         }
 
-        action behavior(host:endpoint_id, s:net.socket, src:ip.endpoint, pkts:prot.arr) = {
-            var dst := socket_endpoint(host,s);  # because net API doesn't tell us the dst
+        action behavior(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:prot.arr) = {
+            var dst := socket_endpoint(host,s);  # because quic_net API doesn't tell us the dst
             var idx := pkts.begin;
             var past_data : stream_data := stream_data.empty;
             while idx < pkts.end {
@@ -210,7 +210,7 @@ object endpoint = {
             ep.protocol := ip.udp;
             ep.addr := address;
             ep.port := port;
-            if ep.addr = 0x7f000001 | is_mim {
+            if ep.addr = 0x7f000001 {
                 ep.interface := ip.lo;
             } else {
                 ep.interface := ip.ivy;
@@ -226,8 +226,8 @@ object endpoint = {
             tls_id := e;
         }
 
-        action behavior(host:endpoint_id, s:net.socket, src:ip.endpoint, pkts:prot.arr) = {
-            var dst := socket_endpoint(host,s);  # because net API doesn't tell us the dst
+        action behavior(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:prot.arr) = {
+            var dst := socket_endpoint(host,s);  # because quic_net API doesn't tell us the dst
             var idx := pkts.begin;
             while idx < pkts.end {
                 var ppkt := pkts.value(idx);
@@ -461,8 +461,8 @@ object endpoint = {
             tls_id_client := e;
         }
 
-        action behavior(host:endpoint_id, s:net.socket, src:ip.endpoint, pkts:prot.arr) = {
-            var dst := socket_endpoint(host,s);  # because net API doesn't tell us the dst socket_endpoint_mim
+        action behavior(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:prot.arr) = {
+            var dst := socket_endpoint(host,s);  # because quic_net API doesn't tell us the dst socket_endpoint_mim
             var idx := pkts.begin;
             # TODO should not be here
 

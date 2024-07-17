@@ -11,6 +11,6 @@ after ping_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) 
         var spkt := packet.ping_packet_serdes.to_bytes(pkt);
         var pkts := pingd.arr.empty;
         pkts := pkts.append(spkt);
-        call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
+        call ping_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
     }
 }

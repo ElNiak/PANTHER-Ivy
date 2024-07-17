@@ -34,9 +34,9 @@ include ivy_quic_client_0rtt_tp
 # layer creates a connection. 
 
 after init {
-    sock := net.open(endpoint_id.client,client.ep);
-    sock_alt := net.open(endpoint_id.client_alt,client_alt);
-    sock_vn := sock; #net.open(endpoint_id.client_vn,client_vn);
+    sock := quic_net.open(endpoint_id.client,client.ep);
+    sock_alt := quic_net.open(endpoint_id.client_alt,client_alt);
+    sock_vn := sock; #quic_net.open(endpoint_id.client_vn,client_vn);
     client.set_tls_id(0);
     second_client.set_tls_id(0); # TODO to avoid error
     server.set_tls_id(1);

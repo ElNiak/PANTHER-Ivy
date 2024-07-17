@@ -1,0 +1,185 @@
+#lang ivy1.7
+
+# Is it the most elegant way to reprensent error ?
+# https://tools.ietf.org/html/draft-ietf-quic-transport-29#section-20
+# tag = 0x33
+relation is_datagram_error
+
+# tag = 0x100
+relation is_no_error_h3
+
+# tag = 0x101
+relation is_general_protocol_error
+
+# tag = 0x102
+relation is_internal_error_h3
+
+# tag = 0x103
+relation is_stream_creation_error
+
+# tag = 0x104
+relation is_closed_critical_stream
+
+# tag = 0x105
+relation is_frame_unexpected
+
+# tag = 0x106
+relation is_frame_error
+
+# tag = 0x107
+relation is_excessive_load
+
+# tag = 0x108
+relation is_id_error
+
+# tag = 0x109
+relation is_settings_error
+
+# tag = 0x10A
+relation is_missing_settings
+
+# tag = 0x10B
+relation is_request_rejected
+
+# tag = 0x10C
+relation is_request_cancelled
+
+# tag = 0x10D
+relation is_request_incomplete
+
+# tag = 0x10E
+relation is_message_error
+
+# tag = 0x10F
+relation is_connect_error
+
+# tag = 0x110
+relation is_version_fallback
+
+# tag = 0x200
+relation is_qpack_decompression_failed
+
+# tag = 0x201
+relation is_qpack_encoder_stream_error
+
+# tag = 0x202
+relation is_qpack_decoder_stream_error
+
+# Initial state
+# -------------
+
+after init {
+    is_datagram_error := false;
+    is_no_error_h3 := true;
+    is_general_protocol_error := false;
+    is_internal_error_h3 := false;
+    is_stream_creation_error := false;
+    is_closed_critical_stream := false;
+    is_frame_unexpected := false;
+    is_frame_error := false;
+    is_excessive_load := false;
+    is_id_error := false;
+    is_settings_error := false;
+    is_missing_settings := false;
+    is_request_rejected := false;
+    is_request_cancelled := false;
+    is_request_incomplete := false;
+    is_message_error := false;
+    is_connect_error := false;
+    is_version_fallback := false;
+    is_qpack_decompression_failed := false;
+    is_qpack_encoder_stream_error := false;
+    is_qpack_decoder_stream_error := false;
+}
+
+action handle_h3_error(ec:error_code) =
+{
+    if ec = 0x33 {
+        is_datagram_error := true;
+        is_no_error_h3 := false;
+    } else if ec = 0x100 {
+        is_no_error_h3 := true;
+    } else if ec = 0x101 {
+        is_general_protocol_error := true;
+        is_no_error_h3 := false;
+    } else if ec = 0x102 {
+        is_internal_error_h3 := true;
+        is_no_error_h3 := false;
+    } else if ec = 0x103 {
+        is_stream_creation_error := true;
+        is_no_error_h3 := false;
+    } else if ec = 0x104 {
+        is_closed_critical_stream := true;
+        is_no_error_h3 := false;
+    } else if ec = 0x105 {
+        is_frame_unexpected := true;
+        is_no_error_h3 := false;
+    } else if ec = 0x106 {
+        is_frame_error := true;
+        is_no_error_h3 := false;
+    } else if ec = 0x107 {
+        is_excessive_load := true;
+        is_no_error_h3 := false;
+    } else if ec = 0x108 {
+        is_id_error := true;
+        is_no_error_h3 := false;
+    } else if ec = 0x109 {
+        is_settings_error := true;
+        is_no_error_h3 := false;
+    } else if ec = 0x10A {
+        is_missing_settings := true;
+        is_no_error_h3 := false;
+    } else if ec = 0x10B {
+        is_request_rejected := true;
+        is_no_error_h3 := false;
+    } else if ec = 0x10C {
+        is_request_cancelled := true;
+        is_no_error_h3 := false;
+    } else if ec = 0x10D {
+        is_request_incomplete := true;
+        is_no_error_h3 := false;
+    } else if ec = 0x10E {
+        is_message_error := true;
+        is_no_error_h3 := false;
+    } else if ec = 0x10F {
+        is_connect_error := true;
+        is_no_error_h3 := false;
+    } else if ec = 0x110 {
+        is_version_fallback := true;
+        is_no_error_h3 := false;
+    } else if ec = 0x200 {
+        is_qpack_decompression_failed := true;
+        is_no_error_h3 := false;
+    } else if ec = 0x201 {
+        is_qpack_encoder_stream_error := true;
+        is_no_error_h3 := false;
+    } else if ec = 0x202 {
+        is_qpack_decoder_stream_error := true;
+        is_no_error_h3 := false;
+    } else {
+        is_no_error_h3 := false;
+    }
+}
+
+
+# H3_DATAGRAM_ERROR = 0x33
+# H3_NO_ERROR = 0x100
+# H3_GENERAL_PROTOCOL_ERROR = 0x101
+# H3_INTERNAL_ERROR = 0x102
+# H3_STREAM_CREATION_ERROR = 0x103
+# H3_CLOSED_CRITICAL_STREAM = 0x104
+# H3_FRAME_UNEXPECTED = 0x105
+# H3_FRAME_ERROR = 0x106
+# H3_EXCESSIVE_LOAD = 0x107
+# H3_ID_ERROR = 0x108
+# H3_SETTINGS_ERROR = 0x109
+# H3_MISSING_SETTINGS = 0x10A
+# H3_REQUEST_REJECTED = 0x10B
+# H3_REQUEST_CANCELLED = 0x10C
+# H3_REQUEST_INCOMPLETE = 0x10D
+# H3_MESSAGE_ERROR = 0x10E
+# H3_CONNECT_ERROR = 0x10F
+# H3_VERSION_FALLBACK = 0x110
+# QPACK_DECOMPRESSION_FAILED = 0x200
+# QPACK_ENCODER_STREAM_ERROR = 0x201
+# QPACK_DECODER_STREAM_ERROR = 0x202

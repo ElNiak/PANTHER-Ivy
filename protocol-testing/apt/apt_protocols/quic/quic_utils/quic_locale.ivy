@@ -14,5 +14,5 @@ object tls_api = {
     instance upper : tls_intf(id,stream_pos,stream_data,lower,tls_extensions,tls_hand_extensions,tls_ser,pkt_num)
 }    
 
-instance net : udp_impl(endpoint_id,prot.arr,quic_prot_ser,quic_prot_deser)
+instance quic_net : udp_impl(endpoint_id,prot.arr,quic_prot_ser,quic_prot_deser)
 

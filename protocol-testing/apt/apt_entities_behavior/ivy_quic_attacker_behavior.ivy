@@ -46,13 +46,13 @@ action endpoint_to_pid(src:ip.endpoint) returns (pid:endpoint_id) = {
 
 # Get the IP endpoint associated to a host id and socket number.
 
-action socket_endpoint(host:endpoint_id,s:net.socket) returns (src:ip.endpoint) = {
+action socket_endpoint(host:endpoint_id,s:quic_net.socket) returns (src:ip.endpoint) = {
     src := attacker.ep; # if host = endpoint_id.attacke else (client_vn if version_negociated else client_alt)
 }
     
 # Get the socket number associated to an IP endpoint.
 
-action endpoint_to_socket(src:ip.endpoint) returns (socket:net.socket) = {
+action endpoint_to_socket(src:ip.endpoint) returns (socket:quic_net.socket) = {
     if src = attacker.ep {
         socket := sock_attacker;
     } 
@@ -177,7 +177,7 @@ after init {
     # initial_version := 0x00000001; # 0xff00001d; #
 }
 
-before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
+before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     if _generating {
         var tp := trans_params(the_cid);
         if version_negociated {
@@ -233,8 +233,8 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
 # TODO: We reuquire tje `off` and `len` bits to be true. Maybe these should
 # determined in the low-level packet encoding stage.
 
-
-before quic_frame.stream.handle(f:quic_frame.stream, scid:cid, dcid:cid, e:quic_packet_type) {
+before quic_frame.stream.handle(f:quic_frame.stream,scid:cid,dcid:cid,e:quic_packet_type) {
+    
     if _generating {
         require scid = the_cid;
         if ~zero_rtt_server_test | zero_rtt_sent {

@@ -42,7 +42,10 @@ action endpoint_id_addr(ep_id : endpoint_id) returns (ep:ip.endpoint) = {
 object endpoint = {
     type this
 
-    module mim_ep(address:ip.addr,port:ip.port, oport:ip.port) = { 
+    module mim_ep(address:ip.addr,port:ip.port, oport:ip.port, 
+                  toward_client:bool, 
+                  standalone: bool,
+                  bridged: bool) = { 
         variant this of endpoint = struct { }
         
         individual ep_in        : ip.endpoint
@@ -51,7 +54,7 @@ object endpoint = {
         individual enc_level    : quic_packet_type
         individual nat_configured : bool
         individual ppkt_saved_b : bool
-        individual ppkt_saved : stream_data
+        individual ppkt_saved   : stream_data
         
         individual ppkt_to_be_replayed_to_server : malicious_pkts
         function   ppkt_to_be_forwarded_to_server(C:stream_pos) : malicious_pkts
@@ -82,19 +85,58 @@ object endpoint = {
 
 
         after init {
-            enc_level := quic_packet_type.initial;
-            ep_in.protocol := ip.udp;
-            ep_in.addr := address;
-            ep_in.port := port;
-            ep_in.interface := ip.lo;
-            
-            ep_out.protocol := ip.udp;
-            ep_out.addr := address;
-            ep_out.port := oport;
+            enc_level := quic_packet_type.initial;            
             if ep_out.addr = 0x7f000001 {
                 ep_out.interface := ip.lo;
             } else {
-                ep_out.interface := ip.ivy;
+                if standalone {
+                    if bridged {
+                            ep_in.protocol := ip.udp;
+                            ep_in.addr := address;
+                            ep_in.port := port;
+                            ep_in.interface := ip.veth_ivy;
+
+                            ep_out.protocol := ip.udp;
+                            ep_out.addr := address;
+                            ep_out.port := oport;
+                            ep_out.interface := ip.veth_ivy;
+                    }
+                    else {
+                        if toward_client {
+                            ep_in.protocol := ip.udp;
+                            ep_in.addr := address;
+                            ep_in.port := port;
+                            ep_in.interface := ip.ivy_server;
+
+                            ep_out.protocol := ip.udp;
+                            ep_out.addr := address;
+                            ep_out.port := oport;
+                            ep_out.interface := ip.ivy_client;
+                        } 
+                        else {
+                            ep_in.protocol := ip.udp;
+                            ep_in.addr := address;
+                            ep_in.port := port;
+                            ep_in.interface := ip.ivy_client;
+
+                            ep_out.protocol := ip.udp;
+                            ep_out.addr := address;
+                            ep_out.port := oport;
+                            ep_out.interface := ip.ivy_server;
+                        }
+                    }
+                }
+                else {
+                    ep_in.protocol := ip.udp;
+                    ep_in.addr := address;
+                    ep_in.port := port;
+                    ep_in.interface := ip.lo;
+                    
+                    ep_out.protocol := ip.udp;
+                    ep_out.addr := address;
+                    ep_out.port := oport;
+                    ep_out.interface := ip.ivy;
+                }
             }
             
             nat_configured := false;
@@ -131,8 +173,8 @@ object endpoint = {
             tls_id := e;
         }
 
-        action behavior(host:endpoint_id, s:net.socket, src:ip.endpoint, pkts:prot.arr) = {
-            var dst := socket_endpoint_mim(host,s,src);  # because net API doesn't tell us the dst socket_endpoint_mim
+        action behavior(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:prot.arr) = {
+            var dst := socket_endpoint_mim(host,s,src);  # because quic_net API doesn't tell us the dst socket_endpoint_mim
             var idx := pkts.begin;
             # TODO should not be here
 
@@ -143,11 +185,14 @@ object endpoint = {
                 mim_client_target.set_ep(src); # Like initial connection from client 
                 mim_server_target.set_ep(dst);
                 #mim_server_target.ep.interface := ip.ivy;
+                call nat_configured_event(src,dst);
                 if sock_mim_client = 0 {
                     fake_client.set_ep(mim_client_target.ep);
                     fake_client.ep.interface := ip.lo;
                     # TODO only for server tests
-                    sock_mim_client := net.listen(endpoint_id.man_in_the_middle,fake_client.ep);
+                    sock_mim_client := sock_mim_server;
+                    # quic_net.listen(endpoint_id.man_in_the_middle,fake_client.ep);
+                    call client_target_setup_event(fake_client.ep);
                 }; 
             } 
 
@@ -305,19 +350,19 @@ object endpoint = {
             #forward_turn := true;
         }
 
-        action forward_packet_to(ppkt:stream_data,host:endpoint_id, s:net.socket, src:ip.endpoint, dst:ip.endpoint) = {
+        action forward_packet_to(ppkt:stream_data,host:endpoint_id, s:quic_net.socket, src:ip.endpoint, dst:ip.endpoint) = {
             # forward packet
             var pkts_mim := prot.arr.empty;
             pkts_mim := pkts_mim.append(ppkt);
-            call net.send(endpoint_id.man_in_the_middle,endpoint_to_socket(src),dst,pkts_mim);
+            call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket(src),dst,pkts_mim);
         }
 
-        action replay_packet(ppkt:stream_data,host:endpoint_id, s:net.socket, src:ip.endpoint) = {
+        action replay_packet(ppkt:stream_data,host:endpoint_id, s:quic_net.socket, src:ip.endpoint) = {
             # replay packet
             var dst := socket_endpoint(host,s);
             var pkts_mim := prot.arr.empty;
             pkts_mim := pkts_mim.append(ppkt);
-            call net.send(endpoint_id.man_in_the_middle,endpoint_to_socket(src),dst,pkts_mim);
+            call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket(src),dst,pkts_mim);
         }
 
         # TODO use serializer
@@ -395,37 +440,71 @@ object endpoint = {
             var dst := server.ep;
             var pkts_mim := prot.arr.empty;
             pkts_mim := pkts_mim.append(ppkt);
-            call net.send(endpoint_id.target,sock_target,dst,pkts_mim);
+            call quic_net.send(endpoint_id.target,sock_target,dst,pkts_mim);
         }
 
         # TODO more flexible -> in test configuration phase ?
-        action configure_NAT_attack_in(server_quic:ip.port) = {
-            <<< 
-                //  -o lo
-                std::string command = "sudo iptables -t nat -A OUTPUT -d 10.0.2.1 -p udp --dport " + std::to_string(server_quic) + ":" + std::to_string(server_quic) + " ! --sport 4430:4440 -j DNAT --to-destination 10.0.3.1:4440 >/dev/null 2>&1"; 
-                int n = command.length();
+        # action configure_NAT_attack_in(server_quic:ip.port) = {
+        #     <<< 
+        #         //  -o lo
+        #         std::string command = "iptables -t nat -A OUTPUT -d 10.0.2.1 -p udp --dport " + std::to_string(server_quic) + ":" + std::to_string(server_quic) + " ! --sport 4430:4440 -j DNAT --to-destination 10.0.3.1:4440 >/dev/null 2>&1"; 
+        #         int n = command.length();
             
-                // declaring character array
-                char command_array[n + 1];
+        #         // declaring character array
+        #         char command_array[n + 1];
             
-                // copying the contents of the
-                // string to char array
-                strcpy(command_array, command.c_str());
+        #         // copying the contents of the
+        #         // string to char array
+        #         strcpy(command_array, command.c_str());
 
-                int cr = system(command_array);
+        #         int cr = system(command_array);
+        #     >>>
+        # }
+
+        action configure_NAT_attack_in = {
+            <<<
+            std::string command = "arpspoof -i veth_ivy -t 10.0.0.2  -r 10.0.0.3 &";
+            int n = command.length();
+            char command_array[n + 1];
+            strcpy(command_array, command.c_str());
+            int cr = system(command_array);
+            /* 
+            std::string command_2 ="ip neigh &";
+            n = command_2.length();
+            char command_array_2[n + 1];
+            strcpy(command_array_2, command_2.c_str());
+            int cr_2 = system(command_array_2); 
+            */
             >>>
         }
 
-        action configure_NAT_attack_out_trick(dst:ip.endpoint) = {
-            # <<<
-            #     /**
-            #         Not working in localhost but should be ok in private adress TODO
-            #             -> To simulate that we set: sock_mim_client = sock (from server) to simulate NAT
-            #     */
-            #     const char * command = "sudo iptables -t nat -A POSTROUTING -o lo -d 127.0.0.1 -p udp --sport 4439:4439 -j SNAT --to-source 127.0.0.1:4443"; //  # error in localhost
-            #     int cr = system( command );
-            # >>>
-            sock_mim_client := sock; 
+        # action configure_NAT_attack_out_trick(dst:ip.endpoint) = {
+        #     # <<<
+        #     #     /**
+        #     #         Not working in localhost but should be ok in private adress TODO
+        #     #             -> To simulate that we set: sock_mim_client = sock (from server) to simulate NAT
+        #     #     */
+        #     #     const char * command = "iptables -t nat -A POSTROUTING -o lo -d 127.0.0.1 -p udp --sport 4439:4439 -j SNAT --to-source 127.0.0.1:4443"; //  # error in localhost
+        #     #     int cr = system( command );
+        #     # >>>
+        #     sock_mim_client := sock; 
+        # }
+
+        action configure_NAT_attack_out = {
+            <<<
+            std::string command = "arpspoof -i veth_ivy -t 10.0.0.3  -r 10.0.0.2 &";
+            int n = command.length();
+            char command_array[n + 1];
+            strcpy(command_array, command.c_str());
+            int cr = system(command_array);
+            /* 
+            std::string command_2 ="ip neigh &";
+            n = command_2.length();
+            char command_array_2[n + 1];
+            strcpy(command_array_2, command_2.c_str());
+            int cr_2 = system(command_array_2); 
+            */
+            >>>
         }
 
         # OK for localhost but not for private adress
@@ -436,7 +515,7 @@ object endpoint = {
                         -> To simulate that we set: sock_mim_client = sock (from server) to simulate NAT
                 */
                 // -o lo
-                std::string command = "sudo iptables -t nat -A POSTROUTING -d 10.0.3.1 -p udp --sport 4439:4439 -j SNAT --to-source 10.0.1.1:" + std::to_string(dst); //  # error in localhost
+                std::string command = "iptables -t nat -A POSTROUTING -d 10.0.3.1 -p udp --sport 4439:4439 -j SNAT --to-source 10.0.1.1:" + std::to_string(dst); //  # error in localhost
                 int n = command.length();
 
                 // declaring character array
@@ -450,35 +529,37 @@ object endpoint = {
             >>>
         }
 
-         action configure_NAT_attack_out(dst:ip.port) = {
-            <<<
-                /**
-                    Not working in localhost but should be ok in private adress TODO
-                        -> To simulate that we set: sock_mim_client = sock (from server) to simulate NAT
-                */
-                // -o lo
-                std::string command = "sudo iptables -t nat -A POSTROUTING -d 10.0.3.1 -p udp --sport 4439:4439 -j SNAT --to-source 10.0.1.1:" + std::to_string(dst); //  # error in localhost
-                int n = command.length();
+        # action configure_NAT_attack_out(dst:ip.port) = {
+        #     <<<
+        #         /**
+        #             Not working in localhost but should be ok in private adress TODO
+        #                 -> To simulate that we set: sock_mim_client = sock (from server) to simulate NAT
+        #         */
+        #         // -o lo
+        #         std::string command = "iptables -t nat -A POSTROUTING -d 10.0.3.1 -p udp --sport 4439:4439 -j SNAT --to-source 10.0.1.1:" + std::to_string(dst); //  # error in localhost
+        #         int n = command.length();
 
-                // declaring character array
-                char command_array[n + 1];
+        #         // declaring character array
+        #         char command_array[n + 1];
             
-                // copying the contents of the
-                // string to char array
-                strcpy(command_array, command.c_str());
+        #         // copying the contents of the
+        #         // string to char array
+        #         strcpy(command_array, command.c_str());
 
-                int cr = system(command_array);
-            >>>
-        }
+        #         int cr = system(command_array);
+        #     >>>
+        # }
 
 
         action reset_NAT = {
             <<<
-                const char * command = "sudo iptables -t nat -L -n -v;sudo iptables -t nat -F >/dev/null 2>&1"; 
+                const char * command = "iptables -t nat -L -n -v;iptables -t nat -F >/dev/null 2>&1"; 
                 int cr = system( command );
             >>>
         }
-    
+
+        import action nat_configured_event(src:ip.endpoint, dst:ip.endpoint)
+        import action client_target_setup_event(src:ip.endpoint)
     }
 
     module attacker_ep(address:ip.addr,port:ip.port) = { 
@@ -502,8 +583,8 @@ object endpoint = {
             tls_id := e;
         }
 
-        action behavior(host:endpoint_id, s:net.socket, src:ip.endpoint, pkts:prot.arr) = {
-            var dst := socket_endpoint(host,s);  # because net API doesn't tell us the dst
+        action behavior(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:prot.arr) = {
+            var dst := socket_endpoint(host,s);  # because quic_net API doesn't tell us the dst
             var idx := pkts.begin;
             var past_data : stream_data := stream_data.empty;
             while idx < pkts.end {
@@ -564,7 +645,7 @@ object endpoint = {
         action configure_NAT_attack_in_spoof(server_quic:ip.port,target_ep:ip.port) = {
             <<<
                 // should use postrouting
-                std::string command = "sudo iptables -t nat -A OUTPUT -o lo -d 127.0.0.1 -p udp --dport " + std::to_string(server_quic) + ":" + std::to_string(server_quic) + " -j DNAT --to-destination 127.0.0.1:"+ std::to_string(target_ep) +">/dev/null 2>&1"; 
+                std::string command = "iptables -t nat -A OUTPUT -o lo -d 127.0.0.1 -p udp --dport " + std::to_string(server_quic) + ":" + std::to_string(server_quic) + " -j DNAT --to-destination 127.0.0.1:"+ std::to_string(target_ep) +">/dev/null 2>&1"; 
                 int n = command.length();
                 std::cerr << "configure_NAT_attack_in_spoof " << command << "\n";
                 // declaring character array
@@ -584,7 +665,7 @@ object endpoint = {
         
         action reset_NAT = {
             <<<
-                const char * command = "sudo iptables -t nat -L -n -v;sudo iptables -t nat -F >/dev/null 2>&1"; 
+                const char * command = "iptables -t nat -L -n -v;iptables -t nat -F >/dev/null 2>&1"; 
                 int cr = system( command );
             >>>
         }
@@ -625,9 +706,9 @@ object endpoint = {
         action setup_socket = {
             # TODO
         }
-
-        action behavior(host:endpoint_id, s:net.socket, src:ip.endpoint, pkts:prot.arr) = {
-            var dst := socket_endpoint(host,s);  # because net API doesn't tell us the dst
+        # TODO quic_bet vs ping_net vs prot_net
+        action behavior(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:prot.arr) = {
+            var dst := socket_endpoint(host,s);  # because quic_net API doesn't tell us the dst
             var idx := pkts.begin;
             while idx < pkts.end {
                 var ppkt := pkts.value(idx);
