@@ -49,7 +49,7 @@ after modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.m
             # var ppkt := prot.encrypt(tls_id,rnum,spkt);
             var pkts := prot.arr.empty;
             pkts := pkts.append(spkt);
-            call net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts);
+            call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts);
         #     idx := idx.next; 
         # }
     }
@@ -62,7 +62,7 @@ after forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:malicio
         # while idx < pkt.end {
         #     var pkts_mim := prot.arr.empty;
         #     pkts_mim := pkts_mim.append(pkt.value(idx));
-        #     call net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
+        #     call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
         #     idx := idx.next; 
         # };
         
@@ -71,7 +71,7 @@ after forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:malicio
             pkts_mim := pkts_mim.append(pkt.value(idx));
             idx := idx.next; 
         };
-        call net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
+        call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
 
         mim_agent.last_cppkt_forwarded_to_server := mim_agent.last_cppkt_forwarded_to_server + 1;
     }
@@ -85,7 +85,7 @@ after forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:malicio
         # while idx < pkt.end {
         #     var pkts_mim := prot.arr.empty;
         #     pkts_mim := pkts_mim.append(pkt.value(idx));
-        #     call net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
+        #     call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
         #     idx := idx.next; 
         # };
         
@@ -95,7 +95,7 @@ after forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:malicio
             # TODO allow forwarding coalesed packet or not
             idx := idx.next; 
         }; 
-        call net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
+        call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
         
         mim_agent.last_cppkt_forwarded_to_client := mim_agent.last_cppkt_forwarded_to_client + 1;
     }
@@ -107,7 +107,7 @@ after replay_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:maliciou
         while idx < pkt.end {
             var pkts_mim := prot.arr.empty;
             pkts_mim := pkts_mim.append(pkt.value(idx));
-            call net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
+            call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
             idx := idx.next; 
         };
     }
@@ -121,7 +121,7 @@ after malicious_packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malic
         # var ppkt := prot.encrypt(tls_id,rnum,spkt); # no encryption ?
         var pkts := prot.arr.empty;
         pkts := pkts.append(spkt);
-        call net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts);
+        call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts);
     }
 }
 
@@ -130,7 +130,7 @@ after malicious_packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ma
         var spkt := malicious_pkt_serdes_retry.to_bytes(pkt);
         var pkts := prot.arr.empty;
         pkts := pkts.append(spkt);
-        call net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts);
+        call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts);
     }
 }
 
@@ -142,7 +142,7 @@ after replayed_packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.repl
         var rnum := reference_pkt_num(spkt,false);
         var ppkt := prot.encrypt_rtt(tls_id,rnum,spkt);
         pkts := pkts.append(ppkt);
-        call net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts);
+        call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts);
     }
 }
 

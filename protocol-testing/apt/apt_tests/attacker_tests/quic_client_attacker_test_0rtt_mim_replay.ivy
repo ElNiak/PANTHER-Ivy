@@ -1,15 +1,12 @@
 #lang ivy1.7
 
 include order
-include quic_connection
 include quic_infer
 include file
 include ivy_quic_shim_server
-include ivy_quic_shim_mim
 include quic_locale
-include random_value
-# include ivy_quic_mim
 include ivy_quic_server_behavior
+
 include ivy_man_in_the_middle_behavior
 include apt_shim
 
@@ -23,12 +20,9 @@ after init {
 }
 
 after init {
-    # server_port := 4444;
-    # server_port_alt := 4444;
-    # the_cid := 0x1; # zero length => 0x1 mvfst and other 0x0
-    zero_rtt_allowed := true;
+    zero_rtt_allowed     := true;
     zero_rtt_client_test := true;
-    save_packet := true;
+    save_packet          := true;
     mim_agent.enc_level_ppkt_to_be_forge := quic_packet_type.zero_rtt;
 }
 
@@ -96,7 +90,7 @@ before forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:malici
         #require;
         require src = mim_agent.ep_out;
         require dst = mim_client_target.ep;
-        require pkt = mim_agent.ppkt_to_be_forwarded_to_client;
+        require pkt = mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_cppkt_forwarded_to_server); # TODO check
         #require pkt = mim_agent.ppkt_to_be_forwarded_to_server; # TODO put relation ?
     } 
 }
@@ -107,7 +101,7 @@ before forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:malici
         #require;
         require src = mim_agent.ep_out;
         require dst = mim_server_target.ep;
-        require pkt = mim_agent.ppkt_to_be_forwarded_to_server;        #require ;
+        require pkt = mim_agent.ppkt_to_be_forwarded_to_server(mim_agent.last_cppkt_forwarded_to_server); # TODO check        #require ;
         #require ;
         #require pkt = mim_agent.ppkt_to_be_forwarded_to_server; # TODO put relation ?
     } 

@@ -99,12 +99,12 @@ relation zero_rtt_allowed # useless
 instance pingd : ping_array
 
 # 0. TODO John: On instancie le network
-instance net : udp_impl(endpoint_id,pingd.arr,ping_prot_ser,ping_prot_deser)
+instance ping_net : udp_impl(endpoint_id,pingd.arr,ping_prot_ser,ping_prot_deser)
 
 include ping_server
 include ping_client
 
-implement net.recv(host:endpoint_id, s:net.socket, src:ip.endpoint, pkts:pingd.arr) {
+implement ping_net.recv(host:endpoint_id, s:ping_net.socket, src:ip.endpoint, pkts:pingd.arr) {
     # call show_current_time(time_api.c_timer.now_micros_last_bp);
     if host = endpoint_id.server {        # for client test (tested implem = client <-> ivy implem = server)
         call server.behavior(host,s,src,pkts);
@@ -119,7 +119,7 @@ implement net.recv(host:endpoint_id, s:net.socket, src:ip.endpoint, pkts:pingd.a
 import action recv_ping(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet)
 import action recv_pong(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet)
 
-import action undefined_host_error(host:endpoint_id, s:net.socket, src:ip.endpoint)
+import action undefined_host_error(host:endpoint_id, s:ping_net.socket, src:ip.endpoint)
 
 # 0. TODO John: On instancie le serdes
 instance packet.ping_packet_serdes : serdes(packet.ping_packet,stream_data,ping_ser,ping_deser)

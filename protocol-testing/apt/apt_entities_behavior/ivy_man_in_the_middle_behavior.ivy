@@ -3,14 +3,33 @@
 include order
 include file
 include random_value
-
+include ivy_quic_mim
 include quic_infer
 include ivy_quic_shim_mim
 
 # Network setup
 # -------------
 
+# Server
+action socket_endpoint_mim(host:endpoint_id,s:quic_net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
+    dst := mim_client_target.ep if (src = mim_server_target.ep) else mim_server_target.ep; # is_mim_standalone | 
+}
+
+action endpoint_to_socket_mim(src:ip.endpoint) returns (socket:quic_net.socket) = {
+    socket := sock_mim_server if src = mim_server_target.ep else sock_mim_client; #  & ~forged_packet_send
+}
+
+# Client
+# action socket_endpoint_mim(host:endpoint_id,s:quic_net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
+#     dst := client.ep if (is_mim_standalone | src = mim_server_target.ep) else server.ep;
+# }
+
+# action endpoint_to_socket_mim(src:ip.endpoint) returns (socket:quic_net.socket) = {
+#     socket := sock_mim_client if src = mim_client_target.ep else sock_mim_server; #  & ~forged_packet_send
+# }
+
 after init {
-    sock_mim_server := net.listen(endpoint_id.man_in_the_middle,server.ep);
+    sock_mim_server := quic_net.eavesdrop(endpoint_id.man_in_the_middle, mim_agent.ep_out);
+    # sock_mim_client := quic_net.listen(endpoint_id.man_in_the_middle, mim_agent.ep_in);
     mim_agent.set_tls_id(4); # 0 is default value, we dont wont that
 }

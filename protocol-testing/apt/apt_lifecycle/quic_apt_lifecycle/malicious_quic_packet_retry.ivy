@@ -172,7 +172,7 @@ around malicious_packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.m
 
     if src = client_alt | dst = client_alt {
 	    migration_done := true;
-	    #call net.close(endpoint_id.client,sock);	# destroy connection ?
+	    #call quic_net.close(endpoint_id.client,sock);	# destroy connection ?
     };
 
     if ~ _generating  { # TODO refactor with client test 

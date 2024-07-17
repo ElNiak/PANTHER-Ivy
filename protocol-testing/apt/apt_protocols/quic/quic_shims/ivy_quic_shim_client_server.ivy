@@ -42,7 +42,7 @@ after packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
         var ppkt := prot.encrypt(tls_id,rnum,spkt);
         var pkts := prot.arr.empty;
         pkts := pkts.append(ppkt);
-        call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
+        call quic_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
     }
 }
 
@@ -54,7 +54,7 @@ after packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_vn)
         # var ppkt := prot.encrypt(tls_id,rnum,spkt); # no encryption ?
         var pkts := prot.arr.empty;
         pkts := pkts.append(spkt);
-        call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
+        call quic_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
     }
 }
 
@@ -63,7 +63,7 @@ after packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_
         var spkt := pkt_serdes_retry.to_bytes(pkt);
         var pkts := prot.arr.empty;
         pkts := pkts.append(spkt);
-        call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
+        call quic_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
     }
 }
 
@@ -75,7 +75,7 @@ after packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_pac
         var rnum := reference_pkt_num(spkt,false);
         var ppkt := prot.encrypt_rtt(tls_id,rnum,spkt);
         pkts := pkts.append(ppkt);
-        call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
+        call quic_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
         zero_rtt_sent := true;
     }
 }
@@ -89,7 +89,7 @@ after packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_0
         var rnum := reference_pkt_num(spkt,false);
         var ppkt := prot.encrypt_rtt(tls_id,rnum,spkt);
         pkts := pkts.append(ppkt);
-        call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
+        call quic_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
         zero_rtt_sent := true;
     }
 }

@@ -27,7 +27,7 @@ instance target_agent : endpoint.target_ep(target_addr,target_port)
 
 # a socket for the server
 
-var sock_target : net.socket
+var sock_target : quic_net.socket
 
 # Open a server socket to listen on and create an instance of TLS.
 # TODO: we should have one instance of TLS per connection

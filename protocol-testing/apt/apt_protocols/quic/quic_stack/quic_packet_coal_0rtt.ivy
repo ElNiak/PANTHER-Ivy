@@ -141,7 +141,7 @@ around packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_pa
 
     if src = client_alt | dst = client_alt {
 	    migration_done := true;
-	    #call net.close(endpoint_id.client,sock);	# destroy connection ?
+	    #call quic_net.close(endpoint_id.client,sock);	# destroy connection ?
     };
 
     require pkt.token_i.end ~= 0 -> (pkt.ptype_i = quic_packet_type.initial & retry_recv(dcid_i));

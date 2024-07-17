@@ -47,9 +47,9 @@ after init {
 # import second_server
 
 after init {
-    sock := net.open(endpoint_id.client,client.ep);
-    sock_alt := net.open(endpoint_id.client_alt,second_client.ep);
-    sock_vn := sock; #net.open(endpclientoint_id.client_vn,client_vn);
+    sock := quic_net.open(endpoint_id.client,client.ep);
+    sock_alt := quic_net.open(endpoint_id.client_alt,second_client.ep);
+    sock_vn := sock; #quic_net.open(endpclientoint_id.client_vn,client_vn);
     client.set_tls_id(0);
     second_client.set_tls_id(2); # TODO
     # call clients.init_tls_ids;

@@ -4,7 +4,7 @@ include order
 include ping_file
 
 after init {
-    sock := net.open(endpoint_id.server,server.ep);
+    sock := ping_net.open(endpoint_id.server,server.ep);
     server.set_tls_id(0);
     client.set_tls_id(1);
 }
@@ -13,11 +13,11 @@ action endpoint_to_pid(src:ip.endpoint) returns (pid:endpoint_id) = {
     pid := endpoint_id.server;
 }
 
-action socket_endpoint(host:endpoint_id,s:net.socket) returns (src:ip.endpoint) = {
+action socket_endpoint(host:endpoint_id,s:ping_net.socket) returns (src:ip.endpoint) = {
     src := server.ep;
 }
 
-action endpoint_to_socket(src:ip.endpoint) returns (socket:net.socket) = {
+action endpoint_to_socket(src:ip.endpoint) returns (socket:ping_net.socket) = {
     socket := sock;
 }
 

@@ -44,6 +44,6 @@ after malicious_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.maliciou
         var ppkt := prot.encrypt(tls_id,rnum,spkt);
         var pkts := prot.arr.empty;
         pkts := pkts.append(ppkt);
-        call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
+        call quic_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
     }
 }

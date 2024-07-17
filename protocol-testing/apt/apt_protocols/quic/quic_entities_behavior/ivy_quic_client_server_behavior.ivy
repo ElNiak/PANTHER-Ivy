@@ -18,7 +18,7 @@ include random_value
 after init {
     zero_rtt_server_test := false;
     client_port_vn := client_port;
-    sock := net.open(endpoint_id.server,client_server.ep_out);
+    sock := quic_net.open(endpoint_id.server,client_server.ep_out);
 }
 
 instance tls_extensions : vector(tls.extension)
@@ -44,13 +44,13 @@ action endpoint_to_pid(src:ip.endpoint) returns (pid:endpoint_id) = {
 
 # Get the IP endpoint associated to a host id and socket number.
 
-action socket_endpoint(host:endpoint_id,s:net.socket) returns (src:ip.endpoint) = {
+action socket_endpoint(host:endpoint_id,s:quic_net.socket) returns (src:ip.endpoint) = {
     src := client_server.ep_in if host = endpoint_id.client else (client_server.ep_out if host = endpoint_id.client else client_alt)
 }
     
 # Get the socket number associated to an IP endpoint.
 
-action endpoint_to_socket(src:ip.endpoint) returns (socket:net.socket) = {
+action endpoint_to_socket(src:ip.endpoint) returns (socket:quic_net.socket) = {
     if src = client_server.ep_in {
         socket := sock_alt;
     } else if client_server.ep_out {

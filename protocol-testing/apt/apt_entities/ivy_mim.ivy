@@ -22,4 +22,5 @@ parameter save_packet : bool = false
 #parameter saved_packet_type : quic_packet_type = quic_packet_type.initial
 
 var malicious_packet_send : bool
-instance mim_agent : endpoint.mim_ep(mim_addr,mim_port_in,mim_port_out)
+
+instance mim_agent : endpoint.mim_ep(mim_addr,mim_port_in,mim_port_out,true,true,true)

@@ -50,7 +50,7 @@ after packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
         total_data_sent := total_data_sent + ppkt.size;
         call on_packet_sent(src,dst,pkt, ppkt.size);
         # call show_current_time(time_api.c_timer.now_micros_last_bp);
-        call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
+        call quic_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
     } 
     # else {
     #     require ~connection_timeout;
@@ -64,7 +64,7 @@ after packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_vn)
         var pkts := prot.arr.empty;
         pkts := pkts.append(spkt);
         total_data_sent := total_data_sent + spkt.size;
-        call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
+        call quic_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
     }
 }
 
@@ -75,7 +75,7 @@ after packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_
         var pkts := prot.arr.empty;
         pkts := pkts.append(spkt);
         total_data_sent := total_data_sent + spkt.size;
-        call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
+        call quic_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
     }
 }
 
@@ -90,7 +90,7 @@ after packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_pac
         var pkts := prot.arr.empty;
         pkts := pkts.append(ppkt);
         total_data_sent := total_data_sent + ppkt.size;
-        call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
+        call quic_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
         zero_rtt_sent := true;
     }
 }
@@ -106,7 +106,7 @@ after packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_0
         var pkts := prot.arr.empty;
         pkts := pkts.append(ppkt);
         total_data_sent := total_data_sent + ppkt.size;
-        call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
+        call quic_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
         zero_rtt_sent := true;
     }
 }

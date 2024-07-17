@@ -56,7 +56,7 @@ action endpoint_to_pid(src:ip.endpoint) returns (pid:endpoint_id) = {
 
 # Get the IP endpoint associated to a host id and socket number.
 
-action socket_endpoint(host:endpoint_id,s:net.socket) returns (src:ip.endpoint) = {
+action socket_endpoint(host:endpoint_id,s:quic_net.socket) returns (src:ip.endpoint) = {
     src := client.ep if host = endpoint_id.client 
     else (client_vn if version_negociated 
     else second_client.ep)
@@ -64,7 +64,7 @@ action socket_endpoint(host:endpoint_id,s:net.socket) returns (src:ip.endpoint) 
     
 # Get the socket number associated to an IP endpoint.
 
-action endpoint_to_socket(src:ip.endpoint) returns (socket:net.socket) = {
+action endpoint_to_socket(src:ip.endpoint) returns (socket:quic_net.socket) = {
     if src = client.ep {
         socket := sock;
     } else if src = second_client.ep {
