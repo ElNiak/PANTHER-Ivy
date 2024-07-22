@@ -646,7 +646,7 @@ after init {
 }
 
 
-# #### ACK event
+## ACK event
 
 # The set of packet numbers acknowledged by an ACK quic_frame is determined
 # by the `largest_ack` field and the `ack_blocks` field. Each ACK
@@ -869,7 +869,7 @@ object quic_frame = {
 
 
 #
-# #### STREAM event
+## STREAM event
 #
 # STREAM frames carry stream data. 
 #
@@ -1019,7 +1019,7 @@ object quic_frame = { # TODO cleanup
 
 #import action show_stream(pkt:stream_data)
 
-# #### CRYPTO event
+## CRYPTO event
 #
 # CRYPTO frames carry crypto handshake data, that is, TLS records.
 #
@@ -1080,7 +1080,7 @@ import action show_crypto_length(pkt:stream_pos)
 
 
 #
-# #### RESET_STREAM events
+## RESET_STREAM events
 #
 # RESET_STREAM frames cause an identified stream to be abruptly terminated,
 # meaning the no further transmissions (or retransmissions) will be sent for
@@ -1134,7 +1134,7 @@ object quic_frame = { ...
 }
 
 #
-# #### STOP_SENDING event
+## STOP_SENDING event
 #
 # STOP_SENDING frames are sent by the receiver of s stream to indicate that stream data
 # is being ignored and it should stop sending.
@@ -1189,7 +1189,7 @@ object quic_frame = { ...
 }
 
 #
-# #### max_streams event
+## max_streams event
 #
 # max_streams frames cause the maximum stream id to be set. 
 # The receiver of the max stream id may use stream ids up to and including
@@ -1293,7 +1293,7 @@ object quic_frame = { ...
 }
 
 #
-# #### CONNECT_CLOSE event
+## CONNECT_CLOSE event
 #
 # CONNECT_CLOSE frames indicate to the peer that the connection is being closed.
 # It is unclear what this means operationally, but it seems reasonable to assume that the
@@ -1359,7 +1359,7 @@ object quic_frame = { ...
 }
 
 #
-# #### APPLICATION_CLOSE event
+## APPLICATION_CLOSE event
 #
 # APPLICATION_CLOSE frames indicate to the peer that the connection is
 # being closed.  It is unclear what this means operationally, but it
@@ -1415,7 +1415,7 @@ object quic_frame = { ...
 
 
 #
-# #### MAX_STREAM_DATA event
+## MAX_STREAM_DATA event
 #
 # MAX_STREAM_DATA frames set the limit on data bytes that the source endpoint is willing
 # to receive for a given stream.
@@ -1456,7 +1456,7 @@ object quic_frame = { ...
 }
 
 #
-# #### stream_data_blocked event
+## stream_data_blocked event
 #     | 0x15        | STREAM_DATA_BLOCKED  | Section 19.13 | __01    |
 # stream_data_blocked frames indicate that sender wishes to send data on stream beyond current limit.
 #
@@ -1489,7 +1489,7 @@ object quic_frame = { ...
 }
 
 #
-# #### data_blocked event
+## data_blocked event
 #     | 0x14        | DATA_BLOCKED         | Section 19.12 | __01    |
 # data_blocked frames indicate that sender wishes to send data beyond current total limit
 # for all streams.
@@ -1520,7 +1520,7 @@ object quic_frame = { ...
 
 
 #
-# #### streams_blocked event
+## streams_blocked event
 #     | 0x16 - 0x17 | STREAMS_BLOCKED      | Section 19.14 | __01    |
 # streams_blocked frames indicate that sender wishes to open a stream beyond current limit
 # on streams of a given kind.
@@ -1578,7 +1578,7 @@ object quic_frame = { ...
 
 
 #
-# #### MAX_DATA EVENT
+## MAX_DATA EVENT
 #     | 0x10        | MAX_DATA             | Section 19.9  | __01    |
 # MAX_DATA frames set the limit on the total data bytes that the source endpoint is willing
 # to receive for all streams combined.
@@ -1613,7 +1613,7 @@ object quic_frame = { ...
 }
 
 #
-# #### PING event
+## PING event
 #     | 0x01        | PING                 | Section 19.2  | IH01    |
 # PING frames contain no data and have no semantics. They can
 # be used to keep a connection alive.
@@ -1650,7 +1650,7 @@ object quic_frame = { ...
 }
 
 #
-# #### unknown_frame event
+## unknown_frame event
 #
 # unknown_frame frames contain no data and have no semantics. They can
 # be used to keep a connection alive.
@@ -1674,7 +1674,7 @@ object quic_frame = { ...
 }
 
 #
-# #### PADDING event
+## PADDING event
 #
 # PADDING frames contain no data and have no semantics. They can
 # be used to keep a connection alive.
@@ -1690,7 +1690,7 @@ object quic_frame = { ...
 #}
 
 #
-# #### HANDSHAKE_DONE  event
+## HANDSHAKE_DONE  event
 #
 # HANDSHAKE_DONE  frames contain no data and have no semantics. They can
 # be used to say handshake is done TODO
@@ -1720,7 +1720,7 @@ object quic_frame = { ...
 }
 
 #
-# #### NEW_CONNECTION_ID event
+## NEW_CONNECTION_ID event
 #
 # NEW_CONNECTION_ID frames are used to transmit additional cid's to the peer.
 #chris
@@ -1801,7 +1801,7 @@ object quic_frame = { ...
 }
 
 #
-# #### RETIRE_CONNECTION_ID event
+## RETIRE_CONNECTION_ID event
 #
 # RETIRE_CONNECTION_ID frames are used to tell the sender of the new connection id that the connection id will no longer be used.
 #
@@ -1845,7 +1845,7 @@ object quic_frame = { ...
 
 
 #
-# #### PATH_CHALLENGE event
+## PATH_CHALLENGE event
 #
 # Path challenge frames are used to request verification of ownership
 # of an endpoint by a peer.
@@ -1882,7 +1882,7 @@ object quic_frame = { ...
 }
 
 #
-# #### PATH_RESPONSE event
+## PATH_RESPONSE event
 #
 # PATH_RESPONSE frames are used to verify ownership of an endpoint in
 # response to a path_challenge quic_frame.
@@ -1909,7 +1909,7 @@ object quic_frame = { ...
 }
 
 #
-# #### NEW_TOKEN event
+## NEW_TOKEN event
 #
 # NEW_TOKEN frames are sent by the server to provide the client a
 # token for establishing a new connection.

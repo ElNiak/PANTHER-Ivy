@@ -6,13 +6,13 @@ include ping_application
 include packet.ping_packet
 
 include ping_time
-####
+
 # 0. TODO John:  c'est les includes de base pour genere des event
-include udp_impl # vs tcp_impl
+include network_implementation # vs tcp_impl
 include deserializer
 include ip
 include serdes
-####
+
 
 object ping_prot_ser = {}
 
@@ -99,7 +99,7 @@ relation zero_rtt_allowed # useless
 instance pingd : ping_array
 
 # 0. TODO John: On instancie le network
-instance ping_net : udp_impl(endpoint_id,pingd.arr,ping_prot_ser,ping_prot_deser)
+instance ping_net : network_implementation(endpoint_id,pingd.arr,ping_prot_ser,ping_prot_deser,80)
 
 include ping_server
 include ping_client

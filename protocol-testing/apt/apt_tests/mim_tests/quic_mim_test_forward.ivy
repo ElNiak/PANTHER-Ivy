@@ -1,36 +1,41 @@
 #lang ivy1.7
 
 include order
-include quic_connection
-include quic_infer
+# include quic_connection
+# include quic_infer
 include file
-include ivy_quic_shim_client
-include ivy_quic_shim_mim
-include quic_locale
-include random_value
-# include ivy_quic_mim
+# include ivy_quic_shim_client
 
+# include random_value
+# include ivy_quic_mim
+include ivy_stream_data_mim
+include ivy_stream_data_target
+include ivy_stream_data_attacker
+
+include apt_shim
+include ivy_quic_shim_mim
 
 include ivy_man_in_the_middle_behavior
-include apt_shim
+
 
 # # TODO useless for now
 # instance tls_extensions : vector(tls.extension)
 # instance tls_hand_extensions : vector(tls.handshake)
-include ivy_quic_client_behavior
-include ivy_quic_client_standard_tp
 
-
+# include ivy_quic_client_behavior
+# include ivy_quic_client_standard_tp
 
 # NB: need bigger timeout (at least 90 sec)
 
 after init {
     is_mim_standalone := true;
-    client_port_vn    := 4986;
-    client_alt := endpoint_id_addr(endpoint_id.client_alt);
-    client_vn  := endpoint_id_addr(endpoint_id.client_vn);
-    call mim_agent.configure_NAT_attack_in;
+    # client_port_vn    := 4986;
+    # client_alt := endpoint_id_addr(endpoint_id.client_alt);
+    # client_vn  := endpoint_id_addr(endpoint_id.client_vn);
+    # call mim_agent.configure_NAT_attack_in;
     # call mim_agent.configure_NAT_attack_out;
+
+    call mim_agent.configure_NAT_attack_bidir;
 }
 
 # action make_transport_parameters returns (tp:quic_transport_parameters) = {
@@ -67,17 +72,21 @@ after init {
 # }
 
 
-before forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:malicious_pkts) {
+before forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data_array) {
+    call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_cppkt_forwarded_to_server);
+    call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_cppkt_forwarded_to_client);
     if _generating {
         require mim_client_target.ep.addr ~= 0;  # must have a client address to send to
         require src = mim_server_target.ep;
         require dst = mim_client_target.ep;
-        #require pkt = mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_cppkt_forwarded_to_client); # TODO check
+        require pkt = mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_cppkt_forwarded_to_client); # TODO check
         # require pkt = mim_agent.ppkt_to_be_forwarded_to_server; # TODO put relation ?
     } 
 }
 
-before forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:malicious_pkts) {
+before forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data_array) {
+    call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_cppkt_forwarded_to_server);
+    call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_cppkt_forwarded_to_client);
     if _generating {
         require mim_server_target.ep.addr ~= 0;  # must have a client address to send to
         require dst = mim_server_target.ep;
@@ -87,9 +96,14 @@ before forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:malici
     } 
 }
 
+import action show_last_cppkt_forwarded_to_client_debug_event(x:stream_pos)
+import action show_last_cppkt_forwarded_to_server_debug_event(x:stream_pos)
 
 export forward_packet_to_client_event
 export forward_packet_to_server_event
+
+attribute forward_packet_to_server_event.weight = "5"
+attribute forward_packet_to_client_event.weight = "15"
 
 
 # Final check
@@ -101,8 +115,11 @@ export forward_packet_to_server_event
 
 export action _finalize = {
     # chris TODO 
-    require conn_total_data(the_cid) > 0; # == 
     call mim_agent.reset_NAT;
+    require mim_agent.last_cppkt_forwarded_to_server > 0;
+    require mim_agent.last_cppkt_forwarded_to_client > 0;
+    require mim_agent.last_cppkt_forwarded_to_client = mim_agent.cppkt_forwarded_to_client;
+    require mim_agent.last_cppkt_forwarded_to_server = mim_agent.cppkt_forwarded_to_server;
 }
 
 

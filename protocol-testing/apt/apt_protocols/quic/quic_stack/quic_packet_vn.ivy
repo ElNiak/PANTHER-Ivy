@@ -35,7 +35,7 @@ instance  versions : array(index,stream_data)
 interpret version -> bv[32]
 instance  versions_bv : array(index,version)
 
-# ### Packet
+# Packet
 
 # The type `packet.quic_packet_vn` represents packet. 
 
@@ -105,7 +105,7 @@ action packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_vn
 # from source endpoint `src` to a QUIC destination endpoint `dst`
 # containing a sequence of queued frames.
 #
-# ### Requirements
+# Requirements
 #
 # - The packet payload may not be empty [7].
 #

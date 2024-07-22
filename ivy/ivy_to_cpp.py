@@ -1977,6 +1977,7 @@ def module_to_cpp_class(classname,basename):
     header.append("typedef __int128_t int128_t;\n")
     header.append("typedef __uint128_t uint128_t;\n")
     header.append("#include <signal.h>\n")
+    # header.append("#include <execinfo.h>\n") # For backtrace
     header.append("int call_generating = 1;\n")
     
     
@@ -5174,9 +5175,14 @@ int ask_ret(long long bound) {
                 mode = std::string(env_p2);
             }
             
+            std::string current_protocol = "";
+            if(const char* current_protocol_env = std::getenv("PROTOCOL_TESTED")) { 
+                current_protocol = std::string(current_protocol_env);
+            }
+            
             std::string command = "";
             if(path.find("test") != std::string::npos) 
-		    path = std::string("$PROOTPATH/QUIC-Ivy-Attacker/protocol-testing/quic/quic_tests/") + mode + std::string("_tests/") + path;
+		    path = std::string("/app/panther-ivy/protocol-testing/") + current_protocol + std::string("/") + current_protocol + std::string("_tests/") + mode + std::string("_tests/") + path;
         
             command = std::string("/bin/sed \'") + lineNumber + std::string("!d\' ")  + path + std::string(".ivy > temps.txt");
             //std::cerr << command.c_str() << "\\n";
@@ -5204,6 +5210,54 @@ int ask_ret(long long bound) {
     }
 
     #include <string>
+    
+    // Function to check if a line is within an action called _finalize
+    bool isLineInFinalizeAction(const std::string &path, const std::string &lineToCheck, int lineNumber) {
+        std::ifstream file(path);
+        if (!file.is_open()) {
+            std::cerr << "Error opening file: " << path << "\\n";
+            return false;
+        }
+
+        std::string line;
+        bool inFinalize = false;
+        int currentLineNumber = 0;
+        std::string targetLine;
+
+        while (std::getline(file, line)) {
+            currentLineNumber++;
+            if (currentLineNumber == lineNumber) {
+                targetLine = line;
+                break;
+            }
+        }
+
+        file.clear();
+        file.seekg(0, std::ios::beg);
+        currentLineNumber = 0;
+
+        while (std::getline(file, line)) {
+            currentLineNumber++;
+            if (line.find("export action _finalize") != std::string::npos && currentLineNumber < lineNumber) {
+                inFinalize = true;
+            }
+
+            if (inFinalize && currentLineNumber == lineNumber) {
+                if (line.find(lineToCheck) != std::string::npos) {
+                    file.close();
+                    return true;
+                }
+            }
+
+            if (line.find("}") != std::string::npos && inFinalize) {
+                inFinalize = false;
+            }
+        }
+
+        file.close();
+        return false;
+    }
+    
 
     virtual void ivy_assume(bool truth,const char *msg){
         if (!truth) {
@@ -5228,9 +5282,14 @@ int ask_ret(long long bound) {
                 mode = std::string(env_p2);
             }
             
+            std::string current_protocol = "";
+            if(const char* current_protocol_env = std::getenv("PROTOCOL_TESTED")) { 
+                current_protocol = std::string(current_protocol_env);
+            }
+            
             std::string command = "";
             if(path.find("test") != std::string::npos) 
-		    path = std::string("$PROOTPATH/QUIC-Ivy-Attacker/protocol-testing/quic/quic_tests/") + mode + std::string("_tests/") + path;
+		    path = std::string("/app/panther-ivy/protocol-testing/") + current_protocol + std::string("/") + current_protocol + std::string("_tests/") + mode + std::string("_tests/") + path;
         
             command = std::string("/bin/sed \'") + lineNumber + std::string("!d\' ")  + path + std::string(".ivy > temps.txt");
             //std::cerr << command.c_str() << "\\n";
@@ -5253,7 +5312,10 @@ int ask_ret(long long bound) {
 	        std::cerr << msg << ": error: assumption failed\\n";
             __ivy_out << "assumption_failed(" << str << ")\\n";
             CLOSE_TRACE
-            __ivy_exit(1);
+            
+            bool is_LineInFinalizeAction = isLineInFinalizeAction(path + std::string(".ivy"), str, num);
+            std::cerr << "is_LineInFinalizeAction: " << is_LineInFinalizeAction << "\\n";
+            if (!is_LineInFinalizeAction) __ivy_exit(1);
         }
     }
         
