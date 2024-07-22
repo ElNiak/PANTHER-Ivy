@@ -30,7 +30,7 @@ include ip
 
 # TODO: retry and one_rtt packet types
 
-# ### Packet
+# Packet
 
 # The type `packet.quic_packet` represents packet. 
 
@@ -125,7 +125,7 @@ after init {
 # from source endpoint `src` to a QUIC destination endpoint `dst`
 # containing a sequence of queued frames.
 #
-# ### Requirements
+# Requirements
 #
 # - The packet payload may not be empty [7].
 #
@@ -153,7 +153,7 @@ after init {
 # repeated by the client in all Initial packets it sends for that connection after it 
 # receives the Retry packet.
 
-# ### Effects
+# Effects
 #
 # - The `conn_seen` and `sent_pkt` relations are updated to reflect
 #   the observed packet [1].
@@ -161,7 +161,7 @@ after init {
 #   packets as most recent for the packet's source and cid.
 #   
 #
-# ### Notes
+# Notes
 #
 # - In the low-level packet encoding, the packet number may be encoded using
 #   a small number of bytes, in a way that loses information.

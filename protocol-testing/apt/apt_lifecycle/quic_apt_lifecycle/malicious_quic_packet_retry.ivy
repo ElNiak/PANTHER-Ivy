@@ -8,7 +8,7 @@ include quic_transport_parameters
 include ip
 # include quic_fsm_sending
 # include quic_fsm_receiving
-include byte_stream
+# # include byte_stream
 
 # The packet protocol
 #
@@ -32,7 +32,7 @@ include byte_stream
 
 # TODO: retry and one_rtt packet types
 
-# ### Packet
+# Packet
 
 # The type `packet.quic_packet` represents packet. 
 
@@ -112,7 +112,7 @@ action malicious_packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.m
 # from source endpoint `src` to a QUIC destination endpoint `dst`
 # containing a sequence of queued frames.
 #
-# ### Requirements
+# Requirements
 #
 # - The packet payload may not be empty [7].
 #

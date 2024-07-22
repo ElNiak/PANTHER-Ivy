@@ -1,7 +1,22 @@
 #lang ivy1.7
+include order
+include collections
+
+include apt_types
+
+include apt_byte_stream
+
+include apt_packet
 
 include apt_time
-include quic_attack_connection
+include tls_api
+
+include protection
+
+instance stream_prot : protection.stream_data_protection(tls_api.id,tls_api.upper)
+
+include stream_data_locale
+include apt_endpoint
 
 include ivy_attacker
 include ivy_target
@@ -9,6 +24,5 @@ include ivy_mim
 include ivy_c2_server
 include ivy_bot
 
-include apt_endpoint
 
 

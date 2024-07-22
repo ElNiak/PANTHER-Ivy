@@ -8,7 +8,7 @@ include quic_transport_parameters
 include ip
 # include quic_fsm_sending
 # include quic_fsm_receiving
-include byte_stream
+# include byte_stream
 
 # The packet protocol
 #
@@ -32,7 +32,7 @@ include byte_stream
 
 # TODO: retry and one_rtt packet types
 
-# ### Packet
+# Packet
 
 # The type `packet.quic_packet` represents packet. 
 
@@ -111,7 +111,7 @@ action packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_
 # from source endpoint `src` to a QUIC destination endpoint `dst`
 # containing a sequence of queued frames.
 #
-# ### Requirements
+# Requirements
 #
 # - The packet payload may not be empty [7].
 #
@@ -123,7 +123,7 @@ action packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_
 #   from dst to src [5].
 
 
-# ### Effects
+# Effects
 #
 # - The `conn_seen` and `sent_pkt` relations are updated to reflect
 #   the observed packet [1].
@@ -233,7 +233,7 @@ action packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_
 #    only acknowledge a 1-RTT packet.  An acknowledgment for a 1-RTT
 #    packet MUST be carried in a 1-RTT packet.
 #
-# ### Notes
+# Notes
 #
 # - In the low-level packet encoding, the packet number may be encoded using
 #   a small number of bytes, in a way that loses information.

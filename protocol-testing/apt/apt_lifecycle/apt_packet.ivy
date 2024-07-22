@@ -15,7 +15,25 @@ object packet = {
         require false; 
     }
 
-    ## White noise
+## Man in the middle
+
+    action forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
+        require false; 
+    }
+
+    action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
+        require false; 
+    }
+
+    action replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
+        require false; 
+    }
+
+    action replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
+        require false; 
+    }
+
+## White noise
 
     # 1. Denial-of-Service (DoS) Attacks
 

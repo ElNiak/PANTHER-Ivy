@@ -12,7 +12,7 @@ include quic_ser_retry
 include quic_deser_zerortt
 include quic_ser_zerortt
 include quic_protection
-include random_value
+include quic_random_value
 include endpoint
 
 # TODO import show_stream for debug
@@ -209,7 +209,6 @@ implement quic_net.recv(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pk
 
 import action app_server_open_event_show(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet,cid1 : cid, cid2: cid)
 import action recv_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
-import action recv_packet_mim(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data)
 import action padding_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data)
 
 # This received packets that are undecryptable
@@ -250,11 +249,11 @@ implement tls_api.lower.send(tls_id:tls_api.id, bytes:stream_data, lev:tls_api.l
         e := quic_packet_type.one_rtt;
     };
     var scid := tls_id_to_cid(tls_id);
-    call show_tls_lower_send(bytes);
+    call show_tls_lower_send_debug_event(bytes);
     call tls_send_event(tls_id_to_src(tls_id), tls_id_to_dst(tls_id), scid, 0, bytes,crypto_data_end(scid,e),e);
 }
 
-import action show_tls_lower_send(bytes:stream_data)
+import action show_tls_lower_send_debug_event(bytes:stream_data)
 
 # The following is just for debugging purposes.
 
@@ -273,7 +272,7 @@ implement tls_api.upper.keys_established(tls_id:tls_api.id,lev:tls_api.upper.lev
     call tls_keys_established_event(tls_id_to_cid(tls_id),e); #tls_id = server.tls_id  for client ?
 }
 
-import action show_tls_id_to_cid(ver:cid)
+import action show_tls_id_to_cid_debug_event(ver:cid)
 
 
 # TLS handshake data event shim

@@ -2,7 +2,7 @@
 
 include order
 include collections
-include byte_stream
+# include byte_stream
 
 # TLS Records
 # ===========
@@ -16,7 +16,7 @@ include byte_stream
 
 object tls = {
 
-    # ### Protocol version
+# ### Protocol version
 
     # Protocol verion is two bytes, encoded as follows:
     #
@@ -27,12 +27,12 @@ object tls = {
     type protocol_version
     interpret protocol_version -> bv[16]
 
-    # ### Content types
+# ### Content types
     # 
     # This section details the various content types that may appear
     # in serialized form in a TLS record.
    
-    # #### Handshake
+# #### Handshake
     #
     # The handshake protocol uses messages of type `handshake`. 
     #
@@ -57,7 +57,7 @@ object tls = {
     # where "length" is the length of the subsequent message in bytes.
     #
 
-    # ##### Extensions
+# ##### Extensions
     #
     # A sequence of extension fields may be appended to a handshake message.
     # An extension has the following fields:
@@ -149,7 +149,7 @@ object tls = {
     #     }
     # }
 
-    # ##### Client and Server Hello
+# ##### Client and Server Hello
     #
     # The time in milliseconds since Jan 1, 1970 GMT is encoded as a 32-bit field.
 
@@ -285,7 +285,7 @@ object tls = {
         }
     }
     
-    # ### Records
+# ### Records
 
     # A record encapsulates TLS messages. It is prefixed by a one-byte
     # tag indicating the content type. The tag values are:
