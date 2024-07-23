@@ -5860,6 +5860,8 @@ def emit_repl_boilerplate3test(header,impl,classname):
             continue
         num_public_actions += 1
         action = im.module.actions[actname]
+        impl.append("std::cerr << \"action: {}\\n\";\n".format(actname))
+        impl.append("std::cerr << \"varname(actname): {}\\n\";\n".format(varname(actname)))
         impl.append("        generators.push_back(new {}_gen(ivy));\n".format(varname(actname)))
         aname = (actname[4:] if actname.startswith('ext:') else actname) +'.weight'
         if aname in im.module.attributes:
@@ -5912,11 +5914,16 @@ def emit_repl_boilerplate3test(header,impl,classname):
             LARGE_INTEGER before;
             QueryPerformanceCounter(&before);
 #endif      
+            std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
             bool sat = false;
             if (call_generating) {
                 ivy._generating = true;
                 sat = g.generate(ivy);
-            } 
+            }
+            std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+            unsigned long long duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+            if(duration > 0)
+            std::cerr << "Performance generation measurement: " << duration << " milliseconds" << std::endl; 
 #ifdef _WIN32
             LARGE_INTEGER after;
             QueryPerformanceCounter(&after);

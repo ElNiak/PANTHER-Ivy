@@ -11,103 +11,113 @@ after init {
 object endpoint = {
     ...
 
-    module client_ping(address:ip.addr,port:ip.port) = { 
-        variant this of endpoint = struct { }
-        individual ep        : ip.endpoint
-        individual tls_id    : tls_api.id
+    object client_endpoint = {
+        ...
 
-        after init {
-            ep.protocol := ip.udp;
-            ep.addr := address;
-            ep.port := port;
-            if ep.addr = 0x7f000001 { # TODO is_mim not used
-                ep.interface := ip.lo;
-            } else {
-                ep.interface := ip.ivy;
+        module client_ping(address:ip.addr,port:ip.port) = { 
+            variant this of client_endpoint = struct { }
+            individual ep        : ip.endpoint
+            individual tls_id    : tls_api.id
+
+            after init {
+                ep.protocol := ip.udp;
+                ep.addr := address;
+                ep.port := port;
+                if ep.addr = 0x7f000001 { # TODO is_mim not used
+                    ep.interface := ip.lo;
+                } else {
+                    ep.interface := ip.ivy;
+                }
             }
-        }
-        
-        action set_ep(e:ip.endpoint) = {
-            ep := e;
-        }
+            
+            action set_ep(e:ip.endpoint) = {
+                ep := e;
+            }
 
-        action set_tls_id(e:tls_api.id) = {
-            tls_id := e;
-        }
+            action set_tls_id(e:tls_api.id) = {
+                tls_id := e;
+            }
 
-        action behavior(host:endpoint_id, s:ping_net.socket, src:ip.endpoint, pkts:pingd.arr) = {
-            var dst := socket_endpoint(host,s);  # because ping_net API doesn't tell us the dst
-            var idx := pkts.begin;
-            while idx < pkts.end {
-                var ppkt := pkts.value(idx);
-                var pkt := packet.ping_packet_serdes.from_bytes(ppkt);
-                call recv_pong(host,src,dst,pkt);
-                var jdx := pkt.payload.begin;
-                while jdx < pkt.payload.end {
-                    var f := pkt.payload.value(jdx);
-                    call f.handle();
-                    jdx := jdx.next;
-                };
-                call ping_packet_event(src,dst,pkt);       # also an inferred event
-                idx := idx.next;
-            };  
+            action behavior(host:endpoint_id, s:ping_net.socket, src:ip.endpoint, pkts:pingd.arr) = {
+                var dst := socket_endpoint(host,s);  # because ping_net API doesn't tell us the dst
+                var idx := pkts.begin;
+                while idx < pkts.end {
+                    var ppkt := pkts.value(idx);
+                    var pkt := packet.ping_packet_serdes.from_bytes(ppkt);
+                    call recv_pong(host,src,dst,pkt);
+                    var jdx := pkt.payload.begin;
+                    while jdx < pkt.payload.end {
+                        var f := pkt.payload.value(jdx);
+                        call f.handle();
+                        jdx := jdx.next;
+                    };
+                    call ping_packet_event(src,dst,pkt);       # also an inferred event
+                    idx := idx.next;
+                };  
+            }
+            import action show_data_received(s:stream_pos)
+            import action show_data_sent(s:stream_pos)
+            import action show_rnum(s:pkt_num)
         }
-        import action show_data_received(s:stream_pos)
-        import action show_data_sent(s:stream_pos)
-        import action show_rnum(s:pkt_num)
     }
 
-    module server_ping(address:ip.addr,port:ip.port) = { 
-        variant this of endpoint = struct { }
-        individual ep        : ip.endpoint
-        individual tls_id    : tls_api.id
+    object server_endpoint = {
+        ...
 
-        after init {
-            ep.protocol := ip.udp;
-            ep.addr := address;
-            ep.port := port;
-            if ep.addr = 0x7f000001  {
-                ep.interface := ip.lo;
-            } else {
-                ep.interface := ip.ivy;
+        module server_ping(address:ip.addr,port:ip.port) = { 
+            variant this of server_endpoint = struct { }
+            individual ep        : ip.endpoint
+            individual tls_id    : tls_api.id
+
+            after init {
+                ep.protocol := ip.udp;
+                ep.addr := address;
+                ep.port := port;
+                if ep.addr = 0x7f000001  {
+                    ep.interface := ip.lo;
+                } else {
+                    ep.interface := ip.ivy;
+                }
             }
-        }
-        
-        action set_ep(e:ip.endpoint) = {
-            ep := e;
-        }
-
-        action set_tls_id(e:tls_api.id) = {
-            tls_id := e;
-        }
-
-        action behavior(host:endpoint_id, s:ping_net.socket, src:ip.endpoint, pkts:pingd.arr) = {
-            var dst := socket_endpoint(host,s);  # because ping_net API doesn't tell us the dst
-            var idx := pkts.begin;
-            if ~initial_response {
-                call show_set_client_ep(src);
-                client.set_ep(src);
-                initial_response := true;
-                call time_api.c_timer.start;
+            
+            action set_ep(e:ip.endpoint) = {
+                ep := e;
             }
-            while idx < pkts.end {
-                var ppkt := pkts.value(idx);
-                var tls_id := src_tls_id(dst); # todo multiple
-                var pkt := packet.ping_packet_serdes.from_bytes(ppkt);
-                call recv_ping(host,src,dst,pkt);
-                var jdx := pkt.payload.begin;
-                while jdx < pkt.payload.end {
-                    var f := pkt.payload.value(jdx);
-                    call f.handle();
-                    jdx := jdx.next;
+
+            action set_tls_id(e:tls_api.id) = {
+                tls_id := e;
+            }
+
+            action behavior(host:endpoint_id, s:ping_net.socket, src:ip.endpoint, pkts:pingd.arr) = {
+                var dst := socket_endpoint(host,s);  # because ping_net API doesn't tell us the dst
+                var idx := pkts.begin;
+                if ~initial_response {
+                    call show_set_client_ep(src);
+                    client.set_ep(src);
+                    initial_response := true;
+                    call time_api.c_timer.start;
+                }
+                while idx < pkts.end {
+                    var ppkt := pkts.value(idx);
+                    var tls_id := src_tls_id(dst); # todo multiple
+                    var pkt := packet.ping_packet_serdes.from_bytes(ppkt);
+                    call recv_ping(host,src,dst,pkt);
+                    var jdx := pkt.payload.begin;
+                    while jdx < pkt.payload.end {
+                        var f := pkt.payload.value(jdx);
+                        call f.handle();
+                        jdx := jdx.next;
+                    };
+                    call ping_packet_event(src,dst,pkt);       # also an inferred event
+                    idx := idx.next;
                 };
-                call ping_packet_event(src,dst,pkt);       # also an inferred event
-                idx := idx.next;
-            };
+            }
+            import action show_data_received(s:stream_pos)
+            import action show_data_sent(s:stream_pos)
+            import action show_rnum(s:pkt_num)
+            import action show_set_client_ep(s:ip.endpoint)
         }
-        import action show_data_received(s:stream_pos)
-        import action show_data_sent(s:stream_pos)
-        import action show_rnum(s:pkt_num)
-        import action show_set_client_ep(s:ip.endpoint)
     }
 }
+
+   

@@ -22,7 +22,7 @@ parameter initial_max_streams_bidi : stream_id = 200
 # instance client : endpoint(endpoint_id.client)
 # instance server : endpoint(endpoint_id.server)
 
-instance client : endpoint.client_quic(client_addr,client_port)
+instance client : endpoint.client_endpoint.client_quic(client_addr,client_port)
 
 # An ip endpoint for the client to migrate to.
 
@@ -36,7 +36,7 @@ after init {
 
 # instance second_client : endpoint(endpoint_id.client_alt)
 
-instance second_client : endpoint.client_quic(client_addr,client_port) # second_client_ep
+instance second_client : endpoint.client_endpoint.client_quic(client_addr,client_port) # second_client_ep
 
 # after init {
 #     call second_client.initialization(client_addr,client_port);
