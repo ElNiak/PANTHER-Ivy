@@ -432,8 +432,8 @@ object endpoint = {
     module client_server_quic(address:ip.addr,port:ip.port, oport:ip.port) = { 
         variant this of endpoint = struct { }
         
-        individual ep_in        : ip.endpoint
-        individual ep_out       : ip.endpoint
+        individual ep_client        : ip.endpoint
+        individual ep_server       : ip.endpoint
         individual tls_id_server    : tls_api.id
         individual tls_id_client    : tls_api.id
         individual enc_level : quic_packet_type
@@ -442,17 +442,17 @@ object endpoint = {
 
         after init {
             enc_level := quic_packet_type.initial;
-            ep_in.protocol := ip.udp;
-            ep_in.addr := address;
-            ep_in.port := port;
+            ep_client.protocol := ip.udp;
+            ep_client.addr := address;
+            ep_client.port := port;
             
-            ep_out.protocol := ip.udp;
-            ep_out.addr := address;
-            ep_out.port := oport;
+            ep_server.protocol := ip.udp;
+            ep_server.addr := address;
+            ep_server.port := oport;
         }
         
         action set_ep(e:ip.endpoint) = {
-            ep_in := e; # TODO
+            ep_client := e; # TODO
         }
 
         action set_tls_id(e:tls_api.id,ee:tls_api.id) = {

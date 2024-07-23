@@ -40,6 +40,7 @@ action endpoint_id_addr(ep_id : endpoint_id) returns (ep:ip.endpoint) = {
 }
 
 object endpoint = {
+
     type this
 
     module client_ep(address:ip.addr,port:ip.port) = { 
@@ -65,6 +66,8 @@ object endpoint = {
         action set_tls_id(e:tls_api.id) = {
             tls_id := e;
         }
+
+        action behavior(host:endpoint_id, s:stream_data_net.socket, src:ip.endpoint, pkts:stream_prot.arr) = { }
     }
 
     module server_ep(address:ip.addr,port:ip.port) = { 
@@ -90,30 +93,40 @@ object endpoint = {
         action set_tls_id(e:tls_api.id) = {
             tls_id := e;
         }
+
+        action behavior(host:endpoint_id, s:stream_data_net.socket, src:ip.endpoint, pkts:stream_prot.arr) = { }
     }
 
-    module mim_ep(address:ip.addr,port:ip.port, oport:ip.port, 
+    module mim_ep(address:ip.addr,
+                  port:ip.port, 
+                  oport:ip.port, 
                   toward_client:bool, 
                   standalone: bool,
                   bridged: bool) = { 
         
         variant this of endpoint = struct { }
         
-        individual ep_in        : ip.endpoint
-        individual ep_out       : ip.endpoint
-        individual tls_id       : tls_api.id
+        individual ep_client : ip.endpoint
+        individual ep_server : ip.endpoint
+        individual ep_target : ip.endpoint
+
+        function number_packet_recv_from(H:endpoint_id)    : stream_pos
+        function number_packet_forwarded_to(H:endpoint_id) : stream_pos
+
+        individual tls_id : tls_api.id
 
         individual nat_configured : bool
+
         individual ppkt_saved_b : bool
         individual ppkt_saved   : stream_data
         
-        individual ppkt_to_be_replayed_to_server : stream_data_array
-        function   ppkt_to_be_forwarded_to_server(C:stream_pos) : stream_data_array
+        individual ppkt_to_be_replayed_to_server : stream_data
+        function   ppkt_to_be_forwarded_to_server(C:stream_pos) : stream_data
         individual cppkt_forwarded_to_server : stream_pos
         individual last_cppkt_forwarded_to_server : stream_pos
 
         individual force_client_forward : bool  # useless for now
-        function   ppkt_to_be_forwarded_to_client(C:stream_pos) : stream_data_array
+        function   ppkt_to_be_forwarded_to_client(C:stream_pos) : stream_data
         individual cppkt_forwarded_to_client : stream_pos
         individual last_cppkt_forwarded_to_client : stream_pos
 
@@ -122,7 +135,7 @@ object endpoint = {
         individual forward_turn : bool
         individual forward_turn_count : stream_pos
         
-        individual ppkt_to_be_reflected_to_target : stream_data_array
+        individual ppkt_to_be_reflected_to_target : stream_data
     
         individual ppkt_to_be_forge : stream_data
 
@@ -132,56 +145,35 @@ object endpoint = {
 
 
         after init {
-            if ep_out.addr = 0x7f000001 {
-                ep_out.interface := ip.lo;
+            if ep_server.addr = 0x7f000001 {
+                ep_server.interface := ip.lo;
             } else {
+                ep_client.protocol := ip.udp;
+                ep_client.addr := address;
+                ep_client.port := port;
+
+                ep_server.protocol := ip.udp;
+                ep_server.addr := address;
+                ep_server.port := oport;
                 if standalone {
                     if bridged {
-                            ep_in.protocol := ip.udp;
-                            ep_in.addr := address;
-                            ep_in.port := port;
-                            ep_in.interface := ip.veth_ivy;
-
-                            ep_out.protocol := ip.udp;
-                            ep_out.addr := address;
-                            ep_out.port := oport;
-                            ep_out.interface := ip.veth_ivy;
+                            ep_client.interface  := ip.veth_ivy;
+                            ep_server.interface := ip.veth_ivy;
                     }
                     else {
                         if toward_client {
-                            ep_in.protocol := ip.udp;
-                            ep_in.addr := address;
-                            ep_in.port := port;
-                            ep_in.interface := ip.ivy_server;
-
-                            ep_out.protocol := ip.udp;
-                            ep_out.addr := address;
-                            ep_out.port := oport;
-                            ep_out.interface := ip.ivy_client;
+                            ep_client.interface  := ip.ivy_server;
+                            ep_server.interface := ip.ivy_client;
                         } 
                         else {
-                            ep_in.protocol := ip.udp;
-                            ep_in.addr := address;
-                            ep_in.port := port;
-                            ep_in.interface := ip.ivy_client;
-
-                            ep_out.protocol := ip.udp;
-                            ep_out.addr := address;
-                            ep_out.port := oport;
-                            ep_out.interface := ip.ivy_server;
+                            ep_client.interface  := ip.ivy_client;
+                            ep_server.interface := ip.ivy_server;
                         }
                     }
                 }
                 else {
-                    ep_in.protocol := ip.udp;
-                    ep_in.addr := address;
-                    ep_in.port := port;
-                    ep_in.interface := ip.lo;
-                    
-                    ep_out.protocol := ip.udp;
-                    ep_out.addr := address;
-                    ep_out.port := oport;
-                    ep_out.interface := ip.ivy;
+                    ep_client.interface  := ip.lo;
+                    ep_server.interface := ip.ivy;
                 }
             }
             
@@ -194,6 +186,7 @@ object endpoint = {
 
             # ppkt_to_be_forwarded_to_server(C) := stream_data.empty;
             # ppkt_to_be_forwarded_to_client(C) := stream_data.empty;
+
             # Allow to keep coalesced packed
             cppkt_forwarded_to_server := 0;
             cppkt_forwarded_to_client := 0;
@@ -209,7 +202,7 @@ object endpoint = {
         }
         
         action set_ep(e:ip.endpoint) = {
-            ep_in := e; # TODO
+            ep_client := e; # TODO
         }
 
         action set_tls_id(e:tls_api.id) = {
@@ -222,25 +215,10 @@ object endpoint = {
             # TODO should not be here
 
             if ~nat_configured {
-                #call configure_NAT_attack_out_trick(src);
-                #call configure_NAT_attack_out_localhost(src.port);
                 nat_configured := true;
-                mim_client_target.set_ep(src); # Like initial connection from client 
-                # mim_server_target.set_ep(dst);
-                #mim_server_target.ep.interface := ip.ivy;
+                mim_agent.ep_client := src; # Like initial connection from client 
                 call nat_configured_event(src,dst);
-                # if sock_mim_client = 0 {
-                #     fake_client.set_ep(mim_client_target.ep);
-                #     fake_client.ep.interface := ip.lo;
-                #     # TODO only for server tests
-                #     sock_mim_client := sock_mim_server;
-                #     # stream_data_net.listen(endpoint_id.man_in_the_middle,fake_client.ep);
-                #     call client_target_setup_event(fake_client.ep);
-                # }; 
             } 
-
-            #require ppkt_to_be_forwarded_to_server.end = 0;
-            #require ppkt_to_be_forwarded_to_client.end = 0;
 
             while idx < pkts.end {
                 var ppkt   := pkts.value(idx);
@@ -253,19 +231,18 @@ object endpoint = {
 
 
                 if forward_packets { # To server
-                    # call forward_packet_to(rppkt,host,s,src,dst);
-                    # call forward_packet_to_client_event(src,dst,rppkt);       # also an inferred event
-                    if src = mim_client_target.ep {
+                    if src = ep_client {
                         if ~packet_forwarded(rppkt) {
-                            ppkt_to_be_forwarded_to_server(cppkt_forwarded_to_server) := ppkt_to_be_forwarded_to_server(cppkt_forwarded_to_server).append(rppkt);
+                            # TODO manage coallesced packet -> stream_data_array + loop
+                            ppkt_to_be_forwarded_to_server(cppkt_forwarded_to_server) := rppkt;
                             if ~keep_coalesed {
                                 cppkt_forwarded_to_server := cppkt_forwarded_to_server + 1;
                             };
                         }
 
-                    } else if src = mim_server_target.ep {
+                    } else if src = ep_server {
                         if ~ packet_forwarded(rppkt) {
-                            ppkt_to_be_forwarded_to_client(cppkt_forwarded_to_client) := ppkt_to_be_forwarded_to_client(cppkt_forwarded_to_client).append(rppkt);
+                            ppkt_to_be_forwarded_to_client(cppkt_forwarded_to_client) := rppkt;
                             if ~keep_coalesed {
                                 cppkt_forwarded_to_client := cppkt_forwarded_to_client + 1;
                             };
@@ -274,8 +251,8 @@ object endpoint = {
                 };
                 
                 if forward_packets_target {
-                    var ddst := target_agent.ep;
-                    ppkt_to_be_reflected_to_target := ppkt_to_be_reflected_to_target.append(rppkt);
+                    var ddst := mim_agent.ep_target;
+                    ppkt_to_be_reflected_to_target := rppkt;
                     call reflection_packets(rppkt,0);
                 };
 
@@ -283,18 +260,13 @@ object endpoint = {
                     call forward_packet_to(ppkt_saved,host,s,src,dst);
                 };
 
-                
                 idx := idx.next; 
             };
 
             if forward_packets & keep_coalesed { # To server
-                # call forward_packet_to(rppkt,host,s,src,dst);
-                # call forward_packet_to_client_event(src,dst,rppkt);       # also an inferred event
-                if src = mim_client_target.ep {
-                    # ppkt_to_be_forwarded_to_server := pkts;
+                if src = ep_client {
                     cppkt_forwarded_to_server := cppkt_forwarded_to_server + 1;
-                } else if src = mim_server_target.ep {
-                    # ppkt_to_be_forwarded_to_client := pkts;
+                } else if src = ep_server {
                     cppkt_forwarded_to_client := cppkt_forwarded_to_client + 1;
                 };
                 call cppkt_forwarded_to_client_count_debug_event(cppkt_forwarded_to_client);
@@ -393,7 +365,7 @@ object endpoint = {
             # is impossible for now to do so 
             # Instead: we send with target ep so it simulate the ip spoofing
             # forward to server
-            var dst := mim_server_target.ep;
+            var dst := ep_server;
             var pkts_mim := stream_prot.arr.empty;
             pkts_mim := pkts_mim.append(ppkt);
             call stream_data_net.send(endpoint_id.target,sock_target,dst,pkts_mim);

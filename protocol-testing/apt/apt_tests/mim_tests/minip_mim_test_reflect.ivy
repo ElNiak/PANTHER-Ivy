@@ -66,9 +66,9 @@ after init {
 
 before forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data_array) {
     if _generating {
-        require mim_client_target.ep.addr ~= 0;  # must have a client address to send to
-        require src = mim_agent.ep_out;
-        require dst = mim_client_target.ep;
+        require mim_agent.ep_client.addr ~= 0;  # must have a client address to send to
+        require src = mim_agent.ep_server;
+        require dst = mim_agent.ep_client;
         require pkt = mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_cppkt_forwarded_to_server); # TODO check
         # require pkt = mim_agent.ppkt_to_be_forwarded_to_server; # TODO put relation ?
     } 
@@ -76,9 +76,9 @@ before forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream
 
 before forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data_array) {
     if _generating {
-        require mim_server_target.ep.addr ~= 0;  # must have a client address to send to
-        require src = mim_agent.ep_out;
-        require dst = mim_server_target.ep;
+        require mim_agent.ep_server.addr ~= 0;  # must have a client address to send to
+        require src = mim_agent.ep_server;
+        require dst = mim_agent.ep_server;
         require pkt = mim_agent.ppkt_to_be_forwarded_to_server(mim_agent.last_cppkt_forwarded_to_server); # TODO check  
         # require pkt = mim_agent.ppkt_to_be_forwarded_to_server; # TODO put relation ?
     } 

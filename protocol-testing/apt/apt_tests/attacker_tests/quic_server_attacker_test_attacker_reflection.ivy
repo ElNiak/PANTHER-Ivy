@@ -17,7 +17,7 @@ include apt_shim
 include ivy_quic_client_standard_tp
 
 after init {
-    sock_target := quic_net.open(endpoint_id.target,target_agent.ep);
+    sock_target := quic_net.open(endpoint_id.target,mim_agent.ep_target.ep);
 }
 
 after init {
@@ -26,7 +26,7 @@ after init {
     sock_vn := sock_attacker; # quic_net.open(endpoint_id.client_vn,client_vn);
     attacker.set_tls_id(0);
     server.set_tls_id(1);
-    call attacker.configure_NAT_attack_in_spoof_hack(server.ep.port,target_agent.ep.port);
+    call attacker.configure_NAT_attack_in_spoof_hack(server.ep.port,mim_agent.ep_target.ep.port);
     var extns := tls_extensions.empty;
     extns := extns.append(make_transport_parameters);
     call tls_api.upper.create(0,false,extns);  # false means this instance of tls is not a server
@@ -97,7 +97,7 @@ export quic_frame.connection_close.handle # TODO
 
 export action _finalize = {
     # chris TODO 
-    require target_agent.ppkt_recvd.end > 0;
+    require mim_agent.ep_target.ppkt_recvd.end > 0;
     call attacker.reset_NAT;
     #call 
 }

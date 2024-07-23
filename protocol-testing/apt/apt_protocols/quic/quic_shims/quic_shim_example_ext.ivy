@@ -246,7 +246,7 @@ implement quic_net.recv(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pk
         } else if host = endpoint_id.man_in_the_middle {
             call mim_agent.behavior(host,s,src,pkts);
         } else if host = endpoint_id.target {
-            call target_agent.behavior(host,s,src,pkts);
+            call mim_agent.ep_target.behavior(host,s,src,pkts);
         } else if host = endpoint_id.malicious_server {
             call attacker.behavior(host,s,src,pkts);
         } else {

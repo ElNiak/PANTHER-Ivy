@@ -11,8 +11,8 @@ object endpoint = {
                   bridged: bool) = { 
         variant this of endpoint = struct { }
         
-        individual ep_in        : ip.endpoint
-        individual ep_out       : ip.endpoint
+        individual ep_client        : ip.endpoint
+        individual ep_server       : ip.endpoint
         individual tls_id       : tls_api.id
         
         individual enc_level    : quic_packet_type
@@ -50,56 +50,56 @@ object endpoint = {
 
         after init {
             enc_level := quic_packet_type.initial;            
-            if ep_out.addr = 0x7f000001 {
-                ep_out.interface := ip.lo;
+            if ep_server.addr = 0x7f000001 {
+                ep_server.interface := ip.lo;
             } else {
                 if standalone {
                     if bridged {
-                            ep_in.protocol := ip.udp;
-                            ep_in.addr := address;
-                            ep_in.port := port;
-                            ep_in.interface := ip.veth_ivy;
+                            ep_client.protocol := ip.udp;
+                            ep_client.addr := address;
+                            ep_client.port := port;
+                            ep_client.interface := ip.veth_ivy;
 
-                            ep_out.protocol := ip.udp;
-                            ep_out.addr := address;
-                            ep_out.port := oport;
-                            ep_out.interface := ip.veth_ivy;
+                            ep_server.protocol := ip.udp;
+                            ep_server.addr := address;
+                            ep_server.port := oport;
+                            ep_server.interface := ip.veth_ivy;
                     }
                     else {
                         if toward_client {
-                            ep_in.protocol := ip.udp;
-                            ep_in.addr := address;
-                            ep_in.port := port;
-                            ep_in.interface := ip.ivy_server;
+                            ep_client.protocol := ip.udp;
+                            ep_client.addr := address;
+                            ep_client.port := port;
+                            ep_client.interface := ip.ivy_server;
 
-                            ep_out.protocol := ip.udp;
-                            ep_out.addr := address;
-                            ep_out.port := oport;
-                            ep_out.interface := ip.ivy_client;
+                            ep_server.protocol := ip.udp;
+                            ep_server.addr := address;
+                            ep_server.port := oport;
+                            ep_server.interface := ip.ivy_client;
                         } 
                         else {
-                            ep_in.protocol := ip.udp;
-                            ep_in.addr := address;
-                            ep_in.port := port;
-                            ep_in.interface := ip.ivy_client;
+                            ep_client.protocol := ip.udp;
+                            ep_client.addr := address;
+                            ep_client.port := port;
+                            ep_client.interface := ip.ivy_client;
 
-                            ep_out.protocol := ip.udp;
-                            ep_out.addr := address;
-                            ep_out.port := oport;
-                            ep_out.interface := ip.ivy_server;
+                            ep_server.protocol := ip.udp;
+                            ep_server.addr := address;
+                            ep_server.port := oport;
+                            ep_server.interface := ip.ivy_server;
                         }
                     }
                 }
                 else {
-                    ep_in.protocol := ip.udp;
-                    ep_in.addr := address;
-                    ep_in.port := port;
-                    ep_in.interface := ip.lo;
+                    ep_client.protocol := ip.udp;
+                    ep_client.addr := address;
+                    ep_client.port := port;
+                    ep_client.interface := ip.lo;
                     
-                    ep_out.protocol := ip.udp;
-                    ep_out.addr := address;
-                    ep_out.port := oport;
-                    ep_out.interface := ip.ivy;
+                    ep_server.protocol := ip.udp;
+                    ep_server.addr := address;
+                    ep_server.port := oport;
+                    ep_server.interface := ip.ivy;
                 }
             }
             
@@ -130,7 +130,7 @@ object endpoint = {
         }
         
         action set_ep(e:ip.endpoint) = {
-            ep_in := e; # TODO
+            ep_client := e; # TODO
         }
 
         action set_tls_id(e:tls_api.id) = {
@@ -148,10 +148,10 @@ object endpoint = {
                 nat_configured := true;
                 mim_client_target.set_ep(src); # Like initial connection from client 
                 # mim_server_target.set_ep(dst);
-                #mim_server_target.ep.interface := ip.ivy;
+                #mim_agent.ep_server.interface := ip.ivy;
                 call nat_configured_event(src,dst);
                 # if sock_mim_client = 0 {
-                #     fake_client.set_ep(mim_client_target.ep);
+                #     fake_client.set_ep(mim_agent.ep_client);
                 #     fake_client.ep.interface := ip.lo;
                 #     # TODO only for server tests
                 #     sock_mim_client := sock_mim_server;
@@ -190,7 +190,7 @@ object endpoint = {
                 if forward_packets { # To server
                     # call forward_packet_to(rppkt,host,s,src,dst);
                     # call forward_packet_to_client_event(src,dst,rppkt);       # also an inferred event
-                    if src = mim_client_target.ep {
+                    if src = mim_agent.ep_client {
                         # We do that to avoid forwarding all request from very fast client 
                         var pkt_type : quic_packet_type := quic_packet_type.initial;
                         if is_long {
@@ -240,7 +240,7 @@ object endpoint = {
                         #     ppkt_to_be_forwarded_to_server := stream_data_array.empty;
                         #     force_client_forward := false;
                         # }
-                    } else if src = mim_server_target.ep {
+                    } else if src = mim_agent.ep_server {
                         var pkt_type : quic_packet_type := quic_packet_type.initial;
                         if is_long {
                             if bvand(ppkt.value(0),0xf0) = 0xc0 {
@@ -274,7 +274,7 @@ object endpoint = {
                 };
                 
                 if forward_packets_target {
-                    var ddst := target_agent.ep;
+                    var ddst := mim_agent.ep_target.ep;
                     #call forward_packet_to(rppkt,host,s,src,ddst);
                     ppkt_to_be_reflected_to_target := ppkt_to_be_reflected_to_target.append(rppkt);
                     call reflection_packets(rppkt,0);
@@ -313,10 +313,10 @@ object endpoint = {
             if forward_packets & keep_coalesed { # To server
                 # call forward_packet_to(rppkt,host,s,src,dst);
                 # call forward_packet_to_client_event(src,dst,rppkt);       # also an inferred event
-                if src = mim_client_target.ep {
+                if src = mim_agent.ep_client {
                     # ppkt_to_be_forwarded_to_server := pkts;
                     cppkt_forwarded_to_server := cppkt_forwarded_to_server + 1;
-                } else if src = mim_server_target.ep {
+                } else if src = mim_agent.ep_server {
                     # ppkt_to_be_forwarded_to_client := pkts;
                     cppkt_forwarded_to_client := cppkt_forwarded_to_client + 1;
                 };

@@ -99,7 +99,7 @@ action endpoint_to_socket(src:ip.endpoint) returns (socket:quic_net.socket) = {
 
 action tls_id_to_src(tls_id:tls_api.id) returns (src:ip.endpoint) = {
     if is_mim {
-        src := server.ep if tls_id = client.tls_id else mim_agent.ep_in;
+        src := server.ep if tls_id = client.tls_id else mim_agent.ep_client;
     } else {
         src := server.ep if tls_id = client.tls_id else client.ep;
     };
@@ -110,7 +110,7 @@ action tls_id_to_src(tls_id:tls_api.id) returns (src:ip.endpoint) = {
 
 action tls_id_to_dst(tls_id:tls_api.id) returns (dst:ip.endpoint) = {
     if is_mim {
-        dst := mim_agent.ep_in if tls_id = client.tls_id else server.ep;
+        dst := mim_agent.ep_client if tls_id = client.tls_id else server.ep;
     } else {
         dst := client.ep if tls_id = client.tls_id else server.ep;
     };
@@ -127,7 +127,7 @@ action tls_id_to_cid(tls_id:tls_api.id) returns (scid:cid) = {
 
 action dst_is_generated(dst:ip.endpoint) returns (res:bool) = {
     if is_mim {
-        res := dst = server.ep; #| dst = mim_agent.ep_in | dst = mim_agent.ep_out;
+        res := dst = server.ep; #| dst = mim_agent.ep_client | dst = mim_agent.ep_server;
     } else {
         res := dst = server.ep;
     };

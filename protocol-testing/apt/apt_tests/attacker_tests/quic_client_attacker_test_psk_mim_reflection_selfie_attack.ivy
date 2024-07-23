@@ -43,7 +43,7 @@ include apt_shim
 
 
 after init {
-    sock_alt := quic_net.open(endpoint_id.client,client_server.ep_in);
+    sock_alt := quic_net.open(endpoint_id.client,client_server.ep_client);
     client.set_tls_id(0);
     second_client.set_tls_id(0); # TODO to avoid error
     server.set_tls_id(1);
@@ -131,10 +131,10 @@ before packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_vn
 
 before forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data_array) {
     if _generating {
-        require mim_client_target.ep.addr ~= 0;  # must have a client address to send to
+        require mim_agent.ep_client.addr ~= 0;  # must have a client address to send to
         #require;
-        require src = mim_agent.ep_out;
-        require dst = mim_client_target.ep;
+        require src = mim_agent.ep_server;
+        require dst = mim_agent.ep_client;
         require pkt = mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_cppkt_forwarded_to_server); # TODO 
         #require pkt = mim_agent.ppkt_to_be_forwarded_to_server; # TODO put relation ?
     } 
@@ -142,10 +142,10 @@ before forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream
 
 before forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data_array) {
     if _generating {
-        require mim_client_target.ep.addr ~= 0;  # must have a client address to send to
+        require mim_agent.ep_client.addr ~= 0;  # must have a client address to send to
         #require;
-        require src = mim_agent.ep_out;
-        require dst = mim_server_target.ep;
+        require src = mim_agent.ep_server;
+        require dst = mim_agent.ep_server;
         require pkt = mim_agent.ppkt_to_be_forwarded_to_server(mim_agent.last_cppkt_forwarded_to_server); # TODO        #require ;
         #require ;
         #require pkt = mim_agent.ppkt_to_be_forwarded_to_server; # TODO put relation ?
@@ -154,10 +154,10 @@ before forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream
 
 before replay_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data_array) {
     if _generating {
-        require mim_client_target.ep.addr ~= 0;  # must have a client address to send to
+        require mim_agent.ep_client.addr ~= 0;  # must have a client address to send to
         #require;
-        require src = mim_agent.ep_out;
-        require dst = mim_server_target.ep;
+        require src = mim_agent.ep_server;
+        require dst = mim_agent.ep_server;
         require pkt = mim_agent.ppkt_to_be_replayed_to_server;        #require ;
         #require ;
         #require pkt = mim_agent.ppkt_to_be_forwarded_to_server; # TODO put relation ?
@@ -172,7 +172,7 @@ before replay_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_
 #         require client.ep.addr ~= 0;  # must have a client address to send to
 #         # require dst = client.ep;
 #         malicious_packet_send := true;
-#         require (src = mim_agent.ep_out & dst = client.ep); #| (src = server.ep & dst = mim_agent.ep); # Either we manually forge version negociation
+#         require (src = mim_agent.ep_server & dst = client.ep); #| (src = server.ep & dst = mim_agent.ep); # Either we manually forge version negociation
 #         require pkt.dst_cid = client_initial_scid;
 #         require pkt.src_cid = client_initial_dcid;
 #         require pkt.pversion = 0x00000000;  #version 0
