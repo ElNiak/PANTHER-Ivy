@@ -13,3 +13,11 @@ parameter client_port_vn : ip.port = 4987 #4986 # bind failed: Address already i
 
 parameter server_addr : ip.addr =  0x0a000001 # 0x7f000001 #
 parameter server_port : ip.port = 4443
+
+after init {
+    mim_agent.ep_client.addr := client_addr;
+    mim_agent.ep_client.port := client_port;
+
+    mim_agent.ep_server.addr := server_addr;
+    mim_agent.ep_server.port := server_port;
+}

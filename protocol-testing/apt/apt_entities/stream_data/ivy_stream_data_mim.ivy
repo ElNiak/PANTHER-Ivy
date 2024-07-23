@@ -6,10 +6,6 @@ include ip
 include apt_endpoint
 include ivy_mim
 
-instance mim_server_target : endpoint.server_ep(server_addr,server_port)
-instance mim_client_target : endpoint.client_ep(client_addr,client_port)
-instance fake_client :       endpoint.client_ep(0,0)
-
 # TODO update packet src port/dst port for invisible on network and host
  
 # An ip endpoint for the client to migrate to. TODO
@@ -25,7 +21,7 @@ var sock_mim_client : stream_data_net.socket
 
 after init {
     malicious_packet_send := false;
-    mim_server_target.ep.interface := ip.veth_ivy;
+    mim_agent.ep_server.interface := ip.veth_ivy;
 }
 
 

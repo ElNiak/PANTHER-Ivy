@@ -23,7 +23,10 @@ parameter client_port_vn : ip.port = 4430
 
 parameter is_target : bool = false
 
-instance target_agent : endpoint.target_ep(target_addr,target_port)
+after init {
+    mim_agent.ep_target.addr := target_addr;
+    mim_agent.ep_target.port := target_port;
+}
  
 # An ip endpoint for the client to migrate to. TODO
 

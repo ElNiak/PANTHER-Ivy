@@ -3726,7 +3726,7 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
             }
             else {
                 std::cerr << "unknown option: " << param << std::endl;
-                return 1;
+                //return 1;
             }
         }
     }

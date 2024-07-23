@@ -57,9 +57,9 @@ after init {
 #     }
 # }
 
-after forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data_array) {
+after forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data) {
     if _generating {  # & ~conn_closed(pkt.the_cid)
-        var idx := pkt.begin;
+        # var idx := pkt.begin;
         
         # while idx < pkt.end {
         #     var pkts_mim := stream_prot.arr.empty;
@@ -69,10 +69,10 @@ after forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_
         # };
         
         var pkts_mim := stream_prot.arr.empty;
-        while idx < pkt.end {
-            pkts_mim := pkts_mim.append(pkt.value(idx));
-            idx := idx.next; 
-        };
+        # while idx < pkt.end {
+            pkts_mim := pkts_mim.append(pkt);
+        #     idx := idx.next; 
+        # };
         call stream_data_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
 
         mim_agent.last_cppkt_forwarded_to_server := mim_agent.last_cppkt_forwarded_to_server + 1;
@@ -80,9 +80,9 @@ after forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_
 }
 
 
-after forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data_array) {
+after forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data) {
     if _generating {  # & ~conn_closed(pkt.the_cid)
-        var idx := pkt.begin;
+        # var idx := pkt.begin;
 
         # while idx < pkt.end {
         #     var pkts_mim := stream_prot.arr.empty;
@@ -92,28 +92,28 @@ after forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_
         # };
         
         var pkts_mim := stream_prot.arr.empty;
-        while idx < pkt.end {
-            pkts_mim := pkts_mim.append(pkt.value(idx));
+        # while idx < pkt.end {
+            pkts_mim := pkts_mim.append(pkt);
             # TODO allow forwarding coalesed packet or not
-            idx := idx.next; 
-        }; 
+        #     idx := idx.next; 
+        # }; 
         call stream_data_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
         
         mim_agent.last_cppkt_forwarded_to_client := mim_agent.last_cppkt_forwarded_to_client + 1;
     } 
 }
 
-after replay_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data_array) {
-    if _generating {  # & ~conn_closed(pkt.the_cid)
-        var idx := pkt.begin;
-        while idx < pkt.end {
-            var pkts_mim := stream_prot.arr.empty;
-            pkts_mim := pkts_mim.append(pkt.value(idx));
-            call stream_data_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
-            idx := idx.next; 
-        };
-    }
-}
+# after replay_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data) {
+#     if _generating {  # & ~conn_closed(pkt.the_cid)
+#         var idx := pkt.begin;
+#         while idx < pkt.end {
+#             var pkts_mim := stream_prot.arr.empty;
+#             pkts_mim := pkts_mim.append(pkt.value(idx));
+#             call stream_data_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
+#             idx := idx.next; 
+#         };
+#     }
+# }
 
 # after malicious_packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_quic_packet_vn) {
 #     if _generating {  # & ~conn_closed(pkt.the_cid)

@@ -121,13 +121,13 @@ include ip
 
 # action modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_protected_quic_packet) = {}
 
-action forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data_array) = {}
+action forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data) = {}
 
-action forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data_array) = {}
+action forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data) = {}
 
-action replay_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data_array) = {}
+action replay_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data) = {}
 
-action reflect_packet_to_target_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data_array) = {}
+action reflect_packet_to_target_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data) = {}
 
 
 # Packet protocol state
@@ -144,7 +144,7 @@ action reflect_packet_to_target_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream
 
 relation packet_forwarded(P:stream_data)
 
-relation packet_forwarded_arr(P:stream_data_array)
+relation packet_forwarded_arr(P:stream_data)
 
 # Initial state
 # -------------
@@ -411,8 +411,8 @@ after init {
 # around modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_protected_quic_packet) {
 #     require mim_agent.nat_configured;
 #     require src ~= dst;
-#     # require ~(src = mim_agent.ep_out & dst = mim_agent.ep_in);
-#     # require ~(dst = mim_agent.ep_out & src = mim_agent.ep_in);
+#     # require ~(src = mim_agent.ep_server & dst = mim_agent.ep_client);
+#     # require ~(dst = mim_agent.ep_server & src = mim_agent.ep_client);
 #     require ~mim_agent.forward_turn;
 #     require mim_agent.ppkt_to_be_forge.end > 0;
 
@@ -427,13 +427,15 @@ after init {
 #     mim_agent.forward_turn := true;
 # }
 
-around forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data_array) {
+# TODO monitor time between each calls
+
+around forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data) {
     require pkt.end > 0;
     require mim_agent.nat_configured;
     require src ~= dst;
     # require _generating;
-    # require ~(src = mim_agent.ep_out & dst = mim_agent.ep_in);
-    # require ~(dst = mim_agent.ep_out & src = mim_agent.ep_in);
+    # require ~(src = mim_agent.ep_server & dst = mim_agent.ep_client);
+    # require ~(dst = mim_agent.ep_server & src = mim_agent.ep_client);
     # mim_agent.forward_turn |
     # require mim_agent.cppkt_forwarded_to_client >= mim_agent.cppkt_forwarded_to_server; # TODO more customization
 
@@ -447,7 +449,7 @@ around forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream
     #     require ~packet_forwarded(pkt.value(idx));
     #     idx := idx.next; 
     #};
-    # require dst = mim_client_target.ep;
+    # require dst = mim_agent.ep_client;
     ...
     # var idx := pkt.begin;
     # while idx < pkt.end {
@@ -455,20 +457,20 @@ around forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream
     #     idx := idx.next; 
     # };
     # packet_forwarded_arr(pkt) := true;
-    mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_cppkt_forwarded_to_client) := stream_data_array.empty;  # help solver
+    mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_cppkt_forwarded_to_client) := stream_data.empty;  # help solver
     # mim_agent.force_server_forward := false;
     mim_agent.forward_turn := false;
     # call enqueue_malicious_packet(src,dst,pkt,true);
 }
 
-around forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data_array) {
+around forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data) {
     require pkt.end > 0;
     require mim_agent.nat_configured;
     require src ~= dst;
     # require _generating;
-    # require ~(src = mim_agent.ep_out & dst = mim_agent.ep_in);
+    # require ~(src = mim_agent.ep_server & dst = mim_agent.ep_client);
     # 
-    # require ~(dst = mim_agent.ep_out & src = mim_agent.ep_in);
+    # require ~(dst = mim_agent.ep_server & src = mim_agent.ep_client);
     # require mim_agent.cppkt_forwarded_to_client <= mim_agent.cppkt_forwarded_to_server; # TODO more customization
     # require mim_agent.last_cppkt_forwarded_to_server <= mim_agent.last_cppkt_forwarded_to_client;
     # require ~packet_forwarded_arr(pkt); # TODO not sure it works
@@ -477,7 +479,7 @@ around forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream
     #     require ~packet_forwarded(pkt.value(idx));
     #     idx := idx.next; 
     # };
-    # require dst = mim_server_target.ep;
+    # require dst = mim_agent.ep_server;
     ...
     # var idx := pkt.begin;
     # while idx < pkt.end {
@@ -485,7 +487,7 @@ around forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream
     #     idx := idx.next; 
     # };
     # packet_forwarded_arr(pkt) := true;
-    mim_agent.ppkt_to_be_forwarded_to_server(mim_agent.last_cppkt_forwarded_to_server) := stream_data_array.empty;
+    mim_agent.ppkt_to_be_forwarded_to_server(mim_agent.last_cppkt_forwarded_to_server) := stream_data.empty;
     # mim_agent.force_client_forward := false;
     mim_agent.forward_turn := true;
     # call enqueue_malicious_packet(src,dst,pkt,false);
@@ -495,7 +497,7 @@ around forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream
 # function queued_malicious_packet(X:stream_pos): stream_data
 # function num_malicious_packet(X:stream_pos): index
 
-# action enqueue_malicious_packet(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data_array, toward_client:bool) = {
+# action enqueue_malicious_packet(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data, toward_client:bool) = {
 #     if toward_client {
 #         queued_malicious_packet(mim_agent.last_cppkt_forwarded_to_client) := queued_malicious_packet(mim_agent.last_cppkt_forwarded_to_client).append(pkt);
 #         num_malicious_packet(mim_agent.last_cppkt_forwarded_to_client) := num_malicious_packet(mim_agent.last_cppkt_forwarded_to_client).end;
@@ -508,12 +510,12 @@ around forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream
 
 
 
-around replay_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data_array) {
+around replay_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data) {
     require pkt.end > 0;
     require mim_agent.nat_configured;
     require src ~= dst;
-    # require ~(src = mim_agent.ep_out & dst = mim_agent.ep_in);
-    # require ~(dst = mim_agent.ep_out & src = mim_agent.ep_in);
+    # require ~(src = mim_agent.ep_server & dst = mim_agent.ep_client);
+    # require ~(dst = mim_agent.ep_server & src = mim_agent.ep_client);
     require ~mim_agent.forward_turn;
     require ~packet_forwarded_arr(pkt); # TODO not sure it works
     # var idx := pkt.begin;
@@ -521,7 +523,7 @@ around replay_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_
     #     require ~packet_forwarded(pkt.value(idx));
     #     idx := idx.next; 
     # };
-    # require dst = mim_server_target.ep;
+    # require dst = mim_agent.ep_server;
     ...
     # var idx := pkt.begin;
     # while idx < pkt.end {
@@ -529,17 +531,17 @@ around replay_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_
     #     idx := idx.next; 
     # };
     packet_forwarded_arr(pkt) := true;
-    mim_agent.ppkt_to_be_replayed_to_server := stream_data_array.empty;
+    mim_agent.ppkt_to_be_replayed_to_server := stream_data.empty;
     mim_agent.force_client_forward := false;
     mim_agent.forward_turn := true;
 }
 
-around reflect_packet_to_target_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data_array) {
+around reflect_packet_to_target_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data) {
     require pkt.end > 0;
     require mim_agent.nat_configured;
     require src ~= dst;
-    # require ~(src = mim_agent.ep_out & dst = mim_agent.ep_in);
-    # require ~(dst = mim_agent.ep_out & src = mim_agent.ep_in);
+    # require ~(src = mim_agent.ep_server & dst = mim_agent.ep_client);
+    # require ~(dst = mim_agent.ep_server & src = mim_agent.ep_client);
     #require mim_agent.forward_turn; # TODO more customization
     require ~packet_forwarded_arr(pkt);
     # var idx := pkt.begin;
@@ -547,7 +549,7 @@ around reflect_packet_to_target_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream
     #     require ~packet_forwarded(pkt.value(idx));
     #     idx := idx.next; 
     #};
-    # require dst = mim_client_target.ep;
+    # require dst = mim_agent.ep_client;
     ...
     # var idx := pkt.begin;
     # while idx < pkt.end {
@@ -555,7 +557,7 @@ around reflect_packet_to_target_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream
     #     idx := idx.next; 
     # };
     packet_forwarded_arr(pkt) := true;
-    mim_agent.ppkt_to_be_reflected_to_target := stream_data_array.empty;  # help solver
+    mim_agent.ppkt_to_be_reflected_to_target := stream_data.empty;  # help solver
     mim_agent.force_server_forward := false;
    # mim_agent.forward_turn := false;
 }

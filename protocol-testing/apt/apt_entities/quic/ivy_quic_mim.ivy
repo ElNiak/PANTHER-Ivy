@@ -9,10 +9,6 @@ include random_value
 
 include ivy_mim
 
-instance mim_server_target : endpoint.server_quic(server_addr,server_port)
-instance mim_client_target : endpoint.client_quic(client_addr,client_port)
-instance fake_client :       endpoint.client_quic(0,0)
-
 # TODO update packet src port/dst port for invisible on network and host
  
 # An ip endpoint for the client to migrate to. TODO
@@ -21,7 +17,7 @@ instance fake_client :       endpoint.client_quic(0,0)
 
 var sock_mim_server : quic_net.socket
 var sock_mim_client : quic_net.socket
-var sock_attacker : quic_net.socket
+var sock_attacker   : quic_net.socket
 
 
 # Open a server socket to listen on and create an instance of TLS.
@@ -29,7 +25,7 @@ var sock_attacker : quic_net.socket
 
 after init {
     malicious_packet_send := false;
-    mim_server_target.ep.interface := ip.veth_ivy;
+    mim_agent.ep_server.interface := ip.veth_ivy;
 }
 
 
