@@ -6,6 +6,7 @@ include apt_shim
 include tls_record
 include ip
 
+# Not used anymore but kept for reference
 parameter mim_addr     : ip.addr = 0x0a000002
 parameter mim_port_in  : ip.port = 4440 # One socket for receving 4440
 parameter mim_port_out : ip.port = 4439 # One socket for sending
@@ -23,7 +24,7 @@ parameter save_packet : bool = false
 
 var malicious_packet_send : bool
 
-instance mim_agent : endpoint.mim_ep(mim_addr,mim_port_in,mim_port_out,true,true,true)
+instance mim_agent : endpoint.man_in_the_middle_endpoint.mim_ep(server_addr,mim_port_in,server_port,true,true,true)
 
 instance tls_extensions      : vector(tls.extension)
 instance tls_hand_extensions : vector(tls.handshake)

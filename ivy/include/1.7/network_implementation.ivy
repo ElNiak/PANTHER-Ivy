@@ -176,6 +176,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 
 			virtual void read()
 			{
+				std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 				std::cerr << "RECEIVING start\n";
 
 				int len = 0;
@@ -454,6 +455,8 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 					ivy->__unlock();
 					std::cerr << "RECEIVING finsh\n";
 				}
+				std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+				std::cerr << "Performance recv packet measurement: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " milliseconds" << std::endl; 
 			}
 		};
 
@@ -1553,6 +1556,8 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 	# send transmits a packet synchronously.  
 	action send(me:host,s:socket,dst:ip.endpoint,x:pkt) = {
 		<<< impure
+		std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+
 		struct sockaddr_in dstaddr;
 		dstaddr.sin_family = AF_INET;
 		dstaddr.sin_addr.s_addr = htonl(dst.addr);
@@ -1690,6 +1695,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 
 			std::cerr << "Modified UDP Payload (" << packet.size() << " bytes):" << std::endl;
 			std::cerr << "   |- IP header bytes : ";
+			std::ios_base::fmtflags original_flags = std::cerr.flags();  // Save the original formatting flags
 			for (size_t i = 0; i < sizeof(ip_hdr); ++i) {
 				std::cerr << "\\x" << std::hex << std::setw(2) << std::setfill('0') << (unsigned int)(unsigned char)packet[i];
 			}
@@ -1699,6 +1705,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 			for (size_t i = sizeof(ip_hdr); i < sizeof(ip_hdr) + sizeof(udp_hdr); ++i) {
 				std::cerr << "\\x" << std::hex << std::setw(2) << std::setfill('0') << (unsigned int)(unsigned char)packet[i];
 			}
+			std::cerr.flags(original_flags);  // Restore the original formatting flags
 			std::cerr << std::endl;
 
 			//std::cerr.write(packet.data(), packet.size());
@@ -1815,6 +1822,9 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 		}
 
 		std::cerr << "sending id finish" << std::endl;
+
+		std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+		std::cerr << "Performance sending packet measurement: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " milliseconds" << std::endl; 
 		>>>
 	}
 
