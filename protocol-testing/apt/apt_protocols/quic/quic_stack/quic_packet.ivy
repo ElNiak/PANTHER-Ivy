@@ -357,7 +357,6 @@ after init {
 
 import action show_is_sleep_fake_timeon_dataout(is_sleep_fake_timeout:bool)
 import action show_queued_frames(scid:cid,queued_frames:quic_frame.arr)
-import action show_current_time(t:milliseconds)
 
 around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;

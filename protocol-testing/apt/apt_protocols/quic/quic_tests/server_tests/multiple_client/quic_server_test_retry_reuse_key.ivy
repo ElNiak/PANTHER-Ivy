@@ -391,8 +391,8 @@ around client_send_event {
         end := end.next
     };
     var data := http_request.segment(stream_length(dcid,s),end);
-#    call app_send_event(src,dst,dcid,s,data,end = http_request.end);
-    call app_send_event(src,dst,dcid,s,data,stream_length(dcid,s),true);
+#    call quic_app_send_event(src,dst,dcid,s,data,end = http_request.end);
+    call quic_app_send_event(src,dst,dcid,s,data,stream_length(dcid,s),true);
     current_stream := current_stream + 4;
 }
 

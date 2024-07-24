@@ -1,0 +1,14 @@
+#lang ivy1.7
+
+include order
+include file
+# include quic_locale
+include apt_minip_endpoint
+include ivy_attacker
+
+# TODO create socket for client & server
+# TODO associate these data to the entities itself
+var sock_attacker : minip_net.socket
+
+instance attacker_agent : endpoint.attacker_endpoint.attacker_minip_ep(malicious_client_addr,malicious_client_port)
+

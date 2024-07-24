@@ -192,7 +192,7 @@ around packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet
     };
 
     if ~ _generating  { # TODO refactor with client test 
-        var expected_itoken := prot.retry_integrity_tag(8,server_cid,
+        var expected_itoken := quic_prot.retry_integrity_tag(8,server_cid,
                                            pkt.pversion,
                                            scid_size_pos(true),dcid,
                                            dcid_size_pos(true),scid,

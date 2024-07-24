@@ -1,15 +1,10 @@
 #lang ivy1.7
 
 include order
-include quic_infer
 include file
-include quic_shim
 include ivy_target
-
-# include quic_locale
-include random_value
-
-include quic_endpoint
+include ip
+include apt_endpoint
 
 parameter target_addr : ip.addr = 0x0a000401
 parameter target_port : ip.port = 4430
@@ -17,9 +12,6 @@ parameter target_port : ip.port = 4430
 parameter target_alt_addr : ip.addr = 0x0a000401
 parameter target_alt_port : ip.port = 4430
 
-# TODO
-parameter client_vn_addr : ip.addr = 0x0a000401
-parameter client_port_vn : ip.port = 4430
 
 parameter is_target : bool = false
 
@@ -27,7 +19,21 @@ after init {
     mim_agent.ep_target.addr := target_addr;
     mim_agent.ep_target.port := target_port;
 }
- 
+
+var server_cid : cid
+var the_cid : cid
+var the_cid_vn  : cid
+var client_alt : ip.endpoint
+var client_vn  : ip.endpoint
+
+after init {
+    client_alt := endpoint_id_addr(endpoint_id.client_alt);
+    client_vn  := endpoint_id_addr(endpoint_id.client_vn);
+}
+
+instance server : endpoint.server_endpoint.server_quic_ep(server_addr,server_port)
+instance client : endpoint.client_endpoint.client_quic_ep(client_addr,client_port)
+
 # An ip endpoint for the client to migrate to. TODO
 
 # a socket for the server

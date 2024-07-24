@@ -1,0 +1,34 @@
+#lang ivy1.7
+
+include order
+include file
+include ivy_target
+include ip
+include apt_endpoint
+
+parameter target_addr : ip.addr = 0x0a000401
+parameter target_port : ip.port = 4430
+
+parameter target_alt_addr : ip.addr = 0x0a000401
+parameter target_alt_port : ip.port = 4430
+
+
+parameter is_target : bool = false
+
+after init {
+    mim_agent.ep_target.addr := target_addr;
+    mim_agent.ep_target.port := target_port;
+}
+ 
+# An ip endpoint for the client to migrate to. TODO
+
+# a socket for the server
+
+var sock_target : minip_net.socket
+
+# Open a server socket to listen on and create an instance of TLS.
+# TODO: we should have one instance of TLS per connection
+
+
+
+

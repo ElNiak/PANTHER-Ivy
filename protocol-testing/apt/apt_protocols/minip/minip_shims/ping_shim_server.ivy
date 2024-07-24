@@ -8,7 +8,7 @@ after ping_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) 
     # call show_current_time(current_time);
     # enough_wait := current_time >= 3000;
     if dst_is_generated(src) {  
-        var spkt := packet.ping_packet_serdes.to_bytes(pkt);
+        var spkt := ping_packet_serdes.to_bytes(pkt);
         var pkts := pingd.arr.empty;
         pkts := pkts.append(spkt);
         call ping_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);

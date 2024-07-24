@@ -44,7 +44,7 @@ include network_controler
 # to protect packts (see comment below). This module in turn uses the services
 # of TLS.
 
-instance prot : quic_protection(tls_api.id,tls_api.upper)
+instance quic_prot : quic_protection(tls_api.id,tls_api.upper)
 
 include endpoint
 include quic_locale
@@ -233,7 +233,7 @@ after init {
 }
 
 
-implement quic_net.recv(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:prot.arr) {
+implement quic_net.recv(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:quic_prot.arr) {
     # call show_current_time(time_api.c_timer.now_micros_last_bp);
     call show_socket_debug_event(s);
     if(is_lost_recv_example_ext_ack_freq) {
@@ -270,7 +270,7 @@ import action padding_packet_event(host:endpoint_id,src:ip.endpoint,dst:ip.endpo
 
 # This received packets that are undecryptable
 import action undecryptable_packet_event(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:stream_data)
-import action on_purpose_lost_packet_event(host:endpoint_id,src:ip.endpoint,pkt:prot.arr)
+import action on_purpose_lost_packet_event(host:endpoint_id,src:ip.endpoint,pkt:quic_prot.arr)
 
 import action undefined_host_error(host:endpoint_id, s:quic_net.socket, src:ip.endpoint)
 
@@ -674,9 +674,9 @@ import action show_kk
 after tls_client_version_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_data) {
     var tls_id := src_tls_id(src);
     var dcil : stream_pos := bfe[0][7](spkt.value(5));
-    var dcid := prot.bytes_to_cid(spkt.segment(6,6+dcil));
+    var dcid := quic_prot.bytes_to_cid(spkt.segment(6,6+dcil));
     var scil : stream_pos := bfe[0][7](spkt.value(6+dcil));
-    var scid := prot.bytes_to_cid(spkt.segment(7+dcil,7+dcil+scil));
+    var scid := quic_prot.bytes_to_cid(spkt.segment(7+dcil,7+dcil+scil));
     var versions_vn := spkt.segment(3 +  4  + dcil + scil,spkt.end);
 
     call export_length_cid_extension(dcil,scil);
@@ -722,7 +722,7 @@ after tls_client_version_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_d
 
     if final_version ~= 0x00000000 {
         version_negociated := true;
-        var pkt := pkt_serdes_vn.from_bytes(spkt);
+        var pkt := quic_vn_packet_serdes.from_bytes(spkt);
         pkt.ptype := quic_packet_type.version_negociation; # no real type so hardcode
         call recv_vn_pkt(src,dst,pkt);
         call infer_tls_events_vn(src,dst,pkt);
@@ -738,13 +738,13 @@ import action recv_vn_pkt(src:ip.endpoint,dst:ip.endpoint,spkt: packet.quic_pack
 after tls_client_retry_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_data) {
     header_retry := bfe[0][7](spkt.value(0));
     var dcil : stream_pos := bfe[0][7](spkt.value(5));
-    var dcid := prot.bytes_to_cid(spkt.segment(6,6+dcil));
+    var dcid := quic_prot.bytes_to_cid(spkt.segment(6,6+dcil));
     var scil : stream_pos := bfe[0][7](spkt.value(6+dcil));
-    var scid := prot.bytes_to_cid(spkt.segment(7+dcil,7+dcil+scil));
+    var scid := quic_prot.bytes_to_cid(spkt.segment(7+dcil,7+dcil+scil));
 
     call export_length_cid_extension(scil,dcil);
 
-    var pkt := pkt_serdes_retry.from_bytes(spkt);
+    var pkt := quic_retry_packet_serdes.from_bytes(spkt);
     pkt.ptype := quic_packet_type.retry;
     call recv_retry_pkt(src,dst,pkt);
     call infer_tls_events_retry(src,dst,pkt);
@@ -802,7 +802,7 @@ after tls_client_0rtt_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_data
     client_initial_scid := bytes_to_cid(skm); # skm
     call export_length_cid_extension(scil,dcil);
 
-    var pkt := pkt_serdes_0rtt.from_bytes(spkt);
+    var pkt := quic_0rtt_packet_serdes.from_bytes(spkt);
     pkt.ptype := quic_packet_type.zero_rtt;
     call recv_0rtt_pkt(src,dst,pkt);
     call infer_tls_events_0rtt(src,dst,pkt);
@@ -823,7 +823,7 @@ import action version_not_found_event
 # To estimate the sequence number of packets, we have to know the encryption level.
 # This action gets the encryption level from the packet header.
 
-action packet_encryption_level(h:prot.header_info) returns (e:quic_packet_type) = {
+action packet_encryption_level(h:quic_prot.header_info) returns (e:quic_packet_type) = {
     # if zero_rtt_allowed {
         #var scid := packet_scid(h);
         e := quic_packet_type.zero_rtt if ~h.hdr_long # & ~established_1rtt_keys(scid)
@@ -836,7 +836,7 @@ action packet_encryption_level(h:prot.header_info) returns (e:quic_packet_type) 
     # }
 }
 
-action packet_encryption_level_up(h:prot.header_info) returns (e:quic_packet_type) = {
+action packet_encryption_level_up(h:quic_prot.header_info) returns (e:quic_packet_type) = {
     # if zero_rtt_allowed {
         #var scid := packet_scid(h);
         e := quic_packet_type.zero_rtt if ~h.hdr_long #& ~established_1rtt_keys(scid)
@@ -852,7 +852,7 @@ action packet_encryption_level_up(h:prot.header_info) returns (e:quic_packet_typ
 # To get the reference packet number for a packet, we need to know the source connection
 # id, which is not present in short packets. Here we get it from history.
 
-action packet_scid(h:prot.header_info) returns (scid:cid) = {
+action packet_scid(h:quic_prot.header_info) returns (scid:cid) = {
     if h.hdr_long {
         scid := h.scid;
     } else {
@@ -870,7 +870,7 @@ action packet_scid(h:prot.header_info) returns (scid:cid) = {
 # encryption level. We infer the encryption level from the packet type.
 
 action reference_pkt_num(spkt:stream_data,decrypt:bool) returns (pnum:pkt_num) = {
-    var h := prot.get_header_info(spkt,decrypt);
+    var h := quic_prot.get_header_info(spkt,decrypt);
     var e := packet_encryption_level(h);
     var scid := packet_scid(h);
     last_packet_type(scid)   := packet_encryption_level_up(h);
@@ -887,7 +887,7 @@ action is_padding_packet(spkt:stream_data) returns (is_padding:bool) = {
 }
 
 action is_random_padding_packet(spkt:stream_data) returns (is_padding:bool) = {
-    var h := prot.get_header_info(spkt,true);
+    var h := quic_prot.get_header_info(spkt,true);
     var e := packet_encryption_level_up(h);
     if last_packet_type(h.scid) = quic_packet_type.initial & last_packet_length(h.scid) < 1200 { # Hack
 	    is_padding := true;	
@@ -899,11 +899,11 @@ action is_random_padding_packet(spkt:stream_data) returns (is_padding:bool) = {
 # To send and receive packets, we need to serialize and deserialize them.
 # This object allows that.
 
-instance pkt_serdes : serdes(packet.quic_packet,stream_data,quic_ser,quic_deser)
-instance pkt_serdes_vn : serdes(packet.quic_packet_vn,stream_data,quic_ser_vn,quic_deser_vn)
-instance pkt_serdes_retry : serdes(packet.quic_packet_retry,stream_data,quic_ser_retry,quic_deser_retry)
-instance pkt_serdes_0rtt_coal : serdes(packet.quic_packet_coal_0rtt,stream_data,quic_ser_zerortt,quic_deser_zerortt)
-instance pkt_serdes_0rtt : serdes(packet.quic_packet_0rtt,stream_data,quic_ser_zerortt,quic_deser_zerortt)
+instance quic_packet_serdes : serdes(packet.quic_packet,stream_data,quic_ser,quic_deser)
+instance quic_vn_packet_serdes : serdes(packet.quic_packet_vn,stream_data,quic_ser_vn,quic_deser_vn)
+instance quic_retry_packet_serdes : serdes(packet.quic_packet_retry,stream_data,quic_ser_retry,quic_deser_retry)
+instance quic_0rtt_coal_packet_serdes : serdes(packet.quic_packet_coal_0rtt,stream_data,quic_ser_zerortt,quic_deser_zerortt)
+instance quic_0rtt_packet_serdes : serdes(packet.quic_packet_0rtt,stream_data,quic_ser_zerortt,quic_deser_zerortt)
 
 # To send and receive packets (for MiM agent), we need to serialize and deserialize them.
 # This object allows that.

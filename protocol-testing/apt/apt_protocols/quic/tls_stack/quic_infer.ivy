@@ -76,7 +76,7 @@ action infer_tls_events(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) 
                 # require sf.offset <= stream_app_data_end(dcid,sf.id);  # TODO: deal with gaps in stream
                 # var data := sf.data.segment(stream_app_data_end(dcid,sf.id) - sf.offset,sf.data.end);
             call app_server_open_event_1rtt(src,dst,scid,dcid);    
-            call app_send_event(src,dst,dcid,sf.id,sf.data,sf.offset,sf.fin)
+            call quic_app_send_event(src,dst,dcid,sf.id,sf.data,sf.offset,sf.fin)
         };
         #if some(pf:quic_frame.padding) f *> pf {
             # do nothing
@@ -186,7 +186,7 @@ action infer_tls_events_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_pac
             # require sf.offset <= stream_app_data_end(dcid,sf.id);  # TODO: deal with gaps in stream
             # var data := sf.data.segment(stream_app_data_end(dcid,sf.id) - sf.offset,sf.data.end);
             call app_server_open_event_0rtt(src,dst,scid,dcid);
-            call app_send_event(src,dst,dcid,sf.id,sf.data,sf.offset,sf.fin)
+            call quic_app_send_event(src,dst,dcid,sf.id,sf.data,sf.offset,sf.fin)
         };
         #if some(pf:quic_frame.padding) f *> pf {
             # do nothing

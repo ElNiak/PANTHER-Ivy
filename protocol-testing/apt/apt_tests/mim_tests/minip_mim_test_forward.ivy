@@ -4,14 +4,14 @@ include order
 include file
 # include random_value
 
-include ivy_stream_data_mim
-include ivy_stream_data_target
-include ivy_stream_data_attacker
+include ivy_minip_mim
+include ivy_minip_target
+include ivy_minip_attacker
 
-include ivy_stream_data_shim_mim
-include apt_shim
+include ivy_minip_shim
+include ivy_minip_shim_mim
 
-include ivy_man_in_the_middle_behavior
+include ivy_man_in_the_middle_minip_behavior
 
 
 # NB: need bigger timeout (at least 90 sec)
@@ -25,27 +25,27 @@ after init {
 object packet = {
     ...
     
-    object malicious_stream_data_packet = {
+    object ping_packet = {
         ...
-        before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
+        before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_cppkt_forwarded_to_server);
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_cppkt_forwarded_to_client);
             if _generating {
                 require mim_agent.ep_client.addr ~= 0;  # must have a client address to send to
                 require src = mim_agent.ep_server;
                 require dst = mim_agent.ep_client;
-                require pkt.payload = mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_cppkt_forwarded_to_client); # TODO check
+                require pkt = mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_cppkt_forwarded_to_client); # TODO check
             } 
         }
         
-        before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
+        before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_cppkt_forwarded_to_server);
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_cppkt_forwarded_to_client);
             if _generating {
                 require mim_agent.ep_server.addr ~= 0;  # must have a client address to send to
                 require dst = mim_agent.ep_server;
                 require src = mim_agent.ep_client;
-                require pkt.payload = mim_agent.ppkt_to_be_forwarded_to_server(mim_agent.last_cppkt_forwarded_to_server); # TODO check       
+                require pkt = mim_agent.ppkt_to_be_forwarded_to_server(mim_agent.last_cppkt_forwarded_to_server); # TODO check       
             } 
         }
     }
@@ -54,11 +54,11 @@ object packet = {
 import action show_last_cppkt_forwarded_to_client_debug_event(x:stream_pos)
 import action show_last_cppkt_forwarded_to_server_debug_event(x:stream_pos)
 
-export packet.malicious_stream_data_packet.forward_to_client
-export packet.malicious_stream_data_packet.forward_to_server
+export packet.ping_packet.forward_to_client
+export packet.ping_packet.forward_to_server
 
-attribute packet.malicious_stream_data_packet.forward_to_server.weight = "5"
-attribute packet.malicious_stream_data_packet.forward_to_client.weight = "15"
+attribute packet.ping_packet.forward_to_server.weight = "5"
+attribute packet.ping_packet.forward_to_client.weight = "15"
 
 
 # Final check

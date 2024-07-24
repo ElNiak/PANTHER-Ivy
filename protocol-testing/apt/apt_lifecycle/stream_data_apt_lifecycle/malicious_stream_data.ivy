@@ -7,6 +7,10 @@
 relation packet_forwarded(P:stream_data)
 relation packet_forwarded_arr(P:stream_data)
 
+
+# relation packet_number_forwarded(H:ip.endpoint,C:stream_pos)
+
+
 function packet_recv_from_server(P:stream_pos):stream_data_array
 function packet_recv_from_client(P:stream_pos):stream_data_array
 
@@ -36,19 +40,25 @@ object packet = {
 
         action forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet)
         around forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
+            require _generating;
             require pkt.payload.end > 0;
             require mim_agent.nat_configured;
             require src ~= dst;
+            # require ~packet_number_forwarded(mim_agent.ep_client,mim_agent.last_cppkt_forwarded_to_client);
             ...
+            # packet_number_forwarded(mim_agent.ep_client,mim_agent.last_cppkt_forwarded_to_client) := true;
             mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_cppkt_forwarded_to_client) := stream_data.empty;  # help solver
         }
         
         action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet)
         around forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
+            require _generating;
             require pkt.payload.end > 0;
             require mim_agent.nat_configured;
             require src ~= dst;
+            # require ~packet_number_forwarded(mim_agent.ep_server,mim_agent.last_cppkt_forwarded_to_server);
             ...
+            # packet_number_forwarded(mim_agent.ep_server,mim_agent.last_cppkt_forwarded_to_server) := true;
             mim_agent.ppkt_to_be_forwarded_to_server(mim_agent.last_cppkt_forwarded_to_server) := stream_data.empty;  # help solver
         }
         

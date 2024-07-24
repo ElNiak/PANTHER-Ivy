@@ -50,7 +50,7 @@ action app_server_open_event(src:ip.endpoint,dst:ip.endpoint,scid:cid,dcid:cid)
 # - `pos` : the offset in the stream of the data bytes
 # - `close` : true if the client is closing the stream
 
-action app_send_event(src:ip.endpoint, dst:ip.endpoint, dcid:cid, s : stream_id, data : stream_data, pos : stream_pos, close : bool)
+action quic_app_send_event(src:ip.endpoint, dst:ip.endpoint, dcid:cid, s : stream_id, data : stream_data, pos : stream_pos, close : bool)
 
 
 
@@ -142,8 +142,8 @@ after init {
 # - If `close` is true, the stream is marked as finished [3]. 
 #
 
-after app_send_event {
-    # call show_app_send_event(data);
+after quic_app_send_event {
+    # call show_quic_app_send_event(data);
     var send_end := pos + data.end;
     require ~(send_end > stream_app_data_end(dcid,s) & stream_app_data_finished(dcid,s));  # [4]
     var end := stream_app_data(dcid,s).end;
@@ -168,4 +168,4 @@ after app_send_event {
     }
 }
 
-import action show_app_send_event(d:stream_data)
+import action show_quic_app_send_event(d:stream_data)

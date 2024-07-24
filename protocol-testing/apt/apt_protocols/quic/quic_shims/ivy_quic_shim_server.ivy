@@ -39,12 +39,12 @@ include quic_shim
 after packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     # if src = server.ep  {
     if dst_is_generated(src) { # _generating & ~conn_closed(pkt.the_cid) {  & ~conn_closed(pkt.the_cid)
-        var spkt := pkt_serdes.to_bytes(pkt);
+        var spkt := quic_packet_serdes.to_bytes(pkt);
         var rnum := reference_pkt_num(spkt,false);
         call clear_packet(src,dst,rnum,spkt);
-        var ppkt := prot.encrypt(server.tls_id,rnum,spkt);
+        var ppkt := quic_prot.encrypt(server.tls_id,rnum,spkt);
         call cipher_packet(ppkt);
-        var pkts := prot.arr.empty;
+        var pkts := quic_prot.arr.empty;
         pkts := pkts.append(ppkt);
         total_data_sent := total_data_sent + ppkt.size;
         call on_packet_sent(src,dst,pkt, ppkt.size);
@@ -58,8 +58,8 @@ after packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
 after packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_vn) {
    # if src = server.ep  {
     if dst_is_generated(src) { # (| is_mim TODO) _generating & ~conn_closed(pkt.the_cid) {  & ~conn_closed(pkt.the_cid) TODO
-        var spkt := pkt_serdes_vn.to_bytes(pkt);
-        var pkts := prot.arr.empty;
+        var spkt := quic_vn_packet_serdes.to_bytes(pkt);
+        var pkts := quic_prot.arr.empty;
         pkts := pkts.append(spkt);
         total_data_sent := total_data_sent + spkt.size;
         call quic_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
@@ -69,8 +69,8 @@ after packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_vn)
 after packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_retry) {
    # if src = server.ep  {
     if dst_is_generated(src) { # _generating & ~conn_closed(pkt.the_cid) {  & ~conn_closed(pkt.the_cid)
-        var spkt := pkt_serdes_retry.to_bytes(pkt);
-        var pkts := prot.arr.empty;
+        var spkt := quic_retry_packet_serdes.to_bytes(pkt);
+        var pkts := quic_prot.arr.empty;
         pkts := pkts.append(spkt);
         total_data_sent := total_data_sent + spkt.size;
         call quic_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
@@ -80,12 +80,12 @@ after packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_
 after packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_coal_0rtt) {
    # if src = server.ep  {
     if dst_is_generated(src) { # _generating & ~conn_closed(pkt.the_cid) {  & ~conn_closed(pkt.the_cid)
-        var spkt := pkt_serdes_0rtt_coal.to_bytes(pkt);
+        var spkt := quic_0rtt_coal_packet_serdes.to_bytes(pkt);
         var rnum := reference_pkt_num(spkt,false);
         call clear_packet(src,dst,rnum,spkt);
-        var ppkt := prot.encrypt(server.tls_id,rnum,spkt);
+        var ppkt := quic_prot.encrypt(server.tls_id,rnum,spkt);
         call cipher_packet(ppkt);
-        var pkts := prot.arr.empty;
+        var pkts := quic_prot.arr.empty;
         pkts := pkts.append(ppkt);
         total_data_sent := total_data_sent + ppkt.size;
         call quic_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
@@ -96,12 +96,12 @@ after packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_pac
 after packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_0rtt) {
    # if src = server.ep  {
     if dst_is_generated(src) { # _generating & ~conn_closed(pkt.the_cid) {  & ~conn_closed(pkt.the_cid)
-        var spkt := pkt_serdes_0rtt.to_bytes(pkt);
+        var spkt := quic_0rtt_packet_serdes.to_bytes(pkt);
         var rnum := reference_pkt_num(spkt,false);
         call clear_packet(src,dst,rnum,spkt);
-        var ppkt := prot.encrypt(server.tls_id,rnum,spkt);
+        var ppkt := quic_prot.encrypt(server.tls_id,rnum,spkt);
         call cipher_packet(ppkt);
-        var pkts := prot.arr.empty;
+        var pkts := quic_prot.arr.empty;
         pkts := pkts.append(ppkt);
         total_data_sent := total_data_sent + ppkt.size;
         call quic_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
