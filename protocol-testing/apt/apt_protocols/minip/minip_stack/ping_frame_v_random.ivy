@@ -136,6 +136,6 @@ object ping_frame = {
 import action show_estimated_latency(l:milliseconds)
 
 action enqueue_ping_frame(f:ping_frame) = {
-    queued_frames := queued_frames.append(f);
-    num_queued_frames := queued_frames.end;
+    queued_ping_frames := queued_ping_frames.append(f);
+    num_queued_ping_frames := queued_ping_frames.end;
 }

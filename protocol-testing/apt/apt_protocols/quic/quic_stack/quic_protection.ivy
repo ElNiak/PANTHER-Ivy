@@ -660,14 +660,14 @@ object quic_prot_deser = {}
                     unsigned packet_size = inp.size();
                     unsigned len = packet_size - 16 - 1 - dcil - 1 - scil - 1 - 4;
                     //unsigned retry_token_len = get_var_int(pnum_pos,len);
-                    std::cerr << "token len (prot) " << len << "\n";
+                    std::cerr << "token len (quic_prot) " << len << "\n";
                     pnum_pos = pnum_pos + len + 16;
                     data_remaining = pnum_pos-pos;
-                    std::cerr << "data_remaining (prot) " << data_remaining << "\n";
+                    std::cerr << "data_remaining (quic_prot) " << data_remaining << "\n";
                 }
                 if (inp[1]+inp[2]+inp[3]+inp[4] == 0) {
                     // Version negociation
-                    std::cerr << "Version n (prot) \n";
+                    std::cerr << "Version n (quic_prot) \n";
                     unsigned remain = inp.size() - pnum_pos;
                     data_remaining = (pnum_pos-pos) + remain;
                 }

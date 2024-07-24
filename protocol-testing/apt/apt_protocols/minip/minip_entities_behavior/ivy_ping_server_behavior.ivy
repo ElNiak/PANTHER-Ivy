@@ -44,7 +44,7 @@ action src_tls_id(src:ip.endpoint) returns (tls_id:tls_api.id) = {
 # --------------------------------------------------------------------------
 
 var http_response : stream_data
-instance http_response_file : binary_input_file(stream_data,cid)
+instance http_response_file : binary_input_file_ping(stream_data,cid)
 
 after init {
     http_response := http_response_file.read;
@@ -74,7 +74,7 @@ around client_send_event {
         end := end.next
     };
     var data := http_response.segment(ping_length,end);
-    call app_send_event(src,dst,data,ping_length,true);
+    call minip_app_send_event(src,dst,data,ping_length,true);
 }
 
 attribute radix=16       # print in hex

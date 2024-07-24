@@ -1,0 +1,65 @@
+#lang ivy1.7
+
+# Packet protocol state
+# ---------------------
+
+relation packet_forwarded(P:stream_data)
+relation packet_forwarded_arr(P:stream_data)
+
+
+# relation packet_number_forwarded(H:ip.endpoint,C:stream_pos)
+
+
+function packet_recv_from_server(P:stream_pos):stream_data_array
+function packet_recv_from_client(P:stream_pos):stream_data_array
+
+# Initial state
+# -------------
+
+# The history variables are initialized as follows.  Initially, no
+# connections have been seen and no packets have been sent or
+# acknowledged.
+
+after init {
+    packet_forwarded(P) := false;
+    packet_forwarded_arr(P) := false;
+
+    packet_recv_from_server(P) := stream_data_array.empty;
+    packet_recv_from_client(P) := stream_data_array.empty;
+}
+
+object packet = {
+   ...
+
+    object ping_packet = {
+
+        ...
+
+        action forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet)
+        before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+            require _generating;
+            require pkt.payload.end > 0;
+            require mim_agent.nat_configured;
+            require src ~= dst;
+            # require ~packet_number_forwarded(mim_agent.ep_client,mim_agent.last_cppkt_forwarded_to_client);
+            # ...
+            # # packet_number_forwarded(mim_agent.ep_client,mim_agent.last_cppkt_forwarded_to_client) := true;
+            # mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_cppkt_forwarded_to_client) := packet.ping_packet.arr.empty;  # help solver
+        }
+        
+        action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet)
+        before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+            require _generating;
+            require pkt.payload.end > 0;
+            require mim_agent.nat_configured;
+            require src ~= dst;
+            # require ~packet_number_forwarded(mim_agent.ep_server,mim_agent.last_cppkt_forwarded_to_server);
+            # ...
+            # # packet_number_forwarded(mim_agent.ep_server,mim_agent.last_cppkt_forwarded_to_server) := true;
+            # mim_agent.ppkt_to_be_forwarded_to_server(mim_agent.last_cppkt_forwarded_to_server) := packet.ping_packet.arr.empty;  # help solver
+        }
+        
+    }
+
+}
+

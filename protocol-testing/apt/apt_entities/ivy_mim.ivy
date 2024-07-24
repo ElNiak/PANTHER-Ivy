@@ -24,7 +24,3 @@ parameter save_packet : bool = false
 
 var malicious_packet_send : bool
 
-instance mim_agent : endpoint.man_in_the_middle_endpoint.mim_ep(server_addr,mim_port_in,server_port,true,true,true)
-
-instance tls_extensions      : vector(tls.extension)
-instance tls_hand_extensions : vector(tls.handshake)

@@ -11,6 +11,11 @@ object protection = {
         instance idx : unbounded_sequence
         instance arr : array(idx,stream_data)
     }
+
+    module minip_protection(tls_id,tls) = {
+        instance idx : unbounded_sequence
+        instance arr : array(idx,stream_data)
+    }
 }
 
 

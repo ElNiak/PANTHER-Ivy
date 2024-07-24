@@ -2,15 +2,9 @@
 
 # Here, we define functions for QUIC packet packet protection.
 
-include ping_byte_stream
 include collections
 include ping_frame
 include apt_packet
-
-module ping_array = {
-    instance idx : unbounded_sequence
-    instance arr : array(idx,stream_data)
-}
 
 object packet = {
     ...
@@ -29,17 +23,15 @@ function ping_length  : stream_pos
 function current_time : milliseconds
 relation enough_wait
 
-action ping_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.packet.ping_packet) = {}
+action ping_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) = {}
 
-import action show_current_time(now:milliseconds)
-
-around ping_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.packet.ping_packet) {
-    require num_queued_frames = 2; # [7]
-    require pkt.payload = queued_frames;
+around ping_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+    require num_queued_ping_frames = 2; # [7]
+    require pkt.payload = queued_ping_frames;
 
     ...
 
-    queued_frames := ping_frame.arr.empty;
-    num_queued_frames := 0;
+    queued_ping_frames := ping_frame.arr.empty;
+    num_queued_ping_frames := 0;
     #timestamp_frame_pending := true;
 }

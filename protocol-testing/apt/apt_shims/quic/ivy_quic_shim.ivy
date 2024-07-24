@@ -1,0 +1,42 @@
+#lang ivy1.7
+
+include apt_shim
+
+include quic_protection
+instance quic_prot : protection.quic_protection(tls_api.id,tls_api.upper)
+include quic_shim
+
+include malicious_quic_packet
+
+
+include quic_locale
+include apt_endpoint
+
+include ivy_quic_mim
+include ivy_quic_target
+include ivy_quic_attacker
+include ivy_c2_server
+include ivy_bot
+
+implement quic_net.recv(host:endpoint_id, s: quic_net.socket, src:ip.endpoint, pkts:quic_prot.arr) {
+    # call show_current_time(time_api.c_timer.now_micros_last_bp);
+    call show_socket_debug_event(s);
+    if host = endpoint_id.server {       
+        call host_debug_event(host);
+    } else if host = endpoint_id.client | host = endpoint_id.client_alt { 
+        call host_debug_event(host);
+    } else if host = endpoint_id.target {
+        call host_debug_event(host);
+    } else if host = endpoint_id.man_in_the_middle {
+        call mim_agent.behavior(host,s,src,pkts);
+    } else if host = endpoint_id.malicious_server {
+        call attacker_agent.behavior(host,s,src,pkts);
+    } else {
+        # ERROR
+        call undefined_host_error(host,s,src);
+    };    
+}
+
+import action show_socket_debug_event(s:quic_net.socket)
+import action host_debug_event(host:endpoint_id)
+import action undefined_host_error(host:endpoint_id,s:quic_net.socket,src:ip.endpoint)

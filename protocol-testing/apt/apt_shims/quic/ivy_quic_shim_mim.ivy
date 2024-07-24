@@ -1,9 +1,8 @@
 #lang ivy1.7
 
-# include quic_shim
-# include quic_attack_connection
+include quic_packet
 include apt_shim
-include malicious_quic_packet
+include ping_shim
 
 # The QUIC test shim
 # ------------------
@@ -41,110 +40,37 @@ after init {
     is_mim := true;
 }
 
-# after modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_protected_quic_packet) {
-#     if _generating {  # & ~conn_closed(pkt.the_cid)
-#         # var idx := pkt.begin;
-#         # while idx < pkt.end {
-#             var spkt := malicious_protected_pkt_serdes.to_bytes(pkt); # .value(idx)
-#             # var rnum := reference_pkt_num(spkt,false);
-#             # var tls_id := src_tls_id(src);
-#             # var ppkt := stream_prot.encrypt(tls_id,rnum,spkt);
-#             var pkts := stream_prot.arr.empty;
-#             pkts := pkts.append(spkt);
-#             call stream_data_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts);
-#         #     idx := idx.next; 
-#         # }
-#     }
-# }
-
-after forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data) {
-    if _generating {  # & ~conn_closed(pkt.the_cid)
-        # var idx := pkt.begin;
+object packet = {
+    ...
+    object quic_packet = {
+        ...
+        after forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
+            if _generating {
+                # var idx := pkt.payload.begin;
+                var pkts_mim := minip_prot.arr.empty;
+                # while idx < pkt.payload.end {
+                var spkt := quic_packet_serdes.to_bytes(pkt);
+                pkts_mim := pkts_mim.append(spkt);
+                    # TODO allow forwarding coalesed packet or not
+                    # idx := idx.next; 
+                # }; 
+                call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
+                mim_agent.last_cppkt_forwarded_to_client := mim_agent.last_cppkt_forwarded_to_client + 1;
+            }
+        }
         
-        # while idx < pkt.end {
-        #     var pkts_mim := stream_prot.arr.empty;
-        #     pkts_mim := pkts_mim.append(pkt.value(idx));
-        #     call stream_data_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
-        #     idx := idx.next; 
-        # };
-        
-        var pkts_mim := stream_prot.arr.empty;
-        # while idx < pkt.end {
-            pkts_mim := pkts_mim.append(pkt);
-        #     idx := idx.next; 
-        # };
-        call stream_data_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
-
-        mim_agent.last_cppkt_forwarded_to_server := mim_agent.last_cppkt_forwarded_to_server + 1;
+        after forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
+            if _generating {
+                # var idx := pkt.payload.begin;
+                var pkts_mim := quic_prot.arr.empty;
+                # while idx < pkt.payload.end {
+                var spkt := quic_packet_serdes.to_bytes(pkt);
+                pkts_mim := pkts_mim.append(spkt);
+                #     idx := idx.next; 
+                # };
+                call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
+                mim_agent.last_cppkt_forwarded_to_server := mim_agent.last_cppkt_forwarded_to_server + 1;
+            }
+        }
     }
 }
-
-
-after forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data) {
-    if _generating {  # & ~conn_closed(pkt.the_cid)
-        # var idx := pkt.begin;
-
-        # while idx < pkt.end {
-        #     var pkts_mim := stream_prot.arr.empty;
-        #     pkts_mim := pkts_mim.append(pkt.value(idx));
-        #     call stream_data_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
-        #     idx := idx.next; 
-        # };
-        
-        var pkts_mim := stream_prot.arr.empty;
-        # while idx < pkt.end {
-            pkts_mim := pkts_mim.append(pkt);
-            # TODO allow forwarding coalesed packet or not
-        #     idx := idx.next; 
-        # }; 
-        call stream_data_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
-        
-        mim_agent.last_cppkt_forwarded_to_client := mim_agent.last_cppkt_forwarded_to_client + 1;
-    } 
-}
-
-# after replay_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream_data) {
-#     if _generating {  # & ~conn_closed(pkt.the_cid)
-#         var idx := pkt.begin;
-#         while idx < pkt.end {
-#             var pkts_mim := stream_prot.arr.empty;
-#             pkts_mim := pkts_mim.append(pkt.value(idx));
-#             call stream_data_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
-#             idx := idx.next; 
-#         };
-#     }
-# }
-
-# after malicious_packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_quic_packet_vn) {
-#     if _generating {  # & ~conn_closed(pkt.the_cid)
-#         var spkt := malicious_pkt_serdes_vn.to_bytes(pkt);
-#         # var rnum := reference_pkt_num(spkt,false);
-#         # var tls_id := dst_tls_id(dst);
-#         # var ppkt := stream_prot.encrypt(tls_id,rnum,spkt); # no encryption ?
-#         var pkts := stream_prot.arr.empty;
-#         pkts := pkts.append(spkt);
-#         call stream_data_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts);
-#     }
-# }
-
-# after malicious_packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_quic_packet_retry,inpkt:packet.quic_packet_retry) {
-#     if _generating {  # & ~conn_closed(pkt.the_cid)
-#         var spkt := malicious_pkt_serdes_retry.to_bytes(pkt);
-#         var pkts := stream_prot.arr.empty;
-#         pkts := pkts.append(spkt);
-#         call stream_data_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts);
-#     }
-# }
-
-# after replayed_packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.replayed_quic_packet_0rtt) {
-#     if _generating {  # & ~conn_closed(pkt.the_cid)
-#         var spkt := replayed_pkt_serdes_0rtt.to_bytes(pkt);
-#         var pkts := stream_prot.arr.empty;
-#         var tls_id := src_tls_id(src);
-#         var rnum := reference_pkt_num(spkt,false);
-#         var ppkt := stream_prot.encrypt_rtt(tls_id,rnum,spkt);
-#         pkts := pkts.append(ppkt);
-#         call stream_data_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts);
-#     }
-# }
-

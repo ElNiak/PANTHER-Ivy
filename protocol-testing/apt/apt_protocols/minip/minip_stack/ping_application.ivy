@@ -1,22 +1,20 @@
 #lang ivy1.7
 
-include ping_byte_stream
-
-action app_send_event(src:ip.endpoint, dst:ip.endpoint, data : stream_data, pos : stream_pos, close : bool)
+action minip_app_send_event(src:ip.endpoint, dst:ip.endpoint, data : stream_data, pos : stream_pos, close : bool)
 
 function ping_data : stream_data
-function packet.ping_packet_end : stream_pos
+function ping_packet_end : stream_pos
 function ping_pos : stream_pos
-function packet.ping_packet_finished : bool
+function ping_packet_finished : bool
 
 after init {
     ping_pos := 0;
-    packet.ping_packet_finished := false;
+    ping_packet_finished := false;
 }
 
-after app_send_event {
+after minip_app_send_event {
     var send_end := pos + data.end;
-    require ~(send_end > packet.ping_packet_end & packet.ping_packet_finished);  # [4]
+    require ~(send_end > ping_packet_end & ping_packet_finished);  # [4]
     var end := ping_data.end;
     if end < send_end {
         end := send_end
@@ -31,8 +29,8 @@ after app_send_event {
 	    ping_data := ping_data.set(pos+idx,data.value(idx));
 	    idx := idx.next
     };
-    packet.ping_packet_end := end;  # [1]
+    ping_packet_end := end;  # [1]
     if close {
-        packet.ping_packet_finished := true;  # [3]
+        ping_packet_finished := true;  # [3]
     }
 }

@@ -23,7 +23,7 @@ counts = [
     ['recv_packet_0rtt','recv_packet_0rtt'],
     ['undecryptable_packet_event','undecryptable_packet_event'],
     
-    ['app_send_event','app_send_event'],
+    ['quic_app_send_event','quic_app_send_event'],
     ['tls_recv_event','tls_recv_event'],
     
     ['max stream offset','frame.stream.handle({offset:$1})','maxz','%($1)s'],
