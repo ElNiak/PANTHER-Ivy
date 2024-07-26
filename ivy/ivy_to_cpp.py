@@ -2544,7 +2544,7 @@ struct ivy_binary_deser_128 : public ivy_deser_128 {
     }
     void getn(int128_t &res, int bytes) {
         if (!more(bytes)) {
-	    std::cout << "ivy_binary_deser_128 getn deser_err\\n"; 
+	    std::cerr << "ivy_binary_deser_128 getn deser_err\\n"; 
             throw deser_err();
         } res = 0;
         for (int i = 0; i < bytes; i++)
@@ -2557,7 +2557,7 @@ struct ivy_binary_deser_128 : public ivy_deser_128 {
             res.push_back(inp[pos++]);
         }
         if(!(more(1) && inp[pos] == 0)) {
-	    std::cout << "ivy_binary_deser_128 get deser_err\\n"; 
+	    std::cerr << "ivy_binary_deser_128 get deser_err\\n"; 
             throw deser_err();
         } pos++;
     }
@@ -2583,13 +2583,13 @@ struct ivy_binary_deser_128 : public ivy_deser_128 {
         int128_t res;
         get(res);
         if (res >= tags.size()) {
-	    std::cout << "ivy_binary_deser_128 open_tag deser_err\\n"; 
+	    std::cerr << "ivy_binary_deser_128 open_tag deser_err\\n"; 
             throw deser_err();
         } return res;
     }
     void end() {
         if (!can_end()) {
-	    std::cout << "ivy_binary_deser_128 end deser_err\\n"; 
+	    std::cerr << "ivy_binary_deser_128 end deser_err\\n"; 
             throw deser_err();
 	}
     }
@@ -2994,7 +2994,7 @@ z3::expr __to_solver<bool>( gen &g, const  z3::expr &v, bool &val) {
 
 template <>
 z3::expr __to_solver<__strlit>( gen &g, const  z3::expr &v, __strlit &val) {
-//    std::cout << v << ":" << v.get_sort() << std::endl;
+//    std::cerr << v << ":" << v.get_sort() << std::endl;
     return v == g.int_to_z3(v.get_sort(),val);
 }
 
