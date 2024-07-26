@@ -79,7 +79,7 @@ object quic_deser_enc = {}
               quic_ping,
               quic_s_done} state;
         bool long_format;
-        char hdr_type;
+        int hdr_type;
         int dcil_long;
         int dcil;
         int scil;
@@ -97,6 +97,8 @@ object quic_deser_enc = {}
         int token_count = 0;
         int token_len = 0;
         int packet_number_length;
+        bool is_random_padding_packet = false;
+        bool is_from_open_list = false;
 
     
     public:
@@ -116,14 +118,29 @@ object quic_deser_enc = {}
                 //0x30    0011 0000
                 hdr_type = res & 0x7f; //0x7f;
                 //hdr_type = (res >> 2) & 0x03;
-                packet_number_length = (res >> 6) & 0x03;
+                // detect random padding
+              /*  if (hdr_type == 0) {
+                    state = quic_s_payload;
+                    break;
+                };*/
+                
+                std::cerr << "quic_deser_enc res " << res << "\n";
+                std::cerr << "inp size " << inp.size() << "\n";
+                packet_number_length = (res & 0xc0) >> 6; //(res >> 5) & 0x03;
                 packet_number_length += 1;
                 std::cerr << "quic_deser_enc hdr_type " << hdr_type << "\n";
                 std::cerr << "quic_deser_enc packet_number_length " << packet_number_length << "\n";
                 std::cerr << "quic_deser_enc long_format " << long_format << "\n";
                 //This is then shifted by 4 so that only the original 0xxx 0000 (3) bits are significant.
                 //res = long_format ? ((hdr_type & 0x30) >> 4) : 3;
-                state = quic_s_version;
+                if(res == hdr_type) {
+                    std::cerr << "quic_deser_enc randombyte " << hdr_type << "\n";
+                    data_remaining = inp.size();
+                    is_random_padding_packet = true;
+                    state = quic_s_payload;
+                } else {
+                    state = quic_s_version;
+                }
             }
             break;
             case quic_s_version:
@@ -239,8 +256,17 @@ object quic_deser_enc = {}
             break;
             case quic_s_payload:
             {
-                getn(res,1);
-                //std::cerr << "quic_deser_enc payload remaining " << data_remaining << "\n";
+                if(!is_from_open_list && is_random_padding_packet) {
+                    data_remaining--;
+                    
+                }  
+                if (is_random_padding_packet & data_remaining == 0) {
+                    std::cerr << "quic_deser_enc end of random padding packet\n";
+                    end();
+                    close_struct();
+                }
+                getn(res,1);         
+                std::cerr << "quic_deser_enc payload remaining " << data_remaining << "\n";
             }
             break;
             case quic_s_retry_token:
@@ -336,6 +362,7 @@ object quic_deser_enc = {}
         void open_list() {
             if (state == quic_s_payload) {
                 std::cerr << "quic_deser_enc open_list quic_s_payload\n";
+                is_from_open_list = true; //hack for random bytes packet;
                 state = quic_s_payload;
             }
             if (state == quic_ack_block_count) {

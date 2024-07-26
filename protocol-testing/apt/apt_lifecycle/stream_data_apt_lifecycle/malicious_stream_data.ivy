@@ -4,7 +4,7 @@
 # Packet protocol state
 # ---------------------
 
-relation packet_forwarded(P:stream_data)
+relation packets_forwarded(P:stream_data)
 relation packet_forwarded_arr(P:stream_data)
 
 
@@ -22,7 +22,7 @@ function packet_recv_from_client(P:stream_pos):stream_data_array
 # acknowledged.
 
 after init {
-    packet_forwarded(P) := false;
+    packets_forwarded(P) := false;
     packet_forwarded_arr(P) := false;
 
     packet_recv_from_server(P) := stream_data_array.empty;

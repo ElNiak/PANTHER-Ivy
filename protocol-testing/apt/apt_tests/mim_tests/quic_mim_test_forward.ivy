@@ -19,7 +19,8 @@ include ivy_quic_client_standard_tp
 
 after init {
     is_mim_standalone := true;
-    call mim_agent.configure_NAT_attack_bidir;
+    call mim_agent.configure_NAT_attack_in;
+    call mim_agent.configure_NAT_attack_out;
 }
 
 

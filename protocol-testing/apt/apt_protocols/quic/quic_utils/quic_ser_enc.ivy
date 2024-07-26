@@ -91,6 +91,7 @@ object quic_ser_enc = {}
         int fence;
         int tcount = 0;
         bool done = false;
+        int packet_number_length;
 
     public:
         quic_ser_enc() : state(quic_s_init) {
@@ -103,7 +104,11 @@ object quic_ser_enc = {}
                 //std::cerr << "ser res init " << res << "\n";
                 long_format = res != 3;
                 std::cerr << "ser res init " << res << " long_format " << long_format << "\n";
-                hdr_type = (long_format ? ((res & 3) << 4) : 0) | 0x43 ;
+                //hdr_type = (long_format ? ((res & 3) << 4) : 0) | 0x43 ;
+                hdr_type = res & 0x7f;
+                packet_number_length = (res & 0xc0) >> 6; //(res >> 5) & 0x03;
+                packet_number_length += 1;
+                std::cerr << "ser res init " << res << " hdr_type " << hdr_type << " packet_number_length " << packet_number_length << "\n";
                 std::cerr << "ser res init " << res << " hdr_type " << hdr_type << "\n";
 		        setn(res, 1);
                 state = quic_s_version;
@@ -151,7 +156,7 @@ object quic_ser_enc = {}
             break;
             case quic_s_retry_token_length:
             {
-                if (long_format) {
+                if (long_format & ((hdr_type & 0x30) == 0x00)) {
                     set_var_int(res);
                     data_remaining = res;
                 }
@@ -159,10 +164,17 @@ object quic_ser_enc = {}
                 state = quic_s_retry_token;
             }
             break;
+            case quic_s_retry_token:
+            {
+                setn(res,1);
+                std::cerr << "ser res quic_s_retry_token 1 " << res << "\n";
+            }
+            break;
             case quic_s_pkt_num:
             {
                 std::cerr << "ser res pkt_num 1 " << res << "\n";
                 int pkt_num_bytes = set_pkt_num(res);
+                std::cerr << "ser res pkt_num_bytes 2 " << pkt_num_bytes << "\n";
                 state = quic_s_payload;
             }
             break;
@@ -199,8 +211,8 @@ object quic_ser_enc = {}
         //void set_pkt_num(long long &res) {
             // setn(0xc0000000 | (0x3fffffff & res),4);
             // pkt number length is low two bits of first packet byte, plus one 
-            setn(res,(hdr_type & 3) + 1);
-            return (hdr_type & 3) + 1;
+            setn(res,packet_number_length);
+            return packet_number_length;
         }
 
         virtual void open_tag(int tag, const std::string &) {
@@ -220,9 +232,9 @@ object quic_ser_enc = {}
                 set_var_int(ack_blocks_expected - 1); // block count doesn't include first
                 ack_block_count = 0;
                 state = quic_ack_gap;
-            } else if (state == quic_s_retry_token) {
+            } else if (state == quic_s_retry_token_length) {
                 /*std::cerr << "open_list len (hdr_type & 0x30) " << (hdr_type & 0x30) << "\n";
-                if (long_format) { //TODO:  & ((hdr_type & 0x30) == 0x00
+                if (long_format & ((hdr_type & 0x30) == 0x00)) { //TODO:  & ((hdr_type & 0x30) == 0x00
                     std::cerr << "open_list len quic_s_retry_token_length " << len << "\n";
                     set_var_int(len);
                     data_remaining = len;
@@ -243,6 +255,7 @@ object quic_ser_enc = {}
             }
             else if (state == quic_s_retry_token) {
                 payload_length_pos = this->res.size();
+                std::cerr << "close_list payload_length_pos " << payload_length_pos << "\n";
                 /*
                 if (long_format) {
                     setn(0,2);  // will fill in correct value later
