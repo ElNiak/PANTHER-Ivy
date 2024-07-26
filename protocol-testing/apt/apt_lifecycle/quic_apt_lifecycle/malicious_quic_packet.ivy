@@ -78,7 +78,7 @@ object packet = {
             require _generating;
             # require ~packets_forwarded(pkt);
             # if _generating {
-                require pkt.end > 0;
+                require pkt.end > 0 | mim_agent.enc_padding_to_client(1000).end > 0;
                 require mim_agent.nat_configured;
                 require src ~= dst;
                 
@@ -95,7 +95,7 @@ object packet = {
             # if _generating {
             # require ~packets_forwarded(pkt);
             # if _generating {
-                require pkt.end > 0;
+                require pkt.end > 0 | mim_agent.enc_padding_to_server(1000).end > 0;                
                 require mim_agent.nat_configured;
                 require src ~= dst;
             #    
@@ -115,7 +115,7 @@ object packet = {
             require _generating;
             # require ~packets_forwarded(pkt);
             # if _generating {
-                require pkt.end > 0;
+                require pkt.end > 0 | mim_agent.enc_padding_to_client(mim_agent.enc_last_cppkt_forwarded_to_server+1).end > 0;
                 require mim_agent.nat_configured;
                 require src ~= dst;
                 
@@ -132,7 +132,7 @@ object packet = {
             # if _generating {
             # require ~packets_forwarded(pkt);
             # if _generating {
-                require pkt.end > 0;
+                require pkt.end > 0 | mim_agent.enc_padding_to_server(mim_agent.enc_last_cppkt_forwarded_to_server+1).end > 0;
                 require mim_agent.nat_configured;
                 require src ~= dst;
             #    

@@ -75,7 +75,11 @@ object packet = {
                 require mim_agent.ep_client.addr ~= 0;  # must have a client address to send to
                 require src = mim_agent.ep_server;
                 require dst = mim_agent.ep_client;
-                require pkt = mim_agent.enc_ppkt_to_be_forwarded_to_client(mim_agent.enc_last_cppkt_forwarded_to_client); # TODO check
+                if mim_agent.enc_padding_to_client(1000).end > 0 {
+                    require pkt = mim_agent.enc_ppkt_to_be_forwarded_to_client(mim_agent.enc_last_cppkt_forwarded_to_client+1);
+                } else {
+                    require pkt = mim_agent.enc_ppkt_to_be_forwarded_to_client(mim_agent.enc_last_cppkt_forwarded_to_client); # TODO check
+                }
             } 
         }
         
@@ -86,7 +90,11 @@ object packet = {
                 require mim_agent.ep_server.addr ~= 0;  # must have a client address to send to
                 require dst = mim_agent.ep_server;
                 require src = mim_agent.ep_client;
-                require pkt = mim_agent.enc_ppkt_to_be_forwarded_to_server(mim_agent.enc_last_cppkt_forwarded_to_server); # TODO check       
+                if mim_agent.enc_padding_to_server(1000).end > 0 {
+                    require pkt = mim_agent.enc_ppkt_to_be_forwarded_to_server(mim_agent.enc_last_cppkt_forwarded_to_server+1); # TODO check
+                } else {
+                    require pkt = mim_agent.enc_ppkt_to_be_forwarded_to_server(mim_agent.enc_last_cppkt_forwarded_to_server); # TODO check       
+                }
             } 
         }
     }
