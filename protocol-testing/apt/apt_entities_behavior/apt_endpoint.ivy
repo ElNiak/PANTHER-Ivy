@@ -11,6 +11,12 @@ object endpoint_id = {
     }
 }
 
+object target_application_protocol = {
+    type this = {
+        quic, minip, http, stream_data
+    }
+}
+
 # We use this type as a host id. There are two client host ids so we can model migration.
 
 

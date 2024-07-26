@@ -17,7 +17,7 @@ include ping_shim
 #
 # TODO: We do not actually generate protection layer events. Instead,
 # whenever a generated packet event occurs, we deterministically
-# serialize and encrypt the packet for transmission. This is not quite sound,
+# serialize and encrypt_quic the packet for transmission. This is not quite sound,
 # since in fact there are a few choices to be made in the encoding (such
 # as the number of bytes in the sequence number encoding) and these choices
 # should in principle be randomized. We have not done this, however, since we
@@ -47,7 +47,7 @@ object packet = {
         after forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
             if _generating {
                 # var idx := pkt.payload.begin;
-                var pkts_mim := minip_prot.arr.empty;
+                var pkts_mim := quic_prot.arr.empty;
                 # while idx < pkt.payload.end {
                 var spkt := quic_packet_serdes.to_bytes(pkt);
                 pkts_mim := pkts_mim.append(spkt);
@@ -73,4 +73,38 @@ object packet = {
             }
         }
     }
+
+    object encrypted_quic_packet = {
+        ...
+        after forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet.arr) {
+            if _generating {
+                var idx := pkt.begin;
+                var pkts_mim := quic_prot.arr.empty;
+                while idx < pkt.end {
+                    var spkt := quic_encrypted_packet_serdes.to_bytes(pkt.value(idx));
+                    pkts_mim := pkts_mim.append(spkt);
+                    #TODO allow forwarding coalesed packet or not
+                    idx := idx.next; 
+                }; 
+                call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
+                mim_agent.enc_last_cppkt_forwarded_to_client := mim_agent.enc_last_cppkt_forwarded_to_client + 1;
+            }
+        }
+        
+        after forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet.arr) {
+            if _generating {
+                var idx := pkt.begin;
+                var pkts_mim := quic_prot.arr.empty;
+                while idx < pkt.end {
+                    call show_payload_len(pkt.value(idx).payload.end);
+                    var spkt := quic_encrypted_packet_serdes.to_bytes(pkt.value(idx));
+                    pkts_mim := pkts_mim.append(spkt);
+                    idx := idx.next; 
+                };
+                call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
+                mim_agent.enc_last_cppkt_forwarded_to_server := mim_agent.enc_last_cppkt_forwarded_to_server + 1;
+            }
+        }
+    }
 }
+import action show_payload_len(pkt:stream_pos)

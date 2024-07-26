@@ -51,7 +51,7 @@ include quic_locale
 # UDP receive event shim
 # ----------------------
 #
-# When a UDP datagram arrives, decrypt it, deserialize it, then
+# When a UDP datagram arrives, decrypt_quic it, deserialize it, then
 # generate a `packet_event`.
 #
 # Note: the quic_net API deserializes the datagram into a sequence of
@@ -179,7 +179,7 @@ implement quic_net.recv(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pk
         if zrtt_pkt_set & ~zrtt_pkt_process {
             zrtt_pkt_process := true;
             var rnum := reference_pkt_num(last_zrtt_pkt,true);
-            var res := quic_prot.decrypt(tls_id,rnum,last_zrtt_pkt);
+            var res := quic_prot.decrypt_quic(tls_id,rnum,last_zrtt_pkt);
             if res.ok {
                 if host = endpoint_id.server & ~(bversion = 0) {
                     #for client test, 0rtt packet
@@ -211,7 +211,7 @@ implement quic_net.recv(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pk
         # } 
         else { 
             var rnum := reference_pkt_num(ppkt,true);
-            var res := quic_prot.decrypt(tls_id,rnum,ppkt);
+            var res := quic_prot.decrypt_quic(tls_id,rnum,ppkt);
             if res.ok {
                 var is_pad := is_padding_packet(res.payload); # For picoquic  client
                 if is_pad { #is_pad | is_rand_pad
@@ -802,13 +802,13 @@ import action version_not_found_event
 # To estimate the sequence number of packets, we have to know the encryption level.
 # This action gets the encryption level from the packet header.
 
-action packet_encryption_level(h:quic_prot.header_info) returns (e:quic_packet_type) = {
+action packet_encryption_level(h:quic_prot.header_info_quic) returns (e:quic_packet_type) = {
     e := quic_packet_type.zero_rtt if ~h.hdr_long
             else (quic_packet_type.initial if h.hdr_type = 0x7f 
                   else quic_packet_type.handshake);
 }
 
-action packet_encryption_level_up(h:quic_prot.header_info) returns (e:quic_packet_type) = {
+action packet_encryption_level_up(h:quic_prot.header_info_quic) returns (e:quic_packet_type) = {
     e := quic_packet_type.zero_rtt if ~h.hdr_long
             else (quic_packet_type.initial if bvand(h.hdr_type,0x30) = 0x00
                   else quic_packet_type.handshake);
@@ -817,7 +817,7 @@ action packet_encryption_level_up(h:quic_prot.header_info) returns (e:quic_packe
 # To get the reference packet number for a packet, we need to know the source connection
 # id, which is not present in short packets. Here we get it from history.
 
-action packet_scid(h:quic_prot.header_info) returns (scid:cid) = {
+action packet_scid(h:quic_prot.header_info_quic) returns (scid:cid) = {
     if h.hdr_long {
         scid := h.scid;
     } else {
@@ -829,13 +829,13 @@ action packet_scid(h:quic_prot.header_info) returns (scid:cid) = {
     }
 }
 
-# To encrypt and decrypt packets we need to know the true packet number, which
+# To encrypt_quic and decrypt_quic packets we need to know the true packet number, which
 # must be inferred from truncated number in the packet and the packet number history.
 # As a workaround, we use `last_pkt_num(scid,e)` where `e` is the
 # encryption level. We infer the encryption level from the packet type.
 
-action reference_pkt_num(spkt:stream_data,decrypt:bool) returns (pnum:pkt_num) = {
-    var h := quic_prot.get_header_info(spkt,decrypt);
+action reference_pkt_num(spkt:stream_data,decrypt_quic:bool) returns (pnum:pkt_num) = {
+    var h := quic_prot.get_header_info(spkt,decrypt_quic);
     var e := packet_encryption_level(h);
     last_packet_type   := packet_encryption_level_up(h);
     last_packet_length := h.payload_length;

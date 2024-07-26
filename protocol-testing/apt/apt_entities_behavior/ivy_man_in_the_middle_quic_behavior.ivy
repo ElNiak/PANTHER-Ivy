@@ -50,7 +50,22 @@ action src_tls_id(src:ip.endpoint) returns (tls_id:tls_api.id) = {
     # else second_client.tls_id; #TODO can cause error server vn eg
 }
 
+action tls_id_to_src(tls_id:tls_api.id) returns (src:ip.endpoint) = {
+    src := client.ep if tls_id = client.tls_id & ~version_negociated else (client_vn if tls_id = client.tls_id & version_negociated else server.ep);
+}
 
+# Get the destination IP endpoint associated to a TLS instance
+# TODO: this shouldn't be needed.
+
+action tls_id_to_dst(tls_id:tls_api.id) returns (dst:ip.endpoint) = {
+    dst := server.ep if tls_id = client.tls_id else client.ep;
+}
+
+# Get cid associated to a TLS instance
+
+action tls_id_to_cid(tls_id:tls_api.id) returns (scid:cid) = {
+    scid := the_cid;
+}
 # Client
 # action socket_endpoint_mim(host:endpoint_id,s:quic_net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
 #     dst := client.ep if (is_mim_standalone | src = mim_agent.ep_server) else server.ep;

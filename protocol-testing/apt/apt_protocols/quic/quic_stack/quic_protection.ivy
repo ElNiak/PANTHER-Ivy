@@ -19,7 +19,7 @@ object protection = {
         # This is information we can extract from a packet whether it
         # is protected or not.
 
-        type header_info = struct {
+        type header_info_quic = struct {
             hdr_long : bool,                   # true if long format
             hdr_type : type_bits,              # the type bits
             dcid : cid,                        # destination cid
@@ -33,26 +33,26 @@ object protection = {
         # Protect a packet, given the TLS session and the actual (not compressed)
         # sequence number of the packet;
 
-        action encrypt(c:tls_id,seq:pkt_num,pkt:stream_data) returns (pkt:stream_data)
+        action encrypt_quic(c:tls_id,seq:pkt_num,pkt:stream_data) returns (pkt:stream_data)
 
-        action encrypt_rtt(c:tls_id,seq:pkt_num,pkt:stream_data) returns (pkt:stream_data)
+        action encrypt_zrtt_quic(c:tls_id,seq:pkt_num,pkt:stream_data) returns (pkt:stream_data)
 
         # Protect a packet, given the TLS session and the actual (not
         # compressed) highest sequence number of any packet received so
         # far. The latter is used to guess the real sequence number of the
-        # packet, which is needed to decrypt the payload. This means that
+        # packet, which is needed to decrypt_quic the payload. This means that
         # a significantly delayed packet might not be successfully
         # decrypted, since we might not guess its full sequence number
         # correctly. The return parameter `ok` is true if the packet is
         # successfully decrypted. Note, unsuccessful decryption might
         # indicate a stateless reset.
 
-        action decrypt(c:tls_id,seq:pkt_num,pkt:stream_data) returns (res:tls.decrypt_result)
+        action decrypt_quic(c:tls_id,seq:pkt_num,pkt:stream_data) returns (res:tls.decrypt_result)
         
         import action show_pkt_length(l:stream_pos)
         import action show_pkt(l:stream_data)
 
-        implement encrypt {
+        implement encrypt_quic {
             
             var h := get_header_info(pkt,false);
             var level := get_level(pkt);
@@ -128,7 +128,7 @@ object protection = {
             pkt := hdr.extend(pnum).extend(pyld);
         }
 
-        implement encrypt_rtt {
+        implement encrypt_zrtt_quic {
             var h := get_header_info(pkt,false);
             var pkt_rtt := pkt.segment(h.payload_length,pkt.end);
             var pkt_init := pkt.segment(0,h.payload_length);
@@ -282,7 +282,7 @@ object protection = {
             pkt := pkt_init.extend(pkt_rtt);
         }
 
-        implement decrypt {
+        implement decrypt_quic {
             var h := get_header_info(pkt,true);
             call show_header(h);
             var level := get_level(pkt);
@@ -389,7 +389,7 @@ object protection = {
         }
 
         # FROM quic-tracker GetPacketSample
-        action get_packet_sample(header:header_info, packetByte: stream_data, pnum_pos:stream_pos,hdr_len:stream_pos,sample_size:stream_pos) returns (sample: stream_data) = {
+        action get_packet_sample(header:header_info_quic, packetByte: stream_data, pnum_pos:stream_pos,hdr_len:stream_pos,sample_size:stream_pos) returns (sample: stream_data) = {
             #var sample_length: stream_pos := 16;
             var pn_offset : stream_pos := 0;
             if header.hdr_long {
@@ -412,7 +412,7 @@ object protection = {
         # This returns the header information of a packet, whether
         # encrypted or not. 
 
-        action get_header_info(pkt:stream_data,decrypt:bool) returns (h:header_info) = {
+        action get_header_info(pkt:stream_data,decrypt_quic:bool) returns (h:header_info_quic) = {
             h.hdr_long := bvand(0x80,pkt.value(0)) ~= 0;
             h.hdr_type := bfe[0][6](pkt.value(0));
             if h.hdr_long {
@@ -420,7 +420,7 @@ object protection = {
                 h.dcid := bytes_to_cid(pkt.segment(6,6+dcil));
                 var scil : stream_pos := bfe[0][7](pkt.value(6+dcil));
                 h.scid := bytes_to_cid(pkt.segment(7+dcil,7+dcil+scil));
-                if decrypt {
+                if decrypt_quic {
                     client_initial_scil := scil;
                 };
                 var pos := 1 + 4 + 1 + dcil + 1 + scil; #7 + dcil + scil;
@@ -442,7 +442,7 @@ object protection = {
             }
             else {
                 #todo check if good for client test too
-                if ~decrypt {
+                if ~decrypt_quic {
                     h.dcid := bytes_to_cid(pkt.segment(1,1+client_initial_scil));
                     h.payload_length_pos := 1+client_initial_scil;
                     h.pkt_num_pos := 1+client_initial_scil;
@@ -456,7 +456,7 @@ object protection = {
 
         # This computes the full sequence number from the truncated
         # version in the packet. It can fail if a packet is really old, in
-        # which case the packet won't decrypt.
+        # which case the packet won't decrypt_quic.
         
         action correct_pnum(last:pkt_num, pnum:pkt_num, pnum_len:stream_pos)
         returns (pnum:pkt_num) = {
@@ -566,7 +566,7 @@ object protection = {
         }
         import action show_payload(ver:stream_data)
         import action show_token_len(ver:stream_pos)
-        import action show_header(h:header_info)
+        import action show_header(h:header_info_quic)
     }
 }
 
@@ -595,6 +595,7 @@ object quic_prot_ser = {}
         }
 
         virtual void  set(int128_t res) {
+            //std::cerr << "quic_prot_ser res size " << this->res.size() << "\n";
             setn(res,1);
         }    
     };
@@ -621,7 +622,9 @@ object quic_prot_deser = {}
         int data_remaining;
         int level;
     public:
-        quic_prot_deser(const std::vector<char> &inp) : ivy_binary_deser_128(inp),level(0) {}
+        quic_prot_deser(const std::vector<char> &inp) : ivy_binary_deser_128(inp),level(0) {
+            std::cerr << "quic_prot_deser size " << inp.size() << "\n";
+        }
 
         void  get(int128_t &res) {
             getn(res,1);
@@ -644,6 +647,7 @@ object quic_prot_deser = {}
         }
             
         void open_list() {
+            std::cerr << "quic_prot_deser imp size " << inp.size() << "\n";
             if (level != 1)
                 return;
             if (peek(pos) & 0x80) { // a long packet
@@ -651,11 +655,12 @@ object quic_prot_deser = {}
                 unsigned scil = peek(pos+6+dcil);
                 unsigned pnum_pos = pos + 7 + dcil + scil;
                 unsigned ptype = peek(pos) & 0x30;
-                //std::cerr << "quic_prot_deser a long packet of type " << ptype <<  "\n";
+                std::cerr << "quic_prot_deser a long packet of type " << ptype <<  "\n";
                 if (ptype == 0x00) { // initial packets have tokens
                     unsigned len = get_var_int_len(pnum_pos);
                     unsigned retry_token_len = get_var_int(pnum_pos,len);
                     pnum_pos = pnum_pos + len + retry_token_len;
+                    std::cerr << "pnum_pos (quic_prot) " << pnum_pos << "\n";
                 } else if (ptype == 0x30) { // Retry packets have tokens
                     unsigned packet_size = inp.size();
                     unsigned len = packet_size - 16 - 1 - dcil - 1 - scil - 1 - 4;
@@ -676,6 +681,8 @@ object quic_prot_deser = {}
                     unsigned len = get_var_int_len(pnum_pos);
                     unsigned pyld_len = get_var_int(pnum_pos,len);
                     data_remaining = (pnum_pos-pos) + len + pyld_len;
+                    std::cerr << "data_remaining (quic_prot) " << data_remaining << "\n";
+                    std::cerr << "pyld_len (quic_prot) " << pyld_len << "\n";
                 }  
                 //std::cerr << "pkt len: " << data_remaining << " type: " << (peek(pos)-pos) << " len len: " << len << " pyld_len: " << pyld_len << " pnum_pos: " << pnum_pos << "\n";
             }

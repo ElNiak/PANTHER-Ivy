@@ -15,7 +15,7 @@ include quic_shim
 #
 # TODO: We do not actually generate protection layer events. Instead,
 # whenever a generated packet event occurs, we deterministically
-# serialize and encrypt the packet for transmission. This is not quite sound,
+# serialize and encrypt_quic the packet for transmission. This is not quite sound,
 # since in fact there are a few choices to be made in the encoding (such
 # as the number of bytes in the sequence number encoding) and these choices
 # should in principle be randomized. We have not done this, however, since we
@@ -40,7 +40,7 @@ after packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
         var spkt := quic_packet_serdes.to_bytes(pkt);
         var rnum := reference_pkt_num(spkt,false);
         var tls_id := src_tls_id(src);
-        var ppkt := quic_prot.encrypt(tls_id,rnum,spkt);
+        var ppkt := quic_prot.encrypt_quic(tls_id,rnum,spkt);
         var pkts := quic_prot.arr.empty;
         pkts := pkts.append(ppkt);
         call on_packet_sent(src,dst,pkt, ppkt.size);
@@ -55,7 +55,7 @@ after packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_vn)
         var spkt := quic_vn_packet_serdes.to_bytes(pkt);
         # var rnum := reference_pkt_num(spkt,false);
         # var tls_id := dst_tls_id(dst);
-        # var ppkt := quic_prot.encrypt(tls_id,rnum,spkt); # no encryption ?
+        # var ppkt := quic_prot.encrypt_quic(tls_id,rnum,spkt); # no encryption ?
         var pkts := quic_prot.arr.empty;
         pkts := pkts.append(spkt);
         total_data_sent := total_data_sent + spkt.size;
@@ -79,7 +79,7 @@ after packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_pac
         var pkts := quic_prot.arr.empty;
         var tls_id := src_tls_id(src);
         var rnum := reference_pkt_num(spkt,false);
-        var ppkt := quic_prot.encrypt_rtt(tls_id,rnum,spkt);
+        var ppkt := quic_prot.encrypt_zrtt_quic(tls_id,rnum,spkt);
         pkts := pkts.append(ppkt);
         total_data_sent := total_data_sent + ppkt.size;
         call quic_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
@@ -94,7 +94,7 @@ after packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_0
         var pkts := quic_prot.arr.empty;
         var tls_id := src_tls_id(src);
         var rnum := reference_pkt_num(spkt,false);
-        var ppkt := quic_prot.encrypt_rtt(tls_id,rnum,spkt);
+        var ppkt := quic_prot.encrypt_zrtt_quic(tls_id,rnum,spkt);
         pkts := pkts.append(ppkt);
         total_data_sent := total_data_sent + ppkt.size;
         call quic_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);

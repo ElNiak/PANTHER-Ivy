@@ -5,6 +5,8 @@ include tls_msg
 include serdes
 include quic_deser
 include quic_ser
+include quic_deser_enc
+include quic_ser_enc
 include quic_deser_vn
 include quic_ser_vn
 include quic_deser_retry
@@ -15,6 +17,7 @@ include quic_deser_forged
 include quic_ser_forged
 include quic_random_value
 include network_controler
+include quic_infer
 
 # TODO import _stream for debug
 
@@ -59,7 +62,7 @@ include quic_congestion_control
 # UDP receive event shim
 # ----------------------
 #
-# When a UDP datagram arrives, decrypt it, deserialize it, then
+# When a UDP datagram arrives, decrypt_quic it, deserialize it, then
 # generate a `packet_event`.
 #
 # Note: the quic_net API deserializes the datagram into a sequence of
@@ -818,7 +821,7 @@ import action version_not_found_event
 # To estimate the sequence number of packets, we have to know the encryption level.
 # This action gets the encryption level from the packet header.
 
-action packet_encryption_level(h:quic_prot.header_info) returns (e:quic_packet_type) = {
+action packet_encryption_level(h:quic_prot.header_info_quic) returns (e:quic_packet_type) = {
     # if zero_rtt_allowed {
         #var scid := packet_scid(h);
         e := quic_packet_type.zero_rtt if ~h.hdr_long # & ~established_1rtt_keys(scid)
@@ -831,7 +834,7 @@ action packet_encryption_level(h:quic_prot.header_info) returns (e:quic_packet_t
     # }
 }
 
-action packet_encryption_level_up(h:quic_prot.header_info) returns (e:quic_packet_type) = {
+action packet_encryption_level_up(h:quic_prot.header_info_quic) returns (e:quic_packet_type) = {
     # if zero_rtt_allowed {
         #var scid := packet_scid(h);
         e := quic_packet_type.zero_rtt if ~h.hdr_long #& ~established_1rtt_keys(scid)
@@ -847,7 +850,7 @@ action packet_encryption_level_up(h:quic_prot.header_info) returns (e:quic_packe
 # To get the reference packet number for a packet, we need to know the source connection
 # id, which is not present in short packets. Here we get it from history.
 
-action packet_scid(h:quic_prot.header_info) returns (scid:cid) = {
+action packet_scid(h:quic_prot.header_info_quic) returns (scid:cid) = {
     if h.hdr_long {
         scid := h.scid;
     } else {
@@ -859,13 +862,13 @@ action packet_scid(h:quic_prot.header_info) returns (scid:cid) = {
     }
 }
 
-# To encrypt and decrypt packets we need to know the true packet number, which
+# To encrypt_quic and decrypt_quic packets we need to know the true packet number, which
 # must be inferred from truncated number in the packet and the packet number history.
 # As a workaround, we use `last_pkt_num(scid,e)` where `e` is the
 # encryption level. We infer the encryption level from the packet type.
 
-action reference_pkt_num(spkt:stream_data,decrypt:bool) returns (pnum:pkt_num) = {
-    var h := quic_prot.get_header_info(spkt,decrypt);
+action reference_pkt_num(spkt:stream_data,decrypt_quic:bool) returns (pnum:pkt_num) = {
+    var h := quic_prot.get_header_info(spkt,decrypt_quic);
     var e := packet_encryption_level(h);
     var scid := packet_scid(h);
     last_packet_type(scid)   := packet_encryption_level_up(h);
@@ -893,7 +896,7 @@ action is_random_padding_packet(spkt:stream_data) returns (is_padding:bool) = {
 
 # To send and receive packets, we need to serialize and deserialize them.
 # This object allows that.
-
+instance quic_encrypted_packet_serdes : serdes(packet.encrypted_quic_packet,stream_data,quic_ser_enc,quic_deser_enc)
 instance quic_packet_serdes : serdes(packet.quic_packet,stream_data,quic_ser,quic_deser)
 instance quic_vn_packet_serdes : serdes(packet.quic_packet_vn,stream_data,quic_ser_vn,quic_deser_vn)
 instance quic_retry_packet_serdes : serdes(packet.quic_packet_retry,stream_data,quic_ser_retry,quic_deser_retry)
@@ -1004,6 +1007,7 @@ action dcid_size_pos(cond:bool) returns(res:stream_pos) = {
     >>>
 }
 
+import action show_tls_send_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, data:stream_data, pos:stream_pos, e:quic_packet_type, tls_id:tls_api.id)
 
 action hi_byte_pos(x:stream_pos) returns (res:byte) = {
     <<< res = (x >> 8) & 0xff; >>>

@@ -16,7 +16,7 @@ include ivy_stream_data_shim
 #
 # TODO: We do not actually generate protection layer events. Instead,
 # whenever a generated packet event occurs, we deterministically
-# serialize and encrypt the packet for transmission. This is not quite sound,
+# serialize and encrypt_quic the packet for transmission. This is not quite sound,
 # since in fact there are a few choices to be made in the encoding (such
 # as the number of bytes in the sequence number encoding) and these choices
 # should in principle be randomized. We have not done this, however, since we

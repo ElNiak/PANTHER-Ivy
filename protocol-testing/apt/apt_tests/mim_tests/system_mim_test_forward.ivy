@@ -1,5 +1,17 @@
 #lang ivy1.7
 
+include stream_data_mim_test_forward
 include minip_mim_test_forward
 include quic_mim_test_forward
-include stream_data_mim_test_forward
+
+action get_net_from_port(p:ip.port, header_data: stream_data) returns (tp:target_protocol) = {
+    if(p = 4430) {
+        tp := target_protocol.minip
+    } else if (p = 4430) {
+        tp := target_protocol.quic
+    } else if (p = 80) {
+        tp := target_protocol.http
+    } else {
+        tp := target_protocol.stream_data
+    }
+}
