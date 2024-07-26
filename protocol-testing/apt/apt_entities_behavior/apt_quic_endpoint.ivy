@@ -303,14 +303,27 @@ object endpoint = {
                     
                     } else {
                         if is_random_padding_packet(ppkt) {
-                            call random_padding_or_short_packet_event(src,dst,ppkt);
-                            if forward_packets { # To server
-                                if src = ep_client {
-                                    enc_padding_to_server(enc_cppkt_forwarded_to_server) := ppkt;
-                                } else if src = ep_server {
-                                    enc_padding_to_client(enc_cppkt_forwarded_to_client) := ppkt;
-                                }
+                            if pkts.end = 1 {
+                                # probably short header
+                                to_forward := true;
+                                call random_short_or_padding_packet_event(src,dst,ppkt);
+                                if forward_packets { # To server
+                                    if src = ep_client {
+                                        enc_padding_to_server(1000) := ppkt; # TODO fix when i am more awake
+                                    } else if src = ep_server {
+                                        enc_padding_to_client(1000) := ppkt;
+                                    }
                             };
+                            } else {
+                                call random_padding_or_short_packet_event(src,dst,ppkt);
+                                if forward_packets { # To server
+                                    if src = ep_client {
+                                        enc_padding_to_server(enc_cppkt_forwarded_to_server) := ppkt;
+                                    } else if src = ep_server {
+                                        enc_padding_to_client(enc_cppkt_forwarded_to_client) := ppkt;
+                                    }
+                                };
+                            }
                         } else {
                             var rppkt := quic_encrypted_packet_serdes.from_bytes(ppkt);
                             call show_payload_len(rppkt.payload.end);
@@ -518,6 +531,7 @@ object endpoint = {
 
             import action nat_configured_event(src:ip.endpoint, dst:ip.endpoint)
             import action client_target_setup_event(src:ip.endpoint)
+            import action random_short_or_padding_packet_event(src:ip.endpoint, dst:ip.endpoint, pkt:stream_data)
             import action random_padding_or_short_packet_event(src:ip.endpoint, dst:ip.endpoint, pkt:stream_data)
             import action arp_duplicated_encrypted_packet_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.encrypted_quic_packet)
             import action recv_packet(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
