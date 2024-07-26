@@ -1,17 +1,5 @@
 #lang ivy1.7
 
-# Packet protocol state
-# ---------------------
-
-relation packet_forwarded(P:stream_data)
-relation packet_forwarded_arr(P:stream_data)
-
-
-# relation packet_number_forwarded(H:ip.endpoint,C:stream_pos)
-
-
-function packet_recv_from_server(P:stream_pos):stream_data_array
-function packet_recv_from_client(P:stream_pos):stream_data_array
 
 # Initial state
 # -------------
@@ -20,13 +8,6 @@ function packet_recv_from_client(P:stream_pos):stream_data_array
 # connections have been seen and no packets have been sent or
 # acknowledged.
 
-after init {
-    packet_forwarded(P) := false;
-    packet_forwarded_arr(P) := false;
-
-    packet_recv_from_server(P) := stream_data_array.empty;
-    packet_recv_from_client(P) := stream_data_array.empty;
-}
 
 object packet = {
    ...
@@ -55,12 +36,53 @@ object packet = {
             res := bvand(0x80,pkt.head_byte) ~= 0;
         }
 
+    }
+
+    object random_padding_encrypted_quic_packet = {
+        variant this of packet = struct {
+            payload : stream_data # [8]
+        }
+
+        #Hamid
+        #instance retired_cids : array(idx, cid_seq)
+        #Hamid
+
+        instance idx : unbounded_sequence
+        instance arr : array(idx,this) 
+
+    }
+}
+
+# Packet protocol state
+# ---------------------
+
+relation packets_forwarded(P:packet.encrypted_quic_packet.arr)
+relation packet_forwarded(P:packet.encrypted_quic_packet)
+
+
+# relation packet_number_forwarded(H:ip.endpoint,C:stream_pos)
+
+
+function packet_recv_from_server(P:stream_pos):stream_data_array
+function packet_recv_from_client(P:stream_pos):stream_data_array
+
+
+object packet = {
+    ...
+
+    object encrypted_quic_packet = {
+        ...
+
         action forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet.arr)
         before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet.arr) {
             require _generating;
-            # require pkt.payload.end > 0;
-            require mim_agent.nat_configured;
-            require src ~= dst;
+            # require ~packets_forwarded(pkt);
+            # if _generating {
+                require pkt.end > 0;
+                require mim_agent.nat_configured;
+                require src ~= dst;
+                
+            # }
             # require ~packet_number_forwarded(mim_agent.ep_client,mim_agent.last_cppkt_forwarded_to_client);
             # ...
             # # packet_number_forwarded(mim_agent.ep_client,mim_agent.last_cppkt_forwarded_to_client) := true;
@@ -69,11 +91,53 @@ object packet = {
         
         action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet.arr)
         before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet.arr) {
+            # require _generating;
+            # if _generating {
+            # require ~packets_forwarded(pkt);
+            # if _generating {
+                require pkt.end > 0;
+                require mim_agent.nat_configured;
+                require src ~= dst;
+            #    
+            # }
+
+            # ...
+            # # packet_number_forwarded(mim_agent.ep_server,mim_agent.last_cppkt_forwarded_to_server) := true;
+            # mim_agent.ppkt_to_be_forwarded_to_server(mim_agent.last_cppkt_forwarded_to_server) := packet.quic_packet.arr.empty;  # help solver
+        }
+    }
+
+    object random_padding_encrypted_quic_packet = {
+        ...
+
+        action forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet.arr)
+        before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet.arr) {
             require _generating;
-            # require pkt.payload.end > 0;
-            require mim_agent.nat_configured;
-            require src ~= dst;
-            # require ~packet_number_forwarded(mim_agent.ep_server,mim_agent.last_cppkt_forwarded_to_server);
+            # require ~packets_forwarded(pkt);
+            # if _generating {
+                require pkt.end > 0;
+                require mim_agent.nat_configured;
+                require src ~= dst;
+                
+            # }
+            # require ~packet_number_forwarded(mim_agent.ep_client,mim_agent.last_cppkt_forwarded_to_client);
+            # ...
+            # # packet_number_forwarded(mim_agent.ep_client,mim_agent.last_cppkt_forwarded_to_client) := true;
+            # mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_cppkt_forwarded_to_client) := packet.quic_packet.arr.empty;  # help solver
+        }
+        
+        action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet.arr)
+        before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet.arr) {
+            # require _generating;
+            # if _generating {
+            # require ~packets_forwarded(pkt);
+            # if _generating {
+                require pkt.end > 0;
+                require mim_agent.nat_configured;
+                require src ~= dst;
+            #    
+            # }
+
             # ...
             # # packet_number_forwarded(mim_agent.ep_server,mim_agent.last_cppkt_forwarded_to_server) := true;
             # mim_agent.ppkt_to_be_forwarded_to_server(mim_agent.last_cppkt_forwarded_to_server) := packet.quic_packet.arr.empty;  # help solver

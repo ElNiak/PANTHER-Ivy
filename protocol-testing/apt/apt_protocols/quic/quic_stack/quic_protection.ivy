@@ -620,10 +620,12 @@ object quic_prot_deser = {}
 
     class `quic_prot_deser` : public ivy_binary_deser_128 {
         int data_remaining;
+        int total_data_remaining;
         int level;
     public:
         quic_prot_deser(const std::vector<char> &inp) : ivy_binary_deser_128(inp),level(0) {
             std::cerr << "quic_prot_deser size " << inp.size() << "\n";
+            total_data_remaining = inp.size();
         }
 
         void  get(int128_t &res) {
@@ -684,10 +686,13 @@ object quic_prot_deser = {}
                     std::cerr << "data_remaining (quic_prot) " << data_remaining << "\n";
                     std::cerr << "pyld_len (quic_prot) " << pyld_len << "\n";
                 }  
+                total_data_remaining = total_data_remaining - data_remaining;
                 //std::cerr << "pkt len: " << data_remaining << " type: " << (peek(pos)-pos) << " len len: " << len << " pyld_len: " << pyld_len << " pnum_pos: " << pnum_pos << "\n";
             }
             else {
-                data_remaining = 0x7fffffff;
+                std::cerr << "quic_prot_deser a short packet\n";
+                data_remaining = inp.size(); //!more(1) should stop automatically
+                std::cerr << "data_remaining (quic_prot) " << data_remaining << "\n";
             }
         }
 

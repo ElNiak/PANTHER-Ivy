@@ -81,13 +81,17 @@ object packet = {
                 var idx := pkt.begin;
                 var pkts_mim := quic_prot.arr.empty;
                 while idx < pkt.end {
+                    packet_forwarded(pkt.value(idx)) := true;
                     var spkt := quic_encrypted_packet_serdes.to_bytes(pkt.value(idx));
                     pkts_mim := pkts_mim.append(spkt);
                     #TODO allow forwarding coalesed packet or not
                     idx := idx.next; 
                 }; 
+                pkts_mim := pkts_mim.append(mim_agent.enc_padding_to_client(mim_agent.enc_last_cppkt_forwarded_to_client));
                 call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
+                mim_agent.enc_ppkt_to_be_forwarded_to_client(mim_agent.enc_last_cppkt_forwarded_to_client) := packet.encrypted_quic_packet.arr.empty;  # help solver
                 mim_agent.enc_last_cppkt_forwarded_to_client := mim_agent.enc_last_cppkt_forwarded_to_client + 1;
+                packets_forwarded(pkt) := true;
             }
         }
         
@@ -96,13 +100,17 @@ object packet = {
                 var idx := pkt.begin;
                 var pkts_mim := quic_prot.arr.empty;
                 while idx < pkt.end {
+                    packet_forwarded(pkt.value(idx)) := true;
                     call show_payload_len(pkt.value(idx).payload.end);
                     var spkt := quic_encrypted_packet_serdes.to_bytes(pkt.value(idx));
                     pkts_mim := pkts_mim.append(spkt);
                     idx := idx.next; 
                 };
+                pkts_mim := pkts_mim.append(mim_agent.enc_padding_to_server(mim_agent.enc_last_cppkt_forwarded_to_server));
                 call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
+                mim_agent.enc_ppkt_to_be_forwarded_to_server(mim_agent.enc_last_cppkt_forwarded_to_server) := packet.encrypted_quic_packet.arr.empty;  # help solver
                 mim_agent.enc_last_cppkt_forwarded_to_server := mim_agent.enc_last_cppkt_forwarded_to_server + 1;
+                packets_forwarded(pkt) := true;
             }
         }
     }

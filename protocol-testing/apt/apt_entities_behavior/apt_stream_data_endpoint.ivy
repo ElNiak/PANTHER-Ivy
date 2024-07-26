@@ -206,7 +206,7 @@ object endpoint = {
 
                     if forward_packets { # To server
                         if src = ep_client {
-                            #if ~packet_forwarded(rppkt) {
+                            #if ~packets_forwarded(rppkt) {
                                 # TODO manage coallesced packet -> stream_data_array + loop
                                 ppkt_to_be_forwarded_to_server(cppkt_forwarded_to_server) := rppkt;
                                 if ~keep_coalesed {
@@ -215,7 +215,7 @@ object endpoint = {
                             #}
 
                         } else if src = ep_server {
-                            # if ~ packet_forwarded(rppkt) {
+                            # if ~ packets_forwarded(rppkt) {
                                 ppkt_to_be_forwarded_to_client(cppkt_forwarded_to_client) := rppkt;
                                 if ~keep_coalesed {
                                     cppkt_forwarded_to_client := cppkt_forwarded_to_client + 1;
