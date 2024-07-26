@@ -16,7 +16,7 @@ include quic_shim
 #
 # TODO: We do not actually generate protection layer events. Instead,
 # whenever a generated packet event occurs, we deterministically
-# serialize and encrypt the packet for transmission. This is not quite sound,
+# serialize and encrypt_quic the packet for transmission. This is not quite sound,
 # since in fact there are a few choices to be made in the encoding (such
 # as the number of bytes in the sequence number encoding) and these choices
 # should in principle be randomized. We have not done this, however, since we
@@ -42,7 +42,7 @@ after packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
         var spkt := quic_packet_serdes.to_bytes(pkt);
         var rnum := reference_pkt_num(spkt,false);
         call clear_packet(src,dst,rnum,spkt);
-        var ppkt := quic_prot.encrypt(server.tls_id,rnum,spkt);
+        var ppkt := quic_prot.encrypt_quic(server.tls_id,rnum,spkt);
         call cipher_packet(ppkt);
         var pkts := quic_prot.arr.empty;
         pkts := pkts.append(ppkt);
@@ -83,7 +83,7 @@ after packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_pac
         var spkt := quic_0rtt_coal_packet_serdes.to_bytes(pkt);
         var rnum := reference_pkt_num(spkt,false);
         call clear_packet(src,dst,rnum,spkt);
-        var ppkt := quic_prot.encrypt(server.tls_id,rnum,spkt);
+        var ppkt := quic_prot.encrypt_quic(server.tls_id,rnum,spkt);
         call cipher_packet(ppkt);
         var pkts := quic_prot.arr.empty;
         pkts := pkts.append(ppkt);
@@ -99,7 +99,7 @@ after packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_0
         var spkt := quic_0rtt_packet_serdes.to_bytes(pkt);
         var rnum := reference_pkt_num(spkt,false);
         call clear_packet(src,dst,rnum,spkt);
-        var ppkt := quic_prot.encrypt(server.tls_id,rnum,spkt);
+        var ppkt := quic_prot.encrypt_quic(server.tls_id,rnum,spkt);
         call cipher_packet(ppkt);
         var pkts := quic_prot.arr.empty;
         pkts := pkts.append(ppkt);

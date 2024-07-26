@@ -62,6 +62,42 @@ attribute packet.quic_packet.forward_to_server.weight = "5"
 attribute packet.quic_packet.forward_to_client.weight = "15"
 
 
+object packet = {
+    ...
+    
+    object encrypted_quic_packet = {
+        ...
+        before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet.arr) {
+            call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.enc_last_cppkt_forwarded_to_server);
+            call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.enc_last_cppkt_forwarded_to_client);
+            if _generating {
+                require mim_agent.ep_client.addr ~= 0;  # must have a client address to send to
+                require src = mim_agent.ep_server;
+                require dst = mim_agent.ep_client;
+                require pkt = mim_agent.enc_ppkt_to_be_forwarded_to_client(mim_agent.enc_last_cppkt_forwarded_to_client); # TODO check
+            } 
+        }
+        
+        before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet.arr) {
+            call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.enc_last_cppkt_forwarded_to_server);
+            call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.enc_last_cppkt_forwarded_to_client);
+            if _generating {
+                require mim_agent.ep_server.addr ~= 0;  # must have a client address to send to
+                require dst = mim_agent.ep_server;
+                require src = mim_agent.ep_client;
+                require pkt = mim_agent.enc_ppkt_to_be_forwarded_to_server(mim_agent.enc_last_cppkt_forwarded_to_server); # TODO check       
+            } 
+        }
+    }
+}
+
+
+export packet.encrypted_quic_packet.forward_to_client
+export packet.encrypted_quic_packet.forward_to_server
+
+attribute packet.encrypted_quic_packet.forward_to_server.weight = "5"
+attribute packet.encrypted_quic_packet.forward_to_client.weight = "15"
+
 # Final check
 #
 # When the test is complete, the tester calls the special action `_finalize`.
@@ -72,10 +108,27 @@ attribute packet.quic_packet.forward_to_client.weight = "15"
 export action _finalize = {
     # chris TODO 
     call mim_agent.reset_NAT;
-    require mim_agent.last_cppkt_forwarded_to_server > 0;
-    require mim_agent.last_cppkt_forwarded_to_client > 0;
-    require mim_agent.last_cppkt_forwarded_to_client = mim_agent.cppkt_forwarded_to_client;
-    require mim_agent.last_cppkt_forwarded_to_server = mim_agent.cppkt_forwarded_to_server;
+    require mim_agent.last_cppkt_forwarded_to_server > 0 | mim_agent.enc_last_cppkt_forwarded_to_server > 0;
+    require mim_agent.last_cppkt_forwarded_to_client > 0 | mim_agent.enc_last_cppkt_forwarded_to_client > 0;
+    require mim_agent.last_cppkt_forwarded_to_client = mim_agent.cppkt_forwarded_to_client | mim_agent.enc_last_cppkt_forwarded_to_client = mim_agent.enc_cppkt_forwarded_to_client;
+    require mim_agent.last_cppkt_forwarded_to_server = mim_agent.cppkt_forwarded_to_server | mim_agent.enc_last_cppkt_forwarded_to_server = mim_agent.enc_cppkt_forwarded_to_server;
 }
 
 
+attribute radix=16
+
+# This gives the interpretation of some of the basic data types.
+# Some of these interpretations are chosen to make solving more efficient.
+# Notably, the `intbv` type can be used to represent large numbers with
+# small bit vector enodings.
+
+interpret cid -> longbv[1][13][20]
+interpret version -> bv[32]
+interpret pkt_num -> bv[32]
+interpret error_code -> bv[16]
+interpret stream_id -> bv[16]
+
+attribute quic_frame.idx.cardinality = 1
+attribute quic_frame.ack.range.idx.cardinality = 1
+attribute pkt_num.cardinality = 1
+attribute stream_pos.cardinality = 4

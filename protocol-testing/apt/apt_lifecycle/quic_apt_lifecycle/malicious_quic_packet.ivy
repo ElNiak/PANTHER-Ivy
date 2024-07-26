@@ -31,6 +31,55 @@ after init {
 object packet = {
    ...
 
+    object encrypted_quic_packet = {
+        variant this of packet = struct {
+            head_byte : stream_pos, # [2]
+            pversion : version, # [3]
+            dst_cid : cid, # [4]
+            src_cid : cid, # [5]
+            token_len : stream_pos, # [6]
+            token : stream_data, # [6]
+            payload_len : stream_pos, # [6]
+            seq_num : pkt_num, # [7]
+            payload : stream_data # [8]
+        }
+
+        #Hamid
+        #instance retired_cids : array(idx, cid_seq)
+        #Hamid
+
+        instance idx : unbounded_sequence
+        instance arr : array(idx,this) 
+
+        action long(pkt:this) returns(res:bool) = {
+            res := bvand(0x80,pkt.head_byte) ~= 0;
+        }
+
+        action forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet.arr)
+        before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet.arr) {
+            require _generating;
+            # require pkt.payload.end > 0;
+            require mim_agent.nat_configured;
+            require src ~= dst;
+            # require ~packet_number_forwarded(mim_agent.ep_client,mim_agent.last_cppkt_forwarded_to_client);
+            # ...
+            # # packet_number_forwarded(mim_agent.ep_client,mim_agent.last_cppkt_forwarded_to_client) := true;
+            # mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_cppkt_forwarded_to_client) := packet.quic_packet.arr.empty;  # help solver
+        }
+        
+        action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet.arr)
+        before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet.arr) {
+            require _generating;
+            # require pkt.payload.end > 0;
+            require mim_agent.nat_configured;
+            require src ~= dst;
+            # require ~packet_number_forwarded(mim_agent.ep_server,mim_agent.last_cppkt_forwarded_to_server);
+            # ...
+            # # packet_number_forwarded(mim_agent.ep_server,mim_agent.last_cppkt_forwarded_to_server) := true;
+            # mim_agent.ppkt_to_be_forwarded_to_server(mim_agent.last_cppkt_forwarded_to_server) := packet.quic_packet.arr.empty;  # help solver
+        }
+    }
+
     object quic_packet = {
 
         ...

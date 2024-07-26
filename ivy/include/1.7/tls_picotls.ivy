@@ -1555,7 +1555,12 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         std::cerr << "iv_size start " << "\n";
         std::cerr << "iv_size cid " <<  c << "\n";
         std::cerr << "iv_size level " << l <<  "\n";
-	    picotls_connection *s = `cid_map`[c];
+        // Check if c exists in cid_map
+        if (`cid_map`.find(c) == `cid_map`.end()) {
+            std::cerr << "cid " << c << " not found in cid_map\n";
+            return 0;
+        }
+        picotls_connection *s = `cid_map`[c];
         ptls_cipher_context_t *pn_enc = (ptls_cipher_context_t *)(s->crypto_context[l].pn_enc);
         if (!pn_enc)
             pn_enc = (ptls_cipher_context_t *)(s->crypto_context[l].pn_dec);

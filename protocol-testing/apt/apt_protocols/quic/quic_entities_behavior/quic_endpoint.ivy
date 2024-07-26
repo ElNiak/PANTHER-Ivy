@@ -75,7 +75,7 @@ object endpoint = {
                         # if rnum = lost_pkt_num {
                         #     call on_purpose_lost_packet_event(host,src,dst,last_zrtt_pkt);
                         # } else {
-                            var res := quic_prot.decrypt(tls_id,rnum,ppkt);
+                            var res := quic_prot.decrypt_quic(tls_id,rnum,ppkt);
                             var dcil : stream_pos := bfe[0][7](ppkt.value(5));
                             var ikm := cid_to_bytes(0,1); # dcid
                             if(~dcil = 0) {
@@ -185,7 +185,7 @@ object endpoint = {
                         # if rnum = lost_pkt_num {
                         #     call on_purpose_lost_packet_event(host,src,dst,last_zrtt_pkt); # TODO bug never called
                         # } else {
-                            var res := quic_prot.decrypt(tls_id,rnum,last_zrtt_pkt);
+                            var res := quic_prot.decrypt_quic(tls_id,rnum,last_zrtt_pkt);
                             var dcil : stream_pos := bfe[0][7](ppkt.value(5));
                             var ikm := cid_to_bytes(0,1); # dcid
                             if(~dcil = 0) {
@@ -227,7 +227,7 @@ object endpoint = {
                     # if rnum = lost_pkt_num {
                     #     call on_purpose_lost_packet_event(host,src,dst,last_zrtt_pkt);
                     # } else {
-                        var res := quic_prot.decrypt(tls_id,rnum,ppkt);
+                        var res := quic_prot.decrypt_quic(tls_id,rnum,ppkt);
                         var dcil : stream_pos := bfe[0][7](ppkt.value(5));
                         var ikm := cid_to_bytes(0,1); # dcid
                         if(~dcil = 0) {
