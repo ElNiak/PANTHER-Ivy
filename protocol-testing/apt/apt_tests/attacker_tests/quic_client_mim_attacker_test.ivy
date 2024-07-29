@@ -142,7 +142,7 @@ before forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream
         #require;
         require src = mim_agent.ep_server;
         require dst = mim_agent.ep_client;
-        require pkt = mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_cppkt_forwarded_to_client);
+        require pkt = mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_packet_forwarded_to(mim_agent.ep_client));
         #require pkt = mim_agent.ppkt_to_be_forwarded_to_server; # TODO put relation ?
     } 
 }
@@ -153,7 +153,7 @@ before forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:stream
         #require;
         require src = mim_agent.ep_client;
         require dst = mim_agent.ep_server;
-        require pkt = mim_agent.ppkt_to_be_forwarded_to_server(mim_agent.last_cppkt_forwarded_to_server);        #require ;
+        require pkt = mim_agent.ppkt_to_be_forwarded_to_server(mim_agent.last_packet_forwarded_to(mim_agent.ep_server));        #require ;
         #require ;
         #require pkt = mim_agent.ppkt_to_be_forwarded_to_server; # TODO put relation ?
     } 

@@ -36,12 +36,12 @@ object endpoint = {
             individual ppkt_to_be_replayed_to_server : packet.ping_packet
             function   ppkt_to_be_forwarded_to_server(C:stream_pos) : packet.ping_packet
             individual cppkt_forwarded_to_server : stream_pos
-            individual last_cppkt_forwarded_to_server : stream_pos
+            individual last_packet_forwarded_to(mim_agent.ep_server) : stream_pos
 
             individual force_client_forward : bool  # useless for now
             function   ppkt_to_be_forwarded_to_client(C:stream_pos) : packet.ping_packet
             individual cppkt_forwarded_to_client : stream_pos
-            individual last_cppkt_forwarded_to_client : stream_pos
+            individual last_packet_forwarded_to(mim_agent.ep_client) : stream_pos
 
             individual force_server_forward : bool
             
@@ -103,8 +103,8 @@ object endpoint = {
                 # Allow to keep coalesced packed
                 cppkt_forwarded_to_server := 0;
                 cppkt_forwarded_to_client := 0;
-                last_cppkt_forwarded_to_server := 0;
-                last_cppkt_forwarded_to_client := 0;
+                last_packet_forwarded_to(mim_agent.ep_server) := 0;
+                last_packet_forwarded_to(mim_agent.ep_client) := 0;
 
                 forward_turn := false;
                 forward_turn_count := 0;
