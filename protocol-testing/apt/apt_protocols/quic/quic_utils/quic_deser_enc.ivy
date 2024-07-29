@@ -266,13 +266,13 @@ object quic_deser_enc = {}
                     close_struct();
                 }
                 getn(res,1);         
-                std::cerr << "quic_deser_enc payload remaining " << data_remaining << "\n";
+                // std::cerr << "quic_deser_enc payload remaining " << data_remaining << "\n";
             }
             break;
             case quic_s_retry_token:
             {
                 if(token_length > 0){
-                    std::cerr << "quic_deser_enc token_length " << token_length << "\n";
+                    //std::cerr << "quic_deser_enc token_length " << token_length << "\n";
                     getn(res,1);
                     token_length--;
                 }

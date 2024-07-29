@@ -41,10 +41,10 @@ object packet = {
             require pkt.payload.end > 0;
             require mim_agent.nat_configured;
             require src ~= dst;
-            # require ~packet_number_forwarded(mim_agent.ep_client,mim_agent.last_cppkt_forwarded_to_client);
+            # require ~packet_number_forwarded(mim_agent.ep_client,mim_agent.last_packet_forwarded_to(mim_agent.ep_client));
             # ...
-            # # packet_number_forwarded(mim_agent.ep_client,mim_agent.last_cppkt_forwarded_to_client) := true;
-            # mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_cppkt_forwarded_to_client) := packet.ping_packet.arr.empty;  # help solver
+            # # packet_number_forwarded(mim_agent.ep_client,mim_agent.last_packet_forwarded_to(mim_agent.ep_client)) := true;
+            # mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_packet_forwarded_to(mim_agent.ep_client)) := packet.ping_packet.arr.empty;  # help solver
         }
         
         action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet)
@@ -53,10 +53,22 @@ object packet = {
             require pkt.payload.end > 0;
             require mim_agent.nat_configured;
             require src ~= dst;
-            # require ~packet_number_forwarded(mim_agent.ep_server,mim_agent.last_cppkt_forwarded_to_server);
+            # require ~packet_number_forwarded(mim_agent.ep_server,mim_agent.last_packet_forwarded_to(mim_agent.ep_server));
             # ...
-            # # packet_number_forwarded(mim_agent.ep_server,mim_agent.last_cppkt_forwarded_to_server) := true;
-            # mim_agent.ppkt_to_be_forwarded_to_server(mim_agent.last_cppkt_forwarded_to_server) := packet.ping_packet.arr.empty;  # help solver
+            # # packet_number_forwarded(mim_agent.ep_server,mim_agent.last_packet_forwarded_to(mim_agent.ep_server)) := true;
+            # mim_agent.ppkt_to_be_forwarded_to_server(mim_agent.last_packet_forwarded_to(mim_agent.ep_server)) := packet.ping_packet.arr.empty;  # help solver
+        }
+
+        action replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet)
+        before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+            require _generating;
+            require pkt.payload.end = 1;
+            require mim_agent.nat_configured;
+            require src ~= dst;
+            # require ~packet_number_forwarded(mim_agent.ep_client,mim_agent.last_packet_forwarded_to(mim_agent.ep_client));
+            # ...
+            # # packet_number_forwarded(mim_agent.ep_client,mim_agent.last_packet_forwarded_to(mim_agent.ep_client)) := true;
+            # mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_packet_forwarded_to(mim_agent.ep_client)) := packet.ping_packet.arr.empty;  # help solver
         }
         
     }

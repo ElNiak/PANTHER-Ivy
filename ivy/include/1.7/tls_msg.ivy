@@ -70,6 +70,8 @@ module tls_intf(cid,index,bytes,lower,extens,hextens,exten_ser,seq_num) = {
     
     # Create a new connection with a fresh cid, and list of extensions
 
+    action eavesdrop(c:cid)
+
     action create(c:cid, is_server:bool, e:extens)
 
     action create_0rtt_client(c:cid, is_server:bool, e:extens)
