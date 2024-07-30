@@ -1,0 +1,167 @@
+#lang ivy1.7
+
+# a fake serializer for quic
+
+object quic_ser_random = {}
+
+<<< member
+
+    class `quic_ser_random`;
+
+>>>
+
+<<< impl
+
+    class `quic_ser_random` : public ivy_binary_ser_128 {
+    //class `quic_ser_random` : public ivy_binary_ser {
+        enum {quic_s_init,
+              quic_s_version,
+	          quic_s_dcil,
+	          quic_s_scil,
+              quic_s_dcid,
+              quic_s_scid,
+              quic_s_retry_token_length,
+              quic_s_retry_token,
+	          quic_s_payload_length,
+              quic_s_pkt_num,
+              quic_s_payload,
+              quic_stream_id,
+              quic_stream_off,
+              quic_stream_len,
+              quic_stream_fin,
+              quic_stream_offset,
+              quic_stream_length,
+              quic_stream_data,
+              quic_crypto_offset,
+              quic_crypto_length,
+              quic_crypto_data,
+              quic_ack_largest,
+              quic_ack_delay,
+              quic_ack_block_count,
+              quic_ack_gap,
+              quic_ack_block,
+              quic_reset_stream_id,
+              quic_reset_err_code,
+              quic_reset_final_offset,
+              quic_stop_sending_id,
+              quic_stop_sending_err_code,
+              quic_connection_close_err_code,
+              quic_connection_close_frame_type,
+              quic_connection_close_reason_length,
+              quic_connection_close_reason,
+              quic_application_close_err_code,
+              quic_max_stream_data_id,
+              quic_path_challenge_data,
+              quic_new_connection_id_length,
+              quic_new_connection_id_seq_num,
+              quic_new_connection_id_retire_prior_to,
+              quic_new_connection_id_scid,
+              quic_new_connection_id_token,
+              quic_retire_connection_id_seq_num,
+              quic_handshake_done,
+              quic_padding,
+              quic_ping,
+              quic_unknow,
+              quic_malicious,
+              quic_immediate_ack, //seq_num
+              quic_ack_frequency, //seq_num
+              quic_ack_frequency_ack_eliciting_threshold,
+              quic_ack_frequency_request_max_ack_delay,
+              quic_ack_frequency_reordering_threshold,
+              quic_s_done} state;
+        bool long_format;
+        char hdr_type;
+        int dcil;
+        int scil;
+        long frame_type;
+        int data_remaining;
+        int128_t ack_blocks_expected;
+        int128_t ack_block_count;
+        //long long ack_blocks_expected;
+        //long long ack_block_count;
+        int payload_length_pos;
+        int fence;
+        int tcount = 0;
+        bool done = false;
+        int packet_number_length;
+
+    public:
+        quic_ser_random() : state(quic_s_payload) {
+        }
+        virtual void  set(int128_t res) {
+            switch (state) {
+                case quic_s_payload:
+                {
+                    setn(res,1);
+                }
+                break;
+                default:
+                    //std::cerr << "quic_ser_random 2\n";  
+                    throw deser_err();
+            }
+        }
+
+        int set_var_int(int128_t res) {
+            int128_t val = res & 0x3fffffffffffffff; //TODO modify with 16 bytes mask ?
+        //void set_var_int(long long res) {
+        //    long long val = res & 0x3fffffffffffffff; 
+            int bytecode = res <= 0x3f ? 0 : res <= 0x3fff ? 1 : res <= 0x3fffffff ? 2 : 3;
+            int bytes = 1 << bytecode;
+            val |= bytecode << ((bytes << 3) - 2);
+            setn(val,bytes);
+            return bytes;
+        }
+
+        int set_pkt_num(int128_t &res) {
+        //void set_pkt_num(long long &res) {
+            // setn(0xc0000000 | (0x3fffffff & res),4);
+            // pkt number length is low two bits of first packet byte, plus one 
+            setn(res,packet_number_length);
+            return packet_number_length;
+        }
+
+        virtual void open_tag(int tag, const std::string &) {
+            if (state == quic_s_payload) {
+                
+            }
+            //std::cerr << "quic_ser_random 1\n";  
+            throw deser_err();
+        }
+
+        virtual void open_list_elem() {
+        }
+
+        void open_list(int len) {
+	        ack_blocks_expected = len;
+            if (state == quic_ack_block_count) {
+                set_var_int(ack_blocks_expected - 1); // block count doesn't include first
+                ack_block_count = 0;
+                state = quic_ack_gap;
+            } else if (state == quic_s_retry_token_length) {
+                /*std::cerr << "open_list len (hdr_type & 0x30) " << (hdr_type & 0x30) << "\n";
+                if (long_format & ((hdr_type & 0x30) == 0x00)) { //TODO:  & ((hdr_type & 0x30) == 0x00
+                    std::cerr << "open_list len quic_s_retry_token_length " << len << "\n";
+                    set_var_int(len);
+                    data_remaining = len;
+                }*/
+                state = quic_s_retry_token;
+            }
+        }
+        void close_list() {
+            if (state == quic_s_payload) {
+                if (long_format) {
+                    state = quic_s_init;
+                }
+            }
+        }
+        void close_list_elem() {}
+
+        virtual void close_tag() {
+            state = quic_s_payload;
+        }
+
+        ~quic_ser_random(){}
+    };
+
+>>>
+

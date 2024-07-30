@@ -2,13 +2,20 @@
 
 include apt_shim
 
-include quic_protection
+include  quic_protection
 instance quic_prot : protection.quic_protection(tls_api.id,tls_api.upper)
+
 
 include quic_shim
 
-include malicious_quic_packet
+instance quic_encrypted_packet_serdes                : serdes(packet.encrypted_quic_packet,               stream_data,quic_ser_enc,      quic_deser_enc)
+instance quic_random_padding_encrypted_packet_serdes : serdes(packet.random_padding_encrypted_quic_packet,stream_data,quic_ser_random,   quic_deser_random)
+instance quic_encrypted_short_packet_serdes          : serdes(packet.encrypted_short_quic_packet,         stream_data,quic_ser_short_enc,quic_deser_short_enc)
 
+include malicious_quic_packet
+include encrypted_quic_packet
+include encrypted_short_quic_packet
+include random_padding_encrypted_quic_packet
 
 include quic_locale
 include apt_endpoint

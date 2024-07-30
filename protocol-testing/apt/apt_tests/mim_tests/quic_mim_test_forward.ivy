@@ -29,25 +29,25 @@ object packet = {
     
     object quic_packet = {
         ...
-        before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet.arr) {
+        before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_packet_forwarded_to(mim_agent.ep_server));
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_packet_forwarded_to(mim_agent.ep_client));
             if _generating {
                 require mim_agent.ep_client.addr ~= 0;  # must have a client address to send to
                 require src = mim_agent.ep_server;
                 require dst = mim_agent.ep_client;
-                require pkt = mim_agent.packet_to_forward_to(mim_agent.ep_client,mim_agent.last_packet_forwarded_to(mim_agent.ep_client)); # TODO check
+                # require pkt = mim_agent.packet_to_forward_to(mim_agent.ep_client,mim_agent.last_packet_forwarded_to(mim_agent.ep_client)); # TODO check
             } 
         }
         
-        before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet.arr) {
+        before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_packet_forwarded_to(mim_agent.ep_server));
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_packet_forwarded_to(mim_agent.ep_client));
             if _generating {
                 require mim_agent.ep_server.addr ~= 0;  # must have a client address to send to
                 require dst = mim_agent.ep_server;
                 require src = mim_agent.ep_client;
-                require pkt = mim_agent.packet_to_forward_to(mim_agent.ep_server,mim_agent.last_packet_forwarded_to(mim_agent.ep_server)); # TODO check       
+                # require pkt = mim_agent.packet_to_forward_to(mim_agent.ep_server,mim_agent.last_packet_forwarded_to(mim_agent.ep_server)); # TODO check       
             } 
         }
     }
@@ -56,11 +56,11 @@ object packet = {
 import action show_last_cppkt_forwarded_to_client_debug_event(x:stream_pos)
 import action show_last_cppkt_forwarded_to_server_debug_event(x:stream_pos)
 
-export packet.quic_packet.forward_to_client
-export packet.quic_packet.forward_to_server
+# export packet.quic_packet.forward_to_client
+# export packet.quic_packet.forward_to_server
 
-attribute packet.quic_packet.forward_to_server.weight = "5"
-attribute packet.quic_packet.forward_to_client.weight = "15"
+# attribute packet.quic_packet.forward_to_server.weight = "5"
+# attribute packet.quic_packet.forward_to_client.weight = "15"
 
 
 object packet = {
@@ -69,68 +69,122 @@ object packet = {
     object encrypted_quic_packet = {
         ...
 
-        before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet.arr) {
-            call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
-            if _generating {
-                require mim_agent.ep_client.addr ~= 0;  # must have a client address to send to
-                require src = mim_agent.ep_server;
-                require dst = mim_agent.ep_client;
-                # require mim_agent.packet_number_to_be_replayed(mim_agent.ep_client) < mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client) & mim_agent.packet_number_to_be_replayed(mim_agent.ep_client) > 0;
-                # require exists H. H < mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client) & H >= 0 & pkt = mim_agent.encrypted_packet_to_forward_to(mim_agent.ep_client, H) ; # TODO check
-            } 
-        }
+        # before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
+        #     call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
+        #     call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+        #     if _generating {
+        #         require mim_agent.ep_client.addr ~= 0;  # must have a client address to send to
+        #         require src = mim_agent.ep_server;
+        #         require dst = mim_agent.ep_client;
+        #         # require mim_agent.packet_number_to_be_replayed(mim_agent.ep_client) < mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client) & mim_agent.packet_number_to_be_replayed(mim_agent.ep_client) > 0;
+        #         # require exists H. H < mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client) & H >= 0 & pkt = mim_agent.encrypted_packet_to_forward_to(mim_agent.ep_client, H) ; # TODO check
+        #     } 
+        # }
 
-        before replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet.arr) {
-            call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
-            if _generating {
-                require mim_agent.ep_server.addr ~= 0;  # must have a client address to send to
-                require dst = mim_agent.ep_server;
-                require src = mim_agent.ep_client;
-                # require mim_agent.packet_number_to_be_replayed(mim_agent.ep_server) < mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server) & mim_agent.packet_number_to_be_replayed(mim_agent.ep_server) >= 0;
-                # require exists H. H < mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server) & H >= 0 & pkt = mim_agent.encrypted_packet_to_forward_to(mim_agent.ep_server, H); # TODO check
-            } 
-        }
+        # before replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
+        #     call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
+        #     call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+        #     if _generating {
+        #         require mim_agent.ep_server.addr ~= 0;  # must have a client address to send to
+        #         require dst = mim_agent.ep_server;
+        #         require src = mim_agent.ep_client;
+        #         # require mim_agent.packet_number_to_be_replayed(mim_agent.ep_server) < mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server) & mim_agent.packet_number_to_be_replayed(mim_agent.ep_server) >= 0;
+        #         # require exists H. H < mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server) & H >= 0 & pkt = mim_agent.encrypted_packet_to_forward_to(mim_agent.ep_server, H); # TODO check
+        #     } 
+        # }
 
-        before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet.arr) {
-            call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
-            if _generating {
-                require mim_agent.ep_client.addr ~= 0;  # must have a client address to send to
-                require src = mim_agent.ep_server;
-                require dst = mim_agent.ep_client;
-                if mim_agent.encrypted_padding_packet_to_forward_to(mim_agent.ep_client,1000).end > 0 {
-                    require pkt = mim_agent.encrypted_packet_to_forward_to(mim_agent.ep_client,mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client)+1);
-                } else {
-                    require pkt = mim_agent.encrypted_packet_to_forward_to(mim_agent.ep_client,mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client)); # TODO check
-                }
-            } 
-        }
+        # around forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
+        #     call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
+        #     call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+        #     if _generating {
+        #         require mim_agent.ep_client.addr ~= 0;  # must have a client address to send to
+        #         require src = mim_agent.ep_server;
+        #         require dst = mim_agent.ep_client;
+        #         # if mim_agent.encrypted_padding_packet_to_forward_to(mim_agent.ep_client,1000).end > 0 {
+        #         #     require pkt = mim_agent.encrypted_packet_to_forward_to(mim_agent.ep_client,mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client)+1);
+        #         # } else {
+        #         #     require pkt = mim_agent.encrypted_packet_to_forward_to(mim_agent.ep_client,mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client)); # TODO check
+        #         # }
+        #         var p := packets_received_last_round(dst).back();
+        #         call show_last_packet_received(src,dst,p);
+        #         if some(cf:packet.encrypted_quic_packet) p *> cf {
+        #             require pkt.head_byte   = cf.head_byte;
+        #             require pkt.pversion    = cf.pversion;
+        #             require pkt.dst_cid     = cf.dst_cid;
+        #             require pkt.src_cid     = cf.src_cid;
+        #             require pkt.token_len   = cf.token_len;
+        #             require pkt.token       = cf.token;
+        #             require pkt.payload_len = cf.payload_len;
+        #             require pkt.seq_num     = cf.seq_num;
+        #             require pkt.payload     = cf.payload;
+        #         } 
+        #     } 
+        #     ...
+        #     if _generating {
+        #         var removed_pkt := packets_received_last_round(dst).pop_back();
+        #         call enqueue_packet(src,dst,pkt);
+        #     }
+        # }
         
-        before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet.arr) {
+        # around forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
+        #     call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
+        #     call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+        #     # if _generating {
+        #     #     require mim_agent.nat_configured;
+        #     #     require src ~= dst;
+        #     #     require mim_agent.ep_server.addr ~= 0;  # must have a client address to send to
+        #     #     require dst = mim_agent.ep_server;
+        #     #     require src = mim_agent.ep_client;
+        #     #     require encrypted_quic_packets_received_last_round(dst).end > 0;
+        #     #     var p := encrypted_quic_packets_received_last_round(dst).back();
+        #     #     call show_last_packet_received(src,dst,p);
+        #     #     require pkt.head_byte   = p.head_byte;
+        #     #     require pkt.pversion    = p.pversion;
+        #     #     require pkt.dst_cid     = p.dst_cid;
+        #     #     require pkt.src_cid     = p.src_cid;
+        #     #     require pkt.token_len   = p.token_len;
+        #     #     require pkt.token       = p.token;
+        #     #     require pkt.payload_len = p.payload_len;
+        #     #     require pkt.seq_num     = p.seq_num;
+        #     #     require pkt.payload     = p.payload;
+        #     # }
+            
+        #     # ...
+
+        #     # if _generating {
+        #     #     var removed_pkt := encrypted_quic_packets_received_last_round(dst).pop_back();
+        #     #     call enqueue_packet(src,dst,pkt);
+        #     # }
+        # }
+
+        before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
             if _generating {
-                require mim_agent.ep_server.addr ~= 0;  # must have a client address to send to
-                require dst = mim_agent.ep_server;
-                require src = mim_agent.ep_client;
-                if mim_agent.encrypted_padding_packet_to_forward_to(mim_agent.ep_server,1000).end > 0 {
-                    require pkt = mim_agent.encrypted_packet_to_forward_to(mim_agent.ep_server,mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server)+1); # TODO check
-                } else {
-                    require pkt = mim_agent.encrypted_packet_to_forward_to(mim_agent.ep_server,mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server)); # TODO check       
-                }
+                var p := encrypted_quic_packets_received_last_round(dst).back();
+                # call show_last_packet_received(src,dst,p);
+                require pkt.head_byte   = encrypted_quic_packet_received_last_round(dst).head_byte;
+                require pkt.pversion    = encrypted_quic_packet_received_last_round(dst).pversion;
+                require pkt.dst_cid     = encrypted_quic_packet_received_last_round(dst).dst_cid;
+                require pkt.src_cid     = encrypted_quic_packet_received_last_round(dst).src_cid;
+                require pkt.token_len   = encrypted_quic_packet_received_last_round(dst).token_len;
+                require pkt.token       = encrypted_quic_packet_received_last_round(dst).token;
+                require pkt.payload_len = encrypted_quic_packet_received_last_round(dst).payload_len;
+                require pkt.seq_num     = encrypted_quic_packet_received_last_round(dst).seq_num;
+                require pkt.payload     = encrypted_quic_packet_received_last_round(dst).payload;
+                # require pkt = mim_agent.encrypted_packet_to_forward_to(mim_agent.ep_server,mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server)); # TODO check       
             } 
         }
     }
 }
 
 
-export packet.encrypted_quic_packet.forward_to_client
+# export packet.encrypted_quic_packet.forward_to_client
+export packet.forward_to
 export packet.encrypted_quic_packet.forward_to_server
 
-attribute packet.encrypted_quic_packet.forward_to_server.weight = "5"
-attribute packet.encrypted_quic_packet.forward_to_client.weight = "15"
+# attribute packet.encrypted_quic_packet.forward_to_server.weight = "5"
+# attribute packet.encrypted_quic_packet.forward_to_client.weight = "15"
 
 # export packet.encrypted_quic_packet.replay_to_client
 # export packet.encrypted_quic_packet.replay_to_server

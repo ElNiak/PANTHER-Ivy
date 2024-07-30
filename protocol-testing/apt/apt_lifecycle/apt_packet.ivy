@@ -17,16 +17,23 @@ object packet = {
 
     ## Man in the middle
 
-    action forward_to(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
-        require false; 
-    }
+    action forward_to(src:ip.endpoint,dst:ip.endpoint,pkt:packet.arr)
 
-    action forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
-        require false; 
-    }
+    around forward_to(src:ip.endpoint,dst:ip.endpoint,pkt:packet.arr) {
+        # require _generating;
+        require pkt.end > 0;
+        require src = mim_agent.ep_server & dst = mim_agent.ep_client  |
+                src = mim_agent.ep_client & dst = mim_agent.ep_server;
 
-    action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
-        require false; 
+        require packet_to_forward(dst).end > 0;
+        require mim_agent.nat_configured;
+        require src ~= dst;
+        require num_queued_packets(dst) > 0;
+        require pkt = packet_to_forward(dst);
+        ...
+        packet_to_forward(dst)  := packet.arr.empty;
+        num_queued_packets(dst) := 0;
+        call update_received_packet(src,dst);
     }
 
     action replay_to(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
@@ -99,15 +106,47 @@ object packet = {
 }
 
 
+# Packet protocol state
+# ---------------------
+
+function packets_received_last_round(C:ip.endpoint) : packet.arr
+function packets_received(C:ip.endpoint)            : packet.arr
+ 
 function num_queued_packets(C:ip.endpoint) : packet.idx
-function queued_packets(C:ip.endpoint) : packet.arr
+function packet_to_forward(C:ip.endpoint)  : packet.arr
 
 after init {
-    num_queued_packets(C) := 0;
-    queued_packets(C) := packet.arr.empty;
+    num_queued_packets(C)         := 0;
+    packet_to_forward(C)          := packet.arr.empty;
+    packets_received(C)            := packet.arr.empty;
+    packets_received_last_round(C) := packet.arr.empty;
 }
 
 action enqueue_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet) = {
-    queued_packets(dst) := queued_packets(dst).append(f);
-    num_queued_packets(dst) := queued_packets(dst).end; 
+    packet_to_forward(dst)  := packet_to_forward(dst).append(pkt);
+    num_queued_packets(dst) := packet_to_forward(dst).end; 
+}
+
+action receiving_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet)
+
+action already_forwarded(src:ip.endpoint,dst:ip.endpoint,pkt:packet) returns (res:bool) = {
+    var i : packet.idx := 0;
+    res := false;
+    while i < packets_received(dst).end {
+        if packets_received(dst).value(i) = pkt {
+            res := true;
+        }
+        i := i.next;
+    }
+}
+
+action update_received_packet(src:ip.endpoint,dst:ip.endpoint) 
+
+after update_received_packet(src:ip.endpoint,dst:ip.endpoint) {
+    var i : packet.idx := 0;
+    while i < packets_received_last_round(dst).end {
+        packets_received(dst) := packets_received(dst).append(packets_received_last_round(dst).value(i));
+        i := i.next;
+    }
+    packets_received_last_round(dst) := packet.arr.empty;
 }

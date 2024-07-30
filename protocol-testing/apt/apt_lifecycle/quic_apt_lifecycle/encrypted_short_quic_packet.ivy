@@ -1,0 +1,98 @@
+#lang ivy1.7
+
+
+# Initial state
+# -------------
+
+# The history variables are initialized as follows.  Initially, no
+# connections have been seen and no packets have been sent or
+# acknowledged.
+
+
+object packet = {
+   ...
+
+    object encrypted_short_quic_packet = {
+        variant this of packet = struct {
+            head_byte : stream_pos, # [2]
+            dst_cid : cid, # [4]
+            payload : stream_data # [8]
+        }
+
+        #Hamid
+        #instance retired_cids : array(idx, cid_seq)
+        #Hamid
+
+        instance idx : unbounded_sequence
+        instance arr : array(idx,this) 
+
+    }
+}
+
+
+object packet = {
+    ...
+
+    object encrypted_short_quic_packet = {
+        ...
+
+        action forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet)
+        around forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
+            require _generating;
+            require pkt.payload.end > 0;
+            require mim_agent.nat_configured;
+            require src ~= dst;
+            ...
+            call enqueue_packet(src,dst,pkt);
+        }
+        
+        action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet)
+        around forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
+            require _generating;
+            require pkt.payload.end > 0;
+            require mim_agent.nat_configured;
+            require src ~= dst;
+            ...
+            call enqueue_packet(src,dst,pkt);
+        }
+
+        action replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet)
+        around replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
+            require _generating;
+            require pkt.payload.end > 0;
+            require mim_agent.nat_configured;
+            require src ~= dst;
+            ...
+            call enqueue_packet(src,dst,pkt);
+        }
+
+        action replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet)
+        around replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
+            require _generating;
+            require pkt.payload.end > 0;
+            require mim_agent.nat_configured;
+            require src ~= dst;
+            ...
+            call enqueue_packet(src,dst,pkt);
+        }
+
+        action modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet)
+        around modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
+            require _generating;
+            require pkt.payload.end > 0;
+            require mim_agent.nat_configured;
+            require src ~= dst;
+            ...
+            call enqueue_packet(src,dst,pkt);
+        }
+    }
+
+}
+
+function encrypted_short_quic_packet_received_last_round(C:ip.endpoint) : packet.encrypted_short_quic_packet.arr
+
+after receiving_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet) {
+    if some(cf:packet.encrypted_short_quic_packet) pkt *> cf {
+        encrypted_short_quic_packet_received_last_round(dst) := encrypted_short_quic_packet_received_last_round(dst).append(cf);
+    }
+}

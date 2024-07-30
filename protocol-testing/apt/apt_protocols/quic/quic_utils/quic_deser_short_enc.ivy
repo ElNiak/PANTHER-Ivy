@@ -2,11 +2,11 @@
 
 # a fake deserializer for quic
 
-object quic_deser_enc = {}
+object quic_deser_short_enc = {}
 
 <<< member
 
-    class `quic_deser_enc`;
+    class `quic_deser_short_enc`;
 
 >>>
 
@@ -21,8 +21,8 @@ object quic_deser_enc = {}
          #include "/app/panther-ivy/protocol-testing/apt/apt_protocols/quic/quic_utils/quic_ser_deser.h"
     #endif
 
-    class `quic_deser_enc` : public ivy_binary_deser_128 {
-    //class `quic_deser_enc` : public ivy_binary_deser {
+    class `quic_deser_short_enc` : public ivy_binary_deser_128 {
+    //class `quic_deser_short_enc` : public ivy_binary_deser {
         enum {quic_s_init,
               quic_s_type,
               quic_s_version,
@@ -102,10 +102,11 @@ object quic_deser_enc = {}
 
     
     public:
-        quic_deser_enc(const std::vector<char> &inp) : ivy_binary_deser_128(inp),state(quic_s_init) {
-        //quic_deser_enc(const std::vector<char> &inp) : ivy_binary_deser(inp),state(quic_s_init) {
+        quic_deser_short_enc(const std::vector<char> &inp) : ivy_binary_deser_128(inp),state(quic_s_init) {
+        //quic_deser_short_enc(const std::vector<char> &inp) : ivy_binary_deser(inp),state(quic_s_init) {
             // pos = 42; // skip 42 bytes of IP and UDP header
             fence = 0;
+
         }
         virtual void  get(int128_t &res) {
         //virtual void  get(long long &res) {
@@ -117,40 +118,15 @@ object quic_deser_enc = {}
                 //0x7f is 0111 1111 in binary. This means the lower 7 bits of res are significant.
                 //0x30    0011 0000
                 hdr_type = res & 0x7f; //0x7f;
-                //hdr_type = (res >> 2) & 0x03;
-                // detect random padding
-              /*  if (hdr_type == 0) {
-                    state = quic_s_payload;
-                    break;
-                };*/
-                
-                std::cerr << "quic_deser_enc res " << res << "\n";
+                std::cerr << "quic_deser_short_enc res " << res << "\n";
                 std::cerr << "inp size " << inp.size() << "\n";
                 packet_number_length = (res & 0xc0) >> 6; //(res >> 5) & 0x03;
                 packet_number_length += 1;
-                std::cerr << "quic_deser_enc hdr_type " << hdr_type << "\n";
-                std::cerr << "quic_deser_enc packet_number_length " << packet_number_length << "\n";
-                std::cerr << "quic_deser_enc long_format " << long_format << "\n";
+                std::cerr << "quic_deser_short_enc hdr_type " << hdr_type << "\n";
+                std::cerr << "quic_deser_short_enc packet_number_length " << packet_number_length << "\n";
+                std::cerr << "quic_deser_short_enc long_format " << long_format << "\n";
                 //This is then shifted by 4 so that only the original 0xxx 0000 (3) bits are significant.
                 //res = long_format ? ((hdr_type & 0x30) >> 4) : 3;
-                if(res == hdr_type) {
-                    std::cerr << "quic_deser_enc randombyte " << hdr_type << "\n";
-                    data_remaining = inp.size();
-                    is_random_padding_packet = true;
-                    state = quic_s_payload;
-                } else {
-                    state = quic_s_version;
-                }
-            }
-            break;
-            case quic_s_version:
-            {
-                if (long_format) {
-                    ivy_binary_deser_128::getn(res,4);
-                    //ivy_binary_deser::getn(res,4);
-	        	}
-                else
-                    res = 0;
                 state = quic_s_dcid;
             }
             break;
@@ -168,74 +144,7 @@ object quic_deser_enc = {}
                 }
 		        getn(res,(dcil));
                 std::cerr << "dstID res " << res << "\n";
-                state = quic_s_scid;
-            }
-            break;
-            case quic_s_scid:
-            {
-                if (long_format) {
-                    int128_t cil;
-                    //long long cil;
-                    getn(cil,1);
-                    std::cerr << "sourceID size " << cil << "\n";  
-                    if(cil > 0)
-                        have_scid = true;
-                    else 
-                        have_scid = false;
-                    scil = cil;
-                    scid_h = cil;
-                } else {
-                    scil = 0;
-                }
-                getn(res,scil);
-                std::cerr << "sourceID res " << res << "\n";
-
-                /*if(scil != 8) { //tricks
-                tls_field_bytes_map["scid"] = scil;
-                }*/
-                //int128_t tok_len;
-                //long long len;
-                //if (long_format & ((hdr_type & 0x30) == 0x00)){
-                //get_var_int(tok_len);
-		        //}
-                // else len = 0;
-
-                //int128_t len;
-                //get_var_int(len); // token length
-                //data_remaining = len;
-		        std::cerr << "sourceID token len " << data_remaining << "\n";
-                state = quic_s_retry_token_length;
-            }
-            break;
-            case quic_s_retry_token_length:
-            {
-                int128_t len;
-                //long long len;
-                if (long_format & ((hdr_type & 0x30) == 0x00)){
-                    get_var_int(res);
-                    len = res;
-                } else {
-                    len = 0;
-                }
-                token_length = len;
-                data_remaining = len;
-                std::cerr << "quic_deser_enc token " << token_length << "\n";
-                state = quic_s_retry_token;
-            }
-            break;
-            case quic_s_pkt_num:
-            {
-                fence = 0;
-                if (payload_length > 0) {
-                    fence = pos + payload_length - QUIC_DESER_FAKE_CHECKSUM_LENGTH;
-                } else {
-                    fence = inp.size() - QUIC_DESER_FAKE_CHECKSUM_LENGTH;
-                }
-                std::cerr << "quic_deser_enc fence " << fence << "\n";
-                int pkt_num_len = get_pkt_num(res);
-                std::cerr << "quic_deser_enc pkt_num_len " << pkt_num_len << "\n";
-                data_remaining = payload_length - pkt_num_len;
-                std::cerr << "quic_deser_enc pkt_num " << res << "\n";
+                data_remaining = inp.size() - pos;
                 state = quic_s_payload;
             }
             break;
@@ -250,39 +159,17 @@ object quic_deser_enc = {}
                 }
                 payload_length = res;
                 data_remaining = res;
-                std::cerr << "quic_deser_enc payload_length " << payload_length << "\n";
+                std::cerr << "quic_deser_short_enc payload_length " << payload_length << "\n";
                 state = quic_s_pkt_num;
             }
             break;
             case quic_s_payload:
             {
-                if(!is_from_open_list && is_random_padding_packet) {
-                    data_remaining--;
-                    
-                }  
-                if (is_random_padding_packet & data_remaining == 0) {
-                    std::cerr << "quic_deser_enc end of random padding packet\n";
-                    end();
-                    close_struct();
-                }
                 getn(res,1);         
-                // std::cerr << "quic_deser_enc payload remaining " << data_remaining << "\n";
-            }
-            break;
-            case quic_s_retry_token:
-            {
-                if(token_length > 0){
-                    //std::cerr << "quic_deser_enc token_length " << token_length << "\n";
-                    getn(res,1);
-                    token_length--;
-                }
-                else
-                    state = quic_s_pkt_num;
-                //std::cerr << "quic_deser_enc quic_s_retry_token remaining " << data_remaining << "\n";
             }
             break;
             default:
-                std::cerr << "quic_deser_enc 3\n";  
+                std::cerr << "quic_deser_short_enc 3\n";  
                 throw deser_err();
             }
         }
@@ -300,12 +187,10 @@ object quic_deser_enc = {}
             res |= (lobyte & 0x3f) << (bytes << 3);
         }
 
-       // void get_pkt_num(long long &res) {
-       //     ivy_binary_deser::getn(res,(hdr_type & 3)+1);
         int get_pkt_num(int128_t &res) {
             ivy_binary_deser_128::getn(res, packet_number_length); //TODO hack +2
             return packet_number_length;
-            std::cerr << "quic_deser_enc get_pkt_num test " << res << "\n";
+            std::cerr << "quic_deser_short_enc get_pkt_num test " << res << "\n";
             static int lens[4] = {0,0,1,3};
             int128_t lobyte;
             ivy_binary_deser_128::getn(lobyte,1);
@@ -340,7 +225,7 @@ object quic_deser_enc = {}
             std::cerr << "state          = " << state << "\n";  
             std::cerr << "quic_s_payload = " << quic_s_payload << "\n";
             std::cerr << "quic_s_payload == " << (quic_s_payload == state) << "\n";
-            std::cerr << "quic_deser_enc 2\n";  
+            std::cerr << "quic_deser_short_enc 2\n";  
             throw deser_err();
         }
 
@@ -353,15 +238,13 @@ object quic_deser_enc = {}
                //    pos++;  // skip padding frames
                return data_remaining-- > 0; //(fence == 0 || pos < fence) && more(1);
             }
-            if (state == quic_s_retry_token)
-                return data_remaining-- > 0;
-            std::cerr << "quic_deser_enc 1\n";  
+            std::cerr << "quic_deser_short_enc 1\n";  
             throw deser_err();
         }
 
         void open_list() {
             if (state == quic_s_payload) {
-                std::cerr << "quic_deser_enc open_list quic_s_payload\n";
+                std::cerr << "quic_deser_short_enc open_list quic_s_payload\n";
                 is_from_open_list = true; //hack for random bytes packet;
                 state = quic_s_payload;
             }
@@ -378,7 +261,7 @@ object quic_deser_enc = {}
                 pos += QUIC_DESER_FAKE_CHECKSUM_LENGTH; // skip the fake checksum
             }
             if (state == quic_s_retry_token) {
-                std::cerr << "quic_deser_enc close_list quic_s_retry_token\n";
+                std::cerr << "quic_deser_short_enc close_list quic_s_retry_token\n";
                 state = quic_s_payload_length;
             }
         }
@@ -388,7 +271,7 @@ object quic_deser_enc = {}
             state = quic_s_payload;
         }
 
-        ~quic_deser_enc(){}
+        ~quic_deser_short_enc(){}
     };
 
 >>>
