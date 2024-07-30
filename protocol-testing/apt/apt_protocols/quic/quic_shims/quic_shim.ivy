@@ -7,6 +7,10 @@ include quic_deser
 include quic_ser
 include quic_deser_enc
 include quic_ser_enc
+include quic_deser_random
+include quic_ser_random
+include quic_deser_short_enc
+include quic_ser_short_enc
 include quic_deser_vn
 include quic_ser_vn
 include quic_deser_retry
@@ -90,11 +94,11 @@ relation zero_rtt_sent
 relation send_connection_close # TODO, send co_close at end of test or not
 
 after init {
-    initial_keys_set(C) := false;
-    tp_client_set := false;
-    client_non_zero_scil := false;
-    zero_rtt_allowed := false;
-    zero_rtt_sent := false;
+    initial_keys_set(C)   := false;
+    tp_client_set         := false;
+    client_non_zero_scil  := false;
+    zero_rtt_allowed      := false;
+    zero_rtt_sent         := false;
     send_connection_close := false;
 }
 
@@ -896,7 +900,7 @@ action is_random_padding_packet(spkt:stream_data) returns (is_padding:bool) = {
 
 # To send and receive packets, we need to serialize and deserialize them.
 # This object allows that.
-instance quic_encrypted_packet_serdes : serdes(packet.encrypted_quic_packet,stream_data,quic_ser_enc,quic_deser_enc)
+
 instance quic_packet_serdes : serdes(packet.quic_packet,stream_data,quic_ser,quic_deser)
 instance quic_vn_packet_serdes : serdes(packet.quic_packet_vn,stream_data,quic_ser_vn,quic_deser_vn)
 instance quic_retry_packet_serdes : serdes(packet.quic_packet_retry,stream_data,quic_ser_retry,quic_deser_retry)

@@ -204,26 +204,15 @@ object endpoint = {
 
                 if ~nat_configured {
                     nat_configured := true;
-                    ep_client := src; # Like initial connection from client 
+                    ep_client      := src; # Like initial connection from client 
                     call nat_configured_event(src,dst);
                 } 
 
-                # if pkt.ptype = quic_packet_type.initial {
-                #     # An initial packet with an unseen destination cid is a connection request.
-                #     if ~conn_seen(dcid)  {
-                #         call show_initial_request_initial;
-                #         call tls_client_initial_request(src,dst,dcid,pkt.pversion,src_tls_id(src));
-                #         conn_requested(src,dst,scid) := true;
-                #     };
-                #     cid_to_token(dcid) := pkt.token;
-                # };
-
-                var is_enc := true;
+                var is_enc     := true;
                 var to_forward := false;
 
                 while idx < pkts.end {
                     var ppkt := pkts.value(idx);
-
                     var tls_id := src_tls_id(dst); # todo multiple
                     var header := ppkt.value(0);
                     var hdr_type : type_bits := bfe[0][6](ppkt.value(0));
@@ -234,7 +223,6 @@ object endpoint = {
                     var ptype : byte := bvand(0x30,header);
 
                     if bvand(ppkt.value(0),0xf0) = 0xc0 {
-                        # for client test
                         call tls_start_eavedrop(src,dst,ppkt)
                     };
 
@@ -243,19 +231,14 @@ object endpoint = {
                         # 1000 0000 == version_negociation
                         past_data := past_data.extend(ppkt);
                         # TODO
-                        # call tls_client_version_response(src,dst,past_data);
                     } 
+                
                     else if (tt = 0x30 & is_long) & ~(bversion = 0)  {
-                        #for server test, Retry packet
+                        #  Retry packet
                         # TODO
-                        #call tls_client_retry_response(src,dst,ppkt);
                     } 
-                    # else if is_pad { #is_pad | is_rand_pad
-                    #     call padding_packet_event(src,dst,ppkt); # For quic-go and quand  client
-                    # } 
                     else { 
                         var rnum := reference_pkt_num(ppkt,true);
-
                         var res := quic_prot.decrypt_quic(tls_id,rnum,ppkt);
                         var dcil : stream_pos := bfe[0][7](ppkt.value(5));
                         var ikm := cid_to_bytes(0,1); # dcid
@@ -280,23 +263,10 @@ object endpoint = {
 
 
                             if forward_packets { # To server
-                                if src = ep_client {
-                                    #if ~packets_forwarded(rppkt) {
-                                        # TODO manage coallesced packet -> stream_data_array + loop
-                                        packet_to_forward_to(mim_agent.ep_server,number_packet_recv_from(ep_server)) :=  packet_to_forward_to(mim_agent.ep_server,number_packet_recv_from(ep_server)).append(rppkt);
-                                        if ~keep_coalesed {
-                                            number_packet_recv_from(ep_server) := number_packet_recv_from(ep_server) + 1;
-                                        };
-                                    #}
-
-                                } else if src = ep_server {
-                                    # if ~ packets_forwarded(rppkt) {
-                                        packet_to_forward_to(mim_agent.ep_client,number_packet_recv_from(ep_client)) := packet_to_forward_to(mim_agent.ep_client,number_packet_recv_from(ep_client)).append(rppkt);
-                                        if ~keep_coalesed {
-                                            number_packet_recv_from(ep_client) := number_packet_recv_from(ep_client) + 1;
-                                        };
-                                    #}
-                                }
+                                call receiving_packet(src,dst,rppkt);
+                                if ~keep_coalesed {
+                                    number_packet_recv_from(src) := number_packet_recv_from(src) + 1;
+                                };
                             };
                             
                             if forward_packets_target {
@@ -312,34 +282,27 @@ object endpoint = {
                         } else {
                             if is_long {
                                 if is_random_padding_packet(ppkt) {
-                                    call random_padding_or_short_packet_event(src,dst,ppkt);
+                                    var rppkt := quic_random_padding_encrypted_packet_serdes.from_bytes(ppkt);
+                                    call recv_random_padding_or_short_packet_event(src,dst,rppkt);
+                                    to_forward := true;
                                     if forward_packets { # To server
-                                        if src = ep_client {
-                                            encrypted_padding_packet_to_forward_to(ep_server,number_encrypted_packet_recv_from(ep_server)) := ppkt;
-                                        } else if src = ep_server {
-                                            encrypted_padding_packet_to_forward_to(ep_client,number_encrypted_packet_recv_from(ep_client)) := ppkt;
-                                        }
+                                        call receiving_packet(src,dst,rppkt);
+                                        if ~keep_coalesed {
+                                            number_encrypted_packet_recv_from(src) := number_encrypted_packet_recv_from(src) + 1;
+                                        };
                                     };
                                 } else {
                                     var rppkt := quic_encrypted_packet_serdes.from_bytes(ppkt);
-                                    call show_payload_len(rppkt.payload.end);
-                                    if packet_forwarded(rppkt){
+                                    if already_forwarded(src,dst,rppkt) {
                                         call arp_duplicated_encrypted_packet_event(src,dst,rppkt);
                                     } else {
                                         to_forward := true;
                                         call recv_encrypted_packet(host,src,dst,rppkt);
                                         if forward_packets { # To server
-                                            if src = ep_client {
-                                                encrypted_packet_to_forward_to(ep_server,number_encrypted_packet_recv_from(ep_server)) := encrypted_packet_to_forward_to(ep_server,number_encrypted_packet_recv_from(ep_server)).append(rppkt);
-                                                if ~keep_coalesed {
-                                                    number_encrypted_packet_recv_from(ep_server) := number_encrypted_packet_recv_from(ep_server) + 1;
-                                                };
-                                            } else if src = ep_server {
-                                                encrypted_packet_to_forward_to(ep_client,number_encrypted_packet_recv_from(ep_client)) := encrypted_packet_to_forward_to(ep_client,number_encrypted_packet_recv_from(ep_client)).append(rppkt);
-                                                if ~keep_coalesed {
-                                                    number_encrypted_packet_recv_from(ep_client) := number_encrypted_packet_recv_from(ep_client) + 1;
-                                                };
-                                            }
+                                            call receiving_packet(src,dst,rppkt);
+                                            if ~keep_coalesed {
+                                                number_encrypted_packet_recv_from(src) := number_encrypted_packet_recv_from(src) + 1;
+                                            };
                                         };
                                     } 
                                 }
@@ -347,13 +310,13 @@ object endpoint = {
                             else {
                                 # probably short header
                                 to_forward := true;
-                                call recv_encrypted_short_packet(src,dst,ppkt);
+                                var rppkt := quic_encrypted_short_packet_serdes.from_bytes(ppkt);
+                                call recv_encrypted_short_packet(src,dst,rppkt);
                                 if forward_packets { # To server
-                                    if src = ep_client {
-                                        encrypted_padding_packet_to_forward_to(ep_server,1000) := ppkt; # TODO fix when i am more awake
-                                    } else if src = ep_server {
-                                        encrypted_padding_packet_to_forward_to(ep_client,1000) := ppkt;
-                                    }
+                                    call receiving_packet(src,dst,rppkt);
+                                    if ~keep_coalesed {
+                                        number_encrypted_packet_recv_from(src) := number_encrypted_packet_recv_from(src) + 1;
+                                    };
                                 };
                             }
                         }
@@ -362,26 +325,17 @@ object endpoint = {
                 };
 
                 if forward_packets & keep_coalesed & to_forward { # To server
-                    if src = ep_client {
-                        if is_enc {
-                            number_encrypted_packet_recv_from(ep_server) := number_encrypted_packet_recv_from(ep_server) + 1;
-                        } else {
-                            number_packet_recv_from(ep_server) := number_packet_recv_from(ep_server) + 1;
-                        };
-                    } else if src = ep_server {
-                        if is_enc {
-                            number_encrypted_packet_recv_from(ep_client) := number_encrypted_packet_recv_from(ep_client) + 1;
-                        } else {
-                            number_packet_recv_from(ep_client) := number_packet_recv_from(ep_client) + 1;
-                        };
+                    if is_enc {
+                        number_encrypted_packet_recv_from(src) := number_encrypted_packet_recv_from(src) + 1;
+                    } else {
+                        number_packet_recv_from(src) := number_packet_recv_from(src) + 1;
                     };
-                    call cppkt_forwarded_to_client_count_debug_event(number_packet_recv_from(ep_client));
-                    call cppkt_forwarded_to_server_count_debug_event(number_packet_recv_from(ep_server));
+                    call cppkt_forwarded_to_client_count_debug_event(number_packet_recv_from(src));
+                    call cppkt_forwarded_to_server_count_debug_event(number_packet_recv_from(dst));
 
-                    call cppkt_forwarded_to_client_count_debug_event(number_encrypted_packet_recv_from(ep_client));
-                    call cppkt_forwarded_to_server_count_debug_event(number_encrypted_packet_recv_from(ep_server));
+                    call cppkt_forwarded_to_client_count_debug_event(number_encrypted_packet_recv_from(src));
+                    call cppkt_forwarded_to_server_count_debug_event(number_encrypted_packet_recv_from(dst));
                 };
-
             }
 
             action tls_start_eavedrop(src:ip.endpoint,dst:ip.endpoint,spkt:stream_data) = {
@@ -670,8 +624,8 @@ object endpoint = {
 
             import action nat_configured_event(src:ip.endpoint, dst:ip.endpoint)
             import action client_target_setup_event(src:ip.endpoint)
-            import action recv_encrypted_short_packet(src:ip.endpoint, dst:ip.endpoint, pkt:stream_data)
-            import action random_padding_or_short_packet_event(src:ip.endpoint, dst:ip.endpoint, pkt:stream_data)
+            import action recv_encrypted_short_packet(src:ip.endpoint, dst:ip.endpoint, pkt:packet.encrypted_short_quic_packet)
+            import action recv_random_padding_or_short_packet_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.random_padding_encrypted_quic_packet)
             import action arp_duplicated_encrypted_packet_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.encrypted_quic_packet)
             import action recv_packet(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
             import action recv_encrypted_packet(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet)

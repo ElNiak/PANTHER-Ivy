@@ -14,3 +14,34 @@ include tls_api
 include protection
 
 import action show_current_time(now:milliseconds)
+
+
+object packet = {
+    ...
+
+    after forward_to(src:ip.endpoint,dst:ip.endpoint,pkt:packet.arr) {
+        if _generating {
+            var idx := pkt.begin;
+            var pkts_mim := quic_prot.arr.empty;
+            while idx < pkt.end {
+                # packets_received(pkt.value(idx)) := true;
+                var p := pkt.value(idx);
+                if some(cf:packet.quic_packet)p *> cf {
+                    var spkt := quic_packet_serdes.to_bytes(cf);
+                    pkts_mim := pkts_mim.append(spkt);
+                } else if some(cf:packet.encrypted_quic_packet)p *> cf {
+                    var spkt := quic_encrypted_packet_serdes.to_bytes(cf);
+                    pkts_mim := pkts_mim.append(spkt);
+                } else if some(cf:packet.ping_packet)p *> cf {
+                    var spkt := ping_packet_serdes.to_bytes(cf);
+                    pkts_mim := pkts_mim.append(spkt);
+                };
+                #TODO allow forwarding coalesed packet or not
+                idx := idx.next; 
+            }; 
+            call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
+            mim_agent.last_packet_forwarded_to(mim_agent.ep_client) := mim_agent.last_packet_forwarded_to(mim_agent.ep_client) + 1;
+        }
+    }  
+
+}

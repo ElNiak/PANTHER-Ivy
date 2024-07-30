@@ -4,31 +4,6 @@
 # Packet protocol state
 # ---------------------
 
-relation packets_forwarded(P:stream_data)
-relation packet_forwarded_arr(P:stream_data)
-
-
-# relation packet_number_forwarded(H:ip.endpoint,C:stream_pos)
-
-
-function packet_recv_from_server(P:stream_pos):stream_data_array
-function packet_recv_from_client(P:stream_pos):stream_data_array
-
-# Initial state
-# -------------
-
-# The history variables are initialized as follows.  Initially, no
-# connections have been seen and no packets have been sent or
-# acknowledged.
-
-after init {
-    packets_forwarded(P) := false;
-    packet_forwarded_arr(P) := false;
-
-    packet_recv_from_server(P) := stream_data_array.empty;
-    packet_recv_from_client(P) := stream_data_array.empty;
-}
-
 object packet = {
    ...
 
@@ -36,7 +11,14 @@ object packet = {
         variant this of packet = struct {
             payload : stream_data
         }
+    }
+}
 
+object packet = {
+    ...
+
+    object malicious_stream_data_packet = {
+        ...
 
         action forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet)
         around forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {

@@ -10,125 +10,14 @@
 
 
 object packet = {
-   ...
-
-    object encrypted_quic_packet = {
-        variant this of packet = struct {
-            head_byte : stream_pos, # [2]
-            pversion : version, # [3]
-            dst_cid : cid, # [4]
-            src_cid : cid, # [5]
-            token_len : stream_pos, # [6]
-            token : stream_data, # [6]
-            payload_len : stream_pos, # [6]
-            seq_num : pkt_num, # [7]
-            payload : stream_data # [8]
-        }
-
-        #Hamid
-        #instance retired_cids : array(idx, cid_seq)
-        #Hamid
-
-        instance idx : unbounded_sequence
-        instance arr : array(idx,this) 
-
-        action long(pkt:this) returns(res:bool) = {
-            res := bvand(0x80,pkt.head_byte) ~= 0;
-        }
-
-    }
-
-    object random_padding_encrypted_quic_packet = {
-        variant this of packet = struct {
-            payload : stream_data # [8]
-        }
-
-        #Hamid
-        #instance retired_cids : array(idx, cid_seq)
-        #Hamid
-
-        instance idx : unbounded_sequence
-        instance arr : array(idx,this) 
-
-    }
-
-    object encrypted_short_quic_packet = {
-        variant this of packet = struct {
-            head_byte : stream_pos, # [2]
-            pversion : version, # [3]
-            dst_cid : cid, # [4]
-            payload : stream_data # [8]
-        }
-
-        #Hamid
-        #instance retired_cids : array(idx, cid_seq)
-        #Hamid
-
-        instance idx : unbounded_sequence
-        instance arr : array(idx,this) 
-
-    }
-}
-
-# Packet protocol state
-# ---------------------
-
-# relation packets_forwarded(P:packet.arr)
-# relation packet_forwarded(P:packet)
-relation packets_forwarded(P:packet.encrypted_quic_packet.arr)
-relation packet_forwarded(P:packet.encrypted_quic_packet)
-
-
-# relation packet_number_forwarded(H:ip.endpoint,C:stream_pos)
-
-
-function packet_recv_from_server(P:stream_pos):stream_data_array
-function packet_recv_from_client(P:stream_pos):stream_data_array
-
-object packet = {
     ...
 
-    object encrypted_quic_packet = {
+    object quic_packet = {
+
         ...
 
-        action forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet.arr)
-        around forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet.arr) {
-            require _generating;
-            require pkt.end > 0 | mim_agent.encrypted_padding_packet_to_forward_to(mim_agent.ep_client,1000).end > 0;
-            require mim_agent.nat_configured;
-            require src ~= dst;
-        }
-        
-        action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet.arr)
-        before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet.arr) {
-            require _generating;
-            require pkt.end > 0 | mim_agent.encrypted_padding_packet_to_forward_to(mim_agent.ep_server,1000).end > 0;                
-            require mim_agent.nat_configured;
-            require src ~= dst;
-        }
-
-        action replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet)
-        around replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
-            require _generating;
-            require pkt.end > 0;
-            require mim_agent.nat_configured;
-            require src ~= dst;
-            ...
-            call enqueue_packet(src,dst,pkt);
-        }
-
-        action replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet)
-        around replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
-            require _generating;
-            require pkt.end > 0;
-            require mim_agent.nat_configured;
-            require src ~= dst;
-            ...
-            call enqueue_packet(src,dst,pkt);
-        }
-
-        action modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet)
-        around modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
+        action forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
+        around forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
             require _generating;
             require pkt.payload.end > 0;
             require mim_agent.nat_configured;
@@ -136,50 +25,11 @@ object packet = {
             ...
             call enqueue_packet(src,dst,pkt);
         }
-    }
-
-    object random_padding_encrypted_quic_packet = {
-        ...
-
-        action forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet.arr)
-        around forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet.arr) {
-            require _generating;
-            require pkt.end > 0 | mim_agent.encrypted_padding_packet_to_forward_to(mim_agent.ep_client,mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server)+1).end > 0;
-            require mim_agent.nat_configured;
-            require src ~= dst;
-            ...
-            call enqueue_packet(src,dst,pkt);
-        }
         
-        action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet.arr)
-        around forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet.arr) {
+        action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
+        around forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
             require _generating;
-            require pkt.end > 0 | mim_agent.encrypted_padding_packet_to_forward_to(mim_agent.ep_server,mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server)+1).end > 0;
-            require mim_agent.nat_configured;
-            require src ~= dst;
-            ...
-            call enqueue_packet(src,dst,pkt);
-        }
-    }
-
-    object quic_packet = {
-
-        ...
-
-        action forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet.arr)
-        around forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet.arr) {
-            require _generating;
-            require pkt.end > 0;
-            require mim_agent.nat_configured;
-            require src ~= dst;
-            ...
-            call enqueue_packet(src,dst,pkt);
-        }
-        
-        action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet.arr)
-        around forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet.arr) {
-            require _generating;
-            require pkt.end > 0;
+            require pkt.payload.end > 0;
             require mim_agent.nat_configured;
             require src ~= dst;
             ...
@@ -190,3 +40,11 @@ object packet = {
 
 }
 
+
+function quic_packet_recevied_last_round(C:ip.endpoint) : packet.quic_packet.arr
+
+after receiving_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet) {
+    if some(cf:packet.quic_packet)pkt *> cf {
+        quic_packet_recevied_last_round(dst) := quic_packet_recevied_last_round(dst).append(cf);
+    }
+}
