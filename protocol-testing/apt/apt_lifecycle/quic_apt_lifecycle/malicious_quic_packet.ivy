@@ -24,6 +24,7 @@ object packet = {
             require src ~= dst;
             ...
             call enqueue_packet(src,dst,pkt);
+            is_quic_packet_received(dst,pkt) := true;
         }
         
         action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
@@ -34,17 +35,72 @@ object packet = {
             require src ~= dst;
             ...
             call enqueue_packet(src,dst,pkt);
+            is_quic_packet_received(dst,pkt) := true;
         }
-        
-    }
 
+        action replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
+        around replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
+            require _generating;
+            require pkt.payload.end > 0;
+            require is_quic_packet_received(dst,pkt);
+            require quic_packets_received_last_round(dst).end > 0;
+            require mim_agent.nat_configured;
+            require src = mim_agent.ep_server & dst = mim_agent.ep_client;
+            require src ~= dst;
+            ...
+            call enqueue_packet(src,dst,pkt);
+            is_quic_packet_received(dst,pkt) := false;
+        }
+
+        action replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
+        around replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
+            require _generating;
+            require pkt.payload.end > 0;
+            require is_quic_packet_received(dst,pkt);
+            require quic_packets_received_last_round(dst).end > 0;
+            require mim_agent.nat_configured;
+            require src = mim_agent.ep_client & dst = mim_agent.ep_server;
+            require src ~= dst;
+            ...
+            call enqueue_packet(src,dst,pkt);
+            is_quic_packet_received(dst,pkt) := false;
+        }
+
+        action modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
+        around modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
+            require _generating;
+            require pkt.payload.end > 0;
+            require mim_agent.nat_configured;
+            require is_quic_packet_received(dst,pkt);
+            require quic_packets_received_last_round(dst).end > 0;
+            require src ~= dst;
+            ...
+            call enqueue_packet(src,dst,pkt);
+            is_quic_packet_received(dst,pkt) := true;
+        }   
+    }
 }
 
 
-function quic_packet_recevied_last_round(C:ip.endpoint) : packet.quic_packet.arr
+function quic_packets_received_last_round(C:ip.endpoint) : packet.quic_packet.arr 
+function quic_packet_received_last_round(C:ip.endpoint) : packet.quic_packet
+relation is_quic_packet_received(C:ip.endpoint, P:packet.quic_packet) 
+
+after init {
+    quic_packets_received_last_round(C) := packet.quic_packet.arr.empty;
+}
 
 after receiving_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet) {
-    if some(cf:packet.quic_packet)pkt *> cf {
-        quic_packet_recevied_last_round(dst) := quic_packet_recevied_last_round(dst).append(cf);
-    }
+    packets_received_last_round(dst) := packets_received_last_round(dst).append(pkt);
+    packets_received(dst)            := packets_received(dst).append(pkt);
+    if some(cf:packet.quic_packet) pkt *> cf  {
+        quic_packet_received_last_round(dst)  := cf;
+        is_quic_packet_received(dst,cf)       := true;
+        quic_packets_received_last_round(dst) := quic_packets_received_last_round(dst).append(cf);
+    } 
+}
+
+after update_received_packet(src:ip.endpoint,dst:ip.endpoint) {
+    # is_quic_packet_received(dst) := false;
+    quic_packets_received_last_round(dst) := packet.quic_packet.arr.empty;
 }

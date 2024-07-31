@@ -3,75 +3,99 @@
 # Packet protocol state
 # ---------------------
 
-relation packets_forwarded(P:stream_data)
-relation packet_forwarded_arr(P:stream_data)
-
-
-# relation packet_number_forwarded(H:ip.endpoint,C:stream_pos)
-
-
-function packet_recv_from_server(P:stream_pos):stream_data_array
-function packet_recv_from_client(P:stream_pos):stream_data_array
-
-# Initial state
-# -------------
-
-# The history variables are initialized as follows.  Initially, no
-# connections have been seen and no packets have been sent or
-# acknowledged.
-
-after init {
-    packets_forwarded(P) := false;
-    packet_forwarded_arr(P) := false;
-
-    packet_recv_from_server(P) := stream_data_array.empty;
-    packet_recv_from_client(P) := stream_data_array.empty;
-}
-
 object packet = {
-   ...
+    ...
 
     object ping_packet = {
 
         ...
 
         action forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet)
-        before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+        around forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
             require _generating;
             require pkt.payload.end > 0;
             require mim_agent.nat_configured;
             require src ~= dst;
-            # require ~packet_number_forwarded(mim_agent.ep_client,mim_agent.last_packet_forwarded_to(mim_agent.ep_client));
-            # ...
-            # # packet_number_forwarded(mim_agent.ep_client,mim_agent.last_packet_forwarded_to(mim_agent.ep_client)) := true;
-            # mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_packet_forwarded_to(mim_agent.ep_client)) := packet.ping_packet.arr.empty;  # help solver
+            ...
+            call enqueue_packet(src,dst,pkt);
+            is_ping_packet_received(dst,pkt) := true;
         }
         
         action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet)
-        before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+        around forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
             require _generating;
             require pkt.payload.end > 0;
             require mim_agent.nat_configured;
             require src ~= dst;
-            # require ~packet_number_forwarded(mim_agent.ep_server,mim_agent.last_packet_forwarded_to(mim_agent.ep_server));
-            # ...
-            # # packet_number_forwarded(mim_agent.ep_server,mim_agent.last_packet_forwarded_to(mim_agent.ep_server)) := true;
-            # mim_agent.ppkt_to_be_forwarded_to_server(mim_agent.last_packet_forwarded_to(mim_agent.ep_server)) := packet.ping_packet.arr.empty;  # help solver
+            ...
+            call enqueue_packet(src,dst,pkt);
+            is_ping_packet_received(dst,pkt) := true;
         }
 
         action replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet)
-        before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+        around replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
             require _generating;
-            require pkt.payload.end = 1;
+            require pkt.payload.end > 0;
+            require is_ping_packet_received(dst,pkt);
+            require ping_packets_received_last_round(dst).end > 0;
             require mim_agent.nat_configured;
+            require src = mim_agent.ep_server & dst = mim_agent.ep_client;
             require src ~= dst;
-            # require ~packet_number_forwarded(mim_agent.ep_client,mim_agent.last_packet_forwarded_to(mim_agent.ep_client));
-            # ...
-            # # packet_number_forwarded(mim_agent.ep_client,mim_agent.last_packet_forwarded_to(mim_agent.ep_client)) := true;
-            # mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_packet_forwarded_to(mim_agent.ep_client)) := packet.ping_packet.arr.empty;  # help solver
+            ...
+            call enqueue_packet(src,dst,pkt);
+            is_ping_packet_received(dst,pkt) := false;
         }
-        
-    }
 
+        action replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet)
+        around replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+            require _generating;
+            require pkt.payload.end > 0;
+            require is_ping_packet_received(dst,pkt);
+            require ping_packets_received_last_round(dst).end > 0;
+            require mim_agent.nat_configured;
+            require src = mim_agent.ep_client & dst = mim_agent.ep_server;
+            require src ~= dst;
+            ...
+            call enqueue_packet(src,dst,pkt);
+            is_ping_packet_received(dst,pkt) := false;
+        }
+
+        action modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet)
+        around modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+            require _generating;
+            require pkt.payload.end > 0;
+            require mim_agent.nat_configured;
+            require is_ping_packet_received(dst,pkt);
+            require ping_packets_received_last_round(dst).end > 0;
+            require src ~= dst;
+            ...
+            call enqueue_packet(src,dst,pkt);
+            is_ping_packet_received(dst,pkt) := true;
+        }   
+    }
 }
 
+
+
+function ping_packets_received_last_round(C:ip.endpoint) : packet.ping_packet.arr 
+function ping_packet_received_last_round(C:ip.endpoint) : packet.ping_packet
+relation is_ping_packet_received(C:ip.endpoint, P:packet.ping_packet) 
+
+after init {
+    ping_packets_received_last_round(C) := packet.ping_packet.arr.empty;
+}
+
+after receiving_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet) {
+    packets_received_last_round(dst) := packets_received_last_round(dst).append(pkt);
+    packets_received(dst)            := packets_received(dst).append(pkt);
+    if some(cf:packet.ping_packet) pkt *> cf  {
+        ping_packet_received_last_round(dst)  := cf;
+        is_ping_packet_received(dst,cf)       := true;
+        ping_packets_received_last_round(dst) := ping_packets_received_last_round(dst).append(cf);
+    } 
+}
+
+after update_received_packet(src:ip.endpoint,dst:ip.endpoint) {
+    # is_ping_packet_received(dst) := false;
+    ping_packets_received_last_round(dst) := packet.ping_packet.arr.empty;
+}

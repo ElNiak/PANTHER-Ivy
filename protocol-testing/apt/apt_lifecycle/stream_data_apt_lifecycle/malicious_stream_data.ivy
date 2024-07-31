@@ -18,6 +18,7 @@ object packet = {
     ...
 
     object malicious_stream_data_packet = {
+
         ...
 
         action forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet)
@@ -26,10 +27,9 @@ object packet = {
             require pkt.payload.end > 0;
             require mim_agent.nat_configured;
             require src ~= dst;
-            # require ~packet_number_forwarded(mim_agent.ep_client,mim_agent.last_packet_forwarded_to(mim_agent.ep_client));
             ...
-            # packet_number_forwarded(mim_agent.ep_client,mim_agent.last_packet_forwarded_to(mim_agent.ep_client)) := true;
-            mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_packet_forwarded_to(mim_agent.ep_client)) := stream_data.empty;  # help solver
+            call enqueue_packet(src,dst,pkt);
+            is_malicious_stream_data_packet_received(dst,pkt) := true;
         }
         
         action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet)
@@ -38,13 +38,72 @@ object packet = {
             require pkt.payload.end > 0;
             require mim_agent.nat_configured;
             require src ~= dst;
-            # require ~packet_number_forwarded(mim_agent.ep_server,mim_agent.last_packet_forwarded_to(mim_agent.ep_server));
             ...
-            # packet_number_forwarded(mim_agent.ep_server,mim_agent.last_packet_forwarded_to(mim_agent.ep_server)) := true;
-            mim_agent.ppkt_to_be_forwarded_to_server(mim_agent.last_packet_forwarded_to(mim_agent.ep_server)) := stream_data.empty;  # help solver
+            call enqueue_packet(src,dst,pkt);
+            is_malicious_stream_data_packet_received(dst,pkt) := true;
         }
-        
-    }
 
+        action replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet)
+        around replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
+            require _generating;
+            require pkt.payload.end > 0;
+            require is_malicious_stream_data_packet_received(dst,pkt);
+            require malicious_stream_data_packets_received_last_round(dst).end > 0;
+            require mim_agent.nat_configured;
+            require src = mim_agent.ep_server & dst = mim_agent.ep_client;
+            require src ~= dst;
+            ...
+            call enqueue_packet(src,dst,pkt);
+            is_malicious_stream_data_packet_received(dst,pkt) := false;
+        }
+
+        action replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet)
+        around replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
+            require _generating;
+            require pkt.payload.end > 0;
+            require is_malicious_stream_data_packet_received(dst,pkt);
+            require malicious_stream_data_packets_received_last_round(dst).end > 0;
+            require mim_agent.nat_configured;
+            require src = mim_agent.ep_client & dst = mim_agent.ep_server;
+            require src ~= dst;
+            ...
+            call enqueue_packet(src,dst,pkt);
+            is_malicious_stream_data_packet_received(dst,pkt) := false;
+        }
+
+        action modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet)
+        around modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
+            require _generating;
+            require pkt.payload.end > 0;
+            require mim_agent.nat_configured;
+            require is_malicious_stream_data_packet_received(dst,pkt);
+            require malicious_stream_data_packets_received_last_round(dst).end > 0;
+            require src ~= dst;
+            ...
+            call enqueue_packet(src,dst,pkt);
+            is_malicious_stream_data_packet_received(dst,pkt) := true;
+        }   
+    }
 }
 
+function malicious_stream_data_packets_received_last_round(C:ip.endpoint) : packet.malicious_stream_data_packet.arr 
+function malicious_stream_data_packet_received_last_round(C:ip.endpoint)  : packet.malicious_stream_data_packet
+relation is_malicious_stream_data_packet_received(C:ip.endpoint, P:packet.malicious_stream_data_packet) 
+
+after init {
+    malicious_stream_data_packets_received_last_round(C) := packet.malicious_stream_data_packet.arr.empty;
+}
+
+after receiving_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet) {
+    packets_received_last_round(dst) := packets_received_last_round(dst).append(pkt);
+    packets_received(dst)            := packets_received(dst).append(pkt);
+    if some(cf:packet.malicious_stream_data_packet) pkt *> cf  {
+        malicious_stream_data_packet_received_last_round(dst)  := cf;
+        is_malicious_stream_data_packet_received(dst,cf)       := true;
+        malicious_stream_data_packets_received_last_round(dst) := malicious_stream_data_packets_received_last_round(dst).append(cf);
+    } 
+}
+
+after update_received_packet(src:ip.endpoint,dst:ip.endpoint) {
+    malicious_stream_data_packets_received_last_round(dst) := packet.malicious_stream_data_packet.arr.empty;
+}
