@@ -48,3 +48,18 @@ implement quic_net.recv(host:endpoint_id, s: quic_net.socket, src:ip.endpoint, p
 import action show_socket_debug_event(s:quic_net.socket)
 import action host_debug_event(host:endpoint_id)
 import action undefined_host_error(host:endpoint_id,s:quic_net.socket,src:ip.endpoint)
+
+# This gives the interpretation of some of the basic data types.
+# Some of these interpretations are chosen to make solving more efficient.
+# Notably, the `intbv` type can be used to represent large numbers with
+# small bit vector enodings.
+
+interpret cid -> longbv[1][13][20]
+interpret version -> bv[32]
+interpret pkt_num -> bv[32]
+interpret error_code -> bv[16]
+interpret stream_id -> bv[16]
+
+attribute quic_frame.idx.cardinality = 1
+attribute quic_frame.ack.range.idx.cardinality = 1
+attribute pkt_num.cardinality = 1

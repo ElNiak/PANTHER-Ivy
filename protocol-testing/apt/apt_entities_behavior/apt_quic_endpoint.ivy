@@ -198,6 +198,7 @@ object endpoint = {
 
             action behavior(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:quic_prot.arr) = {
                 var dst := socket_endpoint_mim(host,s,src);  # because quic_net API doesn't tell us the dst socket_endpoint_mim
+                is_receiving(dst) := true;
                 var idx := pkts.begin;
                 var past_data : stream_data := stream_data.empty;
                 # TODO should not be here
@@ -210,6 +211,7 @@ object endpoint = {
 
                 var is_enc     := true;
                 var to_forward := false;
+                var packet_number_of_coalesed : stream_pos := 0;
 
                 while idx < pkts.end {
                     var ppkt := pkts.value(idx);
@@ -258,27 +260,17 @@ object endpoint = {
                             var jdx := rppkt.payload.begin;
                             while jdx < rppkt.payload.end {
                                 var f := rppkt.payload.value(jdx);
+                                # TODO for frame
                                 jdx := jdx.next;
                             };
 
-
                             if forward_packets { # To server
-                                call receiving_packet(src,dst,rppkt);
+                                call receiving_packet(src,dst,rppkt, packet_number_of_coalesed);
+                                packet_number_of_coalesed := packet_number_of_coalesed + 1;
                                 if ~keep_coalesed {
                                     number_packet_recv_from(src) := number_packet_recv_from(src) + 1;
                                 };
-                            };
-                            
-                            if forward_packets_target {
-                                var ddst := ep_target;
-                                ppkt_to_be_reflected_to_target := rppkt;
-                                call reflection_packets(rppkt,0);
-                            };
-
-                            if replay_packets { # To server
-                                call forward_packet_to(ppkt_saved,host,s,src,dst);
-                            };
-                        
+                            };                     
                         } else {
                             if is_long {
                                 if is_random_padding_packet(ppkt) {
@@ -286,7 +278,8 @@ object endpoint = {
                                     call recv_random_padding_or_short_packet_event(src,dst,rppkt);
                                     to_forward := true;
                                     if forward_packets { # To server
-                                        call receiving_packet(src,dst,rppkt);
+                                        call receiving_packet(src,dst,rppkt, packet_number_of_coalesed);
+                                        packet_number_of_coalesed := packet_number_of_coalesed + 1;
                                         if ~keep_coalesed {
                                             number_encrypted_packet_recv_from(src) := number_encrypted_packet_recv_from(src) + 1;
                                         };
@@ -299,7 +292,8 @@ object endpoint = {
                                         to_forward := true;
                                         call recv_encrypted_packet(host,src,dst,rppkt);
                                         if forward_packets { # To server
-                                            call receiving_packet(src,dst,rppkt);
+                                            call receiving_packet(src,dst,rppkt, packet_number_of_coalesed);
+                                            packet_number_of_coalesed := packet_number_of_coalesed + 1;
                                             if ~keep_coalesed {
                                                 number_encrypted_packet_recv_from(src) := number_encrypted_packet_recv_from(src) + 1;
                                             };
@@ -313,7 +307,8 @@ object endpoint = {
                                 var rppkt := quic_encrypted_short_packet_serdes.from_bytes(ppkt);
                                 call recv_encrypted_short_packet(src,dst,rppkt);
                                 if forward_packets { # To server
-                                    call receiving_packet(src,dst,rppkt);
+                                    call receiving_packet(src,dst,rppkt, packet_number_of_coalesed);
+                                    packet_number_of_coalesed := packet_number_of_coalesed + 1;
                                     if ~keep_coalesed {
                                         number_encrypted_packet_recv_from(src) := number_encrypted_packet_recv_from(src) + 1;
                                     };
@@ -336,6 +331,7 @@ object endpoint = {
                     call cppkt_forwarded_to_client_count_debug_event(number_encrypted_packet_recv_from(src));
                     call cppkt_forwarded_to_server_count_debug_event(number_encrypted_packet_recv_from(dst));
                 };
+                is_receiving(dst) := false;
             }
 
             action tls_start_eavedrop(src:ip.endpoint,dst:ip.endpoint,spkt:stream_data) = {
@@ -483,23 +479,6 @@ object endpoint = {
                 } else {
                     is_padding := false;
                 };
-            }
-
-            action forward_packet_to(ppkt:packet.quic_packet,host:endpoint_id, s:quic_net.socket, src:ip.endpoint, dst:ip.endpoint) = {
-                # forward packet
-                var pkts_mim := quic_prot.arr.empty;
-                var spkt := quic_packet_serdes.to_bytes(ppkt);
-                pkts_mim := pkts_mim.append(spkt);
-                call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket(src),dst,pkts_mim);
-            }
-
-            action replay_packet(ppkt:packet.quic_packet,host:endpoint_id, s:quic_net.socket, src:ip.endpoint) = {
-                # replay packet
-                var dst := socket_endpoint(host,s);
-                var pkts_mim := quic_prot.arr.empty;
-                var spkt := quic_packet_serdes.to_bytes(ppkt);
-                pkts_mim := pkts_mim.append(spkt);
-                call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket(src),dst,pkts_mim);
             }
 
             # TODO use serializer

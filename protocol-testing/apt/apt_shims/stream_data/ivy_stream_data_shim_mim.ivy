@@ -39,35 +39,35 @@ after init {
     is_mim := true;
 }
 
-object packet = {
-    ...
-    object malicious_stream_data_packet = {
-        ...
-        after forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
-            if _generating {
-                # var idx := pkt.payload.begin;
-                var pkts_mim := stream_prot.arr.empty;
-                # while idx < pkt.payload.end {
-                    pkts_mim := pkts_mim.append(pkt.payload);
-                    # TODO allow forwarding coalesed packet or not
-                    # idx := idx.next; 
-                # }; 
-                call stream_data_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
-                mim_agent.last_packet_forwarded_to(mim_agent.ep_client) := mim_agent.last_packet_forwarded_to(mim_agent.ep_client) + 1;
-            }
-        }
+# object packet = {
+#     ...
+#     object malicious_stream_data_packet = {
+#         ...
+#         after forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
+#             if _generating {
+#                 # var idx := pkt.payload.begin;
+#                 var pkts_mim := stream_prot.arr.empty;
+#                 # while idx < pkt.payload.end {
+#                     pkts_mim := pkts_mim.append(pkt.payload);
+#                     # TODO allow forwarding coalesed packet or not
+#                     # idx := idx.next; 
+#                 # }; 
+#                 call stream_data_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
+#                 mim_agent.last_packet_forwarded_to(mim_agent.ep_client) := mim_agent.last_packet_forwarded_to(mim_agent.ep_client) + 1;
+#             }
+#         }
         
-        after forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
-            if _generating {
-                # var idx := pkt.payload.begin;
-                var pkts_mim := stream_prot.arr.empty;
-                # while idx < pkt.payload.end {
-                    pkts_mim := pkts_mim.append(pkt.payload);
-                #     idx := idx.next; 
-                # };
-                call stream_data_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
-                mim_agent.last_packet_forwarded_to(mim_agent.ep_server) := mim_agent.last_packet_forwarded_to(mim_agent.ep_server) + 1;
-            }
-        }
-    }
-}
+#         after forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
+#             if _generating {
+#                 # var idx := pkt.payload.begin;
+#                 var pkts_mim := stream_prot.arr.empty;
+#                 # while idx < pkt.payload.end {
+#                     pkts_mim := pkts_mim.append(pkt.payload);
+#                 #     idx := idx.next; 
+#                 # };
+#                 call stream_data_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
+#                 mim_agent.last_packet_forwarded_to(mim_agent.ep_server) := mim_agent.last_packet_forwarded_to(mim_agent.ep_server) + 1;
+#             }
+#         }
+#     }
+# }

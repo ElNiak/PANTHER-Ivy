@@ -22,43 +22,77 @@ after init {
 }
 
 
+
+export packet.forward_to
+attribute packet.forward_to.weight = "100"
+
+
 object packet = {
     ...
     
     object malicious_stream_data_packet = {
         ...
-        before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
-            call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_packet_forwarded_to(mim_agent.ep_server));
-            call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_packet_forwarded_to(mim_agent.ep_client));
-            if _generating {
-                require mim_agent.ep_client.addr ~= 0;  # must have a client address to send to
-                require src = mim_agent.ep_server;
-                require dst = mim_agent.ep_client;
-                require pkt.payload = mim_agent.ppkt_to_be_forwarded_to_client(mim_agent.last_packet_forwarded_to(mim_agent.ep_client)); # TODO check
+        before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
+            call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
+            call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+            if _generating {;
+                require pkt.payload = malicious_stream_data_packet_received_last_round(dst).payload;
             } 
         }
-        
-        before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
-            call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_packet_forwarded_to(mim_agent.ep_server));
-            call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_packet_forwarded_to(mim_agent.ep_client));
+
+        before replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
+            call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
+            call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
             if _generating {
-                require mim_agent.ep_server.addr ~= 0;  # must have a client address to send to
-                require dst = mim_agent.ep_server;
-                require src = mim_agent.ep_client;
-                require pkt.payload = mim_agent.ppkt_to_be_forwarded_to_server(mim_agent.last_packet_forwarded_to(mim_agent.ep_server)); # TODO check       
+                require pkt.payload = malicious_stream_data_packet_received_last_round(dst).payload;
+            } 
+        }
+
+        before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
+            call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
+            call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+            if _generating {
+                require pkt.payload = malicious_stream_data_packet_received_last_round(dst).payload;
+            } 
+        }
+
+        before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
+            call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
+            call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+            if _generating {
+                require pkt.payload = malicious_stream_data_packet_received_last_round(dst).payload;
+            } 
+        }
+
+        before modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
+            call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
+            call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+            if _generating {
+                require pkt.payload = malicious_stream_data_packet_received_last_round(dst).payload |
+                                          pkt.payload.end >= 0;
             } 
         }
     }
 }
 
-import action show_last_cppkt_forwarded_to_client_debug_event(x:stream_pos)
-import action show_last_cppkt_forwarded_to_server_debug_event(x:stream_pos)
 
-export packet.malicious_stream_data_packet.forward_to_client
+
 export packet.malicious_stream_data_packet.forward_to_server
+export packet.malicious_stream_data_packet.forward_to_client
 
-attribute packet.malicious_stream_data_packet.forward_to_server.weight = "5"
+attribute packet.malicious_stream_data_packet.forward_to_server.weight = "15"
 attribute packet.malicious_stream_data_packet.forward_to_client.weight = "15"
+
+# export packet.malicious_stream_data_packet.replay_to_client
+# export packet.malicious_stream_data_packet.replay_to_server
+
+# attribute packet.malicious_stream_data_packet.replay_to_server.weight = "5"
+# attribute packet.malicious_stream_data_packet.replay_to_client.weight = "5"
+
+# export packet.malicious_stream_data_packet.modify
+
+# attribute packet.malicious_stream_data_packet.modify.weight = "5"
+
 
 
 # Final check
