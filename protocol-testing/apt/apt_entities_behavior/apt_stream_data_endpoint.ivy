@@ -98,12 +98,12 @@ object endpoint = {
             individual ppkt_to_be_replayed_to_server : stream_data
             function   ppkt_to_be_forwarded_to_server(C:stream_pos) : stream_data
             individual cppkt_forwarded_to_server : stream_pos
-            individual last_packet_forwarded_to(mim_agent.ep_server) : stream_pos
+            individual last_packet_forwarded_to(H:ip.endpoint) : stream_pos
 
             individual force_client_forward : bool  # useless for now
-            function   packet_to_forward_to(mim_agent.ep_client,C:stream_pos) : stream_data
+            function   packet_to_forward_to(H:ip.endpoint,C:stream_pos) : stream_data
             individual cppkt_forwarded_to_client : stream_pos
-            individual last_packet_forwarded_to(mim_agent.ep_client) : stream_pos
+            individual last_packet_forwarded_to(H:ip.endpoint) : stream_pos
 
             individual force_server_forward : bool
             
@@ -165,8 +165,8 @@ object endpoint = {
                 # Allow to keep coalesced packed
                 cppkt_forwarded_to_server := 0;
                 cppkt_forwarded_to_client := 0;
-                last_packet_forwarded_to(mim_agent.ep_server) := 0;
-                last_packet_forwarded_to(mim_agent.ep_client) := 0;
+                last_packet_forwarded_to(H:ip.endpoint) := 0;
+                last_packet_forwarded_to(H:ip.endpoint) := 0;
 
                 forward_turn := false;
                 forward_turn_count := 0;
@@ -194,6 +194,9 @@ object endpoint = {
                     ep_client := src; # Like initial connection from client 
                     call nat_configured_event(src,dst);
                 } 
+                
+                var to_forward := false;
+                var packet_number_of_coalesed : stream_pos := 0;
 
                 while idx < pkts.end {
                     var ppkt := pkts.value(idx);
@@ -205,49 +208,29 @@ object endpoint = {
                     var rppkt := ppkt;
 
                     if forward_packets { # To server
-                        if src = ep_client {
-                            #if ~packets_forwarded(rppkt) {
-                                # TODO manage coallesced packet -> stream_data_array + loop
-                                ppkt_to_be_forwarded_to_server(cppkt_forwarded_to_server) := rppkt;
-                                if ~keep_coalesed {
-                                    cppkt_forwarded_to_server := cppkt_forwarded_to_server + 1;
-                                };
-                            #}
-
-                        } else if src = ep_server {
-                            # if ~ packets_forwarded(rppkt) {
-                                ppkt_to_be_forwarded_to_client(cppkt_forwarded_to_client) := rppkt;
-                                if ~keep_coalesed {
-                                    cppkt_forwarded_to_client := cppkt_forwarded_to_client + 1;
-                                };
-                            #}
-                        }
+                        to_forward := true;
+                        call receiving_packet(src,dst,rppkt, packet_number_of_coalesed);
+                        packet_number_of_coalesed := packet_number_of_coalesed + 1;
+                        if ~keep_coalesed {
+                            number_packet_recv_from(src) := number_packet_recv_from(src) + 1;
+                        };
                     };
-                    
-                    if forward_packets_target {
-                        var ddst := ep_target;
-                        ppkt_to_be_reflected_to_target := rppkt;
-                        call reflection_packets(rppkt,0);
-                    };
-
-                    if replay_packets { # To server
-                        call forward_packet_to(ppkt_saved,host,s,src,dst);
-                    };
-
                     idx := idx.next; 
                 };
 
-                if forward_packets & keep_coalesed { # To server
-                    if src = ep_client {
-                        cppkt_forwarded_to_server := cppkt_forwarded_to_server + 1;
-                    } else if src = ep_server {
-                        cppkt_forwarded_to_client := cppkt_forwarded_to_client + 1;
-                    };
-                    call cppkt_forwarded_to_client_count_debug_event(cppkt_forwarded_to_client);
-                    call cppkt_forwarded_to_server_count_debug_event(cppkt_forwarded_to_server);
+                if forward_packets & keep_coalesed & to_forward { # To server
+                    number_packet_recv_from(src) := number_packet_recv_from(src) + 1;
+                    call cppkt_forwarded_to_client_count_debug_event(number_packet_recv_from(src));
+                    call cppkt_forwarded_to_server_count_debug_event(number_packet_recv_from(dst));
                 };
-
             }
+
+            import action cppkt_forwarded_to_server_count_debug_event(count:stream_pos)
+            import action cppkt_forwarded_to_client_count_debug_event(count:stream_pos)
+
+            import action nat_configured_event(src:ip.endpoint, dst:ip.endpoint)
+            import action client_target_setup_event(src:ip.endpoint)
+            import action recv_packet(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:stream_data)
 
             action forward_packet_to(ppkt:stream_data,host:endpoint_id, s:stream_data_net.socket, src:ip.endpoint, dst:ip.endpoint) = {
                 # forward packet

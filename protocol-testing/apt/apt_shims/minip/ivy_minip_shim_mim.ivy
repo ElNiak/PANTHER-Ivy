@@ -40,37 +40,37 @@ after init {
     is_mim := true;
 }
 
-object packet = {
-    ...
-    object ping_packet = {
-        ...
-        after forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
-            if _generating {
-                # var idx := pkt.payload.begin;
-                var pkts_mim := minip_prot.arr.empty;
-                # while idx < pkt.payload.end {
-                var spkt := ping_packet_serdes.to_bytes(pkt);
-                pkts_mim := pkts_mim.append(spkt);
-                    # TODO allow forwarding coalesed packet or not
-                    # idx := idx.next; 
-                # }; 
-                call minip_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
-                mim_agent.last_packet_forwarded_to(mim_agent.ep_client) := mim_agent.last_packet_forwarded_to(mim_agent.ep_client) + 1;
-            }
-        }
+# object packet = {
+#     ...
+#     object ping_packet = {
+#         ...
+#         after forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+#             if _generating {
+#                 # var idx := pkt.payload.begin;
+#                 var pkts_mim := minip_prot.arr.empty;
+#                 # while idx < pkt.payload.end {
+#                 var spkt := ping_packet_serdes.to_bytes(pkt);
+#                 pkts_mim := pkts_mim.append(spkt);
+#                     # TODO allow forwarding coalesed packet or not
+#                     # idx := idx.next; 
+#                 # }; 
+#                 call minip_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
+#                 mim_agent.last_packet_forwarded_to(mim_agent.ep_client) := mim_agent.last_packet_forwarded_to(mim_agent.ep_client) + 1;
+#             }
+#         }
         
-        after forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
-            if _generating {
-                # var idx := pkt.payload.begin;
-                var pkts_mim := minip_prot.arr.empty;
-                # while idx < pkt.payload.end {
-                var spkt := ping_packet_serdes.to_bytes(pkt);
-                pkts_mim := pkts_mim.append(spkt);
-                #     idx := idx.next; 
-                # };
-                call minip_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
-                mim_agent.last_packet_forwarded_to(mim_agent.ep_server) := mim_agent.last_packet_forwarded_to(mim_agent.ep_server) + 1;
-            }
-        }
-    }
-}
+#         after forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+#             if _generating {
+#                 # var idx := pkt.payload.begin;
+#                 var pkts_mim := minip_prot.arr.empty;
+#                 # while idx < pkt.payload.end {
+#                 var spkt := ping_packet_serdes.to_bytes(pkt);
+#                 pkts_mim := pkts_mim.append(spkt);
+#                 #     idx := idx.next; 
+#                 # };
+#                 call minip_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
+#                 mim_agent.last_packet_forwarded_to(mim_agent.ep_server) := mim_agent.last_packet_forwarded_to(mim_agent.ep_server) + 1;
+#             }
+#         }
+#     }
+# }

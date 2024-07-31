@@ -125,6 +125,7 @@ object endpoint = {
             action behavior(host:endpoint_id, s:minip_net.socket, src:ip.endpoint, pkts:minip_prot.arr) = {
                 var dst := socket_endpoint_mim(host,s,src);  # because minip_net API doesn't tell us the dst socket_endpoint_mim
                 var idx := pkts.begin;
+                is_receiving(dst) := true;
                 # TODO should not be here
 
                 if ~nat_configured {
@@ -132,6 +133,9 @@ object endpoint = {
                     ep_client := src; # Like initial connection from client 
                     call nat_configured_event(src,dst);
                 } 
+                
+                var packet_number_of_coalesed : stream_pos := 0;
+                var to_forward : bool := false;
 
                 while idx < pkts.end {
                     var ppkt := pkts.value(idx);
@@ -141,82 +145,28 @@ object endpoint = {
                     var jdx := rppkt.payload.begin;
                     while jdx < rppkt.payload.end {
                         var f := rppkt.payload.value(jdx);
+                        # TODO frame 
                         jdx := jdx.next;
                     };
 
-
                     if forward_packets { # To server
-                        if src = ep_client {
-                            #if ~packets_forwarded(rppkt) {
-                                # TODO manage coallesced packet -> stream_data_array + loop
-                                ppkt_to_be_forwarded_to_server(cppkt_forwarded_to_server) := rppkt;
-                                if ~keep_coalesed {
-                                    cppkt_forwarded_to_server := cppkt_forwarded_to_server + 1;
-                                };
-                            #}
-
-                        } else if src = ep_server {
-                            # if ~ packets_forwarded(rppkt) {
-                                ppkt_to_be_forwarded_to_client(cppkt_forwarded_to_client) := rppkt;
-                                if ~keep_coalesed {
-                                    cppkt_forwarded_to_client := cppkt_forwarded_to_client + 1;
-                                };
-                            #}
-                        }
+                        to_forward := true;
+                        call receiving_packet(src,dst,rppkt, packet_number_of_coalesed);
+                        packet_number_of_coalesed := packet_number_of_coalesed + 1;
+                        if ~keep_coalesed {
+                            number_packet_recv_from(src) := number_packet_recv_from(src) + 1;
+                        };
                     };
-                    
-                    if forward_packets_target {
-                        var ddst := ep_target;
-                        ppkt_to_be_reflected_to_target := rppkt;
-                        call reflection_packets(rppkt,0);
-                    };
-
-                    if replay_packets { # To server
-                        call forward_packet_to(ppkt_saved,host,s,src,dst);
-                    };
-
                     idx := idx.next; 
                 };
 
-                if forward_packets & keep_coalesed { # To server
-                    if src = ep_client {
-                        cppkt_forwarded_to_server := cppkt_forwarded_to_server + 1;
-                    } else if src = ep_server {
-                        cppkt_forwarded_to_client := cppkt_forwarded_to_client + 1;
-                    };
-                    call cppkt_forwarded_to_client_count_debug_event(cppkt_forwarded_to_client);
-                    call cppkt_forwarded_to_server_count_debug_event(cppkt_forwarded_to_server);
+                if forward_packets & keep_coalesed & to_forward { # To server
+                    number_packet_recv_from(src) := number_packet_recv_from(src) + 1;
+                    call cppkt_forwarded_to_client_count_debug_event(number_packet_recv_from(src));
+                    call cppkt_forwarded_to_server_count_debug_event(number_packet_recv_from(dst));
                 };
-
+                is_receiving(dst) := false;
             }
-
-            action forward_packet_to(ppkt:packet.ping_packet,host:endpoint_id, s:minip_net.socket, src:ip.endpoint, dst:ip.endpoint) = {
-                # forward packet
-                var pkts_mim := minip_prot.arr.empty;
-                var spkt := ping_packet_serdes.to_bytes(ppkt);
-                pkts_mim := pkts_mim.append(spkt);
-                call minip_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket(src),dst,pkts_mim);
-            }
-
-            action replay_packet(ppkt:packet.ping_packet,host:endpoint_id, s:minip_net.socket, src:ip.endpoint) = {
-                # replay packet
-                var dst := socket_endpoint(host,s);
-                var pkts_mim := minip_prot.arr.empty;
-                var spkt := ping_packet_serdes.to_bytes(ppkt);
-                pkts_mim := pkts_mim.append(spkt);
-                call minip_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket(src),dst,pkts_mim);
-            }
-
-            # TODO use serializer
-            # action modify_packet(ppkt:packet.ping_packet) returns(rppkt:packet.ping_packet) =  {
-            #     #var version := bytes_to_version(spkt.segment(1,5));
-            #     var tppkt := ppkt;
-            #     tppkt := tppkt.set(1,0xff);
-            #     tppkt := tppkt.set(2,0x00);
-            #     tppkt := tppkt.set(3,0x00);
-            #     tppkt := tppkt.set(4,0x1d);
-            #     rppkt := tppkt;
-            # }
 
             # TODO add dynamic condition to save packets
             action save_packets(ppkt:packet.ping_packet) = {
@@ -271,19 +221,6 @@ object endpoint = {
                         }
                     }        
                 >>>
-            }
-
-            action reflection_packets(ppkt:packet.ping_packet,dst_port:ip.port) = {
-                # spoof source ip/port
-                # TODO: we should modify the packet directly, however we only see the QUIC packet and thus this 
-                # is impossible for now to do so 
-                # Instead: we send with target ep so it simulate the ip spoofing
-                # forward to server
-                var dst := ep_server;
-                var pkts_mim := minip_prot.arr.empty;
-                var spkt := ping_packet_serdes.to_bytes(ppkt);
-                pkts_mim := pkts_mim.append(spkt);
-                call minip_net.send(endpoint_id.target,sock_target,dst,pkts_mim);
             }
 
             action configure_NAT_attack_in = {

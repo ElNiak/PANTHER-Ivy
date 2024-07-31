@@ -48,10 +48,10 @@ object packet = {
 
         action forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet)
         around forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
-            require _generating;
+            # require _generating;
             if _generating {
                 require pkt.payload.end > 0;
-                require is_encrypted_quic_packet_received(dst,pkt);
+                require is_encrypted_quic_packet_received(dst,pkt) & ~encrypted_quic_packet_forwarded(dst,pkt);
                 require encrypted_quic_packets_received_last_round(dst).end > 0;
                 require mim_agent.nat_configured;
                 require src = mim_agent.ep_server & dst = mim_agent.ep_client;
@@ -62,14 +62,15 @@ object packet = {
             if _generating {
                 call enqueue_packet(src,dst,pkt);
                 is_encrypted_quic_packet_received(dst,pkt) := false; 
+                encrypted_quic_packet_forwarded_last_round(dst) := encrypted_quic_packet_forwarded_last_round(dst) + 1;     
             }
         }
         
         action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet)
         around forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
-            require _generating;
+            # require _generating;
             if _generating {
-                require is_encrypted_quic_packet_received(dst,pkt);
+                require is_encrypted_quic_packet_received(dst,pkt)  & ~encrypted_quic_packet_forwarded(dst,pkt);
                 require pkt.payload.end > 0;
                 require src = mim_agent.ep_client & dst = mim_agent.ep_server;
                 require encrypted_quic_packets_received_last_round(dst).end > 0;
@@ -78,10 +79,11 @@ object packet = {
                 require mim_agent.ep_server.addr ~= 0;  # must have a client address to send to
             }
             ...
-            require _generating;
+            # require _generating;
             if _generating {
                 call enqueue_packet(src,dst,pkt);
-                is_encrypted_quic_packet_received(dst,pkt) := false;        
+                is_encrypted_quic_packet_received(dst,pkt) := false;    
+                encrypted_quic_packet_forwarded_last_round(dst) := encrypted_quic_packet_forwarded_last_round(dst) + 1;         
             }
         }
 
@@ -90,10 +92,10 @@ object packet = {
 
         action replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet)
         around replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
-            require _generating;
+            # require _generating;
             if _generating {
                 require pkt.payload.end > 0;
-               require is_encrypted_quic_packet_received(dst,pkt);
+               require is_encrypted_quic_packet_received(dst,pkt)  & ~encrypted_quic_packet_forwarded(dst,pkt);
                require encrypted_quic_packets_received_last_round(dst).end > 0;
                require mim_agent.nat_configured;
                require src = mim_agent.ep_server & dst = mim_agent.ep_client;
@@ -103,15 +105,16 @@ object packet = {
            ...
            if _generating {
                call enqueue_packet(src,dst,pkt);
-               is_encrypted_quic_packet_received(dst,pkt) := true; 
+               is_encrypted_quic_packet_received(dst,pkt) := true;
+               encrypted_quic_packet_forwarded_last_round(dst) := encrypted_quic_packet_forwarded_last_round(dst) + 1;      
            }
         }
 
         action replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet)
         around replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
-            require _generating;
+            # require _generating;
             if _generating {
-                require is_encrypted_quic_packet_received(dst,pkt);
+                require is_encrypted_quic_packet_received(dst,pkt)  & ~encrypted_quic_packet_forwarded(dst,pkt);
                 require pkt.payload.end > 0;
                 require src = mim_agent.ep_client & dst = mim_agent.ep_server;
                 require encrypted_quic_packets_received_last_round(dst).end > 0;
@@ -122,15 +125,16 @@ object packet = {
             ...
             if _generating {
                 call enqueue_packet(src,dst,pkt);
-                is_encrypted_quic_packet_received(dst,pkt) := true;        
+                is_encrypted_quic_packet_received(dst,pkt) := true;     
+                encrypted_quic_packet_forwarded_last_round(dst) := encrypted_quic_packet_forwarded_last_round(dst) + 1;        
             }
         }
 
         action modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet)
         around modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
-            require _generating;
+            # require _generating;
             if _generating {
-                require is_encrypted_quic_packet_received(dst,pkt);
+                require is_encrypted_quic_packet_received(dst,pkt) & ~encrypted_quic_packet_forwarded(dst,pkt);
                 require pkt.payload.end > 0;
                 require src = mim_agent.ep_client & dst = mim_agent.ep_server |
                         src = mim_agent.ep_server & dst = mim_agent.ep_client;
@@ -142,31 +146,41 @@ object packet = {
             ...
             if _generating {
                 call enqueue_packet(src,dst,pkt);
-                is_encrypted_quic_packet_received(dst,pkt) := true;        
+                is_encrypted_quic_packet_received(dst,pkt) := true;   
+                encrypted_quic_packet_forwarded_last_round(dst) := encrypted_quic_packet_forwarded_last_round(dst) + 1;     
             }
         }
     }
 }
 
 function encrypted_quic_packets_received_last_round(C:ip.endpoint) : packet.encrypted_quic_packet.arr 
-function encrypted_quic_packet_received_last_round(C:ip.endpoint) : packet.encrypted_quic_packet
+function encrypted_quic_packet_received_last_round(C:ip.endpoint,P:stream_pos) : packet.encrypted_quic_packet
 relation is_encrypted_quic_packet_received(C:ip.endpoint, P:packet.encrypted_quic_packet) 
+relation encrypted_quic_packet_forwarded(C:ip.endpoint, P:packet.encrypted_quic_packet) 
+function encrypted_quic_packet_forwarded_last_round(C:ip.endpoint) : stream_pos
 
 after init {
     encrypted_quic_packets_received_last_round(C) := packet.encrypted_quic_packet.arr.empty;
 }
 
-after receiving_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet) {
-    packets_received_last_round(dst) := packets_received_last_round(dst).append(pkt);
-    packets_received(dst)            := packets_received(dst).append(pkt);
+after enqueue_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet) {
     if some(cf:packet.encrypted_quic_packet) pkt *> cf  {
-        encrypted_quic_packet_received_last_round(dst)  := cf;
+        encrypted_quic_packet_forwarded(dst,cf) := true;
+    } 
+    call show_num_queued_packets(dst,num_queued_packets(dst));
+    call show_num_packets_received_last_round(dst,num_packets_received_last_round(dst));
+}
+
+after receiving_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet, pkt_num: stream_pos) {
+    if some(cf:packet.encrypted_quic_packet) pkt *> cf  {
+        encrypted_quic_packet_received_last_round(dst,pkt_num)  := cf;
         is_encrypted_quic_packet_received(dst,cf)       := true;
-        encrypted_quic_packets_received_last_round(dst) := encrypted_quic_packets_received_last_round(dst).append(cf);
+        encrypted_quic_packets_received_last_round(dst)         := encrypted_quic_packets_received_last_round(dst).append(cf);
     } 
 }
 
 after update_received_packet(src:ip.endpoint,dst:ip.endpoint) {
     # is_encrypted_quic_packet_received(dst) := false;
     encrypted_quic_packets_received_last_round(dst) := packet.encrypted_quic_packet.arr.empty;
+    encrypted_quic_packet_forwarded_last_round(dst) := 0;
 }
