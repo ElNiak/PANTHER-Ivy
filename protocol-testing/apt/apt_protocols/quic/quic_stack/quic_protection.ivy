@@ -473,6 +473,11 @@ object protection = {
         action get_pnum_len_b(pkt:stream_data) returns (pnum_len:stream_pos) = {
             <<<
             pnum_len = (pkt[0] & 0x3) + 1;
+            std::cerr <<  "HACK: export get_pnum_len_b"  << pnum_len << "\n";
+            char str_d[20];
+            sprintf(str_d,"%llu",pnum_len);
+            if(setenv("PNUM_LEN",str_d,true) != 0) 
+                fprintf(stderr, "setenv failed\n");
             >>>
         }
         
@@ -687,11 +692,12 @@ object quic_prot_deser = {}
                     std::cerr << "pyld_len (quic_prot) " << pyld_len << "\n";
                 }  
                 total_data_remaining = total_data_remaining - data_remaining;
+                std::cerr << "total_data_remaining (quic_prot) " << total_data_remaining << "\n";
                 //std::cerr << "pkt len: " << data_remaining << " type: " << (peek(pos)-pos) << " len len: " << len << " pyld_len: " << pyld_len << " pnum_pos: " << pnum_pos << "\n";
             }
             else {
                 std::cerr << "quic_prot_deser a short packet\n";
-                data_remaining = inp.size(); //!more(1) should stop automatically
+                data_remaining = total_data_remaining; //inp.size(); //!more(1) should stop automatically
                 std::cerr << "data_remaining (quic_prot) " << data_remaining << "\n";
             }
         }

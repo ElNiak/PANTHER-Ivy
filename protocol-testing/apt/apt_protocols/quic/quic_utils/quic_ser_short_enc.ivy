@@ -101,46 +101,34 @@ object quic_ser_short_enc = {}
             switch (state) {
                 case quic_s_init:
                 {
-                    //std::cerr << "ser res init " << res << "\n";
+                    //std::cerr << "ser short res init " << res << "\n";
                     long_format = res != 3;
-                    std::cerr << "ser res init " << res << " long_format " << long_format << "\n";
+                    std::cerr << "ser short res init " << res << " long_format " << long_format << "\n";
                     //hdr_type = (long_format ? ((res & 3) << 4) : 0) | 0x43 ;
                     hdr_type = res & 0x7f;
                     packet_number_length = (res & 0xc0) >> 6; //(res >> 5) & 0x03;
                     packet_number_length += 1;
-                    std::cerr << "ser res init " << res << " hdr_type " << hdr_type << " packet_number_length " << packet_number_length << "\n";
-                    std::cerr << "ser res init " << res << " hdr_type " << hdr_type << "\n";
+                    std::cerr << "ser short res init " << res << " hdr_type " << hdr_type << " packet_number_length " << packet_number_length << "\n";
+                    std::cerr << "ser short res init " << res << " hdr_type " << hdr_type << "\n";
                     setn(res, 1);
                     state = quic_s_dcid;
                 }
                 break;  
                 case quic_s_dcid:
                 {
-                    //std::cerr << "ser res dcid 1 " << res << "\n";
-                    if (long_format) {
-                        if((res != 0 && res != 1) || scid_h == 0)
-                            setn(scid_h,1);
-                        else 
-                            setn(8,1);
-                    }
-                    if((res != 0 && res != 1) || scid_h == 0)
+                    if((res != 0 && res != 1) || scid_h == 0) {
                         setn(res,scid_h); //scid_h
-                    else 
+                    }
+                    else {
                         setn(res,8); 
-                    std::cerr << "ser res dcid 2 " << res << "\n";
+                    }
+                    std::cerr << "ser short res dcid 2 " << res << "\n";
                     state = quic_s_payload;
                 }
                 break;
                 case quic_s_payload:
                 {
                     setn(res,1);
-                }
-                break;
-                case quic_s_payload_length:
-                {
-                    std::cerr << "ser res payload_length 1 " << res << "\n";
-                    set_var_int(res);
-                    state = quic_s_pkt_num;
                 }
                 break;
                 default:
@@ -174,20 +162,20 @@ object quic_ser_short_enc = {}
         }
 
         virtual void open_list_elem() {
+            /*
+            if (state == quic_s_payload) {
+                return data_remaining-- > 0;
+            }
+            */
         }
 
         void open_list(int len) {
-	        ack_blocks_expected = len;
-            if (state == quic_ack_block_count) {
-                set_var_int(ack_blocks_expected - 1); // block count doesn't include first
-                ack_block_count = 0;
-                state = quic_ack_gap;
-            } 
+ 
         }
+
         void close_list() {
             if (state == quic_s_payload) {
                 if (long_format) {
-    
                     state = quic_s_init;
                 }
             }

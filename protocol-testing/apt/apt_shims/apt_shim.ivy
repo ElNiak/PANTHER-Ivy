@@ -19,7 +19,7 @@ import action show_current_time(now:milliseconds)
 object packet = {
     ...
 
-    after forward_to(src:ip.endpoint,dst:ip.endpoint,pkt:packet.arr) {
+    after forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.arr) {
         if _generating {
             # TODO assert it is smaller than MTU
             var idx := pkt.begin;
@@ -61,6 +61,47 @@ object packet = {
         }
     }  
 
+    after forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.arr) {
+        if _generating {
+            # TODO assert it is smaller than MTU
+            var idx := pkt.begin;
+            var pkts_mim := quic_prot.arr.empty;
+            while idx < pkt.end {
+                # packets_received(pkt.value(idx)) := true;
+                var p := pkt.value(idx);
+                # QUIC
+                if some(cf:packet.quic_packet)p *> cf {
+                    var spkt := quic_packet_serdes.to_bytes(cf);
+                    pkts_mim := pkts_mim.append(spkt);
+                } 
+                else if some(cf:packet.encrypted_quic_packet)p *> cf {
+                    var spkt := quic_encrypted_packet_serdes.to_bytes(cf);
+                    pkts_mim := pkts_mim.append(spkt);
+                } 
+                else if some(cf:packet.encrypted_short_quic_packet)p *> cf {
+                    var spkt := quic_encrypted_short_packet_serdes.to_bytes(cf);
+                    pkts_mim := pkts_mim.append(spkt);
+                } 
+                else if some(cf:packet.random_padding_encrypted_quic_packet)p *> cf {
+                    var spkt := quic_random_padding_encrypted_packet_serdes.to_bytes(cf);
+                    pkts_mim := pkts_mim.append(spkt);
+                }
+                # MiniP
+                else if some(cf:packet.ping_packet)p *> cf {
+                    var spkt := ping_packet_serdes.to_bytes(cf);
+                    pkts_mim := pkts_mim.append(spkt);
+                }
+                # Stream Data
+                else if some(cf:packet.malicious_stream_data_packet)p *> cf {
+                    pkts_mim := pkts_mim.append(cf.payload);
+                };
+                #TODO allow forwarding coalesed packet or not
+                idx := idx.next; 
+            }; 
+            call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
+            mim_agent.last_packet_forwarded_to(mim_agent.ep_server) := mim_agent.last_packet_forwarded_to(mim_agent.ep_server) + 1;
+        }
+    }  
 }
 # Print in hex format
 attribute radix=16

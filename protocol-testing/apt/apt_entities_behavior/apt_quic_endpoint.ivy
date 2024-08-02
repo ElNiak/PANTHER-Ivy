@@ -264,7 +264,7 @@ object endpoint = {
                                 jdx := jdx.next;
                             };
 
-                            if forward_packets { # To server
+                            if forward_packets {
                                 call receiving_packet(src,dst,rppkt, packet_number_of_coalesed);
                                 packet_number_of_coalesed := packet_number_of_coalesed + 1;
                                 if ~keep_coalesed {
@@ -277,7 +277,7 @@ object endpoint = {
                                     var rppkt := quic_random_padding_encrypted_packet_serdes.from_bytes(ppkt);
                                     call recv_random_padding_or_short_packet_event(src,dst,rppkt);
                                     to_forward := true;
-                                    if forward_packets { # To server
+                                    if forward_packets {
                                         call receiving_packet(src,dst,rppkt, packet_number_of_coalesed);
                                         packet_number_of_coalesed := packet_number_of_coalesed + 1;
                                         if ~keep_coalesed {
@@ -285,13 +285,14 @@ object endpoint = {
                                         };
                                     };
                                 } else {
+                                    # TODO problem for decryption of pnum len
                                     var rppkt := quic_encrypted_packet_serdes.from_bytes(ppkt);
                                     if already_forwarded(src,dst,rppkt) {
                                         call arp_duplicated_encrypted_packet_event(src,dst,rppkt);
                                     } else {
                                         to_forward := true;
                                         call recv_encrypted_packet(host,src,dst,rppkt);
-                                        if forward_packets { # To server
+                                        if forward_packets {
                                             call receiving_packet(src,dst,rppkt, packet_number_of_coalesed);
                                             packet_number_of_coalesed := packet_number_of_coalesed + 1;
                                             if ~keep_coalesed {
@@ -306,7 +307,7 @@ object endpoint = {
                                 to_forward := true;
                                 var rppkt := quic_encrypted_short_packet_serdes.from_bytes(ppkt);
                                 call recv_encrypted_short_packet(src,dst,rppkt);
-                                if forward_packets { # To server
+                                if forward_packets {
                                     call receiving_packet(src,dst,rppkt, packet_number_of_coalesed);
                                     packet_number_of_coalesed := packet_number_of_coalesed + 1;
                                     if ~keep_coalesed {
@@ -319,19 +320,20 @@ object endpoint = {
                     idx := idx.next; 
                 };
 
-                if forward_packets & keep_coalesed & to_forward { # To server
+                if forward_packets & keep_coalesed & to_forward {
                     if is_enc {
                         number_encrypted_packet_recv_from(src) := number_encrypted_packet_recv_from(src) + 1;
                     } else {
                         number_packet_recv_from(src) := number_packet_recv_from(src) + 1;
                     };
-                    call cppkt_forwarded_to_client_count_debug_event(number_packet_recv_from(src));
-                    call cppkt_forwarded_to_server_count_debug_event(number_packet_recv_from(dst));
+                    call cppkt_recv_from_client_count_debug_event(number_packet_recv_from(src));
+                    call cppkt_recv_from_server_count_debug_event(number_packet_recv_from(dst));
 
-                    call cppkt_forwarded_to_client_count_debug_event(number_encrypted_packet_recv_from(src));
-                    call cppkt_forwarded_to_server_count_debug_event(number_encrypted_packet_recv_from(dst));
+                    call cppkt_recv_from_client_count_debug_event(number_encrypted_packet_recv_from(src));
+                    call cppkt_recv_from_server_count_debug_event(number_encrypted_packet_recv_from(dst));
+                    current_receving_round(dst) := current_receving_round(dst) + 1;
                 };
-                is_receiving(dst) := false;
+                is_receiving(dst)  := false;
             }
 
             action tls_start_eavedrop(src:ip.endpoint,dst:ip.endpoint,spkt:stream_data) = {
@@ -474,7 +476,8 @@ object endpoint = {
             action is_random_padding_packet(spkt:stream_data) returns (is_padding:bool) = {
                 var first_byte := spkt.value(0);
                 var header_typer := bvand(first_byte,0x7f);
-                if header_typer = first_byte {
+                var is_long : bool := bvand(0x80,first_byte) ~= 0;
+                if header_typer = first_byte & is_long {
                     is_padding := true;
                 } else {
                     is_padding := false;
@@ -598,8 +601,8 @@ object endpoint = {
                 >>>
             }
 
-            import action cppkt_forwarded_to_server_count_debug_event(count:stream_pos)
-            import action cppkt_forwarded_to_client_count_debug_event(count:stream_pos)
+            import action cppkt_recv_from_server_count_debug_event(count:stream_pos)
+            import action cppkt_recv_from_client_count_debug_event(count:stream_pos)
 
             import action nat_configured_event(src:ip.endpoint, dst:ip.endpoint)
             import action client_target_setup_event(src:ip.endpoint)
