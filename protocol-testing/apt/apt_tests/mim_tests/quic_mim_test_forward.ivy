@@ -23,8 +23,10 @@ after init {
     call mim_agent.configure_NAT_attack_out;
 }
 
-export packet.forward_to
-attribute packet.forward_to.weight = "100"
+export packet.forward_to_client
+# attribute packet.forward_to_client.weight = "100"
+export packet.forward_to_server
+# attribute packet.forward_to_server.weight = "100"
 
 object packet = {
     ...
@@ -35,13 +37,27 @@ object packet = {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
             if _generating {
-                require pkt.ptype       = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).ptype;
-                require pkt.pversion    = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).pversion;
-                require pkt.dst_cid     = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).dst_cid;
-                require pkt.src_cid     = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).src_cid;
-                require pkt.token       = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).token;
-                require pkt.seq_num     = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).seq_num;
-                require pkt.payload     = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).payload;
+                require pkt.ptype       = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).ptype;
+                require pkt.pversion    = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).pversion;
+                require pkt.dst_cid     = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).dst_cid;
+                require pkt.src_cid     = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).src_cid;
+                require pkt.token       = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).token;
+                require pkt.seq_num     = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).seq_num;
+                require pkt.payload     = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).payload;
             } 
         }
 
@@ -49,13 +65,27 @@ object packet = {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
             if _generating {
-                require pkt.ptype       = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).ptype;
-                require pkt.pversion    = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).pversion;
-                require pkt.dst_cid     = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).dst_cid;
-                require pkt.src_cid     = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).src_cid;
-                require pkt.token       = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).token;
-                require pkt.seq_num     = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).seq_num;
-                require pkt.payload     = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).payload;
+                require pkt.ptype       = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).ptype;
+                require pkt.pversion    = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).pversion;
+                require pkt.dst_cid     = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).dst_cid;
+                require pkt.src_cid     = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).src_cid;
+                require pkt.token       = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).token;
+                require pkt.seq_num     = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).seq_num;
+                require pkt.payload     = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).payload;
             } 
         }
 
@@ -63,14 +93,28 @@ object packet = {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
             if _generating {
-                require ~quic_packet_forwarded(dst,pkt);
-                require pkt.ptype       = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).ptype;
-                require pkt.pversion    = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).pversion;
-                require pkt.dst_cid     = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).dst_cid;
-                require pkt.src_cid     = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).src_cid;
-                require pkt.token       = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).token;
-                require pkt.seq_num     = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).seq_num;
-                require pkt.payload     = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).payload;
+                # require ~quic_packet_forwarded(dst,pkt);
+                require pkt.ptype       = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).ptype;
+                require pkt.pversion    = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).pversion;
+                require pkt.dst_cid     = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).dst_cid;
+                require pkt.src_cid     = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).src_cid;
+                require pkt.token       = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).token;
+                require pkt.seq_num     = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).seq_num;
+                require pkt.payload     = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).payload;
             } 
         }
 
@@ -78,14 +122,28 @@ object packet = {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
             if _generating {
-                require ~quic_packet_forwarded(dst,pkt);
-                require pkt.ptype       = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).ptype;
-                require pkt.pversion    = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).pversion;
-                require pkt.dst_cid     = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).dst_cid;
-                require pkt.src_cid     = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).src_cid;
-                require pkt.token       = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).token;
-                require pkt.seq_num     = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).seq_num;
-                require pkt.payload     = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).payload;
+                # require ~quic_packet_forwarded(dst,pkt);
+                require pkt.ptype       = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).ptype;
+                require pkt.pversion    = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).pversion;
+                require pkt.dst_cid     = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).dst_cid;
+                require pkt.src_cid     = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).src_cid;
+                require pkt.token       = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).token;
+                require pkt.seq_num     = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).seq_num;
+                require pkt.payload     = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).payload;
             } 
         }
 
@@ -109,19 +167,37 @@ object packet = {
                          pkt.pversion    ~= 0xff000022 & pkt.pversion    ~= 0xff00001d &
                          pkt.pversion    ~= 0xff00001c & pkt.pversion    ~= 0xff00001b);
                 
-                require (pkt.dst_cid     = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).dst_cid &
-                         pkt.src_cid     = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).src_cid) |
-                        (pkt.dst_cid     = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).src_cid &
-                         pkt.src_cid     = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).dst_cid);
+                require (pkt.dst_cid     = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).dst_cid &
+                         pkt.src_cid     = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).src_cid) |
+                        (pkt.dst_cid     = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).src_cid &
+                         pkt.src_cid     = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).dst_cid);
 
-                require (pkt.token       = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).token) | 
+                require (pkt.token       = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).token) | 
                         (pkt.token.end >= 0);
 
-                require pkt.seq_num     = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).seq_num |
-                        pkt.seq_num     < quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).seq_num |
-                        pkt.seq_num     > quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).seq_num;
+                require pkt.seq_num     = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).seq_num |
+                        pkt.seq_num     < quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).seq_num |
+                        pkt.seq_num     > quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).seq_num;
 
-                require pkt.payload     = quic_packet_received_last_round(dst,quic_packet_forwarded_last_round(dst)).payload |
+                require pkt.payload     = quic_packet_received_at_round(dst,
+                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                          current_forwarding_round(dst)).payload |
                                           pkt.payload.end >= 0;
             } 
         }
@@ -133,8 +209,8 @@ object packet = {
 export packet.quic_packet.forward_to_server
 export packet.quic_packet.forward_to_client
 
-attribute packet.quic_packet.forward_to_server.weight = "15"
-attribute packet.quic_packet.forward_to_client.weight = "15"
+# attribute packet.quic_packet.forward_to_server.weight = "15"
+# attribute packet.quic_packet.forward_to_client.weight = "15"
 
 # export packet.quic_packet.replay_to_client
 # export packet.quic_packet.replay_to_server
@@ -160,15 +236,18 @@ object packet = {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
             if _generating {
-                require pkt.head_byte   = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).head_byte;
-                require pkt.pversion    = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).pversion;
-                require pkt.dst_cid     = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).dst_cid;
-                require pkt.src_cid     = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).src_cid;
-                require pkt.token_len   = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).token_len;
-                require pkt.token       = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).token;
-                require pkt.payload_len = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).payload_len;
-                require pkt.seq_num     = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).seq_num;
-                require pkt.payload     = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).payload;
+                # require is_encrypted_quic_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require pkt.head_byte   = encrypted_quic_packet_received_at_round(dst,
+                                                                                    packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                    current_forwarding_round(dst)).head_byte;
+                require pkt.pversion    = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).pversion;
+                require pkt.dst_cid     = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).dst_cid;
+                require pkt.src_cid     = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).src_cid;
+                require pkt.token_len   = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).token_len;
+                require pkt.token       = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).token;
+                require pkt.payload_len = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).payload_len;
+                require pkt.seq_num     = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).seq_num;
+                require pkt.payload     = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).payload;
             } 
         }
 
@@ -176,15 +255,16 @@ object packet = {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
             if _generating {
-                require pkt.head_byte   = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).head_byte;
-                require pkt.pversion    = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).pversion;
-                require pkt.dst_cid     = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).dst_cid;
-                require pkt.src_cid     = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).src_cid;
-                require pkt.token_len   = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).token_len;
-                require pkt.token       = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).token;
-                require pkt.payload_len = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).payload_len;
-                require pkt.seq_num     = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).seq_num;
-                require pkt.payload     = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).payload;
+                # require is_encrypted_quic_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require pkt.head_byte   = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).head_byte;
+                require pkt.pversion    = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).pversion;
+                require pkt.dst_cid     = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).dst_cid;
+                require pkt.src_cid     = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).src_cid;
+                require pkt.token_len   = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).token_len;
+                require pkt.token       = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).token;
+                require pkt.payload_len = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).payload_len;
+                require pkt.seq_num     = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).seq_num;
+                require pkt.payload     = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).payload;
             } 
         }
 
@@ -192,16 +272,17 @@ object packet = {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
             if _generating {
-                require ~encrypted_quic_packet_forwarded(dst,pkt);
-                require pkt.head_byte   = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).head_byte;
-                require pkt.pversion    = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).pversion;
-                require pkt.dst_cid     = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).dst_cid;
-                require pkt.src_cid     = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).src_cid;
-                require pkt.token_len   = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).token_len;
-                require pkt.token       = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).token;
-                require pkt.payload_len = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).payload_len;
-                require pkt.seq_num     = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).seq_num;
-                require pkt.payload     = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).payload;
+                # require ~encrypted_quic_packet_forwarded(dst,pkt);
+                require pkt.head_byte   = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).head_byte;
+                require pkt.pversion    = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).pversion;
+                require pkt.dst_cid     = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).dst_cid;
+                require pkt.src_cid     = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).src_cid;
+                require pkt.token_len   = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).token_len;
+                require pkt.token       = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).token;
+                require pkt.payload_len = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).payload_len;
+                require pkt.seq_num     = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).seq_num;
+                require pkt.payload     = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).payload;
+                require is_encrypted_quic_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst)));
             } 
         }
 
@@ -209,16 +290,17 @@ object packet = {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
             if _generating {
-                require ~encrypted_quic_packet_forwarded(dst,pkt);
-                require pkt.head_byte   = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).head_byte;
-                require pkt.pversion    = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).pversion;
-                require pkt.dst_cid     = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).dst_cid;
-                require pkt.src_cid     = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).src_cid;
-                require pkt.token_len   = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).token_len;
-                require pkt.token       = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).token;
-                require pkt.payload_len = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).payload_len;
-                require pkt.seq_num     = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).seq_num;
-                require pkt.payload     = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).payload;
+                # require is_encrypted_quic_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                # require ~encrypted_quic_packet_forwarded(dst,pkt);
+                require pkt.head_byte   = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).head_byte;
+                require pkt.pversion    = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).pversion;
+                require pkt.dst_cid     = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).dst_cid;
+                require pkt.src_cid     = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).src_cid;
+                require pkt.token_len   = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).token_len;
+                require pkt.token       = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).token;
+                require pkt.payload_len = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).payload_len;
+                require pkt.seq_num     = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).seq_num;
+                require pkt.payload     = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).payload;
             } 
         }
 
@@ -226,7 +308,7 @@ object packet = {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
             if _generating {
-                require pkt.head_byte   = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).head_byte;
+                # require pkt.head_byte   = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).head_byte;
                 
                 require pkt.pversion    = 0x00000000 | 
                         pkt.pversion    = 0x00000001 |
@@ -238,22 +320,22 @@ object packet = {
                          pkt.pversion    ~= 0xff000022 & pkt.pversion    ~= 0xff00001d &
                          pkt.pversion    ~= 0xff00001c & pkt.pversion    ~= 0xff00001b);
                 
-                require (pkt.dst_cid     = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).dst_cid &
-                         pkt.src_cid     = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).src_cid) |
-                        (pkt.dst_cid     = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).src_cid &
-                         pkt.src_cid     = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).dst_cid);
+                require (pkt.dst_cid     = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).dst_cid &
+                         pkt.src_cid     = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).src_cid) |
+                        (pkt.dst_cid     = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).src_cid &
+                         pkt.src_cid     = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).dst_cid);
 
-                require (pkt.token_len   = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).token_len &
-                         pkt.token       = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).token) | 
+                require (pkt.token_len   = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).token_len &
+                         pkt.token       = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).token) | 
                         (pkt.token_len   > 0  & pkt.token.end > 0);
 
-                require pkt.payload_len = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).payload_len;
+                require pkt.payload_len = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).payload_len;
                 
-                require pkt.seq_num     = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).seq_num |
-                        pkt.seq_num     < encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).seq_num |
-                        pkt.seq_num     > encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).seq_num;
+                require pkt.seq_num     = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).seq_num |
+                        pkt.seq_num     < encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).seq_num |
+                        pkt.seq_num     > encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).seq_num;
                 
-                require pkt.payload     = encrypted_quic_packet_received_last_round(dst,encrypted_quic_packet_forwarded_last_round(dst)).payload;
+                require pkt.payload     = encrypted_quic_packet_received_at_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst)).payload;
             } 
         }
     }
@@ -262,8 +344,8 @@ object packet = {
 export packet.encrypted_quic_packet.forward_to_server
 export packet.encrypted_quic_packet.forward_to_client
 
-attribute packet.encrypted_quic_packet.forward_to_server.weight = "15"
-attribute packet.encrypted_quic_packet.forward_to_client.weight = "15"
+# attribute packet.encrypted_quic_packet.forward_to_server.weight = "15"
+# attribute packet.encrypted_quic_packet.forward_to_client.weight = "15"
 
 # export packet.encrypted_quic_packet.replay_to_client
 # export packet.encrypted_quic_packet.replay_to_server
@@ -285,7 +367,10 @@ object packet = {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
             if _generating {
-                require pkt.payload = random_padding_encrypted_quic_packet_received_last_round(dst,random_padding_encrypted_quic_packet_forwarded_last_round(dst)).payload;
+                require is_random_padding_encrypted_quic_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require pkt.payload = random_padding_encrypted_quic_packet_received_at_round(dst,
+                                                                                               packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                               current_forwarding_round(dst)).payload;
             } 
         }
 
@@ -293,7 +378,9 @@ object packet = {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
             if _generating {
-                require pkt.payload = random_padding_encrypted_quic_packet_received_last_round(dst,random_padding_encrypted_quic_packet_forwarded_last_round(dst)).payload;
+                require pkt.payload = random_padding_encrypted_quic_packet_received_at_round(dst,
+                                                                                               packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                               current_forwarding_round(dst)).payload;
             } 
         }
 
@@ -301,8 +388,11 @@ object packet = {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
             if _generating {
-                require ~random_padding_encrypted_quic_packet_forwarded(dst,pkt);
-                require pkt.payload = random_padding_encrypted_quic_packet_received_last_round(dst,random_padding_encrypted_quic_packet_forwarded_last_round(dst)).payload;
+                # require ~random_padding_encrypted_quic_packet_forwarded(dst,pkt);
+                # require is_random_padding_encrypted_quic_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require pkt.payload = random_padding_encrypted_quic_packet_received_at_round(dst,
+                                                                                               packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                               current_forwarding_round(dst)).payload;
             } 
         }
 
@@ -310,8 +400,11 @@ object packet = {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
             if _generating {
-                require ~random_padding_encrypted_quic_packet_forwarded(dst,pkt);
-                require pkt.payload = random_padding_encrypted_quic_packet_received_last_round(dst,random_padding_encrypted_quic_packet_forwarded_last_round(dst)).payload;
+                # require ~random_padding_encrypted_quic_packet_forwarded(dst,pkt);
+                # require is_random_padding_encrypted_quic_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require pkt.payload = random_padding_encrypted_quic_packet_received_at_round(dst,
+                                                                                               packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                               current_forwarding_round(dst)).payload;
             } 
         }
 
@@ -319,7 +412,10 @@ object packet = {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
             if _generating {
-                require pkt.payload = random_padding_encrypted_quic_packet_received_last_round(dst,random_padding_encrypted_quic_packet_forwarded_last_round(dst)).payload | 
+                require is_random_padding_encrypted_quic_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require pkt.payload = random_padding_encrypted_quic_packet_received_at_round(dst,
+                                                                                               packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                               current_forwarding_round(dst)).payload | 
                                       pkt.payload.end >= 0;
             } 
         }
@@ -329,10 +425,10 @@ object packet = {
 export packet.random_padding_encrypted_quic_packet.forward_to_server
 export packet.random_padding_encrypted_quic_packet.forward_to_client
 
-attribute packet.random_padding_encrypted_quic_packet.forward_to_server.weight = "15"
-attribute packet.random_padding_encrypted_quic_packet.forward_to_client.weight = "15"
+# attribute packet.random_padding_encrypted_quic_packet.forward_to_server.weight = "15"
+# attribute packet.random_padding_encrypted_quic_packet.forward_to_client.weight = "15"
 
-# export packet.random_padding_encrypted_quic_packet.replay_to_client
+# # export packet.random_padding_encrypted_quic_packet.replay_to_client
 # export packet.random_padding_encrypted_quic_packet.replay_to_server
 
 # attribute packet.random_padding_encrypted_quic_packet.replay_to_server.weight = "5"
@@ -352,9 +448,16 @@ object packet = {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
             if _generating {
-                require pkt.head_byte   = encrypted_short_quic_packet_received_last_round(dst,encrypted_short_quic_packet_forwarded_last_round(dst)).head_byte;
-                require pkt.dst_cid     = encrypted_short_quic_packet_received_last_round(dst,encrypted_short_quic_packet_forwarded_last_round(dst)).dst_cid;
-                require pkt.payload     = encrypted_short_quic_packet_received_last_round(dst,encrypted_short_quic_packet_forwarded_last_round(dst)).payload;
+                require is_encrypted_short_quic_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require pkt.head_byte   = encrypted_short_quic_packet_received_at_round(dst,
+                                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                          current_forwarding_round(dst)).head_byte;
+                require pkt.dst_cid     = encrypted_short_quic_packet_received_at_round(dst,
+                                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                          current_forwarding_round(dst)).dst_cid;
+                require pkt.payload     = encrypted_short_quic_packet_received_at_round(dst,
+                                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                          current_forwarding_round(dst)).payload;
             } 
         }
 
@@ -362,9 +465,16 @@ object packet = {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
             if _generating {
-                require pkt.head_byte   = encrypted_short_quic_packet_received_last_round(dst,encrypted_short_quic_packet_forwarded_last_round(dst)).head_byte;
-                require pkt.dst_cid     = encrypted_short_quic_packet_received_last_round(dst,encrypted_short_quic_packet_forwarded_last_round(dst)).dst_cid;
-                require pkt.payload     = encrypted_short_quic_packet_received_last_round(dst,encrypted_short_quic_packet_forwarded_last_round(dst)).payload;
+                require is_encrypted_short_quic_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require pkt.head_byte   = encrypted_short_quic_packet_received_at_round(dst,
+                                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                          current_forwarding_round(dst)).head_byte;
+                require pkt.dst_cid     = encrypted_short_quic_packet_received_at_round(dst,
+                                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                          current_forwarding_round(dst)).dst_cid;
+                require pkt.payload     = encrypted_short_quic_packet_received_at_round(dst,
+                                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                          current_forwarding_round(dst)).payload;
             } 
         }
 
@@ -372,10 +482,17 @@ object packet = {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
             if _generating {
-                require ~encrypted_short_quic_packet_forwarded(dst,pkt);
-                require pkt.head_byte   = encrypted_short_quic_packet_received_last_round(dst,encrypted_short_quic_packet_forwarded_last_round(dst)).head_byte;
-                require pkt.dst_cid     = encrypted_short_quic_packet_received_last_round(dst,encrypted_short_quic_packet_forwarded_last_round(dst)).dst_cid;
-                require pkt.payload     = encrypted_short_quic_packet_received_last_round(dst,encrypted_short_quic_packet_forwarded_last_round(dst)).payload;
+                require is_encrypted_short_quic_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                # require ~encrypted_short_quic_packet_forwarded(dst,pkt);
+                require pkt.head_byte   = encrypted_short_quic_packet_received_at_round(dst,
+                                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                          current_forwarding_round(dst)).head_byte;
+                require pkt.dst_cid     = encrypted_short_quic_packet_received_at_round(dst,
+                                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                          current_forwarding_round(dst)).dst_cid;
+                require pkt.payload     = encrypted_short_quic_packet_received_at_round(dst,
+                                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                          current_forwarding_round(dst)).payload;
             } 
         }
 
@@ -383,10 +500,17 @@ object packet = {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
             if _generating {
-                require ~encrypted_short_quic_packet_forwarded(dst,pkt);
-                require pkt.head_byte   = encrypted_short_quic_packet_received_last_round(dst,encrypted_short_quic_packet_forwarded_last_round(dst)).head_byte;
-                require pkt.dst_cid     = encrypted_short_quic_packet_received_last_round(dst,encrypted_short_quic_packet_forwarded_last_round(dst)).dst_cid;
-                require pkt.payload     = encrypted_short_quic_packet_received_last_round(dst,encrypted_short_quic_packet_forwarded_last_round(dst)).payload;
+                # require ~encrypted_short_quic_packet_forwarded(dst,pkt);
+                require is_encrypted_short_quic_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require pkt.head_byte   = encrypted_short_quic_packet_received_at_round(dst,
+                                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                          current_forwarding_round(dst)).head_byte;
+                require pkt.dst_cid     = encrypted_short_quic_packet_received_at_round(dst,
+                                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                          current_forwarding_round(dst)).dst_cid;
+                require pkt.payload     = encrypted_short_quic_packet_received_at_round(dst,
+                                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                          current_forwarding_round(dst)).payload;
             } 
         }
 
@@ -394,12 +518,20 @@ object packet = {
             call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
             call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
             if _generating {
-                require pkt.head_byte   = encrypted_short_quic_packet_received_last_round(dst,encrypted_short_quic_packet_forwarded_last_round(dst)).head_byte;
+                require pkt.head_byte   = encrypted_short_quic_packet_received_at_round(dst,
+                                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                          current_forwarding_round(dst)).head_byte;
 
-                require (pkt.dst_cid    = encrypted_short_quic_packet_received_last_round(dst,encrypted_short_quic_packet_forwarded_last_round(dst)).dst_cid | 
-                         pkt.dst_cid   ~= encrypted_short_quic_packet_received_last_round(dst,encrypted_short_quic_packet_forwarded_last_round(dst)).dst_cid);
+                require (pkt.dst_cid    = encrypted_short_quic_packet_received_at_round(dst,
+                                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                          current_forwarding_round(dst)).dst_cid | 
+                         pkt.dst_cid   ~= encrypted_short_quic_packet_received_at_round(dst,
+                                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                          current_forwarding_round(dst)).dst_cid);
 
-                require pkt.payload     = encrypted_short_quic_packet_received_last_round(dst,encrypted_short_quic_packet_forwarded_last_round(dst)).payload;
+                require pkt.payload     = encrypted_short_quic_packet_received_at_round(dst,
+                                                                                          packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                          current_forwarding_round(dst)).payload;
             } 
         }
     }
@@ -409,8 +541,8 @@ object packet = {
 export packet.encrypted_short_quic_packet.forward_to_server
 export packet.encrypted_short_quic_packet.forward_to_client
 
-attribute packet.encrypted_short_quic_packet.forward_to_server.weight = "15"
-attribute packet.encrypted_short_quic_packet.forward_to_client.weight = "15"
+# attribute packet.encrypted_short_quic_packet.forward_to_server.weight = "15"
+# attribute packet.encrypted_short_quic_packet.forward_to_client.weight = "15"
 
 # export packet.encrypted_short_quic_packet.replay_to_client
 # export packet.encrypted_short_quic_packet.replay_to_server

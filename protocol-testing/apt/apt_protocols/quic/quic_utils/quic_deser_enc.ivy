@@ -123,11 +123,33 @@ object quic_deser_enc = {}
                     state = quic_s_payload;
                     break;
                 };*/
-                
+                /*int first_byte = res;
+                int is_loss_bit_enabled_incoming = 0;
+                uint8_t mask_bytes[5] = { 0, 0, 0, 0, 0 };
+                uint8_t first_mask = ((first_byte & 0x80) == 0x80) ? 0x0F : (is_loss_bit_enabled_incoming)?0x07:0x1F;
+                first_byte ^= (mask_bytes[0] & first_mask);
                 std::cerr << "quic_deser_enc res " << res << "\n";
                 std::cerr << "inp size " << inp.size() << "\n";
-                packet_number_length = (res & 0xc0) >> 6; //(res >> 5) & 0x03;
-                packet_number_length += 1;
+                // first_byte ^= (mask_bytes[0] & first_mask);
+                // pn_l = (first_byte & 3) + 1;*/  //(first_byte & 3); //
+                //packet_number_length = (res >> 5) & 0x03;
+                //packet_number_length += 1;
+
+                //TODO big "hack" by lack of time TOFIX
+                if(const char* env_p2 = std::getenv("PNUM_LEN")) { 
+                    if(const char* env_p3 = std::getenv("PNUM_LEN")) {
+                        packet_number_length = atoi(env_p3);
+                        std::cerr << "PNUM_LEN " << env_p3 << "\n";
+                    } 
+                    else {
+                        packet_number_length = (res >> 5) & 0x03; //might not work
+                        packet_number_length += 1;
+                    }
+                } else {
+                    packet_number_length = (res >> 5) & 0x03; //might not work
+                    packet_number_length += 1;
+                }
+
                 std::cerr << "quic_deser_enc hdr_type " << hdr_type << "\n";
                 std::cerr << "quic_deser_enc packet_number_length " << packet_number_length << "\n";
                 std::cerr << "quic_deser_enc long_format " << long_format << "\n";
