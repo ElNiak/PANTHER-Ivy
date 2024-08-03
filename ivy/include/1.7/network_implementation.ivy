@@ -1765,9 +1765,16 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 			// Send the packet using raw socket
 			if (::sendto(raw_sock, &packet[0], packet.size(), 0, (struct sockaddr *)&dstaddr, sizeof(dstaddr)) < 0) 
 		#ifdef _WIN32
-					{ std::cerr << "sendto failed " << WSAGetLastError() << "\n"; exit(1); }
+					{ 
+						std::cerr << "sendto failed " << WSAGetLastError() << "\n"; 
+						exit(1); 
+					}
 		#else
-					{ perror("sendto failed"); exit(1); }
+					{ 
+						perror("sendto failed"); 
+						std::cerr << "packet size : " <<  packet.size() << std::endl;
+						exit(1); 
+					}
 		#endif
 			
 				int error = 0;

@@ -65,12 +65,13 @@ module tls_intf(cid,index,bytes,lower,extens,hextens,exten_ser,seq_num) = {
     
     # Generates key material based on master secret, per RFC 5705.
     
-    action key_material_export(c:cid,label:bytes,context:bytes,length:index)
-    returns (key:bytes)
+    action key_material_export(c:cid,label:bytes,context:bytes,length:index) returns (key:bytes)
     
     # Create a new connection with a fresh cid, and list of extensions
 
-    action eavesdrop(c:cid)
+    action eavesdrop_client(c:cid)
+
+    action eavesdrop_server(c:cid)
 
     action create(c:cid, is_server:bool, e:extens)
 

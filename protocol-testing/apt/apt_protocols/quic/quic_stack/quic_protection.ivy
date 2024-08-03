@@ -668,6 +668,7 @@ object quic_prot_deser = {}
                     unsigned retry_token_len = get_var_int(pnum_pos,len);
                     pnum_pos = pnum_pos + len + retry_token_len;
                     std::cerr << "pnum_pos (quic_prot) " << pnum_pos << "\n";
+
                 } else if (ptype == 0x30) { // Retry packets have tokens
                     unsigned packet_size = inp.size();
                     unsigned len = packet_size - 16 - 1 - dcil - 1 - scil - 1 - 4;
@@ -690,6 +691,14 @@ object quic_prot_deser = {}
                     data_remaining = (pnum_pos-pos) + len + pyld_len;
                     std::cerr << "data_remaining (quic_prot) " << data_remaining << "\n";
                     std::cerr << "pyld_len (quic_prot) " << pyld_len << "\n";
+                    if(ptype == 0x00 && pyld_len < 1200) {
+                        //coalescing initial packets
+                        std::cerr <<  "set env COALESCED_PACKET"  << "\n";
+                        char str_d[20];
+                        sprintf(str_d,"%s","COALESCED_PACKET");
+                        if(setenv("COALESCED_PACKET",str_d,true) != 0) 
+                            fprintf(stderr, "setenv failed\n");
+                    }
                 }  
                 total_data_remaining = total_data_remaining - data_remaining;
                 std::cerr << "total_data_remaining (quic_prot) " << total_data_remaining << "\n";

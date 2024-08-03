@@ -30,7 +30,11 @@ object packet = {
                 # QUIC
                 if some(cf:packet.quic_packet)p *> cf {
                     var spkt := quic_packet_serdes.to_bytes(cf);
-                    pkts_mim := pkts_mim.append(spkt);
+                    var rnum := reference_pkt_num(spkt,false);
+                    var tls_id := src_tls_id(dst); # todo multiple
+                    var other_tls_id := dst_tls_id(dst);
+                    var ppkt := quic_prot.encrypt_quic(tls_id,rnum,spkt);
+                    pkts_mim := pkts_mim.append(ppkt);
                 } 
                 else if some(cf:packet.encrypted_quic_packet)p *> cf {
                     var spkt := quic_encrypted_packet_serdes.to_bytes(cf);
@@ -72,7 +76,11 @@ object packet = {
                 # QUIC
                 if some(cf:packet.quic_packet)p *> cf {
                     var spkt := quic_packet_serdes.to_bytes(cf);
-                    pkts_mim := pkts_mim.append(spkt);
+                    var rnum := reference_pkt_num(spkt,false);
+                    var tls_id := src_tls_id(dst); # todo multiple
+                    var other_tls_id := dst_tls_id(dst);
+                    var ppkt := quic_prot.encrypt_quic(other_tls_id,rnum,spkt);
+                    pkts_mim := pkts_mim.append(ppkt);
                 } 
                 else if some(cf:packet.encrypted_quic_packet)p *> cf {
                     var spkt := quic_encrypted_packet_serdes.to_bytes(cf);

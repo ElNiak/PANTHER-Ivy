@@ -21,14 +21,14 @@ object packet = {
             # require _generating;
             require pkt.payload.end > 0;
             require mim_agent.nat_configured;
-            require is_quic_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+            require is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
             require src ~= dst;
             require dst = mim_agent.ep_client & src = mim_agent.ep_server;
             ...
             call enqueue_packet(src,dst,pkt);
-            is_quic_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
-            packet_forwarded_at_round(dst,current_forwarding_round(dst)) := packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
-            call show_num_packets_forwarded_last_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+            is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
+            coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
+##            call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
         }
         
         action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
@@ -36,45 +36,45 @@ object packet = {
             # require _generating;
             require pkt.payload.end > 0;
             require mim_agent.nat_configured;
-            require is_quic_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+            require is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
             require src ~= dst;
             require dst = mim_agent.ep_server & src = mim_agent.ep_client;
             ...
             call enqueue_packet(src,dst,pkt);
-            is_quic_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
-            packet_forwarded_at_round(dst,current_forwarding_round(dst)) := packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
-            call show_num_packets_forwarded_last_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+            is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
+            coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
+##            call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
         }
 
         action replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
         around replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
             # require _generating;
             require pkt.payload.end > 0;
-            require is_quic_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst)));
-            require is_quic_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+            require is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+            require is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
             require mim_agent.nat_configured;
             require src = mim_agent.ep_server & dst = mim_agent.ep_client;
             require src ~= dst;
             ...
             call enqueue_packet(src,dst,pkt);
-            is_quic_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst))) := true;
-            packet_forwarded_at_round(dst,current_forwarding_round(dst)) := packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
-            call show_num_packets_forwarded_last_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+            is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := true;
+            coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
+##            call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
         }
 
         action replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
         around replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
             # require _generating;
             require pkt.payload.end > 0;
-            require is_quic_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+            require is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
             require mim_agent.nat_configured;
             require src = mim_agent.ep_client & dst = mim_agent.ep_server;
             require src ~= dst;
             ...
             call enqueue_packet(src,dst,pkt);
-            is_quic_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst))) := true;
-            packet_forwarded_at_round(dst,current_forwarding_round(dst)) := packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
-            call show_num_packets_forwarded_last_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+            is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := true;
+            coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
+##            call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
         }
 
         action modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
@@ -84,13 +84,13 @@ object packet = {
             require mim_agent.nat_configured;
             require dst = mim_agent.ep_server & src = mim_agent.ep_client | 
                     dst = mim_agent.ep_client & src = mim_agent.ep_server;
-            require is_quic_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+            require is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
             require src ~= dst;
             ...
             call enqueue_packet(src,dst,pkt);
-            is_quic_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
-            packet_forwarded_at_round(dst,current_forwarding_round(dst)) := packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
-            call show_num_packets_forwarded_last_round(dst,packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+            is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
+            coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
+##            call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
         }   
     }
 }
@@ -105,7 +105,7 @@ after init {
     quic_packets_received_last_round(C) := packet.quic_packet.arr.empty;
 }
 
-after enqueue_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet) {
+before enqueue_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet) {
     if some(cf:packet.quic_packet) pkt *> cf  {
         quic_packet_forwarded(dst,cf) := true;
     } 

@@ -820,7 +820,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
     # These are the implementations of the interface calls. These
     # operations are synchronous.
 
-    implement eavesdrop(c:cid) {
+    implement eavesdrop_client(c:cid) {
         <<< impure
 
         std::cerr << "create cid = " << c << std::endl;  
@@ -848,10 +848,54 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         memset(ctx->on_extension, 0, sizeof(ptls_on_extension_t));
         ctx->on_extension->cb = tls_on_extension_cb;
         
-        
-
         ptls_t *session;
         session = ptls_new(ctx, 0);
+        ptls_set_server_name(session, "servername", strlen("servername"));
+
+        ptls_handshake_properties_t *handshake_properties = new ptls_handshake_properties_t; 
+        memset(handshake_properties, 0, sizeof(ptls_handshake_properties_t));
+        handshake_properties->collect_extension = tls_collect_extensions_cb;
+        handshake_properties->collected_extensions = tls_collected_extensions_cb;
+
+        picotls_connection *s = new picotls_connection(c, session, ctx, *`cb`, handshake_properties, false);
+        *ptls_get_data_ptr(session) = s; 
+        
+        `cid_map`[c] = s;
+        
+        std::cerr << "cid_map[c] = s;"  << std::endl;
+        >>>
+    }
+
+    implement eavesdrop_server(c:cid) {
+        <<< impure
+
+        std::cerr << "create cid = " << c << std::endl;  
+
+        ptls_context_t* ctx;
+        ctx = new ptls_context_t;
+        memset(ctx, 0, sizeof(ptls_context_t));
+
+        ctx->random_bytes = ptls_openssl_random_bytes;
+        ctx->key_exchanges = picotls_key_exchanges; 
+        ctx->cipher_suites = picotls_cipher_suites; 
+        ctx->send_change_cipher_spec = 0;
+        // ctx->hkdf_label_prefix = QUIC_LABEL_QUIC_BASE;
+        
+        ctx->hkdf_label_prefix__obsolete = NULL;
+        ctx->update_traffic_key = (ptls_update_traffic_key_t *)malloc(sizeof(ptls_update_traffic_key_t));
+        memset(ctx->update_traffic_key, 0, sizeof(ptls_update_traffic_key_t));
+        //ctx->update_traffic_key = new ptls_update_traffic_key_t;
+        ctx->update_traffic_key->cb = quic_update_traffic_key_cb;
+        
+        ctx->get_time = &ptls_get_time;
+        
+        //ctx->on_extension = new ptls_on_extension_t;
+        ctx->on_extension = (ptls_on_extension_t *)malloc(sizeof(ptls_on_extension_t));
+        memset(ctx->on_extension, 0, sizeof(ptls_on_extension_t));
+        ctx->on_extension->cb = tls_on_extension_cb;
+        
+        ptls_t *session;
+        session = ptls_new(ctx, 1);
         ptls_set_server_name(session, "servername", strlen("servername"));
 
         ptls_handshake_properties_t *handshake_properties = new ptls_handshake_properties_t; 
