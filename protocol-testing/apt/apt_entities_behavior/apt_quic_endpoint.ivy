@@ -199,16 +199,11 @@ object endpoint = {
             action behavior(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:quic_prot.arr) = {
                 var dst := socket_endpoint_mim(host,s,src);  # because quic_net API doesn't tell us the dst socket_endpoint_mim
                 is_receiving(dst) := true;
-                var idx := pkts.begin;
+                var idx           := pkts.begin;
                 var past_data : stream_data := stream_data.empty;
                 # TODO should not be here
 
-                if ~nat_configured {
-                    nat_configured := true;
-                    ep_client      := src; # Like initial connection from client 
-                    call nat_configured_event(src,dst);
-                } 
-
+    
                 var is_enc     := true;
                 var to_forward := false;
                 var packet_number_of_coalesed : stream_pos := 0;
@@ -224,9 +219,16 @@ object endpoint = {
                     var bversion := bytes_to_version(version);
                     var ptype : byte := bvand(0x30,header);
 
-                    if bvand(ppkt.value(0),0xf0) = 0xc0 {
-                        call tls_start_eavedrop(src,dst,ppkt)
-                    };
+                    if ~nat_configured {
+                        nat_configured := true;
+                        ep_client      := src; # Like initial connection from client 
+                        call nat_configured_event(src,dst);
+    
+                        if bvand(ppkt.value(0),0xf0) = 0xc0 {
+                            call tls_start_eavedrop(src,dst,ppkt)
+                        };
+    
+                    }     
 
                     if (bversion = 0 & is_long) | version_not_found(src) { 
                         # for server test, for version_negociation
@@ -241,6 +243,9 @@ object endpoint = {
                     } 
                     else { 
                         var rnum := reference_pkt_num(ppkt,true);
+                        if dst = ep_client {
+                            tls_id := dst_tls_id(dst);
+                        };
                         var res := quic_prot.decrypt_quic(tls_id,rnum,ppkt);
                         var dcil : stream_pos := bfe[0][7](ppkt.value(5));
                         var ikm := cid_to_bytes(0,1); # dcid
@@ -265,11 +270,9 @@ object endpoint = {
                             };
 
                             if forward_packets {
+                                to_forward := true;
                                 call receiving_packet(src,dst,rppkt, packet_number_of_coalesed);
                                 packet_number_of_coalesed := packet_number_of_coalesed + 1;
-                                if ~keep_coalesed {
-                                    number_packet_recv_from(src) := number_packet_recv_from(src) + 1;
-                                };
                             };                     
                         } else {
                             if is_long {
@@ -280,9 +283,6 @@ object endpoint = {
                                     if forward_packets {
                                         call receiving_packet(src,dst,rppkt, packet_number_of_coalesed);
                                         packet_number_of_coalesed := packet_number_of_coalesed + 1;
-                                        if ~keep_coalesed {
-                                            number_encrypted_packet_recv_from(src) := number_encrypted_packet_recv_from(src) + 1;
-                                        };
                                     };
                                 } else {
                                     # TODO problem for decryption of pnum len
@@ -295,9 +295,6 @@ object endpoint = {
                                         if forward_packets {
                                             call receiving_packet(src,dst,rppkt, packet_number_of_coalesed);
                                             packet_number_of_coalesed := packet_number_of_coalesed + 1;
-                                            if ~keep_coalesed {
-                                                number_encrypted_packet_recv_from(src) := number_encrypted_packet_recv_from(src) + 1;
-                                            };
                                         };
                                     } 
                                 }
@@ -310,9 +307,6 @@ object endpoint = {
                                 if forward_packets {
                                     call receiving_packet(src,dst,rppkt, packet_number_of_coalesed);
                                     packet_number_of_coalesed := packet_number_of_coalesed + 1;
-                                    if ~keep_coalesed {
-                                        number_encrypted_packet_recv_from(src) := number_encrypted_packet_recv_from(src) + 1;
-                                    };
                                 };
                             }
                         }
@@ -321,16 +315,6 @@ object endpoint = {
                 };
 
                 if forward_packets & keep_coalesed & to_forward {
-                    if is_enc {
-                        number_encrypted_packet_recv_from(src) := number_encrypted_packet_recv_from(src) + 1;
-                    } else {
-                        number_packet_recv_from(src) := number_packet_recv_from(src) + 1;
-                    };
-                    call cppkt_recv_from_client_count_debug_event(number_packet_recv_from(src));
-                    call cppkt_recv_from_server_count_debug_event(number_packet_recv_from(dst));
-
-                    call cppkt_recv_from_client_count_debug_event(number_encrypted_packet_recv_from(src));
-                    call cppkt_recv_from_server_count_debug_event(number_encrypted_packet_recv_from(dst));
                     current_receving_round(dst) := current_receving_round(dst) + 1;
                 };
                 is_receiving(dst)  := false;
@@ -339,6 +323,7 @@ object endpoint = {
             action tls_start_eavedrop(src:ip.endpoint,dst:ip.endpoint,spkt:stream_data) = {
                 call client.set_ep(src);
                 var tls_id := src_tls_id(dst); # todo multiple
+                var other_tls_id := dst_tls_id(dst);
                 
                 var version := bytes_to_version(spkt.segment(1,5));
                 var lens := spkt.value(5);
@@ -378,7 +363,8 @@ object endpoint = {
                 };
 
                 if ~tp_client_set | negocation_of_version(src) {
-                    call tls_api.upper.eavesdrop(tls_id);  
+                    call tls_api.upper.eavesdrop_server(other_tls_id);
+                    call tls_api.upper.eavesdrop_client(tls_id);  
                     # 'true' means this instance of tls is a server
                     tp_client_set := true;
                 }; 
@@ -476,8 +462,7 @@ object endpoint = {
             action is_random_padding_packet(spkt:stream_data) returns (is_padding:bool) = {
                 var first_byte := spkt.value(0);
                 var header_typer := bvand(first_byte,0x7f);
-                var is_long : bool := bvand(0x80,first_byte) ~= 0;
-                if header_typer = first_byte & is_long {
+                if header_typer = first_byte {
                     is_padding := true;
                 } else {
                     is_padding := false;
@@ -601,8 +586,8 @@ object endpoint = {
                 >>>
             }
 
-            import action cppkt_recv_from_server_count_debug_event(count:stream_pos)
-            import action cppkt_recv_from_client_count_debug_event(count:stream_pos)
+##            import action cppkt_recv_from_server_count_debug_event(count:stream_pos)
+##            import action cppkt_recv_from_client_count_debug_event(count:stream_pos)
 
             import action nat_configured_event(src:ip.endpoint, dst:ip.endpoint)
             import action client_target_setup_event(src:ip.endpoint)

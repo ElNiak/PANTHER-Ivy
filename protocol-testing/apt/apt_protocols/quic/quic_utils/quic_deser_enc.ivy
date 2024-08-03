@@ -99,12 +99,14 @@ object quic_deser_enc = {}
         int packet_number_length;
         bool is_random_padding_packet = false;
         bool is_from_open_list = false;
+        int total_data = 0;
 
     
     public:
         quic_deser_enc(const std::vector<char> &inp) : ivy_binary_deser_128(inp),state(quic_s_init) {
         //quic_deser_enc(const std::vector<char> &inp) : ivy_binary_deser(inp),state(quic_s_init) {
             // pos = 42; // skip 42 bytes of IP and UDP header
+            total_data = inp.size();
             fence = 0;
         }
         virtual void  get(int128_t &res) {
@@ -155,14 +157,14 @@ object quic_deser_enc = {}
                 std::cerr << "quic_deser_enc long_format " << long_format << "\n";
                 //This is then shifted by 4 so that only the original 0xxx 0000 (3) bits are significant.
                 //res = long_format ? ((hdr_type & 0x30) >> 4) : 3;
-                if(res == hdr_type) {
+                /*if(res == hdr_type) {
                     std::cerr << "quic_deser_enc randombyte " << hdr_type << "\n";
                     data_remaining = inp.size();
                     is_random_padding_packet = true;
                     state = quic_s_payload;
-                } else {
-                    state = quic_s_version;
-                }
+                } else {*/
+                state = quic_s_version;
+                //}
             }
             break;
             case quic_s_version:
@@ -273,12 +275,14 @@ object quic_deser_enc = {}
                 payload_length = res;
                 data_remaining = res;
                 std::cerr << "quic_deser_enc payload_length " << payload_length << "\n";
-                state = quic_s_pkt_num;
+                std::cerr << "quic_deser_enc data_remaining " << data_remaining << "\n";
+                std::cerr << "quic_deser_enc total_data " << total_data << "\n";
+                state = quic_s_payload;
             }
             break;
             case quic_s_payload:
             {
-                if(!is_from_open_list && is_random_padding_packet) {
+                /*if(!is_from_open_list && is_random_padding_packet) {
                     data_remaining--;
                     
                 }  
@@ -286,7 +290,7 @@ object quic_deser_enc = {}
                     std::cerr << "quic_deser_enc end of random padding packet\n";
                     end();
                     close_struct();
-                }
+                }*/
                 getn(res,1);         
                 // std::cerr << "quic_deser_enc payload remaining " << data_remaining << "\n";
             }

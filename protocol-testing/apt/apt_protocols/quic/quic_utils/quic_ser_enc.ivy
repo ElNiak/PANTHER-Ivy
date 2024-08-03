@@ -187,7 +187,7 @@ object quic_ser_enc = {}
             {
                 std::cerr << "ser res payload_length 1 " << res << "\n";
                 set_var_int(res);
-                state = quic_s_pkt_num;
+                state = quic_s_payload;
             }
             break;
             default:

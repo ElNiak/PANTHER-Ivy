@@ -32,11 +32,11 @@ object packet = {
             # require _generating;
             require pkt.payload.end > 0;
             require mim_agent.nat_configured;
-            require is_malicious_stream_data_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst)));            require src ~= dst;
+            require is_malicious_stream_data_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));            require src ~= dst;
             require dst = mim_agent.ep_client & src = mim_agent.ep_server;
             ...
             call enqueue_packet(src,dst,pkt);
-            is_malicious_stream_data_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
+            is_malicious_stream_data_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
             malicious_stream_data_packet_forwarded_last_round(dst) := malicious_stream_data_packet_forwarded_last_round(dst) + 1;
         }
         
@@ -45,11 +45,11 @@ object packet = {
             # require _generating;
             require pkt.payload.end > 0;
             require mim_agent.nat_configured;
-            require is_malicious_stream_data_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst)));            require src ~= dst;
+            require is_malicious_stream_data_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));            require src ~= dst;
             require dst = mim_agent.ep_server & src = mim_agent.ep_client;
             ...
             call enqueue_packet(src,dst,pkt);
-            is_malicious_stream_data_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
+            is_malicious_stream_data_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
             malicious_stream_data_packet_forwarded_last_round(dst) := malicious_stream_data_packet_forwarded_last_round(dst) + 1;
         }
 
@@ -57,13 +57,13 @@ object packet = {
         around replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
             # require _generating;
             require pkt.payload.end > 0;
-            require is_malicious_stream_data_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+            require is_malicious_stream_data_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
             require mim_agent.nat_configured;
             require src = mim_agent.ep_server & dst = mim_agent.ep_client;
             require src ~= dst;
             ...
             call enqueue_packet(src,dst,pkt);
-            is_malicious_stream_data_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst))) := true;
+            is_malicious_stream_data_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := true;
             malicious_stream_data_packet_forwarded_last_round(dst) := malicious_stream_data_packet_forwarded_last_round(dst) + 1;
         }
 
@@ -71,13 +71,13 @@ object packet = {
         around replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
             # require _generating;
             require pkt.payload.end > 0;
-            require is_malicious_stream_data_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+            require is_malicious_stream_data_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
             require mim_agent.nat_configured;
             require src = mim_agent.ep_client & dst = mim_agent.ep_server;
             require src ~= dst;
             ...
             call enqueue_packet(src,dst,pkt);
-            is_malicious_stream_data_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst))) := true;
+            is_malicious_stream_data_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := true;
             malicious_stream_data_packet_forwarded_last_round(dst) := malicious_stream_data_packet_forwarded_last_round(dst) + 1;
         }
 
@@ -88,11 +88,11 @@ object packet = {
             require mim_agent.nat_configured;
             require dst = mim_agent.ep_server & src = mim_agent.ep_client | 
                     dst = mim_agent.ep_client & src = mim_agent.ep_server;
-            require is_malicious_stream_data_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+            require is_malicious_stream_data_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
             require src ~= dst;
             ...
             call enqueue_packet(src,dst,pkt);
-            is_malicious_stream_data_packet_received(dst,pkt,packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
+            is_malicious_stream_data_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
             malicious_stream_data_packet_forwarded_last_round(dst) := malicious_stream_data_packet_forwarded_last_round(dst) + 1;
         }   
     }
@@ -109,7 +109,7 @@ after init {
     malicious_stream_data_packets_received_last_round(C) := packet.malicious_stream_data_packet.arr.empty;
 }
 
-after enqueue_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet) {
+before enqueue_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet) {
     if some(cf:packet.malicious_stream_data_packet) pkt *> cf  {
         malicious_stream_data_packet_forwarded(dst,cf) := true;
     } 

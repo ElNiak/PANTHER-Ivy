@@ -112,6 +112,7 @@ object quic_deser = {}
               quic_padding,
               quic_unknow,
               quic_ping,
+              quic_timestamp,
               quic_s_done} state;
         bool long_format;
         char hdr_type;
@@ -469,6 +470,11 @@ object quic_deser = {}
                 get_var_int(res);
             }
             break;
+            case quic_timestamp:
+            {
+                get_var_int(res);
+            }
+            break;
             default:
                 std::cerr << "quic_deser 3\n";  
                 throw deser_err();
@@ -634,6 +640,21 @@ object quic_deser = {}
                         state = quic_unknow;
                         return 25;
                     }
+                    if (frame_type == 0x02) { //0x40af
+                        state = quic_timestamp; //timestamps frame
+                        return 27;
+                    }
+                }
+                if (frame_type == 0x7b) {
+                    /*ft = 0;
+                    //ivy_binary_deser::getn(ft,1); // could be bigger
+                    ivy_binary_deser_128::getn(ft,1); // could be bigger
+                    frame_type = ft;
+                    if (frame_type == 0x77) { //0x40af */
+                    state = quic_timestamp; //timestamps frame
+                    return 27;
+                    /* } */
+                    std::cerr << "saw tag " << ft << "\n";
                 }
                 /*if (frame_type == 0x00) {
                     state = quic_padding;

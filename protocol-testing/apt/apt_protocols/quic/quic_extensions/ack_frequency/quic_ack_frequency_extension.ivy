@@ -1,5 +1,5 @@
 #lang ivy1.7
-## ack_frequency event
+###### ack_frequency event
 # TODO
 # ack_frequency frames    Delaying acknowledgements as much as possible reduces both work done
 #   by the endpoints and network load.  An endpoint's loss detection and
@@ -134,7 +134,7 @@ object quic_frame = { ...
     }
 }
 
-## immediate_ack event
+###### immediate_ack event
 # A sender can use an ACK_FREQUENCY quic_frame to reduce the number of 
 # acknowledgements sent by a receiver, but doing so increases the
 #  likelihood that time-sensitive feedback is delayed as well. 

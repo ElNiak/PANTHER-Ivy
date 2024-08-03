@@ -56,6 +56,7 @@ module array(domain,range) = {
     definition begin(A) = 0
     function end(A:t) : domain
     function value(A:t,X:domain) : range
+	# function contains(X:t,y:domain) = exists Z. 0 <= Z & Z < arr.end(X) & arr.value(X,Z) = y
 
     # Extract an array segment
 

@@ -76,6 +76,7 @@ object quic_ser = {}
               quic_ack_frequency_ack_eliciting_threshold,
               quic_ack_frequency_request_max_ack_delay,
               quic_ack_frequency_reordering_threshold,
+              quic_timestamp,
               quic_s_done} state;
         bool long_format;
         char hdr_type;
@@ -410,6 +411,12 @@ object quic_ser = {}
                 state = quic_ack_frequency_reordering_threshold;
             }
             break;
+            case quic_timestamp: 
+            {
+                set_var_int(res);
+		        //std::cerr << "ser: quic_ack_frequency   = quic_ack_frequency_request_max_ack_delay\n"; 
+            }
+            break;
             case quic_ack_frequency_reordering_threshold: 
             {
 		        //std::cerr << "ser: quic_ack_frequency   = quic_ack_frequency_reordering_threshold\n"; 
@@ -557,6 +564,12 @@ object quic_ser = {}
                     frame_type = 0x4041; 
                     sz = 2;  
                 }
+                else if (tag == 27) {
+                    //ivy_binary_deser::getn(ft,1); // could be bigger
+                    sz = 2;
+                    frame_type = 0x7b02;
+                    state = quic_timestamp; //timestamps frame
+                }
                 /*else if (tag == 25) {
                     state = quic_padding;
                     frame_type = 0x00;
@@ -592,9 +605,15 @@ object quic_ser = {}
         }
         void close_list() {
             if (state == quic_s_payload) {
-                if (long_format && (hdr_type & 0x30) == 0x00)
-                    while (res.size() < 1200)
-                        res.push_back(0);  // pad initial packet to 1200 bytes
+                if (const char* env_p3 = std::getenv("COALESCED_PACKET")) {
+                    std::cerr << "ser: COALESCED_PACKET   = " << "\n";
+                    unsetenv("COALESCED_PACKET");
+                } else {
+                    std::cerr << "ser: NOT_COALESCED_PACKET   = " << "\n";
+                    if (long_format && (hdr_type & 0x30) == 0x00)
+                        while (res.size() < 1200)
+                            res.push_back(0);  // pad initial packet to 1200 bytes
+                }
                 /*else if ((hdr_type & 0x30) == 0x20){
                             while (res.size() < 2000)
                                 res.push_back(0);  // pad initial packet to 1200 bytes

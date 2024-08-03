@@ -235,7 +235,7 @@ after init {
 
 implement quic_net.recv(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:quic_prot.arr) {
     # call show_current_time(time_api.c_timer.now_micros_last_bp);
-    call show_socket_debug_event(s);
+##    call show_socket_debug_event(s);
     if(is_lost_recv_example_ext_ack_freq) {
         call on_purpose_lost_packet_event(host,src,pkts);
     } else {
@@ -276,7 +276,7 @@ import action undefined_host_error(host:endpoint_id, s:quic_net.socket, src:ip.e
 
 import action show_last_datagram_size(size:stream_pos)
 
-import action show_socket_debug_event(n:quic_net.socket)
+##import action show_socket_debug_event(n:quic_net.socket)
 
 # Security event shims
 # --------------------
@@ -303,7 +303,7 @@ import action show_socket_debug_event(n:quic_net.socket)
 implement tls_api.lower.send(tls_id:tls_api.id, bytes:stream_data, lev:tls_api.lower.level) {
     #if dst_is_generated_tls(tls_id_to_src(tls_id)) { # For MiM agent, we dont wont for now TLS events
         var early_data_end := stream_data.empty; # TODO global -> quic-go crash if not global
-        call show_biatch_debug_event(tls_id_to_dst(tls_id));
+##        call show_biatch_debug_event(tls_id_to_dst(tls_id));
         early_data_end := early_data_end.append(0xff);
         early_data_end := early_data_end.append(0xff);
         early_data_end := early_data_end.append(0xff);
@@ -324,8 +324,8 @@ implement tls_api.lower.send(tls_id:tls_api.id, bytes:stream_data, lev:tls_api.l
     #}
 }
 
-import action show_biatch_debug_event(src:ip.endpoint)
-import action show_tls_lower_send_debug_event(bytes:stream_data)
+##import action show_biatch_debug_event(src:ip.endpoint)
+##import action show_tls_lower_send_debug_event(bytes:stream_data)
 
 # The following is just for debugging purposes.
 
@@ -348,7 +348,7 @@ implement tls_api.upper.keys_established(tls_id:tls_api.id,lev:tls_api.upper.lev
     call tls_keys_established_event(tls_id_to_cid(tls_id),e); #tls_id = server.tls_id  for client ?
 }
 
-import action show_tls_id_to_cid_debug_event(ver:cid)
+##import action show_tls_id_to_cid_debug_event(ver:cid)
 
 
 # TLS handshake data event shim

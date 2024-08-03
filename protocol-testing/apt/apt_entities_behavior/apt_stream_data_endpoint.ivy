@@ -220,13 +220,13 @@ object endpoint = {
 
                 if forward_packets & keep_coalesed & to_forward { # To server
                     number_packet_recv_from(src) := number_packet_recv_from(src) + 1;
-                    call cppkt_recv_from_client_count_debug_event(number_packet_recv_from(src));
-                    call cppkt_recv_from_server_count_debug_event(number_packet_recv_from(dst));
+##                    call cppkt_recv_from_client_count_debug_event(number_packet_recv_from(src));
+##                    call cppkt_recv_from_server_count_debug_event(number_packet_recv_from(dst));
                 };
             }
 
-            import action cppkt_recv_from_server_count_debug_event(count:stream_pos)
-            import action cppkt_recv_from_client_count_debug_event(count:stream_pos)
+##            import action cppkt_recv_from_server_count_debug_event(count:stream_pos)
+##            import action cppkt_recv_from_client_count_debug_event(count:stream_pos)
 
             import action nat_configured_event(src:ip.endpoint, dst:ip.endpoint)
             import action client_target_setup_event(src:ip.endpoint)
@@ -363,8 +363,8 @@ object endpoint = {
                 >>>
             }
 
-            import action cppkt_recv_from_server_count_debug_event(count:stream_pos)
-            import action cppkt_recv_from_client_count_debug_event(count:stream_pos)
+##            import action cppkt_recv_from_server_count_debug_event(count:stream_pos)
+##            import action cppkt_recv_from_client_count_debug_event(count:stream_pos)
 
             import action nat_configured_event(src:ip.endpoint, dst:ip.endpoint)
             import action client_target_setup_event(src:ip.endpoint)
