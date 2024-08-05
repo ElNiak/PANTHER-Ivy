@@ -289,7 +289,7 @@ object protection = {
 
         implement decrypt_quic {
             var h := get_header_info(pkt,true);
-            call show_header(h);
+            call show_header_debug_event(h);
             var level := get_level(pkt);
             if level = 1 & ~zrtt_pkt_set {
                 zrtt_pkt_set := true;
@@ -571,7 +571,7 @@ object protection = {
         }
         import action show_payload(ver:stream_data)
         import action show_token_len(ver:stream_pos)
-        import action show_header(h:header_info_quic)
+        import action show_header_debug_event(h:header_info_quic)
     }
 }
 

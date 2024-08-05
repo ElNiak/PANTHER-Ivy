@@ -236,6 +236,7 @@ object quic_deser_enc = {}
                 int128_t len;
                 //long long len;
                 if (long_format & ((hdr_type & 0x30) == 0x00)){
+                    std::cerr << "quic_deser_enc token length\n";
                     get_var_int(res);
                     len = res;
                 } else {

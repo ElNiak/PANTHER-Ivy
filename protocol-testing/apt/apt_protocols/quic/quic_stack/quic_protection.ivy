@@ -35,6 +35,8 @@ object protection = {
 
         action encrypt_quic(c:tls_id,seq:pkt_num,pkt:stream_data) returns (pkt:stream_data)
 
+        action encrypt_quic_no_checksum(c:tls_id,seq:pkt_num,pkt:stream_data) returns (pkt:stream_data)
+
         action encrypt_zrtt_quic(c:tls_id,seq:pkt_num,pkt:stream_data) returns (pkt:stream_data)
 
         # Protect a packet, given the TLS session and the actual (not
@@ -71,6 +73,82 @@ object protection = {
                 pkt := pkt.set(pnum_pos-2,new_len.value(0));
                 pkt := pkt.set(pnum_pos-1,new_len.value(1));
             };
+
+            var hdr  := pkt.segment(0,pnum_pos);
+            var pnum := pkt.segment(pnum_pos,hdr_len);
+            var pyld := pkt.segment(hdr_len,pkt.end);
+            var auth := pkt.segment(0,hdr_len);
+            var new_seq := get_pnum(pnum,0,pnum_len);
+            new_seq := correct_pnum(seq,new_seq,pnum_len);
+            pyld := tls.encrypt_aead(c,level,pyld,new_seq,auth);
+
+
+            # call show_aead(level,pyld,new_seq,auth);
+
+            # start l 3Computing the sample position is a bit tricky. First we
+            # assume the length of the pnum is 4, which means the offset
+            # of the sample withing the payload is `4 -
+            # pnum_len`. However, if there are not enough bytes in the
+            # payload, we change it to `payld.end - sample`. Note,
+            # however, that we are using natural numbers, so if the
+            # position would be negative, it saturates to zero. This is
+            # consistent with the statement that you should never sample
+            # any bytes from the packet number itself. This leaves the
+            # possibility that there are not enough bytes to sample, that
+            # is, in the sample, there will be some trailing
+            # zeros. Nonetheless, the spec says that the sample size will
+            # never be larger than the smallest encrypted payload, so we
+            # should be OK.
+
+            var pn_offset : stream_pos := 0;
+            if h.hdr_long {
+                pn_offset := hdr_len - pnum_pos;
+            } else {
+                pn_offset := 1 + 4;
+            };
+        
+            var sample_pos : stream_pos :=  4 - pnum_len;  #- pnum_len;
+            var new_pyld := pyld;
+            if sample_pos + sample_size > pkt.end { #MC
+                var diff := (sample_pos + sample_size) - pyld.end;
+                var i : stream_pos := 0;
+                while i < diff {
+                    new_pyld := new_pyld.append(0x00);
+                    i := i + 1
+                };
+                #sample_pos := pyld.end - sample_size #MC shift vs padding ? #[*1*]
+                #check with mcmillan vs maxime piraux
+                pyld := new_pyld;  #[*2*]
+            };
+        
+            var sample := pyld.segment(sample_pos,sample_pos+sample_size); 
+            var mask := stream_data.empty;
+            mask := tls.encrypt_cipher(c,level,mask.resize(5,0),sample,false);
+            var byte0_mask := bvand(mask.value(0), 0x0f if h.hdr_long else 0x1f);
+            hdr := hdr.set(0,byte_xor(pkt.value(0),byte0_mask));
+            pnum := stream_data_xor(pkt.segment(pnum_pos,pnum_pos+pnum_len),mask.segment(1,1+pnum_len));        
+            pkt := hdr.extend(pnum).extend(pyld);
+        }
+
+        implement encrypt_quic_no_checksum {
+            
+            var h := get_header_info(pkt,false);
+            var level := get_level(pkt);
+            var sample_size : stream_pos := tls.iv_size(c,level);
+            var pnum_pos := h.pkt_num_pos;
+            var pnum_len := get_pnum_len(pkt);
+            var hdr_len := pnum_pos + pnum_len;
+
+            # Tricky: before encrypting the payload, we need to adjust the length field
+            # so that it includes the AEAD checksum. Of course, we don't know what
+            # that actually is. Here we assume it is 16 bytes. Even worse, the length of
+            # the length field could grow. Here, we assume the length field format is
+            # always two bytes. 
+            # if h.hdr_long {
+            #     var new_len := to_var_int_16(h.payload_length);
+            #     pkt := pkt.set(pnum_pos-2,new_len.value(0));
+            #     pkt := pkt.set(pnum_pos-1,new_len.value(1));
+            # };
 
             var hdr  := pkt.segment(0,pnum_pos);
             var pnum := pkt.segment(pnum_pos,hdr_len);
@@ -284,7 +362,7 @@ object protection = {
 
         implement decrypt_quic {
             var h := get_header_info(pkt,true);
-            call show_header(h);
+            call show_header_debug_event(h);
             var level := get_level(pkt);
             if level = 1 & ~zrtt_pkt_set {
                 zrtt_pkt_set := true;
@@ -571,7 +649,7 @@ object protection = {
         }
         import action show_payload(ver:stream_data)
         import action show_token_len(ver:stream_pos)
-        import action show_header(h:header_info_quic)
+        import action show_header_debug_event(h:header_info_quic)
     }
 }
 
@@ -691,13 +769,22 @@ object quic_prot_deser = {}
                     data_remaining = (pnum_pos-pos) + len + pyld_len;
                     std::cerr << "data_remaining (quic_prot) " << data_remaining << "\n";
                     std::cerr << "pyld_len (quic_prot) " << pyld_len << "\n";
-                    if(ptype == 0x00 && pyld_len < 1200) {
+                    const char * test_type = getenv("TEST_TYPE");
+                    if(pyld_len < 1200) {
                         //coalescing initial packets
                         std::cerr <<  "set env COALESCED_PACKET"  << "\n";
                         char str_d[20];
                         sprintf(str_d,"%s","COALESCED_PACKET");
                         if(setenv("COALESCED_PACKET",str_d,true) != 0) 
-                            fprintf(stderr, "setenv failed\n");
+                            {fprintf(stderr, "setenv failed\n");}
+                    }
+                    else if(test_type != NULL && strcmp(test_type,"mim") == 0) {
+                        std::cerr << "mim test ->"   << std::endl;
+                        std::cerr <<  "set env PACKET_SIZE"  << "\n";
+                        char str_d[20];
+                        sprintf(str_d,"%u",data_remaining);
+                        if(setenv("PACKET_SIZE",str_d,true) != 0) 
+                           { fprintf(stderr, "setenv failed\n");}
                     }
                 }  
                 total_data_remaining = total_data_remaining - data_remaining;

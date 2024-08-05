@@ -823,7 +823,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
     implement eavesdrop_client(c:cid) {
         <<< impure
 
-        std::cerr << "create cid = " << c << std::endl;  
+        std::cerr << "eavesdrop_client create cid = " << c << std::endl;  
 
         ptls_context_t* ctx;
         ctx = new ptls_context_t;
@@ -857,6 +857,24 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         handshake_properties->collect_extension = tls_collect_extensions_cb;
         handshake_properties->collected_extensions = tls_collected_extensions_cb;
 
+        ptls_iovec_t *alpn_vec = new(ptls_iovec_t);  // TODO: will leak this
+        
+        // h3-x == HTTP/3 over QUIC 
+        // hq-x == HTTP/0.9 over QUIC
+        alpn_vec->base = (uint8_t*) "hq-interop";
+        if(const char* env_p = std::getenv("TEST_ALPN")) { 
+            std::cerr << "TEST_ALPN " << env_p << std::endl;
+            alpn_vec->base = (uint8_t*) env_p;
+        }
+        alpn_vec->len = strlen((char *)(alpn_vec->base));
+        handshake_properties->client.negotiated_protocols.count = 1;
+        handshake_properties->client.negotiated_protocols.list  = alpn_vec;
+
+        std::cerr << "ptls_set_negotiated_protocol"  << std::endl;
+        ptls_set_negotiated_protocol(session, 
+            (const char*) handshake_properties->client.negotiated_protocols.list[0].base, 
+            handshake_properties->client.negotiated_protocols.list[0].len);
+
         picotls_connection *s = new picotls_connection(c, session, ctx, *`cb`, handshake_properties, false);
         *ptls_get_data_ptr(session) = s; 
         
@@ -869,7 +887,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
     implement eavesdrop_server(c:cid) {
         <<< impure
 
-        std::cerr << "create cid = " << c << std::endl;  
+        std::cerr << "eavesdrop_server create cid = " << c << std::endl;  
 
         ptls_context_t* ctx;
         ctx = new ptls_context_t;
@@ -893,7 +911,18 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         ctx->on_extension = (ptls_on_extension_t *)malloc(sizeof(ptls_on_extension_t));
         memset(ctx->on_extension, 0, sizeof(ptls_on_extension_t));
         ctx->on_extension->cb = tls_on_extension_cb;
-        
+            
+        int r = ptls_load_certificates(ctx, "/app/panther-ivy/protocol-testing/quic/leaf_cert.pem");
+        std::cerr << "ptls_load_certificates "  << r << std::endl;
+        /* Read the certificate file */
+        if (r != 0) {
+            std::cerr << "could not load certificate file hardcoded leaf_cert.pem\n";
+            exit(1);
+        } else if(set_sign_certificate_from_key_file("/app/panther-ivy/protocol-testing/quic/leaf_cert.key", ctx)) {
+            std::cerr << "could not load key file leaf_cert.key\n";
+            exit(1);
+        }
+
         ptls_t *session;
         session = ptls_new(ctx, 1);
         ptls_set_server_name(session, "servername", strlen("servername"));
@@ -903,7 +932,25 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         handshake_properties->collect_extension = tls_collect_extensions_cb;
         handshake_properties->collected_extensions = tls_collected_extensions_cb;
 
-        picotls_connection *s = new picotls_connection(c, session, ctx, *`cb`, handshake_properties, false);
+        ptls_iovec_t *alpn_vec = new(ptls_iovec_t);  // TODO: will leak this
+        
+        // h3-x == HTTP/3 over QUIC 
+        // hq-x == HTTP/0.9 over QUIC
+        alpn_vec->base = (uint8_t*) "hq-interop";
+        if(const char* env_p = std::getenv("TEST_ALPN")) { 
+            std::cerr << "TEST_ALPN " << env_p << std::endl;
+            alpn_vec->base = (uint8_t*) env_p;
+        }
+        alpn_vec->len = strlen((char *)(alpn_vec->base));
+        handshake_properties->client.negotiated_protocols.count = 1;
+        handshake_properties->client.negotiated_protocols.list  = alpn_vec;
+        
+        std::cerr << "ptls_set_negotiated_protocol"  << std::endl;
+        ptls_set_negotiated_protocol(session, 
+            (const char*) handshake_properties->client.negotiated_protocols.list[0].base, 
+            handshake_properties->client.negotiated_protocols.list[0].len);
+
+        picotls_connection *s = new picotls_connection(c, session, ctx, *`cb`, handshake_properties, true);
         *ptls_get_data_ptr(session) = s; 
         
         `cid_map`[c] = s;
@@ -2211,10 +2258,16 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         // TODO: make the epoch a parameter of this call
         // For now, we assume that the epochs come in order
         size_t in_epoch = ptls_get_read_epoch(s->gs);
-        picotls_do_handshake(s,in_epoch,&(s->input[0]),s->input.size());
-	std::cerr << "before clear"   << std::endl;
-        s->input.clear();
-	std::cerr << "after clear"   << std::endl;
+        const char * test_type = getenv("TEST_TYPE");
+        if(test_type != NULL && strcmp(test_type,"mim") != 0) {
+            picotls_do_handshake(s,in_epoch,&(s->input[0]),s->input.size());
+            std::cerr << "before clear"   << std::endl;
+            s->input.clear();
+            std::cerr << "after clear"   << std::endl;
+        } else {
+            std::cerr << "mim test -> no handshake"   << std::endl;
+        }
+       
         >>>
     }
 

@@ -609,21 +609,54 @@ object quic_ser = {}
                     std::cerr << "ser: COALESCED_PACKET   = " << "\n";
                     unsetenv("COALESCED_PACKET");
                 } else {
-                    std::cerr << "ser: NOT_COALESCED_PACKET   = " << "\n";
-                    if (long_format && (hdr_type & 0x30) == 0x00)
-                        while (res.size() < 1200)
-                            res.push_back(0);  // pad initial packet to 1200 bytes
-                }
-                /*else if ((hdr_type & 0x30) == 0x20){
+                    if (const char* env_size = std::getenv("PACKET_SIZE")) {
+                        int size = atoi(env_size);
+                        std::cerr << "ser: PACKET_SIZE   = " << size << "\n";
+                        if (long_format && (hdr_type & 0x30) == 0x00)
+                            while (res.size() < size-16) //minus checksum
+                                res.push_back(0);
+                        unsetenv("PACKET_SIZE");
+                        
+                    } else {
+                        std::cerr << "ser: NOT_COALESCED_PACKET   = " << "\n";
+                        if (long_format && (hdr_type & 0x30) == 0x00)
+                            while (res.size() < 1200)
+                                res.push_back(0);  // pad initial packet to 1200 bytes
+                        /*else if ((hdr_type & 0x30) == 0x20){
                             while (res.size() < 2000)
                                 res.push_back(0);  // pad initial packet to 1200 bytes
-                }*/
-                for(unsigned i = 0; i < 16; i++)
-                    res.push_back(0);
+                        }*/
+                        for(unsigned i = 0; i < 16; i++)
+                        res.push_back(0);
+                    }
+                }
+                std::cerr << "ser: PACKET_SIZE   = " << res.size() << "\n";
+                std::cerr << "ser: PACKET_SIZE   = " << this->res.size() << "\n";
                 if (long_format) {
                     int len = res.size() - (payload_length_pos+2) ;
+                    /*if (const char* env_size = std::getenv("PACKET_SIZE")) {
+                        len = res.size();
+                        unsetenv("PACKET_SIZE");
+                    }*/
+                    std::cerr << "ser: PACKET_SIZE   = " << len << "\n";
+                    
                     res[payload_length_pos] = 0x40 | ((len >> 8) & 0x3f);
+                    
+                    std::ios_base::fmtflags original_flags = std::cerr.flags(); 
+                    std::cerr << "\\x" << std::hex << std::setw(2) << std::setfill('0') << (unsigned int)(unsigned char)res[payload_length_pos];
+                    std::cerr.flags(original_flags);  // Restore the original formatting flags
+			        std::cerr << std::endl;
+                    
+                    std::cerr << "ser: PACKET_SIZE   = " << res[payload_length_pos] << "\n";
+                    
                     res[payload_length_pos+1] = len & 0xff;
+                    
+                    original_flags = std::cerr.flags();
+                    std::cerr << "\\x" << std::hex << std::setw(2) << std::setfill('0') << (unsigned int)(unsigned char)res[payload_length_pos+1];
+                    std::cerr.flags(original_flags);  // Restore the original formatting flags
+			        std::cerr << std::endl;
+                    
+                    std::cerr << "ser: PACKET_SIZE   = " << res[payload_length_pos+1] << "\n";
                     state = quic_s_init;
                 }
             }
