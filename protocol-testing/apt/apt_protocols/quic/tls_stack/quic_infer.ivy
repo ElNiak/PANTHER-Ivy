@@ -19,7 +19,7 @@
 # TODO 
 
 import action show_generating(b:bool)
-
+import action show_retry_version_negociation(b:bool,bb:bool,bbb:bool)
 
 action infer_tls_events(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) = {
     #call infer_tls;
@@ -47,6 +47,7 @@ action infer_tls_events(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) 
     if pkt.ptype = quic_packet_type.initial & (retry_sent(scid) | version_negociated | negocation_of_version(src)) {
         nonce_cid(scid) := dcid;
         conn_seen(dcid) := false;
+        call show_retry_version_negociation(retry_sent(scid),version_negociated,negocation_of_version(src));
         # nonce_cid(pkt.dst_cid) := pkt.src_cid;
         # call show_cid(pkt.src_cid);
         # call show_cid(pkt.dst_cid);

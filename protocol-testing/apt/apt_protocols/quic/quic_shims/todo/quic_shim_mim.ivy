@@ -249,11 +249,11 @@ implement tls_api.lower.send(tls_id:tls_api.id, bytes:stream_data, lev:tls_api.l
         e := quic_packet_type.one_rtt;
     };
     var scid := tls_id_to_cid(tls_id);
-##    call show_tls_lower_send_debug_event(bytes);
+    call show_tls_lower_send_debug_event(bytes);
     call tls_send_event(tls_id_to_src(tls_id), tls_id_to_dst(tls_id), scid, 0, bytes,crypto_data_end(scid,e),e);
 }
 
-##import action show_tls_lower_send_debug_event(bytes:stream_data)
+import action show_tls_lower_send_debug_event(bytes:stream_data)
 
 # The following is just for debugging purposes.
 
@@ -272,7 +272,7 @@ implement tls_api.upper.keys_established(tls_id:tls_api.id,lev:tls_api.upper.lev
     call tls_keys_established_event(tls_id_to_cid(tls_id),e); #tls_id = server.tls_id  for client ?
 }
 
-##import action show_tls_id_to_cid_debug_event(ver:cid)
+import action show_tls_id_to_cid_debug_event(ver:cid)
 
 
 # TLS handshake data event shim

@@ -33,7 +33,7 @@ object packet = {
                     var rnum := reference_pkt_num(spkt,false);
                     var tls_id := src_tls_id(dst); # todo multiple
                     var other_tls_id := dst_tls_id(dst);
-                    var ppkt := quic_prot.encrypt_quic(tls_id,rnum,spkt);
+                    var ppkt := quic_prot.encrypt_quic(other_tls_id,rnum,spkt);
                     pkts_mim := pkts_mim.append(ppkt);
                 } 
                 else if some(cf:packet.encrypted_quic_packet)p *> cf {
@@ -79,7 +79,10 @@ object packet = {
                     var rnum := reference_pkt_num(spkt,false);
                     var tls_id := src_tls_id(dst); # todo multiple
                     var other_tls_id := dst_tls_id(dst);
-                    var ppkt := quic_prot.encrypt_quic(other_tls_id,rnum,spkt);
+                    # if ~mim_agent.server_initial_response {
+                    #     tls_id := other_tls_id;
+                    # }
+                    var ppkt := quic_prot.encrypt_quic(tls_id,rnum,spkt);
                     pkts_mim := pkts_mim.append(ppkt);
                 } 
                 else if some(cf:packet.encrypted_quic_packet)p *> cf {
