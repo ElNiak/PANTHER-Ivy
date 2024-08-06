@@ -6,7 +6,7 @@ include file
 
 include ivy_quic_mim
 include ivy_quic_target
-include ivy_quic_attacker
+include ivy_quic_attacker_client
 
 include ivy_quic_shim
 include ivy_quic_shim_mim
@@ -19,14 +19,14 @@ include ivy_quic_client_standard_tp
 
 after init {
     is_mim_standalone := true;
-    call mim_agent.configure_NAT_attack_in;
-    call mim_agent.configure_NAT_attack_out;
+    call mim_agent.configure_NAT_attack(client_addr,server_addr);
+    call mim_agent.configure_NAT_attack(server_addr,client_addr);
 }
 
 export packet.forward_to_client
-# attribute packet.forward_to_client.weight = "100"
+attribute packet.forward_to_client.weight = "100"
 export packet.forward_to_server
-# attribute packet.forward_to_server.weight = "100"
+attribute packet.forward_to_server.weight = "100"
 
 object packet = {
     ...
@@ -34,8 +34,7 @@ object packet = {
     object quic_packet = {
         ...
         before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
-            ## call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            ## call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+           
             if _generating {
                 var interest_pkt := quic_packet_received_at_round(dst,
                                                                   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
@@ -51,8 +50,7 @@ object packet = {
         }
 
         before replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
-            ## call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            ## call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+           
             if _generating {
                 var interest_pkt := quic_packet_received_at_round(dst,
                                                                   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
@@ -68,8 +66,7 @@ object packet = {
         }
 
         before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
-            ## call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            ## call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+           
             if _generating {
                 # require ~quic_packet_forwarded(dst,pkt);
                 var interest_pkt := quic_packet_received_at_round(dst,
@@ -86,8 +83,7 @@ object packet = {
         }
 
         before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
-            ## call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            ## call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+           
             if _generating {
                 # require ~quic_packet_forwarded(dst,pkt);
                 var interest_pkt := quic_packet_received_at_round(dst,
@@ -104,8 +100,7 @@ object packet = {
         }
 
         before modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
-            ## call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            ## call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+           
             if _generating {
                 require pkt.ptype       = quic_packet_type.one_rtt |
                         pkt.ptype       = quic_packet_type.zero_rtt |
@@ -161,7 +156,6 @@ export packet.quic_packet.forward_to_client
 # attribute packet.quic_packet.replay_to_client.weight = "5"
 
 # export packet.quic_packet.modify
-
 # attribute packet.quic_packet.modify.weight = "5"
 
 import action show_last_cppkt_forwarded_to_client_debug_event(x:stream_pos)
@@ -175,8 +169,7 @@ object packet = {
         ...
 
         before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
-            ## call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            ## call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+           
             if _generating {
                 # require is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
                 var interest_pkt := encrypted_quic_packet_received_at_round(dst,
@@ -195,8 +188,7 @@ object packet = {
         }
 
         before replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
-            ## call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            ## call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+           
             if _generating {
                 # require is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
                 var interest_pkt := encrypted_quic_packet_received_at_round(dst,
@@ -215,8 +207,7 @@ object packet = {
         }
 
         before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
-            ## call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            ## call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+           
             if _generating {
                 # require ~encrypted_quic_packet_forwarded(dst,pkt);
                 var interest_pkt := encrypted_quic_packet_received_at_round(dst,
@@ -236,8 +227,7 @@ object packet = {
         }
 
         before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
-            ## call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            ## call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+           
             if _generating {
                 # require ~encrypted_quic_packet_forwarded(dst,pkt);
                 var interest_pkt := encrypted_quic_packet_received_at_round(dst,
@@ -257,13 +247,18 @@ object packet = {
         }
 
         before modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
-            ## call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            ## call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+           
             if _generating {
                 var interest_pkt := encrypted_quic_packet_received_at_round(dst,
                                                                             coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
                                                                             current_forwarding_round(dst));
-                require pkt.pversion    = 0x00000000 | 
+
+                require pkt.head_byte   = interest_pkt.head_byte;
+                # TODO
+                require pkt.pversion    = 0x00000000  -> 
+                            (pkt.token_len = 0  & pkt.token.end = pkt.token_len &  
+                             pkt.payload_len = 0 &
+                             pkt.seq_num_payload.end = pkt.payload_len) | 
                         pkt.pversion    = 0x00000001 |
                         pkt.pversion    = 0xff000022 |
                         pkt.pversion    = 0xff00001d |
@@ -279,16 +274,18 @@ object packet = {
                          pkt.src_cid     = interest_pkt.dst_cid);
 
                 require (pkt.token_len   = interest_pkt.token_len &
-                         pkt.token       = interest_pkt.token) | 
-                        (pkt.token_len   > 0  & pkt.token.end > 0);
+                         pkt.token       = interest_pkt.token &
+                         pkt.token.end   = interest_pkt.token_len) | 
+                        (pkt.token_len   >= 0  & pkt.token.end = pkt.token_len);
 
-                require pkt.payload_len = interest_pkt.payload_len;
-                
+                        
                 # require pkt.seq_num     = interest_pkt.seq_num |
                 #         pkt.seq_num     < interest_pkt.seq_num |
                 #         pkt.seq_num     > interest_pkt.seq_num;
                 
-                require pkt.seq_num_payload = interest_pkt.seq_num_payload;
+                require pkt.seq_num_payload = interest_pkt.seq_num_payload &
+                        pkt.payload_len = interest_pkt.payload_len &
+                        pkt.seq_num_payload.end = pkt.payload_len;
             } 
         }
     }
@@ -306,9 +303,9 @@ export packet.encrypted_quic_packet.forward_to_client
 # attribute packet.encrypted_quic_packet.replay_to_server.weight = "5"
 # attribute packet.encrypted_quic_packet.replay_to_client.weight = "5"
 
-# export packet.encrypted_quic_packet.modify
+export    packet.encrypted_quic_packet.modify
+attribute packet.encrypted_quic_packet.modify.weight = "5"
 
-# attribute packet.encrypted_quic_packet.modify.weight = "5"
 
 object packet = {
     ...
@@ -317,8 +314,7 @@ object packet = {
         ...
 
         before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet) {
-            ## call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            ## call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+           
             if _generating {
                 # require is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
                 require pkt.payload = random_padding_encrypted_quic_packet_received_at_round(dst,
@@ -328,8 +324,7 @@ object packet = {
         }
 
         before replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet) {
-            ## call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            ## call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+           
             if _generating {
                 require pkt.payload = random_padding_encrypted_quic_packet_received_at_round(dst,
                                                                                                coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
@@ -338,8 +333,7 @@ object packet = {
         }
 
         before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet) {
-            ## call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            ## call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+           
             if _generating {
                 # require ~random_padding_encrypted_quic_packet_forwarded(dst,pkt);
                 # require is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
@@ -350,8 +344,7 @@ object packet = {
         }
 
         before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet) {
-            ## call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            ## call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+           
             if _generating {
                 # require ~random_padding_encrypted_quic_packet_forwarded(dst,pkt);
                 # require is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
@@ -362,8 +355,7 @@ object packet = {
         }
 
         before modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet) {
-            ## call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            ## call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+           
             if _generating {
                 require is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
                 require pkt.payload = random_padding_encrypted_quic_packet_received_at_round(dst,
@@ -398,8 +390,7 @@ object packet = {
         ...
 
         before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
-            ## call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            ## call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+           
             if _generating {
                 # require is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
                 var interest_pkt := encrypted_short_quic_packet_received_at_round(dst,
@@ -412,8 +403,7 @@ object packet = {
         }
 
         before replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
-            ## call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            ## call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+           
             if _generating {
                 var interest_pkt := encrypted_short_quic_packet_received_at_round(dst,
                                                                                     coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
@@ -426,8 +416,7 @@ object packet = {
         }
 
         before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
-            ## call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            ## call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+           
             if _generating {
                 var interest_pkt := encrypted_short_quic_packet_received_at_round(dst,
                                                                                 coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
@@ -441,8 +430,7 @@ object packet = {
         }
 
         before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
-            ## call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            ## call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+           
             if _generating {
                 # require ~encrypted_short_quic_packet_forwarded(dst,pkt);
                 var interest_pkt := encrypted_short_quic_packet_received_at_round(dst,
@@ -456,8 +444,7 @@ object packet = {
         }
 
         before modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
-            ## call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            ## call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+           
             if _generating {
                 var interest_pkt := encrypted_short_quic_packet_received_at_round(dst,
                                                                                 coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
@@ -500,9 +487,5 @@ export packet.encrypted_short_quic_packet.forward_to_client
 export action _finalize = {
     # chris TODO 
     call mim_agent.reset_NAT;
-    require mim_agent.last_packet_forwarded_to(mim_agent.ep_server) > 0 | mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server) > 0;
-    require mim_agent.last_packet_forwarded_to(mim_agent.ep_client) > 0 | mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client) > 0;
-    require mim_agent.last_packet_forwarded_to(mim_agent.ep_client) = mim_agent.number_packet_forwarded_to(mim_agent.ep_client) | mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client) = mim_agent.number_encrypted_packet_forwarded_to(mim_agent.ep_client);
-    require mim_agent.last_packet_forwarded_to(mim_agent.ep_server) = mim_agent.number_packet_forwarded_to(mim_agent.ep_server) | mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server) = mim_agent.number_encrypted_packet_forwarded_to(mim_agent.ep_server);
 }
 

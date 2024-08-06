@@ -16,8 +16,10 @@ parameter is_mim_standalone      : bool = false
 parameter forward_packets        : bool = true
 parameter keep_coalesed          : bool = true
 parameter forward_packets_target : bool = false
-parameter modify_packets         : bool = false
+parameter modify_packets         : bool = true
 parameter replay_packets         : bool = false
+parameter drop_packets           : bool = false
+parameter hijack_tls             : bool = false
 
 parameter save_packet : bool = false
 #parameter saved_packet_type : quic_packet_type = quic_packet_type.initial

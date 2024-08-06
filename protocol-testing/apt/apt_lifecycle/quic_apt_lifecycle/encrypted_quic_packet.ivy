@@ -72,6 +72,7 @@ object packet = {
             if _generating {
                 require src = mim_agent.ep_server & dst = mim_agent.ep_client;
                 require is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require num_queued_packets(dst,current_forwarding_round(dst)) <= num_packets_received_at_round(dst,current_forwarding_round(dst));
                 require mim_agent.nat_configured;
                 require pkt.seq_num_payload.end > 0;
                 require src ~= dst;
@@ -89,9 +90,10 @@ object packet = {
         around forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
             # require _generating;
             if _generating {
-                require pkt.seq_num_payload.end > 0;
                 require src = mim_agent.ep_client & dst = mim_agent.ep_server;
+                require pkt.seq_num_payload.end > 0;
                 require is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require num_queued_packets(dst,current_forwarding_round(dst)) <= num_packets_received_at_round(dst,current_forwarding_round(dst));
                 require mim_agent.nat_configured;
                 require src ~= dst;
                 require mim_agent.ep_server.addr ~= 0;  # must have a client address to send to
@@ -99,9 +101,9 @@ object packet = {
             }
             ...
             if _generating {
-            call enqueue_packet(src,dst,pkt);
-            is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;    
-            coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
+                call enqueue_packet(src,dst,pkt);
+                is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;    
+                coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
             }
         }
 
@@ -114,6 +116,7 @@ object packet = {
             require mim_agent.nat_configured;
             require src = mim_agent.ep_server & dst = mim_agent.ep_client;
             require is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+            require num_queued_packets(dst,current_forwarding_round(dst)) <= num_packets_received_at_round(dst,current_forwarding_round(dst));
             require src ~= dst;
             call show_last_packet_received_debug_event(src,dst,pkt);
             require pkt.seq_num_payload.end > 0;
@@ -126,10 +129,11 @@ object packet = {
         action replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet)
         around replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
             # require _generating;
-            require is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
             require pkt.seq_num_payload.end > 0;
             require src = mim_agent.ep_client & dst = mim_agent.ep_server;
             require mim_agent.nat_configured;
+            require num_queued_packets(dst,current_forwarding_round(dst)) <= num_packets_received_at_round(dst,current_forwarding_round(dst));
+            require is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
             require src ~= dst;
             require mim_agent.ep_server.addr ~= 0;  # must have a client address to send to
             ...
@@ -141,20 +145,39 @@ object packet = {
         action modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet)
         around modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
             # require _generating;
-            require is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
-            require pkt.seq_num_payload.end > 0;
-            require src = mim_agent.ep_client & dst = mim_agent.ep_server |
-                    src = mim_agent.ep_server & dst = mim_agent.ep_client;
-            require mim_agent.nat_configured;
-            require src ~= dst;
-            require mim_agent.ep_server.addr ~= 0;  # must have a client address to send to
+            if _generating {
+                require src = mim_agent.ep_client & dst = mim_agent.ep_server |
+                        src = mim_agent.ep_server & dst = mim_agent.ep_client;
+                call show_number_of_modified_packet_at_forwarding_round(dst,number_of_modified_packet_at_forwarding_round(dst,current_forwarding_round(dst)));
+                require current_forwarding_round(dst) <= current_receving_round(dst);
+                require is_encrypted_quic_packet_received(dst,encrypted_quic_packet_received_at_round(dst,
+                                                                                                      coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                                      current_forwarding_round(dst)),
+                                                        coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                # require number_of_modified_packet_at_forwarding_round(dst,current_forwarding_round(dst)) = 0;
+                require num_queued_packets(dst,current_forwarding_round(dst)) <= num_packets_received_at_round(dst,current_forwarding_round(dst));
+                # require ~is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require pkt.seq_num_payload.end > 0;
+                require mim_agent.nat_configured;
+                require src ~= dst;
+                require mim_agent.ep_server.addr ~= 0;  # must have a client address to send to
+            }
             ...
-            call enqueue_packet(src,dst,pkt);
-            is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := true;   
-            coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
+            if _generating {
+                call enqueue_packet(src,dst,pkt);
+                # is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := true;   
+                is_encrypted_quic_packet_received(dst,encrypted_quic_packet_received_at_round(dst,
+                                                                                            coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                                                            current_forwarding_round(dst)),
+                                                                                            coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
+                coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
+                # number_of_modified_packet_at_forwarding_round(dst,current_forwarding_round(dst)) := number_of_modified_packet_at_forwarding_round(dst,current_forwarding_round(dst)) + 1;
+            }
         }
     }
 }
+
+import action show_number_of_modified_packet_at_forwarding_round(e:ip.endpoint,r:stream_pos)
 
 function encrypted_quic_packets_received_last_round(C:ip.endpoint) : packet.encrypted_quic_packet.arr 
 function encrypted_quic_packet_received_at_round(C:ip.endpoint,P:stream_pos,R:stream_pos) : packet.encrypted_quic_packet

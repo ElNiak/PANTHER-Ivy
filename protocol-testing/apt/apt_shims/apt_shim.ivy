@@ -61,7 +61,6 @@ object packet = {
                 idx := idx.next; 
             }; 
             call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
-            mim_agent.last_packet_forwarded_to(mim_agent.ep_client) := mim_agent.last_packet_forwarded_to(mim_agent.ep_client) + 1;
         }
     }  
 
@@ -110,11 +109,9 @@ object packet = {
                 idx := idx.next; 
             }; 
             call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
-            mim_agent.last_packet_forwarded_to(mim_agent.ep_server) := mim_agent.last_packet_forwarded_to(mim_agent.ep_server) + 1;
         }
     }  
 }
 # Print in hex format
 attribute radix=16
-
 attribute stream_pos.cardinality = 4

@@ -32,40 +32,35 @@ object packet = {
     object ping_packet = {
         ...
         before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
-            call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+            
             if _generating {;
                 require pkt.payload = ping_packet_received_last_round(dst).payload;
             } 
         }
 
         before replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
-            call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+            
             if _generating {
                 require pkt.payload = ping_packet_received_last_round(dst).payload;
             } 
         }
 
         before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
-            call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+            
             if _generating {
                 require pkt.payload = ping_packet_received_last_round(dst).payload;
             } 
         }
 
         before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
-            call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+            
             if _generating {
                 require pkt.payload = ping_packet_received_last_round(dst).payload;
             } 
         }
 
         before modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
-            call show_last_cppkt_forwarded_to_server_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_server));
-            call show_last_cppkt_forwarded_to_client_debug_event(mim_agent.last_encrypted_packet_forwarded_to(mim_agent.ep_client));
+            
             if _generating {
                 require pkt.payload = ping_packet_received_last_round(dst).payload |
                                       pkt.payload.end >= 0;

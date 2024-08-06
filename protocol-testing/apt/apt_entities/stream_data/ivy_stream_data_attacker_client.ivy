@@ -1,0 +1,16 @@
+#lang ivy1.7
+
+include order
+include file
+# include quic_locale
+include apt_stream_data_endpoint
+
+include ivy_attacker
+
+instance attacker_agent : endpoint.client_attacker_endpoint.attacker_ep(malicious_client_addr,malicious_client_port)
+
+# TODO create socket for client & server
+# TODO associate these data to the entities itself
+var sock_attacker : stream_data_net.socket
+
+
