@@ -6,12 +6,12 @@ include apt_shim
 include ip
 include tls_record
 
-parameter client_addr : ip.addr = 0x0a000001 # 0x7f000001
-parameter client_port : ip.port = 4987
+parameter client_addr : ip.addr = 0x0a000002 # 0x7f000001
+parameter client_port     : ip.port = 4987
 parameter client_port_alt : ip.port = 4988
 parameter client_port_vn : ip.port = 4987 #4986 # bind failed: Address already in use
 
-parameter server_addr : ip.addr =  0x0a000001 # 0x7f000001 #
+parameter server_addr : ip.addr =  0x0a000003 # 0x7f000001 #
 parameter server_port : ip.port = 4443
 
 after init {
