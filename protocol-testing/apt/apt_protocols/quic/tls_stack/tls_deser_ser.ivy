@@ -524,7 +524,7 @@ object tls_ser_server = {}
                 // because it seralize directly so we dont know the scid/dcid length
                 // TODO maybe change and put the value directly in envvar
                 std::cerr << "TEST_TYPE " << env_p2 << "\n";
-                if(strcmp(env_p2, "client") == 0) {
+                if(strcmp(env_p2, "client") == 0 || strcmp(env_p2, "attacker_client") == 0) {
                     if(const char* env_p3 = std::getenv("TEST_SCIL")) {
                         std::cerr << "TEST_SCIL " << env_p3 << "\n";
                         //tls_field_bytes_map["scid"] = atoi(env_p3);

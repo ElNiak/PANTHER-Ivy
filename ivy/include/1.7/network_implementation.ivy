@@ -177,7 +177,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 			virtual void read()
 			{
 				std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-				std::cerr << "RECEIVING start\n";
+				std::cerr << "RECEIVING start on socket " << sock << "\n";
 
 				int len = 0;
 				socklen_t lenlen = 4;
@@ -441,15 +441,21 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 					`ip.endpoint` src;
 					src.protocol = `ip.udp`;
 					src.addr = ntohl(srcaddr.sin_addr.s_addr);
-					if (src.addr != 0x7f000001)
-					{
-						src.interface = `ip.ivy`; // TODO
-					}
-					else
+					if (src.addr == 0x7f000001)
 					{
 						src.interface = `ip.lo`; // TODO
 					}
+					else if (src.addr == 0x0A000002 || src.addr == 0x0A000003)
+					{
+						src.interface = `ip.veth_ivy`; // TODO
+					}
+					else
+					{
+						src.interface = `ip.ivy`; // TODO
+					}
 					src.port = ntohs(srcaddr.sin_port);
+					std::cerr << "RECEIVING from " << inet_ntoa(srcaddr.sin_addr) << ":" << ntohs(srcaddr.sin_port) << std::endl;
+					std::cerr << src.interface << std::endl;
 					ivy->__lock();
 					udp_cb.rcb(sock, src, pkt);
 					ivy->__unlock();
@@ -1276,6 +1282,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 		}
 
 		action handle_recv(s : socket, src : ip.endpoint, x : pkt) = {
+			call show_handle_recv(s,x);
 			call recv(me, s, src, x)
 		}
 
@@ -1286,8 +1293,12 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 				s = make_udp_socket();
 				char *shadowTest = getenv("SHADOW_TEST");
 				if (addr.addr != 0x7f000001 && shadowTest == NULL)
-				{ // TODO
+				{ 
+					// TODO
 					std::cerr << "open SOCKET " << s << std::endl;
+					std::cerr << "open SOCKET addr " << addr.addr << std::endl;
+					std::cerr << "open SOCKET htonl(addr.addr) " << htonl(addr.addr) << std::endl;
+					std::cerr << "open SOCKET port " << addr.port << std::endl;
 					is_vnet = true;
 					char *dev = strdup("lo"); // TODO
 					if (addr.interface == `ip.ivy`)
@@ -1320,23 +1331,44 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 						exit(EXIT_FAILURE);
 					}
 					// TODO comment for shadow
-					struct sockaddr_in v_src = {};
-					v_src.sin_addr.s_addr = htonl(addr.addr); // TODO reversorder
-					// inet_pton(AF_INET, htonl(addr.addr), &v_src.sin_addr.s_addr);
-					v_src.sin_port = htons(addr.port);
-					v_src.sin_family = AF_INET;
+					struct sockaddr_in myaddr;
+					myaddr.sin_addr.s_addr = htonl(0x00000000); // TODO reversorder
+					// inet_pton(AF_INET, htonl(addr.addr), &myaddr.sin_addr.s_addr);
+					myaddr.sin_port = htons(addr.port);
+					myaddr.sin_family = AF_INET;
+
+					struct sockaddr_in sin;
+					socklen_t len = sizeof(sin);
+					if (::getsockname(s, (struct sockaddr *)&sin, &len) == -1)
+						perror("getsockname");
+					else
+						std::cerr << "source port number " << ntohs(sin.sin_port) << std::endl;
 
 					int error = 0;
 					if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &error, sizeof(int)) < 0 || setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &error, sizeof(int)) < 0)
 						perror("setsockopt(SO_REUSEADDR) failed");
 
-					if (bind(s, (struct sockaddr *)&v_src, sizeof(struct sockaddr_in)) != 0)
+					/*if (::bind(s, (struct sockaddr *)&myaddr, sizeof(struct sockaddr_in)) != 0)
 					{
 						char s[100];
 						sprintf(s, "bind to addr %u", htonl(addr.addr));
 						perror(s);
 						exit(EXIT_FAILURE);
+					}*/
+					std::cerr << "binding client id: " << `me` << " addr: " << ntohl(myaddr.sin_addr.s_addr) << " port: " << ntohs(myaddr.sin_port) << std::endl;
+					if (::bind(s, (struct sockaddr *)&myaddr, sizeof(myaddr)) != 0)
+					{
+						char s[100];
+						sprintf(s, "bind to addr %u", htonl(addr.addr));
+						perror(s);
+						exit(1);
 					}
+
+					len = sizeof(sin);
+					if (::getsockname(s, (struct sockaddr *)&sin, &len) == -1)
+						perror("getsockname");
+					else
+						std::cerr << "source port number " << ntohs(sin.sin_port) << std::endl;
 				}
 				else
 				{
@@ -1764,56 +1796,61 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 
 			// Send the packet using raw socket
 			if (::sendto(raw_sock, &packet[0], packet.size(), 0, (struct sockaddr *)&dstaddr, sizeof(dstaddr)) < 0) 
-		#ifdef _WIN32
-					{ 
-						std::cerr << "sendto failed " << WSAGetLastError() << "\n"; 
-						exit(1); 
-					}
-		#else
-					{ 
-						perror("sendto failed"); 
-						std::cerr << "packet size : " <<  packet.size() << std::endl;
-						exit(1); 
-					}
-		#endif
-			
-				int error = 0;
-				socklen_t lsen = sizeof(error);
-				int retval = ::getsockopt(raw_sock, SOL_SOCKET, SO_ERROR, &error, &lsen);
-
-				if (retval != 0) {
-					std::cerr << "error getting socket error code: " << strerror(retval) << std::endl;
-					return;
+			#ifdef _WIN32
+				{ 
+					std::cerr << "sendto failed " << WSAGetLastError() << "\n"; 
+					exit(1); 
 				}
-
-				if (error != 0) {
-					std::cerr << "socket error: " << strerror(error) << std::endl;
+			#else
+				{ 
+					perror("sendto failed"); 
+					std::cerr << "packet size : " <<  packet.size() << std::endl;
+					exit(1); 
 				}
-				close(raw_sock);
+			#endif
+		
+			int error = 0;
+			socklen_t lsen = sizeof(error);
+			int retval = ::getsockopt(raw_sock, SOL_SOCKET, SO_ERROR, &error, &lsen);
 
-			} else {
-				std::cerr << "not eavesdrop" << std::endl;
-				int error = 0;
-				socklen_t lsen = sizeof(error);
-				int retval = ::getsockopt(s, SOL_SOCKET, SO_ERROR, &error, &lsen);
+			if (retval != 0) {
+				std::cerr << "error getting socket error code: " << strerror(retval) << std::endl;
+				return;
+			}
 
-				if (retval != 0) {
-					std::cerr << "error getting socket error code: " << strerror(retval) << std::endl;
-					return;
-				}
+			if (error != 0) {
+				std::cerr << "socket error: " << strerror(error) << std::endl;
+			}
+			close(raw_sock);
+		} else {
+			std::cerr << "not eavesdrop" << std::endl;
+			int error = 0;
+			socklen_t lsen = sizeof(error);
+			int retval = ::getsockopt(s, SOL_SOCKET, SO_ERROR, &error, &lsen);
 
-				if (error != 0) {
-					std::cerr <<  "socket error: " << strerror(error)  << std::endl;
-				}
+			if (retval != 0) {
+				std::cerr << "error getting socket error code: " << strerror(retval) << std::endl;
+				return;
+			}
 
-				if (::sendto(s, &sr.res[0], sr.res.size(), 0, (struct sockaddr *)&dstaddr, sizeof(dstaddr)) < 0)
-				if (::sendto(s, &sr.res[0], sr.res.size(), 0, (struct sockaddr *)&dstaddr, sizeof(dstaddr)) < 0)
-				if (::sendto(s, &sr.res[0], sr.res.size(), 0, (struct sockaddr *)&dstaddr, sizeof(dstaddr)) < 0)
-		#ifdef _WIN32
-					{ std::cerr << "sendto failed " << WSAGetLastError() << "\n"; exit(1); }
-		#else
-					{ perror("sendto failed"); exit(1); }
-		#endif
+			if (error != 0) {
+				std::cerr <<  "socket error: " << strerror(error)  << std::endl;
+			}
+
+			std::cerr << "sending id start" << std::endl;
+			std::cerr << "sr.res.size() " << sr.res.size() << std::endl;
+			std::cerr << "dstaddr.sin_addr.s_addr " << dstaddr.sin_addr.s_addr << std::endl;
+			std::cerr << "dstaddr.sin_port " << dstaddr.sin_port << std::endl;
+			std::cerr << "socket " << s << std::endl;
+
+			//if (::sendto(s, &sr.res[0], sr.res.size(), 0, (struct sockaddr *)&dstaddr, sizeof(dstaddr)) < 0)
+			//if (::sendto(s, &sr.res[0], sr.res.size(), 0, (struct sockaddr *)&dstaddr, sizeof(dstaddr)) < 0)
+			if (::sendto(s, &sr.res[0], sr.res.size(), 0, (struct sockaddr *)&dstaddr, sizeof(dstaddr)) < 0)
+			#ifdef _WIN32
+				{ std::cerr << "sendto failed " << WSAGetLastError() << "\n"; exit(1); }
+			#else
+				{ perror("sendto failed"); exit(1); }
+			#endif
 			error = 0;
 			lsen = sizeof(error);
 			retval = ::getsockopt(s, SOL_SOCKET, SO_ERROR, &error, &lsen);

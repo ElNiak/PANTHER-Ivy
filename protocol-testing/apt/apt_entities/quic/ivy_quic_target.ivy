@@ -35,8 +35,8 @@ after init {
     client_vn  := endpoint_id_addr(endpoint_id.client_vn);
 }
 
-instance server : endpoint.server_endpoint.server_quic_ep(server_addr,server_port)
-instance client : endpoint.client_endpoint.client_quic_ep(client_addr,client_port)
+# instance server : endpoint.server_endpoint.server_quic_ep(server_addr,server_port)
+# instance client : endpoint.client_endpoint.client_quic_ep(client_addr,client_port)
 
 # An ip endpoint for the client to migrate to. TODO
 

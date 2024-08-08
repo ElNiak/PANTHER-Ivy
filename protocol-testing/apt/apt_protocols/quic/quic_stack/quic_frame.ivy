@@ -159,7 +159,6 @@ object quic_frame = {
 	object new_token = {
         # New token frames are a variant of quic_frame.
         variant this of quic_frame = struct {
-            length : stream_pos,                  # length of the token
             data : stream_data                    # the token
         }
     }
@@ -531,8 +530,8 @@ function num_ack_eliciting_pkt : stream_pos
 function num_ack_pkt : stream_pos
 
 
-import action show_num_ack_eliciting_pkt(s:stream_pos)
-import action show_num_ack_pkt(s:stream_pos)
+##import action show_num_ack_eliciting_pkt_debug_event(s:stream_pos)
+##import action show_num_ack_pkt_debug_event(s:stream_pos)
 #Hamid
 
 #chris
@@ -680,7 +679,7 @@ after init {
 
 var force_new_ack : bool
 
-import action is_generating(b:bool)
+##import action is_generating_debug_event(b:bool)
 import action is_ack_frequency_respected(b:bool)
 object quic_frame = {
     ...
@@ -689,7 +688,7 @@ object quic_frame = {
         action handle(f:quic_frame.ack,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
 	around handle {
-            #call is_generating(_generating);
+##            #call is_generating_debug_event(_generating);
             # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
             # require (~is_not_sleeping -> ~_generating);
             # require (_generating -> is_not_sleeping);
@@ -979,7 +978,7 @@ object quic_frame = { # TODO cleanup
 
             # & ~cid_mapped(f.scid)
             #quinn bug: +-deadlock with new_connection_id
-            #require ((offset) + (f.length)) <= stream_max_data(dcid,f.id,e);  # [2]
+            require ((offset) + (f.length)) <= stream_max_data(dcid,f.id,e);  # [2]
 
             
             require stream_reset(dcid,f.id) ->

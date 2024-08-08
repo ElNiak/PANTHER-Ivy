@@ -314,7 +314,7 @@ action get_pto_time_and_space(dst:ip.endpoint, dcid:cid) returns (pto_timeout_re
             };
         };
     };
-    call show_get_pto_time_and_space(pto_timeout_res, pto_space);
+##    call show_get_pto_time_and_space_debug_event(pto_timeout_res, pto_space);
 }
 
 action get_loss_time_space returns (time:microseconds, space:quic_packet_type) = {
@@ -346,7 +346,7 @@ action set_loss_detection_timer(dst:ip.endpoint, dcid: cid) = {
     var earliest_loss_time : microseconds;
     var space : quic_packet_type;
     (earliest_loss_time, space) := get_loss_time_space;
-    call show_get_loss_time_space(earliest_loss_time, space);
+##    call show_get_loss_time_space_debug_event(earliest_loss_time, space);
 
     if earliest_loss_time ~= 0 {
         loss_detection_timer :=  earliest_loss_time;
@@ -379,7 +379,7 @@ action on_loss_detection_timeout(dst:ip.endpoint, dcid: cid) = {
     var earliest_loss_time : microseconds;
     var pn_space : quic_packet_type;
     (earliest_loss_time, pn_space) := get_loss_time_space;
-    call show_get_loss_time_space(earliest_loss_time, pn_space);
+##    call show_get_loss_time_space_debug_event(earliest_loss_time, pn_space);
     if earliest_loss_time ~= 0 {
         # var lost_packets := 
         detect_and_remove_lost_packets(pn_space,dcid);
@@ -749,7 +749,7 @@ action on_packet_received(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet
     call show_on_packet_received(received_packets_end(pkt.ptype), received_packets_packet_number(pkt.ptype,pkt.seq_num), received_packets_time_sent(pkt.ptype,pkt.seq_num), received_packets_ack_eliciting(pkt.ptype,pkt.seq_num), sent_packets_in_flight(pkt.ptype,pkt.seq_num), received_packets_sent_bytes(pkt.ptype,pkt.seq_num));
 }
 
-import action show_get_loss_time_space(t:microseconds, s:quic_packet_type)
+##import action show_get_loss_time_space_debug_event(t:microseconds, s:quic_packet_type)
 import action show_detect_and_remove_lost_packets(lost_sent_time:microseconds, loss_delay:microseconds, sent_packets_size:stream_pos)
 import action show_detect_and_remove_acked_packets(largest_acked:pkt_num, sent_packets_size:stream_pos, newly_acked_packets_end:stream_pos, sent_packets_end:stream_pos)
 import action show_on_packet_sent(sent_packets_end:stream_pos, sent_packets_packet_number:pkt_num, sent_packets_time_sent:microseconds, sent_packets_ack_eliciting:bool, sent_packets_in_flight:bool, sent_packets_sent_bytes:stream_pos, ack_eliciting_packet_in_flight:bool)
@@ -758,5 +758,5 @@ import action show_on_packet_received(sent_packets_end:stream_pos, sent_packets_
 import action show_include_ack_eliciting(res:bool, pn_space:quic_packet_type)
 import action show_largest_acked_packet(largest_acked:pkt_num, largest_acked2d:pkt_num, pn_space:quic_packet_type)
 import action show_loss_detection_timer(loss_detection_timer:microseconds)
-import action show_get_pto_time_and_space(pto_timeout_res:microseconds, pto_space:quic_packet_type)
+##import action show_get_pto_time_and_space_debug_event(pto_timeout_res:microseconds, pto_space:quic_packet_type)
 import action show_time_of_last_ack_eliciting_packet(time_of_last_ack_eliciting_packet:microseconds,ptype:quic_packet_type)

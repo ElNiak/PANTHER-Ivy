@@ -1,0 +1,118 @@
+#ivy lang1.7
+
+# https://github.com/efchatz/QUIC-attacks
+# https://github.com/quic-go/quic-go/blob/84e03e59760ceee37359688871bb0688fcc4e98f/mtu_discoverer.go
+# QUIC-attacks (CVE-2022-30591)
+
+# The current repository serves the purpose of sharing the scripts we used for educational usage. These attacks were a part of our study (check [here](https://link.springer.com/article/10.1007/s10207-022-00630-6)), and were tested against 6 different QUIC-enabled servers (IIS, NGINX, LiteSpeed, Cloudflare, H2O, and Caddy). The quic-loris script is the exploit of the [CVE-2022-30591](https://nvd.nist.gov/vuln/detail/CVE-2022-30591) issue that affected quic-go library. This script can also be exploited against Caddy server.
+
+#  Installation procedure
+# For the exploitation of these attacks, the Ubuntu 18.04 client was used, with the assist of aioquic Python library for QUIC-loris and QUIC-Flooding. For QUIC-hash attack, the Scapy Python library v2.4.3 was used (pip install scapy==2.4.3). The following instructions occur the aioquic installation, for the QUIC-loris and QUIC-Flooding assaults.
+
+# 1. git clone https://github.com/aiortc/aioquic
+# 2. sudo apt install libssl-dev
+# 3. cd aioquic
+# 4. pip install -e .
+# 5. pip install asgiref dnslib httpbin starlette wsproto
+# 6. python3 setup.py install
+# 7. add the quic-loris.sh file to the aioquic dir
+# 8. initite the attack
+
+# Change the URL parameter to the one of the target. Note that based on the capabilities of the targeted server, different values maybe needed for each parameter on the exploits.
+
+# **Based on the work:** E. Chatzoglou, V. Kouliaridis, G. Karopoulos, and G. Kambourakis, ["Revisiting QUIC attacks: A comprehensive review on QUIC security
+# and a hands-on study," International Journal of Information Security, 2022.](https://link.springer.com/article/10.1007/s10207-022-00630-6)
+
+
+include order
+include file
+# include random_value
+
+include ivy_quic_mim
+include ivy_quic_target
+include ivy_quic_attacker_client
+
+include apt_shim
+include ivy_quic_shim
+include ivy_quic_shim_attacker_client
+
+include ivy_quic_attacker_client_behavior
+
+include ivy_quic_client_standard_tp
+
+include apt_time
+
+
+# An endpoint MUST NOT initiate
+#   connection migration before the handshake is confirmed, as defined in
+#   section 4.1.2 of [QUIC-TLS].
+
+after init {
+    call time_api.c_timer.start;
+	allowed_multiple_migration := false;
+    version_negociated         := false;
+    # initial_version := 0xff00001c;
+}
+
+##import action show_endpoint_debug_event(ep:ip.endpoint)
+
+after init {
+##    call show_endpoint_debug_event(client.ep);
+##    call show_endpoint_debug_event(client.ep_server);
+##    call show_endpoint_debug_event(server.ep);
+    sock := quic_net.open(endpoint_id.client,client.ep);
+    sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
+    sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
+    client.set_tls_id(0);
+    server.set_tls_id(1);
+    var extns := tls_extensions.empty;
+    extns := extns.append(make_transport_parameters);
+    call tls_api.upper.create(client.tls_id,false,extns);  # false means this instance of tls is not a server
+}
+
+after init {
+    token_saved := false;
+}
+
+before quic_frame.stream.handle_maliciously(f:quic_frame.stream,scid:cid,dcid:cid,e:quic_packet_type) {
+    if _generating {
+        require scid = the_cid;
+        require connected(the_cid) & dcid = connected_to(the_cid);
+        require f.len & f.off; 
+        require f.length > 0;
+        require f.offset = stream_length(dcid,f.id);
+        require f.length = (stream_app_data_end(dcid,f.id)) - f.offset;
+    };
+
+}
+
+export quic_frame.ack.handle_maliciously
+export quic_frame.stream.handle_maliciously ## V2
+export quic_frame.crypto.handle_maliciously
+export quic_frame.path_response.handle_maliciously
+export malicious_packet_event
+export client_send_event
+export tls_recv_event
+#export quic_frame.new_connection_id.handle_maliciously
+#export quic_frame.retire_connection_id.handle_maliciously
+#export quic_frame.rst_stream.handle_maliciously
+#export quic_frame.malicious_frame.handle_maliciously ## V1
+#export quic_frame.max_stream_id.handle_maliciously
+#export quic_frame.connection_close.handle_maliciously # TODO
+#export quic_frame.max_stream_data.handle_maliciously
+#export quic_frame.max_data.handle_maliciously
+
+# Final check
+#
+# When the test is complete, the tester calls the special action `_finalize`.
+# We use this action to make some heuristic checks, for example that some
+# data was actually received from the server. We can add advice to this
+# action with additional checks.
+
+export action _finalize = {
+    # chris TODO 
+    require is_no_error;
+    require conn_total_data(the_cid) > 0;
+    #call 
+}
+

@@ -68,8 +68,7 @@ module binary_input_file_ping(data,cont) = {
         >>>
         implement write {
         <<< 
-            std::cerr << "SWAG" << std::endl;
-            std::cerr << `fildes` << std::endl;
+            std::cerr << "Writing file:" << std::endl;
             if (::lseek(`fildes`,0,SEEK_SET) < 0) {
                 perror("cannot seek to beginning of file");
             }
@@ -86,7 +85,7 @@ module binary_input_file_ping(data,cont) = {
         }
         implement read {
         <<< 
-            std::cerr << "COUCOU" << std::endl;
+            std::cerr << "Reading file: " << `fildes` << std::endl;
             if (::lseek(`fildes`,0,SEEK_SET) < 0) {
                 perror("cannot seek to beginning of file");
             }
@@ -97,10 +96,10 @@ module binary_input_file_ping(data,cont) = {
                 int128_t res;
                 ds.getn(res,1);
                 d.push_back(res);
-                std::cerr << d << std::endl;
+                //std::cerr << d << std::endl;
                 //std::cerr << contents << std::endl;
             }  // read all the bytes
-            std::cerr << d << std::endl;
+            //std::cerr << d << std::endl;
             //std::cerr << contents << std::endl;
         >>>
         }

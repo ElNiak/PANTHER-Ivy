@@ -289,7 +289,7 @@ object protection = {
 
         implement decrypt_quic {
             var h := get_header_info(pkt,true);
-            call show_header_debug_event(h);
+##            call show_header_debug_event(h);
             var level := get_level(pkt);
             if level = 1 & ~zrtt_pkt_set {
                 zrtt_pkt_set := true;
@@ -333,7 +333,7 @@ object protection = {
 
                 last_datagram_received_size := last_datagram_received_size +  h.payload_length + h.pkt_num_pos + pnum_len;
 
-                call show_token_len(pnum_len);
+##                call show_token_len_debug_event(pnum_len);
                 pnum := stream_data_xor(pkt.segment(pnum_pos,pnum_pos+pnum_len),mask.segment(1,1+pnum_len));
 
                 hdr := hdr.extend(pnum);
@@ -570,8 +570,8 @@ object protection = {
             }
         }
         import action show_payload(ver:stream_data)
-        import action show_token_len(ver:stream_pos)
-        import action show_header_debug_event(h:header_info_quic)
+##        import action show_token_len_debug_event(ver:stream_pos)
+##        import action show_header_debug_event(h:header_info_quic)
     }
 }
 

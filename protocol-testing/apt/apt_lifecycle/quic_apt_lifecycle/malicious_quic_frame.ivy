@@ -1,3 +1,5 @@
+#lang ivy1.7
+
 include quic_frame
 
 object quic_frame = {
@@ -19,6 +21,8 @@ object quic_frame = {
     }
 }
 
+relation malicous_frame_present(S:cid)
+
 object quic_frame = {
     ...
     object ack = {
@@ -26,7 +30,7 @@ object quic_frame = {
         action handle_maliciously(f:quic_frame.ack,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
 	around handle_maliciously{
-            #call is_generating(_generating);
+##            #call is_generating_debug_event(_generating);
             # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
             # require (~is_not_sleeping -> ~_generating);
             # require (_generating -> is_not_sleeping);
@@ -141,11 +145,6 @@ object quic_frame = {
         }
     }
 }
-
-import action show_local_delay_ack(val:microseconds, val2:microseconds)
-import action show_ack_generated
-import action show_ack_eliciting_threshold_current_val(val:stream_pos)
-import action show_ack_eliciting_threshold_val(val:stream_pos)
 
 object quic_frame = {
     ...
@@ -294,7 +293,7 @@ object quic_frame = { # TODO cleanup
 
             # & ~cid_mapped(f.scid)
             #quinn bug: +-deadlock with new_connection_id
-            require ((offset) + (f.length)) <= stream_max_data(dcid,f.id,e);  # [2]
+            # require ((offset) + (f.length)) <= stream_max_data(dcid,f.id,e);  # [2]
 
             
             require stream_reset(dcid,f.id) ->
@@ -332,8 +331,6 @@ object quic_frame = { # TODO cleanup
         }
     }
 }
-
-#import action show_stream(pkt:stream_data)
 
 ###### CRYPTO event
 #
@@ -391,8 +388,6 @@ object quic_frame = {
         }
     }
 }
-
-import action show_crypto_length(pkt:stream_pos)
 
 
 #
@@ -644,7 +639,7 @@ object quic_frame = { ...
 object quic_frame = { ...
     object connection_close = { ...
         action handle_maliciously(f:quic_frame.connection_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
-	around handle{
+	around handle_maliciously{
             
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.handshake -> established_handshake_keys(scid);
@@ -706,7 +701,7 @@ object quic_frame = { ...
 object quic_frame = { ...
     object application_close = { ...
         action handle_maliciously(f:quic_frame.application_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
-	around handle{
+        around handle_maliciously{
             
             require connected(dcid) & connected_to(dcid) = scid;
             #require e ~= quic_packet_type.initial;
@@ -1260,10 +1255,12 @@ object quic_frame = {
                 require tls_handshake_finished;
                 require connected(dcid) & connected_to(dcid) = scid;
                 require (e = quic_packet_type.one_rtt) & established_1rtt_keys(scid); # | e = quic_packet_type.zero_rtt  | e = quic_packet_type.zero_rtt & established_0rtt_keys(scid) 
-                require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+                require num_queued_frames(scid) = 0;
+                require ~malicous_frame_present(scid);
                 require ~conn_closed(scid);  # [8]
                 require conn_seen(scid);  # [9]
                 ...
+                malicous_frame_present(scid) := true;
                 call enqueue_frame(scid,f,e,false,seq_num);
             }
         }

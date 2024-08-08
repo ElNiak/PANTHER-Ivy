@@ -850,7 +850,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         
         ptls_t *session;
         session = ptls_new(ctx, 0);
-        ptls_set_server_name(session, "servername", strlen("servername"));
+        ptls_set_server_name(session, "QUIC Server", strlen("QUIC Server"));
 
         ptls_handshake_properties_t *handshake_properties = new ptls_handshake_properties_t; 
         memset(handshake_properties, 0, sizeof(ptls_handshake_properties_t));
@@ -925,7 +925,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
 
         ptls_t *session;
         session = ptls_new(ctx, 1);
-        ptls_set_server_name(session, "servername", strlen("servername"));
+        ptls_set_server_name(session, "QUIC Server", strlen("QUIC Server"));
 
         ptls_handshake_properties_t *handshake_properties = new ptls_handshake_properties_t; 
         memset(handshake_properties, 0, sizeof(ptls_handshake_properties_t));
@@ -1085,7 +1085,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
 
         ptls_t *session;
         session = ptls_new(ctx,is_server ? 1 : 0);
-        ptls_set_server_name(session, "servername", strlen("servername"));
+        ptls_set_server_name(session, "QUIC Server", strlen("QUIC Server"));
 
         //if(const char* env_p = std::getenv("TEST_IMPL")) { 
         //    std::cerr << "TEST_IMPL " << env_p << std::endl;
@@ -1285,7 +1285,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
 
         ptls_t *session;
         session = ptls_new(ctx,is_server ? 1 : 0);
-        ptls_set_server_name(session, "servername", strlen("servername"));
+        ptls_set_server_name(session, "QUIC Server", strlen("QUIC Server"));
 
         if(const char* env_p = std::getenv("TEST_IMPL")) { 
             std::cerr << "TEST_IMPL " << env_p << std::endl;
@@ -1534,7 +1534,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
 
         ptls_t *session;
         session = ptls_new(ctx,is_server ? 1 : 0);
-        ptls_set_server_name(session, "servername", strlen("servername"));
+        ptls_set_server_name(session, "QUIC Server", strlen("QUIC Server"));
 
 
         if(const char* env_p = std::getenv("TEST_IMPL")) { 

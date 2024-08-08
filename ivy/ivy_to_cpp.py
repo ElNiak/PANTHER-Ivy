@@ -6201,7 +6201,11 @@ public:
                 assert(foo.is_numeral());
                 int v;
                 if (Z3_get_numeral_int(ctx,foo,&v) != Z3_TRUE) {
-                    assert(false && "integer value from Z3 too large for machine int");
+                    uint64_t vl;
+                    if (Z3_get_numeral_uint64(ctx,foo,&vl) != Z3_TRUE) {
+                        assert(false && "bit vector value from Z3 too large for machine uint64");
+                    }
+                    return vl;
                 }
                 return v;
             }

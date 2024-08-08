@@ -17,7 +17,7 @@ interpret byte -> bv[8]
 # A byte stream is an unbounded sequence of bytes of type `stream_data`,
 # indexed by type `stream_pos`.
 
-instance stream_pos : unbounded_sequence         # stream position values
+instance stream_pos  : unbounded_sequence         # stream position values
 instance stream_data : array(stream_pos,byte)    # stream data
 
 instance stream_data_array : array(stream_pos,stream_data)    # stream data

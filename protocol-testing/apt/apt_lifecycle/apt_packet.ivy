@@ -27,10 +27,10 @@ object packet = {
             require mim_agent.nat_configured;
             require src ~= dst;
 
-            call show_num_queued_packets_debug_event(dst,num_queued_packets(dst,current_forwarding_round(dst)));
-            call show_num_packets_received_at_round_debug_event(dst,num_packets_received_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst));
-            call show_current_forwarding_round_debug_event(dst,current_forwarding_round(dst));
-            call show_current_receving_round_debug_event(dst,current_receving_round(dst));
+##            call show_num_queued_packets_debug_event(dst,num_queued_packets(dst,current_forwarding_round(dst)));
+##            call show_num_packets_received_at_round_debug_event(dst,num_packets_received_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst));
+##            call show_current_forwarding_round_debug_event(dst,current_forwarding_round(dst));
+##            call show_current_receving_round_debug_event(dst,current_receving_round(dst));
 
             # require ~is_receiving(dst) & ~is_receiving(src);
             # require num_queued_packets(dst,current_forwarding_round(dst)) > 0;
@@ -57,10 +57,10 @@ object packet = {
             require src ~= dst;
             # require ~is_receiving(dst) & ~is_receiving(src);
             
-            call show_num_queued_packets_debug_event(dst,num_queued_packets(dst,current_forwarding_round(dst)));
-            call show_num_packets_received_at_round_debug_event(dst,num_packets_received_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst));
-            call show_current_forwarding_round_debug_event(dst,current_forwarding_round(dst));
-            call show_current_receving_round_debug_event(dst,current_receving_round(dst));
+##            call show_num_queued_packets_debug_event(dst,num_queued_packets(dst,current_forwarding_round(dst)));
+##            call show_num_packets_received_at_round_debug_event(dst,num_packets_received_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst));
+##            call show_current_forwarding_round_debug_event(dst,current_forwarding_round(dst));
+##            call show_current_receving_round_debug_event(dst,current_receving_round(dst));
 
             # require num_queued_packets(dst,current_forwarding_round(dst)) > 0;
             require num_packets_received_at_round(dst,current_forwarding_round(dst)) > 0;
@@ -173,37 +173,37 @@ after init {
 action enqueue_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet)
 
 before enqueue_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet) {
-    call show_enqueued_packets_debug_event(dst,pkt);
+##    call show_enqueued_packets_debug_event(dst,pkt);
     packet_to_forward(dst,current_forwarding_round(dst))    := packet_to_forward(dst,current_forwarding_round(dst)).append(pkt);
     num_queued_packets(dst,current_forwarding_round(dst))   := packet_to_forward(dst,current_forwarding_round(dst)).end; 
     
-    call show_num_queued_packets_debug_event(dst,num_queued_packets(dst,current_forwarding_round(dst)));
-    call show_num_packets_received_at_round_debug_event(dst,num_packets_received_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst));
-    call show_current_forwarding_round_debug_event(dst,current_forwarding_round(dst));
-    call show_current_receving_round_debug_event(dst,current_receving_round(dst));
+##    call show_num_queued_packets_debug_event(dst,num_queued_packets(dst,current_forwarding_round(dst)));
+##    call show_num_packets_received_at_round_debug_event(dst,num_packets_received_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst));
+##    call show_current_forwarding_round_debug_event(dst,current_forwarding_round(dst));
+##    call show_current_receving_round_debug_event(dst,current_receving_round(dst));
 }
 
 action receiving_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet, pkt_num: stream_pos)
 after receiving_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet, pkt_num: stream_pos) {
-    call show_receiving_packet_debug_event(dst,pkt);
+##    call show_receiving_packet_debug_event(dst,pkt);
     packets_received_at_round(dst,current_receving_round(dst))       := packets_received_at_round(dst,current_receving_round(dst)).append(pkt);
     packets_received(dst)                                            := packets_received(dst).append(pkt);
     
     num_packets_received_at_round(dst,current_receving_round(dst))   := packets_received_at_round(dst,current_receving_round(dst)).end;
     num_packets_received(dst)                                        := packets_received(dst).end;
     
-    call show_number_of_coalesced_packets_debug_event(dst,pkt_num);
-    call show_num_queued_packets_debug_event(dst,num_queued_packets(dst,current_forwarding_round(dst)));
-    call show_num_packets_received_at_round_debug_event(dst,num_packets_received_at_round(dst,current_receving_round(dst)),current_receving_round(dst));
-    call show_current_forwarding_round_debug_event(dst,current_forwarding_round(dst));
-    call show_current_receving_round_debug_event(dst,current_receving_round(dst));
+##    call show_number_of_coalesced_packets_debug_event(dst,pkt_num);
+##    call show_num_queued_packets_debug_event(dst,num_queued_packets(dst,current_forwarding_round(dst)));
+##    call show_num_packets_received_at_round_debug_event(dst,num_packets_received_at_round(dst,current_receving_round(dst)),current_receving_round(dst));
+##    call show_current_forwarding_round_debug_event(dst,current_forwarding_round(dst));
+##    call show_current_receving_round_debug_event(dst,current_receving_round(dst));
 }
 
-import action show_receiving_packet_debug_event(i:ip.endpoint, pkt:packet)
-import action show_enqueued_packets_debug_event(i:ip.endpoint, num:packet)
-import action show_current_forwarding_round_debug_event(i:ip.endpoint, num:stream_pos)
-import action show_current_receving_round_debug_event(i:ip.endpoint, num:stream_pos)
-import action show_number_of_coalesced_packets_debug_event(i:ip.endpoint, num:stream_pos)
+##import action show_receiving_packet_debug_event(i:ip.endpoint, pkt:packet)
+##import action show_enqueued_packets_debug_event(i:ip.endpoint, num:packet)
+##import action show_current_forwarding_round_debug_event(i:ip.endpoint, num:stream_pos)
+##import action show_current_receving_round_debug_event(i:ip.endpoint, num:stream_pos)
+##import action show_number_of_coalesced_packets_debug_event(i:ip.endpoint, num:stream_pos)
 
 action already_forwarded(src:ip.endpoint,dst:ip.endpoint,pkt:packet) returns (res:bool) = {
     var i : packet.idx := 0;
@@ -218,12 +218,12 @@ action already_forwarded(src:ip.endpoint,dst:ip.endpoint,pkt:packet) returns (re
 
 action update_forwarded_packet(src:ip.endpoint,dst:ip.endpoint) 
 after update_forwarded_packet(src:ip.endpoint,dst:ip.endpoint) {
-    call show_update_forwarded_packet_debug_event(dst);
+##    call show_update_forwarded_packet_debug_event(dst);
     packet_to_forward(dst,current_forwarding_round(dst))  := packet.arr.empty;
     num_queued_packets(dst,current_forwarding_round(dst)) := 0;
 
-    call show_num_queued_packets_debug_event(dst,num_queued_packets(dst,current_forwarding_round(dst)));
-    call show_after_queued_packets_debug_event(dst,packet_to_forward(dst,current_forwarding_round(dst)));
+##    call show_num_queued_packets_debug_event(dst,num_queued_packets(dst,current_forwarding_round(dst)));
+##    call show_after_queued_packets_debug_event(dst,packet_to_forward(dst,current_forwarding_round(dst)));
 
     # var i : packet.idx := 0;
     # while i < packets_received_at_round(dst,current_forwarding_round(dst)).end {
@@ -239,9 +239,9 @@ after update_forwarded_packet(src:ip.endpoint,dst:ip.endpoint) {
     current_forwarding_round(dst)                                     := current_forwarding_round(dst) + 1;
 }
 
-import action show_update_forwarded_packet_debug_event(i:ip.endpoint)
-import action show_after_queued_packets_debug_event(i:ip.endpoint, num:packet.arr)
-import action show_num_queued_packets_debug_event(i:ip.endpoint, num:packet.idx)
-import action show_num_packets_received_at_round_debug_event(i:ip.endpoint, pkt:packet.idx,r:stream_pos)
-import action show_num_packets_forwarded_last_round_debug_event(i:ip.endpoint, pkt:stream_pos)
+##import action show_update_forwarded_packet_debug_event(i:ip.endpoint)
+##import action show_after_queued_packets_debug_event(i:ip.endpoint, num:packet.arr)
+##import action show_num_queued_packets_debug_event(i:ip.endpoint, num:packet.idx)
+##import action show_num_packets_received_at_round_debug_event(i:ip.endpoint, pkt:packet.idx,r:stream_pos)
+##import action show_num_packets_forwarded_last_round_debug_event(i:ip.endpoint, pkt:stream_pos)
 

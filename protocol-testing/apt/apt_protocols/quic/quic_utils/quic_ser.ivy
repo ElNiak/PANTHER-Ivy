@@ -30,6 +30,8 @@ object quic_ser = {}
               quic_s_scid,
               quic_s_retry_token_length,
               quic_s_retry_token,
+              quic_s_new_token,
+              quic_s_new_token_len,
 	          quic_s_payload_length,
               quic_s_pkt_num,
               quic_s_payload,
@@ -229,6 +231,34 @@ object quic_ser = {}
             case quic_handshake_done: // TODO
             case quic_immediate_ack:
             case quic_s_retry_token:
+            {   
+               // int128_t packet_size = res.size();
+               // std::cerr << "packet_size ser " << packet_size << "\n";
+               // int128_t token_length = packet_size - 1 - dcil - 1 - scil - 1 - 4;
+               // std::cerr << "token_length ser " << token_length << "\n";    
+               // std::cerr << "quic_s_retry_token ser "  << tcount << "\n";
+               // tcount += 1; 
+               /* if (const char* env_p3 = std::getenv("RETRY_TOKEN")) {
+                    std::cerr << "ser: quic_s_retry_token   = " << res << "\n"; 
+                    if(const char* env_p4 = std::getenv("RETRY_TOKEN_LENGTH")) {
+                        std::cerr << "RETRY_TOKEN " << env_p3 << "\n";
+                        std::cerr << "RETRY_TOKEN_LENGTH " << env_p4 << "\n";
+                        setn(res,1);
+                        tls_field_bytes_map["dcid"] = atoi(env_p3);
+                    }
+                }
+                else 
+                if(const char* env_p4 = std::getenv("RETRY_TOKEN_LENGTH") && false) {
+                    std::cerr << "RETRY_TOKEN_LENGTH 1 " << env_p4 << "\n";
+                    setn(res,atoi(env_p4));
+                } else {
+                setn(res,1);
+                }*/
+
+                setn(res,1);
+            }
+            break;
+            case quic_s_new_token:
             {   
                // int128_t packet_size = res.size();
                // std::cerr << "packet_size ser " << packet_size << "\n";
@@ -559,16 +589,17 @@ object quic_ser = {}
                     sz = 2;                
                 }
                 else if (tag == 26) {
-                    std::cerr << "quic_ser malicious\n";  
+                    /*std::cerr << "quic_ser malicious\n";  
                     state = quic_malicious;
                     frame_type = 0x4041; 
-                    sz = 2;  
+                    sz = 2; */ 
                 }
                 else if (tag == 27) {
                     //ivy_binary_deser::getn(ft,1); // could be bigger
-                    sz = 2;
+                    std::cerr << "quic_ser malicious\n";  
+                    state = quic_malicious;
+                    sz = 0;
                     frame_type = 0x7b02;
-                    state = quic_timestamp; //timestamps frame
                 }
                 /*else if (tag == 25) {
                     state = quic_padding;
@@ -578,7 +609,10 @@ object quic_ser = {}
                     //std::cerr << "saw quic_frame tag " << tag << "\n";  
                     throw deser_err();
 	            }
-                setn(frame_type,sz);
+                std::cerr << "quic_ser open_tag " << tag << "\n";
+                std::cerr << "quic_ser open_tag " << frame_type << "\n";
+                if(sz > 0)
+                    setn(frame_type,sz);
                 return;
             }
             //std::cerr << "quic_ser 1\n";  

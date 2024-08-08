@@ -10,8 +10,6 @@ include ivy_attacker
 # TODO associate these data to the entities itself
 var sock_attacker : quic_net.socket
 
-instance attacker_agent : endpoint.client_attacker_endpoint.attacker_quic_ep(
-    malicious_client_addr,
-    malicious_client_port,
-    server_port,true,true)
+instance client : endpoint.client_attacker_endpoint.attacker_quic_ep(
+    client_addr,client_port,server_port,true,true)
 

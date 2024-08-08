@@ -55,7 +55,6 @@ include quic_congestion_control
 include ivy_quic_server
 include ivy_quic_client 
 include ivy_quic_client_server
-include ivy_quic_attacker_client
 include ivy_quic_victim
 include ivy_quic_mim
 
@@ -243,12 +242,12 @@ implement net.recv(host:endpoint_id, s:net.socket, src:ip.endpoint, pkts:prot.ar
             call server.behavior(host,s,src,pkts);
         } else if host = endpoint_id.client | host = endpoint_id.client_alt  { # for server test (tested implem = server <-> ivy implem = client)
             call client.behavior(host,s,src,pkts);
-        } else if host = endpoint_id.mim {
-            call mim_agent.behavior(host,s,src,pkts);
-        } else if host = endpoint_id.victim {
-            call victim_agent.behavior(host,s,src,pkts);
-        } else if host = endpoint_id.attacker {
-            call attacker.behavior(host,s,src,pkts);
+        # } else if host = endpoint_id.mim {
+        #     call mim_agent.behavior(host,s,src,pkts);
+        # } else if host = endpoint_id.victim {
+        #     call victim_agent.behavior(host,s,src,pkts);
+        # } else if host = endpoint_id.attacker {
+        #     call attacker.behavior(host,s,src,pkts);
         } else {
             # ERROR
             call undefined_host_error(host,s,src);
