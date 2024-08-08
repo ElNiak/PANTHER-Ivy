@@ -51,7 +51,7 @@ module binary_input_file(data,cont) = {
         if(session_file != NULL) {
             std::cerr << "PROOTPATH 5b " << session_file<< "\n";
             pathname2 += session_file;
-            pathname2 += "/panther-ivy/protocol-testing/quic/quic_utils/";
+            pathname2 += "/panther-ivy/protocol-testing/apt/apt_protocols/quic/quic_utils/";
             pathname = pathname2 + pathname;
         } else {
             pathname = "/usr/local/lib/python2.7/dist-packages/ms_ivy-1.8.24-py2.7.egg/ivy/include/1.7/" + pathname; //TODO fix, for namespace, else bug
@@ -62,14 +62,13 @@ module binary_input_file(data,cont) = {
 		    perror("cannot open file");
 		}
 		`fildes` = f;
-        std::cerr << `fildes` << std::endl;
+        std::cerr << "File opening: " << `fildes` << std::endl;
         
 	    }
         >>>
         implement write {
         <<< 
-            std::cerr << "SWAG" << std::endl;
-            std::cerr << `fildes` << std::endl;
+            std::cerr << "Writing " << d.size() << " bytes to " << `fildes` << std::endl;
             if (::lseek(`fildes`,0,SEEK_SET) < 0) {
                 perror("cannot seek to beginning of file");
             }
@@ -86,7 +85,7 @@ module binary_input_file(data,cont) = {
         }
         implement read {
         <<< 
-            std::cerr << "COUCOU" << std::endl;
+            std::cerr << "Reading file: " << `fildes` << std::endl;
             if (::lseek(`fildes`,0,SEEK_SET) < 0) {
                 perror("cannot seek to beginning of file");
             }
@@ -98,10 +97,11 @@ module binary_input_file(data,cont) = {
                 int128_t res;
                 ds.getn(res,1);
                 d.push_back(res);
-                std::cerr << d << std::endl;
+                //std::cerr << d << std::endl;
                 //std::cerr << contents << std::endl;
             }  // read all the bytes
-            std::cerr << d << std::endl;
+            //std::cerr << d << std::endl;
+            std::cerr << "Reading " << d.size() << " bytes from file" << std::endl;
             //std::cerr << contents << std::endl;
         >>>
         }

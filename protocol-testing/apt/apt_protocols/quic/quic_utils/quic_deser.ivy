@@ -63,6 +63,7 @@ object quic_deser = {}
               quic_s_version,
 	          quic_s_dcil,
 	          quic_s_scil,
+              quic_s_new_token,
               quic_s_dcid,
               quic_s_scid,
               quic_s_retry_token_length,
@@ -437,6 +438,10 @@ object quic_deser = {}
                 getn(res,16);
             }
             break;
+            case quic_s_new_token:
+            {
+                getn(res,1);
+            }
             case quic_retire_connection_id_seq_num:
             {
                 get_var_int(res);
@@ -712,6 +717,8 @@ object quic_deser = {}
                     return data_remaining-- > 0;
             if (state == quic_ack_frequency_ack_eliciting_threshold)
                     return data_remaining-- > 0;
+            if (state == quic_s_new_token)
+                return data_remaining-- > 0;
 
 
             std::cerr << "quic_deser 1\n";  

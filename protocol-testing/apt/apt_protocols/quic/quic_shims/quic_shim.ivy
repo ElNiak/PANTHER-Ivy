@@ -238,8 +238,8 @@ after init {
 
 
 # implement quic_net.recv(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:quic_prot.arr) {
-#     # call show_current_time(time_api.c_timer.now_micros_last_bp);
-#     call show_socket_debug_event(s);
+###     # call show_current_time_debug_event(time_api.c_timer.now_micros_last_bp);
+###     call show_socket_debug_event(s);
 #     if(is_lost_recv) {
 #         call on_purpose_lost_packet_event(host,src,pkts);
 #     } else {
@@ -277,9 +277,8 @@ import action on_purpose_lost_packet_event(host:endpoint_id,src:ip.endpoint,pkt:
 
 # import action undefined_host_error(host:endpoint_id, s:quic_net.socket, src:ip.endpoint)
 
-import action show_last_datagram_size(size:stream_pos)
 
-# import action show_socket_debug_event(n:quic_net.socket)
+### import action show_socket_debug_event(n:quic_net.socket)
 
 # Security event shims
 # --------------------
@@ -306,7 +305,7 @@ import action show_last_datagram_size(size:stream_pos)
 implement tls_api.lower.send(tls_id:tls_api.id, bytes:stream_data, lev:tls_api.lower.level) {
     #if dst_is_generated_tls(tls_id_to_src(tls_id)) { # For MiM agent, we dont wont for now TLS events
         var early_data_end := stream_data.empty; # TODO global -> quic-go crash if not global
-        call show_biatch_debug_event(tls_id_to_dst(tls_id));
+##        call show_biatch_debug_event(tls_id_to_dst(tls_id));
         early_data_end := early_data_end.append(0xff);
         early_data_end := early_data_end.append(0xff);
         early_data_end := early_data_end.append(0xff);
@@ -327,7 +326,7 @@ implement tls_api.lower.send(tls_id:tls_api.id, bytes:stream_data, lev:tls_api.l
     #}
 }
 
-# The following is just for debugging purposes.
+# The following is just for debugging purposes.call show_tls_send_event
 
 after tls_send_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, data : stream_data,
                      pos:stream_pos, e:quic_packet_type, tls_id:tls_api.id) {
@@ -347,11 +346,6 @@ implement tls_api.upper.keys_established(tls_id:tls_api.id,lev:tls_api.upper.lev
     # };
     call tls_keys_established_event(tls_id_to_cid(tls_id),e); #tls_id = server.tls_id  for client ?
 }
-
-import action show_tls_id_to_cid_debug_event(ver:cid)
-import action show_biatch_debug_event(src:ip.endpoint)
-import action show_tls_lower_send_debug_event(bytes:stream_data)
-
 
 # TLS handshake data event shim
 # =============================
@@ -465,8 +459,6 @@ after tls_client_initial_request(src:ip.endpoint,dst:ip.endpoint,nonce:cid, pver
 	};
     call tls_api.upper.set_initial_keys(id,salt,ikm); ## WTF TODO error id tls_api.upper.set_initial_keys(id,salt,ikm);
 }
-
-import action show_l(ver:stream_pos)
 
 # TLS client initial response shim
 # ================================
@@ -641,10 +633,6 @@ after tls_client_initial_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_d
         initial_keys_set(dcid) := true;
     }
 }
-
-import action show_set_initial_keys(ik: stream_data, id: tls_api.id)
-import action show_version(ver:version)
-import action show_kk
 
 # TLS client Version Negotiation response shim
 # ============================================
@@ -960,7 +948,7 @@ action dcid_size_cl(cond:bool) returns(res:cid_length) = {
     <<<
     res = 0;
     if(const char* env_p2 = std::getenv("TEST_TYPE")) { 
-      if(strcmp(env_p2, "client") == 0 || cond) {
+      if(strcmp(env_p2, "client") == 0 || strcmp(env_p2, "attacker_client") == 0 || cond) {
          if(const char* env_p3 = std::getenv("TEST_DCIL")) {
             std::cerr << "TEST_DCIL " << env_p3 << "\n";
 	        res = atoi(env_p3);
@@ -979,7 +967,7 @@ action scid_size_pos(cond:bool) returns(res:stream_pos) = {
     <<<
     res = 0;
     if(const char* env_p2 = std::getenv("TEST_TYPE")) { 
-      if(strcmp(env_p2, "server") == 0 || cond) {
+      if(strcmp(env_p2, "server") == 0 || strcmp(env_p2, "attacker_server") == 0 || cond) {
          if(const char* env_p3 = std::getenv("TEST_SCIL")) {
             std::cerr << "TEST_SCIL " << env_p3 << "\n";
 	        res = atoi(env_p3);
@@ -997,7 +985,7 @@ action dcid_size_pos(cond:bool) returns(res:stream_pos) = {
     <<<
     res = 0;
     if(const char* env_p2 = std::getenv("TEST_TYPE")) { 
-      if(strcmp(env_p2, "server") == 0 || cond) {
+      if(strcmp(env_p2, "server") == 0 || strcmp(env_p2, "attacker_server") == 0 || cond) {
          if(const char* env_p3 = std::getenv("TEST_DCIL")) {
             std::cerr << "TEST_DCIL " << env_p3 << "\n";
 	        res = atoi(env_p3);
@@ -1010,8 +998,6 @@ action dcid_size_pos(cond:bool) returns(res:stream_pos) = {
     std::cerr <<  "dcid_size_pos size: " <<  res << "\n";
     >>>
 }
-
-import action show_tls_send_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, data:stream_data, pos:stream_pos, e:quic_packet_type, tls_id:tls_api.id)
 
 action hi_byte_pos(x:stream_pos) returns (res:byte) = {
     <<< res = (x >> 8) & 0xff; >>>
@@ -1085,3 +1071,32 @@ action export_length_cid_mim(dcil:stream_pos,scil:stream_pos) = {
     >>>
 }
 
+import action show_tls_send_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, data:stream_data, pos:stream_pos, e:quic_packet_type, tls_id:tls_api.id)
+
+import action show_level_offset_length(e:quic_packet_type,offset:stream_pos,length:stream_pos)
+
+import action clear_packet(src:ip.endpoint,dst:ip.endpoint,rnum:pkt_num,pkt:stream_data)
+
+import action cipher_packet(pkt:stream_data)
+
+import action show_stream(pkt:stream_data)
+
+import action show_connected(c1:bool, c2:cid)
+
+import action show_aead(level:tls_api.upper.level,pyld:stream_data,seq:pkt_num,auth:stream_data)
+
+import action show_last_datagram_size(size:stream_pos)
+
+##import action show_tls_id_to_cid_debug_event(ver:cid)
+
+##import action show_biatch_debug_event(src:ip.endpoint)
+
+##import action show_tls_lower_send_debug_event(bytes:stream_data)
+
+import action show_l(ver:stream_pos)
+
+import action show_set_initial_keys(ik: stream_data, id: tls_api.id)
+
+import action show_version(ver:version)
+
+import action show_kk

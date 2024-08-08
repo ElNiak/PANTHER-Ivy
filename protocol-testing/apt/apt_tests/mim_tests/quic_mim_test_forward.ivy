@@ -264,9 +264,9 @@ object packet = {
                         pkt.pversion    = 0xff00001d |
                         pkt.pversion    = 0xff00001c |
                         pkt.pversion    = 0xff00001b |
-                        (pkt.pversion    ~= 0x00000000 & pkt.pversion    ~= 0x00000001 &
-                         pkt.pversion    ~= 0xff000022 & pkt.pversion    ~= 0xff00001d &
-                         pkt.pversion    ~= 0xff00001c & pkt.pversion    ~= 0xff00001b);
+                        (pkt.pversion   ~= 0x00000000 & pkt.pversion    ~= 0x00000001 &
+                         pkt.pversion   ~= 0xff000022 & pkt.pversion    ~= 0xff00001d &
+                         pkt.pversion   ~= 0xff00001c & pkt.pversion    ~= 0xff00001b);
                 
                 require (pkt.dst_cid     = interest_pkt.dst_cid &
                          pkt.src_cid     = interest_pkt.src_cid) |
@@ -303,8 +303,8 @@ export packet.encrypted_quic_packet.forward_to_client
 # attribute packet.encrypted_quic_packet.replay_to_server.weight = "5"
 # attribute packet.encrypted_quic_packet.replay_to_client.weight = "5"
 
-export    packet.encrypted_quic_packet.modify
-attribute packet.encrypted_quic_packet.modify.weight = "5"
+# export    packet.encrypted_quic_packet.modify
+# attribute packet.encrypted_quic_packet.modify.weight = "5"
 
 
 object packet = {

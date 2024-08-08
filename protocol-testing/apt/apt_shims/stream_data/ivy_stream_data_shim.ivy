@@ -15,14 +15,14 @@ include ivy_bot
 
 
 implement stream_data_net.recv(host:endpoint_id, s:stream_data_net.socket, src:ip.endpoint, pkts:stream_prot.arr) {
-    # call show_current_time(time_api.c_timer.now_micros_last_bp);
-    call show_socket_debug_event(s);
+##    # call show_current_time_debug_event(time_api.c_timer.now_micros_last_bp);
+##    call show_socket_debug_event(s);
     if host = endpoint_id.server {       
-        call host_debug_event(host);
+##        call host_debug_event(host);
     } else if host = endpoint_id.client | host = endpoint_id.client_alt { 
-        call host_debug_event(host);
+##        call host_debug_event(host);
     } else if host = endpoint_id.target {
-        call host_debug_event(host);
+##        call host_debug_event(host);
     } else if host = endpoint_id.man_in_the_middle {
         call mim_agent.behavior(host,s,src,pkts);
     } else if host = endpoint_id.malicious_server {
@@ -34,6 +34,6 @@ implement stream_data_net.recv(host:endpoint_id, s:stream_data_net.socket, src:i
 }
 
 
-import action show_socket_debug_event(s:stream_data_net.socket)
-import action host_debug_event(host:endpoint_id)
+##import action show_socket_debug_event(s:stream_data_net.socket)
+##import action host_debug_event(host:endpoint_id)
 import action undefined_host_error(host:endpoint_id,s:stream_data_net.socket,src:ip.endpoint)
