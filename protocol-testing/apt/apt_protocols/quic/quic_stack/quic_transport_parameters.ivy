@@ -89,7 +89,7 @@ object max_packet_size = {
 
 object stateless_reset_token = {
     variant this of transport_parameter = struct {  # tag = 6
-        data_8 : ipv6.addr
+        data_8 : reset_token
     }
     instantiate trans_params_ops(this)
 }

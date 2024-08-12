@@ -3,6 +3,7 @@ include order
 include collections
 
 include apt_types
+include quic_types 
 
 include apt_byte_stream
 
@@ -11,10 +12,32 @@ include apt_packet
 include apt_time
 include tls_api
 
+include quic_protection
 include protection
 
-##import action show_current_time_debug_event(now:milliseconds)
+instance net_prot : protection.global_protection(tls_api.id,tls_api.upper)
 
+include quic_shim
+include ping_shim
+
+
+instance quic_encrypted_packet_serdes_client         : serdes(packet.encrypted_quic_packet,               stream_data,quic_ser_enc_client,      quic_deser_enc_client)
+instance quic_encrypted_packet_serdes_server         : serdes(packet.encrypted_quic_packet,               stream_data,quic_ser_enc_server,      quic_deser_enc_server)
+instance quic_random_padding_encrypted_packet_serdes : serdes(packet.random_padding_encrypted_quic_packet,stream_data,quic_ser_random,   quic_deser_random)
+instance quic_encrypted_short_packet_serdes_server   : serdes(packet.encrypted_short_quic_packet,         stream_data,quic_ser_short_enc_server,quic_deser_short_enc_server)
+instance quic_encrypted_short_packet_serdes_client   : serdes(packet.encrypted_short_quic_packet,         stream_data,quic_ser_short_enc_client,quic_deser_short_enc_client)
+
+include quic_attack_connection
+
+
+include quic_attack_connection
+include minip_attack_connection
+
+include quic_locale
+include apt_endpoint
+
+##import action show_current_time_debug_event(now:milliseconds)
+import action forwarding_time(s:seconds)
 
 object packet = {
     ...
@@ -23,7 +46,7 @@ object packet = {
         if _generating {
             # TODO assert it is smaller than MTU
             var idx := pkt.begin;
-            var pkts_mim := quic_prot.arr.empty;
+            var pkts_mim := net_prot.arr.empty;
             while idx < pkt.end {
                 # packets_received(pkt.value(idx)) := true;
                 var p := pkt.value(idx);
@@ -33,15 +56,15 @@ object packet = {
                     var rnum := reference_pkt_num(spkt,false);
                     var tls_id := src_tls_id(dst); # todo multiple
                     var other_tls_id := dst_tls_id(dst);
-                    var ppkt := quic_prot.encrypt_quic(other_tls_id,rnum,spkt);
+                    var ppkt := net_prot.encrypt_quic(other_tls_id,rnum,spkt);
                     pkts_mim := pkts_mim.append(ppkt);
                 } 
                 else if some(cf:packet.encrypted_quic_packet)p *> cf {
-                    var spkt := quic_encrypted_packet_serdes.to_bytes(cf);
+                    var spkt := quic_encrypted_packet_serdes_server.to_bytes(cf);
                     pkts_mim := pkts_mim.append(spkt);
                 } 
                 else if some(cf:packet.encrypted_short_quic_packet)p *> cf {
-                    var spkt := quic_encrypted_short_packet_serdes.to_bytes(cf);
+                    var spkt := quic_encrypted_short_packet_serdes_server.to_bytes(cf);
                     pkts_mim := pkts_mim.append(spkt);
                 } 
                 else if some(cf:packet.random_padding_encrypted_quic_packet)p *> cf {
@@ -60,6 +83,7 @@ object packet = {
                 #TODO allow forwarding coalesed packet or not
                 idx := idx.next; 
             }; 
+            call forwarding_time(time_api.c_timer.now_sec);
             call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
         }
     }  
@@ -68,7 +92,7 @@ object packet = {
         if _generating {
             # TODO assert it is smaller than MTU
             var idx := pkt.begin;
-            var pkts_mim := quic_prot.arr.empty;
+            var pkts_mim := net_prot.arr.empty;
             while idx < pkt.end {
                 # packets_received(pkt.value(idx)) := true;
                 var p := pkt.value(idx);
@@ -81,15 +105,15 @@ object packet = {
                     # if ~mim_agent.server_initial_response {
                     #     tls_id := other_tls_id;
                     # }
-                    var ppkt := quic_prot.encrypt_quic(tls_id,rnum,spkt);
+                    var ppkt := net_prot.encrypt_quic(tls_id,rnum,spkt);
                     pkts_mim := pkts_mim.append(ppkt);
                 } 
                 else if some(cf:packet.encrypted_quic_packet)p *> cf {
-                    var spkt := quic_encrypted_packet_serdes.to_bytes(cf);
+                    var spkt := quic_encrypted_packet_serdes_client.to_bytes(cf);
                     pkts_mim := pkts_mim.append(spkt);
                 } 
                 else if some(cf:packet.encrypted_short_quic_packet)p *> cf {
-                    var spkt := quic_encrypted_short_packet_serdes.to_bytes(cf);
+                    var spkt := quic_encrypted_short_packet_serdes_client.to_bytes(cf);
                     pkts_mim := pkts_mim.append(spkt);
                 } 
                 else if some(cf:packet.random_padding_encrypted_quic_packet)p *> cf {
@@ -108,6 +132,7 @@ object packet = {
                 #TODO allow forwarding coalesed packet or not
                 idx := idx.next; 
             }; 
+            call forwarding_time(time_api.c_timer.now_sec);
             call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
         }
     }  

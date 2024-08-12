@@ -91,4 +91,12 @@ after init {
     sock_mim_server := quic_net.eavesdrop(endpoint_id.man_in_the_middle, mim_agent.ep_server);
     # sock_mim_client := quic_net.listen(endpoint_id.man_in_the_middle, mim_agent.ep_client);
     mim_agent.set_tls_id(4); # 0 is default value, we dont wont that
+    mim_agent.ep_mim.addr := mim_addr;
+    if spoof_client_ip { # TODO here opposite of spoofing IP address
+        mim_agent.ep_mim.port := client_port;
+    } else if spoof_server_ip {
+        mim_agent.ep_mim.port := server_port;
+    } else {
+        mim_agent.ep_mim.port := client_port;
+    }
 }

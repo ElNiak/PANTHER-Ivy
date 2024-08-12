@@ -13,8 +13,8 @@ include ivy_minip_shim
 
 # a socket for the server
 
-var sock_mim_server : minip_net.socket
-var sock_mim_client : minip_net.socket
+var sock_mim_server : quic_net.socket
+var sock_mim_client : quic_net.socket
 
 instance mim_agent : endpoint.man_in_the_middle_endpoint.mim_minip_ep(server_addr,mim_port_in,server_port,true,true,true)
 

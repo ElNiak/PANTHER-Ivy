@@ -2,11 +2,11 @@
 
 # a fake serializer for quic
 
-object quic_ser_enc = {}
+object quic_ser_enc_server = {}
 
 <<< member
 
-    class `quic_ser_enc`;
+    class `quic_ser_enc_server`;
 
 >>>
 
@@ -20,8 +20,8 @@ object quic_ser_enc = {}
          #include "/app/panther-ivy/protocol-testing/apt/apt_protocols/quic/quic_utils/quic_ser_deser.h"
     #endif
     
-    class `quic_ser_enc` : public ivy_binary_ser_128 {
-    //class `quic_ser_enc` : public ivy_binary_ser {
+    class `quic_ser_enc_server` : public ivy_binary_ser_128 {
+    //class `quic_ser_enc_server` : public ivy_binary_ser {
         enum {quic_s_init,
               quic_s_version,
 	          quic_s_dcil,
@@ -94,7 +94,7 @@ object quic_ser_enc = {}
         int packet_number_length;
 
     public:
-        quic_ser_enc() : state(quic_s_init) {
+        quic_ser_enc_server() : state(quic_s_init) {
         }
         virtual void  set(int128_t res) {
         //virtual void  set(long long res) {
@@ -125,36 +125,38 @@ object quic_ser_enc = {}
             {
                 //std::cerr << "ser res dcid 1 " << res << "\n";
                 if (long_format) {
-                    if((res != 0 && res != 1) || scid_h == 0)
-                        setn(scid_h,1);
+                    if((res != 0 && res != 1) || scid_h_server == 0)
+                        setn(scid_h_server,1);
                     else 
                         setn(8,1);
                 }
-                if((res != 0 && res != 1) || scid_h == 0)
-                    setn(res,scid_h); //scid_h
+                if((res != 0 && res != 1) || scid_h_server == 0)
+                    setn(res,scid_h_server); //scid_h_server
                 else 
                     setn(res,8); 
-                std::cerr << "ser res dcid 2 " << res << "\n";
+                std::cerr << "ser res scid_h_server 2 " << res << "\n";
+                std::cerr << "ser res scid_h_server " << scid_h_server << "\n";
                 state = quic_s_scid;
             }
             break;
             case quic_s_scid:
             {
-		        //std::cerr << "ser res scid_h 1 " << res << "\n";
+		        //std::cerr << "ser res scid_h_server 1 " << res << "\n";
                 if (long_format) {
-                    if((res == 0 || res == 1) && scid_h != 0){
+                    if((res == 0 || res == 1) && dcid_h_server != 0){
                         setn(8,1);
                         setn(res,8);
                     } else {
-                    	setn(dcid_h,1);
-		    	        setn(res,dcid_h);
+                    	setn(dcid_h_server,1);
+		    	        setn(res,dcid_h_server);
 		            }
                 }
-		        std::cerr << "ser res scid_h 1 " << res << "\n";
+		        std::cerr << "ser res dcid_h_server 1 " << res << "\n";
+                std::cerr << "ser res dcid_h_server " << dcid_h_server << "\n";
                 state = quic_s_retry_token_length;
             }
             break;
-            case quic_s_retry_token_length:
+           /* case quic_s_retry_token_length:
             {
                 if (long_format & ((hdr_type & 0x30) == 0x00)) {
                     set_var_int(res);
@@ -163,7 +165,7 @@ object quic_ser_enc = {}
                 std::cerr << "ser res retry_token_length 1 " << res << "\n";
                 state = quic_s_retry_token;
             }
-            break;
+            break;*/
             case quic_s_retry_token:
             {
                 setn(res,1);
@@ -191,7 +193,7 @@ object quic_ser_enc = {}
             }
             break;
             default:
-            //std::cerr << "quic_ser_enc 2\n";  
+            //std::cerr << "quic_ser_enc_server 2\n";  
             throw deser_err();
             }
         }
@@ -219,7 +221,7 @@ object quic_ser_enc = {}
             if (state == quic_s_payload) {
                 
             }
-            //std::cerr << "quic_ser_enc 1\n";  
+            //std::cerr << "quic_ser_enc_server 1\n";  
             throw deser_err();
         }
 
@@ -233,39 +235,39 @@ object quic_ser_enc = {}
                 ack_block_count = 0;
                 state = quic_ack_gap;
             } else if (state == quic_s_retry_token_length) {
-                /*std::cerr << "open_list len (hdr_type & 0x30) " << (hdr_type & 0x30) << "\n";
+                std::cerr << "open_list len (hdr_type & 0x30) " << (hdr_type & 0x30) << "\n";
                 if (long_format & ((hdr_type & 0x30) == 0x00)) { //TODO:  & ((hdr_type & 0x30) == 0x00
                     std::cerr << "open_list len quic_s_retry_token_length " << len << "\n";
                     set_var_int(len);
                     data_remaining = len;
-                }*/
+                }
                 state = quic_s_retry_token;
             }
         }
         void close_list() {
             if (state == quic_s_payload) {
                 if (long_format) {
-                    /*
+                    
                     int len = res.size() - (payload_length_pos+2) ;
                     res[payload_length_pos] = 0x40 | ((len >> 8) & 0x3f);
                     res[payload_length_pos+1] = len & 0xff; 
-                    */
+                    
                     state = quic_s_init;
                 }
             }
             else if (state == quic_s_retry_token) {
                 payload_length_pos = this->res.size();
                 std::cerr << "close_list payload_length_pos " << payload_length_pos << "\n";
-                /*
+                
                 if (long_format) {
                     setn(0,2);  // will fill in correct value later
                 }
-                */
+                
                 /*
                 if (long_format) state = quic_s_payload_length;
                 else state = quic_s_payload;
                 */
-                state = quic_s_payload_length;
+                state = quic_s_payload;
             }
         }
         void close_list_elem() {}
@@ -274,7 +276,7 @@ object quic_ser_enc = {}
             state = quic_s_payload;
         }
 
-        ~quic_ser_enc(){}
+        ~quic_ser_enc_server(){}
     };
 
 >>>

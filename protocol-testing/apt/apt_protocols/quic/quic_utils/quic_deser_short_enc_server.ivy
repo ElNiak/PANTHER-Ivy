@@ -2,11 +2,11 @@
 
 # a fake deserializer for quic
 
-object quic_deser_short_enc = {}
+object quic_deser_short_enc_server = {}
 
 <<< member
 
-    class `quic_deser_short_enc`;
+    class `quic_deser_short_enc_server`;
 
 >>>
 
@@ -21,8 +21,8 @@ object quic_deser_short_enc = {}
          #include "/app/panther-ivy/protocol-testing/apt/apt_protocols/quic/quic_utils/quic_ser_deser.h"
     #endif
 
-    class `quic_deser_short_enc` : public ivy_binary_deser_128 {
-    //class `quic_deser_short_enc` : public ivy_binary_deser {
+    class `quic_deser_short_enc_server` : public ivy_binary_deser_128 {
+    //class `quic_deser_short_enc_server` : public ivy_binary_deser {
         enum {quic_s_init,
               quic_s_type,
               quic_s_version,
@@ -102,8 +102,8 @@ object quic_deser_short_enc = {}
 
     
     public:
-        quic_deser_short_enc(const std::vector<char> &inp) : ivy_binary_deser_128(inp),state(quic_s_init) {
-        //quic_deser_short_enc(const std::vector<char> &inp) : ivy_binary_deser(inp),state(quic_s_init) {
+        quic_deser_short_enc_server(const std::vector<char> &inp) : ivy_binary_deser_128(inp),state(quic_s_init) {
+        //quic_deser_short_enc_server(const std::vector<char> &inp) : ivy_binary_deser(inp),state(quic_s_init) {
             // pos = 42; // skip 42 bytes of IP and UDP header
             fence = 0;
 
@@ -118,13 +118,13 @@ object quic_deser_short_enc = {}
                 //0x7f is 0111 1111 in binary. This means the lower 7 bits of res are significant.
                 //0x30    0011 0000
                 hdr_type = res & 0x7f; //0x7f;
-                std::cerr << "quic_deser_short_enc res " << res << "\n";
+                std::cerr << "quic_deser_short_enc_server res " << res << "\n";
                 std::cerr << "inp size " << inp.size() << "\n";
                 packet_number_length = (res & 0xc0) >> 6; //(res >> 5) & 0x03;
                 packet_number_length += 1;
-                std::cerr << "quic_deser_short_enc hdr_type " << hdr_type << "\n";
-                std::cerr << "quic_deser_short_enc packet_number_length " << packet_number_length << "\n";
-                std::cerr << "quic_deser_short_enc long_format " << long_format << "\n";
+                std::cerr << "quic_deser_short_enc_server hdr_type " << hdr_type << "\n";
+                std::cerr << "quic_deser_short_enc_server packet_number_length " << packet_number_length << "\n";
+                std::cerr << "quic_deser_short_enc_server long_format " << long_format << "\n";
                 //This is then shifted by 4 so that only the original 0xxx 0000 (3) bits are significant.
                 //res = long_format ? ((hdr_type & 0x30) >> 4) : 3;
                 state = quic_s_dcid;
@@ -138,9 +138,9 @@ object quic_deser_short_enc = {}
                     getn(cil,1);
                     std::cerr << "dstID size " << cil << "\n";
                     dcil = cil;
-                    dcid_h = cil;
+                    scid_h_server = cil;
                 } else {
-                    dcil = dcid_h; //dcil_long
+                    dcil = scid_h_server; //dcil_long
                 }
 		        getn(res,(dcil));
                 std::cerr << "dstID res " << res << "\n";
@@ -159,7 +159,7 @@ object quic_deser_short_enc = {}
                 }
                 payload_length = res;
                 data_remaining = res;
-                std::cerr << "quic_deser_short_enc payload_length " << payload_length << "\n";
+                std::cerr << "quic_deser_short_enc_server payload_length " << payload_length << "\n";
                 state = quic_s_pkt_num;
             }
             break;
@@ -169,7 +169,7 @@ object quic_deser_short_enc = {}
             }
             break;
             default:
-                std::cerr << "quic_deser_short_enc 3\n";  
+                std::cerr << "quic_deser_short_enc_server 3\n";  
                 throw deser_err();
             }
         }
@@ -190,7 +190,7 @@ object quic_deser_short_enc = {}
         int get_pkt_num(int128_t &res) {
             ivy_binary_deser_128::getn(res, packet_number_length); //TODO hack +2
             return packet_number_length;
-            std::cerr << "quic_deser_short_enc get_pkt_num test " << res << "\n";
+            std::cerr << "quic_deser_short_enc_server get_pkt_num test " << res << "\n";
             static int lens[4] = {0,0,1,3};
             int128_t lobyte;
             ivy_binary_deser_128::getn(lobyte,1);
@@ -225,7 +225,7 @@ object quic_deser_short_enc = {}
             std::cerr << "state          = " << state << "\n";  
             std::cerr << "quic_s_payload = " << quic_s_payload << "\n";
             std::cerr << "quic_s_payload == " << (quic_s_payload == state) << "\n";
-            std::cerr << "quic_deser_short_enc 2\n";  
+            std::cerr << "quic_deser_short_enc_server 2\n";  
             throw deser_err();
         }
 
@@ -238,13 +238,13 @@ object quic_deser_short_enc = {}
                //    pos++;  // skip padding frames
                return data_remaining-- > 0; //(fence == 0 || pos < fence) && more(1);
             }
-            std::cerr << "quic_deser_short_enc 1\n";  
+            std::cerr << "quic_deser_short_enc_server 1\n";  
             throw deser_err();
         }
 
         void open_list() {
             if (state == quic_s_payload) {
-                std::cerr << "quic_deser_short_enc open_list quic_s_payload\n";
+                std::cerr << "quic_deser_short_enc_server open_list quic_s_payload\n";
                 is_from_open_list = true; //hack for random bytes packet;
                 state = quic_s_payload;
             }
@@ -261,7 +261,7 @@ object quic_deser_short_enc = {}
                 pos += QUIC_DESER_FAKE_CHECKSUM_LENGTH; // skip the fake checksum
             }
             if (state == quic_s_retry_token) {
-                std::cerr << "quic_deser_short_enc close_list quic_s_retry_token\n";
+                std::cerr << "quic_deser_short_enc_server close_list quic_s_retry_token\n";
                 state = quic_s_payload_length;
             }
         }
@@ -271,7 +271,7 @@ object quic_deser_short_enc = {}
             state = quic_s_payload;
         }
 
-        ~quic_deser_short_enc(){}
+        ~quic_deser_short_enc_server(){}
     };
 
 >>>

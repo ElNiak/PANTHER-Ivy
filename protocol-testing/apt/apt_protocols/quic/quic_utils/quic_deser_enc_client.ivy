@@ -2,11 +2,11 @@
 
 # a fake deserializer for quic
 
-object quic_deser_enc = {}
+object quic_deser_enc_client = {}
 
 <<< member
 
-    class `quic_deser_enc`;
+    class `quic_deser_enc_client`;
 
 >>>
 
@@ -21,8 +21,8 @@ object quic_deser_enc = {}
          #include "/app/panther-ivy/protocol-testing/apt/apt_protocols/quic/quic_utils/quic_ser_deser.h"
     #endif
 
-    class `quic_deser_enc` : public ivy_binary_deser_128 {
-    //class `quic_deser_enc` : public ivy_binary_deser {
+    class `quic_deser_enc_client` : public ivy_binary_deser_128 {
+    //class `quic_deser_enc_client` : public ivy_binary_deser {
         enum {quic_s_init,
               quic_s_type,
               quic_s_version,
@@ -103,8 +103,8 @@ object quic_deser_enc = {}
 
     
     public:
-        quic_deser_enc(const std::vector<char> &inp) : ivy_binary_deser_128(inp),state(quic_s_init) {
-        //quic_deser_enc(const std::vector<char> &inp) : ivy_binary_deser(inp),state(quic_s_init) {
+        quic_deser_enc_client(const std::vector<char> &inp) : ivy_binary_deser_128(inp),state(quic_s_init) {
+        //quic_deser_enc_client(const std::vector<char> &inp) : ivy_binary_deser(inp),state(quic_s_init) {
             // pos = 42; // skip 42 bytes of IP and UDP header
             total_data = inp.size();
             fence = 0;
@@ -130,7 +130,7 @@ object quic_deser_enc = {}
                 uint8_t mask_bytes[5] = { 0, 0, 0, 0, 0 };
                 uint8_t first_mask = ((first_byte & 0x80) == 0x80) ? 0x0F : (is_loss_bit_enabled_incoming)?0x07:0x1F;
                 first_byte ^= (mask_bytes[0] & first_mask);
-                std::cerr << "quic_deser_enc res " << res << "\n";
+                std::cerr << "quic_deser_enc_client res " << res << "\n";
                 std::cerr << "inp size " << inp.size() << "\n";
                 // first_byte ^= (mask_bytes[0] & first_mask);
                 // pn_l = (first_byte & 3) + 1;*/  //(first_byte & 3); //
@@ -138,7 +138,7 @@ object quic_deser_enc = {}
                 //packet_number_length += 1;
 
                 //TODO big "hack" by lack of time TOFIX
-                if(const char* env_p2 = std::getenv("PNUM_LEN")) { 
+                /*if(const char* env_p2 = std::getenv("PNUM_LEN")) { 
                     if(const char* env_p3 = std::getenv("PNUM_LEN")) {
                         packet_number_length = atoi(env_p3);
                         std::cerr << "PNUM_LEN " << env_p3 << "\n";
@@ -150,15 +150,15 @@ object quic_deser_enc = {}
                 } else {
                     packet_number_length = (res >> 5) & 0x03; //might not work
                     packet_number_length += 1;
-                }
+                }*/
 
-                std::cerr << "quic_deser_enc hdr_type " << hdr_type << "\n";
-                std::cerr << "quic_deser_enc packet_number_length " << packet_number_length << "\n";
-                std::cerr << "quic_deser_enc long_format " << long_format << "\n";
+                std::cerr << "quic_deser_enc_client hdr_type " << hdr_type << "\n";
+                std::cerr << "quic_deser_enc_client packet_number_length " << packet_number_length << "\n";
+                std::cerr << "quic_deser_enc_client long_format " << long_format << "\n";
                 //This is then shifted by 4 so that only the original 0xxx 0000 (3) bits are significant.
                 //res = long_format ? ((hdr_type & 0x30) >> 4) : 3;
                 /*if(res == hdr_type) {
-                    std::cerr << "quic_deser_enc randombyte " << hdr_type << "\n";
+                    std::cerr << "quic_deser_enc_client randombyte " << hdr_type << "\n";
                     data_remaining = inp.size();
                     is_random_padding_packet = true;
                     state = quic_s_payload;
@@ -186,9 +186,9 @@ object quic_deser_enc = {}
                     getn(cil,1);
                     std::cerr << "dstID size " << cil << "\n";
                     dcil = cil;
-                    dcid_h = cil;
+                    dcid_h_client = cil;
                 } else {
-                    dcil = dcid_h; //dcil_long
+                    dcil = dcid_h_client; //dcil_long
                 }
 		        getn(res,(dcil));
                 std::cerr << "dstID res " << res << "\n";
@@ -207,7 +207,7 @@ object quic_deser_enc = {}
                     else 
                         have_scid = false;
                     scil = cil;
-                    scid_h = cil;
+                    scid_h_client = cil;
                 } else {
                     scil = 0;
                 }
@@ -224,11 +224,22 @@ object quic_deser_enc = {}
 		        //}
                 // else len = 0;
 
-                //int128_t len;
-                //get_var_int(len); // token length
-                //data_remaining = len;
+               /* uint128_t len;
+                get_var_int(res); // token length
+                data_remaining = res;
+                token_length = res;*/
+
+                int128_t len;
+                //long long len;
+                if (long_format & ((hdr_type & 0x30) == 0x00)){
+                    get_var_int(len);
+		        }
+                else len = 0;
+
+                data_remaining = len;
+                
 		        std::cerr << "sourceID token len " << data_remaining << "\n";
-                state = quic_s_retry_token_length;
+                state = quic_s_retry_token;
             }
             break;
             case quic_s_retry_token_length:
@@ -236,7 +247,7 @@ object quic_deser_enc = {}
                 int128_t len;
                 //long long len;
                 if (long_format & ((hdr_type & 0x30) == 0x00)){
-                    std::cerr << "quic_deser_enc token length\n";
+                    std::cerr << "quic_deser_enc_client token length\n";
                     get_var_int(res);
                     len = res;
                 } else {
@@ -244,7 +255,7 @@ object quic_deser_enc = {}
                 }
                 token_length = len;
                 data_remaining = len;
-                std::cerr << "quic_deser_enc token " << token_length << "\n";
+                std::cerr << "quic_deser_enc_client token " << token_length << "\n";
                 state = quic_s_retry_token;
             }
             break;
@@ -256,11 +267,11 @@ object quic_deser_enc = {}
                 } else {
                     fence = inp.size() - QUIC_DESER_FAKE_CHECKSUM_LENGTH;
                 }
-                std::cerr << "quic_deser_enc fence " << fence << "\n";
+                std::cerr << "quic_deser_enc_client fence " << fence << "\n";
                 int pkt_num_len = get_pkt_num(res);
-                std::cerr << "quic_deser_enc pkt_num_len " << pkt_num_len << "\n";
+                std::cerr << "quic_deser_enc_client pkt_num_len " << pkt_num_len << "\n";
                 data_remaining = payload_length - pkt_num_len;
-                std::cerr << "quic_deser_enc pkt_num " << res << "\n";
+                std::cerr << "quic_deser_enc_client pkt_num " << res << "\n";
                 state = quic_s_payload;
             }
             break;
@@ -268,16 +279,16 @@ object quic_deser_enc = {}
             {
                 int128_t len;
                 //long long len;
-                if (long_format) {
+                if (true) {
                     get_var_int(res);
                 } else {
                     len = 0;
                 }
                 payload_length = res;
                 data_remaining = res;
-                std::cerr << "quic_deser_enc payload_length " << payload_length << "\n";
-                std::cerr << "quic_deser_enc data_remaining " << data_remaining << "\n";
-                std::cerr << "quic_deser_enc total_data " << total_data << "\n";
+                std::cerr << "quic_deser_enc_client payload_length " << payload_length << "\n";
+                std::cerr << "quic_deser_enc_client data_remaining " << data_remaining << "\n";
+                std::cerr << "quic_deser_enc_client total_data " << total_data << "\n";
                 state = quic_s_payload;
             }
             break;
@@ -288,28 +299,29 @@ object quic_deser_enc = {}
                     
                 }  
                 if (is_random_padding_packet & data_remaining == 0) {
-                    std::cerr << "quic_deser_enc end of random padding packet\n";
+                    std::cerr << "quic_deser_enc_client end of random padding packet\n";
                     end();
                     close_struct();
                 }*/
                 getn(res,1);         
-                // std::cerr << "quic_deser_enc payload remaining " << data_remaining << "\n";
+                // std::cerr << "quic_deser_enc_client payload remaining " << data_remaining << "\n";
             }
             break;
             case quic_s_retry_token:
             {
-                if(token_length > 0){
-                    //std::cerr << "quic_deser_enc token_length " << token_length << "\n";
+                //if(token_length > 0){
+                    //std::cerr << "quic_deser_enc_client token_length " << token_length << "\n";
+                    //getn(res,1);
                     getn(res,1);
-                    token_length--;
-                }
-                else
-                    state = quic_s_pkt_num;
-                //std::cerr << "quic_deser_enc quic_s_retry_token remaining " << data_remaining << "\n";
+                    //token_length--;
+                //}
+                //else
+                    // state = quic_s_pkt_num;
+                //std::cerr << "quic_deser_enc_client quic_s_retry_token remaining " << data_remaining << "\n";
             }
             break;
             default:
-                std::cerr << "quic_deser_enc 3\n";  
+                std::cerr << "quic_deser_enc_client 3\n";  
                 throw deser_err();
             }
         }
@@ -332,7 +344,7 @@ object quic_deser_enc = {}
         int get_pkt_num(int128_t &res) {
             ivy_binary_deser_128::getn(res, packet_number_length); //TODO hack +2
             return packet_number_length;
-            std::cerr << "quic_deser_enc get_pkt_num test " << res << "\n";
+            std::cerr << "quic_deser_enc_client get_pkt_num test " << res << "\n";
             static int lens[4] = {0,0,1,3};
             int128_t lobyte;
             ivy_binary_deser_128::getn(lobyte,1);
@@ -367,7 +379,7 @@ object quic_deser_enc = {}
             std::cerr << "state          = " << state << "\n";  
             std::cerr << "quic_s_payload = " << quic_s_payload << "\n";
             std::cerr << "quic_s_payload == " << (quic_s_payload == state) << "\n";
-            std::cerr << "quic_deser_enc 2\n";  
+            std::cerr << "quic_deser_enc_client 2\n";  
             throw deser_err();
         }
 
@@ -380,15 +392,17 @@ object quic_deser_enc = {}
                //    pos++;  // skip padding frames
                return data_remaining-- > 0; //(fence == 0 || pos < fence) && more(1);
             }
-            if (state == quic_s_retry_token)
+            if (state == quic_s_retry_token) {
+                //data_remaining--;
                 return data_remaining-- > 0;
-            std::cerr << "quic_deser_enc 1\n";  
+            }
+            std::cerr << "quic_deser_enc_client 1\n";  
             throw deser_err();
         }
 
         void open_list() {
             if (state == quic_s_payload) {
-                std::cerr << "quic_deser_enc open_list quic_s_payload\n";
+                std::cerr << "quic_deser_enc_client open_list quic_s_payload\n";
                 is_from_open_list = true; //hack for random bytes packet;
                 state = quic_s_payload;
             }
@@ -405,8 +419,23 @@ object quic_deser_enc = {}
                 pos += QUIC_DESER_FAKE_CHECKSUM_LENGTH; // skip the fake checksum
             }
             if (state == quic_s_retry_token) {
-                std::cerr << "quic_deser_enc close_list quic_s_retry_token\n";
-                state = quic_s_payload_length;
+                int128_t len;
+                std::cerr << "quic_deser_enc_client close_list quic_s_retry_token\n";
+                if (long_format) {
+                    get_var_int(len);
+                } else {
+                    len = 0;
+                }
+                payload_length = len;
+                data_remaining = len;
+                std::cerr << "Data remaining " << data_remaining << "\n";
+                fence = 0;
+                if (payload_length > 0) {
+                    fence = pos + payload_length - QUIC_DESER_FAKE_CHECKSUM_LENGTH;
+                } else {
+                    fence = inp.size() - QUIC_DESER_FAKE_CHECKSUM_LENGTH;
+                }
+                state = quic_s_payload;
             }
         }
         void close_list_elem() {}
@@ -415,7 +444,7 @@ object quic_deser_enc = {}
             state = quic_s_payload;
         }
 
-        ~quic_deser_enc(){}
+        ~quic_deser_enc_client(){}
     };
 
 >>>

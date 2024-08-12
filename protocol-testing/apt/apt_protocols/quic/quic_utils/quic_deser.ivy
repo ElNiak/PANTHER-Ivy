@@ -56,6 +56,12 @@ object quic_deser = {}
     int scid_h = 8;
     int dcid_h = 8;
 
+    int scid_h_server = 8;
+    int dcid_h_server = 8;
+
+    int scid_h_client = 8;
+    int dcid_h_client = 8;
+
     class `quic_deser` : public ivy_binary_deser_128 {
     //class `quic_deser` : public ivy_binary_deser {
         enum {quic_s_init,
@@ -212,7 +218,7 @@ object quic_deser = {}
 		        }
                 else len = 0;
                 data_remaining = len;
-		        std::cerr << "sourceID data_remaining " << data_remaining << "\n";
+		        std::cerr << "sourceID token length " << data_remaining << "\n";
                 state = quic_s_retry_token;
             }
             break;
@@ -225,6 +231,7 @@ object quic_deser = {}
                     fence = inp.size() - QUIC_DESER_FAKE_CHECKSUM_LENGTH;
                 }
                 get_pkt_num(res);
+                std::cerr << "pkt_num res " << res << "\n";
                 state = quic_s_payload;
             }
             break;
@@ -559,7 +566,7 @@ object quic_deser = {}
                     return 5;
                 }
                 if (frame_type == 0x07) {  // new token quic_frame
-                    state = quic_crypto_length;  // new token equivalent to this
+                    state = quic_s_new_token;  // new token equivalent to this
                     return 6;
                 }
                 if (frame_type >= 0x08 && frame_type <= 0x0f) {
@@ -747,7 +754,16 @@ object quic_deser = {}
                     len = 0;
                 }
                 payload_length = len;
-                state = quic_s_pkt_num;
+                std::cerr << "payload_length = " << payload_length << "\n";
+                if(payload_length > 0)
+                    state = quic_s_pkt_num;
+                else {
+                    // random padding case
+                    data_remaining = 0;
+                    //fence = inp.size();
+                    //pos = inp.size();
+                    state = quic_stream_data;
+                }
             }
         }
         void close_list_elem() {}

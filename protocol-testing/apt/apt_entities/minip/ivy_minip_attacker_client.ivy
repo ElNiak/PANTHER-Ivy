@@ -8,7 +8,7 @@ include ivy_attacker
 
 # TODO create socket for client & server
 # TODO associate these data to the entities itself
-var sock_attacker : minip_net.socket
+var sock_attacker : quic_net.socket
 
-instance attacker_agent : endpoint.client_attacker_endpoint.attacker_minip_ep(malicious_client_addr,malicious_client_port)
-
+instance client : endpoint.client_attacker_endpoint.attacker_minip_ep(
+    client_addr,client_port,server_port,true,true)

@@ -44,7 +44,7 @@ include endpoint
 # to protect packts (see comment below). This module in turn uses the services
 # of TLS.
 
-instance quic_prot : quic_protection(tls_api.id,tls_api.upper)
+instance net_prot : quic_protection(tls_api.id,tls_api.upper)
 
 include quic_locale
 
@@ -142,7 +142,7 @@ action test2 returns (is_padding:bool) = {
     >>>
 }
 
-implement quic_net.recv(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:quic_prot.arr) {
+implement quic_net.recv(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:net_prot.arr) {
     var t := test;
     var dst := socket_endpoint(host,s);  # because quic_net API doesn't tell us the dst
     var idx := pkts.begin;
@@ -179,7 +179,7 @@ implement quic_net.recv(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pk
         if zrtt_pkt_set & ~zrtt_pkt_process {
             zrtt_pkt_process := true;
             var rnum := reference_pkt_num(last_zrtt_pkt,true);
-            var res := quic_prot.decrypt_quic(tls_id,rnum,last_zrtt_pkt);
+            var res := net_prot.decrypt_quic(tls_id,rnum,last_zrtt_pkt);
             if res.ok {
                 if host = endpoint_id.server & ~(bversion = 0) {
                     #for client test, 0rtt packet
@@ -211,7 +211,7 @@ implement quic_net.recv(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pk
         # } 
         else { 
             var rnum := reference_pkt_num(ppkt,true);
-            var res := quic_prot.decrypt_quic(tls_id,rnum,ppkt);
+            var res := net_prot.decrypt_quic(tls_id,rnum,ppkt);
             if res.ok {
                 var is_pad := is_padding_packet(res.payload); # For picoquic  client
                 if is_pad { #is_pad | is_rand_pad
@@ -222,7 +222,7 @@ implement quic_net.recv(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pk
                     call tls_client_0rtt_response(src,dst,res.data);
                 } else {
                     var pkt := quic_packet_serdes.from_bytes(res.data);
-                    pkt.seq_num := quic_prot.correct_pnum(rnum,pkt.seq_num,quic_prot.get_pnum_len(res.data));
+                    pkt.seq_num := net_prot.correct_pnum(rnum,pkt.seq_num,net_prot.get_pnum_len(res.data));
                     call recv_packet(src,dst,pkt);
                     call infer_tls_events(src,dst,pkt);   # infer any TLS events on server side
                     call packet_event(src,dst,pkt);       # also an inferred event
@@ -655,9 +655,9 @@ import action show_version(ver:version)
 after tls_client_version_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_data) {
     var tls_id := src_tls_id(src);
     var dcil : stream_pos := bfe[0][7](spkt.value(5));
-    var dcid := quic_prot.bytes_to_cid(spkt.segment(6,6+dcil));
+    var dcid := net_prot.bytes_to_cid(spkt.segment(6,6+dcil));
     var scil : stream_pos := bfe[0][7](spkt.value(6+dcil));
-    var scid := quic_prot.bytes_to_cid(spkt.segment(7+dcil,7+dcil+scil));
+    var scid := net_prot.bytes_to_cid(spkt.segment(7+dcil,7+dcil+scil));
     var versions_vn := spkt.segment(3 +  4  + dcil + scil,spkt.end);
 
     call export_length_cid_extension(dcil,scil);
@@ -729,9 +729,9 @@ after tls_client_retry_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_dat
     retry_rsp := true;
     h_retry := bfe[0][7](spkt.value(0));
     var dcil : stream_pos := bfe[0][7](spkt.value(5));
-    var dcid := quic_prot.bytes_to_cid(spkt.segment(6,6+dcil));
+    var dcid := net_prot.bytes_to_cid(spkt.segment(6,6+dcil));
     var scil : stream_pos := bfe[0][7](spkt.value(6+dcil));
-    var scid := quic_prot.bytes_to_cid(spkt.segment(7+dcil,7+dcil+scil));
+    var scid := net_prot.bytes_to_cid(spkt.segment(7+dcil,7+dcil+scil));
 
     call export_length_cid_extension(scil,dcil);
 
@@ -802,13 +802,13 @@ import action version_not_found_event
 # To estimate the sequence number of packets, we have to know the encryption level.
 # This action gets the encryption level from the packet header.
 
-action packet_encryption_level(h:quic_prot.header_info_quic) returns (e:quic_packet_type) = {
+action packet_encryption_level(h:net_prot.header_info_quic) returns (e:quic_packet_type) = {
     e := quic_packet_type.zero_rtt if ~h.hdr_long
             else (quic_packet_type.initial if h.hdr_type = 0x7f 
                   else quic_packet_type.handshake);
 }
 
-action packet_encryption_level_up(h:quic_prot.header_info_quic) returns (e:quic_packet_type) = {
+action packet_encryption_level_up(h:net_prot.header_info_quic) returns (e:quic_packet_type) = {
     e := quic_packet_type.zero_rtt if ~h.hdr_long
             else (quic_packet_type.initial if bvand(h.hdr_type,0x30) = 0x00
                   else quic_packet_type.handshake);
@@ -817,7 +817,7 @@ action packet_encryption_level_up(h:quic_prot.header_info_quic) returns (e:quic_
 # To get the reference packet number for a packet, we need to know the source connection
 # id, which is not present in short packets. Here we get it from history.
 
-action packet_scid(h:quic_prot.header_info_quic) returns (scid:cid) = {
+action packet_scid(h:net_prot.header_info_quic) returns (scid:cid) = {
     if h.hdr_long {
         scid := h.scid;
     } else {
@@ -835,7 +835,7 @@ action packet_scid(h:quic_prot.header_info_quic) returns (scid:cid) = {
 # encryption level. We infer the encryption level from the packet type.
 
 action reference_pkt_num(spkt:stream_data,decrypt_quic:bool) returns (pnum:pkt_num) = {
-    var h := quic_prot.get_header_info(spkt,decrypt_quic);
+    var h := net_prot.get_header_info(spkt,decrypt_quic);
     var e := packet_encryption_level(h);
     last_packet_type   := packet_encryption_level_up(h);
     last_packet_length := h.payload_length;
@@ -852,7 +852,7 @@ action is_padding_packet(spkt:stream_data) returns (is_padding:bool) = {
 }
 
 action is_random_padding_packet(spkt:stream_data) returns (is_padding:bool) = {
-    var h := quic_prot.get_header_info(spkt,true);
+    var h := net_prot.get_header_info(spkt,true);
     var e := packet_encryption_level_up(h);
     if last_packet_type = quic_packet_type.initial & last_packet_length < 1200 {
 	    is_padding := true;	
@@ -883,7 +883,7 @@ action cid_to_bytes(c:cid,len:cid_length) returns(res:stream_data) = {
     >>>
 }
 
-action cid_to_us(c:cid) returns(res:tls_api.id) = {
+action cid_to_tls_id(c:cid) returns(res:tls_api.id) = {
     <<<
     res = c.val;
     >>>

@@ -87,7 +87,8 @@ interpret cid_seq -> bv[16]
 
 # Stateless reset tokens
 type reset_token
-interpret reset_token -> bv[31]
+interpret reset_token -> longbv[1][13][20]
+#-> bv[31]
 
 # IP (or before ip module ?)
 

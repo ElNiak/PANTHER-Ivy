@@ -12,6 +12,7 @@ include apt_shim
 include ivy_quic_shim
 include ivy_quic_shim_attacker_client
 
+include ivy_quic_client_behavior
 include ivy_quic_attacker_client_behavior
 
 include ivy_quic_client_standard_tp
@@ -47,17 +48,6 @@ after init {
 }
 
 after init {
-    # supported_versions := versions.empty;
-    # var v1 := stream_data.empty;
-    # v1 := v1.append(0xff);
-    # v1 := v1.append(0x0);
-    # v1 := v1.append(0x0);
-    # v1 := v1.append(0x1c); # TODO
-    # supported_versions := supported_versions.append(v1);
-
-    # supported_versions_bv := versions_bv.empty;
-    # supported_versions_bv := supported_versions_bv.append(0xff00001c);
-
     token_saved := false;
 }
 
@@ -93,16 +83,14 @@ before quic_frame.stream.handle_maliciously(f:quic_frame.stream,scid:cid,dcid:ci
     if _generating {
         require scid = the_cid;
         require connected(the_cid) & dcid = connected_to(the_cid);
-        require f.len & f.off; 
-        require f.length > 0;
+        # require f.len & f.off; 
+        # require f.length > 0;
         # require f.offset = stream_length(dcid,f.id);
         f.offset := 0xffffffff;
         # require f.length = (stream_app_data_end(dcid,f.id)) - f.offset;
         #f.id := 0xffffffff;
         #f.length:= 110;
-
     };
-
 }
 
 
@@ -141,11 +129,12 @@ before quic_frame.stream.handle_maliciously(f:quic_frame.stream,scid:cid,dcid:ci
 #     }
 # }
 
-export quic_frame.ack.handle_maliciously
+export quic_frame.ack.handle
 export quic_frame.stream.handle_maliciously ## V2
-export quic_frame.crypto.handle_maliciously
-export quic_frame.path_response.handle_maliciously
+export quic_frame.crypto.handle
+export quic_frame.path_response.handle
 export malicious_packet_event
+export packet_event
 export client_send_event
 export tls_recv_event
 #export quic_frame.new_connection_id.handle_maliciously

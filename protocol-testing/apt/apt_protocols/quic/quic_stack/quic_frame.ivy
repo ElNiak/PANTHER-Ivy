@@ -768,7 +768,7 @@ object quic_frame = {
                         if ~acked_pkt(dcid,e,jdx) {
                             #if ack_eliciting_threshold_current_val(dcid) >= ack_eliciting_threshold_val(dcid) {
                                 some_new_ack := true;
-                                call show_ack_generated;
+##                                call show_ack_generated_debug_event;
                                 ack_eliciting_threshold_current_val(dcid) := 0;
                             #};
                         };
@@ -789,7 +789,7 @@ object quic_frame = {
                 # f.ack_delay := local_ack_delay;
                 # require local_ack_delay <= local_max_ack_delay_tp;
                 # call show_local_delay_ack(local_ack_delay,local_max_ack_delay_tp);
-                call show_ack_generated;
+##                call show_ack_generated_debug_event;
             } 
 	    ...
             if ~_generating {
@@ -805,7 +805,7 @@ object quic_frame = {
 }
 
 import action show_local_delay_ack(val:microseconds, val2:microseconds)
-import action show_ack_generated
+##import action show_ack_generated_debug_event
 import action show_ack_eliciting_threshold_current_val(val:stream_pos)
 import action show_ack_eliciting_threshold_val(val:stream_pos)
 

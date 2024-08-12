@@ -2153,6 +2153,15 @@ action cid_to_stream_id(c:cid,len:cid_length) returns(res:stream_id) = {
 }
 
 
+action cid_to_stream_pos(c:cid) returns(res:stream_pos) = {
+    <<<
+    res.resize(len);
+    for (unsigned i = 0; i < len; i++) {
+        res[len-i-1] = 0xff & (c.val >> (i * 8));
+    }
+    >>>
+}
+
 # The procedure computes the maximum number of additional bytes that a given
 # destination aid can receive, based on the `initial_max_data` transport parameter
 # and the highest position sent by the aid in a max data frame. This is computed as the

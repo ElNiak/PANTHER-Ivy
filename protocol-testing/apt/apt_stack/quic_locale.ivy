@@ -10,5 +10,5 @@ include tls_api
 # two services: TLS 1.3 and UDP.
 
 
-instance quic_net : network_implementation(endpoint_id,quic_prot.arr,quic_prot_ser,quic_prot_deser, 443)
+instance quic_net : network_implementation(endpoint_id,net_prot.arr,quic_prot_ser,quic_prot_deser, 443)
 

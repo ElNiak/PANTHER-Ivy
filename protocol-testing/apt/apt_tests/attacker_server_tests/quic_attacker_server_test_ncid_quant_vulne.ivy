@@ -11,7 +11,7 @@ include ivy_quic_attacker_client
 include apt_shim
 include ivy_quic_shim
 include ivy_quic_shim_attacker_client
-
+include ivy_quic_client_behavior
 include ivy_quic_attacker_client_behavior
 
 include ivy_quic_client_standard_tp
@@ -79,12 +79,12 @@ before quic_frame.new_connection_id.handle_maliciously(f:quic_frame.new_connecti
         require f.retire_prior_to = 0; #[4]
         f.seq_num := last_cid_seq(scid) + 0x1;
         f.token   := 42;
-        call show_cid_seq(last_cid_seq(scid));
+        call show_cid_seq_debug_event(last_cid_seq(scid));
         #f.seq_num := seqnum_to_cidseq(last_pkt_num(scid,quic_packet_type.zero_rtt));
     }
 }
 
-import action show_cid_seq(c:cid_seq)
+import action show_cid_seq_debug_event(c:cid_seq)
 
 
 

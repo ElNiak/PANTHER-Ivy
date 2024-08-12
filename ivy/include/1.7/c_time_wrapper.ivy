@@ -27,6 +27,7 @@ module c_time_wrapper(timer) = {
 		struct CTimeMeasuring {
 			%`timer.start` start;
 			%`timer.timeout` timeout;
+			%`timer.now_sec` now_sec;
 			%`timer.now_micros` now_micros;
 			%`timer.now_millis` now_millis;
 			%`timer.now_micros_last_bp` now_micros_last_bp;
@@ -34,12 +35,13 @@ module c_time_wrapper(timer) = {
 		CTimeMeasuring(
 			const %`timer.start` start,
 			const %`timer.timeout` timeout,
+			const %`timer.now_sec` now_sec,
 			const %`timer.now_micros` now_micros,
 			const %`timer.now_millis` now_millis,
 			const %`timer.now_micros_last_bp` now_micros_last_bp,
 			const %`timer.now_millis_last_bp` now_millis_last_bp
 		)
-		: start(start), timeout(timeout), now_micros(now_micros), now_millis(now_millis), now_micros_last_bp(now_micros_last_bp), now_millis_last_bp(now_millis_last_bp) {}
+		: start(start), timeout(timeout), now_sec(now_sec), now_micros(now_micros), now_millis(now_millis), now_micros_last_bp(now_micros_last_bp), now_millis_last_bp(now_millis_last_bp) {}
 		};
 
 		std::string last_bp_ms = "0";
@@ -82,7 +84,7 @@ module c_time_wrapper(timer) = {
 			return false;
 		}
 
-		unsigned long  long  getTimeFromBeginning(bool microSeconds = false) {
+		unsigned long  long  getTimeFromBeginning(bool microSeconds = false, bool seconds = false) {
 			struct timeval now;
 			gettimeofday(&now, NULL);
 			if (!started)
@@ -95,6 +97,10 @@ module c_time_wrapper(timer) = {
     			unsigned long useconds = now.tv_usec - start.tv_usec;
 				unsigned long mtime = 1000000 * seconds + useconds;
 				return mtime;
+			}
+			if (seconds)
+			{
+				return now.tv_sec - start.tv_sec;
 			}
 			return (now.tv_sec*1000LL + now.tv_usec/1000) - (start.tv_sec*1000LL + start.tv_usec/1000);
 		}
@@ -183,7 +189,7 @@ module c_time_wrapper(timer) = {
 
 	<<< init
 
-		`measures` = new CTimeMeasuring(`timer.start`, `timer.timeout`, `timer.now_micros`, `timer.now_millis`, `timer.now_micros_last_bp`, `timer.now_millis_last_bp`);
+		`measures` = new CTimeMeasuring(`timer.start`, `timer.timeout`, `timer.now_sec`, `timer.now_micros`, `timer.now_millis`, `timer.now_micros_last_bp`, `timer.now_millis_last_bp`);
 
 	>>>
 	# TODO probably, we will need some type of fingerprinting here to make sure that the time syscall are those we want in shadow
@@ -214,11 +220,26 @@ module c_time_wrapper(timer) = {
 			>>>
 		}
 
+		implement now_sec returns (i:seconds) {
+			<<<
+			std::cerr << "C time = now_sec" << std::endl;
+			if(started) {
+				unsigned long  long  time = getTimeFromBeginning(false,true);
+				std::cerr << "C time = now_sec - timer started" << std::endl;
+				std::cerr << "C time = now_sec - time = " << time << std::endl;
+				i = time;
+			}
+			else {
+				std::cerr << "C time = now_sec - timer not started" << std::endl;
+			}
+			>>>
+		}
+
 		implement now_micros returns (i:microseconds) {
 			<<<
 			std::cerr << "C time = now_micros" << std::endl;
 			if(started) {
-				unsigned long  long  time = getTimeFromBeginning(true);
+				unsigned long  long  time = getTimeFromBeginning(true,false);
 				std::cerr << "C time = now_micros - timer started" << std::endl;
 				std::cerr << "C time = now_micros - time = " << time << std::endl;
 				i = time;
@@ -233,7 +254,7 @@ module c_time_wrapper(timer) = {
 			<<<
 			std::cerr << "C time = now_millis" << std::endl;
 			if(started) {
-				unsigned long  long  time = getTimeFromBeginning(false);
+				unsigned long  long  time = getTimeFromBeginning(false,false);
 				std::cerr << "C time = now_millis - timer started" << std::endl;
 				std::cerr << "C time = now_millis - time = " << time << std::endl;
 				i = time;
@@ -302,7 +323,7 @@ module c_time_wrapper(timer) = {
 			if(started) {
 				const char * s = "fake_sleep";
 				fake_sleep_ms_duration = i;
-				unsigned long  long  time = getTimeFromBeginning(false);
+				unsigned long  long  time = getTimeFromBeginning(false,false);
 				fake_sleep_ms_start = time;
 				std::cerr << "C time = sleep_fake - timer started" << std::endl;
 				std::cerr << "C time = sleep_fake - time = " << time << std::endl;
@@ -464,7 +485,7 @@ module c_time_wrapper(timer) = {
 				} 
 				else {
 					const char * s = "fake_sleep";
-					unsigned long  long  time_now = getTimeFromBeginning(false);
+					unsigned long  long  time_now = getTimeFromBeginning(false,false);
 					unsigned long  long  time = getTimeFromBreakpoint(std::string(s),false);
 					std::cerr << "C time = is_sleep_fake_timeout - timer started" << std::endl;
 					std::cerr << "C time = is_sleep_fake_timeout - time = " << time << std::endl;

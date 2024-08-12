@@ -42,9 +42,9 @@ after packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
         var spkt := quic_packet_serdes.to_bytes(pkt);
         var rnum := reference_pkt_num(spkt,false);
         call clear_packet(src,dst,rnum,spkt);
-        var ppkt := quic_prot.encrypt_quic(server.tls_id,rnum,spkt);
+        var ppkt := net_prot.encrypt_quic(server.tls_id,rnum,spkt);
         call cipher_packet(ppkt);
-        var pkts := quic_prot.arr.empty;
+        var pkts := net_prot.arr.empty;
         pkts := pkts.append(ppkt);
         total_data_sent := total_data_sent + ppkt.size;
         call on_packet_sent(src,dst,pkt, ppkt.size);
@@ -59,7 +59,7 @@ after packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_vn)
    # if src = server.ep  {
     if dst_is_generated(src) { # (| is_mim TODO) _generating & ~conn_closed(pkt.the_cid) {  & ~conn_closed(pkt.the_cid) TODO
         var spkt := quic_vn_packet_serdes.to_bytes(pkt);
-        var pkts := quic_prot.arr.empty;
+        var pkts := net_prot.arr.empty;
         pkts := pkts.append(spkt);
         total_data_sent := total_data_sent + spkt.size;
         call quic_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
@@ -70,7 +70,7 @@ after packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_
    # if src = server.ep  {
     if dst_is_generated(src) { # _generating & ~conn_closed(pkt.the_cid) {  & ~conn_closed(pkt.the_cid)
         var spkt := quic_retry_packet_serdes.to_bytes(pkt);
-        var pkts := quic_prot.arr.empty;
+        var pkts := net_prot.arr.empty;
         pkts := pkts.append(spkt);
         total_data_sent := total_data_sent + spkt.size;
         call quic_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
@@ -83,9 +83,9 @@ after packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_pac
         var spkt := quic_0rtt_coal_packet_serdes.to_bytes(pkt);
         var rnum := reference_pkt_num(spkt,false);
         call clear_packet(src,dst,rnum,spkt);
-        var ppkt := quic_prot.encrypt_quic(server.tls_id,rnum,spkt);
+        var ppkt := net_prot.encrypt_quic(server.tls_id,rnum,spkt);
         call cipher_packet(ppkt);
-        var pkts := quic_prot.arr.empty;
+        var pkts := net_prot.arr.empty;
         pkts := pkts.append(ppkt);
         total_data_sent := total_data_sent + ppkt.size;
         call quic_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
@@ -99,9 +99,9 @@ after packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_0
         var spkt := quic_0rtt_packet_serdes.to_bytes(pkt);
         var rnum := reference_pkt_num(spkt,false);
         call clear_packet(src,dst,rnum,spkt);
-        var ppkt := quic_prot.encrypt_quic(server.tls_id,rnum,spkt);
+        var ppkt := net_prot.encrypt_quic(server.tls_id,rnum,spkt);
         call cipher_packet(ppkt);
-        var pkts := quic_prot.arr.empty;
+        var pkts := net_prot.arr.empty;
         pkts := pkts.append(ppkt);
         total_data_sent := total_data_sent + ppkt.size;
         call quic_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);

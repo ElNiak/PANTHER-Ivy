@@ -107,7 +107,7 @@ before packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet
 
         call show_token_retry(pkt.token);
 
-        var rt := quic_prot.retry_integrity_tag(client_initial_dcil,client_initial_dcid,
+        var rt := net_prot.retry_integrity_tag(client_initial_dcil,client_initial_dcid,
                                            initial_version,
                                            client_initial_scil,client_initial_scid,
                                            0x8,pkt.src_cid,

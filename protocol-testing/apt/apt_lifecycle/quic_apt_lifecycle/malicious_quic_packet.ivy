@@ -19,31 +19,47 @@ object packet = {
         action forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
         around forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
             # require _generating;
+            if _generating {
             require pkt.payload.end > 0;
-            require mim_agent.nat_configured;
-            require is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
-            require src ~= dst;
-            require dst = mim_agent.ep_client & src = mim_agent.ep_server;
+                require mim_agent.nat_configured;
+                require is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require src ~= dst;
+                if spoof_server_ip {
+                    require src = mim_agent.ep_mim & dst = mim_agent.ep_client;
+                } else {
+                    require src = mim_agent.ep_server & dst = mim_agent.ep_client;
+                }
+            }
             ...
-            call enqueue_packet(src,dst,pkt);
-            is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
-            coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
-##            call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+            if _generating {
+                call enqueue_packet(src,dst,pkt);
+                is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
+                coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
+##                call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+            }
         }
         
         action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
         around forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
             # require _generating;
-            require pkt.payload.end > 0;
-            require mim_agent.nat_configured;
-            require is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
-            require src ~= dst;
-            require dst = mim_agent.ep_server & src = mim_agent.ep_client;
+            if _generating {
+                require pkt.payload.end > 0;
+                require mim_agent.nat_configured;
+                require is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require src ~= dst;
+                if spoof_client_ip {
+                    require src = mim_agent.ep_mim & dst = mim_agent.ep_server;
+                } else {
+                    require src = mim_agent.ep_client & dst = mim_agent.ep_server;
+                }
+            }
             ...
-            call enqueue_packet(src,dst,pkt);
-            is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
-            coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
-##            call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+            if _generating {
+                call enqueue_packet(src,dst,pkt);
+                is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
+                coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
+##                call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+            }
         }
 
         action replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
@@ -53,7 +69,11 @@ object packet = {
             require is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
             require is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
             require mim_agent.nat_configured;
-            require src = mim_agent.ep_server & dst = mim_agent.ep_client;
+            if spoof_server_ip {
+                require src = mim_agent.ep_mim & dst = mim_agent.ep_client;
+            } else {
+                require src = mim_agent.ep_server & dst = mim_agent.ep_client;
+            }
             require src ~= dst;
             ...
             call enqueue_packet(src,dst,pkt);
@@ -125,13 +145,13 @@ around open_connection(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
 	    dcid := cid_to_aid(dcid);
     };
 
-    last_connection_id := current_connection_id + 1;
+    last_connection_id := current_connection_id.next;
 
     if pkt.ptype = quic_packet_type.initial {
         # An initial packet with an unseen destination cid is a connection request.
         if ~conn_seen(dcid)  {
             if ~zero_rtt_sent {
-                the_cid := the_cid + 1;
+                the_cid := next_cid(the_cid);
                 call show_initial_request_initial;
                 var extns := tls_extensions.empty;
                 extns := extns.append(make_transport_parameters);
@@ -189,20 +209,6 @@ action malicious_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_pa
 around malicious_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
 ##    call show_current_time_debug_event(time_api.c_timer.now_millis_last_bp);
-    # call show_is_sleep_fake_timeout(is_not_sleeping);
-    # require _generating -> is_not_sleeping;
-    # require (_generating  -> is_not_sleeping);
-    # require (~is_not_sleeping -> ~_generating);
-    if _generating {
-       # require ~is_not_sleeping;
-    };
-    if ~_generating {
-        dst_endpoint := dst;
-    } else {
-        # var local_ack_delay := on_ack_sent(max_acked(dcid,e) ,e);
-                # require local_ack_delay <= local_max_ack_delay_tp;
-        
-    }
    
     # if _generating  {
     #     require ~need_sent_ack_eliciting_application_packet & ~need_sent_ack_eliciting_handshake_packet & ~need_sent_ack_eliciting_initial_packet;
@@ -223,7 +229,6 @@ around malicious_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_pa
     if cid_mapped(dcid) {
 	    dcid := cid_to_aid(dcid);
     };
-    #require (~is_not_sleeping -> (num_queued_frames(scid) = 0)); # & ~_generating));
     idle_timeout(dcid) := time_api.c_timer.now_micros_last_bp;
     
 ##    call show_current_idle_timeout_debug_event(idle_timeout(dcid));
@@ -240,7 +245,6 @@ around malicious_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_pa
     }
 
 
-    # & idle_timeout > pto_timeout*3
     call show_probe_idle_timeout(pto_timeout*3);
     # To avoid excessively small idle timeout periods, endpoints MUST increase the idle timeout
     # period to be at least three times the current Probe Timeout (PTO). This allows for multiple 
@@ -319,31 +323,16 @@ around malicious_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_pa
     # TEMPORARY: prevent big packet number jumps (work around minquic bug)
     # Removed for MVFST that start with big PKT_NUM -> OK now
     if  _generating {
-        # if ~is_client(scid) {
-        #     #client
-        #     require pkt.seq_num > last_pkt_num(scid,pkt.ptype);
-        #     require pkt.seq_num <= last_pkt_num(scid,pkt.ptype) + 0x15;
-        # } else {
-        #server
         require pkt.seq_num = last_pkt_num(scid,pkt.ptype) + 0x1; # OK
-        # };
-        #require pkt.seq_num < last_pkt_num(scid,pkt.ptype) + 0x1 & pkt.seq_num > last_pkt_num(scid,pkt.ptype);
     };
-    # else {
-    #     # An endpoint generates an RTT sample on receiving an ACK quic_frame that meets the following two conditions:
-    #     # 1. the largest acknowledged packet number is newly acknowledged, and
-    #     # 2. at least one of the newly acknowledged packets was ack-eliciting.
 
-    #     if queued_ack_eliciting(scid) {
-
-    #     }
-    # };
     last_pkt_num(scid,pkt.ptype) := pkt.seq_num;
     require ~sent_pkt(scid,pkt.ptype,pkt.seq_num);  # [4]
     sent_pkt(scid,pkt.ptype,pkt.seq_num) := true;  # [1]
 
     # The payload may not be empty
-    require num_queued_frames(scid) > 0 &  malicous_frame_present(scid) -> num_queued_frames(scid) = 1; # [7]
+    require malicous_frame_present(scid) -> num_queued_frames(scid) = 1; # [7]
+    require num_queued_frames(scid) > 0;
 
 
     # The payload must exactly match the queued frames.
@@ -501,7 +490,7 @@ around malicious_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_pa
     };
 
     # The queued frames are deleted
-    
+    malicous_frame_present(scid) := false;
     queued_frames(scid) := quic_frame.arr.empty;
     queued_non_probing(scid) := false;
     queued_non_ack(scid) := false;

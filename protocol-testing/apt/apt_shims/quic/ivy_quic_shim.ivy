@@ -3,19 +3,7 @@
 include apt_shim
 
 include  quic_protection
-instance quic_prot : protection.quic_protection(tls_api.id,tls_api.upper)
-
-include quic_shim
-
-instance quic_encrypted_packet_serdes                : serdes(packet.encrypted_quic_packet,               stream_data,quic_ser_enc,      quic_deser_enc)
-instance quic_random_padding_encrypted_packet_serdes : serdes(packet.random_padding_encrypted_quic_packet,stream_data,quic_ser_random,   quic_deser_random)
-instance quic_encrypted_short_packet_serdes          : serdes(packet.encrypted_short_quic_packet,         stream_data,quic_ser_short_enc,quic_deser_short_enc)
-
-include quic_attack_connection
-
-include quic_locale
-include apt_endpoint
-
+# instance net_prot : protection.quic_protection(tls_api.id,tls_api.upper)
 include ivy_mim
 include ivy_target
 include ivy_attacker
@@ -27,7 +15,7 @@ include ivy_quic_attacker_server
 include ivy_c2_server
 include ivy_bot
 
-implement quic_net.recv(host:endpoint_id, s: quic_net.socket, src:ip.endpoint, pkts:quic_prot.arr) {
+implement quic_net.recv(host:endpoint_id, s: quic_net.socket, src:ip.endpoint, pkts:net_prot.arr) {
 ##    call show_current_time_debug_event(time_api.c_timer.now_millis_last_bp);
 ##    call show_socket_debug_event(s);
     if host = endpoint_id.server {       

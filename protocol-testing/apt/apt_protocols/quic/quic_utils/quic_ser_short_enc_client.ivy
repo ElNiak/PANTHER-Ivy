@@ -2,11 +2,11 @@
 
 # a fake serializer for quic
 
-object quic_ser_short_enc = {}
+object quic_ser_short_enc_client = {}
 
 <<< member
 
-    class `quic_ser_short_enc`;
+    class `quic_ser_short_enc_client`;
 
 >>>
 
@@ -20,8 +20,8 @@ object quic_ser_short_enc = {}
          #include "/app/panther-ivy/protocol-testing/apt/apt_protocols/quic/quic_utils/quic_ser_deser.h"
     #endif
     
-    class `quic_ser_short_enc` : public ivy_binary_ser_128 {
-    //class `quic_ser_short_enc` : public ivy_binary_ser {
+    class `quic_ser_short_enc_client` : public ivy_binary_ser_128 {
+    //class `quic_ser_short_enc_client` : public ivy_binary_ser {
         enum {quic_s_init,
               quic_s_version,
 	          quic_s_dcil,
@@ -94,7 +94,7 @@ object quic_ser_short_enc = {}
         int packet_number_length;
 
     public:
-        quic_ser_short_enc() : state(quic_s_init) {
+        quic_ser_short_enc_client() : state(quic_s_init) {
         }
         virtual void  set(int128_t res) {
         //virtual void  set(long long res) {
@@ -116,8 +116,8 @@ object quic_ser_short_enc = {}
                 break;  
                 case quic_s_dcid:
                 {
-                    if((res != 0 && res != 1) || scid_h == 0) {
-                        setn(res,scid_h); //scid_h
+                    if((res != 0 && res != 1) || dcid_h_client == 0) {
+                        setn(res,dcid_h_client); //dcid_h_client
                     }
                     else {
                         setn(res,8); 
@@ -132,7 +132,7 @@ object quic_ser_short_enc = {}
                 }
                 break;
                 default:
-                    //std::cerr << "quic_ser_short_enc 2\n";  
+                    //std::cerr << "quic_ser_short_enc_client 2\n";  
                     throw deser_err();
             }
         }
@@ -157,7 +157,7 @@ object quic_ser_short_enc = {}
             if (state == quic_s_payload) {
                 
             }
-            //std::cerr << "quic_ser_short_enc 1\n";  
+            //std::cerr << "quic_ser_short_enc_client 1\n";  
             throw deser_err();
         }
 
@@ -186,7 +186,7 @@ object quic_ser_short_enc = {}
             state = quic_s_payload;
         }
 
-        ~quic_ser_short_enc(){}
+        ~quic_ser_short_enc_client(){}
     };
 
 >>>

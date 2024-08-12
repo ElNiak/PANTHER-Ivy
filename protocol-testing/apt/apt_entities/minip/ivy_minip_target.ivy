@@ -24,7 +24,21 @@ after init {
 
 # a socket for the server
 
-var sock_target : minip_net.socket
+
+parameter the_cid : cid = 0xd
+parameter n_clients : stream_pos = 0x1
+parameter max_stream_data : stream_pos = 0x2000
+parameter initial_max_streams_bidi : stream_id = 200
+
+var server_cid : cid
+var the_cid_vn  : cid
+var client_alt : ip.endpoint
+var client_vn  : ip.endpoint
+
+after init {
+    client_alt := endpoint_id_addr(endpoint_id.client_alt);
+    client_vn  := endpoint_id_addr(endpoint_id.client_vn);
+}
 
 # Open a server socket to listen on and create an instance of TLS.
 # TODO: we should have one instance of TLS per connection

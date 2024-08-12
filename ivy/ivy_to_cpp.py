@@ -5915,18 +5915,18 @@ def emit_repl_boilerplate3test(header,impl,classname):
             LARGE_INTEGER before;
             QueryPerformanceCounter(&before);
 #endif      
-            std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+            //std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
             bool sat = false;
             if (call_generating) {
                 ivy._generating = true;
                 sat = g.generate(ivy);
             }
-            std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-            unsigned long long duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-            if(duration > 300) {
-                std::cerr << "Generating action: " << idx << std::endl;
-                std::cerr << "Performance generation measurement: " << duration << " milliseconds" << std::endl; 
-            }
+            //std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+            //unsigned long long duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+            //if(duration > 300) {
+            //    std::cerr << "Generating action: " << idx << std::endl;
+            //    std::cerr << "Performance generation measurement: " << duration << " milliseconds" << std::endl; 
+            //}
 #ifdef _WIN32
             LARGE_INTEGER after;
             QueryPerformanceCounter(&after);
@@ -6200,14 +6200,14 @@ public:
             if (foo.is_int()) {
                 assert(foo.is_numeral());
                 int v;
-                if (Z3_get_numeral_int(ctx,foo,&v) != Z3_TRUE) {
-                    uint64_t vl;
-                    if (Z3_get_numeral_uint64(ctx,foo,&vl) != Z3_TRUE) {
-                        assert(false && "bit vector value from Z3 too large for machine uint64");
-                    }
-                    return vl;
+                if (Z3_get_numeral_int(ctx,foo,&v) == Z3_TRUE) {
+                   return v;
                 }
-                return v;
+                uint64_t vl;
+                if (Z3_get_numeral_uint64(ctx,foo,&vl) != Z3_TRUE) {
+                    assert(false && "bit vector value from Z3 too large for machine uint64");
+                }
+                return vl;
             }
             if (foo.is_bv()) {
                 assert(foo.is_numeral());
