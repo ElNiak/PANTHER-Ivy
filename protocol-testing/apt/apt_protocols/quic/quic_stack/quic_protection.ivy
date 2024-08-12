@@ -433,10 +433,10 @@ object protection = {
         implement retry_integrity_tag {
             # TODO useless, call directly  tls.compute_retry_integrity_tag
             var rt := tls.compute_retry_integrity_tag(
-                                    odcil, cid_to_us(odcid),
+                                    odcil, cid_to_tls_id(odcid),
                                     pversion,
-                                    dcil, cid_to_us(dcid),
-                                    scil, cid_to_us(scid),
+                                    dcil, cid_to_tls_id(dcid),
+                                    scil, cid_to_tls_id(scid),
                                     token,seq,h,b);
             cipher := rt;
         }
@@ -745,20 +745,20 @@ object quic_prot_deser = {}
                     unsigned len = get_var_int_len(pnum_pos);
                     unsigned retry_token_len = get_var_int(pnum_pos,len);
                     pnum_pos = pnum_pos + len + retry_token_len;
-                    std::cerr << "pnum_pos (quic_prot) " << pnum_pos << "\n";
+                    std::cerr << "pnum_pos (net_prot) " << pnum_pos << "\n";
 
                 } else if (ptype == 0x30) { // Retry packets have tokens
                     unsigned packet_size = inp.size();
                     unsigned len = packet_size - 16 - 1 - dcil - 1 - scil - 1 - 4;
                     //unsigned retry_token_len = get_var_int(pnum_pos,len);
-                    std::cerr << "token len (quic_prot) " << len << "\n";
+                    std::cerr << "token len (net_prot) " << len << "\n";
                     pnum_pos = pnum_pos + len + 16;
                     data_remaining = pnum_pos-pos;
-                    std::cerr << "data_remaining (quic_prot) " << data_remaining << "\n";
+                    std::cerr << "data_remaining (net_prot) " << data_remaining << "\n";
                 }
                 if (inp[1]+inp[2]+inp[3]+inp[4] == 0) {
                     // Version negociation
-                    std::cerr << "Version n (quic_prot) \n";
+                    std::cerr << "Version n (net_prot) \n";
                     unsigned remain = inp.size() - pnum_pos;
                     data_remaining = (pnum_pos-pos) + remain;
                 }
@@ -767,10 +767,10 @@ object quic_prot_deser = {}
                     unsigned len = get_var_int_len(pnum_pos);
                     unsigned pyld_len = get_var_int(pnum_pos,len);
                     data_remaining = (pnum_pos-pos) + len + pyld_len;
-                    std::cerr << "data_remaining (quic_prot) " << data_remaining << "\n";
-                    std::cerr << "pyld_len (quic_prot) " << pyld_len << "\n";
+                    std::cerr << "data_remaining (net_prot) " << data_remaining << "\n";
+                    std::cerr << "pyld_len (net_prot) " << pyld_len << "\n";
                     const char * test_type = getenv("TEST_TYPE");
-                    if(pyld_len < 1200) {
+                    if(ptype == 0x00 && pyld_len < 1200) {
                         //coalescing initial packets
                         std::cerr <<  "set env COALESCED_PACKET"  << "\n";
                         char str_d[20];
@@ -788,13 +788,13 @@ object quic_prot_deser = {}
                     }
                 }  
                 total_data_remaining = total_data_remaining - data_remaining;
-                std::cerr << "total_data_remaining (quic_prot) " << total_data_remaining << "\n";
+                std::cerr << "total_data_remaining (net_prot) " << total_data_remaining << "\n";
                 //std::cerr << "pkt len: " << data_remaining << " type: " << (peek(pos)-pos) << " len len: " << len << " pyld_len: " << pyld_len << " pnum_pos: " << pnum_pos << "\n";
             }
             else {
                 std::cerr << "quic_prot_deser a short packet\n";
                 data_remaining = total_data_remaining; //inp.size(); //!more(1) should stop automatically
-                std::cerr << "data_remaining (quic_prot) " << data_remaining << "\n";
+                std::cerr << "data_remaining (net_prot) " << data_remaining << "\n";
             }
         }
 

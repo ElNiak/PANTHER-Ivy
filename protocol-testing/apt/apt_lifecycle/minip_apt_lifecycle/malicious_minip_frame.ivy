@@ -1,3 +1,5 @@
+#lang ivy1.7
+
 include quic_frame
 
 object ping_frame = {
@@ -17,18 +19,76 @@ object ping_frame = {
     object malicious_frame = {
         ...
         
-        action handle(f:ping_frame.malicious_frame,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle_maliciously(f:ping_frame.malicious_frame)
 
-        around handle 
+        around handle_maliciously 
         {
-            require tls_handshake_finished;
-            require connected(dcid) & connected_to(dcid) = scid;
-            require (e = quic_packet_type.one_rtt) & established_1rtt_keys(scid); # | e = quic_packet_type.zero_rtt  | e = quic_packet_type.zero_rtt & established_0rtt_keys(scid) 
-            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
-            require ~conn_closed(scid);  # [8]
-            require conn_seen(scid);  # [9]
+            current_time := time_api.c_timer.now_millis_last_bp;
+##            call show_current_time_debug_event(current_time);
             ...
-            call enqueue_frame(scid,f,e,false,seq_num);
+            call enqueue_ping_frame(f);
+        }
+    }
+}
+
+
+object ping_frame = {
+    ...
+    object ping = {
+        ...
+        action handle_maliciously(f:ping_frame.ping)
+
+        around handle_maliciously {
+            current_time := time_api.c_timer.now_millis_last_bp;
+##            call show_current_time_debug_event(current_time);
+            ...
+            call enqueue_ping_frame(f);
+        }
+    }
+}
+
+object ping_frame = {
+    ...
+    object pong = {
+        ...
+        action handle_maliciously(f:ping_frame.pong)
+
+        around handle_maliciously {
+            if _generating {
+                require f.data = ping_data; # TODO
+            } else {
+                current_time := time_api.c_timer.now_millis_last_bp;
+##                call show_current_time_debug_event(current_time);
+                enough_wait := current_time < 3000;
+                require enough_wait;
+            }
+            require f.data.end = 4;
+            require ping_frame_pending;
+            ...
+            ping_frame_pending := false;
+            timestamp_frame_pending := true;
+            call enqueue_ping_frame(f);
+        }
+    }
+}
+
+object ping_frame = {
+    ...
+    object timestamp = {
+        ...
+        action handle_maliciously(f:ping_frame.timestamp)
+
+        around handle_maliciously {
+            if _generating {
+                f.time := time_api.c_timer.now_millis;
+            } else {
+                estimated_latency := time_api.c_timer.now_millis - f.time;
+                call show_estimated_latency(estimated_latency);
+            }
+            require timestamp_frame_pending;
+            ...
+            timestamp_frame_pending := false;
+            call enqueue_ping_frame(f);
         }
     }
 }

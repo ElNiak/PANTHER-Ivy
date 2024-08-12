@@ -39,7 +39,7 @@ object endpoint = {
                 tls_id := e;
             }
 
-            action behavior(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:quic_prot.arr) = {
+            action behavior(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:net_prot.arr) = {
                 var dst := socket_endpoint(host,s);  # because quic_net API doesn't tell us the dst
                 var idx := pkts.begin;
                 var past_data : stream_data := stream_data.empty;
@@ -75,7 +75,7 @@ object endpoint = {
                         # if rnum = lost_pkt_num {
                         #     call on_purpose_lost_packet_event(host,src,dst,last_zrtt_pkt);
                         # } else {
-                            var res := quic_prot.decrypt_quic(tls_id,rnum,ppkt);
+                            var res := net_prot.decrypt_quic(tls_id,rnum,ppkt);
                             var dcil : stream_pos := bfe[0][7](ppkt.value(5));
                             var ikm := cid_to_bytes(0,1); # dcid
                             if(~dcil = 0) {
@@ -101,7 +101,7 @@ object endpoint = {
                                 } else {
                                     call clear_packet(src,dst,rnum,res.data);
                                     var pkt := quic_packet_serdes.from_bytes(res.data);
-                                    pkt.seq_num := quic_prot.correct_pnum(rnum,pkt.seq_num,quic_prot.get_pnum_len(res.data));
+                                    pkt.seq_num := net_prot.correct_pnum(rnum,pkt.seq_num,net_prot.get_pnum_len(res.data));
                                     # if pkt.seq_num = lost_pkt_num {
                                     #     call on_purpose_lost_packet_event(host,src,dst,last_zrtt_pkt);
                                     # } else {
@@ -165,7 +165,7 @@ object endpoint = {
                 tls_id := e;
             }
 
-            action behavior(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:quic_prot.arr) = {
+            action behavior(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:net_prot.arr) = {
                 var dst := socket_endpoint(host,s);  # because quic_net API doesn't tell us the dst
                 var idx := pkts.begin;
                 while idx < pkts.end {
@@ -185,7 +185,7 @@ object endpoint = {
                         # if rnum = lost_pkt_num {
                         #     call on_purpose_lost_packet_event(host,src,dst,last_zrtt_pkt); # TODO bug never called
                         # } else {
-                            var res := quic_prot.decrypt_quic(tls_id,rnum,last_zrtt_pkt);
+                            var res := net_prot.decrypt_quic(tls_id,rnum,last_zrtt_pkt);
                             var dcil : stream_pos := bfe[0][7](ppkt.value(5));
                             var ikm := cid_to_bytes(0,1); # dcid
                             if(~dcil = 0) {
@@ -227,7 +227,7 @@ object endpoint = {
                     # if rnum = lost_pkt_num {
                     #     call on_purpose_lost_packet_event(host,src,dst,last_zrtt_pkt);
                     # } else {
-                        var res := quic_prot.decrypt_quic(tls_id,rnum,ppkt);
+                        var res := net_prot.decrypt_quic(tls_id,rnum,ppkt);
                         var dcil : stream_pos := bfe[0][7](ppkt.value(5));
                         var ikm := cid_to_bytes(0,1); # dcid
                         if(~dcil = 0) {
@@ -256,7 +256,7 @@ object endpoint = {
                             } else {
                                 call clear_packet(src,dst,rnum,res.data);
                                 var pkt := quic_packet_serdes.from_bytes(res.data);
-                                pkt.seq_num := quic_prot.correct_pnum(rnum,pkt.seq_num,quic_prot.get_pnum_len(res.data));
+                                pkt.seq_num := net_prot.correct_pnum(rnum,pkt.seq_num,net_prot.get_pnum_len(res.data));
                                 # if pkt.seq_num = lost_pkt_num {
                                 #     call on_purpose_lost_packet_event(host,src,dst,last_zrtt_pkt);
                                 # } else {

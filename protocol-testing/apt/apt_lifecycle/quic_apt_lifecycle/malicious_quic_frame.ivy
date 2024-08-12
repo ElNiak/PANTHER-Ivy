@@ -12,6 +12,14 @@ object quic_frame = {
             data: stream_data
         }
     } 
+
+    object malicious_unknown_frame = {
+        # unknown_frame  quic_frame frames are a varianquic_framequic_frame and contains nothing
+        variant this of quic_frame = struct {
+            frame_type: stream_data,
+            data: stream_data
+        }
+    } 
 }
 
 object quic_frame = {
@@ -110,7 +118,7 @@ object quic_frame = {
                         if ~acked_pkt(dcid,e,jdx) {
                             #if ack_eliciting_threshold_current_val(dcid) >= ack_eliciting_threshold_val(dcid) {
                                 some_new_ack := true;
-                                call show_ack_generated;
+##                                call show_ack_generated_debug_event;
                                 ack_eliciting_threshold_current_val(dcid) := 0;
                             #};
                         };
@@ -123,15 +131,21 @@ object quic_frame = {
             # var local_ack_delay := on_ack_sent(last_pkt_num(scid,e),e);
             # require _generating -> local_ack_delay <= local_max_ack_delay_tp;
             if _generating {
-                #var local_ack_delay := on_ack_sent(last_pkt_num(scid,e),e);
-                # require ~need_sent_ack_eliciting_handshake_packet & ~need_sent_ack_eliciting_application_packet & ~need_sent_ack_eliciting_initial_packet;
+
+                var current_time := time_api.c_timer.now_micros_last_bp;
+                require f.ack_delay ~= current_time;
+                # The attacker can prevent the receiver from sending out (the vast majority
+                # of) these `RETIRE_CONNECTION_ID` frames by collapsing the peers congestion window (by selectively 
+                # acknowledging received packets) and by manipulating the peer's RTT estimate. Version 0.42.0 contains
+                #  a patch for the issue. No known workarounds are available.
+
                 require some_new_ack;
-                require f.largest_acked = max_acked(dcid,e);
+                require f.largest_acked = max_acked(dcid,e) | (f.largest_acked > 0 & f.largest_acked ~= max_acked(dcid,e));
                 # var local_ack_delay := on_ack_sent(max_acked(dcid,e) ,e);
                 # f.ack_delay := local_ack_delay;
                 # require local_ack_delay <= local_max_ack_delay_tp;
                 # call show_local_delay_ack(local_ack_delay,local_max_ack_delay_tp);
-                call show_ack_generated;
+##                call show_ack_generated_debug_event;
             } 
 	    ...
             if ~_generating {
@@ -1250,6 +1264,27 @@ object quic_frame = {
     object malicious_frame = {
         ...
         action handle_maliciously(f:quic_frame.malicious_frame,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+
+        around handle_maliciously{
+                require tls_handshake_finished;
+                require connected(dcid) & connected_to(dcid) = scid;
+                require (e = quic_packet_type.one_rtt) & established_1rtt_keys(scid); # | e = quic_packet_type.zero_rtt  | e = quic_packet_type.zero_rtt & established_0rtt_keys(scid) 
+                require num_queued_frames(scid) = 0;
+                require ~malicous_frame_present(scid);
+                require ~conn_closed(scid);  # [8]
+                require conn_seen(scid);  # [9]
+                ...
+                malicous_frame_present(scid) := true;
+                call enqueue_frame(scid,f,e,false,seq_num);
+            }
+        }
+}
+
+object quic_frame = {
+    ...
+    object malicious_unknown_frame = {
+        ...
+        action handle_maliciously(f:quic_frame.malicious_unknown_frame,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
         around handle_maliciously{
                 require tls_handshake_finished;

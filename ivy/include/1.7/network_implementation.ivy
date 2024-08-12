@@ -87,9 +87,12 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 		**/
 
 		struct sockaddr_in eavesdroped_client_addr;
+		struct iphdr ip_hdr_client;
 		bool eavesdroped_client_addr_setup = false;
 		struct sockaddr_in eavesdroped_server_addr;
+		struct iphdr ip_hdr_server;
 		bool eavesdroped_server_addr_setup = false;
+		unsigned char mitm_eth_header [6];
 		bool eavesdrop = false;
 		bool is_vnet = false;
 		bool is_shadow = false;
@@ -211,6 +214,26 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 					// Process the packet
 					struct ethhdr *eth_hdr = (struct ethhdr *)(&buf[0]);
 					struct iphdr *ip_hdr = (struct iphdr *)(&buf[0] + sizeof(struct ethhdr));
+					std::cerr << "Captured IP packet from "
+							<< inet_ntoa(*(struct in_addr *)&ip_hdr->saddr) << " to "
+							<< inet_ntoa(*(struct in_addr *)&ip_hdr->daddr) << std::endl;
+					std::cerr << " MAC address: ";
+					std::ios_base::fmtflags original_flags = std::cerr.flags();
+					for (int i = 0; i < ETH_ALEN; i++)
+					{
+						std::cerr << std::hex << std::setw(2) << std::setfill('0') << (int)eth_hdr->h_source[i];
+						if (i < ETH_ALEN - 1)
+						{
+							std::cerr << ":";
+						}
+					}
+					std::cerr.flags(original_flags);
+					if (memcmp(eth_hdr->h_source, mitm_eth_header, ETH_ALEN) == 0) {
+						// This packet originated from the attacker, ignore it
+						std::cerr << "RECEIVING packet from attacker, ignoring\n";
+						return;
+					}
+
 
 					// Check if the packet is TCP or UDP
 					// TODO merge with old version
@@ -342,6 +365,45 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 							std::cerr << "Eavesdropped server addr: " << inet_ntoa(eavesdroped_server_addr.sin_addr) << std::endl;
 							std::cerr << "Eavesdropped server port: " << ntohs(eavesdroped_server_addr.sin_port) << std::endl;
 							eavesdroped_server_addr_setup = true;
+						}
+
+						if (eavesdroped_client_addr.sin_addr.s_addr == ip_hdr->saddr && eavesdroped_client_addr.sin_port == udp_hdr->source)
+						{
+							std::cerr << "Eavesdropped client packet\n";
+							memset(&ip_hdr_client, 0, sizeof(ip_hdr_client));
+							ip_hdr_client = *ip_hdr;
+							std::cerr << " - ihl: " << ip_hdr_client.ihl << std::endl;
+							std::cerr << " - version: " << ip_hdr_client.version << std::endl;
+							std::cerr << " - tos: " << ip_hdr_client.tos << std::endl;
+							std::cerr << " - tot_len: " << ip_hdr_client.tot_len << std::endl;
+							std::cerr << " - id: " << ip_hdr_client.id << std::endl;
+							std::cerr << " - frag_off: " << ip_hdr_client.frag_off << std::endl;
+							std::cerr << " - ttl: " << ip_hdr_client.ttl << std::endl;
+							std::cerr << " - protocol: " << ip_hdr_client.protocol << std::endl;
+							std::cerr << " - check: " << ip_hdr_client.check << std::endl;
+							std::cerr << " - saddr: " << inet_ntoa(*(struct in_addr *)&ip_hdr_client.saddr) << std::endl;
+							std::cerr << " - daddr: " << inet_ntoa(*(struct in_addr *)&ip_hdr_client.daddr) << std::endl;
+						}
+						else if (eavesdroped_server_addr.sin_addr.s_addr == ip_hdr->saddr && eavesdroped_server_addr.sin_port == udp_hdr->source)
+						{
+							std::cerr << "Eavesdropped server packet\n";
+							memset(&ip_hdr_server, 0, sizeof(ip_hdr_server));
+							ip_hdr_server = *ip_hdr;
+							std::cerr << " - ihl: " << ip_hdr_server.ihl << std::endl;
+							std::cerr << " - version: " << ip_hdr_server.version << std::endl;
+							std::cerr << " - tos: " << ip_hdr_server.tos << std::endl;
+							std::cerr << " - tot_len: " << ip_hdr_server.tot_len << std::endl;
+							std::cerr << " - id: " << ip_hdr_server.id << std::endl;
+							std::cerr << " - frag_off: " << ip_hdr_server.frag_off << std::endl;
+							std::cerr << " - ttl: " << ip_hdr_server.ttl << std::endl;
+							std::cerr << " - protocol: " << ip_hdr_server.protocol << std::endl;
+							std::cerr << " - check: " << ip_hdr_server.check << std::endl;
+							std::cerr << " - saddr: " << inet_ntoa(*(struct in_addr *)&ip_hdr_server.saddr) << std::endl;
+							std::cerr << " - daddr: " << inet_ntoa(*(struct in_addr *)&ip_hdr_server.daddr) << std::endl;
+						}
+						else
+						{
+							std::cerr << "Eavesdropped unknown packet\n";
 						}
 
 						struct sockaddr_in source_addr;
@@ -1405,24 +1467,29 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 
 		action eavesdrop(dst:ip.endpoint) returns (s:socket) = {
 			<<< impure 
+				std::cerr << "eavesdrop SOCKET " << dst.addr << std::endl;
 				char *dev = strdup("lo"); //TODO
 				int port;
-				
+				char *shadowTest = getenv("SHADOW_TEST");
 				// Adjust interface name based on your needs
-				if (dst.interface == `ip.ivy`) {
-					dev = strdup("ivy");
-				}
-				if (dst.interface == `ip.veth_ivy`) {
-					dev = strdup("veth_ivy");
-				}
-				if (dst.interface == `ip.ivy_client`) {
-					dev = strdup("ivy_client");
-				}
-				if (dst.interface == `ip.ivy_server`) {
-					dev = strdup("ivy_server");
+				if(shadowTest == NULL) {
+					if (dst.interface == `ip.ivy`) {
+						dev = strdup("ivy");
+					}
+					if (dst.interface == `ip.veth_ivy`) {
+						dev = strdup("veth_ivy");
+					}
+					if (dst.interface == `ip.ivy_client`) {
+						dev = strdup("ivy_client");
+					}
+					if (dst.interface == `ip.ivy_server`) {
+						dev = strdup("ivy_server");
+					}
+				} else {
+					dev = strdup("eth0");
 				}
 				int l = strlen(dev);
-
+				std::cerr << "eavesdrop SOCKET dev " << dev << std::endl;
 				// Create a raw socket
 				s = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 				//s = socket(AF_INET, SOCK_DGRAM,0);
@@ -1470,6 +1537,15 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 					exit(EXIT_FAILURE);
 				}
 				*/
+
+				// Get the MAC address
+				if (ioctl(s, SIOCGIFHWADDR, &ifopts) == -1) {
+					perror("ioctl");
+					close(s);
+					exit(EXIT_FAILURE);
+				}
+
+				memcpy(mitm_eth_header, ifopts.ifr_hwaddr.sa_data, 6);
 
 				eavesdrop = true;
 
@@ -1623,15 +1699,36 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 			// Manually construct the IP and UDP headers
 			struct iphdr ip_hdr;
 			memset(&ip_hdr, 0, sizeof(ip_hdr));
+			/*
 			ip_hdr.ihl = 5;
 			ip_hdr.version = 4;
-			ip_hdr.tos = 0;
+			ip_hdr.tos = 0x2; //TODO copy from original packet
 			ip_hdr.tot_len = htons(sizeof(ip_hdr) + sizeof(struct udphdr) + sr.res.size());
 			ip_hdr.id = htons(54321);
 			ip_hdr.frag_off = 0;
-			ip_hdr.ttl = 128;
+			ip_hdr.ttl = 64;
 			ip_hdr.protocol = IPPROTO_UDP;
 			ip_hdr.check = 0;
+			*/
+			if(htonl(dst.addr) != eavesdroped_client_addr.sin_addr.s_addr) {
+				ip_hdr.ihl = ip_hdr_client.ihl;
+				ip_hdr.version = ip_hdr_client.version;
+				ip_hdr.tos = ip_hdr_client.tos;
+				ip_hdr.tot_len = htons(sizeof(ip_hdr) + sizeof(struct udphdr) + sr.res.size());
+				ip_hdr.id = ip_hdr_client.id;
+				ip_hdr.frag_off = ip_hdr_client.frag_off;
+				ip_hdr.ttl = 128;
+				ip_hdr.protocol = ip_hdr_client.protocol;
+			} else {
+				ip_hdr.ihl = ip_hdr_server.ihl;
+				ip_hdr.version = ip_hdr_server.version;
+				ip_hdr.tos = ip_hdr_server.tos;
+				ip_hdr.tot_len = htons(sizeof(ip_hdr) + sizeof(struct udphdr) + sr.res.size());
+				ip_hdr.id = ip_hdr_server.id;
+				ip_hdr.frag_off = ip_hdr_server.frag_off;
+				ip_hdr.ttl = 128;
+				ip_hdr.protocol = ip_hdr_server.protocol;
+			}
 
 			std::cerr << "  - dst.addr: " << dst.addr << std::endl;
 			std::cerr << "  - htonl(dst.addr): " << htonl(dst.addr) << std::endl;

@@ -19,14 +19,16 @@ include ivy_quic_client_standard_tp
 
 after init {
     is_mim_standalone := true;
+    # call mim_agent.configure_NAT_attack_bidir(client_addr,server_addr);
     call mim_agent.configure_NAT_attack(client_addr,server_addr);
     call mim_agent.configure_NAT_attack(server_addr,client_addr);
+    call time_api.c_timer.start;
 }
 
 export packet.forward_to_client
-attribute packet.forward_to_client.weight = "100"
+# attribute packet.forward_to_client.weight = "100"
 export packet.forward_to_server
-attribute packet.forward_to_server.weight = "100"
+# attribute packet.forward_to_server.weight = "50"
 
 object packet = {
     ...
@@ -39,13 +41,27 @@ object packet = {
                 var interest_pkt := quic_packet_received_at_round(dst,
                                                                   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
                                                                   current_forwarding_round(dst));
-                require pkt.ptype       = interest_pkt.ptype;
-                require pkt.pversion    = interest_pkt.pversion;
-                require pkt.dst_cid     = interest_pkt.dst_cid;
-                require pkt.src_cid     = interest_pkt.src_cid;
-                require pkt.token       = interest_pkt.token;
-                require pkt.seq_num     = interest_pkt.seq_num;
-                require pkt.payload     = interest_pkt.payload;
+                require pkt.ptype       = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).ptype;
+                require pkt.pversion    = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).pversion;
+                require pkt.dst_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).dst_cid;
+                require pkt.src_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).src_cid;
+                require pkt.token       = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).token;
+                require pkt.seq_num     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).seq_num;
+                require pkt.payload     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).payload;
             } 
         }
 
@@ -55,13 +71,27 @@ object packet = {
                 var interest_pkt := quic_packet_received_at_round(dst,
                                                                   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
                                                                   current_forwarding_round(dst));
-                require pkt.ptype       = interest_pkt.ptype;
-                require pkt.pversion    = interest_pkt.pversion;
-                require pkt.dst_cid     = interest_pkt.dst_cid;
-                require pkt.src_cid     = interest_pkt.src_cid;
-                require pkt.token       = interest_pkt.token;
-                require pkt.seq_num     = interest_pkt.seq_num;
-                require pkt.payload     = interest_pkt.payload;
+                require pkt.ptype       = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).ptype;
+                require pkt.pversion    = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).pversion;
+                require pkt.dst_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).dst_cid;
+                require pkt.src_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).src_cid;
+                require pkt.token       = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).token;
+                require pkt.seq_num     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).seq_num;
+                require pkt.payload     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).payload;
             } 
         }
 
@@ -69,16 +99,30 @@ object packet = {
            
             if _generating {
                 # require ~quic_packet_forwarded(dst,pkt);
-                var interest_pkt := quic_packet_received_at_round(dst,
+                # var interest_pkt := quic_packet_received_at_round(dst,
+                #                                                   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                #                                                   current_forwarding_round(dst));
+                require pkt.ptype       = quic_packet_received_at_round(dst,
                                                                   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
-                                                                  current_forwarding_round(dst));
-                require pkt.ptype       = interest_pkt.ptype;
-                require pkt.pversion    = interest_pkt.pversion;
-                require pkt.dst_cid     = interest_pkt.dst_cid;
-                require pkt.src_cid     = interest_pkt.src_cid;
-                require pkt.token       = interest_pkt.token;
-                require pkt.seq_num     = interest_pkt.seq_num;
-                require pkt.payload     = interest_pkt.payload;
+                                                                  current_forwarding_round(dst)).ptype;
+                require pkt.pversion    = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).pversion;
+                require pkt.dst_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).dst_cid;
+                require pkt.src_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).src_cid;
+                require pkt.token       = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).token;
+                require pkt.seq_num     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).seq_num;
+                require pkt.payload     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).payload;
             } 
         }
 
@@ -86,16 +130,30 @@ object packet = {
            
             if _generating {
                 # require ~quic_packet_forwarded(dst,pkt);
-                var interest_pkt := quic_packet_received_at_round(dst,
+                # var interest_pkt := quic_packet_received_at_round(dst,
+                #                                                   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                #                                                   current_forwarding_round(dst));
+                require pkt.ptype       = quic_packet_received_at_round(dst,
                                                                   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
-                                                                  current_forwarding_round(dst));
-                require pkt.ptype       = interest_pkt.ptype;
-                require pkt.pversion    = interest_pkt.pversion;
-                require pkt.dst_cid     = interest_pkt.dst_cid;
-                require pkt.src_cid     = interest_pkt.src_cid;
-                require pkt.token       = interest_pkt.token;
-                require pkt.seq_num     = interest_pkt.seq_num;
-                require pkt.payload     = interest_pkt.payload;
+                                                                  current_forwarding_round(dst)).ptype;
+                require pkt.pversion    = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).pversion;
+                require pkt.dst_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).dst_cid;
+                require pkt.src_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).src_cid;
+                require pkt.token       = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).token;
+                require pkt.seq_num     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).seq_num;
+                require pkt.payload     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).payload;
             } 
         }
 
@@ -122,19 +180,37 @@ object packet = {
                                                                   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
                                                                   current_forwarding_round(dst));
                 
-                require (pkt.dst_cid     = interest_pkt.dst_cid &
-                         pkt.src_cid     = interest_pkt.src_cid) |
-                        (pkt.dst_cid     = interest_pkt.src_cid &
-                         pkt.src_cid     = interest_pkt.dst_cid);
+                require (pkt.dst_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).dst_cid &
+                         pkt.src_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).src_cid) |
+                        (pkt.dst_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).src_cid &
+                         pkt.src_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).dst_cid);
 
-                require (pkt.token       = interest_pkt.token) | 
+                require (pkt.token       = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).token) | 
                         (pkt.token.end >= 0);
 
-                require pkt.seq_num     = interest_pkt.seq_num |
-                        pkt.seq_num     < interest_pkt.seq_num |
-                        pkt.seq_num     > interest_pkt.seq_num;
+                require pkt.seq_num     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).seq_num |
+                        pkt.seq_num     < quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).seq_num |
+                        pkt.seq_num     > quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).seq_num;
 
-                require pkt.payload     = interest_pkt.payload |
+                require pkt.payload     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).payload |
                                           pkt.payload.end >= 0;
             } 
         }
@@ -175,15 +251,19 @@ object packet = {
                 var interest_pkt := encrypted_quic_packet_received_at_round(dst,
                                                                             coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
                                                                             current_forwarding_round(dst));
-                require pkt.head_byte   = interest_pkt.head_byte;
-                require pkt.pversion    = interest_pkt.pversion;
-                require pkt.dst_cid     = interest_pkt.dst_cid;
-                require pkt.src_cid     = interest_pkt.src_cid;
-                require pkt.token_len   = interest_pkt.token_len;
-                require pkt.token       = interest_pkt.token;
-                require pkt.payload_len = interest_pkt.payload_len;
-                # require pkt.seq_num     = interest_pkt.seq_num;
-                require pkt.seq_num_payload = interest_pkt.seq_num_payload;
+                require pkt.head_byte   =interest_pkt.head_byte;
+                require pkt.pversion    =interest_pkt.pversion;
+                require pkt.dst_cid     =interest_pkt.dst_cid;
+                require pkt.src_cid     =interest_pkt.src_cid;
+                require pkt.token       =interest_pkt.token;
+                # require pkt.payload_len = encrypted_quic_packet_received_at_round(dst,
+                                                                #   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                #   current_forwarding_round(dst)).payload_len;
+                # require pkt.seq_num     = encrypted_quic_packet_received_at_round(dst,
+                                                                #   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                #   current_forwarding_round(dst)).seq_num;
+                require pkt.seq_num_payload =interest_pkt.seq_num_payload &
+                        pkt.seq_num_payload.end =interest_pkt.seq_num_payload.end;
             } 
         }
 
@@ -194,15 +274,19 @@ object packet = {
                 var interest_pkt := encrypted_quic_packet_received_at_round(dst,
                                                                             coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
                                                                             current_forwarding_round(dst));
-                require pkt.head_byte   = interest_pkt.head_byte;
-                require pkt.pversion    = interest_pkt.pversion;
-                require pkt.dst_cid     = interest_pkt.dst_cid;
-                require pkt.src_cid     = interest_pkt.src_cid;
-                require pkt.token_len   = interest_pkt.token_len;
-                require pkt.token       = interest_pkt.token;
-                require pkt.payload_len = interest_pkt.payload_len;
-                # require pkt.seq_num     = interest_pkt.seq_num;
-                require pkt.seq_num_payload     = interest_pkt.seq_num_payload;
+                require pkt.head_byte   =interest_pkt.head_byte;
+                require pkt.pversion    =interest_pkt.pversion;
+                require pkt.dst_cid     =interest_pkt.dst_cid;
+                require pkt.src_cid     =interest_pkt.src_cid;
+                require pkt.token       =interest_pkt.token;
+                # require pkt.payload_len = encrypted_quic_packet_received_at_round(dst,
+                                                                #   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                #   current_forwarding_round(dst)).payload_len;
+                # require pkt.seq_num     = encrypted_quic_packet_received_at_round(dst,
+                                                                #   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                #   current_forwarding_round(dst)).seq_num;
+                require pkt.seq_num_payload     =interest_pkt.seq_num_payload &
+                        pkt.seq_num_payload.end =interest_pkt.seq_num_payload.end;
             } 
         }
 
@@ -217,11 +301,15 @@ object packet = {
                 require pkt.pversion    = interest_pkt.pversion;
                 require pkt.dst_cid     = interest_pkt.dst_cid;
                 require pkt.src_cid     = interest_pkt.src_cid;
-                require pkt.token_len   = interest_pkt.token_len;
                 require pkt.token       = interest_pkt.token;
-                require pkt.payload_len = interest_pkt.payload_len;
-                # require pkt.seq_num     = interest_pkt.seq_num;
-                require pkt.seq_num_payload  = interest_pkt.seq_num_payload;
+                # require pkt.payload_len = encrypted_quic_packet_received_at_round(dst,
+                                                                #   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                #   current_forwarding_round(dst)).payload_len;
+                # require pkt.seq_num     = encrypted_quic_packet_received_at_round(dst,
+                                                                #   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                #   current_forwarding_round(dst)).seq_num;
+                require pkt.seq_num_payload  =interest_pkt.seq_num_payload &
+                        pkt.seq_num_payload.end =interest_pkt.seq_num_payload.end;
                 # require is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
             } 
         }
@@ -233,15 +321,19 @@ object packet = {
                 var interest_pkt := encrypted_quic_packet_received_at_round(dst,
                                                                             coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
                                                                             current_forwarding_round(dst));
-                require pkt.head_byte   = interest_pkt.head_byte;
-                require pkt.pversion    = interest_pkt.pversion;
-                require pkt.dst_cid     = interest_pkt.dst_cid;
-                require pkt.src_cid     = interest_pkt.src_cid;
-                require pkt.token_len   = interest_pkt.token_len;
-                require pkt.token       = interest_pkt.token;
-                require pkt.payload_len = interest_pkt.payload_len;
-                # require pkt.seq_num     = interest_pkt.seq_num;
-                require pkt.seq_num_payload  = interest_pkt.seq_num_payload;
+                require pkt.head_byte   =interest_pkt.head_byte;
+                require pkt.pversion    =interest_pkt.pversion;
+                require pkt.dst_cid     =interest_pkt.dst_cid;
+                require pkt.src_cid     =interest_pkt.src_cid;
+                require pkt.token       =interest_pkt.token;
+                # require pkt.payload_len = encrypted_quic_packet_received_at_round(dst,
+                #                                                   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                #                                                   current_forwarding_round(dst)).payload_len;
+                # # require pkt.seq_num     = encrypted_quic_packet_received_at_round(dst,
+                                                                #   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                #   current_forwarding_round(dst)).seq_num;
+                require pkt.seq_num_payload  =interest_pkt.seq_num_payload &
+                        pkt.seq_num_payload.end =interest_pkt.seq_num_payload.end;
                 # require is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
             } 
         }
@@ -253,12 +345,11 @@ object packet = {
                                                                             coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
                                                                             current_forwarding_round(dst));
 
-                require pkt.head_byte   = interest_pkt.head_byte;
+                require pkt.head_byte   =interest_pkt.head_byte;
                 # TODO
                 require pkt.pversion    = 0x00000000  -> 
-                            (pkt.token_len = 0  & pkt.token.end = pkt.token_len &  
-                             pkt.payload_len = 0 &
-                             pkt.seq_num_payload.end = pkt.payload_len) | 
+                            (pkt.token.end = 0 &  
+                             pkt.seq_num_payload.end = 0) | 
                         pkt.pversion    = 0x00000001 |
                         pkt.pversion    = 0xff000022 |
                         pkt.pversion    = 0xff00001d |
@@ -268,24 +359,26 @@ object packet = {
                          pkt.pversion   ~= 0xff000022 & pkt.pversion    ~= 0xff00001d &
                          pkt.pversion   ~= 0xff00001c & pkt.pversion    ~= 0xff00001b);
                 
-                require (pkt.dst_cid     = interest_pkt.dst_cid &
-                         pkt.src_cid     = interest_pkt.src_cid) |
-                        (pkt.dst_cid     = interest_pkt.src_cid &
-                         pkt.src_cid     = interest_pkt.dst_cid);
+                require (pkt.dst_cid     =interest_pkt.dst_cid &
+                         pkt.src_cid     =interest_pkt.src_cid) |
+                        (pkt.dst_cid     =interest_pkt.src_cid &
+                         pkt.src_cid     =interest_pkt.dst_cid);
 
-                require (pkt.token_len   = interest_pkt.token_len &
-                         pkt.token       = interest_pkt.token &
-                         pkt.token.end   = interest_pkt.token_len) | 
-                        (pkt.token_len   >= 0  & pkt.token.end = pkt.token_len);
+                require (pkt.token       =interest_pkt.token);
 
                         
-                # require pkt.seq_num     = interest_pkt.seq_num |
-                #         pkt.seq_num     < interest_pkt.seq_num |
-                #         pkt.seq_num     > interest_pkt.seq_num;
+                # require pkt.seq_num     = encrypted_quic_packet_received_at_round(dst,
+                                                                #   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                #   current_forwarding_round(dst)).seq_num |
+                #         pkt.seq_num     < encrypted_quic_packet_received_at_round(dst,
+                                                                #   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                #   current_forwarding_round(dst)).seq_num |
+                #         pkt.seq_num     > encrypted_quic_packet_received_at_round(dst,
+                                                                #   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                #   current_forwarding_round(dst)).seq_num;
                 
-                require pkt.seq_num_payload = interest_pkt.seq_num_payload &
-                        pkt.payload_len = interest_pkt.payload_len &
-                        pkt.seq_num_payload.end = pkt.payload_len;
+                require pkt.seq_num_payload =interest_pkt.seq_num_payload &
+                        pkt.seq_num_payload.end =interest_pkt.seq_num_payload.end;
             } 
         }
     }
@@ -294,8 +387,8 @@ object packet = {
 export packet.encrypted_quic_packet.forward_to_server
 export packet.encrypted_quic_packet.forward_to_client
 
-# attribute packet.encrypted_quic_packet.forward_to_server.weight = "30"
-# attribute packet.encrypted_quic_packet.forward_to_client.weight = "30"
+# attribute packet.encrypted_quic_packet.forward_to_server.weight = "100"
+# attribute packet.encrypted_quic_packet.forward_to_client.weight = "200"
 
 # export packet.encrypted_quic_packet.replay_to_client
 # export packet.encrypted_quic_packet.replay_to_server
@@ -316,51 +409,59 @@ object packet = {
         before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet) {
            
             if _generating {
+                var interest_pkt := random_padding_encrypted_quic_packet_received_at_round(dst,
+                    coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                    current_forwarding_round(dst));
                 # require is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
-                require pkt.payload = random_padding_encrypted_quic_packet_received_at_round(dst,
-                                                                                               coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
-                                                                                               current_forwarding_round(dst)).payload;
+                require pkt.payload = interest_pkt.payload &
+                        pkt.payload.end = interest_pkt.payload.end;
             } 
         }
 
         before replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet) {
            
             if _generating {
-                require pkt.payload = random_padding_encrypted_quic_packet_received_at_round(dst,
-                                                                                               coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
-                                                                                               current_forwarding_round(dst)).payload;
+                var interest_pkt := random_padding_encrypted_quic_packet_received_at_round(dst,
+                    coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                    current_forwarding_round(dst));
+                require pkt.payload = interest_pkt.payload;
             } 
         }
 
         before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet) {
            
             if _generating {
+                var interest_pkt := random_padding_encrypted_quic_packet_received_at_round(dst,
+                    coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                    current_forwarding_round(dst));
                 # require ~random_padding_encrypted_quic_packet_forwarded(dst,pkt);
                 # require is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
-                require pkt.payload = random_padding_encrypted_quic_packet_received_at_round(dst,
-                                                                                               coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
-                                                                                               current_forwarding_round(dst)).payload;
-            } 
+                require pkt.payload = interest_pkt.payload &
+                        pkt.payload.end = interest_pkt.payload.end;
+            }
         }
 
         before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet) {
            
             if _generating {
                 # require ~random_padding_encrypted_quic_packet_forwarded(dst,pkt);
+                var interest_pkt := random_padding_encrypted_quic_packet_received_at_round(dst,
+                                                                                         coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                         current_forwarding_round(dst));
                 # require is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
-                require pkt.payload = random_padding_encrypted_quic_packet_received_at_round(dst,
-                                                                                               coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
-                                                                                               current_forwarding_round(dst)).payload;
+                require pkt.payload = interest_pkt.payload &
+                        pkt.payload.end = interest_pkt.payload.end;
             } 
         }
 
         before modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet) {
            
             if _generating {
+                var interest_pkt := random_padding_encrypted_quic_packet_received_at_round(dst,
+                    coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                    current_forwarding_round(dst));
                 require is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
-                require pkt.payload = random_padding_encrypted_quic_packet_received_at_round(dst,
-                                                                                               coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
-                                                                                               current_forwarding_round(dst)).payload | 
+                require pkt.payload = interest_pkt.payload | 
                                       pkt.payload.end >= 0;
             } 
         }
@@ -398,7 +499,8 @@ object packet = {
                                                                                     current_forwarding_round(dst));
                 require pkt.head_byte   = interest_pkt.head_byte;
                 require pkt.dst_cid     = interest_pkt.dst_cid;
-                require pkt.payload     = interest_pkt.payload;
+                require pkt.payload     = interest_pkt.payload & 
+                        pkt.payload.end = interest_pkt.payload.end;
             } 
         }
 
@@ -411,8 +513,9 @@ object packet = {
                 # require is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
                 require pkt.head_byte   = interest_pkt.head_byte;
                 require pkt.dst_cid     = interest_pkt.dst_cid;
-                require pkt.payload     = interest_pkt.payload;
-            } 
+                require pkt.payload     = interest_pkt.payload & 
+                        pkt.payload.end = interest_pkt.payload.end;
+            }
         }
 
         before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
@@ -425,7 +528,8 @@ object packet = {
                 # require ~encrypted_short_quic_packet_forwarded(dst,pkt);
                 require pkt.head_byte   = interest_pkt.head_byte;
                 require pkt.dst_cid     = interest_pkt.dst_cid;
-                require pkt.payload     = interest_pkt.payload;
+                require pkt.payload     = interest_pkt.payload & 
+                        pkt.payload.end = interest_pkt.payload.end;
             } 
         }
 
@@ -439,7 +543,8 @@ object packet = {
                 # require is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
                 require pkt.head_byte   = interest_pkt.head_byte;
                 require pkt.dst_cid     = interest_pkt.dst_cid;
-                require pkt.payload     = interest_pkt.payload;
+                require pkt.payload     = interest_pkt.payload & 
+                        pkt.payload.end = interest_pkt.payload.end;
             } 
         }
 
@@ -454,7 +559,8 @@ object packet = {
                 require (pkt.dst_cid    = interest_pkt.dst_cid | 
                          pkt.dst_cid   ~= interest_pkt.dst_cid);
 
-                require pkt.payload     = interest_pkt.payload;
+                require pkt.payload     = interest_pkt.payload & 
+                        pkt.payload.end = interest_pkt.payload.end;
             } 
         }
     }

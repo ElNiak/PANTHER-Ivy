@@ -55,7 +55,13 @@ object packet = {
             # require _generating;
             if _generating {
                 require mim_agent.nat_configured;
-                require src = mim_agent.ep_server & dst = mim_agent.ep_client;
+                if spoof_server_ip {
+                    require src = mim_agent.ep_mim & dst = mim_agent.ep_client;
+                } else {
+                    require src = mim_agent.ep_server & dst = mim_agent.ep_client;
+                }
+                # require num_packets_received_at_round(dst,current_forwarding_round(dst)) > 0;
+                # require num_queued_packets(dst,current_forwarding_round(dst)) <= num_packets_received_at_round(dst,current_forwarding_round(dst));
                 require is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
                 require src ~= dst;
                 require pkt.payload.end > 0;
@@ -74,7 +80,13 @@ object packet = {
             # require _generating;
             if _generating {
                 require mim_agent.nat_configured;
-                require dst = mim_agent.ep_server & src = mim_agent.ep_client;
+                if spoof_client_ip {
+                    require src = mim_agent.ep_mim & dst = mim_agent.ep_server;
+                } else {
+                    require src = mim_agent.ep_client & dst = mim_agent.ep_server;
+                }
+                # require num_packets_received_at_round(dst,current_forwarding_round(dst)) > 0;
+                # require num_queued_packets(dst,current_forwarding_round(dst)) <= num_packets_received_at_round(dst,current_forwarding_round(dst));
                 require is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
                 require src ~= dst;
                 require pkt.payload.end > 0;
@@ -94,7 +106,11 @@ object packet = {
             if _generating {
                 require pkt.payload.end > 0;
                 require mim_agent.nat_configured;
-                require src = mim_agent.ep_server & dst = mim_agent.ep_client;
+                if spoof_server_ip {
+                    require src = mim_agent.ep_mim & dst = mim_agent.ep_client;
+                } else {
+                    require src = mim_agent.ep_server & dst = mim_agent.ep_client;
+                }
                 require is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
                 require src ~= dst;
             }
@@ -113,7 +129,11 @@ object packet = {
             if _generating {
                 require pkt.payload.end > 0;
                 require mim_agent.nat_configured;
-                require dst = mim_agent.ep_server & src = mim_agent.ep_client;
+                if spoof_client_ip {
+                    require src = mim_agent.ep_mim & dst = mim_agent.ep_server;
+                } else {
+                    require src = mim_agent.ep_client & dst = mim_agent.ep_server;
+                }
                 require is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
                 require src ~= dst;
             }
@@ -134,7 +154,11 @@ object packet = {
                 require mim_agent.nat_configured;
                 require is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
                 require src ~= dst;
-                require dst = mim_agent.ep_server & src = mim_agent.ep_client;
+                if spoof_client_ip {
+                    require src = mim_agent.ep_mim & dst = mim_agent.ep_server;
+                } else {
+                    require src = mim_agent.ep_client & dst = mim_agent.ep_server;
+                }
             }
             ...
             if _generating {

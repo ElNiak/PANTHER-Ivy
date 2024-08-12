@@ -37,29 +37,50 @@ object packet = {
         action forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet)
         around forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet) {
             # require _generating;
-            require pkt.payload.end > 0;
-            require mim_agent.nat_configured;
-            require src = mim_agent.ep_server & dst = mim_agent.ep_client;
-            require is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
-            require src ~= dst;
+            if _generating {
+                require pkt.payload.end > 0;
+                require mim_agent.nat_configured;
+                if spoof_server_ip {
+                    require src = mim_agent.ep_mim & dst = mim_agent.ep_client;
+                } else {
+                    require src = mim_agent.ep_server & dst = mim_agent.ep_client;
+                }
+                # require num_packets_received_at_round(dst,current_forwarding_round(dst)) > 0;
+                require is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                # require num_queued_packets(dst,current_forwarding_round(dst)) <= num_packets_received_at_round(dst,current_forwarding_round(dst));
+                require src ~= dst;
+            }
+           
             ...
-            call enqueue_packet(src,dst,pkt);
-            is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
-            coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
+            if _generating {
+                call enqueue_packet(src,dst,pkt);
+                is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
+                coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
+            }
         }
         
         action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet)
         around forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet) {
             # require _generating;
-            require pkt.payload.end > 0;
-            require mim_agent.nat_configured;
-            require dst = mim_agent.ep_server & src = mim_agent.ep_client;
-            require is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
-            require src ~= dst;
+            if _generating {
+                require pkt.payload.end > 0;
+                require mim_agent.nat_configured;
+                if spoof_client_ip {
+                    require src = mim_agent.ep_mim & dst = mim_agent.ep_server;
+                } else {
+                    require src = mim_agent.ep_client & dst = mim_agent.ep_server;
+                }
+                # require num_packets_received_at_round(dst,current_forwarding_round(dst)) > 0;
+                require is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require src ~= dst;
+                # require num_queued_packets(dst,current_forwarding_round(dst)) <= num_packets_received_at_round(dst,current_forwarding_round(dst));
+            }
             ...
-            call enqueue_packet(src,dst,pkt);
-            is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
-            coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
+            if _generating {
+                call enqueue_packet(src,dst,pkt);
+                is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
+                coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
+            }
         }
 
         action replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet)

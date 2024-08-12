@@ -12,6 +12,7 @@ include apt_shim
 include ivy_quic_shim
 include ivy_quic_shim_attacker_client
 
+include ivy_quic_client_behavior
 include ivy_quic_attacker_client_behavior
 
 include ivy_quic_client_standard_tp
@@ -88,14 +89,25 @@ before quic_frame.stream.handle(f:quic_frame.stream,scid:cid,dcid:cid,e:quic_pac
 
 
     };
-
 }
 
-export quic_frame.ack.handle_maliciously
+
+before quic_frame.new_token.handle_maliciously(f:quic_frame.new_token,scid:cid,dcid:cid) {
+    if _generating {
+        require scid = the_cid;
+        #call handle_sending_ack(f.largest_acked);
+        require f.data.end > 0 & f.data.end <= 100;
+    } 
+    else {
+        call tls_api.upper.save_token(f.data);
+    }
+}
+
+export quic_frame.ack.handle
 export quic_frame.stream.handle ## V2
 export quic_frame.new_token.handle_maliciously
-export quic_frame.crypto.handle_maliciously
-export quic_frame.path_response.handle_maliciously
+export quic_frame.crypto.handle
+export quic_frame.path_response.handle
 export malicious_packet_event
 export client_send_event
 export tls_recv_event

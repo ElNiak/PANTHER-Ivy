@@ -38,8 +38,8 @@ object endpoint = {
                 tls_id := e;
             }
 
-            action behavior(host:endpoint_id, s:ping_net.socket, src:ip.endpoint, pkts:pingd.arr) = {
-                var dst := socket_endpoint(host,s);  # because ping_net API doesn't tell us the dst
+            action behavior(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:net_prot.arr) = {
+                var dst := socket_endpoint(host,s);  # because quic_net API doesn't tell us the dst
                 var idx := pkts.begin;
                 while idx < pkts.end {
                     var ppkt := pkts.value(idx);
@@ -88,8 +88,8 @@ object endpoint = {
                 tls_id := e;
             }
 
-            action behavior(host:endpoint_id, s:ping_net.socket, src:ip.endpoint, pkts:pingd.arr) = {
-                var dst := socket_endpoint(host,s);  # because ping_net API doesn't tell us the dst
+            action behavior(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:net_prot.arr) = {
+                var dst := socket_endpoint(host,s);  # because quic_net API doesn't tell us the dst
                 var idx := pkts.begin;
                 if ~initial_response {
                     call show_set_client_ep(src);

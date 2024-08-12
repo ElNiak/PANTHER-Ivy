@@ -23,7 +23,11 @@ object packet = {
         # require pkt.end > 0;
         if _generating {
             require pkt.end > 0;
-            require src = mim_agent.ep_server & dst = mim_agent.ep_client;
+            if spoof_server_ip {
+                require src = mim_agent.ep_mim & dst = mim_agent.ep_client;
+            } else {
+                require src = mim_agent.ep_server & dst = mim_agent.ep_client;
+            }
             require mim_agent.nat_configured;
             require src ~= dst;
 
@@ -33,8 +37,8 @@ object packet = {
 ##            call show_current_receving_round_debug_event(dst,current_receving_round(dst));
 
             # require ~is_receiving(dst) & ~is_receiving(src);
-            # require num_queued_packets(dst,current_forwarding_round(dst)) > 0;
-            require num_packets_received_at_round(dst,current_forwarding_round(dst)) > 0;
+            require num_queued_packets(dst,current_forwarding_round(dst)) > 0;
+            # require num_packets_received_at_round(dst,current_forwarding_round(dst)) > 0;
             require num_queued_packets(dst,current_forwarding_round(dst)) = num_packets_received_at_round(dst,current_forwarding_round(dst));
             # require packet_to_forward(dst,current_forwarding_round(dst)).end = num_queued_packets(dst,current_forwarding_round(dst));
 
@@ -52,7 +56,11 @@ object packet = {
         # 
         if _generating {
             require pkt.end > 0;
-            require src = mim_agent.ep_client & dst = mim_agent.ep_server;
+            if spoof_client_ip {
+                require src = mim_agent.ep_mim & dst = mim_agent.ep_server;
+            } else {
+                require src = mim_agent.ep_client & dst = mim_agent.ep_server;
+            }
             require mim_agent.nat_configured;
             require src ~= dst;
             # require ~is_receiving(dst) & ~is_receiving(src);
@@ -61,9 +69,9 @@ object packet = {
 ##            call show_num_packets_received_at_round_debug_event(dst,num_packets_received_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst));
 ##            call show_current_forwarding_round_debug_event(dst,current_forwarding_round(dst));
 ##            call show_current_receving_round_debug_event(dst,current_receving_round(dst));
-
-            # require num_queued_packets(dst,current_forwarding_round(dst)) > 0;
-            require num_packets_received_at_round(dst,current_forwarding_round(dst)) > 0;
+            
+            require num_queued_packets(dst,current_forwarding_round(dst)) > 0;
+            # require num_packets_received_at_round(dst,current_forwarding_round(dst)) > 0;
             require num_queued_packets(dst,current_forwarding_round(dst)) = num_packets_received_at_round(dst,current_forwarding_round(dst));
             # require packet_to_forward(dst,current_forwarding_round(dst)).end = num_queued_packets(dst,current_forwarding_round(dst));
             require pkt = packet_to_forward(dst,current_forwarding_round(dst));
@@ -208,12 +216,12 @@ after receiving_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet, pkt_num: stre
 action already_forwarded(src:ip.endpoint,dst:ip.endpoint,pkt:packet) returns (res:bool) = {
     var i : packet.idx := 0;
     res := false;
-    while i < packets_received(dst).end {
-        if packets_received(dst).value(i) = pkt {
-            res := true;
-        }
-        i := i.next;
-    }
+    # while i < packets_received(dst).end {
+    #     if packets_received(dst).value(i) = pkt {
+    #         res := true;
+    #     }
+    #     i := i.next;
+    # }
 }
 
 action update_forwarded_packet(src:ip.endpoint,dst:ip.endpoint) 

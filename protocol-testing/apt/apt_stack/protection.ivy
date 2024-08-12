@@ -360,10 +360,10 @@ object protection = {
         implement retry_integrity_tag {
             # TODO useless, call directly  tls.compute_retry_integrity_tag
             var rt := tls.compute_retry_integrity_tag(
-                                    odcil, cid_to_us(odcid),
+                                    odcil, cid_to_tls_id(odcid),
                                     pversion,
-                                    dcil, cid_to_us(dcid),
-                                    scil, cid_to_us(scid),
+                                    dcil, cid_to_tls_id(dcid),
+                                    scil, cid_to_tls_id(scid),
                                     token,seq,h,b);
             cipher := rt;
         }

@@ -883,7 +883,7 @@ action cid_to_bytes(c:cid,len:cid_length) returns(res:stream_data) = {
     >>>
 }
 
-action cid_to_us(c:cid) returns(res:tls_api.id) = {
+action cid_to_tls_id(c:cid) returns(res:tls_api.id) = {
     <<<
     res = c.val;
     >>>

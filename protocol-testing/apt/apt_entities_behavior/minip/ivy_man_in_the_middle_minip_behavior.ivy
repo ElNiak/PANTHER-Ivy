@@ -9,20 +9,20 @@ include ivy_mim
 # -------------
 
 # Server
-action socket_endpoint_mim(host:endpoint_id,s:minip_net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
+action socket_endpoint_mim(host:endpoint_id,s:quic_net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
     dst := mim_agent.ep_client if src = mim_agent.ep_server else mim_agent.ep_server; # is_mim_standalone | 
 ##    call socket_endpoint_mim_event_debug_event(host,s,src,dst);
 }
 
-##import action socket_endpoint_mim_event_debug_event(host:endpoint_id,s:minip_net.socket,src:ip.endpoint,dst:ip.endpoint)
+##import action socket_endpoint_mim_event_debug_event(host:endpoint_id,s:quic_net.socket,src:ip.endpoint,dst:ip.endpoint)
 
-action endpoint_to_socket_mim(src:ip.endpoint) returns (socket:minip_net.socket) = {
+action endpoint_to_socket_mim(src:ip.endpoint) returns (socket:quic_net.socket) = {
     socket := sock_mim_server if src = mim_agent.ep_server else sock_mim_client; #  & ~forged_packet_send
 }
 
 # Get the IP endpoint associated to a host id and socket number.
 
-action socket_endpoint(host:endpoint_id,s:minip_net.socket) returns (src:ip.endpoint) = {
+action socket_endpoint(host:endpoint_id,s:quic_net.socket) returns (src:ip.endpoint) = {
     src := mim_agent.ep_server; # TODO
 }
 
@@ -52,16 +52,16 @@ action src_tls_id(src:ip.endpoint) returns (tls_id:tls_api.id) = {
 
 
 # Client
-# action socket_endpoint_mim(host:endpoint_id,s:minip_net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
+# action socket_endpoint_mim(host:endpoint_id,s:quic_net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
 #     dst := client.ep if (is_mim_standalone | src = mim_agent.ep_server) else server.ep;
 # }
 
-# action endpoint_to_socket_mim(src:ip.endpoint) returns (socket:minip_net.socket) = {
+# action endpoint_to_socket_mim(src:ip.endpoint) returns (socket:quic_net.socket) = {
 #     socket := sock_mim_client if src = mim_agent.ep_client else sock_mim_server; #  & ~forged_packet_send
 # }
 
 
-action endpoint_to_socket(src:ip.endpoint) returns (socket:minip_net.socket) = {
+action endpoint_to_socket(src:ip.endpoint) returns (socket:quic_net.socket) = {
     if src = mim_agent.ep_server {
         socket := sock_mim_server;
     } 
@@ -73,7 +73,7 @@ action endpoint_to_socket(src:ip.endpoint) returns (socket:minip_net.socket) = {
 }
 
 after init {
-    sock_mim_server := minip_net.eavesdrop(endpoint_id.man_in_the_middle, mim_agent.ep_server);
-    # sock_mim_client := minip_net.listen(endpoint_id.man_in_the_middle, mim_agent.ep_client);
+    sock_mim_server := quic_net.eavesdrop(endpoint_id.man_in_the_middle, mim_agent.ep_server);
+    # sock_mim_client := quic_net.listen(endpoint_id.man_in_the_middle, mim_agent.ep_client);
     mim_agent.set_tls_id(4); # 0 is default value, we dont wont that
 }

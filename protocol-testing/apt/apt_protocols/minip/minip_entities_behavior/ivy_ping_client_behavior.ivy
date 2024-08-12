@@ -9,11 +9,11 @@ action endpoint_to_pid(src:ip.endpoint) returns (pid:endpoint_id) = {
     } 
 }
 
-action socket_endpoint(host:endpoint_id,s:ping_net.socket) returns (src:ip.endpoint) = {
+action socket_endpoint(host:endpoint_id,s:quic_net.socket) returns (src:ip.endpoint) = {
     src := client.ep
 }
 
-action endpoint_to_socket(src:ip.endpoint) returns (socket:ping_net.socket) = {
+action endpoint_to_socket(src:ip.endpoint) returns (socket:quic_net.socket) = {
     if src = client.ep {
         socket := sock;
     } 
@@ -61,7 +61,7 @@ action client_send_event(src:ip.endpoint, dst:ip.endpoint, end : stream_pos)
 around client_send_event {
     require src = client.ep;
     require dst = server.ep;
-    require ping_length = packet.ping_packet_end;
+    require ping_length = ping_packet_end;
     require ping_length < end & end <= http_request.end;
     ...
     while end < http_request.end & http_request.value(end) ~= 10 {
