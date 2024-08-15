@@ -44,6 +44,7 @@ after init {
     sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
     client.set_tls_id(0);
     server.set_tls_id(1);
+    tls_id_map_ep(server.tls_id) := server.ep;
     var extns := tls_extensions.empty;
     extns := extns.append(make_transport_parameters);
     call tls_api.upper.create(client.tls_id,false,extns);  # false means this instance of tls is not a server

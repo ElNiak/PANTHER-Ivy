@@ -242,8 +242,8 @@ after init {
 
 
 # implement quic_net.recv(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:net_prot.arr) {
-###     # call show_current_time_debug_event(time_api.c_timer.now_micros_last_bp);
-###     call show_socket_debug_event(s);
+#     # call show_current_time_debug_event(time_api.c_timer.now_micros_last_bp);
+#     call show_socket_debug_event(s);
 #     if(is_lost_recv) {
 #         call on_purpose_lost_packet_event(host,src,pkts);
 #     } else {
@@ -282,7 +282,7 @@ import action on_purpose_lost_packet_event(host:endpoint_id,src:ip.endpoint,pkt:
 # import action undefined_host_error(host:endpoint_id, s:quic_net.socket, src:ip.endpoint)
 
 
-### import action show_socket_debug_event(n:quic_net.socket)
+# import action show_socket_debug_event(n:quic_net.socket)
 
 # Security event shims
 # --------------------
@@ -368,7 +368,7 @@ implement tls_api.upper.keys_established(tls_id:tls_api.id,lev:tls_api.upper.lev
 
 after tls.handshake_data_event(src : ip.endpoint, dst : ip.endpoint, data:stream_data,dcid:cid) {
     if dst_is_generated_tls(dst) {
-        call tls_api.lower.recv(cid_map_tls_id(dcid),data,0); # TODO: fill in the encryption level
+        call tls_api.lower.recv(src_tls_id(dst),data,0); # TODO: fill in the encryption level
     }
 }
 
@@ -1098,11 +1098,11 @@ import action show_aead(level:tls_api.upper.level,pyld:stream_data,seq:pkt_num,a
 
 import action show_last_datagram_size(size:stream_pos)
 
-##import action show_tls_id_to_cid_debug_event(ver:cid)
+import action show_tls_id_to_cid_debug_event(ver:cid)
 
 import action show_biatch(src:ip.endpoint)
 
-##import action show_tls_lower_send_debug_event(bytes:stream_data)
+import action show_tls_lower_send_debug_event(bytes:stream_data)
 
 import action show_l(ver:stream_pos)
 

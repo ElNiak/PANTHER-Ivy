@@ -60,7 +60,7 @@ after init {
     call show_endpoint_debug_event(client.ep);
     call show_endpoint_debug_event(client.ep_server);
     call show_endpoint_debug_event(server.ep);
-    # verify_incoming_packet := false;
+    verify_incoming_packet := true;
     sock := quic_net.open(endpoint_id.client,client.ep);
     sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
     sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);

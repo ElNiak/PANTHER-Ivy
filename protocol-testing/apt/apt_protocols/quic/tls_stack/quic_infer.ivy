@@ -72,11 +72,11 @@ action infer_tls_events(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) 
         var f := pkt.payload.value(idx);
         if some(cf:quic_frame.crypto) f *> cf {
             # call show_biatch_2(dst);
-            if  verify_incoming_packet {
-                call tls_send_event(src,dst,scid,dcid,cf.data,cf.offset,e,cid_map_tls_id(dcid))
-            } else {
-                call tls_send_event(src,dst,scid,dcid,cf.data,cf.offset,e,src_tls_id(src));
-            }
+            # if  verify_incoming_packet {
+            #     call tls_send_event(src,dst,scid,dcid,cf.data,cf.offset,e,cid_map_tls_id(dcid))
+            # } else {
+            call tls_send_event(src,dst,scid,dcid,cf.data,cf.offset,e,src_tls_id(src));
+            # }
         };
         if some(sf:quic_frame.stream) f *> sf {
                 # require sf.offset <= stream_app_data_end(dcid,sf.id);  # TODO: deal with gaps in stream
