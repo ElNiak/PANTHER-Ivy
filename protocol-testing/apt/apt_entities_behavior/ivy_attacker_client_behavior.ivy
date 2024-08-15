@@ -53,7 +53,7 @@ action tls_id_to_src(tls_id:tls_api.id) returns (src:ip.endpoint) = {
 # TODO: this shouldn't be needed.
 
 action tls_id_to_dst(tls_id:tls_api.id) returns (dst:ip.endpoint) = {
-    dst := server.ep if tls_id = attacker.tls_id else attacker.ep;
+    dst := server.ep;;
 }
 
 # Returns true if an IP endpoint is controlled by the generator.

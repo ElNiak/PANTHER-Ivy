@@ -63,6 +63,7 @@ action infer_tls_events(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) 
 
     # Infer an app_server_open_event.
     if conn_requested(dst,src,dcid) & ~connected(dcid) & ~connected(scid) { # & ~negocation_of_version &  ~version_negociated 
+        call show_biatch_2(dst);
         call app_server_open_event(src,dst,scid,dcid);
     };
     # call show_generating(_generating);
@@ -71,7 +72,11 @@ action infer_tls_events(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) 
         var f := pkt.payload.value(idx);
         if some(cf:quic_frame.crypto) f *> cf {
             # call show_biatch_2(dst);
-            call tls_send_event(src,dst,scid,dcid,cf.data,cf.offset,e,src_tls_id(src));
+            if  verify_incoming_packet {
+                call tls_send_event(src,dst,scid,dcid,cf.data,cf.offset,e,cid_map_tls_id(dcid))
+            } else {
+                call tls_send_event(src,dst,scid,dcid,cf.data,cf.offset,e,src_tls_id(src));
+            }
         };
         if some(sf:quic_frame.stream) f *> sf {
                 # require sf.offset <= stream_app_data_end(dcid,sf.id);  # TODO: deal with gaps in stream
@@ -84,6 +89,10 @@ action infer_tls_events(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) 
         #} else {
         call infer_frame(scid,dcid,f);
         #};
+        # if verify_incoming_packet{
+        #     call map_cids(scid,dcid);
+        #     call map_cids(dcid,scid);
+        # }
         call f.handle(scid,dcid,e,sq);
         idx := idx.next
     }

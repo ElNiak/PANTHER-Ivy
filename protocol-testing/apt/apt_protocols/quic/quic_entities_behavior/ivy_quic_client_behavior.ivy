@@ -234,6 +234,7 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
 
 before quic_frame.stream.handle(f:quic_frame.stream,scid:cid,dcid:cid,e:quic_packet_type) {
     if _generating {
+        # require exists I. I < the_cid_used.end  & the_cid_used.value(I) = scid & dcid = nonce_cid(scid);
         require scid = the_cid;
         if ~zero_rtt_server_test | zero_rtt_sent {
             require connected(the_cid) & dcid = connected_to(the_cid);
@@ -250,6 +251,7 @@ before quic_frame.stream.handle(f:quic_frame.stream,scid:cid,dcid:cid,e:quic_pac
 
 before quic_frame.crypto.handle(f:quic_frame.crypto,scid:cid,dcid:cid,e:quic_packet_type) {
     if _generating {
+        # require exists I. I < the_cid_used.end  & the_cid_used.value(I) = scid & dcid = nonce_cid(scid);
         require scid = the_cid;
         require f.length > 0;
         require f.offset = crypto_length(scid,e);
@@ -264,6 +266,7 @@ before quic_frame.crypto.handle(f:quic_frame.crypto,scid:cid,dcid:cid,e:quic_pac
 
 before quic_frame.ack.handle(f:quic_frame.ack,scid:cid,dcid:cid) {
     if _generating {
+        # require exists I. I < the_cid_used.end  & the_cid_used.value(I) = scid & dcid = nonce_cid(scid);
         require scid = the_cid;
         force_new_ack := true;
         #call handle_sending_ack(f.largest_acked);
@@ -274,6 +277,7 @@ before quic_frame.ack.handle(f:quic_frame.ack,scid:cid,dcid:cid) {
 
 before quic_frame.rst_stream.handle(f:quic_frame.rst_stream,scid:cid,dcid:cid) {
     if _generating {
+        # require exists I. I < the_cid_used.end  & the_cid_used.value(I) = scid & dcid = nonce_cid(scid);
         require scid = the_cid;
         require f.id = 4;
     }
@@ -282,6 +286,7 @@ before quic_frame.rst_stream.handle(f:quic_frame.rst_stream,scid:cid,dcid:cid) {
 
 before quic_frame.new_token.handle(f:quic_frame.new_token,scid:cid,dcid:cid) {
     if _generating {
+        # require exists I. I < the_cid_used.end  & the_cid_used.value(I) = scid & dcid = nonce_cid(scid);
         require scid = the_cid;
         #call handle_sending_ack(f.largest_acked);
     } 
@@ -294,6 +299,7 @@ before quic_frame.new_token.handle(f:quic_frame.new_token,scid:cid,dcid:cid) {
 
 before quic_frame.stop_sending.handle(f:quic_frame.stop_sending,scid:cid,dcid:cid) {
     if _generating {
+        # require exists I. I < the_cid_used.end  & the_cid_used.value(I) = scid & dcid = nonce_cid(scid);
         require scid = the_cid;
         require f.id = 4;
     }
@@ -303,12 +309,14 @@ before quic_frame.stop_sending.handle(f:quic_frame.stop_sending,scid:cid,dcid:ci
 
 before quic_frame.max_streams.handle(f:quic_frame.max_streams,scid:cid,dcid:cid) {
     if _generating {
+        # require exists I. I < the_cid_used.end  & the_cid_used.value(I) = scid & dcid = nonce_cid(scid);
         require scid = the_cid;
     }
 }
 
 before quic_frame.new_connection_id.handle(f:quic_frame.new_connection_id,scid:cid,dcid:cid) {
     if _generating {
+        # require exists I. I < the_cid_used.end  & the_cid_used.value(I) = scid & dcid = nonce_cid(scid);
         require scid = the_cid;
     }
 }
@@ -316,6 +324,7 @@ before quic_frame.new_connection_id.handle(f:quic_frame.new_connection_id,scid:c
 
 before quic_frame.retire_connection_id.handle(f:quic_frame.retire_connection_id,scid:cid,dcid:cid) {
     if _generating {
+        # require exists I. I < the_cid_used.end  & the_cid_used.value(I) = scid & dcid = nonce_cid(scid);
         require scid = the_cid;
     }
 }
@@ -329,6 +338,7 @@ before quic_frame.retire_connection_id.handle(f:quic_frame.retire_connection_id,
 before quic_frame.connection_close.handle(f:quic_frame.connection_close,scid:cid,dcid:cid) {
     if _generating {
         require conn_total_data(the_cid) > 1000; # tricks
+        # require exists I. I < the_cid_used.end  & the_cid_used.value(I) = scid & dcid = nonce_cid(scid);
         require scid = the_cid;
         require f.err_code = 0;
     } else {
@@ -341,6 +351,7 @@ before quic_frame.connection_close.handle(f:quic_frame.connection_close,scid:cid
 
 before quic_frame.application_close.handle(f:quic_frame.application_close,scid:cid,dcid:cid) {
     if _generating {
+        # require exists I. I < the_cid_used.end  & the_cid_used.value(I) = scid & dcid = nonce_cid(scid);
         require scid = the_cid;
     } else {
         require is_no_error;
@@ -353,6 +364,7 @@ before quic_frame.application_close.handle(f:quic_frame.application_close,scid:c
 
 before quic_frame.max_stream_data.handle(f:quic_frame.max_stream_data,scid:cid,dcid:cid) {
     if _generating {
+        # require exists I. I < the_cid_used.end  & the_cid_used.value(I) = scid & dcid = nonce_cid(scid);
         require scid = the_cid;
         require 4 <= f.id & f.id <= 16;
     }
@@ -363,6 +375,7 @@ before quic_frame.max_stream_data.handle(f:quic_frame.max_stream_data,scid:cid,d
 
 before quic_frame.stream_data_blocked.handle(f:quic_frame.stream_data_blocked,scid:cid,dcid:cid) {
     if _generating {
+        # require exists I. I < the_cid_used.end  & the_cid_used.value(I) = scid & dcid = nonce_cid(scid);
         require scid = the_cid;
         require f.id = 4;
     }
@@ -374,6 +387,7 @@ before quic_frame.stream_data_blocked.handle(f:quic_frame.stream_data_blocked,sc
 
 before quic_frame.max_data.handle(f:quic_frame.max_data,scid:cid,dcid:cid) {
     if _generating {
+        # require exists I. I < the_cid_used.end  & the_cid_used.value(I) = scid & dcid = nonce_cid(scid);
         require scid = the_cid;
         require f.pos = 4000;
     }
@@ -427,9 +441,13 @@ around client_send_event {
 
     require dst = server.ep;
     if ~zero_rtt_server_test | zero_rtt_sent {
-        require connected(the_cid) & dcid = connected_to(the_cid);
+        # if retry_recv(the_cid) {
+        #     require dcid = server_cid;
+        # } else {
+            require connected(the_cid) & dcid = connected_to(the_cid);
+        # }
     } else {
-        require  dcid ~= the_cid;
+        require dcid ~= the_cid;
     };
     require stream_length(dcid,s) = stream_app_data_end(dcid,s);
     require stream_length(dcid,s) < end & end <= http_request.end;

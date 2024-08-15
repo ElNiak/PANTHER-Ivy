@@ -65,15 +65,14 @@ after init {
 action ping_packet_event_malicious(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) = {}
 
 around ping_packet_event_malicious(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
-    require pkt.payload = queued_ping_frames;
-    if _generating {
-        require src = client.ep;
-        require dst = server.ep;
-    }
+    require src = server.ep;
+    require dst = client.ep;
+    require num_queued_ping_frames(dst) >= 1;
+    require pkt.payload = queued_ping_frames(dst);
     ...
 
-    queued_ping_frames := ping_frame.arr.empty;
-    num_queued_ping_frames := 0;
+    queued_ping_frames(dst) := ping_frame.arr.empty;
+    num_queued_ping_frames(dst) := 0;
     #timestamp_frame_pending := true;
 }
 
@@ -81,7 +80,6 @@ around ping_packet_event_malicious(src:ip.endpoint,dst:ip.endpoint,pkt:packet.pi
 action client_send_event_malicious(src:ip.endpoint, dst:ip.endpoint, end : stream_pos)
 
 around client_send_event_malicious {
-    
     require src = server.ep;
     require dst = client.ep;
     require ping_length = ping_packet_end;

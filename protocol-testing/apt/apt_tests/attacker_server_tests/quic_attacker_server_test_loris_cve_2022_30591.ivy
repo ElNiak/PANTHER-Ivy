@@ -4,7 +4,9 @@
 # https://github.com/quic-go/quic-go/blob/84e03e59760ceee37359688871bb0688fcc4e98f/mtu_discoverer.go
 # QUIC-attacks (CVE-2022-30591)
 
-# The current repository serves the purpose of sharing the scripts we used for educational usage. These attacks were a part of our study (check [here](https://link.springer.com/article/10.1007/s10207-022-00630-6)), and were tested against 6 different QUIC-enabled servers (IIS, NGINX, LiteSpeed, Cloudflare, H2O, and Caddy). The quic-loris script is the exploit of the [CVE-2022-30591](https://nvd.nist.gov/vuln/detail/CVE-2022-30591) issue that affected quic-go library. This script can also be exploited against Caddy server.
+# The current repository serves the purpose of sharing the scripts we used for educational usage. These attacks were a part of our study (check [here](https://link.springer.com/article/10.1007/s10207-022-00630-6)), and were tested against 6 different QUIC-enabled servers (IIS, NGINX, LiteSpeed, Cloudflare, H2O, and Caddy). 
+# The quic-loris script is the exploit of the [CVE-2022-30591](https://nvd.nist.gov/vuln/detail/CVE-2022-30591) issue that affected quic-go library. 
+# This script can also be exploited against Caddy server.
 
 #  Installation procedure
 # For the exploitation of these attacks, the Ubuntu 18.04 client was used, with the assist of aioquic Python library for QUIC-loris and QUIC-Flooding. For QUIC-hash attack, the Scapy Python library v2.4.3 was used (pip install scapy==2.4.3). The following instructions occur the aioquic installation, for the QUIC-loris and QUIC-Flooding assaults.
@@ -50,9 +52,6 @@ include apt_time
 
 after init {
     call time_api.c_timer.start;
-	allowed_multiple_migration := false;
-    version_negociated         := false;
-    # initial_version := 0xff00001c;
 }
 
 import action show_endpoint_debug_event(ep:ip.endpoint)
@@ -61,11 +60,14 @@ after init {
     call show_endpoint_debug_event(client.ep);
     call show_endpoint_debug_event(client.ep_server);
     call show_endpoint_debug_event(server.ep);
+    # verify_incoming_packet := false;
     sock := quic_net.open(endpoint_id.client,client.ep);
     sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
     sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
     client.set_tls_id(0);
+    current_connection_id := client.tls_id;
     server.set_tls_id(1);
+    tls_id_map_ep(server.tls_id) := server.ep;
     var extns := tls_extensions.empty;
     extns := extns.append(make_transport_parameters);
     call tls_api.upper.create(client.tls_id,false,extns);  # false means this instance of tls is not a server
@@ -75,48 +77,13 @@ after init {
     token_saved := false;
 }
 
-before open_connection(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
-    if _generating {
-        var tp := trans_params(the_cid);
-        if version_negociated {
-            require src = client_vn;
-        } else {
-            if ~disable_active_migration.is_set(tp) {
-                if ~migration_done | allowed_multiple_migration { 
-                    #only one migration
-                    require src = client.ep | src = client_alt;
-                } else {
-                    require src = client_alt;
-                }
-            } else {
-                require src = client.ep;
-            }
-        };
-        require dst = server.ep;
-        #require pkt.token.end = 0; 
-        if pkt.ptype = quic_packet_type.initial & retry_recv(pkt.src_cid) & ~zero_length_token {
-            require pkt.token = retry_token(pkt.src_cid); # TODO new_token
-        } else {
-            require pkt.token.end = 0; 
-        };
-    };
-    if final_version = 0x00000000 {
-        #require pkt.long -> pkt.pversion = 0xff00001d  #version 29
-        #require pkt.long -> pkt.pversion = 0xff000020  #version 32
-        #require pkt.long -> pkt.pversion = 0xff00001e  #version 30
-        require pkt.long -> pkt.pversion = initial_version  #version 30
-    } else {
-        require pkt.long -> pkt.pversion = final_version
-    };
-}
-
-
 export quic_frame.ack.handle
-export quic_frame.stream.handle ## V2
+# export quic_frame.stream.handle ## V2
 export quic_frame.crypto.handle
 export quic_frame.path_response.handle
+# export attacker_send_event
+
 # export malicious_packet_event
-# export client_send_event
 export tls_recv_event
 export open_connection
 #export quic_frame.new_connection_id.handle_maliciously

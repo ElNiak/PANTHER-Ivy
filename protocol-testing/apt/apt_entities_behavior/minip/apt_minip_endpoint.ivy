@@ -234,7 +234,7 @@ object endpoint = {
                     var jdx := pkt.payload.begin;
                     while jdx < pkt.payload.end {
                         var f := pkt.payload.value(jdx);
-                        call f.handle();
+                        call f.handle(dst);
                         jdx := jdx.next;
                     };
                     call ping_packet_event(src,dst,pkt);       # also an inferred event
@@ -355,7 +355,7 @@ object endpoint = {
                     var jdx := pkt.payload.begin;
                     while jdx < pkt.payload.end {
                         var f := pkt.payload.value(jdx);
-                        call f.handle();
+                        call f.handle(dst);
                         jdx := jdx.next;
                     };
                     call ping_packet_event(src,dst,pkt);       # also an inferred event

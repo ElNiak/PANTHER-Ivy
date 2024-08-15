@@ -242,6 +242,8 @@ around packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet
         retry_recv(dcid) := true;   
         server_cid := scid; # 0x1;
 
+        connected_to(dcid) := scid;
+
         connected(the_cid)    := false;
         connected(server_cid) := false;
         conn_seen(server_cid) := false;

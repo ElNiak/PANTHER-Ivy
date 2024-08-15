@@ -106,6 +106,43 @@ before malicious_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_pa
     };
 }
 
+before open_connection(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
+    if _generating {
+        var tp := trans_params(the_cid);
+        if version_negociated {
+            require src = client_vn;
+        } else {
+            if ~disable_active_migration.is_set(tp) {
+                if ~migration_done | allowed_multiple_migration { 
+                    #only one migration
+                    require src = client.ep; #client.ep | src = client_alt;
+                } else {
+                    require src = client_alt;
+                }
+            } else {
+                require src = client.ep;
+            }
+        };
+        require dst = server.ep;
+        # require pkt.ptype = quic_packet_type.initial;
+        #require pkt.token.end = 0; 
+        if pkt.ptype = quic_packet_type.initial & retry_recv(pkt.src_cid) & ~zero_length_token {
+            require pkt.token = retry_token(pkt.src_cid); # TODO new_token
+        } else {
+            require pkt.token.end = 0; 
+        };
+    };
+    if final_version = 0x00000000 {
+        #require pkt.long -> pkt.pversion = 0xff00001d  #version 29
+        #require pkt.long -> pkt.pversion = 0xff000020  #version 32
+        #require pkt.long -> pkt.pversion = 0xff00001e  #version 30
+        require pkt.long -> pkt.pversion = initial_version  #version 30
+    } else {
+        require pkt.long -> pkt.pversion = final_version
+    };
+}
+
+
 # This is where we restrict the client to send only a specific HTTP
 # request.  We allow generating application data at the client end
 # only if the previous data have not been sent. This is to avoid
@@ -146,9 +183,13 @@ around attacker_send_event {
 
     require dst = server.ep;
     if ~zero_rtt_server_test | zero_rtt_sent {
-        require connected(the_cid) & dcid = connected_to(the_cid);
+        # if retry_recv(the_cid) {
+        #     require dcid = server_cid;
+        # } else {
+            require connected(the_cid) & dcid = connected_to(the_cid);
+        # }
     } else {
-        require  dcid ~= the_cid;
+        require dcid ~= the_cid;
     };
     require stream_length(dcid,s) = stream_app_data_end(dcid,s);
     require stream_length(dcid,s) < end & end <= http_request.end;

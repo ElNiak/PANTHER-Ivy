@@ -473,7 +473,15 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
 
     if retry_sent(dcid) & ~_generating & ~zero_length_token & pkt.ptype = quic_packet_type.initial {
         require dcid = client_initial_rcid;
+    } else if retry_recv(scid) & _generating & ~zero_length_token & pkt.ptype = quic_packet_type.initial {
+        require dcid = client_initial_rcid;
     };
+
+    # if retry_recv(scid) {
+    #     require dcid = server_cid;
+    # } else {
+        # require dcid ~= the_cid;
+    # };
 
     # The packet type must match the encryption level of the queued
     # frames at the source. 
