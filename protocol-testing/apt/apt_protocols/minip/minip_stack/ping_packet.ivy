@@ -26,12 +26,12 @@ relation enough_wait
 action ping_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) = {}
 
 around ping_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
-    require num_queued_ping_frames = 2; # [7]
-    require pkt.payload = queued_ping_frames;
+    require num_queued_ping_frames(dst) = 2; # [7]
+    require pkt.payload = queued_ping_frames(dst);
 
     ...
 
-    queued_ping_frames := ping_frame.arr.empty;
-    num_queued_ping_frames := 0;
+    queued_ping_frames(dst)     := ping_frame.arr.empty;
+    num_queued_ping_frames(dst) := 0;
     #timestamp_frame_pending := true;
 }

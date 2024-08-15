@@ -51,8 +51,8 @@ object ping_frame = {
 }
 
 
-function queued_ping_frames : ping_frame.arr
-function num_queued_ping_frames : ping_frame.idx
+function queued_ping_frames(D:ip.endpoint): ping_frame.arr
+function num_queued_ping_frames(D:ip.endpoint) : ping_frame.idx
 
 relation ping_frame_pending
 relation timestamp_frame_pending
@@ -69,7 +69,7 @@ object ping_frame = {
     ...
     object ping = {
         ...
-        action handle(f:ping_frame.ping)
+        action handle(f:ping_frame.ping,dst:ip.endpoint)
 
         around handle {
             current_time := time_api.c_timer.now_millis_last_bp;
@@ -82,7 +82,7 @@ object ping_frame = {
             ...
             ping_frame_pending := true;
             timestamp_frame_pending := true;
-            call enqueue_ping_frame(f);
+            call enqueue_ping_frame(dst,f);
         }
     }
 }
@@ -91,7 +91,7 @@ object ping_frame = {
     ...
     object pong = {
         ...
-        action handle(f:ping_frame.pong)
+        action handle(f:ping_frame.pong,dst:ip.endpoint)
 
         around handle {
             if _generating {
@@ -107,7 +107,7 @@ object ping_frame = {
             ...
             ping_frame_pending := false;
             timestamp_frame_pending := true;
-            call enqueue_ping_frame(f);
+            call enqueue_ping_frame(dst,f);
         }
     }
 }
@@ -116,7 +116,7 @@ object ping_frame = {
     ...
     object timestamp = {
         ...
-        action handle(f:ping_frame.timestamp)
+        action handle(f:ping_frame.timestamp,dst:ip.endpoint)
 
         around handle {
             if _generating {
@@ -128,7 +128,7 @@ object ping_frame = {
             require timestamp_frame_pending;
             ...
             timestamp_frame_pending := false;
-            call enqueue_ping_frame(f);
+            call enqueue_ping_frame(dst,f);
         }
     }
 }
@@ -136,6 +136,6 @@ object ping_frame = {
 import action show_estimated_latency(l:milliseconds)
 
 action enqueue_ping_frame(f:ping_frame) = {
-    queued_ping_frames := queued_ping_frames.append(f);
-    num_queued_ping_frames := queued_ping_frames.end;
+    queued_ping_frames(dst) := queued_ping_frames(dst).append(f);
+    num_queued_ping_frames(dst) := queued_ping_frames(dst).end;
 }

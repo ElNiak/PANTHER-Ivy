@@ -37,27 +37,29 @@ after init {
 }
 
 
-before ping_frame.ping.handle_maliciously(f:ping_frame.ping) {
+before ping_frame.ping.handle_maliciously(f:ping_frame.ping,dst:ip.endpoint) {
     if _generating {
-        require f.data.end > 50 & f.data.end < 100;
-    };
-
+        require ~size_used(f.data.end);
+        require f.data.end > 1 & f.data.end < 100000;
+        require dst = server.ep;
+    }
 } 
 
 after ping_frame.ping.handle_maliciously {
     if _generating {
         ping_frame_pending := true;
+        size_used(f.data.end) := true;
     }
 }
 
+# export ping_frame.ping.handle
 export ping_frame.ping.handle_maliciously
 export ping_frame.timestamp.handle
-export ping_packet_event
+
+# export ping_packet_event
 export ping_packet_event_malicious
+
 export client_send_event_malicious
-export ping_packet_event
-
-
 #
 # When the test is complete, the tester calls the special action `_finalize`.
 # We use this action to make some heuristic checks, for example that some

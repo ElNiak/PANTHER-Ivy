@@ -38,7 +38,7 @@ object tls = { ...
     # but we are using it temporarily because we don't trust the handshake
     # message serializer.
 
-    action handshake_data_event(src : ip.endpoint, dst : ip.endpoint, data:stream_data)
+    action handshake_data_event(src : ip.endpoint, dst : ip.endpoint, data:stream_data, dcid:cid)
     
 }
 

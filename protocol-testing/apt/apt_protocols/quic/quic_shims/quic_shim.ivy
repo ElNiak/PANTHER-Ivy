@@ -309,7 +309,7 @@ import action on_purpose_lost_packet_event(host:endpoint_id,src:ip.endpoint,pkt:
 implement tls_api.lower.send(tls_id:tls_api.id, bytes:stream_data, lev:tls_api.lower.level) {
     #if dst_is_generated_tls(tls_id_to_src(tls_id)) { # For MiM agent, we dont wont for now TLS events
         var early_data_end := stream_data.empty; # TODO global -> quic-go crash if not global
-##        call show_biatch_debug_event(tls_id_to_dst(tls_id));
+        call show_biatch(tls_id_to_dst(tls_id));
         early_data_end := early_data_end.append(0xff);
         early_data_end := early_data_end.append(0xff);
         early_data_end := early_data_end.append(0xff);
@@ -366,9 +366,9 @@ implement tls_api.upper.keys_established(tls_id:tls_api.id,lev:tls_api.upper.lev
 # this is to infer a TLC reception event after an incoming packet if there
 # were any crypto frames.
 
-after tls.handshake_data_event(src : ip.endpoint, dst : ip.endpoint, data:stream_data) {
+after tls.handshake_data_event(src : ip.endpoint, dst : ip.endpoint, data:stream_data,dcid:cid) {
     if dst_is_generated_tls(dst) {
-        call tls_api.lower.recv(src_tls_id(dst),data,0); # TODO: fill in the encryption level
+        call tls_api.lower.recv(cid_map_tls_id(dcid),data,0); # TODO: fill in the encryption level
     }
 }
 
@@ -1100,7 +1100,7 @@ import action show_last_datagram_size(size:stream_pos)
 
 ##import action show_tls_id_to_cid_debug_event(ver:cid)
 
-##import action show_biatch_debug_event(src:ip.endpoint)
+import action show_biatch(src:ip.endpoint)
 
 ##import action show_tls_lower_send_debug_event(bytes:stream_data)
 

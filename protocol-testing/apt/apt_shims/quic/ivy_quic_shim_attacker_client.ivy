@@ -72,15 +72,34 @@ after open_connection(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     if _generating {  # & ~conn_closed(pkt.the_cid) # TODO
         var spkt := quic_packet_serdes.to_bytes(pkt);
         var rnum := reference_pkt_num(spkt,false);
-        var tls_id := src_tls_id(src);
+        var tls_id := cid_map_tls_id(pkt.src_cid);
         var ppkt := net_prot.encrypt_quic(tls_id,rnum,spkt);
         var pkts := net_prot.arr.empty;
         pkts := pkts.append(ppkt);
         call on_packet_sent(src,dst,pkt, ppkt.size);
         total_data_sent := total_data_sent + ppkt.size;
-        call quic_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
+        call show_socket_debug(cid_map_sock(pkt.src_cid),pkt.src_cid);
+        call quic_net.send(endpoint_to_pid(src),cid_map_sock(pkt.src_cid),dst,pkts);
+
+        the_cid := next_cid(the_cid);
+        # server_cid := next_cid(server_cid);
+        # nonce_cid(the_cid) := server_cid;
+        the_cid_used := the_cid_used.append(the_cid);
+        last_connection_id := current_connection_id;
+        current_connection_id := current_connection_id.next;
+        client.ep.port := client.ep.port + 1;
+        client.set_tls_id(current_connection_id);
+        sock := quic_net.open(endpoint_id.client,client.ep);
+        sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
+        sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
+         # server.set_tls_id(current_connection_id.next);
+         var extns := tls_extensions.empty;
+         extns := extns.append(make_transport_parameters);
+         call tls_api.upper.create(current_connection_id,false,extns); 
     }
 }
+
+import action show_socket_debug(sock:quic_net.socket,c:cid)
 
 # after malicious_packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_vn) {
 #     if _generating {  # & ~conn_closed(pkt.the_cid)

@@ -89,7 +89,7 @@ before quic_frame.new_connection_id.handle_maliciously(f:quic_frame.new_connecti
     if _generating {
         require scid = the_cid;
 	    require f.length = 8; #[1]
-        # require f.retire_prior_to = 0; #[4]
+        require f.retire_prior_to = 0; #[4]
         require f.seq_num = last_cid_seq(scid) + 0x1;
         var tp := trans_params(dcid);
         require f.token = stateless_reset_token.value(tp).data_8;

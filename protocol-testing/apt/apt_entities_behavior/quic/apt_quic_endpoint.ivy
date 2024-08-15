@@ -858,12 +858,26 @@ object endpoint = {
             }
 
             action behavior(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:net_prot.arr) = {
-                var dst := socket_endpoint(host,s);  # because quic_net API doesn't tell us the dst
+                # var dst := socket_endpoint(host,s);  # because quic_net API doesn't tell us the dst
                 var idx := pkts.begin;
                 var past_data : stream_data := stream_data.empty;
                 while idx < pkts.end {
                     var ppkt := pkts.value(idx);
-                    var tls_id := src_tls_id(dst); # todo multiple
+                    var dcil : stream_pos := bfe[0][7](ppkt.value(5));
+                    var ikm := cid_to_bytes(0,1); # dcid
+                    if(~dcil = 0) {
+                        ikm := ppkt.segment(6,6+dcil); # dcid
+                    };
+                    var dcid : cid := bytes_to_cid(ikm);
+                    var scil : stream_pos := bfe[0][7](ppkt.value(6+dcil));
+                    var skm := cid_to_bytes(0,1); # scid
+                    if(~scil = 0) {	
+                        skm := ppkt.segment(6+dcil+1,6+dcil+1+scil); # scid
+                    };
+                    var scid : cid := bytes_to_cid(skm);
+                    var tls_id := cid_map_tls_id(dcid); #src_tls_id(dst); # todo multiple
+                    var dst    := cid_map_ep(dcid); #dst_tls_id(dst); # todo multiple
+                    
                     var header := ppkt.value(0);
                     var hdr_type : type_bits := bfe[0][6](ppkt.value(0));
                     var tt := bvand(hdr_type,0x30);
@@ -889,17 +903,13 @@ object endpoint = {
                     # } 
                     else { 
                         var rnum := reference_pkt_num(ppkt,true);
+
+
                         # if rnum = lost_pkt_num {
                         #     call on_purpose_lost_packet_event(host,src,dst,last_zrtt_pkt);
                         # } else {
                             var res := net_prot.decrypt_quic(tls_id,rnum,ppkt);
-                            var dcil : stream_pos := bfe[0][7](ppkt.value(5));
-                            var ikm := cid_to_bytes(0,1); # dcid
-                            if(~dcil = 0) {
-                                client_initial_dcil := dcil;
-                                ikm := ppkt.segment(6,6+dcil); # dcid
-                            };
-                            var dcid : cid := bytes_to_cid(ikm);
+                           
                             total_data_received := total_data_received + ppkt.size;
                             # if total_data_received > 3 * total_data_sent { # Only for server
                             #     call show_data_received(total_data_received);

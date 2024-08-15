@@ -291,7 +291,7 @@ before tls_send_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, data
     var avail := crypto_data(scid,e).segment(crypto_handler_pos(scid,e),max_present);
     var res := tls.handshake_parser.deserialize(avail,0); #quicgo
     var hs := res.value;
-    call tls.handshake_data_event(src,dst,avail.segment(0,res.pos));
+    call tls.handshake_data_event(src,dst,avail.segment(0,res.pos),dcid);
     crypto_handler_pos(scid,e) := crypto_handler_pos(scid,e) + res.pos;
     var idx := hs.begin;
     while idx < hs.end {
