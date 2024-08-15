@@ -530,8 +530,8 @@ function num_ack_eliciting_pkt : stream_pos
 function num_ack_pkt : stream_pos
 
 
-##import action show_num_ack_eliciting_pkt_debug_event(s:stream_pos)
-##import action show_num_ack_pkt_debug_event(s:stream_pos)
+import action show_num_ack_eliciting_pkt_debug_event(s:stream_pos)
+import action show_num_ack_pkt_debug_event(s:stream_pos)
 #Hamid
 
 #chris
@@ -679,7 +679,7 @@ after init {
 
 var force_new_ack : bool
 
-##import action is_generating_debug_event(b:bool)
+import action is_generating_debug_event(b:bool)
 import action is_ack_frequency_respected(b:bool)
 object quic_frame = {
     ...
@@ -688,7 +688,7 @@ object quic_frame = {
         action handle(f:quic_frame.ack,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
 	around handle {
-##            #call is_generating_debug_event(_generating);
+            #call is_generating_debug_event(_generating);
             # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
             # require (~is_not_sleeping -> ~_generating);
             # require (_generating -> is_not_sleeping);
@@ -768,7 +768,7 @@ object quic_frame = {
                         if ~acked_pkt(dcid,e,jdx) {
                             #if ack_eliciting_threshold_current_val(dcid) >= ack_eliciting_threshold_val(dcid) {
                                 some_new_ack := true;
-##                                call show_ack_generated_debug_event;
+                                call show_ack_generated_debug_event;
                                 ack_eliciting_threshold_current_val(dcid) := 0;
                             #};
                         };
@@ -789,7 +789,7 @@ object quic_frame = {
                 # f.ack_delay := local_ack_delay;
                 # require local_ack_delay <= local_max_ack_delay_tp;
                 # call show_local_delay_ack(local_ack_delay,local_max_ack_delay_tp);
-##                call show_ack_generated_debug_event;
+                call show_ack_generated_debug_event;
             } 
 	    ...
             if ~_generating {
@@ -805,7 +805,7 @@ object quic_frame = {
 }
 
 import action show_local_delay_ack(val:microseconds, val2:microseconds)
-##import action show_ack_generated_debug_event
+import action show_ack_generated_debug_event
 import action show_ack_eliciting_threshold_current_val(val:stream_pos)
 import action show_ack_eliciting_threshold_val(val:stream_pos)
 

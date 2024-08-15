@@ -38,7 +38,7 @@ object quic_frame = {
         action handle_maliciously(f:quic_frame.ack,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
 
 	around handle_maliciously{
-##            #call is_generating_debug_event(_generating);
+            #call is_generating_debug_event(_generating);
             # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
             # require (~is_not_sleeping -> ~_generating);
             # require (_generating -> is_not_sleeping);
@@ -118,7 +118,7 @@ object quic_frame = {
                         if ~acked_pkt(dcid,e,jdx) {
                             #if ack_eliciting_threshold_current_val(dcid) >= ack_eliciting_threshold_val(dcid) {
                                 some_new_ack := true;
-##                                call show_ack_generated_debug_event;
+                                call show_ack_generated_debug_event;
                                 ack_eliciting_threshold_current_val(dcid) := 0;
                             #};
                         };
@@ -145,7 +145,7 @@ object quic_frame = {
                 # f.ack_delay := local_ack_delay;
                 # require local_ack_delay <= local_max_ack_delay_tp;
                 # call show_local_delay_ack(local_ack_delay,local_max_ack_delay_tp);
-##                call show_ack_generated_debug_event;
+                call show_ack_generated_debug_event;
             } 
 	    ...
             if ~_generating {

@@ -362,7 +362,7 @@ object protection = {
 
         implement decrypt_quic {
             var h := get_header_info(pkt,true);
-##            call show_header_debug_event(h);
+            call show_header_debug_event(h);
             var level := get_level(pkt);
             if level = 1 & ~zrtt_pkt_set {
                 zrtt_pkt_set := true;
@@ -406,7 +406,7 @@ object protection = {
 
                 last_datagram_received_size := last_datagram_received_size +  h.payload_length + h.pkt_num_pos + pnum_len;
 
-##                call show_token_len_debug_event(pnum_len);
+                call show_token_len_debug_event(pnum_len);
                 pnum := stream_data_xor(pkt.segment(pnum_pos,pnum_pos+pnum_len),mask.segment(1,1+pnum_len));
 
                 hdr := hdr.extend(pnum);
@@ -648,8 +648,8 @@ object protection = {
             }
         }
         import action show_payload(ver:stream_data)
-##        import action show_token_len_debug_event(ver:stream_pos)
-##        import action show_header_debug_event(h:header_info_quic)
+        import action show_token_len_debug_event(ver:stream_pos)
+        import action show_header_debug_event(h:header_info_quic)
     }
 }
 
@@ -770,7 +770,7 @@ object quic_prot_deser = {}
                     std::cerr << "data_remaining (net_prot) " << data_remaining << "\n";
                     std::cerr << "pyld_len (net_prot) " << pyld_len << "\n";
                     const char * test_type = getenv("TEST_TYPE");
-                    if(ptype == 0x00 && pyld_len < 1200) {
+                    if(ptype == 0x00 && pyld_len < 1200 && strcmp(test_type,"mim") == 0) {
                         //coalescing initial packets
                         std::cerr <<  "set env COALESCED_PACKET"  << "\n";
                         char str_d[20];

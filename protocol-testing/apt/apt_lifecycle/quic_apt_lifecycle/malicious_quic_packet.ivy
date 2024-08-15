@@ -35,7 +35,7 @@ object packet = {
                 call enqueue_packet(src,dst,pkt);
                 is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
                 coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
-##                call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+                call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
             }
         }
         
@@ -58,7 +58,7 @@ object packet = {
                 call enqueue_packet(src,dst,pkt);
                 is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
                 coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
-##                call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+                call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
             }
         }
 
@@ -79,7 +79,7 @@ object packet = {
             call enqueue_packet(src,dst,pkt);
             is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := true;
             coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
-##            call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+            call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
         }
 
         action replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
@@ -94,7 +94,7 @@ object packet = {
             call enqueue_packet(src,dst,pkt);
             is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := true;
             coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
-##            call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+            call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
         }
 
         action modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
@@ -110,7 +110,7 @@ object packet = {
             call enqueue_packet(src,dst,pkt);
             is_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
             coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
-##            call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+            call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
         }   
     }
 }
@@ -140,9 +140,9 @@ after init {
 
 action open_connection(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) = {}
 around open_connection(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
-##    call show_current_time_debug_event(time_api.c_timer.now_millis_last_bp);
+    call show_current_time_debug_event(time_api.c_timer.now_millis_last_bp);
     # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-##    call show_current_time_debug_event(time_api.c_timer.now_millis_last_bp);
+    call show_current_time_debug_event(time_api.c_timer.now_millis_last_bp);
    
     # if _generating  {
     #     require ~need_sent_ack_eliciting_application_packet & ~need_sent_ack_eliciting_handshake_packet & ~need_sent_ack_eliciting_initial_packet;
@@ -159,23 +159,25 @@ around open_connection(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     var dcid := pkt.dst_cid;
     var scid := pkt.src_cid;
 
-##    call show_num_ack_eliciting_pkt_debug_event(num_ack_eliciting_pkt);
-##    call show_num_ack_pkt_debug_event(num_ack_pkt);
+    require dcid ~= scid;
+
+    call show_num_ack_eliciting_pkt_debug_event(num_ack_eliciting_pkt);
+    call show_num_ack_pkt_debug_event(num_ack_pkt);
 
     
-##    # call show_num_ack_eliciting_pkt_debug_event(num_ack_eliciting_pkt(scid));
-##    # call show_num_ack_pkt_debug_event(num_ack_pkt(scid));
+    # call show_num_ack_eliciting_pkt_debug_event(num_ack_eliciting_pkt(scid));
+    # call show_num_ack_pkt_debug_event(num_ack_pkt(scid));
     
     if cid_mapped(dcid) {
 	    dcid := cid_to_aid(dcid);
     };
     idle_timeout(dcid) := time_api.c_timer.now_micros_last_bp;
     
-##    call show_current_idle_timeout_debug_event(idle_timeout(dcid));
-##    call show_current_idle_timeout_debug_event(idle_timeout(scid));
+    call show_current_idle_timeout_debug_event(idle_timeout(dcid));
+    call show_current_idle_timeout_debug_event(idle_timeout(scid));
 
     is_retransmitted(pkt.payload) := is_retransmitted(pkt.payload) + 1;
-##    call show_is_retransmitted_debug_event(seqnum_to_streampos(pkt.seq_num),is_retransmitted(pkt.payload));
+    call show_is_retransmitted_debug_event(seqnum_to_streampos(pkt.seq_num),is_retransmitted(pkt.payload));
     
     if max_idle_timeout_used > 0 {
         if idle_timeout(dcid) > max_idle_timeout_used  {
@@ -287,8 +289,8 @@ around open_connection(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
         };
     } 
     else {
-##        call show_queued_frames_debug_event(scid,queued_frames(scid));
-##        call is_generating_debug_event(_generating);
+        call show_queued_frames_debug_event(scid,queued_frames(scid));
+        call is_generating_debug_event(_generating);
         call show_pkt_num(pkt.seq_num);
         require pkt.payload = queued_frames(scid);
     };
@@ -333,7 +335,7 @@ around open_connection(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     # require current_connection_id = last_connection_id;
     require number_of_open_connection(dst) < threshold_number_of_open_connection(dst);
     ...
-##    call show_current_time_debug_event(time_api.c_timer.now_millis_last_bp);
+    call show_current_time_debug_event(time_api.c_timer.now_millis_last_bp);
    # Here, we have the updates to the packet protocol state.
 
     # TEMPORARY: The following are repeated because currently locals defined in
@@ -439,12 +441,12 @@ around open_connection(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
 
 action open_zrtt_connection(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) = {}
 around open_zrtt_connection(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
-##    call show_current_time_debug_event(time_api.c_timer.now_millis_last_bp);
+    call show_current_time_debug_event(time_api.c_timer.now_millis_last_bp);
     require pkt.ptype = quic_packet_type.zero_rtt;
     var dcid := pkt.dst_cid;
     var scid := pkt.src_cid;
     ...
-##    call show_current_time_debug_event(time_api.c_timer.now_millis_last_bp);
+    call show_current_time_debug_event(time_api.c_timer.now_millis_last_bp);
     var dcid := pkt.dst_cid;
     var scid := pkt.src_cid;
     # The queued frames are deleted
@@ -461,7 +463,7 @@ around open_zrtt_connection(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_pack
 action malicious_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) = {}
 around malicious_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-##    call show_current_time_debug_event(time_api.c_timer.now_millis_last_bp);
+    call show_current_time_debug_event(time_api.c_timer.now_millis_last_bp);
    
     # if _generating  {
     #     require ~need_sent_ack_eliciting_application_packet & ~need_sent_ack_eliciting_handshake_packet & ~need_sent_ack_eliciting_initial_packet;
@@ -473,22 +475,22 @@ around malicious_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_pa
     var dcid := pkt.dst_cid;
     var scid := pkt.src_cid;
 
-##    call show_num_ack_eliciting_pkt_debug_event(num_ack_eliciting_pkt);
-##    call show_num_ack_pkt_debug_event(num_ack_pkt);
+    call show_num_ack_eliciting_pkt_debug_event(num_ack_eliciting_pkt);
+    call show_num_ack_pkt_debug_event(num_ack_pkt);
 
-##    # call show_num_ack_eliciting_pkt_debug_event(num_ack_eliciting_pkt(scid));
-##    # call show_num_ack_pkt_debug_event(num_ack_pkt(scid));
+    # call show_num_ack_eliciting_pkt_debug_event(num_ack_eliciting_pkt(scid));
+    # call show_num_ack_pkt_debug_event(num_ack_pkt(scid));
     
     if cid_mapped(dcid) {
 	    dcid := cid_to_aid(dcid);
     };
     idle_timeout(dcid) := time_api.c_timer.now_micros_last_bp;
     
-##    call show_current_idle_timeout_debug_event(idle_timeout(dcid));
-##    call show_current_idle_timeout_debug_event(idle_timeout(scid));
+    call show_current_idle_timeout_debug_event(idle_timeout(dcid));
+    call show_current_idle_timeout_debug_event(idle_timeout(scid));
 
     is_retransmitted(pkt.payload) := is_retransmitted(pkt.payload) + 1;
-##    call show_is_retransmitted_debug_event(seqnum_to_streampos(pkt.seq_num),is_retransmitted(pkt.payload));
+    call show_is_retransmitted_debug_event(seqnum_to_streampos(pkt.seq_num),is_retransmitted(pkt.payload));
     
     if max_idle_timeout_used > 0 {
         if idle_timeout(dcid) > max_idle_timeout_used  {
@@ -601,8 +603,8 @@ around malicious_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_pa
         };
     } 
     else {
-##        call show_queued_frames_debug_event(scid,queued_frames(scid));
-##        call is_generating_debug_event(_generating);
+        call show_queued_frames_debug_event(scid,queued_frames(scid));
+        call is_generating_debug_event(_generating);
         call show_pkt_num(pkt.seq_num);
         require pkt.payload = queued_frames(scid);
     };
@@ -667,6 +669,11 @@ around malicious_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_pa
         if ~conn_seen(dcid)  {
             if ~zero_rtt_sent {
                 call show_initial_request_initial;
+                cid_map_tls_id(scid) := current_connection_id;
+                cid_map_ep(scid)     := client.ep;
+                cid_map_sock(scid)   := sock;
+                tls_id_map_cid(current_connection_id) := scid;
+                tls_id_map_ep(current_connection_id) := client.ep;
                 call tls_client_initial_request(src,dst,dcid,pkt.pversion,src_tls_id(src));
             };
             conn_requested(src,dst,scid) := true;
