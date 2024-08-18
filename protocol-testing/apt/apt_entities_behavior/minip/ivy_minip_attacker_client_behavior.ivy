@@ -21,58 +21,6 @@ action endpoint_to_socket_mim(src:ip.endpoint) returns (socket:quic_net.socket) 
 }
 
 
-action endpoint_to_pid(src:ip.endpoint) returns (pid:endpoint_id) = {
-    if src = client.ep {
-        pid := endpoint_id.client;
-    } 
-}
-
-action socket_endpoint(host:endpoint_id,s:quic_net.socket) returns (src:ip.endpoint) = {
-    src := client.ep
-}
-
-action endpoint_to_socket(src:ip.endpoint) returns (socket:quic_net.socket) = {
-    if src = client.ep {
-        socket := sock;
-    } 
-}
-
-action tls_id_to_src(tls_id:tls_api.id) returns (src:ip.endpoint) = {
-    src := client.ep if tls_id = client.tls_id  else server.ep;
-}
-
-action tls_id_to_dst(tls_id:tls_api.id) returns (dst:ip.endpoint) = {
-    dst := server.ep if tls_id = client.tls_id else client.ep;
-}
-
-action dst_is_generated(dst:ip.endpoint) returns (res:bool) = {
-    res := dst = client.ep;
-}
-
-action dst_tls_id(dst:ip.endpoint) returns (tls_id:tls_api.id) = {
-    tls_id := client.tls_id;
-}
-
-action src_tls_id(src:ip.endpoint) returns (tls_id:tls_api.id) = {
-    tls_id := client.tls_id;
-}
-
-action tls_id_to_cid(tls_id:tls_api.id) returns (scid:cid) = {
-    scid := the_cid;
-}
-
-action dst_is_generated_tls(dst:ip.endpoint) returns (res:bool) = {
-    res := dst = client.ep; # | dst = client_alt | dst = client_vn
-}
-
-# --------------------------------------------------------------------------
-
-var http_request : stream_data
-instance http_request_file : binary_input_file_ping(stream_data,cid)
-
-after init {
-    http_request := http_request_file.read;
-}
 
 action ping_packet_event_malicious(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) = {}
 
@@ -82,7 +30,6 @@ around ping_packet_event_malicious(src:ip.endpoint,dst:ip.endpoint,pkt:packet.pi
     require num_queued_ping_frames(dst) >= 1;
     require pkt.payload = queued_ping_frames(dst);
     ...
-
     queued_ping_frames(dst)     := ping_frame.arr.empty;
     num_queued_ping_frames(dst) := 0;
 }

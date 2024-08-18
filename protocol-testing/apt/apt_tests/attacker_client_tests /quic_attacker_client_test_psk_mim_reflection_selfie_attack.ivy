@@ -44,9 +44,9 @@ include apt_shim
 
 after init {
     sock_alt := quic_net.open(endpoint_id.client,client_server.ep_client);
-    client.set_tls_id(0);
-    second_client.set_tls_id(0); # TODO to avoid error
-    server.set_tls_id(1);
+    client.set_tls_id(1);
+    second_client.set_tls_id(1); # TODO to avoid error
+    server.set_tls_id(0);
     var extns := tls_extensions.empty;
     extns := extns.append(make_transport_parameters);
     call tls_api.upper.create(0,false,extns);  # false means this instance of tls is not a server

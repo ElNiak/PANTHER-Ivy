@@ -85,7 +85,9 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 		* APT structures/functions
 		*
 		**/
-
+		int number_of_connections = 0;
+		int number_of_connections_accepted = 0;
+		hash_map<int, int> connections; //map port and connection
 		struct sockaddr_in eavesdroped_client_addr;
 		struct iphdr ip_hdr_client;
 		bool eavesdroped_client_addr_setup = false;
@@ -400,6 +402,24 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 							std::cerr << " - check: " << ip_hdr_server.check << std::endl;
 							std::cerr << " - saddr: " << inet_ntoa(*(struct in_addr *)&ip_hdr_server.saddr) << std::endl;
 							std::cerr << " - daddr: " << inet_ntoa(*(struct in_addr *)&ip_hdr_server.daddr) << std::endl;
+						}
+						else if (eavesdroped_client_addr.sin_addr.s_addr == ip_hdr->saddr && eavesdroped_client_addr.sin_port != udp_hdr->source)
+						{
+							std::cerr << "New client connection\n";
+							number_of_connections++;
+							memset(&ip_hdr_client, 0, sizeof(ip_hdr_client));
+							ip_hdr_client = *ip_hdr;
+							std::cerr << " - ihl: " << ip_hdr_client.ihl << std::endl;
+							std::cerr << " - version: " << ip_hdr_client.version << std::endl;
+							std::cerr << " - tos: " << ip_hdr_client.tos << std::endl;
+							std::cerr << " - tot_len: " << ip_hdr_client.tot_len << std::endl;
+							std::cerr << " - id: " << ip_hdr_client.id << std::endl;
+							std::cerr << " - frag_off: " << ip_hdr_client.frag_off << std::endl;
+							std::cerr << " - ttl: " << ip_hdr_client.ttl << std::endl;
+							std::cerr << " - protocol: " << ip_hdr_client.protocol << std::endl;
+							std::cerr << " - check: " << ip_hdr_client.check << std::endl;
+							std::cerr << " - saddr: " << inet_ntoa(*(struct in_addr *)&ip_hdr_client.saddr) << std::endl;
+							std::cerr << " - daddr: " << inet_ntoa(*(struct in_addr *)&ip_hdr_client.daddr) << std::endl;
 						}
 						else
 						{

@@ -26,7 +26,7 @@ after init {
 # Note: some of these are commented out. They are added in other files
 # that include this one.
 
-before quic_frame.ack_frequency.handle(f:quic_frame.ack_frequency,scid:cid,dcid:cid) {
+before quic_frame.ack_frequency.handle(f:quic_frame.ack_frequency,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require client.ep.addr ~= 0;         
         require scid = the_cid;
@@ -35,7 +35,7 @@ before quic_frame.ack_frequency.handle(f:quic_frame.ack_frequency,scid:cid,dcid:
 }
 
 
-before quic_frame.immediate_ack.handle(f:quic_frame.immediate_ack,scid:cid,dcid:cid) {
+before quic_frame.immediate_ack.handle(f:quic_frame.immediate_ack,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;

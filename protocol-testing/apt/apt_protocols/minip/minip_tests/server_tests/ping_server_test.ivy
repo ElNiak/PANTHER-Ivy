@@ -11,8 +11,8 @@ after init {
 
 after init {
     sock := quic_net.open(endpoint_id.client,client.ep);
-    client.set_tls_id(0);
-    server.set_tls_id(1);
+    client.set_tls_id(1);
+    server.set_tls_id(0);
 }
 
 # export ping_event

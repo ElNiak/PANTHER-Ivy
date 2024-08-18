@@ -356,11 +356,11 @@ after init {
 #   transport parameter is included with a zero-length value.
 
 import action show_is_sleep_fake_timeon_dataout(is_sleep_fake_timeout:bool)
-import action show_queued_frames_debug_event(scid:cid,queued_frames:quic_frame.arr)
+##import action show_queued_frames_debug_event(scid:cid,queued_frames:quic_frame.arr)
 
 around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
-    call show_current_time_debug_event(time_api.c_timer.now_millis_last_bp);
+##    call show_current_time_debug_event(time_api.c_timer.now_millis_last_bp);
     if ~_generating {
         dst_endpoint := dst;
     } else {
@@ -379,11 +379,11 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     var dcid := pkt.dst_cid;
     var scid := pkt.src_cid;
 
-    call show_num_ack_eliciting_pkt_debug_event(num_ack_eliciting_pkt);
-    call show_num_ack_pkt_debug_event(num_ack_pkt);
+##    call show_num_ack_eliciting_pkt_debug_event(num_ack_eliciting_pkt);
+##    call show_num_ack_pkt_debug_event(num_ack_pkt);
 
-    # call show_num_ack_eliciting_pkt_debug_event(num_ack_eliciting_pkt(scid));
-    # call show_num_ack_pkt_debug_event(num_ack_pkt(scid));
+##    # call show_num_ack_eliciting_pkt_debug_event(num_ack_eliciting_pkt(scid));
+##    # call show_num_ack_pkt_debug_event(num_ack_pkt(scid));
     
     if cid_mapped(dcid) {
 	    dcid := cid_to_aid(dcid);
@@ -391,11 +391,11 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     #require (~is_not_sleeping -> (num_queued_frames(scid) = 0)); # & ~_generating));
     idle_timeout(dcid) := time_api.c_timer.now_micros_last_bp;
     
-    call show_current_idle_timeout_debug_event(idle_timeout(dcid));
-    call show_current_idle_timeout_debug_event(idle_timeout(scid));
+##    call show_current_idle_timeout_debug_event(idle_timeout(dcid));
+##    call show_current_idle_timeout_debug_event(idle_timeout(scid));
 
     is_retransmitted(pkt.payload) := is_retransmitted(pkt.payload) + 1;
-    call show_is_retransmitted_debug_event(seqnum_to_streampos(pkt.seq_num),is_retransmitted(pkt.payload));
+##    call show_is_retransmitted_debug_event(seqnum_to_streampos(pkt.seq_num),is_retransmitted(pkt.payload));
     
     if max_idle_timeout_used > 0 {
         if idle_timeout(dcid) > max_idle_timeout_used  {
@@ -532,8 +532,8 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
         };
     } 
     else {
-        call show_queued_frames_debug_event(scid,queued_frames(scid));
-        call is_generating_debug_event(_generating);
+##        call show_queued_frames_debug_event(scid,queued_frames(scid));
+##        call is_generating_debug_event(_generating);
         call show_pkt_num(pkt.seq_num);
         require pkt.payload = queued_frames(scid);
     };
@@ -598,11 +598,14 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
         if ~conn_seen(dcid)  {
             if ~zero_rtt_sent {
                 call show_initial_request_initial;
-                cid_map_tls_id(scid) := src_tls_id(src);
-                cid_map_ep(scid)     := client.ep;
-                cid_map_sock(scid)   := sock;
-                tls_id_map_cid(current_connection_id) := scid;
-                tls_id_map_ep(current_connection_id) := client.ep;
+                # cid_map_tls_id(scid) := current_connection_id;
+                # ep_map_tls_id(src)   := current_connection_id;
+                # ep_map_cid(src)      := scid;
+                # cid_map_ep(scid)     := src;
+                # cid_map_sock(scid)   := sock;
+                # tls_id_map_cid(current_connection_id) := scid;
+                # tls_id_map_ep(current_connection_id)  := src;
+                # other_tls_id_map_ep(current_connection_id) := dst;
                 call tls_client_initial_request(src,dst,dcid,pkt.pversion,src_tls_id(src));
             };
             conn_requested(src,dst,scid) := true;
@@ -687,6 +690,7 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     num_queued_frames(scid) := 0;
 #Hamid
     queued_ack_eliciting(scid) := false;
+    new_connection_id_frame_pending(scid) := false;
 #Hamid
 }
 
@@ -853,11 +857,14 @@ around send_ack_eliciting_handshake_packet(src:ip.endpoint,dst:ip.endpoint,pkt:p
         if ~conn_seen(dcid)  {
             if ~zero_rtt_sent {
                 call show_initial_request_initial;
-                cid_map_tls_id(scid) := src_tls_id(src);
-                cid_map_ep(scid)     := client.ep;
-                cid_map_sock(scid)   := sock;
-                tls_id_map_cid(current_connection_id) := scid;
-                tls_id_map_ep(current_connection_id) := client.ep;
+                # cid_map_tls_id(scid) := current_connection_id;
+                # ep_map_tls_id(src)   := current_connection_id;
+                # ep_map_cid(src)      := scid;
+                # cid_map_ep(scid)     := src;
+                # cid_map_sock(scid)   := sock;
+                # tls_id_map_cid(current_connection_id) := scid;
+                # tls_id_map_ep(current_connection_id)  := src;
+                # other_tls_id_map_ep(current_connection_id) := dst;
                 call tls_client_initial_request(src,dst,dcid,pkt.pversion,src_tls_id(src));
             };
             conn_requested(src,dst,scid) := true;
@@ -1426,7 +1433,7 @@ around send_ack_eliciting_initial_packet(src:ip.endpoint,dst:ip.endpoint,pkt:pac
 
 
 import action show_initial_request_initial
-import action show_is_retransmitted_debug_event(p:stream_pos, c_time:pkt_num)
+##import action show_is_retransmitted_debug_event(p:stream_pos, c_time:pkt_num)
 import action respect_idle_timeout_none
 
 # Procedures
@@ -1645,7 +1652,7 @@ action handle_client_transport_parameters(src:ip.endpoint,dst:ip.endpoint,scid:c
 
 import action show_enc_level(e:quic_packet_type)
 import action max_idle_timeout_update(e:microseconds)
-import action show_current_idle_timeout_debug_event(e:microseconds)
+##import action show_current_idle_timeout_debug_event(e:microseconds)
 import action show_probe_idle_timeout(e:microseconds)
 import action show_probing_time(e:microseconds)
 import action show_max_ack_delay(e:microseconds)

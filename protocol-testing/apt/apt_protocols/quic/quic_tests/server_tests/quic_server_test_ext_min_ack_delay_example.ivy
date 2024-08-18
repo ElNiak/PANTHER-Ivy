@@ -26,9 +26,9 @@ after init {
     sock := quic_net.open(endpoint_id.client,client.ep);
     sock_alt := quic_net.open(endpoint_id.client_alt,client_alt);
     sock_vn := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
-    client.set_tls_id(0);
-    second_client.set_tls_id(0); # TODO to avoid error
-    server.set_tls_id(1);
+    client.set_tls_id(1);
+    second_client.set_tls_id(1); # TODO to avoid error
+    server.set_tls_id(0);
     var extns := tls_extensions.empty;
     extns := extns.append(make_transport_parameters);
     call tls_api.upper.create(0,false,extns);  # false means this instance of tls is not a server
@@ -40,7 +40,7 @@ after init {
 # Note: some of these are commented out. They are added in other files
 # that include this one.
 
-before quic_frame.ack_frequency.handle(f:quic_frame.ack_frequency,scid:cid,dcid:cid) {
+before quic_frame.ack_frequency.handle(f:quic_frame.ack_frequency,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require client.ep.addr ~= 0;         
         require scid = the_cid;
@@ -49,7 +49,7 @@ before quic_frame.ack_frequency.handle(f:quic_frame.ack_frequency,scid:cid,dcid:
 }
 
 
-before quic_frame.immediate_ack.handle(f:quic_frame.immediate_ack,scid:cid,dcid:cid) {
+before quic_frame.immediate_ack.handle(f:quic_frame.immediate_ack,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;

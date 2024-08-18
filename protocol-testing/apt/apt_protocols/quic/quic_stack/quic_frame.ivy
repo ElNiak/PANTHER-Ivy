@@ -368,7 +368,7 @@ object quic_frame = {
 
 object quic_frame = {
     ...
-    action handle(f:this,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num) = {
+    action handle(f:this,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) = {
         # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
         # require (~is_not_sleeping -> ~_generating);
         # require (_generating -> is_not_sleeping);
@@ -530,8 +530,8 @@ function num_ack_eliciting_pkt : stream_pos
 function num_ack_pkt : stream_pos
 
 
-import action show_num_ack_eliciting_pkt_debug_event(s:stream_pos)
-import action show_num_ack_pkt_debug_event(s:stream_pos)
+##import action show_num_ack_eliciting_pkt_debug_event(s:stream_pos)
+##import action show_num_ack_pkt_debug_event(s:stream_pos)
 #Hamid
 
 #chris
@@ -644,6 +644,13 @@ after init {
 #chris
 }
 
+relation new_connection_id_frame_pending(C:cid)
+
+after init {
+    new_connection_id_frame_pending(C) := false;
+}
+
+
 
 ###### ACK event
 
@@ -679,16 +686,16 @@ after init {
 
 var force_new_ack : bool
 
-import action is_generating_debug_event(b:bool)
+##import action is_generating_debug_event(b:bool)
 import action is_ack_frequency_respected(b:bool)
 object quic_frame = {
     ...
     object ack = {
         ...
-        action handle(f:quic_frame.ack,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.ack,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 
 	around handle {
-            #call is_generating_debug_event(_generating);
+##            #call is_generating_debug_event(_generating);
             # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
             # require (~is_not_sleeping -> ~_generating);
             # require (_generating -> is_not_sleeping);
@@ -768,7 +775,7 @@ object quic_frame = {
                         if ~acked_pkt(dcid,e,jdx) {
                             #if ack_eliciting_threshold_current_val(dcid) >= ack_eliciting_threshold_val(dcid) {
                                 some_new_ack := true;
-                                call show_ack_generated_debug_event;
+##                                call show_ack_generated_debug_event;
                                 ack_eliciting_threshold_current_val(dcid) := 0;
                             #};
                         };
@@ -789,7 +796,7 @@ object quic_frame = {
                 # f.ack_delay := local_ack_delay;
                 # require local_ack_delay <= local_max_ack_delay_tp;
                 # call show_local_delay_ack(local_ack_delay,local_max_ack_delay_tp);
-                call show_ack_generated_debug_event;
+##                call show_ack_generated_debug_event;
             } 
 	    ...
             if ~_generating {
@@ -805,7 +812,7 @@ object quic_frame = {
 }
 
 import action show_local_delay_ack(val:microseconds, val2:microseconds)
-import action show_ack_generated_debug_event
+##import action show_ack_generated_debug_event
 import action show_ack_eliciting_threshold_current_val(val:stream_pos)
 import action show_ack_eliciting_threshold_val(val:stream_pos)
 
@@ -813,7 +820,7 @@ object quic_frame = {
     ...
     object ack_ecn = {
         ...
-        action handle(f:quic_frame.ack_ecn,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.ack_ecn,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 
 	around handle {
             require connected(dcid) & connected_to(dcid) = scid;
@@ -916,7 +923,7 @@ object quic_frame = { # TODO cleanup
     ...
     object stream = {
         ...
-        action handle(f:quic_frame.stream,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.stream,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 
 	around handle {
             # if  e = quic_packet_type.one_rtt { #  & established_0rtt_keys(scid)
@@ -1037,7 +1044,7 @@ object quic_frame = {
     ...
     object crypto = {
         ...
-        action handle(f:quic_frame.crypto,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.crypto,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 
 	around handle {
 	        #if ~scid=0 {
@@ -1106,7 +1113,7 @@ import action show_crypto_length(pkt:stream_pos)
 
 object quic_frame = { ...
     object rst_stream = { ...
-        action handle(f:quic_frame.rst_stream,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.rst_stream,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 
 	around handle {
             require connected(dcid) & connected_to(dcid) = scid;
@@ -1158,7 +1165,7 @@ object quic_frame = { ...
 
 object quic_frame = { ...
     object stop_sending = { ...
-        action handle(f:quic_frame.stop_sending,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.stop_sending,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 
 	around handle {# is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
             # require (_generating  -> is_not_sleeping);
@@ -1221,7 +1228,7 @@ object quic_frame = { ...
 
 object quic_frame = { ...
     object max_streams = { ...
-        action handle(f:quic_frame.max_streams,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.max_streams,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 
 	around handle {# is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
             # require (_generating  -> is_not_sleeping);
@@ -1257,7 +1264,7 @@ object quic_frame = { ...
 
 object quic_frame = { ...
     object max_streams_bidi = { ...
-        action handle(f:quic_frame.max_streams_bidi,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.max_streams_bidi,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 
 	around handle {# is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
             # require (_generating  -> is_not_sleeping);
@@ -1326,7 +1333,7 @@ object quic_frame = { ...
 
 object quic_frame = { ...
     object connection_close = { ...
-        action handle(f:quic_frame.connection_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.connection_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 	around handle{
             
             require connected(dcid) & connected_to(dcid) = scid;
@@ -1388,7 +1395,7 @@ object quic_frame = { ...
 
 object quic_frame = { ...
     object application_close = { ...
-        action handle(f:quic_frame.application_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.application_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 	around handle{
             
             require connected(dcid) & connected_to(dcid) = scid;
@@ -1434,7 +1441,7 @@ object quic_frame = { ...
 
 object quic_frame = { ...
     object max_stream_data = { ...
-        action handle(f:quic_frame.max_stream_data,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.max_stream_data,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 	around handle {
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
@@ -1473,7 +1480,7 @@ object quic_frame = { ...
 
 object quic_frame = { ...
     object stream_data_blocked = { ...
-        action handle(f:quic_frame.stream_data_blocked,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.stream_data_blocked,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 	around handle {
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
@@ -1503,7 +1510,7 @@ object quic_frame = { ...
 
 object quic_frame = { ...
     object data_blocked = { ...
-        action handle(f:quic_frame.data_blocked,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.data_blocked,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 	around handle {
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
@@ -1539,7 +1546,7 @@ object quic_frame = { ...
 
 object quic_frame = { ...
     object streams_blocked = { ...
-        action handle(f:quic_frame.streams_blocked,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.streams_blocked,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 	around handle {
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
@@ -1558,7 +1565,7 @@ object quic_frame = { ...
 
 object quic_frame = { ...
     object streams_blocked_bidi = { ...
-        action handle(f:quic_frame.streams_blocked_bidi,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.streams_blocked_bidi,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 	around handle {
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
@@ -1593,7 +1600,7 @@ object quic_frame = { ...
 
 object quic_frame = { ...
     object max_data = { ...
-        action handle(f:quic_frame.max_data,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.max_data,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 	around handle {
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
@@ -1620,7 +1627,7 @@ object quic_frame = { ...
 
 object quic_frame = { ...
     object ping = { ...
-        action handle(f:quic_frame.ping,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.ping,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 	around handle {
             require e = quic_packet_type.handshake -> established_handshake_keys(scid);
             require e = quic_packet_type.one_rtt -> established_1rtt_keys(scid);
@@ -1657,7 +1664,7 @@ object quic_frame = { ...
 
 object quic_frame = { ...
     object unknown_frame = { ...
-        action handle(f:quic_frame.unknown_frame,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.unknown_frame,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 	around handle {
             require connected(dcid) & connected_to(dcid) = scid;
             require num_queued_frames(scid) > 0 -> e = queued_level(scid);
@@ -1681,7 +1688,7 @@ object quic_frame = { ...
 
 #object quic_frame = { ...
 #    object padding = { ...
-#        action handle(f:quic_frame.padding,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+#        action handle(f:quic_frame.padding,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 #	after handle {
 #            call enqueue_frame(scid,f,e,true,seq_num);
 #        }
@@ -1697,7 +1704,7 @@ object quic_frame = { ...
 
 object quic_frame = { ...
     object handshake_done = { ...
-        action handle(f:quic_frame.handshake_done,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.handshake_done,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 	around handle { 
             
             require connected(dcid) & connected_to(dcid) = scid;
@@ -1749,7 +1756,7 @@ object quic_frame = { ...
 
 object quic_frame = { ...
     object new_connection_id = { ...
-        action handle(f:quic_frame.new_connection_id,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.new_connection_id,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 	around handle {
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
@@ -1817,7 +1824,7 @@ object quic_frame = { ...
 #    connection error of type PROTOCOL_VIOLATION. [3] TODO
 object quic_frame = { ...
     object retire_connection_id = { ...
-        action handle(f:quic_frame.retire_connection_id,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.retire_connection_id,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 	    around handle {require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
             # Will change with implementing TODO
@@ -1861,7 +1868,7 @@ object quic_frame = { ...
 
 object quic_frame = { ...
     object path_challenge = { ...
-        action handle(f:quic_frame.path_challenge,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.path_challenge,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 	around handle {require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
             require handshake_done_recv | handshake_done_send;
@@ -1888,7 +1895,7 @@ object quic_frame = { ...
 
 object quic_frame = { ...
     object path_response = { ...
-        action handle(f:quic_frame.path_response,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.path_response,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 	around handle { 
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
@@ -1915,7 +1922,7 @@ object quic_frame = { ...
 
 object quic_frame = { ...
     object new_token = { ...
-        action handle(f:quic_frame.new_token,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
+        action handle(f:quic_frame.new_token,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 	around handle {
             # TODO for now we save token in clinet & server
             require connected(dcid) & connected_to(dcid) = scid;

@@ -39,11 +39,19 @@ after init {
     sock := quic_net.open(endpoint_id.client,client.ep);
     sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
     sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
-    client.set_tls_id(0);
-    server.set_tls_id(1);
+    client.set_tls_id(1);
+    tls_id_map_ep(client.tls_id) := client.ep;
+    other_tls_id_map_ep(client.tls_id) := server.ep;
+    ep_map_tls_id(client.ep) := client.tls_id;
+    ep_map_cid(client.ep) := the_cid;
+    server.set_tls_id(0);
+    tls_id_map_ep(server.tls_id) := server.ep;
+    other_tls_id_map_ep(server.tls_id) := client.ep;
+    ep_map_tls_id(server.ep) := server.tls_id;
+    ep_map_cid(server.ep) := the_cid;
     var extns := tls_extensions.empty;
     extns := extns.append(make_transport_parameters);
-    call tls_api.upper.create(client.tls_id,false,extns);  # false means this instance of tls is not a server
+    call tls_api.upper.create(client.tls_id,false,extns); # false means this instance of tls is not a server
 }
 
 after init {
@@ -78,7 +86,7 @@ after init {
 #     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
 # };
 # https://github.com/private-octopus/picoquic/issues/969
-before quic_frame.stream.handle(f:quic_frame.stream,scid:cid,dcid:cid,e:quic_packet_type) {
+before quic_frame.stream.handle(f:quic_frame.stream,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require scid = the_cid;
         require connected(the_cid) & dcid = connected_to(the_cid);
@@ -92,7 +100,7 @@ before quic_frame.stream.handle(f:quic_frame.stream,scid:cid,dcid:cid,e:quic_pac
 }
 
 
-before quic_frame.new_token.handle_maliciously(f:quic_frame.new_token,scid:cid,dcid:cid) {
+before quic_frame.new_token.handle_maliciously(f:quic_frame.new_token,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require scid = the_cid;
         #call handle_sending_ack(f.largest_acked);

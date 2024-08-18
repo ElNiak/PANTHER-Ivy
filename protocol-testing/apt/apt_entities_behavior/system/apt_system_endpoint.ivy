@@ -112,7 +112,8 @@ object endpoint = {
             
             individual ep_client : ip.endpoint
             individual ep_server : ip.endpoint
-            individual ep_target : ip.endpoint
+            individual ep_target_server : ip.endpoint
+            individual ep_target_client : ip.endpoint
 
             individual tls_id : tls_api.id
 
@@ -252,7 +253,7 @@ object endpoint = {
                             rppkt.seq_num := net_prot.correct_pnum(rnum,rppkt.seq_num,net_prot.get_pnum_len(res.data));
 
                             if already_forwarded(src,dst,rppkt) {
-                                call arp_duplicated_quic_packet_debug_event(src,dst,rppkt);
+##                                call arp_duplicated_quic_packet_debug_event(src,dst,rppkt);
                             } else {
                                 call recv_packet(host,src,dst,rppkt);
                                 call infer_tls_events(src,dst,rppkt);   # infer any TLS events on server side
@@ -285,7 +286,7 @@ object endpoint = {
                                     # TODO problem for decryption of pnum len
                                     var rppkt := quic_encrypted_packet_serdes.from_bytes(ppkt);
                                     if already_forwarded(src,dst,rppkt) {
-                                        call arp_duplicated_encrypted_packet_debug_event(src,dst,rppkt);
+##                                        call arp_duplicated_encrypted_packet_debug_event(src,dst,rppkt);
                                     } else {
                                         to_forward := true;
                                         call recv_encrypted_packet(host,src,dst,rppkt);
@@ -301,7 +302,7 @@ object endpoint = {
                                 to_forward := true;
                                 var rppkt := quic_encrypted_short_packet_serdes.from_bytes(ppkt);
                                 if already_forwarded(src,dst,rppkt) {
-                                    call arp_duplicated_encrypted_short_quic_packet_debug_event(src,dst,rppkt);
+##                                    call arp_duplicated_encrypted_short_quic_packet_debug_event(src,dst,rppkt);
                                 } else {
                                     call recv_encrypted_short_packet(src,dst,rppkt);
                                     if forward_packets {
@@ -722,9 +723,9 @@ object endpoint = {
             import action client_target_setup_event(src:ip.endpoint)
             import action recv_encrypted_short_packet(src:ip.endpoint, dst:ip.endpoint, pkt:packet.encrypted_short_quic_packet)
             import action recv_random_padding_or_short_packet_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.random_padding_encrypted_quic_packet)
-            import action arp_duplicated_encrypted_packet_debug_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.encrypted_quic_packet)
-            import action arp_duplicated_quic_packet_debug_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.quic_packet)
-            import action arp_duplicated_encrypted_short_quic_packet_debug_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.encrypted_short_quic_packet)
+##            import action arp_duplicated_encrypted_packet_debug_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.encrypted_quic_packet)
+##            import action arp_duplicated_quic_packet_debug_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.quic_packet)
+##            import action arp_duplicated_encrypted_short_quic_packet_debug_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.encrypted_short_quic_packet)
             import action recv_packet(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
             import action recv_encrypted_packet(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet)
         }
@@ -742,7 +743,8 @@ object endpoint = {
             #variant endpoint of client_attacker_endpoint = struct { }
             individual ep        : ip.endpoint
             individual ep_server : ip.endpoint
-            individual ep_target : ip.endpoint
+            individual ep_target_server : ip.endpoint
+            individual ep_target_client : ip.endpoint
 
             individual tls_id : tls_api.id
 
@@ -918,7 +920,7 @@ object endpoint = {
             #variant endpoint of client_attacker_endpoint = struct { }
             individual ep        : ip.endpoint
             individual ep_server : ip.endpoint
-            individual ep_target : ip.endpoint
+            individual ep_target_server : ip.endpoint
 
             individual tls_id : tls_api.id
 

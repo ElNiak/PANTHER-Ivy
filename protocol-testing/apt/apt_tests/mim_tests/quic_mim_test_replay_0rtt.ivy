@@ -20,8 +20,9 @@ include ivy_quic_client_standard_tp
 after init {
     is_mim_standalone := true;
     hijack_tls        := false;
-    call mim_agent.configure_NAT_attack(client_addr,server_addr);
-    call mim_agent.configure_NAT_attack(server_addr,client_addr);
+    spoof_client_ip   := false;
+    # call mim_agent.configure_NAT_attack(client_addr,server_addr);
+    # call mim_agent.configure_NAT_attack(server_addr,client_addr);
 }
 
 after init {
@@ -173,6 +174,8 @@ export packet.quic_packet.replay_to_server
 import action show_last_cppkt_forwarded_to_client_debug_event(x:stream_pos)
 import action show_last_cppkt_forwarded_to_server_debug_event(x:stream_pos)
 
+# TODO
+# Faire en sorte que le spoofing se passe quand le deuximee connection est initié -> port change
 
 object packet = {
     ...

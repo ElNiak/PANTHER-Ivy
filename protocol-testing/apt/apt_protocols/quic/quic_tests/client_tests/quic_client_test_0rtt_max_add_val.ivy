@@ -27,7 +27,7 @@ include ivy_quic_server_0rtt_tp
 
 # Generate max_streams frames only for the client.
 
-before quic_frame.max_streams_bidi.handle(f:quic_frame.max_streams_bidi,scid:cid,dcid:cid) {
+before quic_frame.max_streams_bidi.handle(f:quic_frame.max_streams_bidi,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;
@@ -37,7 +37,7 @@ before quic_frame.max_streams_bidi.handle(f:quic_frame.max_streams_bidi,scid:cid
 
 # Generate connection_close frames only for the client.
 
-before quic_frame.connection_close.handle(f:quic_frame.connection_close,scid:cid,dcid:cid) {
+before quic_frame.connection_close.handle(f:quic_frame.connection_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require conn_total_data(the_cid) > 30; # tricks
         require last_pkt_num(the_cid,quic_packet_type.one_rtt) > 5;
@@ -54,7 +54,7 @@ before quic_frame.connection_close.handle(f:quic_frame.connection_close,scid:cid
 
 # Generate connection_close frames only for the client.
 
-before quic_frame.application_close.handle(f:quic_frame.application_close,scid:cid,dcid:cid,e:quic_packet_type) {
+before quic_frame.application_close.handle(f:quic_frame.application_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require conn_total_data(the_cid) > 30; # tricks
         require last_pkt_num(the_cid,quic_packet_type.one_rtt) > 5;
@@ -71,25 +71,25 @@ before quic_frame.application_close.handle(f:quic_frame.application_close,scid:c
 }
 
 
-before quic_frame.max_stream_data.handle(f:quic_frame.max_stream_data,scid:cid,dcid:cid,e:quic_packet_type) {
+before quic_frame.max_stream_data.handle(f:quic_frame.max_stream_data,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require f.pos = 32 | f.pos = 16;
     }
 }
 
-before quic_frame.stream_data_blocked.handle(f:quic_frame.stream_data_blocked,scid:cid,dcid:cid,e:quic_packet_type) {
+before quic_frame.stream_data_blocked.handle(f:quic_frame.stream_data_blocked,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require f.pos > 32;
     }
 }
 
-before quic_frame.max_data.handle(f:quic_frame.max_data,scid:cid,dcid:cid,e:quic_packet_type) {
+before quic_frame.max_data.handle(f:quic_frame.max_data,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require f.pos = 2048 | f.pos = 40;
     }
 }
 
-before quic_frame.new_token.handle(f:quic_frame.new_token,scid:cid,dcid:cid) {
+before quic_frame.new_token.handle(f:quic_frame.new_token,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;

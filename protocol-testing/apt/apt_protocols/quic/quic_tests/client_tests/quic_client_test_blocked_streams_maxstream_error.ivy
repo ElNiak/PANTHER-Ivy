@@ -14,7 +14,7 @@ include ivy_quic_server_behavior
 
 include ivy_quic_server_standard_tp
 
-before quic_frameframeframe.streams_blockedquic_framequic_framequic_frame.streams_blocked,scid:cid,dcid:cid) {
+before quic_frameframeframe.streams_blockedquic_framequic_framequic_frame.streams_blocked,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;
@@ -24,7 +24,7 @@ before quic_frameframeframe.streams_blockedquic_framequic_framequic_frame.stream
 
 # Generate connection_close frames only for the client.
 
-before quic_frameframeframe.connection_closequic_framequic_framequic_frame.connection_close,scid:cid,dcid:cid) {
+before quic_frameframeframe.connection_closequic_framequic_framequic_frame.connection_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require client.ep.addr ~= 0;         
         require scid = the_cid;
@@ -35,7 +35,7 @@ before quic_frameframeframe.connection_closequic_framequic_framequic_frame.conne
 
 # Generate connection_close frames only for the client.
 
-before quic_frameframeframe.application_closequic_framequic_framequic_frame.application_close,scid:cid,dcid:cid) {
+before quic_frameframeframe.application_closequic_framequic_framequic_frame.application_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;

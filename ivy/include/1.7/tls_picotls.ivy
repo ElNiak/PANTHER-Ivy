@@ -850,7 +850,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         
         ptls_t *session;
         session = ptls_new(ctx, 0);
-        ptls_set_server_name(session, "QUIC Server", strlen("QUIC Server"));
+        ptls_set_server_name(session, "servername", strlen("servername"));
 
         ptls_handshake_properties_t *handshake_properties = new ptls_handshake_properties_t; 
         memset(handshake_properties, 0, sizeof(ptls_handshake_properties_t));
@@ -925,7 +925,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
 
         ptls_t *session;
         session = ptls_new(ctx, 1);
-        ptls_set_server_name(session, "QUIC Server", strlen("QUIC Server"));
+        ptls_set_server_name(session, "servername", strlen("servername"));
 
         ptls_handshake_properties_t *handshake_properties = new ptls_handshake_properties_t; 
         memset(handshake_properties, 0, sizeof(ptls_handshake_properties_t));
@@ -1085,7 +1085,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
 
         ptls_t *session;
         session = ptls_new(ctx,is_server ? 1 : 0);
-        ptls_set_server_name(session, "QUIC Server", strlen("QUIC Server"));
+        ptls_set_server_name(session, "servername", strlen("servername"));
 
         //if(const char* env_p = std::getenv("TEST_IMPL")) { 
         //    std::cerr << "TEST_IMPL " << env_p << std::endl;
@@ -1285,7 +1285,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
 
         ptls_t *session;
         session = ptls_new(ctx,is_server ? 1 : 0);
-        ptls_set_server_name(session, "QUIC Server", strlen("QUIC Server"));
+        ptls_set_server_name(session, "servername", strlen("servername"));
 
         if(const char* env_p = std::getenv("TEST_IMPL")) { 
             std::cerr << "TEST_IMPL " << env_p << std::endl;
@@ -1534,7 +1534,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
 
         ptls_t *session;
         session = ptls_new(ctx,is_server ? 1 : 0);
-        ptls_set_server_name(session, "QUIC Server", strlen("QUIC Server"));
+        ptls_set_server_name(session, "servername", strlen("servername"));
 
 
         if(const char* env_p = std::getenv("TEST_IMPL")) { 
@@ -2249,8 +2249,9 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
 
     implement lower.recv(c:cid,data:bytes,lev:lower.level) {
         <<< impure
+        std::cerr << "lower.recv c "   << c << "\n";
         picotls_connection *s = `cid_map`[c];
-        std::cerr << "lower.recv   s "   << s << "\n";
+        std::cerr << "lower.recv s "   << s << "\n";
         std::vector<char> &input = s->input;
         for (unsigned i = 0; i < data.size(); i++) {
             input.push_back(data[i]);

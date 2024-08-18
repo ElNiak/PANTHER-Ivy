@@ -18,7 +18,7 @@ include ivy_quic_server_standard_tp
 #   greater than any previously sent to the peer MUST be treated as a
 #   connection error of type PROTOCOL_VIOLATION.
 
-before quic_frame.retire_connection_id.handle(f:quic_frame.retire_connection_id,scid:cid,dcid:cid) {
+before quic_frame.retire_connection_id.handle(f:quic_frame.retire_connection_id,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;
@@ -28,7 +28,7 @@ before quic_frame.retire_connection_id.handle(f:quic_frame.retire_connection_id,
 
 # Generate connection_close frames only for the client.
 
-before quic_frame.connection_close.handle(f:quic_frame.connection_close,scid:cid,dcid:cid) {
+before quic_frame.connection_close.handle(f:quic_frame.connection_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require client.ep.addr ~= 0;         
         require scid = the_cid;
@@ -39,7 +39,7 @@ before quic_frame.connection_close.handle(f:quic_frame.connection_close,scid:cid
 
 # Generate connection_close frames only for the client.
 
-before quic_frame.application_close.handle(f:quic_frame.application_close,scid:cid,dcid:cid) {
+before quic_frame.application_close.handle(f:quic_frame.application_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;

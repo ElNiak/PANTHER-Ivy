@@ -19,6 +19,10 @@ action endpoint_to_socket(src:ip.endpoint) returns (socket:quic_net.socket) = {
     } 
 }
 
+action other_tls_id_to_cid(tls_id:tls_api.id) returns (scid:cid) = {
+    scid := server_cid;
+}
+
 action tls_id_to_src(tls_id:tls_api.id) returns (src:ip.endpoint) = {
     src := client.ep if tls_id = client.tls_id  else server.ep;
 }
@@ -31,6 +35,10 @@ action dst_is_generated(dst:ip.endpoint) returns (res:bool) = {
     res := dst = client.ep;
 }
 
+action dst_is_generated_tls(dst:ip.endpoint) returns (res:bool) = {
+    res := dst = client.ep;
+}
+
 action dst_tls_id(dst:ip.endpoint) returns (tls_id:tls_api.id) = {
     tls_id := client.tls_id;
 }
@@ -38,6 +46,11 @@ action dst_tls_id(dst:ip.endpoint) returns (tls_id:tls_api.id) = {
 action src_tls_id(src:ip.endpoint) returns (tls_id:tls_api.id) = {
     tls_id := client.tls_id;
 }
+
+action tls_id_to_cid(tls_id:tls_api.id) returns (cid:cid) = {
+    cid := the_cid;
+}
+
 
 # --------------------------------------------------------------------------
 

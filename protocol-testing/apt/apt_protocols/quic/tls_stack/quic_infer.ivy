@@ -93,7 +93,7 @@ action infer_tls_events(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) 
         #     call map_cids(scid,dcid);
         #     call map_cids(dcid,scid);
         # }
-        call f.handle(scid,dcid,e,sq);
+        call f.handle(scid,dcid,e,sq,src);
         idx := idx.next
     }
 }
@@ -203,7 +203,7 @@ action infer_tls_events_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_pac
         #} else {
             call infer_frame(scid,dcid,f);
         #};
-        call f.handle(scid,dcid,e,sq);
+        call f.handle(scid,dcid,e,sq,src);
         idx := idx.next
     }
 }

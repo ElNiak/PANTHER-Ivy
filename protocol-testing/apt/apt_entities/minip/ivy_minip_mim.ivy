@@ -18,9 +18,6 @@ var sock_mim_client : quic_net.socket
 
 instance mim_agent : endpoint.man_in_the_middle_endpoint.mim_minip_ep(server_addr,mim_port_in,server_port,true,true,true)
 
-instance tls_extensions      : vector(tls.extension)
-instance tls_hand_extensions : vector(tls.handshake)
-
 # Open a server socket to listen on and create an instance of TLS.
 # TODO: we should have one instance of TLS per connection
 
