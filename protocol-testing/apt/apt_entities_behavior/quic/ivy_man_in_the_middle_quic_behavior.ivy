@@ -14,10 +14,10 @@ var sock_vn : quic_net.socket
 # Server
 action socket_endpoint_mim(host:endpoint_id,s:quic_net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
     dst := mim_agent.ep_client if src = mim_agent.ep_server else mim_agent.ep_server; # is_mim_standalone | 
-    call socket_endpoint_mim_event_debug_event(host,s,src,dst);
+##    call socket_endpoint_mim_event_debug_event(host,s,src,dst);
 }
 
-import action socket_endpoint_mim_event_debug_event(host:endpoint_id,s:quic_net.socket,src:ip.endpoint,dst:ip.endpoint)
+##import action socket_endpoint_mim_event_debug_event(host:endpoint_id,s:quic_net.socket,src:ip.endpoint,dst:ip.endpoint)
 
 action endpoint_to_socket_mim(src:ip.endpoint) returns (socket:quic_net.socket) = {
     socket := sock_mim_server if src = mim_agent.ep_server else sock_mim_client; #  & ~forged_packet_send
@@ -55,6 +55,10 @@ action src_tls_id(src:ip.endpoint) returns (tls_id:tls_api.id) = {
 
 action tls_id_to_src(tls_id:tls_api.id) returns (src:ip.endpoint) = {
     src := client.ep if tls_id = client.tls_id & ~version_negociated else (client_vn if tls_id = client.tls_id & version_negociated else server.ep);
+}
+
+action other_tls_id_to_cid(tls_id:tls_api.id) returns (scid:cid) = {
+    scid := server_cid;
 }
 
 # Get the destination IP endpoint associated to a TLS instance

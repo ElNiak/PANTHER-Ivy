@@ -111,7 +111,8 @@ object endpoint = {
             individual ep_mim    : ip.endpoint
             individual ep_client : ip.endpoint
             individual ep_server : ip.endpoint
-            individual ep_target : ip.endpoint
+            individual ep_target_server : ip.endpoint
+            individual ep_target_client : ip.endpoint
 
             individual tls_id : tls_api.id
 
@@ -200,14 +201,24 @@ object endpoint = {
                     var bversion := bytes_to_version(version);
                     var ptype : byte := bvand(0x30,header);
 
-                    if ~nat_configured {
+                    if ~nat_configured |( src.addr = ep_client.addr & src.port ~= ep_client.port) {
                         nat_configured := true;
                         ep_client      := src; # Like initial connection from client 
                         
                         client.set_ep(src);
+                        mim_agent.ep_target_client.addr := src.addr + 2;
+                        mim_agent.ep_target_client.port := src.port;
+                        mim_agent.ep_target_client.protocol := ip.udp;
+                        mim_agent.ep_target_client.interface := ip.veth_ivy;
+
                         client.tls_id := tls_id;
 
                         call nat_configured_event(src,dst);
+
+                        if number_of_connection_from(src.addr) = 2 {
+                            call mim_agent.configure_NAT_attack(client_addr,server_addr);
+                            call mim_agent.configure_NAT_attack(server_addr,client_addr);
+                        }
     
                         if bvand(ppkt.value(0),0xf0) = 0xc0 & hijack_tls {
                             server_initial_response := true;
@@ -220,7 +231,7 @@ object endpoint = {
                     
                     if bvand(ppkt.value(0),0xf0) = 0xc0 {
                         number_of_connection_from(src.addr) := number_of_connection_from(src.addr) + 1;
-                        call show_number_of_connection_debug_event(src.addr,number_of_connection_from(src.addr));
+##                        call show_number_of_connection_debug_event(src.addr,number_of_connection_from(src.addr));
                     }
 
                     var ddcil : stream_pos := bfe[0][7](ppkt.value(5));
@@ -282,7 +293,7 @@ object endpoint = {
                             rppkt.seq_num := net_prot.correct_pnum(rnum,rppkt.seq_num,net_prot.get_pnum_len(res.data));
 
                             if already_forwarded(src,dst,rppkt) {
-                                call arp_duplicated_quic_packet_debug_event(src,dst,rppkt);
+##                                call arp_duplicated_quic_packet_debug_event(src,dst,rppkt);
                             } else {
                                 call recv_packet(host,src,dst,rppkt);
                                 call infer_tls_events(src,dst,rppkt);   # infer any TLS events on server side
@@ -306,7 +317,7 @@ object endpoint = {
                                 if is_random_padding_packet(ppkt) {
                                     var rppkt := quic_random_padding_encrypted_packet_serdes.from_bytes(ppkt);
                                     if already_forwarded(src,dst,rppkt) {
-                                        call arp_duplicated_encrypted_random_quic_packet_debug_event(src,dst,rppkt);
+##                                        call arp_duplicated_encrypted_random_quic_packet_debug_event(src,dst,rppkt);
                                     } else {
                                         call recv_random_padding_or_short_packet_event(src,dst,rppkt.payload.end);
                                         to_forward := true;
@@ -325,7 +336,7 @@ object endpoint = {
                                     }
                                     conn_seen(rppkt.dst_cid)    := true;
                                     if already_forwarded(src,dst,rppkt) {
-                                        call arp_duplicated_encrypted_packet_debug_event(src,dst,rppkt);
+##                                        call arp_duplicated_encrypted_packet_debug_event(src,dst,rppkt);
                                     } else {
                                         to_forward := true;
                                         call recv_encrypted_packet(host,src,dst,rppkt.head_byte, rppkt.src_cid,rppkt.dst_cid,rppkt.pversion, rppkt.token,rppkt.seq_num_payload.end);
@@ -342,7 +353,7 @@ object endpoint = {
 #                                     # TODO check is cid is seen
 #                                     var rppkt := quic_random_padding_encrypted_packet_serdes.from_bytes(ppkt);
 #                                     if already_forwarded(src,dst,rppkt) {
-# ##                                        call arp_duplicated_encrypted_random_quic_packet_debug_event(src,dst,rppkt);
+### ##                                        call arp_duplicated_encrypted_random_quic_packet_debug_event(src,dst,rppkt);
 #                                     } else {
 #                                         call recv_random_padding_or_short_packet_event(src,dst,rppkt.payload.end);
 #                                         to_forward := true;
@@ -369,7 +380,7 @@ object endpoint = {
                                         };
                                     } else
                                     if already_forwarded(src,dst,rppkt) {
-                                        call arp_duplicated_encrypted_short_quic_packet_debug_event(src,dst,rppkt);
+##                                        call arp_duplicated_encrypted_short_quic_packet_debug_event(src,dst,rppkt);
                                     } else {
                                         call recv_encrypted_short_packet(src,dst,rppkt.head_byte,rppkt.dst_cid,rppkt.payload.end);
                                         if forward_packets {
@@ -787,15 +798,15 @@ object endpoint = {
                     int cr = system( command );
                 >>>
             }
-            import action show_number_of_connection_debug_event(src:ip.addr,s:stream_pos)
+##            import action show_number_of_connection_debug_event(src:ip.addr,s:stream_pos)
             import action nat_configured_event(src:ip.endpoint, dst:ip.endpoint)
             import action client_target_setup_event(src:ip.endpoint)
             import action recv_encrypted_short_packet(src:ip.endpoint, dst:ip.endpoint, pkt_head_byte:stream_pos, pkt_scid: cid, pkt_len: stream_pos)
             import action recv_random_padding_or_short_packet_event(src:ip.endpoint, dst:ip.endpoint, pkt:stream_pos)
-            import action arp_duplicated_encrypted_packet_debug_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.encrypted_quic_packet)
-            import action arp_duplicated_quic_packet_debug_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.quic_packet)
-            import action arp_duplicated_encrypted_short_quic_packet_debug_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.encrypted_short_quic_packet)
-            import action arp_duplicated_encrypted_random_quic_packet_debug_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.random_padding_encrypted_quic_packet)
+##            import action arp_duplicated_encrypted_packet_debug_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.encrypted_quic_packet)
+##            import action arp_duplicated_quic_packet_debug_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.quic_packet)
+##            import action arp_duplicated_encrypted_short_quic_packet_debug_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.encrypted_short_quic_packet)
+##            import action arp_duplicated_encrypted_random_quic_packet_debug_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.random_padding_encrypted_quic_packet)
             import action recv_packet(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
             import action recv_encrypted_packet(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint, pkt_head_byte:stream_pos, pkt_scid: cid, pkt_dcid:cid, pkt_version: version, pkt_token:stream_data, pkt_len:stream_pos)
         }
@@ -813,7 +824,8 @@ object endpoint = {
             #variant endpoint of client_attacker_endpoint = struct { }
             individual ep        : ip.endpoint
             individual ep_server : ip.endpoint
-            individual ep_target : ip.endpoint
+            individual ep_target_server : ip.endpoint
+            individual ep_target_client : ip.endpoint
 
             individual tls_id : tls_api.id
 
@@ -863,21 +875,21 @@ object endpoint = {
                 var past_data : stream_data := stream_data.empty;
                 while idx < pkts.end {
                     var ppkt := pkts.value(idx);
-                    var dcil : stream_pos := bfe[0][7](ppkt.value(5));
-                    var ikm := cid_to_bytes(0,1); # dcid
-                    if(~dcil = 0) {
-                        ikm := ppkt.segment(6,6+dcil); # dcid
-                    };
-                    var dcid : cid := bytes_to_cid(ikm);
-                    var scil : stream_pos := bfe[0][7](ppkt.value(6+dcil));
-                    var skm := cid_to_bytes(0,1); # scid
-                    if(~scil = 0) {	
-                        skm := ppkt.segment(6+dcil+1,6+dcil+1+scil); # scid
-                    };
-                    var scid : cid := bytes_to_cid(skm);
-                    var tls_id := cid_map_tls_id(dcid); #src_tls_id(dst); # todo multiple
-                    var dst    := cid_map_ep(dcid); #dst_tls_id(dst); # todo multiple
                     
+                    var h := net_prot.get_header_info(ppkt,false);
+
+                    var tls_id := cid_map_tls_id(h.dcid); #src_tls_id(dst); # todo multiple
+                    var dst    := cid_map_ep(h.dcid); #dst_tls_id(dst); # todo multiple
+
+                    call show_recv_debug_ev(src,dst,h.scid,h.dcid,tls_id);
+                    
+                    if ~conn_seen(h.scid) & conn_requested(dst,src,h.scid) {
+                        cid_map_tls_id(h.scid)      := server.tls_id;
+                        cid_map_ep(h.scid)          := src;
+                        call show_update_(h.scid,server.tls_id,src);
+                        # cid_map_ep(dcid)          := dst;
+                    };
+
                     var header := ppkt.value(0);
                     var hdr_type : type_bits := bfe[0][6](ppkt.value(0));
                     var tt := bvand(hdr_type,0x30);
@@ -920,13 +932,13 @@ object endpoint = {
                             #         anti_amplification_limit_reached := false;
                             #     }
                             # };
-                            call on_datagram_received(dst, dcid, ppkt);
+                            call on_datagram_received(dst, h.dcid, ppkt);
                             if res.ok {
                                 var is_pad := is_padding_packet(res.payload); # For picoquic  client
                                 if is_pad { #is_pad | is_rand_pad
                                     call padding_packet_event(host,src,dst,ppkt);
                                 } else {
-                                    var pkt := quic_packet_serdes.from_bytes(res.data);
+                                    var pkt     := quic_packet_serdes.from_bytes(res.data);
                                     pkt.seq_num := net_prot.correct_pnum(rnum,pkt.seq_num,net_prot.get_pnum_len(res.data));
                                     # if pkt.seq_num = lost_pkt_num {
                                     #     call on_purpose_lost_packet_event(host,src,dst,last_zrtt_pkt);
@@ -959,6 +971,9 @@ object endpoint = {
                 last_datagram_received_size := 0;
             }
 
+            import action show_recv_debug_ev(src:ip.endpoint,dst:ip.endpoint,scid:cid,dcid:cid,tls_id:tls_api.id)
+            import action show_update_(cid:cid,tls_id:tls_api.id,ep:ip.endpoint)
+            
             action configure_NAT_attack(src:ip.addr, dst:ip.addr) = {
                 <<<
                     //  very important for modifying the packet
@@ -1005,7 +1020,7 @@ object endpoint = {
             #variant endpoint of client_attacker_endpoint = struct { }
             individual ep        : ip.endpoint
             individual ep_server : ip.endpoint
-            individual ep_target : ip.endpoint
+            individual ep_target_server : ip.endpoint
 
             individual tls_id : tls_api.id
 

@@ -22,19 +22,19 @@ attribute quic_frame.path_response.handle.weight = "5"
 
 export quic_frame.stop_sending.handle
 
-before quic_frame.max_stream_data.handle(f:quic_frame.max_stream_data,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num) {
+before quic_frame.max_stream_data.handle(f:quic_frame.max_stream_data,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require f.pos = 32 | f.pos = 16;
     }
 }
 
-before quic_frame.stream_data_blocked.handle(f:quic_frame.stream_data_blocked,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num) {
+before quic_frame.stream_data_blocked.handle(f:quic_frame.stream_data_blocked,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require f.pos > 32;
     }
 }
 
-before quic_frame.max_data.handle(f:quic_frame.max_data,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num) {
+before quic_frame.max_data.handle(f:quic_frame.max_data,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require f.pos = 2048 | f.pos = 40;
     }

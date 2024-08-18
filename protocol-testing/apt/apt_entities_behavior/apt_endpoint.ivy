@@ -23,7 +23,7 @@ object target_application_protocol = {
 action endpoint_id_addr(ep_id : endpoint_id) returns (ep:ip.endpoint) = {
     ep.protocol := ip.udp; # TODO 
 
-    ep.addr := target_addr if ep_id = endpoint_id.target | ep_id = endpoint_id.target_alt  
+    ep.addr := target_addr_server if ep_id = endpoint_id.target | ep_id = endpoint_id.target_alt  
                 else (client_addr if ep_id = endpoint_id.client
                 else (server_addr if ep_id = endpoint_id.server
                 # else (client_vn_addr if ep_id = endpoint_id.client_vn
@@ -33,8 +33,8 @@ action endpoint_id_addr(ep_id : endpoint_id) returns (ep:ip.endpoint) = {
                 else (c2_server_addr if ep_id = endpoint_id.c2_server
                 else (bot_addr)))))));
 
-    ep.port := target_port if ep_id = endpoint_id.target
-                else (target_alt_port if ep_id = endpoint_id.target_alt
+    ep.port := target_port_server if ep_id = endpoint_id.target
+                else (target_port_client if ep_id = endpoint_id.target_alt
                 else (client_port if ep_id = endpoint_id.client
                 else (server_port if ep_id = endpoint_id.server
                 else (client_port_vn if ep_id = endpoint_id.client_vn

@@ -21,7 +21,8 @@ object endpoint = {
                 individual ep_mim    : ip.endpoint
                 individual ep_client : ip.endpoint
                 individual ep_server : ip.endpoint
-                individual ep_target : ip.endpoint
+                individual ep_target_server : ip.endpoint
+                individual ep_target_client : ip.endpoint
 
                 individual tls_id : tls_api.id
 
@@ -84,15 +85,13 @@ object endpoint = {
                     var dst := socket_endpoint_mim(host,s,src);  # because quic_net API doesn't tell us the dst socket_endpoint_mim
                     var idx := pkts.begin;
                     is_receiving(dst) := true;
-                    var tls_id       := src_tls_id(dst); # todo multiple
-                    var other_tls_id := dst_tls_id(dst);
+    
                     # TODO should not be here
 
                     if ~nat_configured {
                         nat_configured := true;
                         ep_client := src; # Like initial connection from client 
                         client.set_ep(src);
-                        client.tls_id := tls_id;
                         call nat_configured_event(src,dst);
                     } 
                     
@@ -180,7 +179,8 @@ object endpoint = {
             #variant endpoint of client_attacker_endpoint = struct { }
             individual ep        : ip.endpoint
             individual ep_server : ip.endpoint
-            individual ep_target : ip.endpoint
+            individual ep_target_server : ip.endpoint
+            individual ep_target_client : ip.endpoint
 
             individual tls_id : tls_api.id
 
@@ -293,7 +293,8 @@ object endpoint = {
             #variant endpoint of client_attacker_endpoint = struct { }
             individual ep        : ip.endpoint
             individual ep_server : ip.endpoint
-            individual ep_target : ip.endpoint
+            individual ep_target_server : ip.endpoint
+            individual ep_target_client : ip.endpoint
 
             individual tls_id : tls_api.id
 

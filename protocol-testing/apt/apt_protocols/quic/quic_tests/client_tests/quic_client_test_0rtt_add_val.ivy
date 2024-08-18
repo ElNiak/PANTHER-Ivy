@@ -31,7 +31,7 @@ include ivy_quic_server_0rtt_tp
 # Note: some of these are commented out. They are added in other files
 # that include this one.
 
-before quic_frame.new_token.handle(f:quic_frame.new_token,scid:cid,dcid:cid) {
+before quic_frame.new_token.handle(f:quic_frame.new_token,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;

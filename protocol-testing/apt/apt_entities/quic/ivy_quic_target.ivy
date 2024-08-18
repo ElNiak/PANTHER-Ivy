@@ -6,18 +6,25 @@ include ivy_target
 include ip
 include apt_endpoint
 
-parameter target_addr : ip.addr = 0x0a000401
-parameter target_port : ip.port = 4430
+parameter target_addr_server : ip.addr = 0x0a000401
+parameter target_port_server : ip.port = 4430
 
-parameter target_alt_addr : ip.addr = 0x0a000401
-parameter target_alt_port : ip.port = 4430
+parameter target_addr_client : ip.addr = 0x0a000401
+parameter target_port_client : ip.port = 4430
 
 
 parameter is_target : bool = false
 
 after init {
-    mim_agent.ep_target.addr := target_addr;
-    mim_agent.ep_target.port := target_port;
+    mim_agent.ep_target_server.addr := target_addr_server;
+    mim_agent.ep_target_server.port := target_port_server;
+    mim_agent.ep_target_server.protocol := ip.udp;
+    mim_agent.ep_target_server.interface := ip.veth_ivy;
+
+    mim_agent.ep_target_client.addr := target_addr_client;
+    mim_agent.ep_target_client.port := target_port_client;
+    mim_agent.ep_target_client.protocol := ip.udp;
+    mim_agent.ep_target_client.interface := ip.veth_ivy;
 }
 
 parameter the_cid : cid = 0xd

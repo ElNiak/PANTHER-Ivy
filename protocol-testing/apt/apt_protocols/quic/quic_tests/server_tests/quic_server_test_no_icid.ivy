@@ -42,9 +42,9 @@ after init {
     sock := quic_net.open(endpoint_id.client,client.ep);
     sock_alt := quic_net.open(endpoint_id.client_alt,client_alt);
     sock_vn := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
-    client.set_tls_id(0);
-    second_client.set_tls_id(0); # TODO to avoid error
-    server.set_tls_id(1);
+    client.set_tls_id(1);
+    second_client.set_tls_id(1); # TODO to avoid error
+    server.set_tls_id(0);
     var extns := tls_extensions.empty;
     extns := extns.append(make_transport_parameters);
     call tls_api.upper.create(0,false,extns);  # false means this instance of tls is not a server
@@ -56,7 +56,7 @@ after init {
 # Note: requiring the `err_code` is zero on non-generated frames means that
 # we stop the test if the peer reports a protocol error. 
 
-before quic_frame.connection_close.handle(f:quic_frame.connection_close,scid:cid,dcid:cid) {
+before quic_frame.connection_close.handle(f:quic_frame.connection_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require scid = the_cid;
     } else {
@@ -66,7 +66,7 @@ before quic_frame.connection_close.handle(f:quic_frame.connection_close,scid:cid
 
 # Generate application_close frames only for the environment process(es).
 
-before quic_frame.application_close.handle(f:quic_frame.application_close,scid:cid,dcid:cid) {
+before quic_frame.application_close.handle(f:quic_frame.application_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require scid = the_cid;
     }
