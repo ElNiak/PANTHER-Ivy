@@ -1,0 +1,140 @@
+DEBUG:panther-test:Setting process limits
+DEBUG:panther-test:Initial memory limits: soft=-1, hard=-1
+DEBUG:panther-test:Updated memory limits: soft=786432000, hard=-1
+runtime/cgo: pthread_create failed: Resource temporarily unavailable
+SIGABRT: abort
+PC=0x7ffff7de600b m=3 sigcode=18446744073709551610
+
+goroutine 0 [idle]:
+runtime: unknown pc 0x7ffff7de600b
+stack: frame={sp:0x7fffd03ff7c0, fp:0x0} stack=[0x7fffcfc00288,0x7fffd03ffe88)
+00007fffd03ff6c0:  0000000000000000  0000000000000000 
+00007fffd03ff6d0:  0000000000000000  0000000000000000 
+00007fffd03ff6e0:  0000000000000000  0000000000000000 
+00007fffd03ff6f0:  0000000000000000  0000000000000000 
+00007fffd03ff700:  0000000000000000  0000000000000000 
+00007fffd03ff710:  0000000000000000  0000000000000000 
+00007fffd03ff720:  0000000000000000  0000000000000000 
+00007fffd03ff730:  0000000000000000  0000000000000000 
+00007fffd03ff740:  0000000000000000  0000000000000000 
+00007fffd03ff750:  0000000000000000  00007fffd03ff780 
+00007fffd03ff760:  00007fffd03ff790  000000000040155c <x_cgo_mmap+12> 
+00007fffd03ff770:  0000000000000000  000000000046dbfe <runtime.callCgoMmap+62> 
+00007fffd03ff780:  00007fffd03ff780  0000000000000000 
+00007fffd03ff790:  00007fffd03ff7d0  0000000000461dd8 <runtime.mmap.func1+88> 
+00007fffd03ff7a0:  0000000000000000  0000000000040000 
+00007fffd03ff7b0:  0000002200000003  00000000ffffffff 
+00007fffd03ff7c0: <0000000000000000  00007fffd03ff810 
+00007fffd03ff7d0:  00007fffd03ff848  0000000000404e3e <runtime.mmap+158> 
+00007fffd03ff7e0:  00007fffd03ff818  0000000000000000 
+00007fffd03ff7f0:  0000000000000000  0000000000000000 
+00007fffd03ff800:  0000000000000000  0000000000000000 
+00007fffd03ff810:  00007fffd12c0000  0000000000461d80 <runtime.mmap.func1+0> 
+00007fffd03ff820:  0000000000000000  0000000000040000 
+00007fffd03ff830:  0000002200000003  00000000ffffffff 
+00007fffd03ff840:  fffffffe7fffffff  ffffffffffffffff 
+00007fffd03ff850:  ffffffffffffffff  ffffffffffffffff 
+00007fffd03ff860:  ffffffffffffffff  ffffffffffffffff 
+00007fffd03ff870:  ffffffffffffffff  ffffffffffffffff 
+00007fffd03ff880:  ffffffffffffffff  ffffffffffffffff 
+00007fffd03ff890:  ffffffffffffffff  ffffffffffffffff 
+00007fffd03ff8a0:  ffffffffffffffff  ffffffffffffffff 
+00007fffd03ff8b0:  ffffffffffffffff  ffffffffffffffff 
+runtime: unknown pc 0x7ffff7de600b
+stack: frame={sp:0x7fffd03ff7c0, fp:0x0} stack=[0x7fffcfc00288,0x7fffd03ffe88)
+00007fffd03ff6c0:  0000000000000000  0000000000000000 
+00007fffd03ff6d0:  0000000000000000  0000000000000000 
+00007fffd03ff6e0:  0000000000000000  0000000000000000 
+00007fffd03ff6f0:  0000000000000000  0000000000000000 
+00007fffd03ff700:  0000000000000000  0000000000000000 
+00007fffd03ff710:  0000000000000000  0000000000000000 
+00007fffd03ff720:  0000000000000000  0000000000000000 
+00007fffd03ff730:  0000000000000000  0000000000000000 
+00007fffd03ff740:  0000000000000000  0000000000000000 
+00007fffd03ff750:  0000000000000000  00007fffd03ff780 
+00007fffd03ff760:  00007fffd03ff790  000000000040155c <x_cgo_mmap+12> 
+00007fffd03ff770:  0000000000000000  000000000046dbfe <runtime.callCgoMmap+62> 
+00007fffd03ff780:  00007fffd03ff780  0000000000000000 
+00007fffd03ff790:  00007fffd03ff7d0  0000000000461dd8 <runtime.mmap.func1+88> 
+00007fffd03ff7a0:  0000000000000000  0000000000040000 
+00007fffd03ff7b0:  0000002200000003  00000000ffffffff 
+00007fffd03ff7c0: <0000000000000000  00007fffd03ff810 
+00007fffd03ff7d0:  00007fffd03ff848  0000000000404e3e <runtime.mmap+158> 
+00007fffd03ff7e0:  00007fffd03ff818  0000000000000000 
+00007fffd03ff7f0:  0000000000000000  0000000000000000 
+00007fffd03ff800:  0000000000000000  0000000000000000 
+00007fffd03ff810:  00007fffd12c0000  0000000000461d80 <runtime.mmap.func1+0> 
+00007fffd03ff820:  0000000000000000  0000000000040000 
+00007fffd03ff830:  0000002200000003  00000000ffffffff 
+00007fffd03ff840:  fffffffe7fffffff  ffffffffffffffff 
+00007fffd03ff850:  ffffffffffffffff  ffffffffffffffff 
+00007fffd03ff860:  ffffffffffffffff  ffffffffffffffff 
+00007fffd03ff870:  ffffffffffffffff  ffffffffffffffff 
+00007fffd03ff880:  ffffffffffffffff  ffffffffffffffff 
+00007fffd03ff890:  ffffffffffffffff  ffffffffffffffff 
+00007fffd03ff8a0:  ffffffffffffffff  ffffffffffffffff 
+00007fffd03ff8b0:  ffffffffffffffff  ffffffffffffffff 
+
+goroutine 1 [select, 2 minutes]:
+github.com/lucas-clemente/quic-go.(*baseServer).accept(0xc000132630, 0x7a0150, 0xc0000180b0, 0x465a60, 0xc00011bc28, 0xc00011bc30, 0x18)
+	/app/implementations/quic-implementations/quic-go/server.go:271 +0xc5
+github.com/lucas-clemente/quic-go.(*earlyServer).Accept(0xc0000100c0, 0x7a0150, 0xc0000180b0, 0x7a2300, 0xc00013c000, 0x0, 0x0)
+	/app/implementations/quic-implementations/quic-go/server.go:119 +0x46
+github.com/lucas-clemente/quic-go/interop/http09.(*Server).ListenAndServe(0xc00007d260, 0xc, 0x0)
+	/app/implementations/quic-implementations/quic-go/interop/http09/server.go:81 +0x251
+main.runHTTP09Server(0xc000132420, 0x115b, 0xc000010028, 0x79be00)
+	/app/implementations/quic-implementations/quic-go/server/main.go:94 +0x23f
+main.main()
+	/app/implementations/quic-implementations/quic-go/server/main.go:73 +0x56f
+
+goroutine 11 [IO wait, 2 minutes]:
+internal/poll.runtime_pollWait(0x7fffd1284f38, 0x72, 0xc0000aa6f0)
+	/usr/local/go/src/runtime/netpoll.go:222 +0x55
+internal/poll.(*pollDesc).wait(0xc000012318, 0x72, 0xc0000aa600, 0x0, 0x0)
+	/usr/local/go/src/internal/poll/fd_poll_runtime.go:87 +0x45
+internal/poll.(*pollDesc).waitRead(...)
+	/usr/local/go/src/internal/poll/fd_poll_runtime.go:92
+internal/poll.(*FD).RawRead(0xc000012300, 0xc0000b62c0, 0x0, 0x0)
+	/usr/local/go/src/internal/poll/fd_unix.go:553 +0xff
+net.(*rawConn).Read(0xc000010098, 0xc0000b62c0, 0x8, 0xc00012a840)
+	/usr/local/go/src/net/rawconn.go:43 +0x68
+golang.org/x/net/internal/socket.(*Conn).recvMsgs(0xc0000662e0, 0xc00012a840, 0x8, 0x8, 0x0, 0xc00000e1c8, 0xc000059e10, 0xc000662400)
+	/root/go/pkg/mod/golang.org/x/net@v0.0.0-20210428140749-89ef3d95e781/internal/socket/rawconn_mmsg.go:37 +0x1b2
+golang.org/x/net/internal/socket.(*Conn).RecvMsgs(...)
+	/root/go/pkg/mod/golang.org/x/net@v0.0.0-20210428140749-89ef3d95e781/internal/socket/socket.go:267
+golang.org/x/net/ipv4.(*payloadHandler).ReadBatch(0xc00007a290, 0xc00012a840, 0x8, 0x8, 0x0, 0x0, 0x0, 0x0)
+	/root/go/pkg/mod/golang.org/x/net@v0.0.0-20210428140749-89ef3d95e781/ipv4/batch.go:80 +0xaf
+github.com/lucas-clemente/quic-go.(*oobConn).ReadPacket(0xc000012380, 0xc0000a2720, 0x0, 0x0)
+	/app/implementations/quic-implementations/quic-go/sys_conn_oob.go:150 +0x1f5
+github.com/lucas-clemente/quic-go.(*packetHandlerMap).listen(0xc000132580)
+	/app/implementations/quic-implementations/quic-go/packet_handler_map.go:347 +0x6c
+created by github.com/lucas-clemente/quic-go.newPacketHandlerMap
+	/app/implementations/quic-implementations/quic-go/packet_handler_map.go:163 +0x285
+
+goroutine 12 [select, 2 minutes]:
+github.com/lucas-clemente/quic-go.(*baseServer).run(0xc000132630)
+	/app/implementations/quic-implementations/quic-go/server.go:233 +0xfa
+created by github.com/lucas-clemente/quic-go.listen
+	/app/implementations/quic-implementations/quic-go/server.go:219 +0x545
+
+rax    0x0
+rbx    0x7fffd0400700
+rcx    0x7ffff7de600b
+rdx    0x0
+rdi    0x2
+rsi    0x7fffd03ff7c0
+rbp    0x79f542
+rsp    0x7fffd03ff7c0
+r8     0x0
+r9     0x7fffd03ff7c0
+r10    0x8
+r11    0x246
+r12    0x7ffff7fbf010
+r13    0x0
+r14    0x793e1a
+r15    0x0
+rip    0x7ffff7de600b
+rflags 0x246
+cs     0x33
+fs     0x0
+gs     0x0

@@ -239,10 +239,16 @@ around packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet
         conn_seen(scid) := false;
         
         require ~retry_recv(dcid);
+
+        # crypto_length(scid,quic_packet_type.initial)    := 0;
+        # crypto_length(the_cid,quic_packet_type.initial) := 0;
+        
         retry_recv(dcid) := true;   
         server_cid := scid; # 0x1;
+        the_cid    := dcid; # 0x2;
+        nonce_cid(the_cid) := server_cid;
 
-        connected_to(dcid) := scid;
+        # connected_to(dcid) := scid;
 
         connected(the_cid)    := false;
         connected(server_cid) := false;
@@ -250,11 +256,36 @@ around packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet
         conn_seen(the_cid)    := false;
         client_initial_rcid   := scid;
 
+        tls_id_map_ep(client.tls_id)       := client.ep;
+        other_tls_id_map_ep(client.tls_id) := server.ep;
+        cid_map_tls_id(server_cid)         := client.tls_id;
+        cid_map_tls_id(the_cid)            := client.tls_id;
+        ep_map_tls_id(client.ep)           := client.tls_id;
+        ep_map_cid(client.ep)              := the_cid;
+        ep_present(client.ep)              := true;
+        used_client_ports(client.ep.port)  := true;
+        cid_map_sock(server_cid)           := sock;
+        cid_map_sock(the_cid)              := sock;
+        cid_map_ep(server_cid)             := server.ep;
+        cid_map_ep(the_cid)                := client.ep;
+
+        tls_id_map_cid(client.tls_id)       := the_cid;
+        other_tls_id_map_cid(client.tls_id) := server_cid;
+        tls_id_map_cid(server.tls_id)       := server_cid;
+        other_tls_id_map_cid(server.tls_id) := the_cid;
+        
+        call show_cid_event(the_cid);
+        call show_cid_event(server_cid);
+        
+        tls_id_map_ep(server.tls_id)       := server.ep;
+        other_tls_id_map_ep(server.tls_id) := client.ep;
+        ep_map_tls_id(server.ep)           := server.tls_id;
+
         var extns := tls_extensions.empty;
         extns := extns.append(make_transport_parameters);
-        call tls_api.upper.destroy(0);
-        call tls_api.upper.create(0,false,extns);  # false means this instance of tls is not a server
-        conn_requested(dst,src,the_cid) := true;
+        call tls_api.upper.destroy(client.tls_id);
+        call tls_api.upper.create(client.tls_id,false,extns);  # false means this instance of tls is not a server
+        conn_requested(dst,src,server_cid) := true;
 
     } else {
         retry_sent(scid) := true;

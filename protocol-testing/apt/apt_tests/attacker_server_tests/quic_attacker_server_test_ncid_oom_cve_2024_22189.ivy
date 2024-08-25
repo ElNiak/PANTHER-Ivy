@@ -1,7 +1,5 @@
 #lang ivy1.7
 
-
-
 include order
 include file
 # include random_value
@@ -28,9 +26,6 @@ include apt_time
 
 after init {
     call time_api.c_timer.start;
-	allowed_multiple_migration := false;
-    version_negociated         := false;
-    # initial_version := 0xff00001c;
 }
 
 import action show_endpoint_debug_event(ep:ip.endpoint)
@@ -39,23 +34,38 @@ after init {
     call show_endpoint_debug_event(client.ep);
     call show_endpoint_debug_event(client.ep_server);
     call show_endpoint_debug_event(server.ep);
+    verify_incoming_packet := true;
+    # slow_loris := true;
 
     sock := quic_net.open(endpoint_id.client,client.ep);
     sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
     sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
     
     client.set_tls_id(1);
-    current_connection_id := 1;
+    server.set_tls_id(0);
+
+    client_current_connection_id := 1;
     tls_id_map_ep(client.tls_id)       := client.ep;
     other_tls_id_map_ep(client.tls_id) := server.ep;
+    cid_map_tls_id(server_cid)         := client.tls_id;
     cid_map_tls_id(the_cid)            := client.tls_id;
     ep_map_tls_id(client.ep)           := client.tls_id;
     ep_map_cid(client.ep)              := the_cid;
+    ep_present(client.ep)              := true;
     used_client_ports(client.ep.port)  := true;
+    cid_map_sock(server_cid)           := sock;
     cid_map_sock(the_cid)              := sock;
+    cid_map_ep(server_cid)             := server.ep;
     cid_map_ep(the_cid)                := client.ep;
 
-    server.set_tls_id(0);
+    tls_id_map_cid(client.tls_id)       := the_cid;
+    other_tls_id_map_cid(client.tls_id) := server_cid;
+    tls_id_map_cid(server.tls_id)       := server_cid;
+    other_tls_id_map_cid(server.tls_id) := the_cid;
+
+    call show_cid_event(the_cid);
+    call show_cid_event(server_cid);
+    
     tls_id_map_ep(server.tls_id)       := server.ep;
     other_tls_id_map_ep(server.tls_id) := client.ep;
     ep_map_tls_id(server.ep)           := server.tls_id;
@@ -65,6 +75,8 @@ after init {
     extns := extns.append(make_transport_parameters);
     call tls_api.upper.create(client.tls_id,false,extns);  # false means this instance of tls is not a server
 }
+
+import action show_cid_event(cid:cid)
 
 after init {
     token_saved := false;
@@ -102,6 +114,14 @@ before quic_frame.retire_connection_id.handle(f:quic_frame.retire_connection_id,
 #  a patch for the issue. No known workarounds are available.
 
 
+before quic_frame.ack.handle(f:quic_frame.ack,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
+    if _generating {
+        # require scid = the_cid;
+	    require f.ack_delay > 0  &  f.ack_delay < 0x1000000;
+        #require scid = 0;
+    }
+}
+
 before quic_frame.new_connection_id.handle_maliciously(f:quic_frame.new_connection_id,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         # require scid = the_cid;
@@ -109,10 +129,10 @@ before quic_frame.new_connection_id.handle_maliciously(f:quic_frame.new_connecti
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
         require src.addr = client.ep.addr;
-	    require scid = ep_map_cid(src);
+	    require ep_present(src) &  scid = ep_map_cid(src);
         
         require f.length          = 8; #[1]
-        require f.retire_prior_to = 0; #[4]
+        require f.retire_prior_to < f.seq_num; #[4]
         require f.seq_num         = last_cid_seq(scid) + 0x1;
         require ~new_connection_id_frame_pending(scid);
         var tp := trans_params(dcid);
@@ -142,7 +162,7 @@ export client_send_event
 export tls_recv_event
 
 export quic_frame.ack.handle
-# export quic_frame.new_connection_id.handle_maliciously
+export quic_frame.new_connection_id.handle_maliciously
 
 # export quic_frame.retire_connection_id.handle
 #export quic_frame.rst_stream.handle

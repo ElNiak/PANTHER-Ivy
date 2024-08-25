@@ -80,7 +80,7 @@ object packet = {
                 require mim_agent.nat_configured;
                 require pkt.seq_num_payload.end > 0;
                 require src ~= dst;
-##                call show_last_packet_received_debug_event(src,dst,pkt);
+                call show_last_packet_received_debug_event(src,dst,pkt);
             }
             ...
             if _generating {
@@ -106,7 +106,7 @@ object packet = {
                 require mim_agent.nat_configured;
                 require src ~= dst;
                 require mim_agent.ep_server.addr ~= 0;  # must have a client address to send to
-##                call show_last_packet_received_debug_event(src,dst,pkt);
+                call show_last_packet_received_debug_event(src,dst,pkt);
             }
             ...
             if _generating {
@@ -116,7 +116,7 @@ object packet = {
             }
         }
 
-##        import action show_last_packet_received_debug_event(src:ip.endpoint,dst:ip.endpoint, pkt:packet)
+        import action show_last_packet_received_debug_event(src:ip.endpoint,dst:ip.endpoint, pkt:packet)
         import action show_last_packets_received(src:ip.endpoint,dst:ip.endpoint, pkt:packet.encrypted_quic_packet.arr)
 
         action replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet)
@@ -131,7 +131,7 @@ object packet = {
             require is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
             # require num_queued_packets(dst,current_forwarding_round(dst)) <= num_packets_received_at_round(dst,current_forwarding_round(dst));
             require src ~= dst;
-##            call show_last_packet_received_debug_event(src,dst,pkt);
+            call show_last_packet_received_debug_event(src,dst,pkt);
             require pkt.seq_num_payload.end > 0;
             ...
             call enqueue_packet(src,dst,pkt);
@@ -210,7 +210,7 @@ object packet = {
                                                         coal_packet_forwarded_at_round(src,current_forwarding_round(src)));
                 # require num_queued_packets(src,current_forwarding_round(src)) <= num_packets_received_at_round(src,current_forwarding_round(src));
                 require pkt.seq_num_payload.end > 0;
-                require num_queued_packets_to_reflect(dst,current_forwarding_round(dst)) < 1;
+                # require num_queued_packets_to_reflect(dst,current_forwarding_round(dst)) = 0;
                 
                 require mim_agent.nat_configured;
                 require src ~= dst;

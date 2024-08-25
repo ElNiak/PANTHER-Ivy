@@ -1,0 +1,372 @@
+DEBUG:panther-test:Setting process limits
+DEBUG:panther-test:Initial memory limits: soft=-1, hard=-1
+DEBUG:panther-test:Updated memory limits: soft=-1, hard=-1
+[0m[0m0.018[0m [44m [0m [35mq_init[30m [34mquic.c:627 [0mquant/socket (epoll/sendmmsg/recvmmsg) 0.0.34/00 ready
+[0m      [42m [0m [35mq_init[30m [34mquic.c:629 [0msubmit bug reports at https://github.com/NTAP/quant/issues
+[0m[0m0.020[0m [44m [0m [35mq_bind[30m [34mquic.c:455 [0mbound serv socket to [fe80::c810:e0ff:fe74:e92]:4443
+[0m      [42m [0m [35mmain[30m [34mserver.c:388 [0mserver listening on veth_server [fe80::c810:e0ff:fe74:e92]:4443
+[0m      [44m [0m [35mq_bind[30m [34mquic.c:455 [0mbound serv socket to 10.0.0.3:4443
+[0m      [42m [0m [35mmain[30m [34mserver.c:388 [0mserver listening on veth_server 10.0.0.3:4443
+[0m[0m14.569[0m [46m [0m [35mrx_pkts[30m [34mconn.c:1356 [0mnew serv conn on port 4443 from 10.0.0.1:31507 w/cid=0:0000000000000065
+[0m       [42m [0m [35mnew_conn[30m [34mconn.c:2088 [0mserv conn 0:0000000000000065 on port 4443 created
+[0m       [42m [0m [35mqlog_init[30m [34mqlog.c:107 [0mqlog file is /app/qlogs/quant/0000000000000065.serv.qlog
+[0m[1m14.570[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:101 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=1216 0xc3=[34mInitial [0mvers=0x1 dcid=0:0000000000000065 scid=0:0000000000000001 len=1206 nr=[34m1[0m
+[0m       [44m [0m [35mlog_stream_or_crypto_frame[30m [34mframe.c:171 [0m[1m[34mCRYPTO[0m off=0 len=224 [seq]
+[0m       [44m [0m [35mdec_frames[30m [34mframe.c:1349 [0m[1m[34mPADDING[0m len=958
+[0m       [44m [0m [35mupdate_act_scid[30m [34mconn.c:384 [0mhshk switch to scid 0:3dd06dc0 for conn_idle serv conn (was 0:0000000000000065)
+[0m       [44m [0m [35mon_ch[30m [34mtls.c:383 [0m	SNI = servername
+[0m       [44m [0m [35mon_ch[30m [34mtls.c:414 [0m	ALPN = hq-interop
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:558 [0m	initial_max_stream_data_bidi_local = 8192 [bytes]
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:573 [0m	initial_max_data = 17213541 [bytes]
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:591 [0m	max_idle_timeout = 40000 [ms]
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:566 [0m	initial_max_stream_data_bidi_remote = 8192 [bytes]
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:552 [0m	initial_max_stream_data_uni = 17213541 [bytes]
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:723 [0m	initial_source_connection_id = 0:0000000000000001
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:585 [0m	initial_max_streams_uni = 60543
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:616 [0m	max_ack_delay = 12288 [ms]
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:579 [0m	initial_max_streams_bidi = 60543
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:637 [0m	disable_active_migration = true
+[0m[1m14.573[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:143 [0m[1m[32mTX[0m to=10.0.0.1:4987 0xc0=[32mInitial [0mvers=0x1 dcid=0:0000000000000001 scid=0:3dd06dc0 len=0 nr=[32m0[0m
+[0m       [44m [0m [35menc_ack_frame[30m [34mframe.c:1608 [0m[1m[32mACK[0m 0x02 lg=[34m1[0m delay=527 (4216 usec) cnt=0 rng=0 [[34m1[0m]
+[0m       [44m [0m [35menc_padding_frame[30m [34mframe.c:1524 [0m[1m[32mPADDING[0m len=15
+[0m       [44m [0m [35mlog_stream_or_crypto_frame[30m [34mframe.c:171 [0m[1m[32mCRYPTO[0m off=0 len=90 [seq]
+[0m[1m14.574[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:152 [0m[1m[32mTX[0m to=10.0.0.1:4987 0xe0=[32mHandshake [0mvers=0x1 dcid=0:0000000000000001 scid=0:3dd06dc0 len=0 nr=[32m0[0m
+[0m       [44m [0m [35menc_padding_frame[30m [34mframe.c:1524 [0m[1m[32mPADDING[0m len=22
+[0m       [44m [0m [35mlog_stream_or_crypto_frame[30m [34mframe.c:171 [0m[1m[32mCRYPTO[0m off=0 len=1188 [seq]
+[0m[1m14.574[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:152 [0m[1m[32mTX[0m to=10.0.0.1:4987 0xe0=[32mHandshake [0mvers=0x1 dcid=0:0000000000000001 scid=0:3dd06dc0 len=0 nr=[32m1[0m
+[0m       [44m [0m [35menc_padding_frame[30m [34mframe.c:1524 [0m[1m[32mPADDING[0m len=21
+[0m       [44m [0m [35mlog_stream_or_crypto_frame[30m [34mframe.c:171 [0m[1m[32mCRYPTO[0m off=1188 len=229 [seq]
+[0m       [42m [0m [35mcoalesce[30m [34mpkt.c:223 [0mcannot coalesce 1252-byte Handshake pkt behind 154-byte Initial pkt, limit 1200
+[0m       [42m [0m [35mcoalesce[30m [34mpkt.c:235 [0mcannot coalesce 293-byte Handshake pkt behind inner Initial pkt, skipped one already
+[0m       [46m [0m [35mcoalesce[30m [34mpkt.c:287 [0mpadding Initial to 1200 by coalescing 1046 bytes rand data
+[0m       [42m [0m [35mcoalesce[30m [34mpkt.c:223 [0mcannot coalesce 293-byte Handshake pkt behind 1252-byte Handshake pkt, limit 1200
+[0m       [42m [0m [35mlog_sent_pkts[30m [34mconn.c:271 [0mserv conn 0:3dd06dc0, Initial unacked: [32m0[0m
+[0m       [42m [0m [35mlog_sent_pkts[30m [34mconn.c:271 [0mserv conn 0:3dd06dc0, Handshake unacked: [32m0[0m..[32m1[0m
+[0m       [42m [0m [35mhas_pval_wnd[30m [34mconn.h:453 [0mserv conn 0:3dd06dc0 path val lim reached: 2745 + 1200 >= 3696
+[0m       [42m [0m [35mlog_cc[30m [34mrecovery.c:123 [0mserv conn 0:3dd06dc0: in_flight=2745 ([32m+2745[0m), cwnd[0m=12000 (+0[0m), ssthresh=0 (+0[0m), srtt=0.000 (+0.000[0m), rttvar=0.000 (+0.000[0m)
+[0m[0m15.738[0m [42m [0m [35mdec_pkt_hdr_remainder[30m [34mpkt.c:1126 [0mclnt path validated
+[0m       [42m [0m [35mabandon_pn[30m [34mpn.c:136 [0mabandoning serv Initial processing
+[0m[1m15.738[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:110 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=80 0xe3=[34mHandshake [0mvers=0x1 dcid=0:3dd06dc0 scid=0:0000000000000001 len=75 nr=[34m1[0m
+[0m       [44m [0m [35mlog_stream_or_crypto_frame[30m [34mframe.c:171 [0m[1m[34mCRYPTO[0m off=0 len=36 [seq]
+[0m       [44m [0m [35mdec_frames[30m [34mframe.c:1349 [0m[1m[34mPADDING[0m len=16
+[0m       [42m [0m [35mabandon_pn[30m [34mpn.c:136 [0mabandoning serv Handshake processing
+[0m[1m15.738[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:159 [0m[1m[32mTX[0m to=10.0.0.1:4987 0x40=[32mShort [0mkyph=0 spin=0 dcid=0:0000000000000001 nr=[32m0[0m
+[0m       [44m [0m [35menc_hshk_done_frame[30m [34mframe.c:2056 [0m[1m[32mHANDSHAKE_DONE[0m
+[0m       [44m [0m [35menc_new_token_frame[30m [34mframe.c:2009 [0m[1m[32mNEW_TOKEN[0m len=34 tok=a87727c7c6f18ed0c873d16d082fd95bfda371d9363933dbac76cc637b9aba34bf77
+[0m       [42m [0m [35mlog_sent_pkts[30m [34mconn.c:271 [0mserv conn 0:3dd06dc0, Data unacked: [32m0[0m
+[0m       [42m [0m [35mlog_cc[30m [34mrecovery.c:123 [0mserv conn 0:3dd06dc0: in_flight=63 ([31m-2682[0m), cwnd[0m=12000 (+0[0m), ssthresh=0 (+0[0m), srtt=0.000 (+0.000[0m), rttvar=0.000 (+0.000[0m)
+[0m[1m16.723[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=28 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m1[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=2997708501968486400 tok=000000000000000000007e555555000060657e555555000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000001c00000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f0000010000000000000057d16855555500000000000000000000000000007b130000403b6e555555
+[0m       [41m [0m [35merr_close[30m [34mconn.c:1750 [0mserv rx'ed NEW_TOKEN
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 28); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m16.723[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:159 [0m[1m[32mTX[0m to=10.0.0.1:4987 0x40=[32mShort [0mkyph=0 spin=0 dcid=0:0000000000000001 nr=[32m1[0m
+[0m       [44m [0m [35menc_close_frame[30m [34mframe.c:1750 [0m[1m[32mCONNECTION_CLOSE[0m 0x1c=quic err=[31m0xa[0m frame=0x07 rlen=20[31m reason=serv rx'ed NEW_TOKEN[0m
+[0m       [42m [0m [35mlog_sent_pkts[30m [34mconn.c:271 [0mserv conn 0:3dd06dc0, Data unacked: [32m0[0m..[32m1[0m
+[0m[1m17.282[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=31 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m2[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=0 tok=
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 11); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m17.642[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=27 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m3[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=855638016 tok=000000000000000000000000007f0000402e6d555555000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000001b00000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f0000030000000000000057d168555555000000000000000000008dee67f67b130000403b6e555555
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 27); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m18.605[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=35 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m4[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=3534840333349158919 tok=bb000000000000000000000000000000002e6d555555000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000002300000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f0000040000000000000057d168555555000000000000000000008dee67f67b130000403b6e555555
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 35); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m19.434[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=27 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m5[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=1280 tok=00000000000000000000000000000000002e6d555555000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000001b00000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f0000050000000000000057d168555555000000000000000000008dee67f67b130000403b6e555555
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 27); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m20.262[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=33 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m6[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=11271 tok=f96e1907c70000000000000000000000000000000055000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000002100000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f0000060000000000000057d168555555000000000000000000008dee67f67b130000403b6e555555
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 33); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m20.686[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=27 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m7[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=0 tok=
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 11); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m21.094[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=29 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m8[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=292213504 tok=00000000000000000000000000000000000000000055000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000001d00000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f0000080000000000000057d168555555000000000000000000008dee67f67b130000403b6e555555
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 29); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m21.641[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=31 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m9[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=0 tok=
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 11); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m22.059[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=30 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m10[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=680 tok=073a0000000000000000000000000000000000000055000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000001e00000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f00000a0000000000000057d168555555000000000000000000008dee67f67b130000403b6e555555
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 30); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m22.551[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=29 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m11[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=16322 tok=df000000000000000000000000000000000000000055000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000001d00000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f00000b0000000000000057d168555555000000000000000000008dee67f67b130000403b6e555555
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 29); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m23.760[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=47 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m12[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=4 tok=83b50747
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 15); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m24.439[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=31 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m13[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=2604214964654702592 tok=00000000000000000000000000000000000000000055000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000001f00000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f00000d0000000000000057d168555555000000000000000000008dee67f67b130000403b6e555555
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 31); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m24.993[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=27 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m14[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=576460752303423488 tok=00000000000000000000000000000000000000000055000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000001b00000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f00000e0000000000000057d168555555000000000000000000008dee67f67b130000403b6e555555
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 27); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m25.661[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=27 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m15[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=0 tok=
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 11); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m26.475[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=27 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m16[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=0 tok=
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 11); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m26.915[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=28 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m17[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=557 tok=00000000000000000000000000000000000000000055000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000001c00000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f0000110000000000000057d168555555000000000000000000008dee67f67b130000403b6e555555
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 28); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m27.475[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=27 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m18[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=10752 tok=00000000000000000000000000000000000000000055000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000001b00000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f0000120000000000000057d168555555000000000000000000008dee67f67b130000403b6e555555
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 27); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m28.008[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=28 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m19[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=1867 tok=00000000000000000000000000000000000000000055000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000001c00000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f0000130000000000000057d168555555000000000000000000008dee67f67b130000403b6e555555
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 28); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m28.420[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=29 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m20[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=13 tok=e7e80000000000000000000000
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 24); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m29.364[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=32 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m21[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=97716029 tok=c9450000000000000000000000000000000000000055000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000002000000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f0000150000000000000057d168555555000000000000000000008dee67f67b130000403b6e555555
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 32); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m29.880[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=29 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m22[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=0 tok=
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 11); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m31.015[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=29 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m23[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=39 tok=310d0000000000000000000000000000000000000055000012d5685555550000c03b6e55555500
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 29); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m31.900[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=29 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m24[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=11527 tok=d0000000000000000000000000000000000000000055000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000001d00000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f0000180000000000000057d168555555000000000000000000008dee67f67b130000403b6e555555
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 29); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m32.584[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=28 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m25[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=25 tok=12000000000000000000000000000000000000000055000012
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 28); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m33.564[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=27 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m26[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=57 tok=00000000000000000000000000000000000000000055000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 27); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m34.428[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=30 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m27[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=1058146085 tok=00000000000000000000000000000000000000000055000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000001e00000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f00001b0000000000000057d168555555000000000000000000008dee67f67b130000403b6e555555
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 30); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m35.226[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=27 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m28[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=0 tok=
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 11); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m35.969[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=29 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m29[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=2636 tok=dd000000000000000000000000000000000000000055000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000001d00000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f00001d0000000000000057d168555555000000000000000000008dee67f67b130000403b6e555555
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 29); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m36.994[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=32 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m30[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=19 tok=a507cd076b0000000000000000000000000000
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 30); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m37.636[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=30 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m31[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=45 tok=48076c00000000000000000000000000000000000055000012d5685555550000c03b6e5555550000605effffff
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 30); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m38.176[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=28 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m32[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=4442238082447572992 tok=00000000000000000000000000000000000000000055000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000001c00000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f0000200000000000000057d168555555000000000000000000008dee67f67b130000403b6e555555
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 28); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m39.247[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=31 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m33[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=14585 tok=5007ad00000000000000000000000000000000000055000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000001f00000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f0000210000000000000057d168555555000000000000000000008dee67f67b130000403b6e555555
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 31); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m40.014[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=27 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m34[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=0 tok=
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 11); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m40.940[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=34 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m35[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=2250682098745029351 tok=00000000000000000000000000000000000000000055000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000002200000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f0000230000000000000057d168555555000000000000000000008dee67f67b130000403b6e555555
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 34); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m41.630[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=28 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m36[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=0 tok=
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 11); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m42.470[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=27 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m37[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=1024 tok=00000000000000000000000000000000000000000055000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000001b00000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f0000250000000000000057d168555555000000000000000000008dee67f67b130000403b6e555555
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 27); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m43.581[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=33 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m38[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=36 tok=07056b0763d800000000000000000000000000000000000012d5685555550000c03b6e55
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 33); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m44.239[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=27 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m39[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=4467570830351532032 tok=00000000000000000000000000000000000000000000000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000001b00000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f0000270000000000000057d168555555000000000000000000008dee67f67b130000403b6e555555
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 27); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m44.932[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=27 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m40[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=216172782113783808 tok=00000000000000000000000000000000000000000000000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000001b00000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f0000280000000000000057d168555555000000000000000000008dee67f67b130000403b6e555555
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 27); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[1m46.134[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=32 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m41[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1258 [0m[1m[34mNEW_TOKEN[0m len=1009452848 tok=07ab0000000000000000000000000000000000000000000012d5685555550000c03b6e5555550000605effffff7f0000c03b6e55555500007b130000000000002000000000000000c03b6e5555550000c03b6e55555500004300000000000000403b6e555555000000000000000000000000000000000000b05effffff7f0000290000000000000057d168555555000000000000000000008dee67f67b130000403b6e555555
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0xa (serv rx'ed NEW_TOKEN); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1739 [0mignoring new err 0x7 (error parsing 0x07 frame at pos 32); existing err is 0xa (serv rx'ed NEW_TOKEN) 
+[0m[0m46.723[0m [43m [0m [35mq_close[30m [34mquic.c:689 [0mclosing serv conn 0:3dd06dc0 on 10.0.0.3:4443 w/err [0m0x0[0m
+[0m       [44m [0m [35mq_close[30m [34mquic.c:767 [0mserv conn 0:3dd06dc0 stats:
+[0m       [44m [0m [35mq_close[30m [34mquic.c:768 [0mpkts_in_valid = [0m2[0m
+[0m       [44m [0m [35mq_close[30m [34mquic.c:770 [0mpkts_in_invalid = [1m[31m41[0m
+[0m       [44m [0m [35mq_close[30m [34mquic.c:772 [0mpkts_out = 5
+[0m       [44m [0m [35mq_close[30m [34mquic.c:773 [0mpkts_out_lost = 0
+[0m       [44m [0m [35mq_close[30m [34mquic.c:774 [0mpkts_out_rtx = 0
+[0m       [44m [0m [35mq_close[30m [34mquic.c:775 [0mrtt = 0.000 (min = 0.000, max = 0.000, var = 0.000)
+[0m       [44m [0m [35mq_close[30m [34mquic.c:778 [0mcwnd = 12000 (max = 0)
+[0m       [44m [0m [35mq_close[30m [34mquic.c:780 [0mssthresh = 0
+[0m       [44m [0m [35mq_close[30m [34mquic.c:782 [0mpto_cnt = 0
+[0m       [44m [0m [35mq_close[30m [34mquic.c:783 [0mframe                  code        out         in
+[0m       [44m [0m [35mq_close[30m [34mquic.c:787 [0mPADDING                0x00          0       1032
+[0m       [44m [0m [35mq_close[30m [34mquic.c:787 [0mACK                    0x02          0          1
+[0m       [44m [0m [35mq_close[30m [34mquic.c:787 [0mCRYPTO                 0x06          0          5
+[0m       [44m [0m [35mq_close[30m [34mquic.c:787 [0mNEW_TOKEN              0x07          0          1
+[0m       [44m [0m [35mq_close[30m [34mquic.c:787 [0mCONNECTION_CLOSE_QUIC  0x1c          0          1
+[0m       [44m [0m [35mq_close[30m [34mquic.c:787 [0mHANDSHAKE_DONE         0x1e          0          1
+[0m       [44m [0m [35mq_close[30m [34mquic.c:791 [0mstrm_frms_in_seq = 2
+[0m       [44m [0m [35mq_close[30m [34mquic.c:792 [0mstrm_frms_in_ooo = 0
+[0m       [44m [0m [35mq_close[30m [34mquic.c:793 [0mstrm_frms_in_dup = 0
+[0m       [44m [0m [35mq_close[30m [34mquic.c:794 [0mstrm_frms_in_ign = 0
+[0m[1m48.203[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=78 0x5d=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 78-byte Short pkt, ignoring
+[0m[1m48.977[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=49 0x52=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 49-byte Short pkt, ignoring
+[0m[1m49.655[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=44 0x45=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 44-byte Short pkt, ignoring
+[0m[1m50.436[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=53 0x4d=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 53-byte Short pkt, ignoring
+[0m[1m51.953[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=45 0x41=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 45-byte Short pkt, ignoring
+[0m[1m53.323[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=51 0x5c=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 51-byte Short pkt, ignoring
+[0m[1m54.155[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=45 0x5e=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 45-byte Short pkt, ignoring
+[0m[1m55.645[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=56 0x44=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 56-byte Short pkt, ignoring
+[0m[1m56.440[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=45 0x5d=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 45-byte Short pkt, ignoring
+[0m[1m57.359[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=49 0x41=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 49-byte Short pkt, ignoring
+[0m[1m58.255[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=45 0x50=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 45-byte Short pkt, ignoring
+[0m[1m59.257[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=44 0x50=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 44-byte Short pkt, ignoring
+[0m[1m60.289[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=50 0x55=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 50-byte Short pkt, ignoring
+[0m[1m61.387[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=43 0x54=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 43-byte Short pkt, ignoring
+[0m[1m62.439[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=44 0x56=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 44-byte Short pkt, ignoring
+[0m[1m63.836[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=47 0x57=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 47-byte Short pkt, ignoring
+[0m[1m65.589[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=49 0x47=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 49-byte Short pkt, ignoring
+[0m[1m66.882[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=44 0x4f=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 44-byte Short pkt, ignoring
+[0m[1m68.126[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=44 0x59=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 44-byte Short pkt, ignoring
+[0m[1m69.629[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=44 0x58=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 44-byte Short pkt, ignoring
+[0m[1m71.133[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=46 0x50=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 46-byte Short pkt, ignoring
+[0m[1m72.859[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=57 0x59=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 57-byte Short pkt, ignoring
+[0m[1m74.319[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=45 0x50=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 45-byte Short pkt, ignoring
+[0m[1m75.986[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=48 0x40=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 48-byte Short pkt, ignoring
+[0m[1m77.551[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=47 0x47=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 47-byte Short pkt, ignoring
+[0m[1m79.089[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=43 0x55=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 43-byte Short pkt, ignoring
+[0m[1m80.871[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=52 0x4c=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 52-byte Short pkt, ignoring
+[0m[1m82.442[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=52 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 52-byte Short pkt, ignoring
+[0m[1m84.335[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=48 0x4d=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 48-byte Short pkt, ignoring
+[0m[1m86.389[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=47 0x59=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 47-byte Short pkt, ignoring
+[0m[1m88.109[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=49 0x44=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 49-byte Short pkt, ignoring
+[0m[1m89.909[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=44 0x5f=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 44-byte Short pkt, ignoring
+[0m[1m91.799[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=45 0x40=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 45-byte Short pkt, ignoring
+[0m[1m93.453[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=50 0x4e=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 50-byte Short pkt, ignoring
+[0m[1m95.727[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=57 0x5b=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 57-byte Short pkt, ignoring
+[0m[1m97.451[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=44 0x40=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 44-byte Short pkt, ignoring
+[0m[1m99.216[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=44 0x4a=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 44-byte Short pkt, ignoring
+[0m[1m101.496[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=45 0x48=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 45-byte Short pkt, ignoring
+[0m[1m103.588[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=49 0x4c=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 49-byte Short pkt, ignoring
+[0m[1m105.411[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=43 0x47=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 43-byte Short pkt, ignoring
+[0m[1m107.298[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=43 0x5e=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 43-byte Short pkt, ignoring
+[0m[1m109.218[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=43 0x5c=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 43-byte Short pkt, ignoring
+[0m[1m111.427[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=45 0x4a=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 45-byte Short pkt, ignoring
+[0m[1m113.510[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=45 0x52=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 45-byte Short pkt, ignoring
+[0m[1m115.866[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=53 0x54=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 53-byte Short pkt, ignoring
+[0m[1m118.202[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=51 0x52=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 51-byte Short pkt, ignoring
+[0m[1m120.600[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=43 0x55=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 43-byte Short pkt, ignoring
+[0m[1m123.267[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=45 0x4c=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 45-byte Short pkt, ignoring
+[0m[1m126.140[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=49 0x45=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 49-byte Short pkt, ignoring
+[0m[1m128.656[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=43 0x49=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 43-byte Short pkt, ignoring
+[0m[1m131.337[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=55 0x4d=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 55-byte Short pkt, ignoring
+[0m[1m134.128[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=49 0x46=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 49-byte Short pkt, ignoring
+[0m[1m137.030[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=45 0x42=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 45-byte Short pkt, ignoring
+[0m[1m140.548[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=44 0x5d=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 44-byte Short pkt, ignoring
+[0m[1m143.113[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=44 0x59=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 44-byte Short pkt, ignoring
+[0m[1m145.943[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=46 0x4c=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 46-byte Short pkt, ignoring
+[0m[1m148.798[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=47 0x56=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 47-byte Short pkt, ignoring
+[0m[1m152.164[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=47 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 47-byte Short pkt, ignoring
+[0m[1m155.169[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=45 0x45=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 45-byte Short pkt, ignoring
+[0m[1m158.353[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=45 0x5f=[34mShort [0mkyph=1 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 45-byte Short pkt, ignoring
+[0m[1m161.582[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:118 [0m[1m[34mRX[0m from=10.0.0.1:4987 len=45 0x41=[34mShort [0mkyph=0 spin=0 dcid=0:3dd06dc0 nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1417 [0mcannot find conn 0:3dd06dc0 for 45-byte Short pkt, ignoring
+[0m[0m646.723[0m [43m [0m [35mq_ready[30m [34mquic.c:966 [0mno conn ready
+[0m        [43m [0m [35mq_close[30m [34mquic.c:689 [0mclosing serv conn 0: on 10.0.0.3:4443 w/err [0m0x0[0m
+[0m        [43m [0m [35mq_close[30m [34mquic.c:689 [0mclosing serv conn 0: on [fe80::c810:e0ff:fe74:e92]:4443 w/err [0m0x0[0m
+[0m[0m646.738[0m [42m [0m [35mmain[30m [34mserver.c:514 [0mserver exiting with 0

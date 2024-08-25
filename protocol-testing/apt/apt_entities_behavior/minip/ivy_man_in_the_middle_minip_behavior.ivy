@@ -11,10 +11,10 @@ include ivy_mim
 # Server
 action socket_endpoint_mim(host:endpoint_id,s:quic_net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
     dst := mim_agent.ep_client if src = mim_agent.ep_server else mim_agent.ep_server; # is_mim_standalone | 
-##    call socket_endpoint_mim_event_debug_event(host,s,src,dst);
+    call socket_endpoint_mim_event_debug_event(host,s,src,dst);
 }
 
-##import action socket_endpoint_mim_event_debug_event(host:endpoint_id,s:quic_net.socket,src:ip.endpoint,dst:ip.endpoint)
+import action socket_endpoint_mim_event_debug_event(host:endpoint_id,s:quic_net.socket,src:ip.endpoint,dst:ip.endpoint)
 
 action endpoint_to_socket_mim(src:ip.endpoint) returns (socket:quic_net.socket) = {
     socket := sock_mim_server if src = mim_agent.ep_server else sock_mim_client; #  & ~forged_packet_send

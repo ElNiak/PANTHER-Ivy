@@ -61,27 +61,39 @@ after init {
     call show_endpoint_debug_event(client.ep_server);
     call show_endpoint_debug_event(server.ep);
     verify_incoming_packet := true;
-    slow_loris := true;
+    # slow_loris := true;
 
     sock := quic_net.open(endpoint_id.client,client.ep);
     sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
     sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
     
     client.set_tls_id(1);
-    current_connection_id := 1;
+    server.set_tls_id(100);
+
+    client_current_connection_id := 1;
+    server_current_connection_id := 100;
     tls_id_map_ep(client.tls_id)       := client.ep;
     other_tls_id_map_ep(client.tls_id) := server.ep;
+    cid_map_tls_id(server_cid)         := client.tls_id;
     cid_map_tls_id(the_cid)            := client.tls_id;
     ep_map_tls_id(client.ep)           := client.tls_id;
     ep_map_cid(client.ep)              := the_cid;
+    ep_present(client.ep)              := true;
     used_client_ports(client.ep.port)  := true;
+    used_client_ports_in_packet_event(client.ep.port) := false;
+    cid_map_sock(server_cid)           := sock;
     cid_map_sock(the_cid)              := sock;
+    cid_map_ep(server_cid)             := server.ep;
     cid_map_ep(the_cid)                := client.ep;
+
+    tls_id_map_cid(client.tls_id)       := the_cid;
+    other_tls_id_map_cid(client.tls_id) := server_cid;
+    tls_id_map_cid(server.tls_id)       := server_cid;
+    other_tls_id_map_cid(server.tls_id) := the_cid;
 
     call show_cid_event(the_cid);
     call show_cid_event(server_cid);
     
-    server.set_tls_id(0);
     tls_id_map_ep(server.tls_id)       := server.ep;
     other_tls_id_map_ep(server.tls_id) := client.ep;
     ep_map_tls_id(server.ep)           := server.tls_id;
@@ -104,11 +116,12 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     }
 } 
 
+export quic_frame.ping.handle
 export quic_frame.ack.handle
 # export quic_frame.stream.handle ## V2
 export quic_frame.crypto.handle
 export quic_frame.path_response.handle
-# export attacker_send_event
+export attacker_send_event
 
 export packet_event
 export tls_recv_event

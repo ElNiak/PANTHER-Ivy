@@ -79,7 +79,7 @@ action tls_id_to_cid(tls_id:tls_api.id) returns (scid:cid) = {
 }
 
 action other_tls_id_to_cid(tls_id:tls_api.id) returns (scid:cid) = {
-    scid := server_cid;
+    scid := other_tls_id_map_cid(tls_id);
 }
 
 # Returns true if an IP endpoint is controlled by the generator.
@@ -212,6 +212,8 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
         require used_client_ports(src.port);
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
+        require (ep_present(src) & pkt.long)-> pkt.src_cid = ep_map_cid(src);
+
         require dst = server.ep;
         #require pkt.token.end = 0; 
         if pkt.ptype = quic_packet_type.initial & retry_recv(pkt.src_cid) & ~zero_length_token {
@@ -262,7 +264,8 @@ before quic_frame.stream.handle(f:quic_frame.stream,scid:cid,dcid:cid,e:quic_pac
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
         require src.addr = client.ep.addr;
-	    require scid = ep_map_cid(src);
+	    require ep_present(src) &  scid = ep_map_cid(src);
+        require dcid = nonce_cid(ep_map_cid(src));
 
         if ~zero_rtt_server_test | zero_rtt_sent {
             require connected(ep_map_cid(src)) & dcid = connected_to(ep_map_cid(src));
@@ -286,9 +289,9 @@ before quic_frame.crypto.handle(f:quic_frame.crypto,scid:cid,dcid:cid,e:quic_pac
         require used_client_ports(src.port);
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
-        require scid = ep_map_cid(src);
+        require ep_present(src) &  scid = ep_map_cid(src);
 
-        # require dcid = nonce_cid(ep_map_cid(src));
+        require dcid = nonce_cid(ep_map_cid(src));
 
         require f.length > 0;
         require f.offset = crypto_length(scid,e);
@@ -309,7 +312,8 @@ before quic_frame.ack.handle(f:quic_frame.ack,scid:cid,dcid:cid,e:quic_packet_ty
         require used_client_ports(src.port);
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
-        require scid = ep_map_cid(src);
+        require ep_present(src) &  scid = ep_map_cid(src);
+        require dcid = nonce_cid(ep_map_cid(src));
 
         force_new_ack := true;
         #call handle_sending_ack(f.largest_acked);
@@ -326,7 +330,8 @@ before quic_frame.rst_stream.handle(f:quic_frame.rst_stream,scid:cid,dcid:cid,e:
         require used_client_ports(src.port);
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
-        require scid = ep_map_cid(src);
+        require ep_present(src) &  scid = ep_map_cid(src);
+        require dcid = nonce_cid(ep_map_cid(src));
 
         require f.id = 4;
     }
@@ -341,8 +346,9 @@ before quic_frame.new_token.handle(f:quic_frame.new_token,scid:cid,dcid:cid,e:qu
         require used_client_ports(src.port);
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
-        require scid = ep_map_cid(src);
-        
+        require ep_present(src) &  scid = ep_map_cid(src);
+        require dcid = nonce_cid(ep_map_cid(src));
+
         #call handle_sending_ack(f.largest_acked);
     } 
     else {
@@ -357,10 +363,11 @@ before quic_frame.stop_sending.handle(f:quic_frame.stop_sending,scid:cid,dcid:ci
         # require exists I. I < the_cid_used.end  & the_cid_used.value(I) = scid & dcid = nonce_cid(scid);
         # require scid = the_cid;
         require src.addr = client.ep.addr;
-        require scid = ep_map_cid(src);
+        require ep_present(src) &  scid = ep_map_cid(src);
         require src.protocol = ip.udp;
         require used_client_ports(src.port);
         require src.interface = ip.veth_ivy;
+        require dcid = nonce_cid(ep_map_cid(src));
 
         require f.id = 4;
     }
@@ -376,7 +383,9 @@ before quic_frame.max_streams.handle(f:quic_frame.max_streams,scid:cid,dcid:cid,
         require used_client_ports(src.port);
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
-        require scid = ep_map_cid(src);
+        require ep_present(src) &  scid = ep_map_cid(src);
+        require dcid = nonce_cid(ep_map_cid(src));
+
     }
 }
 
@@ -388,7 +397,9 @@ before quic_frame.new_connection_id.handle(f:quic_frame.new_connection_id,scid:c
         require used_client_ports(src.port);
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
-        require scid = ep_map_cid(src);
+        require ep_present(src) &  scid = ep_map_cid(src);
+        require dcid = nonce_cid(ep_map_cid(src));
+
     }
 }
 
@@ -401,7 +412,7 @@ before quic_frame.retire_connection_id.handle(f:quic_frame.retire_connection_id,
         require used_client_ports(src.port);
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
-        require scid = ep_map_cid(src);
+        require ep_present(src) &  scid = ep_map_cid(src);
     }
 }
 
@@ -420,7 +431,9 @@ before quic_frame.connection_close.handle(f:quic_frame.connection_close,scid:cid
         require used_client_ports(src.port);
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
-        require scid = ep_map_cid(src);
+        require ep_present(src) &  scid = ep_map_cid(src);
+        require dcid = nonce_cid(ep_map_cid(src));
+
 
         require f.err_code = 0;
     } else {
@@ -439,7 +452,9 @@ before quic_frame.application_close.handle(f:quic_frame.application_close,scid:c
         require used_client_ports(src.port);
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
-        require scid = ep_map_cid(src);
+        require ep_present(src) &  scid = ep_map_cid(src);
+        require dcid = nonce_cid(ep_map_cid(src));
+
     } else {
         require is_no_error;
         call _finalize;
@@ -457,7 +472,9 @@ before quic_frame.max_stream_data.handle(f:quic_frame.max_stream_data,scid:cid,d
         require used_client_ports(src.port);
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
-        require scid = ep_map_cid(src);
+        require ep_present(src) &  scid = ep_map_cid(src);
+        require dcid = nonce_cid(ep_map_cid(src));
+
 
         require 4 <= f.id & f.id <= 16;
     }
@@ -474,7 +491,9 @@ before quic_frame.stream_data_blocked.handle(f:quic_frame.stream_data_blocked,sc
         require used_client_ports(src.port);
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
-        require scid = ep_map_cid(src);
+        require ep_present(src) &  scid = ep_map_cid(src);
+        require dcid = nonce_cid(ep_map_cid(src));
+
 
         require f.id = 4;
     }
@@ -492,7 +511,9 @@ before quic_frame.max_data.handle(f:quic_frame.max_data,scid:cid,dcid:cid,e:quic
         require used_client_ports(src.port);
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
-        require scid = ep_map_cid(src);
+        require ep_present(src) &  scid = ep_map_cid(src);
+        require dcid = nonce_cid(ep_map_cid(src));
+
 
         require f.pos = 4000;
     }
@@ -567,7 +588,7 @@ around client_send_event {
         # if retry_recv( ep_map_cid(src)) {
         #     require dcid = server_cid;
         # } else {
-            require connected( ep_map_cid(src)) & dcid = connected_to( ep_map_cid(src));
+            require connected(ep_map_cid(src)) & dcid = connected_to(ep_map_cid(src));
         # }
     } else {
         # require dcid ~=  ep_map_cid(src);

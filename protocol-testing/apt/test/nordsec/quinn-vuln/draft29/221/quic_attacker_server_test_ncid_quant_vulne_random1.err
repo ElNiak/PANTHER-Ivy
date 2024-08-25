@@ -1,0 +1,236 @@
+DEBUG:panther-test:Setting process limits
+DEBUG:panther-test:Initial memory limits: soft=-1, hard=-1
+DEBUG:panther-test:Updated memory limits: soft=786432000, hard=-1
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+       Fresh unicode-ident v1.0.12
+       Fresh shlex v1.3.0
+       Fresh cfg-if v1.0.0
+       Fresh once_cell v1.19.0
+       Fresh autocfg v1.3.0
+       Fresh proc-macro2 v1.0.86
+       Fresh cc v1.1.14
+       Fresh version_check v0.9.5
+       Fresh spin v0.9.8
+       Fresh pin-project-lite v0.2.14
+       Fresh untrusted v0.9.0
+       Fresh tracing-core v0.1.32
+       Fresh libc v0.2.158
+       Fresh quote v1.0.37
+       Fresh tinyvec_macros v0.1.1
+       Fresh byteorder v1.5.0
+       Fresh log v0.4.22
+       Fresh syn v2.0.75
+       Fresh getrandom v0.2.15
+       Fresh tinyvec v1.8.0
+       Fresh powerfmt v0.2.0
+       Fresh tracing-attributes v0.1.27
+       Fresh zerocopy-derive v0.7.35
+       Fresh ring v0.17.8
+       Fresh rand_core v0.6.4
+       Fresh deranged v0.3.11
+       Fresh tracing v0.1.40
+       Fresh zerocopy v0.7.35
+       Fresh num-conv v0.1.0
+       Fresh untrusted v0.7.1
+       Fresh base64 v0.21.7
+       Fresh num_threads v0.1.7
+       Fresh ppv-lite86 v0.2.20
+       Fresh spin v0.5.2
+       Fresh time-core v0.1.2
+       Fresh itoa v1.0.11
+       Fresh rustls-pemfile v1.0.4
+       Fresh syn v1.0.109
+       Fresh ring v0.16.20
+       Fresh rand_chacha v0.3.1
+       Fresh time v0.3.36
+       Fresh rustls-webpki v0.101.7
+       Fresh sct v0.7.1
+       Fresh thiserror-impl v1.0.63
+       Fresh proc-macro-error-attr v1.0.4
+       Fresh socket2 v0.5.7
+       Fresh openssl-probe v0.1.5
+       Fresh regex-syntax v0.6.29
+       Fresh regex-syntax v0.8.4
+       Fresh bytes v1.7.1
+       Fresh rand v0.8.5
+       Fresh proc-macro-error v1.0.4
+       Fresh rustls-native-certs v0.6.3
+       Fresh regex-automata v0.4.7
+       Fresh regex-automata v0.1.10
+       Fresh slab v0.4.9
+       Fresh thiserror v1.0.63
+       Fresh rustls v0.21.12
+       Fresh webpki v0.22.4
+       Fresh unicode-normalization v0.1.23
+       Fresh pin-project-internal v1.1.5
+       Fresh tokio-macros v2.4.0
+       Fresh signal-hook-registry v1.4.2
+       Fresh mio v1.0.2
+       Fresh overload v0.1.1
+       Fresh base64 v0.13.1
+       Fresh os_str_bytes v6.6.1
+       Fresh rustc-hash v1.1.0
+       Fresh percent-encoding v2.3.1
+       Fresh lazy_static v1.5.0
+       Fresh heck v0.4.1
+       Fresh hashbrown v0.12.3
+       Fresh unicode-bidi v0.3.15
+       Fresh idna v0.5.0
+       Fresh clap_derive v3.2.25
+       Fresh quinn-proto v0.10.0 (/app/implementations/quic-implementations/quinn-vuln/quinn-proto)
+warning: unexpected `cfg` condition name: `fuzzing`
+  --> quinn-proto/src/lib.rs:15:17
+   |
+15 | #![cfg_attr(not(fuzzing), warn(missing_docs))]
+   |                 ^^^^^^^
+   |
+   = help: expected names are: `clippy`, `debug_assertions`, `doc`, `docsrs`, `doctest`, `feature`, `miri`, `overflow_checks`, `panic`, `proc_macro`, `relocation_model`, `rustfmt`, `sanitize`, `sanitizer_cfi_generalize_pointers`, `sanitizer_cfi_normalize_integers`, `target_abi`, `target_arch`, `target_endian`, `target_env`, `target_family`, `target_feature`, `target_has_atomic`, `target_has_atomic_equal_alignment`, `target_has_atomic_load_store`, `target_os`, `target_pointer_width`, `target_thread_local`, `target_vendor`, `test`, `ub_checks`, `unix`, and `windows`
+   = help: consider using a Cargo feature instead
+   = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+            [lints.rust]
+            unexpected_cfgs = { level = "warn", check-cfg = ['cfg(fuzzing)'] }
+   = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(fuzzing)");` to the top of the `build.rs`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+   = note: `#[warn(unexpected_cfgs)]` on by default
+
+warning: unexpected `cfg` condition name: `fuzzing`
+  --> quinn-proto/src/lib.rs:85:7
+   |
+85 | #[cfg(fuzzing)]
+   |       ^^^^^^^
+   |
+   = help: consider using a Cargo feature instead
+   = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+            [lints.rust]
+            unexpected_cfgs = { level = "warn", check-cfg = ['cfg(fuzzing)'] }
+   = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(fuzzing)");` to the top of the `build.rs`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `fuzzing`
+  --> quinn-proto/src/connection/mod.rs:60:7
+   |
+60 | #[cfg(fuzzing)]
+   |       ^^^^^^^
+   |
+   = help: consider using a Cargo feature instead
+   = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+            [lints.rust]
+            unexpected_cfgs = { level = "warn", check-cfg = ['cfg(fuzzing)'] }
+   = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(fuzzing)");` to the top of the `build.rs`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `fuzzing`
+  --> quinn-proto/src/connection/mod.rs:62:11
+   |
+62 | #[cfg(not(fuzzing))]
+   |           ^^^^^^^
+   |
+   = help: consider using a Cargo feature instead
+   = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+            [lints.rust]
+            unexpected_cfgs = { level = "warn", check-cfg = ['cfg(fuzzing)'] }
+   = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(fuzzing)");` to the top of the `build.rs`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `fuzzing`
+  --> quinn-proto/src/connection/mod.rs:70:7
+   |
+70 | #[cfg(fuzzing)]
+   |       ^^^^^^^
+   |
+   = help: consider using a Cargo feature instead
+   = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+            [lints.rust]
+            unexpected_cfgs = { level = "warn", check-cfg = ['cfg(fuzzing)'] }
+   = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(fuzzing)");` to the top of the `build.rs`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `fuzzing`
+  --> quinn-proto/src/connection/mod.rs:72:11
+   |
+72 | #[cfg(not(fuzzing))]
+   |           ^^^^^^^
+   |
+   = help: consider using a Cargo feature instead
+   = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+            [lints.rust]
+            unexpected_cfgs = { level = "warn", check-cfg = ['cfg(fuzzing)'] }
+   = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(fuzzing)");` to the top of the `build.rs`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `fuzzing`
+  --> quinn-proto/src/connection/streams/mod.rs:33:11
+   |
+33 |     #[cfg(fuzzing)]
+   |           ^^^^^^^
+   |
+   = help: consider using a Cargo feature instead
+   = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+            [lints.rust]
+            unexpected_cfgs = { level = "warn", check-cfg = ['cfg(fuzzing)'] }
+   = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(fuzzing)");` to the top of the `build.rs`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `fuzzing`
+  --> quinn-proto/src/connection/streams/mod.rs:76:11
+   |
+76 |     #[cfg(fuzzing)]
+   |           ^^^^^^^
+   |
+   = help: consider using a Cargo feature instead
+   = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+            [lints.rust]
+            unexpected_cfgs = { level = "warn", check-cfg = ['cfg(fuzzing)'] }
+   = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(fuzzing)");` to the top of the `build.rs`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `fuzzing`
+   --> quinn-proto/src/connection/streams/mod.rs:171:11
+    |
+171 |     #[cfg(fuzzing)]
+    |           ^^^^^^^
+    |
+    = help: consider using a Cargo feature instead
+    = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+             [lints.rust]
+             unexpected_cfgs = { level = "warn", check-cfg = ['cfg(fuzzing)'] }
+    = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(fuzzing)");` to the top of the `build.rs`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+       Fresh sharded-slab v0.1.7
+       Fresh indexmap v1.9.3
+       Fresh clap_lex v0.2.4
+       Fresh form_urlencoded v1.2.1
+warning: `quinn-proto` (lib) generated 9 warnings
+       Fresh tokio v1.39.3
+       Fresh pem v1.1.1
+       Fresh nu-ansi-term v0.46.0
+       Fresh pin-project v1.1.5
+       Fresh matchers v0.1.0
+       Fresh regex v1.10.6
+       Fresh quinn-udp v0.4.0 (/app/implementations/quic-implementations/quinn-vuln/quinn-udp)
+       Fresh yasna v0.5.2
+       Fresh atty v0.2.14
+       Fresh dirs-sys-next v0.1.2
+       Fresh thread_local v1.1.8
+       Fresh strsim v0.10.0
+       Fresh crc-catalog v2.4.0
+       Fresh bitflags v1.3.2
+       Fresh textwrap v0.16.1
+       Fresh termcolor v1.4.1
+       Fresh crc v3.2.1
+       Fresh directories-next v2.0.0
+       Fresh clap v3.2.25
+       Fresh tracing-subscriber v0.3.18
+       Fresh tracing-futures v0.2.5
+       Fresh rcgen v0.10.0
+       Fresh url v2.5.2
+       Fresh anyhow v1.0.86
+       Fresh bencher v0.1.5
+       Fresh quinn v0.10.0 (/app/implementations/quic-implementations/quinn-vuln/quinn)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.14s
+     Running `CARGO=/root/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo CARGO_MANIFEST_DIR=/app/implementations/quic-implementations/quinn-vuln/quinn CARGO_PKG_AUTHORS='' CARGO_PKG_DESCRIPTION='Versatile QUIC transport protocol implementation' CARGO_PKG_HOMEPAGE='' CARGO_PKG_LICENSE='MIT OR Apache-2.0' CARGO_PKG_LICENSE_FILE='' CARGO_PKG_NAME=quinn CARGO_PKG_README=../README.md CARGO_PKG_REPOSITORY='https://github.com/quinn-rs/quinn' CARGO_PKG_RUST_VERSION=1.63 CARGO_PKG_VERSION=0.10.0 CARGO_PKG_VERSION_MAJOR=0 CARGO_PKG_VERSION_MINOR=10 CARGO_PKG_VERSION_PATCH=0 CARGO_PKG_VERSION_PRE='' LD_LIBRARY_PATH='/app/implementations/quic-implementations/quinn-vuln/target/debug/build/ring-6bf573fa9d67cfca/out:/app/implementations/quic-implementations/quinn-vuln/target/debug/build/ring-c4152f7836d96689/out:/app/implementations/quic-implementations/quinn-vuln/target/debug/deps:/app/implementations/quic-implementations/quinn-vuln/target/debug:/root/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib:/root/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib:${LD_LIBRARY_PATH}:/app/panther-ivy/submodules/z3/build:/app/panther-ivy/submodules/z3/build' target/debug/examples/server /app/panther-ivy/protocol-testing/quic/index.html --listen '10.0.0.3:4443'`
+listening on 10.0.0.3:4443

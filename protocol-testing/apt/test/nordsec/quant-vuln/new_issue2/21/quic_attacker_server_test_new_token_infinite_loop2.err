@@ -1,0 +1,100 @@
+DEBUG:panther-test:Setting process limits
+DEBUG:panther-test:Initial memory limits: soft=-1, hard=-1
+DEBUG:panther-test:Updated memory limits: soft=-1, hard=-1
+[0m[0m0.064[0m [44m [0m [35mq_init[30m [34mquic.c:671 [0mquant/socket (epoll/sendmmsg/recvmmsg) 0.0.29/00 ready
+[0m[0m0.067[0m [42m [0m [35mq_init[30m [34mquic.c:673 [0msubmit bug reports at https://github.com/NTAP/quant/issues
+[0m[0m0.071[0m [44m [0m [35mq_bind[30m [34mquic.c:456 [0mbound serv socket to [fe80::3c5d:7cff:fe1c:126c]:4443
+[0m      [42m [0m [35mmain[30m [34mserver.c:371 [0mserver listening on veth_server [fe80::3c5d:7cff:fe1c:126c]:4443
+[0m      [44m [0m [35mq_bind[30m [34mquic.c:456 [0mbound serv socket to 10.0.0.3:4443
+[0m      [42m [0m [35mmain[30m [34mserver.c:371 [0mserver listening on veth_server 10.0.0.3:4443
+[0m[0m14.457[0m [46m [0m [35mrx_pkts[30m [34mconn.c:1288 [0mnew serv conn on port 4443 from 10.0.0.1:32531 w/cid=0:000000000000012d
+[0m       [42m [0m [35mnew_conn[30m [34mconn.c:2001 [0mserv conn 0:000000000000012d on port 4443 created
+[0m       [42m [0m [35mqlog_init[30m [34mqlog.c:106 [0mqlog file is /app/qlogs/quant-vuln/000000000000012d.serv.qlog
+[0m       [41m [0m [35mqlog_init[30m [34mqlog.c:108 [0mcould not fopen /app/qlogs/quant-vuln/000000000000012d.serv.qlog: No such file or directory
+[0m[1m14.457[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:102 [0m[1m[34mRX[0m from=10.0.0.1:4991 len=1216 0xc3=[34mInitial [0mvers=0xff00001d dcid=0:000000000000012d scid=0:0000000000000003 len=1206 nr=[34m1[0m
+[0m       [44m [0m [35mlog_stream_or_crypto_frame[30m [34mframe.c:171 [0m[1m[34mCRYPTO[0m off=0 len=219 [seq]
+[0m       [44m [0m [35mdec_frames[30m [34mframe.c:1299 [0m[1m[34mPADDING[0m len=963
+[0m       [44m [0m [35mupdate_act_scid[30m [34mconn.c:386 [0mhshk switch to scid 0:e9c550f3 for conn_idle serv conn (was 0:000000000000012d)
+[0m       [44m [0m [35mon_ch[30m [34mtls.c:345 [0m	SNI = servername
+[0m       [44m [0m [35mon_ch[30m [34mtls.c:376 [0m	ALPN = hq-29
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:503 [0m	initial_max_stream_data_bidi_local = 8192 [bytes]
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:518 [0m	initial_max_data = 78445588 [bytes]
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:536 [0m	max_idle_timeout = 40000 [ms]
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:511 [0m	initial_max_stream_data_bidi_remote = 8192 [bytes]
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:497 [0m	initial_max_stream_data_uni = 78445588 [bytes]
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:661 [0m	initial_source_connection_id = 0:0000000000000003
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:530 [0m	initial_max_streams_uni = 52936
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:561 [0m	max_ack_delay = 12288 [ms]
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:524 [0m	initial_max_streams_bidi = 52936
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:582 [0m	disable_active_migration = true
+[0m[1m14.460[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:144 [0m[1m[32mTX[0m to=10.0.0.1:4991 0xc0=[32mInitial [0mvers=0xff00001d dcid=0:0000000000000003 scid=0:e9c550f3 len=0 nr=[32m0[0m
+[0m       [44m [0m [35menc_ack_frame[30m [34mframe.c:1548 [0m[1m[32mACK[0m 0x02 lg=[34m1[0m delay=465 (3720 usec) cnt=0 rng=0 [[34m1[0m]
+[0m       [44m [0m [35menc_padding_frame[30m [34mframe.c:1464 [0m[1m[32mPADDING[0m len=15
+[0m       [44m [0m [35mlog_stream_or_crypto_frame[30m [34mframe.c:171 [0m[1m[32mCRYPTO[0m off=0 len=90 [seq]
+[0m[1m14.461[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:153 [0m[1m[32mTX[0m to=10.0.0.1:4991 0xe0=[32mHandshake [0mvers=0xff00001d dcid=0:0000000000000003 scid=0:e9c550f3 len=0 nr=[32m0[0m
+[0m       [44m [0m [35menc_padding_frame[30m [34mframe.c:1464 [0m[1m[32mPADDING[0m len=22
+[0m       [44m [0m [35mlog_stream_or_crypto_frame[30m [34mframe.c:171 [0m[1m[32mCRYPTO[0m off=0 len=1188 [seq]
+[0m[1m14.461[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:153 [0m[1m[32mTX[0m to=10.0.0.1:4991 0xe0=[32mHandshake [0mvers=0xff00001d dcid=0:0000000000000003 scid=0:e9c550f3 len=0 nr=[32m1[0m
+[0m       [44m [0m [35menc_padding_frame[30m [34mframe.c:1464 [0m[1m[32mPADDING[0m len=21
+[0m       [44m [0m [35mlog_stream_or_crypto_frame[30m [34mframe.c:171 [0m[1m[32mCRYPTO[0m off=1188 len=214 [seq]
+[0m       [44m [0m [35mcoalesce[30m [34mpkt.c:243 [0mcoalescing 1252-byte Handshake pkt behind inner 154-byte Initial pkt (outermost Initial)
+[0m       [44m [0m [35mcoalesce[30m [34mpkt.c:243 [0mcoalescing 278-byte Handshake pkt behind inner 1406-byte Handshake pkt (outermost Initial)
+[0m       [46m [0m [35mcoalesce[30m [34mpkt.c:262 [0mtesting PMTU 2020 with Initial pkt 0 using 336 bytes rand padding
+[0m       [44m [0m [35mlog_sent_pkts[30m [34mconn.c:278 [0mserv conn 0:e9c550f3, Initial unacked: [32m0[0m
+[0m       [44m [0m [35mlog_sent_pkts[30m [34mconn.c:278 [0mserv conn 0:e9c550f3, Handshake unacked: [32m0[0m..[32m1[0m
+[0m       [42m [0m [35mlog_cc[30m [34mrecovery.c:124 [0mserv conn 0:e9c550f3: in_flight=1684 ([32m+1684[0m), cwnd[0m=12000 (+0[0m), ssthresh=0 (+0[0m), srtt=0.000 (+0.000[0m), rttvar=0.000 (+0.000[0m)
+[0m[0m14.858[0m [42m [0m [35mabandon_pn[30m [34mpn.c:134 [0mabandoning serv Initial processing
+[0m       [46m [0m [35mvalidate_pmtu[30m [34mpkt.c:175 [0mPMTU 2020 validated
+[0m       [42m [0m [35mdec_pkt_hdr_remainder[30m [34mpkt.c:1075 [0mclnt path validated
+[0m[1m14.858[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:111 [0m[1m[34mRX[0m from=10.0.0.1:4991 len=80 0xe3=[34mHandshake [0mvers=0xff00001d dcid=0:e9c550f3 scid=0:0000000000000003 len=75 nr=[34m1[0m
+[0m       [44m [0m [35mlog_stream_or_crypto_frame[30m [34mframe.c:171 [0m[1m[34mCRYPTO[0m off=0 len=36 [seq]
+[0m       [44m [0m [35mdec_frames[30m [34mframe.c:1299 [0m[1m[34mPADDING[0m len=16
+[0m       [42m [0m [35mabandon_pn[30m [34mpn.c:134 [0mabandoning serv Handshake processing
+[0m[1m14.859[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:160 [0m[1m[32mTX[0m to=10.0.0.1:4991 0x40=[32mShort [0mkyph=0 spin=0 dcid=0:0000000000000003 nr=[32m0[0m
+[0m       [44m [0m [35menc_hshk_done_frame[30m [34mframe.c:1977 [0m[1m[32mHANDSHAKE_DONE[0m
+[0m       [44m [0m [35menc_new_token_frame[30m [34mframe.c:1930 [0m[1m[32mNEW_TOKEN[0m len=42 tok=b6f7f7efff71f55c9e74c7ff324b8267603664df722007cf9fa7f20fab2708b104e9c550f304e9c550f3
+[0m       [44m [0m [35mlog_sent_pkts[30m [34mconn.c:278 [0mserv conn 0:e9c550f3, Data unacked: [32m0[0m
+[0m       [42m [0m [35mlog_cc[30m [34mrecovery.c:124 [0mserv conn 0:e9c550f3: in_flight=71 ([31m-1613[0m), cwnd[0m=12000 (+0[0m), ssthresh=0 (+0[0m), srtt=0.000 (+0.000[0m), rttvar=0.000 (+0.000[0m)
+[0m[1m15.045[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4991 len=64 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:e9c550f3 nr=[34m1[0m
+[0m       [44m [0m [35mlog_stream_or_crypto_frame[30m [34mframe.c:154 [0m[1m[34mSTREAM[0m 0x0f=FIN|LEN|OFF id=[1m[33m8[0m/508 off=0/32767 len=16 coff=16/4194176 [seq]
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1212 [0m[1m[34mNEW_TOKEN[0m len=6 tok=950000000000
+[0m       [41m [0m [35merr_close[30m [34mconn.c:1669 [0merror parsing 0x07 frame at pos 37
+[0m[1m15.328[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4991 len=64 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:e9c550f3 nr=[34m2[0m
+[0m       [44m [0m [35mlog_stream_or_crypto_frame[30m [34mframe.c:154 [0m[1m[34mSTREAM[0m 0x0f=FIN|LEN|OFF id=[1m[33m8[0m/508 off=0/32767 len=16 coff=16/4194176 [[31mdup[0m]
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1212 [0m[1m[34mNEW_TOKEN[0m len=6 tok=950000000000
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1651 [0mignoring new err 0x7; existing err is 0x7 (error parsing 0x07 frame at pos 37) 
+[0m[1m15.581[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4991 len=64 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:e9c550f3 nr=[34m3[0m
+[0m       [44m [0m [35mlog_stream_or_crypto_frame[30m [34mframe.c:154 [0m[1m[34mSTREAM[0m 0x0f=FIN|LEN|OFF id=[1m[33m8[0m/508 off=0/32767 len=16 coff=16/4194176 [[31mdup[0m]
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1212 [0m[1m[34mNEW_TOKEN[0m len=6 tok=950000000000
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1651 [0mignoring new err 0x7; existing err is 0x7 (error parsing 0x07 frame at pos 37) 
+[0m[1m16.146[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4991 len=64 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:e9c550f3 nr=[34m4[0m
+[0m       [44m [0m [35mlog_stream_or_crypto_frame[30m [34mframe.c:154 [0m[1m[34mSTREAM[0m 0x0f=FIN|LEN|OFF id=[1m[33m8[0m/508 off=0/32767 len=16 coff=16/4194176 [[31mdup[0m]
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1212 [0m[1m[34mNEW_TOKEN[0m len=6 tok=950000000000
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1651 [0mignoring new err 0x7; existing err is 0x7 (error parsing 0x07 frame at pos 37) 
+[0m[1m16.615[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4991 len=64 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:e9c550f3 nr=[34m5[0m
+[0m       [44m [0m [35mlog_stream_or_crypto_frame[30m [34mframe.c:154 [0m[1m[34mSTREAM[0m 0x0f=FIN|LEN|OFF id=[1m[33m8[0m/508 off=0/32767 len=16 coff=16/4194176 [[31mdup[0m]
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1212 [0m[1m[34mNEW_TOKEN[0m len=6 tok=950000000000
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1651 [0mignoring new err 0x7; existing err is 0x7 (error parsing 0x07 frame at pos 37) 
+[0m[0m18.045[0m [43m [0m [35mq_close[30m [34mquic.c:733 [0mclosing serv conn 0:e9c550f3 on 10.0.0.3:4443 w/err [0m0x0[0m
+[0m       [44m [0m [35mq_close[30m [34mquic.c:811 [0mserv conn 0:e9c550f3 stats:
+[0m       [44m [0m [35mq_close[30m [34mquic.c:812 [0mpkts_in_valid = [0m2[0m
+[0m       [44m [0m [35mq_close[30m [34mquic.c:814 [0mpkts_in_invalid = [1m[31m5[0m
+[0m       [44m [0m [35mq_close[30m [34mquic.c:816 [0mpkts_out = 4
+[0m       [44m [0m [35mq_close[30m [34mquic.c:817 [0mpkts_out_lost = 0
+[0m       [44m [0m [35mq_close[30m [34mquic.c:818 [0mpkts_out_rtx = 0
+[0m       [44m [0m [35mq_close[30m [34mquic.c:819 [0mrtt = 0.000 (min = 0.000, max = 0.000, var = 0.000)
+[0m       [44m [0m [35mq_close[30m [34mquic.c:822 [0mcwnd = 12000 (max = 0)
+[0m       [44m [0m [35mq_close[30m [34mquic.c:824 [0mssthresh = 0
+[0m       [44m [0m [35mq_close[30m [34mquic.c:826 [0mpto_cnt = 0
+[0m       [44m [0m [35mq_close[30m [34mquic.c:827 [0mframe                  code        out         in
+[0m       [44m [0m [35mq_close[30m [34mquic.c:831 [0mPADDING                0x00          0       1037
+[0m       [44m [0m [35mq_close[30m [34mquic.c:831 [0mACK                    0x02          0          1
+[0m       [44m [0m [35mq_close[30m [34mquic.c:831 [0mCRYPTO                 0x06          0          5
+[0m       [44m [0m [35mq_close[30m [34mquic.c:831 [0mNEW_TOKEN              0x07          0          1
+[0m       [44m [0m [35mq_close[30m [34mquic.c:831 [0mSTREAM                 0x08          0          5
+[0m       [44m [0m [35mq_close[30m [34mquic.c:831 [0mHANDSHAKE_DONE         0x1e          0          1
+[0m       [44m [0m [35mq_close[30m [34mquic.c:835 [0mstrm_frms_in_seq = 3
+[0m       [44m [0m [35mq_close[30m [34mquic.c:836 [0mstrm_frms_in_ooo = 0
+[0m       [44m [0m [35mq_close[30m [34mquic.c:837 [0mstrm_frms_in_dup = 4
+[0m       [44m [0m [35mq_close[30m [34mquic.c:838 [0mstrm_frms_in_ign = 0
+[0m       [42m [0m [35mfree_stream[30m [34mstream.c:139 [0mfreeing strm [1m[33m8[0m on serv conn 0:e9c550f3

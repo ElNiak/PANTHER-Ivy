@@ -530,8 +530,8 @@ function num_ack_eliciting_pkt : stream_pos
 function num_ack_pkt : stream_pos
 
 
-##import action show_num_ack_eliciting_pkt_debug_event(s:stream_pos)
-##import action show_num_ack_pkt_debug_event(s:stream_pos)
+import action show_num_ack_eliciting_pkt_debug_event(s:stream_pos)
+import action show_num_ack_pkt_debug_event(s:stream_pos)
 #Hamid
 
 #chris
@@ -686,7 +686,7 @@ after init {
 
 var force_new_ack : bool
 
-##import action is_generating_debug_event(b:bool)
+import action is_generating_debug_event(b:bool)
 import action is_ack_frequency_respected(b:bool)
 object quic_frame = {
     ...
@@ -695,7 +695,7 @@ object quic_frame = {
         action handle(f:quic_frame.ack,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 
 	around handle {
-##            #call is_generating_debug_event(_generating);
+            #call is_generating_debug_event(_generating);
             # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
             # require (~is_not_sleeping -> ~_generating);
             # require (_generating -> is_not_sleeping);
@@ -775,7 +775,7 @@ object quic_frame = {
                         if ~acked_pkt(dcid,e,jdx) {
                             #if ack_eliciting_threshold_current_val(dcid) >= ack_eliciting_threshold_val(dcid) {
                                 some_new_ack := true;
-##                                call show_ack_generated_debug_event;
+                                call show_ack_generated_debug_event;
                                 ack_eliciting_threshold_current_val(dcid) := 0;
                             #};
                         };
@@ -796,7 +796,7 @@ object quic_frame = {
                 # f.ack_delay := local_ack_delay;
                 # require local_ack_delay <= local_max_ack_delay_tp;
                 # call show_local_delay_ack(local_ack_delay,local_max_ack_delay_tp);
-##                call show_ack_generated_debug_event;
+                call show_ack_generated_debug_event;
             } 
 	    ...
             if ~_generating {
@@ -812,7 +812,7 @@ object quic_frame = {
 }
 
 import action show_local_delay_ack(val:microseconds, val2:microseconds)
-##import action show_ack_generated_debug_event
+import action show_ack_generated_debug_event
 import action show_ack_eliciting_threshold_current_val(val:stream_pos)
 import action show_ack_eliciting_threshold_val(val:stream_pos)
 
@@ -1787,7 +1787,7 @@ object quic_frame = { ...
                 num_conn(dcid) := num_conn(dcid) + 1;
                 var tp := trans_params(dcid);
                 if ~_generating & active_connection_id_limit.is_set(tp)  {
-                    require acti_coid_check(dcid,num_conn(dcid));
+                    call acti_coid_check(dcid,num_conn(dcid));
                 };
             };
             
@@ -2151,13 +2151,12 @@ action scale_ack_delay(delay:milliseconds, ack_delay_exponent:microsecs) returns
 
 # Check that the number of connection id proposed is not higher than active_connection_id_limit
 
-action acti_coid_check(scid:cid,count:stream_pos) returns (ok:bool) = {
-    ok := true;
+action acti_coid_check(scid:cid,count:stream_pos)= {
     var max : stream_pos := 0;
     var tp := trans_params(scid);
     if active_connection_id_limit.is_set(tp) {
         max := active_connection_id_limit.value(tp).stream_pos_32;
-        ok := count <= max;
+        require count <= max;
     };
 }
 
