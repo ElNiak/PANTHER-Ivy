@@ -1,0 +1,1686 @@
+
+ARG__ 
+0x1
+721
+
+ARG__ 
+0xb
+770
+
+ARG__ 
+1
+1
+
+ARG__ 
+101
+101
+"http_request_file.txt"
+PROOTPATH 5b /app
+"/app/panther-ivy/protocol-testing/apt/apt_protocols/quic/quic_utils/http_request_file.txt"
+File opening: 3
+Reading file: 3
+Reading 17 bytes from file
+C time = start
+insertBreakpoint: name = "0"
+insertBreakpoint: now.tv_sec = 1724489238
+insertBreakpoint: now.tv_usec = 121912
+insertBreakpoint: name false = "0"
+insertBreakpoint: end_ms false = 121912
+insertBreakpoint: breakpoints_ms.count(name) false = 1
+open SOCKET 4
+open SOCKET addr 167772162
+open SOCKET htonl(addr.addr) 33554442
+open SOCKET port 4987
+open SOCKET dev veth_ivy
+source port number 0
+binding client id: client addr: 0 port: 4987
+source port number 4987
+installing reader 2
+between random: 136247203
+between random: 136247203
+between random: 22561
+between random: 22561
+create cid = 1
+is_server  = 0
+PROUT 3 
+PROUT 4 
+TEST_ALPN hq-27
+INITIAL_VERSION 27
+INITIAL_VERSION 27
+tls_tags_map[quic_transport_parameters] 65445
+etype =
+ser-open_tag: bytes : 2
+ser-open_tag: tag : 65445
+ser-open_tag: tag != -1: 
+TEST_TYPE attacker_server
+ser-open_field: name 1: "quic_transport_parameters"
+ser-open_field: flb : 2
+ser-open_field: field_start.push_back(res.size()) : 4
+ser-open_field: ffield_length_bytes.push_back(flb) : 2
+ser-open_field: name_field_bytes 2: 0
+ser-open_field: field_bytes: 0
+ser-open_field: res.size() : 4
+ser-open_field: name 1: "transport_parameters"
+ser-open_field: field_start.push_back(res.size()) : 4
+ser-open_field: ffield_length_bytes.push_back(flb) : 0
+ser-open_field: name_field_bytes 2: 0
+ser-open_field: field_bytes: 0
+ser-open_field: res.size() : 4
+ser-open_tag: bytes : 1
+ser-open_tag: tag : 5
+ser-open_tag: tag != -1: 
+TEST_TYPE attacker_server
+ser-open_field: name 1: "initial_max_stream_data_bidi_local"
+ser-open_field: flb : 1
+ser-open_field: field_start.push_back(res.size()) : 6
+ser-open_field: ffield_length_bytes.push_back(flb) : 1
+ser-open_field: name_field_bytes 2: 0
+ser-open_field: field_bytes: 0
+ser-open_field: res.size() : 6
+ser-open_field: name 1: "stream_pos_32"
+ser-open_field: field_start.push_back(res.size()) : 6
+ser-open_field: ffield_length_bytes.push_back(flb) : 0
+ser-open_field: name_field_bytes 1: -1
+ser-open_field: field_bytes: -1
+ser-open_field: res.size() : 6
+ser-close_field: start : 6
+ser-close_field: end : 8
+ser-close_field: len : 2
+ser-close_field: flb : 0
+-------------------
+ser-close_field: start : 6
+ser-close_field: end : 8
+ser-close_field: len : 2
+ser-close_field: flb : 1
+-------------------
+ser-open_tag: bytes : 1
+ser-open_tag: tag : 4
+ser-open_tag: tag != -1: 
+TEST_TYPE attacker_server
+ser-open_field: name 1: "initial_max_data"
+ser-open_field: flb : 1
+ser-open_field: field_start.push_back(res.size()) : 10
+ser-open_field: ffield_length_bytes.push_back(flb) : 1
+ser-open_field: name_field_bytes 2: -1
+ser-open_field: field_bytes: -1
+ser-open_field: res.size() : 10
+ser-open_field: name 1: "stream_pos_32"
+ser-open_field: field_start.push_back(res.size()) : 10
+ser-open_field: ffield_length_bytes.push_back(flb) : 0
+ser-open_field: name_field_bytes 1: -1
+ser-open_field: field_bytes: -1
+ser-open_field: res.size() : 10
+ser-close_field: start : 10
+ser-close_field: end : 14
+ser-close_field: len : 4
+ser-close_field: flb : 0
+-------------------
+ser-close_field: start : 10
+ser-close_field: end : 14
+ser-close_field: len : 4
+ser-close_field: flb : 1
+-------------------
+ser-open_tag: bytes : 1
+ser-open_tag: tag : 1
+ser-open_tag: tag != -1: 
+TEST_TYPE attacker_server
+ser-open_field: name 1: "max_idle_timeout"
+ser-open_field: flb : 1
+ser-open_field: field_start.push_back(res.size()) : 16
+ser-open_field: ffield_length_bytes.push_back(flb) : 1
+ser-open_field: name_field_bytes 2: -1
+ser-open_field: field_bytes: -1
+ser-open_field: res.size() : 16
+ser-open_field: name 1: "seconds_16"
+ser-open_field: field_start.push_back(res.size()) : 16
+ser-open_field: ffield_length_bytes.push_back(flb) : 0
+ser-open_field: name_field_bytes 1: -1
+ser-open_field: field_bytes: -1
+ser-open_field: res.size() : 16
+ser-close_field: start : 16
+ser-close_field: end : 20
+ser-close_field: len : 4
+ser-close_field: flb : 0
+-------------------
+ser-close_field: start : 16
+ser-close_field: end : 20
+ser-close_field: len : 4
+ser-close_field: flb : 1
+-------------------
+ser-open_tag: bytes : 1
+ser-open_tag: tag : 6
+ser-open_tag: tag != -1: 
+TEST_TYPE attacker_server
+ser-open_field: name 1: "initial_max_stream_data_bidi_remote"
+ser-open_field: flb : 1
+ser-open_field: field_start.push_back(res.size()) : 22
+ser-open_field: ffield_length_bytes.push_back(flb) : 1
+ser-open_field: name_field_bytes 2: -1
+ser-open_field: field_bytes: -1
+ser-open_field: res.size() : 22
+ser-open_field: name 1: "stream_pos_32"
+ser-open_field: field_start.push_back(res.size()) : 22
+ser-open_field: ffield_length_bytes.push_back(flb) : 0
+ser-open_field: name_field_bytes 1: -1
+ser-open_field: field_bytes: -1
+ser-open_field: res.size() : 22
+ser-close_field: start : 22
+ser-close_field: end : 24
+ser-close_field: len : 2
+ser-close_field: flb : 0
+-------------------
+ser-close_field: start : 22
+ser-close_field: end : 24
+ser-close_field: len : 2
+ser-close_field: flb : 1
+-------------------
+ser-open_tag: bytes : 1
+ser-open_tag: tag : 7
+ser-open_tag: tag != -1: 
+TEST_TYPE attacker_server
+ser-open_field: name 1: "initial_max_stream_data_uni"
+ser-open_field: flb : 1
+ser-open_field: field_start.push_back(res.size()) : 26
+ser-open_field: ffield_length_bytes.push_back(flb) : 1
+ser-open_field: name_field_bytes 2: -1
+ser-open_field: field_bytes: -1
+ser-open_field: res.size() : 26
+ser-open_field: name 1: "stream_pos_32"
+ser-open_field: field_start.push_back(res.size()) : 26
+ser-open_field: ffield_length_bytes.push_back(flb) : 0
+ser-open_field: name_field_bytes 1: -1
+ser-open_field: field_bytes: -1
+ser-open_field: res.size() : 26
+ser-close_field: start : 26
+ser-close_field: end : 30
+ser-close_field: len : 4
+ser-close_field: flb : 0
+-------------------
+ser-close_field: start : 26
+ser-close_field: end : 30
+ser-close_field: len : 4
+ser-close_field: flb : 1
+-------------------
+ser-open_tag: bytes : 1
+ser-open_tag: tag : 15
+ser-open_tag: tag != -1: 
+TEST_TYPE attacker_server
+ser-open_field: name 1: "initial_source_connection_id"
+ser-open_field: flb : 1
+ser-open_field: field_start.push_back(res.size()) : 32
+ser-open_field: ffield_length_bytes.push_back(flb) : 1
+ser-open_field: name_field_bytes 2: -1
+ser-open_field: field_bytes: -1
+ser-open_field: res.size() : 32
+ser-open_field: name 1: "scid"
+ser-open_field: field_start.push_back(res.size()) : 32
+ser-open_field: ffield_length_bytes.push_back(flb) : 0
+ser-open_field: name_field_bytes 1: 8
+ser-open_field: field_bytes: 8
+ser-open_field: res.size() : 32
+ser-close_field: start : 32
+ser-close_field: end : 40
+ser-close_field: len : 8
+ser-close_field: flb : 0
+-------------------
+ser-close_field: start : 32
+ser-close_field: end : 40
+ser-close_field: len : 8
+ser-close_field: flb : 1
+-------------------
+ser-open_tag: bytes : 1
+ser-open_tag: tag : 9
+ser-open_tag: tag != -1: 
+TEST_TYPE attacker_server
+ser-open_field: name 1: "initial_max_stream_id_uni"
+ser-open_field: flb : 1
+ser-open_field: field_start.push_back(res.size()) : 42
+ser-open_field: ffield_length_bytes.push_back(flb) : 1
+ser-open_field: name_field_bytes 2: 8
+ser-open_field: field_bytes: 8
+ser-open_field: res.size() : 42
+ser-open_field: name 1: "stream_id_16"
+ser-open_field: field_start.push_back(res.size()) : 42
+ser-open_field: ffield_length_bytes.push_back(flb) : 0
+ser-open_field: name_field_bytes 1: -1
+ser-open_field: field_bytes: -1
+ser-open_field: res.size() : 42
+ser-close_field: start : 42
+ser-close_field: end : 46
+ser-close_field: len : 4
+ser-close_field: flb : 0
+-------------------
+ser-close_field: start : 42
+ser-close_field: end : 46
+ser-close_field: len : 4
+ser-close_field: flb : 1
+-------------------
+ser-open_tag: bytes : 1
+ser-open_tag: tag : 11
+ser-open_tag: tag != -1: 
+TEST_TYPE attacker_server
+ser-open_field: name 1: "max_ack_delay"
+ser-open_field: flb : 1
+ser-open_field: field_start.push_back(res.size()) : 48
+ser-open_field: ffield_length_bytes.push_back(flb) : 1
+ser-open_field: name_field_bytes 2: -1
+ser-open_field: field_bytes: -1
+ser-open_field: res.size() : 48
+ser-open_field: name 1: "exponent_8"
+ser-open_field: field_start.push_back(res.size()) : 48
+ser-open_field: ffield_length_bytes.push_back(flb) : 0
+ser-open_field: name_field_bytes 1: -1
+ser-open_field: field_bytes: -1
+ser-open_field: res.size() : 48
+ser-close_field: start : 48
+ser-close_field: end : 50
+ser-close_field: len : 2
+ser-close_field: flb : 0
+-------------------
+ser-close_field: start : 48
+ser-close_field: end : 50
+ser-close_field: len : 2
+ser-close_field: flb : 1
+-------------------
+ser-open_tag: bytes : 1
+ser-open_tag: tag : 8
+ser-open_tag: tag != -1: 
+TEST_TYPE attacker_server
+ser-open_field: name 1: "initial_max_stream_id_bidi"
+ser-open_field: flb : 1
+ser-open_field: field_start.push_back(res.size()) : 52
+ser-open_field: ffield_length_bytes.push_back(flb) : 1
+ser-open_field: name_field_bytes 2: -1
+ser-open_field: field_bytes: -1
+ser-open_field: res.size() : 52
+ser-open_field: name 1: "stream_id_16"
+ser-open_field: field_start.push_back(res.size()) : 52
+ser-open_field: ffield_length_bytes.push_back(flb) : 0
+ser-open_field: name_field_bytes 1: -1
+ser-open_field: field_bytes: -1
+ser-open_field: res.size() : 52
+ser-close_field: start : 52
+ser-close_field: end : 56
+ser-close_field: len : 4
+ser-close_field: flb : 0
+-------------------
+ser-close_field: start : 52
+ser-close_field: end : 56
+ser-close_field: len : 4
+ser-close_field: flb : 1
+-------------------
+ser-open_tag: bytes : 1
+ser-open_tag: tag : 12
+ser-open_tag: tag != -1: 
+TEST_TYPE attacker_server
+ser-open_field: name 1: "disable_active_migration"
+ser-open_field: flb : 1
+ser-open_field: field_start.push_back(res.size()) : 58
+ser-open_field: ffield_length_bytes.push_back(flb) : 1
+ser-open_field: name_field_bytes 2: -1
+ser-open_field: field_bytes: -1
+ser-open_field: res.size() : 58
+ser-close_field: start : 58
+ser-close_field: end : 58
+ser-close_field: len : 0
+ser-close_field: flb : 1
+-------------------
+ser-close_field: start : 4
+ser-close_field: end : 58
+ser-close_field: len : 54
+ser-close_field: flb : 0
+-------------------
+ser-close_field: start : 4
+ser-close_field: end : 58
+ser-close_field: len : 54
+ser-close_field: flb : 2
+-------------------
+etype =65445
+len =54
+ptls_exts[i].type = 65445
+ptls_exts[i].len = 54
+ptls_set_negotiated_protocol
+ptls_is_psk_handshake= 0
+picotls_do_handshake ptls_handle_message end 
+PICOTLS RETURNED PTLS_ERROR_IN_PROGRESS 514
+[1,0,0,215,3,... (219) ...,0,88,33,12,0]
+0
+
+tag v1: 1
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "tls.client_hello"
+value_size: 0
+tag v2: 1
+deser-open_field: name : "tls.client_hello"
+deser-open_field: length_field_bytes : 3
+deser-open_field: flength : 215
+deser-open_field: name : "client_version"
+4) pkt-pos =  219
+deser-open_field: field_bytes : 2
+deser-open_field: name : "rand_info"
+4) pkt-pos =  219
+deser-open_field: name : "gmt_unix_time"
+4) pkt-pos =  219
+deser-open_field: field_bytes : 4
+deser-open_field: name : "random_bytes"
+deser-open_field: name : "session_id"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 0
+deser-open_field: tls_field_bytes_map["session_id"] : 0
+deser-open_field: field_bytes : 1
+deser-open_field: name : "cipher_suites"
+deser-open_field: length_field_bytes : 2
+deser-open_field: flength : 6
+deser-open_field: tls_field_bytes_map["cipher_suites"] : 6
+deser-open_field: field_bytes : 2
+deser-open_field: name : "compression_methods"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 1
+deser-open_field: tls_field_bytes_map["compression_methods"] : 1
+deser-open_field: field_bytes : 1
+deser-open_field: name : "extensions"
+deser-open_field: length_field_bytes : 2
+deser-open_field: flength : 168
+tag v1: 51
+bytes v1: 2
+is_unknow: 1
+Tag size: 1
+tags[0]: "tls.unknown_extension"
+value_size: 0
+tag v2: 51
+deser-open_field: name : "tls.unknown_extension"
+4) pkt-pos =  219
+deser-open_field: name : "etype"
+4) pkt-pos =  219
+deser-open_field: field_bytes : 2
+deser-open_field: name : "content"
+deser-open_field: length_field_bytes : 2
+deser-open_field: flength : 38
+deser-open_field: tls_field_bytes_map["content"] : 38
+deser-open_field: field_bytes : 1
+tag v1: 0
+bytes v1: 2
+is_unknow: 0
+Tag size: 1
+tags[0]: "tls.unknown_extension"
+value_size: 0
+tag v2: 0
+deser-open_field: name : "tls.end_of_early_data"
+4) pkt-pos =  219
+tag v1: 15
+bytes v1: 2
+is_unknow: 0
+Tag size: 1
+tags[0]: "tls.unknown_extension"
+value_size: 0
+tag v2: 15
+deser-open_field: name : "tls.unknown_extension"
+4) pkt-pos =  219
+deser-open_field: name : "etype"
+4) pkt-pos =  219
+deser-open_field: field_bytes : 2
+deser-open_field: name : "content"
+deser-open_field: length_field_bytes : 2
+deser-open_field: flength : 13
+deser-open_field: tls_field_bytes_map["content"] : 13
+deser-open_field: field_bytes : 1
+tag v1: 16
+bytes v1: 2
+is_unknow: 1
+Tag size: 1
+tags[0]: "tls.unknown_extension"
+value_size: 0
+tag v2: 16
+deser-open_field: name : "tls.unknown_extension"
+4) pkt-pos =  219
+deser-open_field: name : "etype"
+4) pkt-pos =  219
+deser-open_field: field_bytes : 2
+deser-open_field: name : "content"
+deser-open_field: length_field_bytes : 2
+deser-open_field: flength : 8
+deser-open_field: tls_field_bytes_map["content"] : 8
+deser-open_field: field_bytes : 1
+tag v1: 43
+bytes v1: 2
+is_unknow: 1
+Tag size: 1
+tags[0]: "tls.unknown_extension"
+value_size: 0
+tag v2: 43
+deser-open_field: name : "tls.unknown_extension"
+4) pkt-pos =  219
+deser-open_field: name : "etype"
+4) pkt-pos =  219
+deser-open_field: field_bytes : 2
+deser-open_field: name : "content"
+deser-open_field: length_field_bytes : 2
+deser-open_field: flength : 9
+deser-open_field: tls_field_bytes_map["content"] : 9
+deser-open_field: field_bytes : 1
+tag v1: 13
+bytes v1: 2
+is_unknow: 0
+Tag size: 1
+tags[0]: "tls.unknown_extension"
+value_size: 0
+tag v2: 13
+deser-open_field: name : "tls.unknown_extension"
+4) pkt-pos =  219
+deser-open_field: name : "etype"
+4) pkt-pos =  219
+deser-open_field: field_bytes : 2
+deser-open_field: name : "content"
+deser-open_field: length_field_bytes : 2
+deser-open_field: flength : 10
+deser-open_field: tls_field_bytes_map["content"] : 10
+deser-open_field: field_bytes : 1
+tag v1: 10
+bytes v1: 2
+is_unknow: 0
+Tag size: 1
+tags[0]: "tls.unknown_extension"
+value_size: 0
+tag v2: 10
+deser-open_field: name : "tls.unknown_extension"
+4) pkt-pos =  219
+deser-open_field: name : "etype"
+4) pkt-pos =  219
+deser-open_field: field_bytes : 2
+deser-open_field: name : "content"
+deser-open_field: length_field_bytes : 2
+deser-open_field: flength : 6
+deser-open_field: tls_field_bytes_map["content"] : 6
+deser-open_field: field_bytes : 1
+tag v1: 65445
+bytes v1: 2
+is_unknow: 1
+Tag size: 4
+tags[0]: "tls.unknown_extension"
+value_size: 0
+tag v2: 65445
+deser-open_field: name : "quic_transport_parameters"
+deser-open_field: length_field_bytes : 2
+deser-open_field: flength : 54
+deser-open_field: name : "transport_parameters"
+4) pkt-pos =  219
+tag v1: 5
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "original_destination_connection_id"
+value_size: 0
+tag v2: 5
+deser-open_field: name : "initial_max_stream_data_bidi_local"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 2
+deser-open_field: name : "stream_pos_32"
+4) pkt-pos =  169
+deser-open_field: field_bytes : -1
+tag v1: 4
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "original_destination_connection_id"
+value_size: 0
+tag v2: 4
+deser-open_field: name : "initial_max_data"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 4
+deser-open_field: name : "stream_pos_32"
+4) pkt-pos =  175
+deser-open_field: field_bytes : -1
+tag v1: 1
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "original_destination_connection_id"
+value_size: 0
+tag v2: 1
+deser-open_field: name : "max_idle_timeout"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 4
+deser-open_field: name : "seconds_16"
+4) pkt-pos =  181
+deser-open_field: field_bytes : -1
+tag v1: 6
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "original_destination_connection_id"
+value_size: 0
+tag v2: 6
+deser-open_field: name : "initial_max_stream_data_bidi_remote"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 2
+deser-open_field: name : "stream_pos_32"
+4) pkt-pos =  185
+deser-open_field: field_bytes : -1
+tag v1: 7
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "original_destination_connection_id"
+value_size: 0
+tag v2: 7
+deser-open_field: name : "initial_max_stream_data_uni"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 4
+deser-open_field: name : "stream_pos_32"
+4) pkt-pos =  191
+deser-open_field: field_bytes : -1
+tag v1: 15
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "original_destination_connection_id"
+tag: 15
+value_size: 8
+value_size: 8
+tag v2: 15
+deser-open_field: name : "initial_source_connection_id"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 8
+deser-open_field: name : "scid"
+4) pkt-pos =  201
+deser-open_field: field_bytes : 8
+tag v1: 9
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "original_destination_connection_id"
+value_size: 0
+tag v2: 9
+deser-open_field: name : "initial_max_stream_id_uni"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 4
+deser-open_field: name : "stream_id_16"
+4) pkt-pos =  207
+deser-open_field: field_bytes : -1
+tag v1: 11
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "original_destination_connection_id"
+value_size: 0
+tag v2: 11
+deser-open_field: name : "max_ack_delay"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 2
+deser-open_field: name : "exponent_8"
+4) pkt-pos =  211
+deser-open_field: field_bytes : -1
+tag v1: 8
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "original_destination_connection_id"
+value_size: 0
+tag v2: 8
+deser-open_field: name : "initial_max_stream_id_bidi"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 4
+deser-open_field: name : "stream_id_16"
+4) pkt-pos =  217
+deser-open_field: field_bytes : -1
+tag v1: 12
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "original_destination_connection_id"
+value_size: 0
+tag v2: 12
+deser-open_field: name : "disable_active_migration"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 0
+PICOTLS handshake handle message finish
+action: ext:attacker_send_event
+varname(actname): ext__attacker_send_event
+index : 0
+action: ext:client_send_event
+varname(actname): ext__client_send_event
+index : 1
+action: ext:malicious_packet_event
+varname(actname): ext__malicious_packet_event
+index : 2
+action: ext:packet_event
+varname(actname): ext__packet_event
+index : 3
+action: ext:quic_frame.ack.handle
+varname(actname): ext__quic_frame__ack__handle
+index : 4
+action: ext:quic_frame.crypto.handle
+varname(actname): ext__quic_frame__crypto__handle
+index : 5
+action: ext:quic_frame.malicious_unknown_frame.handle_maliciously
+varname(actname): ext__quic_frame__malicious_unknown_frame__handle_maliciously
+index : 6
+action: ext:quic_frame.path_response.handle
+varname(actname): ext__quic_frame__path_response__handle
+index : 7
+action: ext:quic_frame.stream.handle
+varname(actname): ext__quic_frame__stream__handle
+index : 8
+action: ext:tls_recv_event
+varname(actname): ext__tls_recv_event
+index : 9
+C time = now_micros_last_bp
+C time = now_micros_last_bp - timer started
+C time = now_micros_last_bp - time = 630481
+insertBreakpoint: name = "1"
+insertBreakpoint: now.tv_sec = 1724489238
+insertBreakpoint: now.tv_usec = 752409
+scid_size_pos size: 8
+dcid_size_cl size: 8
+setup_initial_traffic_keys cid: 1
+setup_initial_traffic_keys session: 0
+setup_initial_traffic_keys
+[195,238,247,18,199,46,187,90,17,167,210,67,43,180,99,101,190,249,245,2][0,0,0,0,0,0,0,101]setup_initial_traffic_keys 2 
+setup_initial_traffic_keys 3
+setup_initial_traffic_keys 4
+setup_initial_traffic_keys 5
+quic_set_key_from_secret 1
+quic_set_key_from_secret 2v
+quic_set_key_from_secret 3v
+setup_initial_traffic_keys 6
+quic_set_key_from_secret 1
+quic_set_key_from_secret 2q
+quic_set_key_from_secret 3q
+setup_initial_traffic_keys salt: [195,238,247,18,199,46,187,90,17,167,210,67,43,180,99,101,190,249,245,2]
+setup_initial_traffic_keys ikm: [0,0,0,0,0,0,0,101]
+ser res init 0
+ser res dcid 1 101
+ser res dcid 2 101
+ser res scid_h 1 1
+ser res scid_h 1 1
+open_list len 0
+quic_ser open_tag 5
+quic_ser open_tag 6
+ser: quic_crypto_offset   = 0
+ser: NOT_COALESCED_PACKET   = 
+ser: PACKET_SIZE   = 1216
+ser: PACKET_SIZE   = 1216
+ser: PACKET_SIZE   = 1190
+\x44
+ser: PACKET_SIZE   = D
+\xa6
+ser: PACKET_SIZE   = ¦
+iv_size start 
+iv_size cid 1
+iv_size level 0
+iv_size end 16
+encrypt_aead start l 0
+encrypt_aead start c 1
+encrypt_aead start seq 1
+encrypt_aead aead 0x555559de8740
+encrypt_aead encrypted  1
+encrypt_aead encrypted 1202
+encrypt_aead finish 
+encrypt_cipher start 
+encrypt_cipher c 1
+encrypt_cipher iv [109,197,146,54,188,149,181,14,222,40,152,251,142,166,45,81]
+encrypt_cipher pn_enc 0x555559b4ed60
+encrypt_cipher end [185,156,103,4,249]
+C time = now_micros
+C time = now_micros - timer started
+C time = now_micros - time = 631644
+C time = now_micros
+C time = now_micros - timer started
+C time = now_micros - time = 631659
+C time = now_micros
+C time = now_micros - timer started
+C time = now_micros - time = 631681
+C time = now_micros
+C time = now_micros - timer started
+C time = now_micros - time = 631737
+sending from socket: 4
+source port number 4987
+destination sending to id: [[202,255,0,0,27,... (1232) ...,152,39,216,251,218]]
+destination sending to id: client addr: 167772163 port: 4443
+source addr number 0
+source port number 4987
+not eavesdrop
+sending id start
+sr.res.size() 1232
+dstaddr.sin_addr.s_addr 50331658
+dstaddr.sin_port 23313
+socket 4
+sending id finish
+Performance sending packet measurement: 0 milliseconds
+RECEIVING start on socket 4
+RECEIVING __deser
+quic_prot_deser size 1252
+quic_prot_deser imp size 1252
+quic_prot_deser imp size 1252
+quic_prot_deser a long packet of type 0
+pnum_pos (net_prot) 24
+data_remaining (net_prot) 145
+pyld_len (net_prot) 119
+total_data_remaining (net_prot) 1107
+quic_prot_deser imp size 1252
+quic_prot_deser a long packet of type 32
+data_remaining (net_prot) 1107
+pyld_len (net_prot) 1082
+total_data_remaining (net_prot) 0
+RECEIVING from 10.0.0.3:4443
+veth_ivy
+handle RECEIVED 4
+iv_size start 
+iv_size cid 1
+iv_size level 0
+iv_size end 16
+encrypt_cipher start 
+encrypt_cipher c 1
+encrypt_cipher iv [249,160,103,119,230,62,227,52,100,255,210,121,44,213,20,16]
+encrypt_cipher pn_dec 0x555559d7b590
+encrypt_cipher end [179,55,34,19,137]
+decrypt_aead start 
+decrypt_aead ad 30
+aead == 0x555559de6ab0
+checksum_length == 16
+seq == 0
+bytes.size() == 30
+decrypted <= input.size() == 1
+decrypt_aead finish 
+dstID size 8
+dstID res 1
+sourceID size 8
+sourceID res 11289934977890448863
+sourceID token length 0
+payload_length = 103
+pkt_num res 0
+recv frame_type = 2
+recv frame_type = 6
+quic_crypto_length 
+C time = now_micros
+C time = now_micros - timer started
+C time = now_micros - time = 661039
+C time = now_micros
+C time = now_micros - timer started
+C time = now_micros - time = 661091
+[2,0,0,86,3,... (90) ...,152,183,230,166,24]
+0
+
+tag v1: 2
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "tls.client_hello"
+value_size: 0
+tag v2: 2
+deser-open_field: name : "tls.server_hello"
+deser-open_field: length_field_bytes : 3
+deser-open_field: flength : 86
+deser-open_field: name : "server_version"
+4) pkt-pos =  90
+deser-open_field: field_bytes : 2
+deser-open_field: name : "rand_info"
+4) pkt-pos =  90
+deser-open_field: name : "gmt_unix_time"
+4) pkt-pos =  90
+deser-open_field: field_bytes : 4
+deser-open_field: name : "random_bytes"
+deser-open_field: name : "session_id"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 0
+deser-open_field: tls_field_bytes_map["session_id"] : 0
+deser-open_field: field_bytes : 1
+deser-open_field: name : "the_cipher_suite"
+4) pkt-pos =  90
+deser-open_field: field_bytes : 2
+deser-open_field: name : "the_compression_method"
+4) pkt-pos =  90
+deser-open_field: field_bytes : 1
+deser-open_field: name : "extensions"
+deser-open_field: length_field_bytes : 2
+deser-open_field: flength : 46
+tag v1: 43
+bytes v1: 2
+is_unknow: 1
+Tag size: 1
+tags[0]: "tls.unknown_extension"
+value_size: 0
+tag v2: 43
+deser-open_field: name : "tls.unknown_extension"
+4) pkt-pos =  90
+deser-open_field: name : "etype"
+4) pkt-pos =  90
+deser-open_field: field_bytes : 2
+deser-open_field: name : "content"
+deser-open_field: length_field_bytes : 2
+deser-open_field: flength : 2
+deser-open_field: tls_field_bytes_map["content"] : 2
+deser-open_field: field_bytes : 1
+tag v1: 51
+bytes v1: 2
+is_unknow: 1
+Tag size: 1
+tags[0]: "tls.unknown_extension"
+value_size: 0
+tag v2: 51
+deser-open_field: name : "tls.unknown_extension"
+4) pkt-pos =  90
+deser-open_field: name : "etype"
+4) pkt-pos =  90
+deser-open_field: field_bytes : 2
+deser-open_field: name : "content"
+deser-open_field: length_field_bytes : 2
+deser-open_field: flength : 36
+deser-open_field: tls_field_bytes_map["content"] : 36
+deser-open_field: field_bytes : 1
+lower.recv c 1
+lower.recv s 0x555555f77480
+ptls_is_psk_handshake= 0
+tls_on_extension_cb 
+tls_on_extension_cb 43
+tls_on_extension_cb 2
+
+tls_on_extension_cb 
+tls_on_extension_cb 51
+tls_on_extension_cb 36
+
+quic_update_traffic_key_cb 0x555555f628c8
+quic_update_traffic_key_cb SERVER_HANDSHAKE_TRAFFIC_SECRET
+quic_set_key_from_secret 1
+quic_set_key_from_secret 2v
+quic_set_key_from_secret 3v
+quic_update_traffic_key_cb 0x555555f62920
+quic_update_traffic_key_cb CLIENT_HANDSHAKE_TRAFFIC_SECRET
+quic_set_key_from_secret 1
+quic_set_key_from_secret 2q
+quic_set_key_from_secret 3q
+picotls_do_handshake ptls_handle_message end 
+PICOTLS RETURNED PTLS_ERROR_IN_PROGRESS 514
+PICOTLS handshake handle message finish
+before clear
+after clear
+C time = now_micros_last_bp
+C time = now_micros_last_bp - timer started
+C time = now_micros_last_bp - time = 31946
+insertBreakpoint: name = "2"
+insertBreakpoint: now.tv_sec = 1724489238
+insertBreakpoint: now.tv_usec = 784364
+C time = now_micros
+C time = now_micros - timer started
+C time = now_micros - time = 662524
+iv_size start 
+iv_size cid 1
+iv_size level 2
+iv_size end 16
+encrypt_cipher start 
+encrypt_cipher c 1
+encrypt_cipher iv [174,224,149,199,125,249,214,211,170,130,164,156,70,248,128,62]
+encrypt_cipher pn_dec 0x555555f62270
+encrypt_cipher end [148,96,106,23,155]
+decrypt_aead start 
+decrypt_aead ad 29
+aead == 0x555559f14530
+checksum_length == 16
+seq == 0
+bytes.size() == 29
+decrypted <= input.size() == 1
+decrypt_aead finish 
+dstID size 8
+dstID res 1
+sourceID size 8
+sourceID res 11289934977890448863
+sourceID token length 0
+payload_length = 1066
+pkt_num res 0
+recv frame_type = 6
+quic_crypto_length 
+[8,0,0,110,0,... (1058) ...,72,254,52,122,207]
+0
+
+tag v1: 8
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "tls.client_hello"
+value_size: 0
+tag v2: 8
+deser-open_field: name : "tls.encrypted_extensions"
+deser-open_field: length_field_bytes : 3
+deser-open_field: flength : 110
+deser-open_field: name : "extensions"
+deser-open_field: length_field_bytes : 2
+deser-open_field: flength : 108
+tag v1: 0
+bytes v1: 2
+is_unknow: 0
+Tag size: 1
+tags[0]: "tls.unknown_extension"
+value_size: 0
+tag v2: 0
+deser-open_field: name : "tls.end_of_early_data"
+4) pkt-pos =  114
+tag v1: 0
+bytes v1: 2
+is_unknow: 0
+Tag size: 1
+tags[0]: "tls.unknown_extension"
+value_size: 0
+tag v2: 0
+deser-open_field: name : "tls.end_of_early_data"
+4) pkt-pos =  114
+tag v1: 16
+bytes v1: 2
+is_unknow: 1
+Tag size: 1
+tags[0]: "tls.unknown_extension"
+value_size: 0
+tag v2: 16
+deser-open_field: name : "tls.unknown_extension"
+4) pkt-pos =  114
+deser-open_field: name : "etype"
+4) pkt-pos =  114
+deser-open_field: field_bytes : 2
+deser-open_field: name : "content"
+deser-open_field: length_field_bytes : 2
+deser-open_field: flength : 8
+deser-open_field: tls_field_bytes_map["content"] : 8
+deser-open_field: field_bytes : 1
+tag v1: 65445
+bytes v1: 2
+is_unknow: 1
+Tag size: 4
+tags[0]: "tls.unknown_extension"
+value_size: 0
+tag v2: 65445
+deser-open_field: name : "quic_transport_parameters"
+deser-open_field: length_field_bytes : 2
+deser-open_field: flength : 88
+deser-open_field: name : "transport_parameters"
+4) pkt-pos =  114
+tag v1: 5
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "original_destination_connection_id"
+value_size: 0
+tag v2: 5
+deser-open_field: name : "initial_max_stream_data_bidi_local"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 4
+deser-open_field: name : "stream_pos_32"
+4) pkt-pos =  32
+deser-open_field: field_bytes : -1
+tag v1: 4
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "original_destination_connection_id"
+value_size: 0
+tag v2: 4
+deser-open_field: name : "initial_max_data"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 4
+deser-open_field: name : "stream_pos_32"
+4) pkt-pos =  38
+deser-open_field: field_bytes : -1
+tag v1: 8
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "original_destination_connection_id"
+value_size: 0
+tag v2: 8
+deser-open_field: name : "initial_max_stream_id_bidi"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 2
+deser-open_field: name : "stream_id_16"
+4) pkt-pos =  42
+deser-open_field: field_bytes : -1
+tag v1: 1
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "original_destination_connection_id"
+value_size: 0
+tag v2: 1
+deser-open_field: name : "max_idle_timeout"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 2
+deser-open_field: name : "seconds_16"
+4) pkt-pos =  46
+deser-open_field: field_bytes : -1
+tag v1: 3
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "original_destination_connection_id"
+value_size: 0
+tag v2: 3
+deser-open_field: name : "max_packet_size"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 2
+deser-open_field: name : "stream_pos_16"
+4) pkt-pos =  50
+deser-open_field: field_bytes : -1
+tag v1: 9
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "original_destination_connection_id"
+value_size: 0
+tag v2: 9
+deser-open_field: name : "initial_max_stream_id_uni"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 2
+deser-open_field: name : "stream_id_16"
+4) pkt-pos =  54
+deser-open_field: field_bytes : -1
+tag v1: 6
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "original_destination_connection_id"
+value_size: 0
+tag v2: 6
+deser-open_field: name : "initial_max_stream_data_bidi_remote"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 4
+deser-open_field: name : "stream_pos_32"
+4) pkt-pos =  60
+deser-open_field: field_bytes : -1
+tag v1: 7
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "original_destination_connection_id"
+value_size: 0
+tag v2: 7
+deser-open_field: name : "initial_max_stream_data_uni"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 4
+deser-open_field: name : "stream_pos_32"
+4) pkt-pos =  66
+deser-open_field: field_bytes : -1
+tag v1: 14
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "original_destination_connection_id"
+value_size: 0
+tag v2: 14
+deser-open_field: name : "active_connection_id_limit"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 1
+deser-open_field: name : "stream_pos_32"
+4) pkt-pos =  69
+deser-open_field: field_bytes : -1
+tag v1: 11
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "original_destination_connection_id"
+value_size: 0
+tag v2: 11
+deser-open_field: name : "max_ack_delay"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 1
+deser-open_field: name : "exponent_8"
+4) pkt-pos =  72
+deser-open_field: field_bytes : -1
+tag v1: 15
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "original_destination_connection_id"
+tag: 15
+value_size: 8
+value_size: 8
+tag v2: 15
+deser-open_field: name : "initial_source_connection_id"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 8
+deser-open_field: name : "scid"
+4) pkt-pos =  82
+deser-open_field: field_bytes : 8
+tag v1: 0
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "original_destination_connection_id"
+tag: 0
+value_size: 8
+value_size: 8
+tag v2: 0
+deser-open_field: name : "original_destination_connection_id"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 8
+deser-open_field: name : "dcid"
+4) pkt-pos =  92
+deser-open_field: field_bytes : 8
+tag v1: 2
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "original_destination_connection_id"
+value_size: 0
+tag v2: 2
+deser-open_field: name : "stateless_reset_token"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 16
+deser-open_field: name : "data_8"
+4) pkt-pos =  110
+deser-open_field: field_bytes : 16
+tag v1: 80
+bytes v1: 1
+is_unknow: 1
+Tag size: 2
+tags[0]: "original_destination_connection_id"
+tag: 80
+value_size: 1
+value_size: 1
+tag v2: 4183
+deser-open_field: name : "loss_bits"
+deser-open_field: length_field_bytes : 1
+deser-open_field: flength : 1
+deser-open_field: name : "unknown"
+4) pkt-pos =  114
+deser-open_field: field_bytes : 1
+tag v1: 11
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "tls.client_hello"
+value_size: 0
+tag v2: 11
+deser-open_field: name : "tls.unknown_message"
+deser-open_field: name : "mtype"
+deser-open_field: field_bytes : 1
+deser-open_field: name : "unknown_message_bytes"
+deser-open_field: length_field_bytes : 3
+deser-open_field: flength : 824
+lower.recv c 1
+lower.recv s 0x555555f77480
+ptls_is_psk_handshake= 0
+tls_on_extension_cb 
+tls_on_extension_cb 0
+tls_on_extension_cb 0
+
+tls_on_extension_cb 
+tls_on_extension_cb 16
+tls_on_extension_cb 8
+
+tls_on_extension_cb 
+tls_on_extension_cb 65445
+tls_on_extension_cb 88
+
+tls_collect_extensions_cb 65445
+tls_collected_extensions_cb 65445
+picotls_do_handshake ptls_handle_message end 
+PICOTLS RETURNED PTLS_ERROR_IN_PROGRESS 514
+PICOTLS handshake handle message finish
+before clear
+after clear
+C time = now_micros_last_bp
+C time = now_micros_last_bp - timer started
+C time = now_micros_last_bp - time = 9811
+insertBreakpoint: name = "3"
+insertBreakpoint: now.tv_sec = 1724489238
+insertBreakpoint: now.tv_usec = 794185
+C time = now_micros
+C time = now_micros - timer started
+C time = now_micros - time = 672352
+RECEIVING finsh
+Performance recv packet measurement: 12 milliseconds
+RECEIVING start on socket 4
+RECEIVING __deser
+quic_prot_deser size 312
+quic_prot_deser imp size 312
+quic_prot_deser imp size 312
+quic_prot_deser a long packet of type 32
+data_remaining (net_prot) 234
+pyld_len (net_prot) 209
+total_data_remaining (net_prot) 78
+quic_prot_deser imp size 312
+quic_prot_deser a short packet
+data_remaining (net_prot) 78
+RECEIVING from 10.0.0.3:4443
+veth_ivy
+handle RECEIVED 4
+iv_size start 
+iv_size cid 1
+iv_size level 2
+iv_size end 16
+encrypt_cipher start 
+encrypt_cipher c 1
+encrypt_cipher iv [219,250,153,170,108,38,78,131,199,165,104,246,200,111,242,213]
+encrypt_cipher pn_dec 0x555555f62270
+encrypt_cipher end [6,245,101,13,21]
+decrypt_aead start 
+decrypt_aead ad 29
+aead == 0x555559f14530
+checksum_length == 16
+seq == 1
+bytes.size() == 29
+decrypted <= input.size() == 1
+decrypt_aead finish 
+dstID size 8
+dstID res 1
+sourceID size 8
+sourceID res 11289934977890448863
+sourceID token length 0
+payload_length = 193
+pkt_num res 1
+recv frame_type = 6
+quic_crypto_length 
+[15,0,1,4,8,... (300) ...,136,135,133,125,145]
+0
+
+tag v1: 15
+bytes v1: 1
+is_unknow: 0
+Tag size: 1
+tags[0]: "tls.client_hello"
+value_size: 0
+tag v2: 15
+deser-open_field: name : "tls.unknown_message"
+deser-open_field: name : "mtype"
+deser-open_field: field_bytes : 1
+deser-open_field: name : "unknown_message_bytes"
+deser-open_field: length_field_bytes : 3
+deser-open_field: flength : 260
+tag v1: 20
+bytes v1: 1
+is_unknow: 1
+Tag size: 1
+tags[0]: "tls.client_hello"
+value_size: 0
+tag v2: 20
+deser-open_field: name : "tls.finished"
+deser-open_field: length_field_bytes : 3
+deser-open_field: flength : 32
+deser-open_field: name : "mtype"
+4) pkt-pos =  300
+deser-open_field: field_bytes : 1
+deser-open_field: name : "unknown_message_bytes"
+deser-open_field: length_field_bytes : 3
+deser-open_field: flength : 2511981
+lower.recv c 1
+lower.recv s 0x555555f77480
+ptls_is_psk_handshake= 0
+quic_update_traffic_key_cb 0x555555f628c8
+quic_update_traffic_key_cb SERVER_TRAFFIC_SECRET_0
+quic_set_key_from_secret 1
+quic_set_key_from_secret 2v
+quic_set_key_from_secret 3v
+quic_update_traffic_key_cb 0x555555f62920
+quic_update_traffic_key_cb CLIENT_TRAFFIC_SECRET_0
+quic_set_key_from_secret 1
+quic_set_key_from_secret 2q
+quic_set_key_from_secret 3q
+picotls_do_handshake ptls_handle_message end 
+[20,0,0,32,1,... (36) ...,190,125,48,54,83]
+0
+
+tag v1: 20
+bytes v1: 1
+is_unknow: 1
+Tag size: 1
+tags[0]: "tls.client_hello"
+value_size: 0
+tag v2: 20
+deser-open_field: name : "tls.finished"
+deser-open_field: length_field_bytes : 3
+deser-open_field: flength : 32
+deser-open_field: name : "mtype"
+4) pkt-pos =  36
+deser-open_field: field_bytes : 1
+deser-open_field: name : "unknown_message_bytes"
+deser-open_field: length_field_bytes : 3
+deser-open_field: flength : 4415097
+PICOTLS handshake handle message finish
+before clear
+after clear
+C time = now_micros_last_bp
+C time = now_micros_last_bp - timer started
+C time = now_micros_last_bp - time = 5012
+insertBreakpoint: name = "4"
+insertBreakpoint: now.tv_sec = 1724489238
+insertBreakpoint: now.tv_usec = 799210
+C time = now_micros
+C time = now_micros - timer started
+C time = now_micros - time = 677384
+iv_size start 
+iv_size cid 1
+iv_size level 3
+iv_size end 16
+encrypt_cipher start 
+encrypt_cipher c 1
+encrypt_cipher iv [58,14,42,125,154,216,210,206,88,204,92,167,5,172,233,97]
+encrypt_cipher pn_dec 0x555559c57d10
+encrypt_cipher end [21,204,232,103,142]
+decrypt_aead start 
+decrypt_aead ad 10
+aead == 0x55555a129490
+checksum_length == 16
+seq == 0
+bytes.size() == 10
+decrypted <= input.size() == 1
+decrypt_aead finish 
+dstID res 1
+sourceID res 0
+sourceID token length 0
+payload_length = 0
+RECEIVING finsh
+Performance recv packet measurement: 5 milliseconds
+RECEIVING start on socket 4
+RECEIVING __deser
+quic_prot_deser size 1440
+quic_prot_deser imp size 1440
+quic_prot_deser imp size 1440
+quic_prot_deser a short packet
+data_remaining (net_prot) 1440
+RECEIVING from 10.0.0.3:4443
+veth_ivy
+handle RECEIVED 4
+iv_size start 
+iv_size cid 1
+iv_size level 3
+iv_size end 16
+encrypt_cipher start 
+encrypt_cipher c 1
+encrypt_cipher iv [169,193,22,239,41,190,129,115,170,177,122,200,10,57,239,222]
+encrypt_cipher pn_dec 0x555559c57d10
+encrypt_cipher end [59,174,70,49,46]
+decrypt_aead start 
+decrypt_aead ad 10
+aead == 0x55555a129490
+checksum_length == 16
+seq == 1
+bytes.size() == 10
+decrypted <= input.size() == 1
+decrypt_aead finish 
+dstID res 1
+sourceID res 0
+sourceID token length 0
+payload_length = 0
+RECEIVING finsh
+Performance recv packet measurement: 0 milliseconds
+C time = now_micros_last_bp
+C time = now_micros_last_bp - timer started
+C time = now_micros_last_bp - time = 908042
+insertBreakpoint: name = "5"
+insertBreakpoint: now.tv_sec = 1724489239
+insertBreakpoint: now.tv_usec = 707281
+ser res init 2
+ser res dcid 1 11289934977890448863
+ser res dcid 2 11289934977890448863
+ser res scid_h 1 1
+ser res scid_h 1 1
+quic_ser open_tag 5
+quic_ser open_tag 6
+ser: quic_crypto_offset   = 0
+ser: NOT_COALESCED_PACKET   = 
+ser: PACKET_SIZE   = 84
+ser: PACKET_SIZE   = 84
+ser: PACKET_SIZE   = 59
+\x40
+ser: PACKET_SIZE   = @
+\x3b
+ser: PACKET_SIZE   = ;
+iv_size start 
+iv_size cid 1
+iv_size level 2
+iv_size end 16
+encrypt_aead start l 2
+encrypt_aead start c 1
+encrypt_aead start seq 1
+encrypt_aead aead 0x55555a1706b0
+encrypt_aead encrypted  1
+encrypt_aead encrypted 71
+encrypt_aead finish 
+encrypt_cipher start 
+encrypt_cipher c 1
+encrypt_cipher iv [212,106,130,9,114,240,196,116,50,91,99,115,224,161,105,15]
+encrypt_cipher pn_enc 0x55555a0044d0
+encrypt_cipher end [11,122,89,66,222]
+C time = now_micros
+C time = now_micros - timer started
+C time = now_micros - time = 1586418
+C time = now_micros
+C time = now_micros - timer started
+C time = now_micros - time = 1586451
+C time = now_micros
+C time = now_micros - timer started
+C time = now_micros - time = 1586494
+sending from socket: 4
+source port number 4987
+destination sending to id: [[232,255,0,0,27,... (100) ...,64,87,196,38,133]]
+destination sending to id: client addr: 167772163 port: 4443
+source addr number 0
+source port number 4987
+not eavesdrop
+sending id start
+sr.res.size() 100
+dstaddr.sin_addr.s_addr 50331658
+dstaddr.sin_port 23313
+socket 4
+sending id finish
+Performance sending packet measurement: 0 milliseconds
+RECEIVING start on socket 4
+RECEIVING __deser
+quic_prot_deser size 78
+quic_prot_deser imp size 78
+quic_prot_deser imp size 78
+quic_prot_deser a short packet
+data_remaining (net_prot) 78
+RECEIVING from 10.0.0.3:4443
+veth_ivy
+handle RECEIVED 4
+iv_size start 
+iv_size cid 1
+iv_size level 3
+iv_size end 16
+encrypt_cipher start 
+encrypt_cipher c 1
+encrypt_cipher iv [204,242,64,57,208,189,247,189,77,176,225,157,83,2,62,111]
+encrypt_cipher pn_dec 0x555559c57d10
+encrypt_cipher end [138,236,213,222,9]
+decrypt_aead start 
+decrypt_aead ad 10
+aead == 0x55555a129490
+checksum_length == 16
+seq == 2
+bytes.size() == 10
+decrypted <= input.size() == 1
+decrypt_aead finish 
+dstID res 1
+sourceID res 0
+sourceID token length 0
+payload_length = 0
+RECEIVING finsh
+Performance recv packet measurement: 0 milliseconds
+RECEIVING start on socket 4
+RECEIVING __deser
+quic_prot_deser size 55
+quic_prot_deser imp size 55
+quic_prot_deser imp size 55
+quic_prot_deser a short packet
+data_remaining (net_prot) 55
+RECEIVING from 10.0.0.3:4443
+veth_ivy
+handle RECEIVED 4
+iv_size start 
+iv_size cid 1
+iv_size level 3
+iv_size end 16
+encrypt_cipher start 
+encrypt_cipher c 1
+encrypt_cipher iv [64,129,254,187,223,45,79,221,249,255,177,253,49,81,171,165]
+encrypt_cipher pn_dec 0x555559c57d10
+encrypt_cipher end [218,38,127,38,69]
+decrypt_aead start 
+decrypt_aead ad 10
+aead == 0x55555a129490
+checksum_length == 16
+seq == 3
+bytes.size() == 10
+decrypted <= input.size() == 1
+decrypt_aead finish 
+dstID res 1
+sourceID res 0
+sourceID token length 0
+payload_length = 0
+RECEIVING finsh
+Performance recv packet measurement: 0 milliseconds
+RECEIVING start on socket 4
+RECEIVING __deser
+quic_prot_deser size 1400
+quic_prot_deser imp size 1400
+quic_prot_deser imp size 1400
+quic_prot_deser a short packet
+data_remaining (net_prot) 1400
+RECEIVING from 10.0.0.3:4443
+veth_ivy
+handle RECEIVED 4
+iv_size start 
+iv_size cid 1
+iv_size level 3
+iv_size end 16
+encrypt_cipher start 
+encrypt_cipher c 1
+encrypt_cipher iv [209,84,41,211,92,208,114,235,33,221,187,132,84,204,87,207]
+encrypt_cipher pn_dec 0x555559c57d10
+encrypt_cipher end [64,23,189,176,101]
+decrypt_aead start 
+decrypt_aead ad 10
+aead == 0x55555a129490
+checksum_length == 16
+seq == 4
+bytes.size() == 10
+decrypted <= input.size() == 1
+decrypt_aead finish 
+dstID res 1
+sourceID res 0
+sourceID token length 0
+payload_length = 0
+RECEIVING finsh
+Performance recv packet measurement: 0 milliseconds
+C time = now_micros_last_bp
+C time = now_micros_last_bp - timer started
+C time = now_micros_last_bp - time = 504645
+insertBreakpoint: name = "6"
+insertBreakpoint: now.tv_sec = 1724489240
+insertBreakpoint: now.tv_usec = 211940
+ser res init 3
+ser res dcid 1 11289934977890448863
+ser res dcid 2 11289934977890448863
+ser res scid_h 1 6
+ser res scid_h 1 6
+quic_ser malicious unknown frame
+quic_ser open_tag 28
+quic_ser open_tag 31490
+ser: NOT_COALESCED_PACKET   = 
+ser: PACKET_SIZE   = 32
+ser: PACKET_SIZE   = 32
+iv_size start 
+iv_size cid 1
+iv_size level 3
+iv_size end 16
+encrypt_aead start l 3
+encrypt_aead start c 1
+encrypt_aead start seq 1
+encrypt_aead aead 0x555559dc51b0
+encrypt_aead encrypted  1
+encrypt_aead encrypted 35
+encrypt_aead finish 
+encrypt_cipher start 
+encrypt_cipher c 1
+encrypt_cipher iv [41,146,80,255,148,25,187,6,220,127,73,33,41,126,124,204]
+encrypt_cipher pn_enc 0x555558759640
+encrypt_cipher end [240,195,170,149,128]
+C time = now_micros
+C time = now_micros - timer started
+C time = now_micros - time = 2090532
+C time = now_micros
+C time = now_micros - timer started
+C time = now_micros - time = 2090549
+C time = now_micros
+C time = now_micros - timer started
+C time = now_micros - time = 2090581
+sending from socket: 4
+source port number 4987
+destination sending to id: [[83,156,173,232,11,... (48) ...,157,132,34,149,155]]
+destination sending to id: client addr: 167772163 port: 4443
+source addr number 0
+source port number 4987
+not eavesdrop
+sending id start
+sr.res.size() 48
+dstaddr.sin_addr.s_addr 50331658
+dstaddr.sin_port 23313
+socket 4
+sending id finish
+Performance sending packet measurement: 0 milliseconds
+RECEIVING start on socket 4
+RECEIVING __deser
+quic_prot_deser size 78
+quic_prot_deser imp size 78
+quic_prot_deser imp size 78
+quic_prot_deser a short packet
+data_remaining (net_prot) 78
+RECEIVING from 10.0.0.3:4443
+veth_ivy
+handle RECEIVED 4
+iv_size start 
+iv_size cid 1
+iv_size level 3
+iv_size end 16
+encrypt_cipher start 
+encrypt_cipher c 1
+encrypt_cipher iv [190,67,79,79,121,23,56,116,1,121,105,106,52,202,64,114]
+encrypt_cipher pn_dec 0x555559c57d10
+encrypt_cipher end [4,80,58,112,54]
+decrypt_aead start 
+decrypt_aead ad 10
+aead == 0x55555a129490
+checksum_length == 16
+seq == 5
+bytes.size() == 10
+decrypted <= input.size() == 1
+decrypt_aead finish 
+dstID res 1
+sourceID res 0
+sourceID token length 0
+payload_length = 0
+RECEIVING finsh
+Performance recv packet measurement: 0 milliseconds
+RECEIVING start on socket 4
+RECEIVING __deser
+quic_prot_deser size 33
+quic_prot_deser imp size 33
+quic_prot_deser imp size 33
+quic_prot_deser a short packet
+data_remaining (net_prot) 33
+RECEIVING from 10.0.0.3:4443
+veth_ivy
+handle RECEIVED 4
+iv_size start 
+iv_size cid 1
+iv_size level 3
+iv_size end 16
+encrypt_cipher start 
+encrypt_cipher c 1
+encrypt_cipher iv [238,66,92,78,102,233,240,115,234,36,42,91,158,60,121,239]
+encrypt_cipher pn_dec 0x555559c57d10
+encrypt_cipher end [63,106,6,113,20]
+decrypt_aead start 
+decrypt_aead ad 10
+aead == 0x55555a129490
+checksum_length == 16
+seq == 6
+bytes.size() == 10
+decrypted <= input.size() == 1
+decrypt_aead finish 
+dstID res 1
+sourceID res 0
+sourceID token length 0
+payload_length = 0
+RECEIVING finsh
+Performance recv packet measurement: 0 milliseconds

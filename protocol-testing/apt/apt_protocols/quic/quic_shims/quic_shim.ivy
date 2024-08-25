@@ -242,8 +242,8 @@ after init {
 
 
 # implement quic_net.recv(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:net_prot.arr) {
-###     # call show_current_time_debug_event(time_api.c_timer.now_micros_last_bp);
-###     call show_socket_debug_event(s);
+#     # call show_current_time_debug_event(time_api.c_timer.now_micros_last_bp);
+#     call show_socket_debug_event(s);
 #     if(is_lost_recv) {
 #         call on_purpose_lost_packet_event(host,src,pkts);
 #     } else {
@@ -282,7 +282,7 @@ import action on_purpose_lost_packet_event(host:endpoint_id,src:ip.endpoint,pkt:
 # import action undefined_host_error(host:endpoint_id, s:quic_net.socket, src:ip.endpoint)
 
 
-### import action show_socket_debug_event(n:quic_net.socket)
+# import action show_socket_debug_event(n:quic_net.socket)
 
 # Security event shims
 # --------------------
@@ -307,7 +307,7 @@ import action on_purpose_lost_packet_event(host:endpoint_id,src:ip.endpoint,pkt:
 #TODO merge shim for client
 
 implement tls_api.lower.send(tls_id:tls_api.id, bytes:stream_data, lev:tls_api.lower.level) {
-    if dst_is_generated_tls(tls_id_to_src(tls_id)) { # For MiM agent, we dont wont for now TLS events
+    if dst_is_generated_tls(tls_id_to_src(tls_id)) & ~slow_loris { # For MiM agent, we dont wont for now TLS events
         var early_data_end := stream_data.empty; # TODO global -> quic-go crash if not global
         call show_biatch(tls_id_to_dst(tls_id),tls_id);
         early_data_end := early_data_end.append(0xff);
@@ -328,54 +328,58 @@ implement tls_api.lower.send(tls_id:tls_api.id, bytes:stream_data, lev:tls_api.l
         var dcid := other_tls_id_to_cid(tls_id);
         call tls_send_event(tls_id_to_src(tls_id), tls_id_to_dst(tls_id), scid,
                             dcid, bytes,crypto_data_end(scid,e),e, tls_id);
+
+        # if ~slow_loris {
+        #     slow_loris := true;
+        # }
         # if slow_loris {
         #     the_cid := next_cid(the_cid);
         #     # server_cid := next_cid(server_cid);
         #     # nonce_cid(the_cid) := server_cid;
         #     the_cid_used          := the_cid_used.append(the_cid);
-        #     # last_connection_id    := current_connection_id;
-        #     current_connection_id := current_connection_id.next;
+        #     # last_connection_id    := client_current_connection_id;
+        #     client_current_connection_id := client_current_connection_id.next;
             
         #     client.ep.port        := client.ep.port + 1;
-        #     client.set_tls_id(current_connection_id);
+        #     client.set_tls_id(client_current_connection_id);
             
         #     sock     := quic_net.open(endpoint_id.client,client.ep);
         #     sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
         #     sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
-        #      # server.set_tls_id(current_connection_id.next);
+        #      # server.set_tls_id(client_current_connection_id.next);
     
-        #     cid_map_tls_id(the_cid) := current_connection_id;
-        #     ep_map_tls_id(client.ep)   := current_connection_id;
+        #     cid_map_tls_id(the_cid) := client_current_connection_id;
+        #     ep_map_tls_id(client.ep)   := client_current_connection_id;
         #     ep_map_cid(client.ep)      := the_cid;
         #     cid_map_ep(the_cid)     :=  client.ep;
         #     cid_map_sock(the_cid)   := sock;
-        #     tls_id_map_cid(current_connection_id) := the_cid;
-        #     tls_id_map_ep(current_connection_id)  :=  client.ep;
-        #     other_tls_id_map_ep(current_connection_id) := server.ep;
+        #     tls_id_map_cid(client_current_connection_id) := the_cid;
+        #     tls_id_map_ep(client_current_connection_id)  :=  client.ep;
+        #     other_tls_id_map_ep(client_current_connection_id) := server.ep;
         #     call show_dev( client.ep,server.ep,the_cid,dcid,src_tls_id(client.ep));
         #     number_of_open_connection(server.ep) := number_of_open_connection(server.ep) + 1;
         #     used_client_ports(client.ep.port) := true;
     
         #     var extns := tls_extensions.empty;
         #     extns := extns.append(make_transport_parameters);
-        #     call tls_api.upper.create(current_connection_id,false,extns); 
+        #     call tls_api.upper.create(client_current_connection_id,false,extns); 
         #     # the_cid := next_cid(the_cid);
         #     # # server_cid := next_cid(server_cid);
         #     # # nonce_cid(the_cid) := server_cid;
         #     # the_cid_used          := the_cid_used.append(the_cid);
-        #     # # last_connection_id    := current_connection_id;
-        #     # # current_connection_id := current_connection_id.next;
+        #     # # last_connection_id    := client_current_connection_id;
+        #     # # client_current_connection_id := client_current_connection_id.next;
         #     # client.ep.port        := client.ep.port + 1;
         #     # used_client_ports(client.ep.port) := true;
-        #     # client.set_tls_id(current_connection_id);
+        #     # client.set_tls_id(client_current_connection_id);
             
         #     # sock     := quic_net.open(endpoint_id.client,client.ep);
         #     # sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
         #     # sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
-        #     #     # server.set_tls_id(current_connection_id.next);
+        #     #     # server.set_tls_id(client_current_connection_id.next);
         #     # var extns := tls_extensions.empty;
         #     # extns := extns.append(make_transport_parameters);
-        #     # call tls_api.upper.create(current_connection_id,false,extns); 
+        #     # call tls_api.upper.create(client_current_connection_id,false,extns); 
         # }
     }
 }
@@ -390,49 +394,49 @@ after tls_send_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, data 
     #     # server_cid := next_cid(server_cid);
     #     # nonce_cid(the_cid) := server_cid;
     #     the_cid_used          := the_cid_used.append(the_cid);
-    #     # last_connection_id    := current_connection_id;
-    #     current_connection_id := current_connection_id.next;
+    #     # last_connection_id    := client_current_connection_id;
+    #     client_current_connection_id := client_current_connection_id.next;
         
     #     client.ep.port        := client.ep.port + 1;
-    #     client.set_tls_id(current_connection_id);
+    #     client.set_tls_id(client_current_connection_id);
         
     #     sock     := quic_net.open(endpoint_id.client,client.ep);
     #     sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
     #     sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
-    #         # server.set_tls_id(current_connection_id.next);
+    #         # server.set_tls_id(client_current_connection_id.next);
 
-    #     cid_map_tls_id(the_cid) := current_connection_id;
-    #     ep_map_tls_id(client.ep)   := current_connection_id;
+    #     cid_map_tls_id(the_cid) := client_current_connection_id;
+    #     ep_map_tls_id(client.ep)   := client_current_connection_id;
     #     ep_map_cid(client.ep)      := the_cid;
     #     cid_map_ep(the_cid)     :=  client.ep;
     #     cid_map_sock(the_cid)   := sock;
-    #     tls_id_map_cid(current_connection_id) := the_cid;
-    #     tls_id_map_ep(current_connection_id)  :=  client.ep;
-    #     other_tls_id_map_ep(current_connection_id) := server.ep;
+    #     tls_id_map_cid(client_current_connection_id) := the_cid;
+    #     tls_id_map_ep(client_current_connection_id)  :=  client.ep;
+    #     other_tls_id_map_ep(client_current_connection_id) := server.ep;
     #     call show_dev( client.ep,server.ep,the_cid,dcid,src_tls_id(client.ep));
     #     number_of_open_connection(server.ep) := number_of_open_connection(server.ep) + 1;
     #     used_client_ports(client.ep.port) := true;
 
     #     var extns := tls_extensions.empty;
     #     extns := extns.append(make_transport_parameters);
-    #     call tls_api.upper.create(current_connection_id,false,extns); 
+    #     call tls_api.upper.create(client_current_connection_id,false,extns); 
     #     # the_cid := next_cid(the_cid);
     #     # # server_cid := next_cid(server_cid);
     #     # # nonce_cid(the_cid) := server_cid;
     #     # the_cid_used          := the_cid_used.append(the_cid);
-    #     # # last_connection_id    := current_connection_id;
-    #     # # current_connection_id := current_connection_id.next;
+    #     # # last_connection_id    := client_current_connection_id;
+    #     # # client_current_connection_id := client_current_connection_id.next;
     #     # client.ep.port        := client.ep.port + 1;
     #     # used_client_ports(client.ep.port) := true;
-    #     # client.set_tls_id(current_connection_id);
+    #     # client.set_tls_id(client_current_connection_id);
         
     #     # sock     := quic_net.open(endpoint_id.client,client.ep);
     #     # sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
     #     # sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
-    #     #     # server.set_tls_id(current_connection_id.next);
+    #     #     # server.set_tls_id(client_current_connection_id.next);
     #     # var extns := tls_extensions.empty;
     #     # extns := extns.append(make_transport_parameters);
-    #     # call tls_api.upper.create(current_connection_id,false,extns); 
+    #     # call tls_api.upper.create(client_current_connection_id,false,extns); 
     # }
 }
 
@@ -1197,11 +1201,11 @@ import action show_aead(level:tls_api.upper.level,pyld:stream_data,seq:pkt_num,a
 
 import action show_last_datagram_size(size:stream_pos)
 
-##import action show_tls_id_to_cid_debug_event(ver:cid)
+import action show_tls_id_to_cid_debug_event(ver:cid)
 
 import action show_biatch(src:ip.endpoint,tls_id:tls_api.id)
 
-##import action show_tls_lower_send_debug_event(bytes:stream_data)
+import action show_tls_lower_send_debug_event(bytes:stream_data)
 
 import action show_l(ver:stream_pos)
 

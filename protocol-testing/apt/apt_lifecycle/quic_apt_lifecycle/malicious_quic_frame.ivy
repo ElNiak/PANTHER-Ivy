@@ -38,7 +38,7 @@ object quic_frame = {
         action handle_maliciously(f:quic_frame.ack,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
 
 	around handle_maliciously{
-##            #call is_generating_debug_event(_generating);
+            #call is_generating_debug_event(_generating);
             # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
             # require (~is_not_sleeping -> ~_generating);
             # require (_generating -> is_not_sleeping);
@@ -118,7 +118,7 @@ object quic_frame = {
                         if ~acked_pkt(dcid,e,jdx) {
                             #if ack_eliciting_threshold_current_val(dcid) >= ack_eliciting_threshold_val(dcid) {
                                 some_new_ack := true;
-##                                call show_ack_generated_debug_event;
+                                call show_ack_generated_debug_event;
                                 ack_eliciting_threshold_current_val(dcid) := 0;
                             #};
                         };
@@ -145,7 +145,7 @@ object quic_frame = {
                 # f.ack_delay := local_ack_delay;
                 # require local_ack_delay <= local_max_ack_delay_tp;
                 # call show_local_delay_ack(local_ack_delay,local_max_ack_delay_tp);
-##                call show_ack_generated_debug_event;
+                call show_ack_generated_debug_event;
             } 
 	    ...
             if ~_generating {
@@ -1089,6 +1089,21 @@ object quic_frame = { ...
                 require f.retire_prior_to <= f.seq_num; #[4]
             };
             require f.seq_num < max_rtp_num(scid) -> send_retire_cid(dcid); #[6] 
+            # var tp := trans_params(dcid);
+            # if _generating {
+            #     if active_connection_id_limit.is_set(tp)  {
+            #         var max := active_connection_id_limit.value(tp).stream_pos_32;
+            #         require num_conn(dcid) < max;
+            #     }
+            # }
+
+            # if  count_newcid_frame(f.seq_num,f.retire_prior_to,f.length,f.scid,f.token) = 1 {
+            #     num_conn(dcid) := num_conn(dcid) + 1;
+            #     var tp := trans_params(dcid);
+            #     if active_connection_id_limit.is_set(tp)  { #~_generating & 
+            #         call acti_coid_check(dcid,num_conn(dcid));
+            #     };
+            # };
             #chris
             ...
             
@@ -1097,18 +1112,18 @@ object quic_frame = { ...
 	        cid_to_aid(f.scid) := scid;
                 #cid_to_aid(f.dcid) := dcid;
             seqnum_to_cid(scid,f.seq_num) := f.scid;
-            last_cid_seq(scid) := f.seq_num; # ncid quant vuln
+            last_cid_seq(scid)            := f.seq_num; # ncid quant vuln
             #seqnum_to_cid(dcid,f.seq_num) := f.dcid;
             #call map_cids(scid,dcid); # ncid quant vuln ?
             #call map_cids(dcid,scid);
             count_newcid_frame(f.seq_num,f.retire_prior_to,f.length,f.scid,f.token) := count_newcid_frame(f.seq_num,f.retire_prior_to,f.length,f.scid,f.token) + 1;
-            if  count_newcid_frame(f.seq_num,f.retire_prior_to,f.length,f.scid,f.token) = 1 {
-                num_conn(dcid) := num_conn(dcid) + 1;
-                var tp := trans_params(dcid);
-                if ~_generating & active_connection_id_limit.is_set(tp)  {
-                    require acti_coid_check(dcid,num_conn(dcid));
-                };
-            };
+            # if  count_newcid_frame(f.seq_num,f.retire_prior_to,f.length,f.scid,f.token) = 1 {
+            num_conn(dcid) := num_conn(dcid) + 1;
+            #     var tp := trans_params(dcid);
+            #     if active_connection_id_limit.is_set(tp)  { #~_generating & 
+            #         call acti_coid_check(dcid,num_conn(dcid));
+            #     };
+            # };
             
             #chris
             if (f.retire_prior_to > max_rtp_num(scid)) {
@@ -1158,9 +1173,11 @@ object quic_frame = { ...
 	        ... 
 	        cid_mapped(seqnum_to_cid(dcid, f.seq_num)) := false; #[2]
             count_rcid_frame(f.seq_num) := count_rcid_frame(f.seq_num) + 1;
-            if  count_rcid_frame(f.seq_num) = 1 {
-                num_conn(dcid) := num_conn(dcid) - 1;
-            };
+            num_conn(dcid) := num_conn(dcid) - 1;
+            count_newcid_frame(f.seq_num,0,0,seqnum_to_cid(dcid, f.seq_num),0) := count_newcid_frame(f.seq_num,0,0,seqnum_to_cid(dcid, f.seq_num),0) - 1;
+            # if count_rcid_frame(f.seq_num) = 1 {
+            #     num_conn(scid) := num_conn(scid) - 1;
+            # };
             #Hamid
             # the connection id seqnum_to_cid is being retired, append it to an array and iterate over the array in packet
             #Hamid

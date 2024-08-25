@@ -214,10 +214,13 @@ object endpoint = {
                         client.tls_id := tls_id;
 
                         call nat_configured_event(src,dst);
+                        number_of_connection_from(dst.addr) := number_of_connection_from(dst.addr) + 1;
+                        call show_number_of_connection(src.addr,number_of_connection_from(src.addr));
+                        call show_number_of_connection(dst.addr,number_of_connection_from(dst.addr));
 
-                        if number_of_connection_from(src.addr) = 2 {
-                            call mim_agent.configure_NAT_attack(client_addr,server_addr);
-                            call mim_agent.configure_NAT_attack(server_addr,client_addr);
+                        if number_of_connection_from(dst.addr) = 2 {
+                            call mim_agent.disable_ip_forward;
+                            forward_packets   := true;
                         }
     
                         if bvand(ppkt.value(0),0xf0) = 0xc0 & hijack_tls {
@@ -229,10 +232,10 @@ object endpoint = {
     
                     } 
                     
-                    if bvand(ppkt.value(0),0xf0) = 0xc0 {
-                        number_of_connection_from(src.addr) := number_of_connection_from(src.addr) + 1;
-##                        call show_number_of_connection_debug_event(src.addr,number_of_connection_from(src.addr));
-                    }
+                    # if bvand(ppkt.value(0),0xf0) = 0xc0 {
+                    #     number_of_connection_from(src.addr) := number_of_connection_from(src.addr) + 1;
+                    #     call show_number_of_connection_debug_event(src.addr,number_of_connection_from(src.addr));
+                    # }
 
                     var ddcil : stream_pos := bfe[0][7](ppkt.value(5));
                     var iikm := cid_to_bytes(0,1); # dcid
@@ -293,7 +296,7 @@ object endpoint = {
                             rppkt.seq_num := net_prot.correct_pnum(rnum,rppkt.seq_num,net_prot.get_pnum_len(res.data));
 
                             if already_forwarded(src,dst,rppkt) {
-##                                call arp_duplicated_quic_packet_debug_event(src,dst,rppkt);
+                                call arp_duplicated_quic_packet_debug_event(src,dst,rppkt);
                             } else {
                                 call recv_packet(host,src,dst,rppkt);
                                 call infer_tls_events(src,dst,rppkt);   # infer any TLS events on server side
@@ -317,7 +320,7 @@ object endpoint = {
                                 if is_random_padding_packet(ppkt) {
                                     var rppkt := quic_random_padding_encrypted_packet_serdes.from_bytes(ppkt);
                                     if already_forwarded(src,dst,rppkt) {
-##                                        call arp_duplicated_encrypted_random_quic_packet_debug_event(src,dst,rppkt);
+                                        call arp_duplicated_encrypted_random_quic_packet_debug_event(src,dst,rppkt);
                                     } else {
                                         call recv_random_padding_or_short_packet_event(src,dst,rppkt.payload.end);
                                         to_forward := true;
@@ -336,7 +339,7 @@ object endpoint = {
                                     }
                                     conn_seen(rppkt.dst_cid)    := true;
                                     if already_forwarded(src,dst,rppkt) {
-##                                        call arp_duplicated_encrypted_packet_debug_event(src,dst,rppkt);
+                                        call arp_duplicated_encrypted_packet_debug_event(src,dst,rppkt);
                                     } else {
                                         to_forward := true;
                                         call recv_encrypted_packet(host,src,dst,rppkt.head_byte, rppkt.src_cid,rppkt.dst_cid,rppkt.pversion, rppkt.token,rppkt.seq_num_payload.end);
@@ -353,7 +356,7 @@ object endpoint = {
 #                                     # TODO check is cid is seen
 #                                     var rppkt := quic_random_padding_encrypted_packet_serdes.from_bytes(ppkt);
 #                                     if already_forwarded(src,dst,rppkt) {
-### ##                                        call arp_duplicated_encrypted_random_quic_packet_debug_event(src,dst,rppkt);
+# ##                                        call arp_duplicated_encrypted_random_quic_packet_debug_event(src,dst,rppkt);
 #                                     } else {
 #                                         call recv_random_padding_or_short_packet_event(src,dst,rppkt.payload.end);
 #                                         to_forward := true;
@@ -380,7 +383,7 @@ object endpoint = {
                                         };
                                     } else
                                     if already_forwarded(src,dst,rppkt) {
-##                                        call arp_duplicated_encrypted_short_quic_packet_debug_event(src,dst,rppkt);
+                                        call arp_duplicated_encrypted_short_quic_packet_debug_event(src,dst,rppkt);
                                     } else {
                                         call recv_encrypted_short_packet(src,dst,rppkt.head_byte,rppkt.dst_cid,rppkt.payload.end);
                                         if forward_packets {
@@ -792,21 +795,82 @@ object endpoint = {
                 >>>
             }
 
+            action disable_ip_forward = {
+                <<<
+                    //  very important for modifying the packet
+                    
+                    std::string command = "sysctl -w net.ipv4.ip_forward=0";
+                    int n = command.length();
+                    char command_array[n + 1];
+                    strcpy(command_array, command.c_str());
+                    int cr = system(command_array);
+                    
+                    command = "sysctl -w net.ipv4.conf.all.send_redirects=0";
+                    n = command.length();
+                    command_array[n + 1];
+                    strcpy(command_array, command.c_str());
+                    cr = system(command_array);
+
+                    command = "sysctl -w net.ipv4.conf.default.send_redirects=0";
+                    n = command.length();
+                    command_array[n + 1];
+                    strcpy(command_array, command.c_str());
+                    cr = system(command_array);
+
+                    command = "sysctl -w net.ipv4.conf.ip_nonlocal_bind=0";
+                    n = command.length();
+                    command_array[n + 1];
+                    strcpy(command_array, command.c_str());
+                    cr = system(command_array);
+                >>>
+            }
+
+            action enable_ip_forward = {
+                <<<
+                    //  very important for modifying the packet
+                    
+                    std::string command = "sysctl -w net.ipv4.ip_forward=1";
+                    int n = command.length();
+                    char command_array[n + 1];
+                    strcpy(command_array, command.c_str());
+                    int cr = system(command_array);
+
+                    command = "sysctl -w net.ipv4.conf.all.send_redirects=1";
+                    n = command.length();
+                    command_array[n + 1];
+                    strcpy(command_array, command.c_str());
+                    cr = system(command_array);
+
+                    command = "sysctl -w net.ipv4.conf.default.send_redirects=1";
+                    n = command.length();
+                    command_array[n + 1];
+                    strcpy(command_array, command.c_str());
+                    cr = system(command_array);
+
+                    command = "sysctl -w net.ipv4.conf.ip_nonlocal_bind=1";
+                    n = command.length();
+                    command_array[n + 1];
+                    strcpy(command_array, command.c_str());
+                    cr = system(command_array);
+                >>>
+            }
+
+
             action reset_NAT = {
                 <<<
                     const char * command = "pkill arpspoof;"; 
                     int cr = system( command );
                 >>>
             }
-##            import action show_number_of_connection_debug_event(src:ip.addr,s:stream_pos)
+            import action show_number_of_connection(src:ip.addr,s:stream_pos)
             import action nat_configured_event(src:ip.endpoint, dst:ip.endpoint)
             import action client_target_setup_event(src:ip.endpoint)
             import action recv_encrypted_short_packet(src:ip.endpoint, dst:ip.endpoint, pkt_head_byte:stream_pos, pkt_scid: cid, pkt_len: stream_pos)
             import action recv_random_padding_or_short_packet_event(src:ip.endpoint, dst:ip.endpoint, pkt:stream_pos)
-##            import action arp_duplicated_encrypted_packet_debug_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.encrypted_quic_packet)
-##            import action arp_duplicated_quic_packet_debug_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.quic_packet)
-##            import action arp_duplicated_encrypted_short_quic_packet_debug_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.encrypted_short_quic_packet)
-##            import action arp_duplicated_encrypted_random_quic_packet_debug_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.random_padding_encrypted_quic_packet)
+            import action arp_duplicated_encrypted_packet_debug_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.encrypted_quic_packet)
+            import action arp_duplicated_quic_packet_debug_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.quic_packet)
+            import action arp_duplicated_encrypted_short_quic_packet_debug_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.encrypted_short_quic_packet)
+            import action arp_duplicated_encrypted_random_quic_packet_debug_event(src:ip.endpoint, dst:ip.endpoint, pkt:packet.random_padding_encrypted_quic_packet)
             import action recv_packet(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
             import action recv_encrypted_packet(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint, pkt_head_byte:stream_pos, pkt_scid: cid, pkt_dcid:cid, pkt_version: version, pkt_token:stream_data, pkt_len:stream_pos)
         }
@@ -878,23 +942,25 @@ object endpoint = {
                     
                     var h := net_prot.get_header_info(ppkt,false);
 
-                    var tls_id := cid_map_tls_id(h.dcid); #src_tls_id(dst); # todo multiple
-                    var dst    := cid_map_ep(h.dcid); #dst_tls_id(dst); # todo multiple
-
-                    call show_recv_debug_ev(src,dst,h.scid,h.dcid,tls_id);
-                    
-                    if ~conn_seen(h.scid) & conn_requested(dst,src,h.scid) {
-                        cid_map_tls_id(h.scid)      := server.tls_id;
-                        cid_map_ep(h.scid)          := src;
-                        call show_update_(h.scid,server.tls_id,src);
-                        # cid_map_ep(dcid)          := dst;
-                    };
-
                     var header := ppkt.value(0);
                     var hdr_type : type_bits := bfe[0][6](ppkt.value(0));
                     var tt := bvand(hdr_type,0x30);
                     var is_long : bool := bvand(0x80,header) ~= 0;
                     
+
+
+                    var tls_id := cid_map_tls_id(h.dcid); #src_tls_id(dst); # todo multiple
+                    var dst    := cid_map_ep(h.dcid); #dst_tls_id(dst); # todo multiple
+                    if is_long & ~conn_seen(h.scid) & conn_requested(dst,src,h.dcid) { # & conn_requested(dst,src,h.scid)
+                        cid_map_tls_id(h.scid)      := server.tls_id;
+                        cid_map_ep(h.scid)          := src;
+                        cid_map_sock(h.scid)        := s;
+                        call show_update_(h.scid,server.tls_id,src);
+                        # cid_map_ep(dcid)          := dst;
+                    };
+                    call show_recv_debug_ev(src,dst,h.scid,h.dcid,tls_id);
+                
+               
                     var version := ppkt.segment(1,1+4);
                     var bversion := bytes_to_version(version);
                     

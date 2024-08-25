@@ -15,10 +15,10 @@ var sock_vn : quic_net.socket
 # Server
 action socket_endpoint_mim(host:endpoint_id,s:quic_net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
     dst := mim_agent.ep_client if src = mim_agent.ep_server else mim_agent.ep_server; # is_mim_standalone | 
-##    call socket_endpoint_mim_event_debug_event(host,s,src,dst);
+    call socket_endpoint_mim_event_debug_event(host,s,src,dst);
 }
 
-##import action socket_endpoint_mim_event_debug_event(host:endpoint_id,s:quic_net.socket,src:ip.endpoint,dst:ip.endpoint)
+import action socket_endpoint_mim_event_debug_event(host:endpoint_id,s:quic_net.socket,src:ip.endpoint,dst:ip.endpoint)
 
 action endpoint_to_socket_mim(src:ip.endpoint) returns (socket:quic_net.socket) = {
     socket := sock_mim_server if src = mim_agent.ep_server else sock_mim_client; #  & ~forged_packet_send
@@ -73,21 +73,7 @@ after init {
 
 before malicious_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     if _generating {
-        var tp := trans_params(ep_map_cid(src));
-        # if version_negociated {
-        #     require src = client_vn;
-        # } else {
-        #     if ~disable_active_migration.is_set(tp) {
-        #         if ~migration_done | allowed_multiple_migration { 
-        #             #only one migration
-        #             require src = client.ep | src = client_alt;
-        #         } else {
-        #             require src = client_alt;
-        #         }
-        #     } else {
-        #         require src = client.ep;
-        #     }
-        # };
+        var tp := trans_params( ep_map_cid(src));
         if version_negociated {
             require src.addr = client_vn.addr;
         } else {
@@ -105,6 +91,7 @@ before malicious_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_pa
         require used_client_ports(src.port);
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
+        require (ep_present(src) & pkt.long)-> pkt.src_cid = ep_map_cid(src);
         require dst = server.ep;
         #require pkt.token.end = 0; 
         if pkt.ptype = quic_packet_type.initial & retry_recv(pkt.src_cid) & ~zero_length_token {
@@ -140,9 +127,11 @@ before open_connection(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
                 require src.addr = client.ep.addr;
             }
         };
-        require used_client_ports(src.port);
-        require src.protocol = ip.udp;
+        require src.port = client.ep.port;
+        # require used_client_ports(src.port);  #  & ~used_client_ports_in_packet_event(src.port)
+        require src.protocol = ip.udp; 
         require src.interface = ip.veth_ivy;
+        require (ep_present(src) & pkt.long)-> pkt.src_cid = ep_map_cid(src);
         require dst = server.ep;
         # require pkt.ptype = quic_packet_type.initial;
         #require pkt.token.end = 0; 

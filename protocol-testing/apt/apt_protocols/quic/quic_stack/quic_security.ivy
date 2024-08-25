@@ -322,11 +322,11 @@ before tls_send_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, data
 
 around tls_recv_event {
 
-    # require src.addr = client.ep.addr;
-    # require used_client_ports(src.port);
-    # require src.protocol = ip.udp;
-    # require src.interface = ip.veth_ivy;
-    # require scid = ep_map_cid(src);
+    require dst.addr = client.ep.addr;
+    require used_client_ports(dst.port);
+    require dst.protocol = ip.udp;
+    require dst.interface = ip.veth_ivy;
+    require ep_present(dst) & dcid = ep_map_cid(dst);
 
     require connected(dcid) & connected_to(dcid) = scid;  # [1]
     require lo < hi & lo = crypto_pos(dcid,e) & hi <= crypto_length(scid,e);  # [2]
