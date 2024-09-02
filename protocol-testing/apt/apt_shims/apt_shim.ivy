@@ -1,0 +1,200 @@
+#lang ivy1.7
+include order
+include collections
+
+include apt_types
+include quic_types 
+
+include apt_byte_stream
+
+include apt_packet
+
+include apt_time
+include tls_api
+
+include quic_protection
+include protection
+
+instance net_prot : protection.global_protection(tls_api.id,tls_api.upper)
+
+include quic_shim
+include ping_shim
+
+instance tls_extensions      : vector(tls.extension)
+instance tls_hand_extensions : vector(tls.handshake)
+
+instance quic_encrypted_packet_serdes_client         : serdes(packet.encrypted_quic_packet,               stream_data,quic_ser_enc_client,      quic_deser_enc_client)
+instance quic_encrypted_packet_serdes_server         : serdes(packet.encrypted_quic_packet,               stream_data,quic_ser_enc_server,      quic_deser_enc_server)
+instance quic_random_padding_encrypted_packet_serdes : serdes(packet.random_padding_encrypted_quic_packet,stream_data,quic_ser_random,   quic_deser_random)
+instance quic_encrypted_short_packet_serdes_server   : serdes(packet.encrypted_short_quic_packet,         stream_data,quic_ser_short_enc_server,quic_deser_short_enc_server)
+instance quic_encrypted_short_packet_serdes_client   : serdes(packet.encrypted_short_quic_packet,         stream_data,quic_ser_short_enc_client,quic_deser_short_enc_client)
+
+include quic_attack_connection
+include minip_attack_connection
+
+include quic_locale
+include apt_endpoint
+
+import action show_current_time_debug_event(now:milliseconds)
+import action forwarding_time(s:seconds)
+
+object packet = {
+    ...
+
+    after forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.arr) {
+        if _generating {
+            # TODO assert it is smaller than MTU
+            var idx := pkt.begin;
+            var pkts_mim := net_prot.arr.empty;
+            while idx < pkt.end {
+                # packets_received(pkt.value(idx)) := true;
+                var p := pkt.value(idx);
+                # QUIC
+                if some(cf:packet.quic_packet)p *> cf {
+                    var spkt := quic_packet_serdes.to_bytes(cf);
+                    var rnum := reference_pkt_num(spkt,false);
+                    var tls_id := src_tls_id(dst); # todo multiple
+                    var other_tls_id := dst_tls_id(dst);
+                    var ppkt := net_prot.encrypt_quic(other_tls_id,rnum,spkt);
+                    pkts_mim := pkts_mim.append(ppkt);
+                } 
+                else if some(cf:packet.encrypted_quic_packet)p *> cf {
+                    var spkt := quic_encrypted_packet_serdes_server.to_bytes(cf);
+                    pkts_mim := pkts_mim.append(spkt);
+                } 
+                else if some(cf:packet.encrypted_short_quic_packet)p *> cf {
+                    var spkt := quic_encrypted_short_packet_serdes_server.to_bytes(cf);
+                    pkts_mim := pkts_mim.append(spkt);
+                } 
+                else if some(cf:packet.random_padding_encrypted_quic_packet)p *> cf {
+                    var spkt := quic_random_padding_encrypted_packet_serdes.to_bytes(cf);
+                    pkts_mim := pkts_mim.append(spkt);
+                }
+                # MiniP
+                else if some(cf:packet.ping_packet)p *> cf {
+                    var spkt := ping_packet_serdes.to_bytes(cf);
+                    pkts_mim := pkts_mim.append(spkt);
+                }
+                # Stream Data
+                else if some(cf:packet.malicious_stream_data_packet)p *> cf {
+                    pkts_mim := pkts_mim.append(cf.payload);
+                };
+                #TODO allow forwarding coalesed packet or not
+                idx := idx.next; 
+            }; 
+            call forwarding_time(time_api.c_timer.now_sec);
+            call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
+        }
+    }  
+
+    after forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.arr) {
+        if _generating {
+            # TODO assert it is smaller than MTU
+            var idx := pkt.begin;
+            var pkts_mim := net_prot.arr.empty;
+            while idx < pkt.end {
+                # packets_received(pkt.value(idx)) := true;
+                var p := pkt.value(idx);
+                # QUIC
+                if some(cf:packet.quic_packet)p *> cf {
+                    var spkt := quic_packet_serdes.to_bytes(cf);
+                    var rnum := reference_pkt_num(spkt,false);
+                    var tls_id := src_tls_id(dst); # todo multiple
+                    var other_tls_id := dst_tls_id(dst);
+                    # if ~mim_agent.server_initial_response {
+                    #     tls_id := other_tls_id;
+                    # }
+                    var ppkt := net_prot.encrypt_quic(tls_id,rnum,spkt);
+                    pkts_mim := pkts_mim.append(ppkt);
+                } 
+                else if some(cf:packet.encrypted_quic_packet)p *> cf {
+                    var spkt := quic_encrypted_packet_serdes_client.to_bytes(cf);
+                    pkts_mim := pkts_mim.append(spkt);
+                } 
+                else if some(cf:packet.encrypted_short_quic_packet)p *> cf {
+                    var spkt := quic_encrypted_short_packet_serdes_client.to_bytes(cf);
+                    pkts_mim := pkts_mim.append(spkt);
+                } 
+                else if some(cf:packet.random_padding_encrypted_quic_packet)p *> cf {
+                    var spkt := quic_random_padding_encrypted_packet_serdes.to_bytes(cf);
+                    pkts_mim := pkts_mim.append(spkt);
+                }
+                # MiniP
+                else if some(cf:packet.ping_packet)p *> cf {
+                    var spkt := ping_packet_serdes.to_bytes(cf);
+                    pkts_mim := pkts_mim.append(spkt);
+                }
+                # Stream Data
+                else if some(cf:packet.malicious_stream_data_packet)p *> cf {
+                    pkts_mim := pkts_mim.append(cf.payload);
+                };
+                #TODO allow forwarding coalesed packet or not
+                idx := idx.next; 
+            }; 
+            call forwarding_time(time_api.c_timer.now_sec);
+            call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
+        }
+    }
+    
+    after reflect_to(src:ip.endpoint,dst:ip.endpoint,pkt:packet.arr) {
+        if _generating {
+            # TODO assert it is smaller than MTU
+            var idx := pkt.begin;
+            var pkts_mim := net_prot.arr.empty;
+            while idx < pkt.end {
+                # packets_received(pkt.value(idx)) := true;
+                var p := pkt.value(idx);
+                # QUIC
+                if some(cf:packet.quic_packet)p *> cf {
+                    var spkt := quic_packet_serdes.to_bytes(cf);
+                    var rnum := reference_pkt_num(spkt,false);
+                    var tls_id := src_tls_id(dst); # todo multiple
+                    var other_tls_id := dst_tls_id(dst);
+                    # if ~mim_agent.server_initial_response {
+                    #     tls_id := other_tls_id;
+                    # }
+                    var ppkt := net_prot.encrypt_quic(tls_id,rnum,spkt);
+                    pkts_mim := pkts_mim.append(ppkt);
+                } 
+                else if some(cf:packet.encrypted_quic_packet)p *> cf {
+                    var spkt := quic_encrypted_packet_serdes_client.to_bytes(cf);
+                    pkts_mim := pkts_mim.append(spkt);
+                } 
+                else if some(cf:packet.encrypted_short_quic_packet)p *> cf {
+                    var spkt := quic_encrypted_short_packet_serdes_client.to_bytes(cf);
+                    pkts_mim := pkts_mim.append(spkt);
+                } 
+                else if some(cf:packet.random_padding_encrypted_quic_packet)p *> cf {
+                    var spkt := quic_random_padding_encrypted_packet_serdes.to_bytes(cf);
+                    pkts_mim := pkts_mim.append(spkt);
+                }
+                # MiniP
+                else if some(cf:packet.ping_packet)p *> cf {
+                    var spkt := ping_packet_serdes.to_bytes(cf);
+                    pkts_mim := pkts_mim.append(spkt);
+                }
+                # Stream Data
+                else if some(cf:packet.malicious_stream_data_packet)p *> cf {
+                    pkts_mim := pkts_mim.append(cf.payload);
+                };
+                #TODO allow forwarding coalesed packet or not
+                idx := idx.next; 
+            }; 
+            call forwarding_time(time_api.c_timer.now_sec);
+            call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
+        }
+    }
+}
+# Print in hex format
+attribute radix=16
+attribute stream_pos.cardinality = 4
+
+interpret cid -> longbv[1][13][20]
+interpret version -> bv[32]
+interpret pkt_num -> bv[32]
+interpret error_code -> bv[16]
+interpret stream_id -> bv[16]
+
+attribute quic_frame.idx.cardinality = 1
+attribute quic_frame.ack.range.idx.cardinality = 1
+attribute pkt_num.cardinality = 1

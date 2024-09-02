@@ -1,0 +1,56 @@
+#lang ivy1.7
+
+include order
+include ping_file
+
+var sock : quic_net.socket
+var sock_alt : quic_net.socket
+var sock_vn : quic_net.socket
+
+
+# Server
+action socket_endpoint_mim(host:endpoint_id,s:quic_net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
+    dst := mim_agent.ep_client if src = mim_agent.ep_server else mim_agent.ep_server; # is_mim_standalone | 
+    call socket_endpoint_mim_event_debug_event(host,s,src,dst);
+}
+
+import action socket_endpoint_mim_event_debug_event(host:endpoint_id,s:quic_net.socket,src:ip.endpoint,dst:ip.endpoint)
+
+action endpoint_to_socket_mim(src:ip.endpoint) returns (socket:quic_net.socket) = {
+    socket := sock_mim_server if src = mim_agent.ep_server else sock_mim_client; #  & ~forged_packet_send
+}
+
+
+
+action ping_packet_event_malicious(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) = {}
+
+around ping_packet_event_malicious(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+    require src = client.ep;
+    require dst = server.ep;
+    require num_queued_ping_frames(dst) >= 1;
+    require pkt.payload = queued_ping_frames(dst);
+    ...
+    queued_ping_frames(dst)     := ping_frame.arr.empty;
+    num_queued_ping_frames(dst) := 0;
+}
+
+
+action client_send_event_malicious(src:ip.endpoint, dst:ip.endpoint, end : stream_pos)
+
+around client_send_event_malicious {
+    require src = client.ep;
+    require dst = server.ep;
+    require ping_length = ping_packet_end;
+    require ping_length < end & end <= http_request.end;
+    ...
+    while end < http_request.end & http_request.value(end) ~= 10 {
+        end := end.next
+    };
+    if end < http_request.end {
+        end := end.next
+    };
+    var data := http_request.segment(ping_length,end);
+    call minip_app_send_event(src,dst,data,ping_length,true);
+}
+
+attribute radix=16       # print in hex

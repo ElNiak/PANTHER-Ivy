@@ -1,0 +1,109 @@
+#lang ivy1.7
+
+include order
+include file
+# include random_value
+
+include ivy_stream_data_mim
+include ivy_stream_data_target
+include ivy_stream_data_attacker
+
+include ivy_stream_data_shim
+include ivy_stream_data_shim_mim
+
+include ivy_man_in_the_middle_stream_data_behavior
+
+
+# NB: need bigger timeout (at least 90 sec)
+
+after init {
+    is_mim_standalone := true;
+    call mim_agent.configure_NAT_attack_bidir;
+}
+
+
+
+export packet.forward_to
+attribute packet.forward_to.weight = "100"
+
+
+object packet = {
+    ...
+    
+    object malicious_stream_data_packet = {
+        ...
+        before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
+            
+            if _generating {;
+                require pkt.payload = malicious_stream_data_packet_received_last_round(dst).payload;
+            } 
+        }
+
+        before replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
+            
+            if _generating {
+                require pkt.payload = malicious_stream_data_packet_received_last_round(dst).payload;
+            } 
+        }
+
+        before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
+            
+            if _generating {
+                require pkt.payload = malicious_stream_data_packet_received_last_round(dst).payload;
+            } 
+        }
+
+        before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
+            
+            if _generating {
+                require pkt.payload = malicious_stream_data_packet_received_last_round(dst).payload;
+            } 
+        }
+
+        before modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
+            
+            if _generating {
+                require pkt.payload = malicious_stream_data_packet_received_last_round(dst).payload |
+                                          pkt.payload.end >= 0;
+            } 
+        }
+    }
+}
+
+
+
+export packet.malicious_stream_data_packet.forward_to_server
+export packet.malicious_stream_data_packet.forward_to_client
+
+attribute packet.malicious_stream_data_packet.forward_to_server.weight = "15"
+attribute packet.malicious_stream_data_packet.forward_to_client.weight = "15"
+
+# export packet.malicious_stream_data_packet.replay_to_client
+# export packet.malicious_stream_data_packet.replay_to_server
+
+# attribute packet.malicious_stream_data_packet.replay_to_server.weight = "5"
+# attribute packet.malicious_stream_data_packet.replay_to_client.weight = "5"
+
+# export packet.malicious_stream_data_packet.modify
+
+# attribute packet.malicious_stream_data_packet.modify.weight = "5"
+
+
+
+# Final check
+#
+# When the test is complete, the tester calls the special action `_finalize`.
+# We use this action to make some heuristic checks, for example that some
+# data was actually received from the server. We can add advice to this
+# action with additional checks.
+
+export action _finalize = {
+    # chris TODO 
+    call mim_agent.reset_NAT;
+    require mim_agent.last_packet_forwarded_to(mim_agent.ep_server) > 0;
+    require mim_agent.last_packet_forwarded_to(mim_agent.ep_client) > 0;
+    require mim_agent.last_packet_forwarded_to(mim_agent.ep_client) = mim_agent.cppkt_forwarded_to_client;
+    require mim_agent.last_packet_forwarded_to(mim_agent.ep_server) = mim_agent.cppkt_forwarded_to_server;
+}
+
+

@@ -1,0 +1,56 @@
+DEBUG:panther-test:Setting process limits
+DEBUG:panther-test:Initial memory limits: soft=-1, hard=-1
+DEBUG:panther-test:Updated memory limits: soft=786432000, hard=-1
+fatal error: runtime: cannot allocate memory
+
+goroutine 7 [running]:
+runtime.throw(0x7439e0, 0x1f)
+	/usr/local/go/src/runtime/panic.go:1117 +0x72 fp=0xc000057ae8 sp=0xc000057ab8 pc=0x4375d2
+runtime.stkbucket(0x1, 0x600, 0xc000057b98, 0x6, 0x20, 0xc000705001, 0x30)
+	/usr/local/go/src/runtime/mprof.go:209 +0x33e fp=0xc000057b48 sp=0xc000057ae8 pc=0x42fa1e
+runtime.mProf_Malloc(0xc0006c5800, 0x600)
+	/usr/local/go/src/runtime/mprof.go:344 +0xe5 fp=0xc000057cc0 sp=0xc000057b48 pc=0x42fd65
+runtime.profilealloc(0xc000680000, 0xc0006c5800, 0x600)
+	/usr/local/go/src/runtime/malloc.go:1213 +0x6f fp=0xc000057ce8 sp=0xc000057cc0 pc=0x40f9cf
+runtime.mallocgc(0x5ac, 0x6d2460, 0xc000080501, 0x0)
+	/usr/local/go/src/runtime/malloc.go:1153 +0x4ea fp=0xc000057d70 sp=0xc000057ce8 pc=0x40f28a
+runtime.makeslice(0x6d2460, 0x0, 0x5ac, 0xc000057e00)
+	/usr/local/go/src/runtime/slice.go:98 +0x6c fp=0xc000057da0 sp=0xc000057d70 pc=0x44ec0c
+github.com/lucas-clemente/quic-go.init.0.func1(0x949aa0, 0x3)
+	/app/implementations/quic-implementations/quic-go/buffer_pool.go:77 +0x45 fp=0xc000057dd8 sp=0xc000057da0 pc=0x69f5e5
+sync.(*Pool).Get(0x949aa0, 0x4088e5, 0xc000709b00)
+	/usr/local/go/src/sync/pool.go:148 +0xaa fp=0xc000057e20 sp=0xc000057dd8 pc=0x48316a
+github.com/lucas-clemente/quic-go.getPacketBuffer(...)
+	/app/implementations/quic-implementations/quic-go/buffer_pool.go:68
+github.com/lucas-clemente/quic-go.(*oobConn).ReadPacket(0xc000648100, 0xc0006c0f60, 0x0, 0x0)
+	/app/implementations/quic-implementations/quic-go/sys_conn_oob.go:143 +0x8c fp=0xc000057f58 sp=0xc000057e20 pc=0x69c8ac
+github.com/lucas-clemente/quic-go.(*packetHandlerMap).listen(0xc000132420)
+	/app/implementations/quic-implementations/quic-go/packet_handler_map.go:347 +0x6c fp=0xc000057fd8 sp=0xc000057f58 pc=0x68338c
+runtime.goexit()
+	/usr/local/go/src/runtime/asm_amd64.s:1371 +0x1 fp=0xc000057fe0 sp=0xc000057fd8 pc=0x46bec1
+created by github.com/lucas-clemente/quic-go.newPacketHandlerMap
+	/app/implementations/quic-implementations/quic-go/packet_handler_map.go:163 +0x285
+
+goroutine 1 [select]:
+github.com/lucas-clemente/quic-go.(*baseServer).accept(0xc000132580, 0x7a0150, 0xc0000180b0, 0x465a60, 0xc000117c28, 0xc000117c30, 0x18)
+	/app/implementations/quic-implementations/quic-go/server.go:271 +0xc5
+github.com/lucas-clemente/quic-go.(*earlyServer).Accept(0xc00065a058, 0x7a0150, 0xc0000180b0, 0x7a2300, 0xc00013c000, 0x0, 0x0)
+	/app/implementations/quic-implementations/quic-go/server.go:119 +0x46
+github.com/lucas-clemente/quic-go/interop/http09.(*Server).ListenAndServe(0xc00007d260, 0xc, 0x0)
+	/app/implementations/quic-implementations/quic-go/interop/http09/server.go:81 +0x251
+main.runHTTP09Server(0xc0001324d0, 0x115b, 0xc000010028, 0x79be00)
+	/app/implementations/quic-implementations/quic-go/server/main.go:94 +0x23f
+main.main()
+	/app/implementations/quic-implementations/quic-go/server/main.go:73 +0x56f
+
+goroutine 8 [select]:
+github.com/lucas-clemente/quic-go.(*baseServer).run(0xc000132580)
+	/app/implementations/quic-implementations/quic-go/server.go:233 +0xfa
+created by github.com/lucas-clemente/quic-go.listen
+	/app/implementations/quic-implementations/quic-go/server.go:219 +0x545
+
+goroutine 13 [select]:
+github.com/lucas-clemente/quic-go.(*closedLocalConn).run(0xc000156e00)
+	/app/implementations/quic-implementations/quic-go/closed_conn.go:51 +0xa5
+created by github.com/lucas-clemente/quic-go.newClosedLocalConn
+	/app/implementations/quic-implementations/quic-go/closed_conn.go:45 +0x11a

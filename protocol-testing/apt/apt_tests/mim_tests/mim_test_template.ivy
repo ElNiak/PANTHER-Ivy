@@ -1,0 +1,36 @@
+#lang ivy1.7
+
+include order
+include file
+
+{{ net_includes}}
+
+include random_value
+
+{{ behavior_include }}
+
+include apt_shim
+
+{{ shim_include }}
+
+# TODO try to remove
+# include ivy_quic_client_behavior
+include ivy_quic_client_standard_tp
+
+# NB: need bigger timeout (at least 90 sec)
+
+after init {
+    is_mim_standalone := true;
+    {{ nat_attack }}
+}
+
+{{ packet_object }}
+
+{{ packet_export }}
+
+{{ packet attribute }}
+
+export action _finalize = {
+    {{ nat_reset }}
+    {{ packet_requirements }}
+}

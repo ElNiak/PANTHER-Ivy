@@ -1,0 +1,145 @@
+#lang ivy1.7
+
+include order
+include file
+
+include ivy_minip_mim
+include ivy_minip_target
+include ivy_minip_attacker_client
+
+include apt_shim
+include ivy_minip_shim
+include ivy_minip_shim_attacker_client
+
+include ivy_ping_client_behavior
+include ivy_minip_attacker_client_behavior
+
+include ivy_quic_client_standard_tp
+
+include apt_time
+
+# An endpoint MUST NOT initiate
+#   connection migration before the handshake is confirmed, as defined in
+#   section 4.1.2 of [minip-TLS].
+
+after init {
+    call time_api.c_timer.start;
+}
+
+import action show_endpoint_debug_event(ep:ip.endpoint)
+
+after init {
+    sock := quic_net.open(endpoint_id.client,client.ep);
+    client.set_tls_id(1);
+    server.set_tls_id(0);
+}
+
+# before ping_packet_event_malicious(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+#     if _generating {
+#         require num_queued_ping_frames(dst) = 1;
+#     }
+# }
+
+
+before ping_frame.ping.handle_maliciously(f:ping_frame.ping,dst:ip.endpoint) {
+    if _generating {
+        require ~size_used(f.data.end);
+        require f.data.end > 50 & f.data.end < 100000;
+        # require forall I. I < f.data.end -> f.data.value(J) = 0x00; # |  # null byte
+                                                    # f.data.value(I) = 0x25 |  # %
+                                                    # f.data.value(I) = 0x26 |  # &
+                                                    # f.data.value(I) = 0x2B |  # +
+                                                    # f.data.value(I) = 0x3D |  # =
+                                                    # f.data.value(I) = 0x3F |  # ?
+                                                    # f.data.value(I) = 0x20 |  # space
+                                                    # f.data.value(I) = 0x0A |  # newline
+                                                    # f.data.value(I) = 0x0D |  # carriage return
+                                                    # f.data.value(I) = 0x09 |  # tab
+                                                    # f.data.value(I) = 0x2F |  # /
+                                                    # f.data.value(I) = 0x3A |  # :
+                                                    # f.data.value(I) = 0x40 |  # @
+                                                    # f.data.value(I) = 0x1B |  # escape
+                                                    # f.data.value(I) = 0x22 |  # "
+                                                    # f.data.value(I) = 0x27 |  # '
+                                                    # f.data.value(I) = 0x7F);
+        require exists I. I < f.data.end  & f.data.value(I) = 0x00;
+        require exists I. I < f.data.end-4  & f.data.value(I) = 0x25 & f.data.value(I+1) = 0x78  & f.data.value(I+2) = 0x25  & f.data.value(I+3) = 0xe6;
+        require exists I. I < f.data.end  & f.data.value(I) = 0x26;
+        require exists I. I < f.data.end  & f.data.value(I) = 0x2B;
+        require exists I. I < f.data.end  & f.data.value(I) = 0x3D;
+        require exists I. I < f.data.end  & f.data.value(I) = 0x3F;
+        require exists I. I < f.data.end  & f.data.value(I) = 0x20;
+        require exists I. I < f.data.end  & f.data.value(I) = 0x0A;
+        require exists I. I < f.data.end  & f.data.value(I) = 0x0D;
+        require exists I. I < f.data.end  & f.data.value(I) = 0x09;
+        require exists I. I < f.data.end  & f.data.value(I) = 0x2F;
+        require exists I. I < f.data.end  & f.data.value(I) = 0x3A;
+        require exists I. I < f.data.end  & f.data.value(I) = 0x40;
+        require exists I. I < f.data.end  & f.data.value(I) = 0x1B;
+        require exists I. I < f.data.end  & f.data.value(I) = 0x22;
+        require exists I. I < f.data.end  & f.data.value(I) = 0x27;
+        require exists I. I < f.data.end  & f.data.value(I) = 0x7F;
+        # var idx := f.data.begin;
+        # while idx < f.data.end {
+        #     require f.data.value(idx) = 0x00 |  # null byte
+        #             f.data.value(idx) = 0x25 |  # %
+        #             f.data.value(idx) = 0x26 |  # &
+        #             f.data.value(idx) = 0x2B |  # +
+        #             f.data.value(idx) = 0x3D |  # =
+        #             f.data.value(idx) = 0x3F |  # ?
+        #             f.data.value(idx) = 0x20 |  # space
+        #             f.data.value(idx) = 0x0A |  # newline
+        #             f.data.value(idx) = 0x0D |  # carriage return
+        #             f.data.value(idx) = 0x09 |  # tab
+        #             f.data.value(idx) = 0x2F |  # /
+        #             f.data.value(idx) = 0x3A |  # :
+        #             f.data.value(idx) = 0x40 |  # @
+        #             f.data.value(idx) = 0x1B |  # escape
+        #             f.data.value(idx) = 0x22 |  # "
+        #             f.data.value(idx) = 0x27 |  # '
+        #             f.data.value(idx) = 0x7F;
+        #     idx := idx + 1;
+        # }
+        require dst = server.ep;
+    };
+}
+
+before ping_frame.ping.handle(f:ping_frame.ping,dst:ip.endpoint) {
+    if _generating {
+        require dst = server.ep;
+    }
+}
+
+
+before ping_frame.timestamp.handle(f:ping_frame.timestamp,dst:ip.endpoint) {
+    if _generating {
+        require dst = server.ep;
+    }
+}
+
+after ping_frame.ping.handle_maliciously {
+    if _generating {
+        ping_frame_pending := true;
+        size_used(f.data.end) := true;
+    }
+}
+
+# export ping_frame.ping.handle
+export ping_frame.ping.handle_maliciously
+export ping_frame.timestamp.handle
+
+# export ping_packet_event
+export ping_packet_event_malicious
+# export client_send_event
+# export client_send_event_malicious
+
+#
+# When the test is complete, the tester calls the special action `_finalize`.
+# We use this action to make some heuristic checks, for example that some
+# data was actually received from the server. We can add advice to this
+# action with additional checks.
+
+export action _finalize = { 
+
+}
+

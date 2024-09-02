@@ -50,7 +50,7 @@ export tls_recv_event
 # action with additional checks.
 
 export action _finalize = {
-    require is_no_error;
+    require is_no_error | is_no_error_h3;
     require conn_total_data(the_cid) > 0;
     require respect_idle_timeout;
 }

@@ -1,0 +1,12 @@
+#lang ivy1.7
+
+include order
+include file
+# include quic_locale
+include apt_quic_endpoint
+include ivy_attacker
+
+instance server : endpoint.server_attacker_endpoint.attacker_quic_ep(
+    server_addr,
+    server_port,
+    client_port,true,true)

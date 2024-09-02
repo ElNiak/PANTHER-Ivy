@@ -1,0 +1,142 @@
+DEBUG:panther-test:Setting process limits
+DEBUG:panther-test:Initial memory limits: soft=-1, hard=-1
+DEBUG:panther-test:Updated memory limits: soft=786432000, hard=-1
+fatal error: runtime: cannot allocate memory
+
+runtime stack:
+runtime.throw(0x7439e0, 0x1f)
+	/usr/local/go/src/runtime/panic.go:1117 +0x72
+runtime.persistentalloc1(0x90, 0x0, 0x97a5a0, 0x0)
+	/usr/local/go/src/runtime/malloc.go:1360 +0x2d1
+runtime.persistentalloc.func1()
+	/usr/local/go/src/runtime/malloc.go:1314 +0x45
+runtime.systemstack(0x0)
+	/usr/local/go/src/runtime/asm_amd64.s:379 +0x66
+runtime.mstart()
+	/usr/local/go/src/runtime/proc.go:1246
+
+goroutine 1 [running]:
+runtime.systemstack_switch()
+	/usr/local/go/src/runtime/asm_amd64.s:339 fp=0xc00011bb00 sp=0xc00011baf8 pc=0x46a080
+runtime.persistentalloc(0x90, 0x0, 0x97a5a0, 0x0)
+	/usr/local/go/src/runtime/malloc.go:1313 +0x85 fp=0xc00011bb48 sp=0xc00011bb00 pc=0x40fc45
+runtime.getitab(0x715040, 0x739080, 0x0, 0x0)
+	/usr/local/go/src/runtime/iface.go:66 +0x157 fp=0xc00011bb98 sp=0xc00011bb48 pc=0x40bd97
+runtime.convI2I(0x715040, 0x7a2cd8, 0xc00069c000, 0x7a2cd8, 0xc00069c000)
+	/usr/local/go/src/runtime/iface.go:445 +0x65 fp=0xc00011bbc8 sp=0xc00011bb98 pc=0x40ce85
+github.com/lucas-clemente/quic-go.(*earlyServer).Accept(0xc000096058, 0x7a0150, 0xc0000180b0, 0xc000132420, 0x79f770, 0xc000096058, 0x0)
+	/app/implementations/quic-implementations/quic-go/server.go:119 +0x7e fp=0xc00011bc20 sp=0xc00011bbc8 pc=0x69063e
+github.com/lucas-clemente/quic-go/interop/http09.(*Server).ListenAndServe(0xc00007d260, 0xc, 0x0)
+	/app/implementations/quic-implementations/quic-go/interop/http09/server.go:81 +0x251 fp=0xc00011bca0 sp=0xc00011bc20 pc=0x6a6891
+main.runHTTP09Server(0xc000132420, 0x115b, 0xc000010028, 0x79be00)
+	/app/implementations/quic-implementations/quic-go/server/main.go:94 +0x23f fp=0xc00011bd40 sp=0xc00011bca0 pc=0x6a80ff
+main.main()
+	/app/implementations/quic-implementations/quic-go/server/main.go:73 +0x56f fp=0xc00011bf88 sp=0xc00011bd40 pc=0x6a7baf
+runtime.main()
+	/usr/local/go/src/runtime/proc.go:225 +0x256 fp=0xc00011bfe0 sp=0xc00011bf88 pc=0x439e16
+runtime.goexit()
+	/usr/local/go/src/runtime/asm_amd64.s:1371 +0x1 fp=0xc00011bfe8 sp=0xc00011bfe0 pc=0x46bec1
+
+goroutine 8 [IO wait]:
+internal/poll.runtime_pollWait(0x7fffd1284f38, 0x72, 0xc00005cf90)
+	/usr/local/go/src/runtime/netpoll.go:222 +0x55
+internal/poll.(*pollDesc).wait(0xc000090098, 0x72, 0xc00005cf00, 0x0, 0x0)
+	/usr/local/go/src/internal/poll/fd_poll_runtime.go:87 +0x45
+internal/poll.(*pollDesc).waitRead(...)
+	/usr/local/go/src/internal/poll/fd_poll_runtime.go:92
+internal/poll.(*FD).RawRead(0xc000090080, 0xc00002c240, 0x0, 0x0)
+	/usr/local/go/src/internal/poll/fd_unix.go:553 +0xff
+net.(*rawConn).Read(0xc000096030, 0xc00002c240, 0x8, 0xc00012a2c0)
+	/usr/local/go/src/net/rawconn.go:43 +0x68
+golang.org/x/net/internal/socket.(*Conn).recvMsgs(0xc000066000, 0xc00012a2c0, 0x8, 0x8, 0x0, 0xc0006920c0, 0xc000057e10, 0xc00004a800)
+	/root/go/pkg/mod/golang.org/x/net@v0.0.0-20210428140749-89ef3d95e781/internal/socket/rawconn_mmsg.go:37 +0x1b2
+golang.org/x/net/internal/socket.(*Conn).RecvMsgs(...)
+	/root/go/pkg/mod/golang.org/x/net@v0.0.0-20210428140749-89ef3d95e781/internal/socket/socket.go:267
+golang.org/x/net/ipv4.(*payloadHandler).ReadBatch(0xc00007a060, 0xc00012a2c0, 0x8, 0x8, 0x0, 0x0, 0x0, 0x0)
+	/root/go/pkg/mod/golang.org/x/net@v0.0.0-20210428140749-89ef3d95e781/ipv4/batch.go:80 +0xaf
+github.com/lucas-clemente/quic-go.(*oobConn).ReadPacket(0xc000090100, 0xc000070240, 0x0, 0x0)
+	/app/implementations/quic-implementations/quic-go/sys_conn_oob.go:150 +0x1f5
+github.com/lucas-clemente/quic-go.(*packetHandlerMap).listen(0xc000132370)
+	/app/implementations/quic-implementations/quic-go/packet_handler_map.go:347 +0x6c
+created by github.com/lucas-clemente/quic-go.newPacketHandlerMap
+	/app/implementations/quic-implementations/quic-go/packet_handler_map.go:163 +0x285
+
+goroutine 9 [select]:
+github.com/lucas-clemente/quic-go.(*baseServer).run(0xc0001324d0)
+	/app/implementations/quic-implementations/quic-go/server.go:233 +0xfa
+created by github.com/lucas-clemente/quic-go.listen
+	/app/implementations/quic-implementations/quic-go/server.go:219 +0x545
+
+goroutine 50 [select]:
+github.com/lucas-clemente/quic-go/internal/handshake.(*cryptoSetup).HandleMessage(0xc000082a80, 0xc00013a380, 0xe0, 0xe0, 0xc000066101, 0xc0007119c8)
+	/app/implementations/quic-implementations/quic-go/internal/handshake/crypto_setup.go:375 +0x27a
+github.com/lucas-clemente/quic-go.(*cryptoStreamManager).HandleCryptoFrame(0xc00002c600, 0xc000066160, 0x1, 0x0, 0x7fffd12c0c40, 0x8)
+	/app/implementations/quic-implementations/quic-go/crypto_stream_manager.go:57 +0xaa
+github.com/lucas-clemente/quic-go.(*connection).handleCryptoFrame(0xc00069c000, 0xc000066160, 0x79dd01, 0xc000066160, 0x79dd00)
+	/app/implementations/quic-implementations/quic-go/connection.go:1286 +0x49
+github.com/lucas-clemente/quic-go.(*connection).handleFrame(0xc00069c000, 0x79ddb0, 0xc000066160, 0x79dd01, 0xc00009a088, 0x8, 0x8, 0x68a4ab, 0x70efe0)
+	/app/implementations/quic-implementations/quic-go/connection.go:1213 +0x3d4
+github.com/lucas-clemente/quic-go.(*connection).handleUnpackedPacket(0xc00069c000, 0xc0000922d0, 0xc1aa704d7546c200, 0xc1aa704d7546c297, 0x3593200f1, 0x94a160, 0x4d0, 0x5ac, 0xc0000922d0)
+	/app/implementations/quic-implementations/quic-go/connection.go:1184 +0x329
+github.com/lucas-clemente/quic-go.(*connection).handleSinglePacket(0xc00069c000, 0xc000070240, 0xc0000a0300, 0x0)
+	/app/implementations/quic-implementations/quic-go/connection.go:985 +0x1025
+github.com/lucas-clemente/quic-go.(*connection).handlePacketImpl(0xc00069c000, 0xc000070240, 0x0)
+	/app/implementations/quic-implementations/quic-go/connection.go:891 +0xbc
+github.com/lucas-clemente/quic-go.(*connection).run(0xc00069c000, 0x0, 0x0)
+	/app/implementations/quic-implementations/quic-go/connection.go:615 +0xdc5
+created by github.com/lucas-clemente/quic-go.(*baseServer).handleInitialImpl
+	/app/implementations/quic-implementations/quic-go/server.go:497 +0x4b8
+
+goroutine 10 [select]:
+github.com/lucas-clemente/quic-go/internal/handshake.(*cryptoSetup).RunHandshake(0xc000082a80)
+	/app/implementations/quic-implementations/quic-go/internal/handshake/crypto_setup.go:323 +0x13a
+created by github.com/lucas-clemente/quic-go.(*connection).run
+	/app/implementations/quic-implementations/quic-go/connection.go:546 +0xfb
+
+goroutine 11 [select]:
+github.com/lucas-clemente/quic-go.(*sendQueue).Run(0xc00007cff0, 0x0, 0x0)
+	/app/implementations/quic-implementations/quic-go/send_queue.go:60 +0xfb
+github.com/lucas-clemente/quic-go.(*connection).run.func1(0xc00069c000)
+	/app/implementations/quic-implementations/quic-go/connection.go:548 +0x34
+created by github.com/lucas-clemente/quic-go.(*connection).run
+	/app/implementations/quic-implementations/quic-go/connection.go:547 +0x125
+
+goroutine 52 [runnable]:
+golang.org/x/crypto/cryptobyte.(*Builder).flushChild(0xc0000a14a0)
+	/root/go/pkg/mod/golang.org/x/crypto@v0.0.0-20200622213623-75b288015ac9/cryptobyte/builder.go:206 +0x715
+golang.org/x/crypto/cryptobyte.(*Builder).addLengthPrefixed(0xc0000a14a0, 0x3, 0xc00008e400, 0xc000059608)
+	/root/go/pkg/mod/golang.org/x/crypto@v0.0.0-20200622213623-75b288015ac9/cryptobyte/builder.go:200 +0x133
+golang.org/x/crypto/cryptobyte.(*Builder).AddUint24LengthPrefixed(...)
+	/root/go/pkg/mod/golang.org/x/crypto@v0.0.0-20200622213623-75b288015ac9/cryptobyte/builder.go:146
+github.com/marten-seemann/qtls-go1-16.marshalCertificate.func1(0xc0000a14a0)
+	/root/go/pkg/mod/github.com/marten-seemann/qtls-go1-16@v0.1.5/handshake_messages.go:1337 +0xd6
+golang.org/x/crypto/cryptobyte.(*Builder).callContinuation(0xc0000a1440, 0xc000059790, 0xc0000a14a0)
+	/root/go/pkg/mod/golang.org/x/crypto@v0.0.0-20200622213623-75b288015ac9/cryptobyte/builder.go:174 +0x57
+golang.org/x/crypto/cryptobyte.(*Builder).addLengthPrefixed(0xc0000a1440, 0x3, 0x0, 0xc000059790)
+	/root/go/pkg/mod/golang.org/x/crypto@v0.0.0-20200622213623-75b288015ac9/cryptobyte/builder.go:199 +0x125
+golang.org/x/crypto/cryptobyte.(*Builder).AddUint24LengthPrefixed(...)
+	/root/go/pkg/mod/golang.org/x/crypto@v0.0.0-20200622213623-75b288015ac9/cryptobyte/builder.go:146
+github.com/marten-seemann/qtls-go1-16.marshalCertificate(0xc0000a1440, 0xc00000eea0, 0x1, 0x1, 0x70c220, 0xc000070540, 0x0, 0x0, 0x0, 0x0, ...)
+	/root/go/pkg/mod/github.com/marten-seemann/qtls-go1-16@v0.1.5/handshake_messages.go:1335 +0xbc
+github.com/marten-seemann/qtls-go1-16.(*certificateMsgTLS13).marshal.func1(0xc0000a1440)
+	/root/go/pkg/mod/github.com/marten-seemann/qtls-go1-16@v0.1.5/handshake_messages.go:1327 +0xdb
+golang.org/x/crypto/cryptobyte.(*Builder).callContinuation(0xc000059a58, 0xc000059a48, 0xc0000a1440)
+	/root/go/pkg/mod/golang.org/x/crypto@v0.0.0-20200622213623-75b288015ac9/cryptobyte/builder.go:174 +0x57
+golang.org/x/crypto/cryptobyte.(*Builder).addLengthPrefixed(0xc000663a58, 0x3, 0x0, 0xc000059a48)
+	/root/go/pkg/mod/golang.org/x/crypto@v0.0.0-20200622213623-75b288015ac9/cryptobyte/builder.go:199 +0x125
+golang.org/x/crypto/cryptobyte.(*Builder).AddUint24LengthPrefixed(...)
+	/root/go/pkg/mod/golang.org/x/crypto@v0.0.0-20200622213623-75b288015ac9/cryptobyte/builder.go:146
+github.com/marten-seemann/qtls-go1-16.(*certificateMsgTLS13).marshal(0xc000663c28, 0x0, 0x80, 0x80)
+	/root/go/pkg/mod/github.com/marten-seemann/qtls-go1-16@v0.1.5/handshake_messages.go:1317 +0xea
+github.com/marten-seemann/qtls-go1-16.(*serverHandshakeStateTLS13).sendServerCertificate(0xc000663df0, 0x0, 0x0)
+	/root/go/pkg/mod/github.com/marten-seemann/qtls-go1-16@v0.1.5/handshake_server_tls13.go:667 +0x22e
+github.com/marten-seemann/qtls-go1-16.(*serverHandshakeStateTLS13).handshake(0xc000663df0, 0xc0001266c0, 0x0)
+	/root/go/pkg/mod/github.com/marten-seemann/qtls-go1-16@v0.1.5/handshake_server_tls13.go:61 +0xd4
+github.com/marten-seemann/qtls-go1-16.(*Conn).serverHandshake(0xc0006aa000, 0x0, 0x0)
+	/root/go/pkg/mod/github.com/marten-seemann/qtls-go1-16@v0.1.5/handshake_server.go:53 +0x1b6
+github.com/marten-seemann/qtls-go1-16.(*Conn).Handshake(0xc0006aa000, 0x0, 0x0)
+	/root/go/pkg/mod/github.com/marten-seemann/qtls-go1-16@v0.1.5/conn.go:1446 +0xc9
+github.com/lucas-clemente/quic-go/internal/handshake.(*cryptoSetup).RunHandshake.func1(0xc000082a80, 0xc000070c00, 0xc00069a5a0)
+	/app/implementations/quic-implementations/quic-go/internal/handshake/crypto_setup.go:307 +0x5a
+created by github.com/lucas-clemente/quic-go/internal/handshake.(*cryptoSetup).RunHandshake
+	/app/implementations/quic-implementations/quic-go/internal/handshake/crypto_setup.go:305 +0xa9

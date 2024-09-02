@@ -1,0 +1,258 @@
+#lang ivy1.7
+
+include order
+include quic_infer
+include file
+# include quic_locale
+include quic_random_value
+
+
+var sock : quic_net.socket
+var sock_alt : quic_net.socket
+var sock_vn : quic_net.socket
+
+
+# Server
+action socket_endpoint_mim(host:endpoint_id,s:quic_net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
+    dst := mim_agent.ep_client if src = mim_agent.ep_server else mim_agent.ep_server; # is_mim_standalone | 
+    call socket_endpoint_mim_event_debug_event(host,s,src,dst);
+}
+
+import action socket_endpoint_mim_event_debug_event(host:endpoint_id,s:quic_net.socket,src:ip.endpoint,dst:ip.endpoint)
+
+action endpoint_to_socket_mim(src:ip.endpoint) returns (socket:quic_net.socket) = {
+    socket := sock_mim_server if src = mim_agent.ep_server else sock_mim_client; #  & ~forged_packet_send
+}
+
+# This is a simple tester for quic servers. The tester plays the role of a
+# single client, which may use multiple UDP ports.
+#
+# Compile the tester like this:
+#
+#     ivyc target=test quic_server_test.ivy
+#
+# Run it like this:
+#
+#     ./quic_server_test [parameter=value...]
+#
+# Parameters are:
+#
+#     the_cid:int      cid to be used by the client (default 0xd)
+#     client_addr:int  the client IP address (default 0x7f000001, i.e., the loopback interface)
+#     server_addr:int  the server IP address (default 0x7f000001, i.e., the loopback interface)
+#     server_port:int  the server port number (default 4443)
+#     server_cid:int   the initial server CID used by the client (default 0xb)
+#     client_port:int  the client port number (default 4987)
+#     client_port_alt:int     the alternate client port (for migration) (default 4988)
+#     max_stream_data:int     the initial max stream data (0x2000)
+#
+#
+# Notes:
+#
+# - All IP addresses are IPv4 and are given as single 32-bit numbers,
+#   rather than using the dot notation.
+#
+#
+
+# The command-line parameters, with their defaults
+
+#
+# Restrict generation to packets from the designated client endpoints
+# to the server endpoint.
+#
+
+# An endpoint MUST NOT initiate
+#   connection migration before the handshake is confirmed, as defined in
+#   section 4.1.2 of [QUIC-TLS].
+
+
+after init {
+	allowed_multiple_migration := true;
+    version_negociated         := false;
+}
+
+before malicious_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
+    if _generating {
+        var tp := trans_params( ep_map_cid(src));
+        if version_negociated {
+            require src.addr = client_vn.addr;
+        } else {
+            if ~disable_active_migration.is_set(tp) {
+                if ~migration_done | allowed_multiple_migration { 
+                    #only one migration
+                    require src.addr = client.ep.addr; #client.ep | src = client_alt;
+                } else {
+                    require src.addr  = client_alt.addr;
+                }
+            } else {
+                require src.addr = client.ep.addr;
+            }
+        };
+        require used_client_ports(src.port);
+        require src.protocol = ip.udp;
+        require src.interface = ip.veth_ivy;
+        require (ep_present(src) & pkt.long)-> pkt.src_cid = ep_map_cid(src);
+        require dst = server.ep;
+        #require pkt.token.end = 0; 
+        if pkt.ptype = quic_packet_type.initial & retry_recv(pkt.src_cid) & ~zero_length_token {
+            require pkt.token = retry_token(pkt.src_cid); # TODO new_token
+        } else {
+            require pkt.token.end = 0; 
+        };
+    };
+    if final_version = 0x00000000 {
+        #require pkt.long -> pkt.pversion = 0xff00001d  #version 29
+        #require pkt.long -> pkt.pversion = 0xff000020  #version 32
+        #require pkt.long -> pkt.pversion = 0xff00001e  #version 30
+        require pkt.long -> pkt.pversion = initial_version  #version 30
+    } else {
+        require pkt.long -> pkt.pversion = final_version
+    };
+}
+
+before open_connection(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
+    if _generating {
+        var tp := trans_params(ep_map_cid(src));
+        if version_negociated {
+            require src.addr = client_vn.addr;
+        } else {
+            if ~disable_active_migration.is_set(tp) {
+                if ~migration_done | allowed_multiple_migration { 
+                    #only one migration
+                    require src.addr = client.ep.addr; #client.ep | src = client_alt;
+                } else {
+                    require src.addr  = client_alt.addr;
+                }
+            } else {
+                require src.addr = client.ep.addr;
+            }
+        };
+        require src.port = client.ep.port;
+        # require used_client_ports(src.port);  #  & ~used_client_ports_in_packet_event(src.port)
+        require src.protocol = ip.udp; 
+        require src.interface = ip.veth_ivy;
+        require (ep_present(src) & pkt.long)-> pkt.src_cid = ep_map_cid(src);
+        require dst = server.ep;
+        # require pkt.ptype = quic_packet_type.initial;
+        #require pkt.token.end = 0; 
+        if pkt.ptype = quic_packet_type.initial & retry_recv(pkt.src_cid) & ~zero_length_token {
+            require pkt.token = retry_token(pkt.src_cid); # TODO new_token
+        } else {
+            require pkt.token.end = 0; 
+        };
+    };
+    if final_version = 0x00000000 {
+        #require pkt.long -> pkt.pversion = 0xff00001d  #version 29
+        #require pkt.long -> pkt.pversion = 0xff000020  #version 32
+        #require pkt.long -> pkt.pversion = 0xff00001e  #version 30
+        require pkt.long -> pkt.pversion = initial_version  #version 30
+    } else {
+        require pkt.long -> pkt.pversion = final_version
+    };
+}
+
+
+# This is where we restrict the client to send only a specific HTTP
+# request.  We allow generating application data at the client end
+# only if the previous data have not been sent. This is to avoid
+# building up a long queue. We only send the http request data read
+# from the input file, up to the first newline. We restrict the client
+# to use stream id's from 4 to 60 in increments of 4.
+
+action attacker_send_event(src:ip.endpoint, dst:ip.endpoint, dcid:cid, s : stream_id, end : stream_pos)
+
+# var current_stream : stream_id
+
+after init {
+    current_stream := 4
+}
+
+around attacker_send_event {
+    # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
+    # require _generating -> is_not_sleeping;
+    # if _generating {
+        
+    # };
+    require s = current_stream;
+    var tp := trans_params( ep_map_cid(src));
+
+    # if version_negociated {
+    #     require src = client_vn;
+    # } else {
+    #     if ~disable_active_migration.is_set(tp) {
+    #         if ~migration_done | allowed_multiple_migration  { #only one migration
+    #             require src = client.ep | src = client_alt;
+    #         } else {
+    #             require src = client_alt;
+    #         }
+    #     } else {
+    #         require src = client.ep;
+    #     }
+    # };
+
+    if version_negociated {
+        require src.addr = client_vn.addr;
+    } else {
+        if ~disable_active_migration.is_set(tp) {
+            if ~migration_done | allowed_multiple_migration { 
+                #only one migration
+                require src.addr = client.ep.addr; #client.ep | src = client_alt;
+            } else {
+                require src.addr  = client_alt.addr;
+            }
+        } else {
+            require src.addr = client.ep.addr;
+        }
+    };
+    require used_client_ports(src.port);
+    require src.protocol = ip.udp;
+    require src.interface = ip.veth_ivy;
+
+    require dst = server.ep;
+    if ~zero_rtt_server_test | zero_rtt_sent {
+        # if retry_recv( ep_map_cid(src)) {
+        #     require dcid = server_cid;
+        # } else {
+            require connected( ep_map_cid(src)) & dcid = connected_to( ep_map_cid(src));
+        # }
+    } else {
+        # require dcid ~=  ep_map_cid(src);
+    };
+    require stream_length(dcid,s) = stream_app_data_end(dcid,s);
+    require stream_length(dcid,s) < end & end <= http_request.end;
+    require current_stream < 60;
+    ...
+    while end < http_request.end & http_request.value(end) ~= 10 {
+        end := end.next
+    };
+    if end < http_request.end {
+        end := end.next
+    };
+    var data := http_request.segment(stream_length(dcid,s),end);
+#    call quic_app_send_event(src,dst,dcid,s,data,end = http_request.end);
+    call quic_app_send_event(src,dst,dcid,s,data,stream_length(dcid,s),true);
+    current_stream := current_stream + 4;
+}
+
+
+# This causes the log of events to be printed using hex numbers.
+
+# This gives the interpretation of some of the basic data types.
+# Some of these interpretations are chosen to make solving more efficient.
+# Notably, the `intbv` type can be used to represent large numbers with
+# small bit vector enodings.
+
+interpret cid -> longbv[1][13][20]
+interpret version -> bv[32]
+interpret pkt_num -> bv[32]
+interpret error_code -> bv[16]
+interpret stream_id -> bv[16]
+
+attribute quic_frame.idx.cardinality = 1
+attribute quic_frame.ack.range.idx.cardinality = 1
+attribute pkt_num.cardinality = 1
+#attribute ip.addr.override = bv[1]
+#attribute ip.port.override = bv[1]
+
+# The following are some imported actions that can be used to put
+# "debugging" information in the logs. They have no other effect.

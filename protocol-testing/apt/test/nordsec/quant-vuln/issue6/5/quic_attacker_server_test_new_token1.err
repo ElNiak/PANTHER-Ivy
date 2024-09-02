@@ -1,0 +1,307 @@
+DEBUG:panther-test:Setting process limits
+DEBUG:panther-test:Initial memory limits: soft=-1, hard=-1
+DEBUG:panther-test:Updated memory limits: soft=-1, hard=-1
+[0m[0m0.050[0m [44m [0m [35mq_init[30m [34mquic.c:671 [0mquant/socket (epoll/sendmmsg/recvmmsg) 0.0.29/00 ready
+[0m      [42m [0m [35mq_init[30m [34mquic.c:673 [0msubmit bug reports at https://github.com/NTAP/quant/issues
+[0m[0m0.052[0m [44m [0m [35mq_bind[30m [34mquic.c:456 [0mbound serv socket to [fe80::582a:9dff:fe4f:8455]:4443
+[0m      [42m [0m [35mmain[30m [34mserver.c:371 [0mserver listening on veth_server [fe80::582a:9dff:fe4f:8455]:4443
+[0m      [44m [0m [35mq_bind[30m [34mquic.c:456 [0mbound serv socket to 10.0.0.3:4443
+[0m      [42m [0m [35mmain[30m [34mserver.c:371 [0mserver listening on veth_server 10.0.0.3:4443
+[0m[0m14.586[0m [46m [0m [35mrx_pkts[30m [34mconn.c:1288 [0mnew serv conn on port 4443 from 10.0.0.1:32019 w/cid=0:00000000000000c9
+[0m       [42m [0m [35mnew_conn[30m [34mconn.c:2001 [0mserv conn 0:00000000000000c9 on port 4443 created
+[0m       [42m [0m [35mqlog_init[30m [34mqlog.c:106 [0mqlog file is /app/qlogs/quant-vuln/00000000000000c9.serv.qlog
+[0m       [41m [0m [35mqlog_init[30m [34mqlog.c:108 [0mcould not fopen /app/qlogs/quant-vuln/00000000000000c9.serv.qlog: No such file or directory
+[0m[1m14.587[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:102 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=1216 0xc3=[34mInitial [0mvers=0xff00001d dcid=0:00000000000000c9 scid=0:0000000000000002 len=1206 nr=[34m1[0m
+[0m       [44m [0m [35mlog_stream_or_crypto_frame[30m [34mframe.c:171 [0m[1m[34mCRYPTO[0m off=0 len=215 [seq]
+[0m       [44m [0m [35mdec_frames[30m [34mframe.c:1299 [0m[1m[34mPADDING[0m len=967
+[0m       [44m [0m [35mupdate_act_scid[30m [34mconn.c:386 [0mhshk switch to scid 0:39f0c90d for conn_idle serv conn (was 0:00000000000000c9)
+[0m       [44m [0m [35mon_ch[30m [34mtls.c:345 [0m	SNI = servername
+[0m       [44m [0m [35mon_ch[30m [34mtls.c:376 [0m	ALPN = hq-29
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:503 [0m	initial_max_stream_data_bidi_local = 8192 [bytes]
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:518 [0m	initial_max_data = 154886276 [bytes]
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:536 [0m	max_idle_timeout = 40000 [ms]
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:511 [0m	initial_max_stream_data_bidi_remote = 8192 [bytes]
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:497 [0m	initial_max_stream_data_uni = 154886276 [bytes]
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:661 [0m	initial_source_connection_id = 0:0000000000000002
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:530 [0m	initial_max_streams_uni = 1397
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:561 [0m	max_ack_delay = 12288 [ms]
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:524 [0m	initial_max_streams_bidi = 1397
+[0m       [44m [0m [35mchk_tp[30m [34mtls.c:582 [0m	disable_active_migration = true
+[0m[1m14.590[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:144 [0m[1m[32mTX[0m to=10.0.0.1:4989 0xc0=[32mInitial [0mvers=0xff00001d dcid=0:0000000000000002 scid=0:39f0c90d len=0 nr=[32m0[0m
+[0m       [44m [0m [35menc_ack_frame[30m [34mframe.c:1548 [0m[1m[32mACK[0m 0x02 lg=[34m1[0m delay=424 (3392 usec) cnt=0 rng=0 [[34m1[0m]
+[0m       [44m [0m [35menc_padding_frame[30m [34mframe.c:1464 [0m[1m[32mPADDING[0m len=15
+[0m       [44m [0m [35mlog_stream_or_crypto_frame[30m [34mframe.c:171 [0m[1m[32mCRYPTO[0m off=0 len=90 [seq]
+[0m[1m14.590[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:153 [0m[1m[32mTX[0m to=10.0.0.1:4989 0xe0=[32mHandshake [0mvers=0xff00001d dcid=0:0000000000000002 scid=0:39f0c90d len=0 nr=[32m0[0m
+[0m       [44m [0m [35menc_padding_frame[30m [34mframe.c:1464 [0m[1m[32mPADDING[0m len=22
+[0m       [44m [0m [35mlog_stream_or_crypto_frame[30m [34mframe.c:171 [0m[1m[32mCRYPTO[0m off=0 len=1188 [seq]
+[0m[1m14.590[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:153 [0m[1m[32mTX[0m to=10.0.0.1:4989 0xe0=[32mHandshake [0mvers=0xff00001d dcid=0:0000000000000002 scid=0:39f0c90d len=0 nr=[32m1[0m
+[0m       [44m [0m [35menc_padding_frame[30m [34mframe.c:1464 [0m[1m[32mPADDING[0m len=21
+[0m       [44m [0m [35mlog_stream_or_crypto_frame[30m [34mframe.c:171 [0m[1m[32mCRYPTO[0m off=1188 len=216 [seq]
+[0m       [44m [0m [35mcoalesce[30m [34mpkt.c:243 [0mcoalescing 1252-byte Handshake pkt behind inner 154-byte Initial pkt (outermost Initial)
+[0m       [44m [0m [35mcoalesce[30m [34mpkt.c:243 [0mcoalescing 280-byte Handshake pkt behind inner 1406-byte Handshake pkt (outermost Initial)
+[0m       [46m [0m [35mcoalesce[30m [34mpkt.c:262 [0mtesting PMTU 2020 with Initial pkt 0 using 334 bytes rand padding
+[0m       [44m [0m [35mlog_sent_pkts[30m [34mconn.c:278 [0mserv conn 0:39f0c90d, Initial unacked: [32m0[0m
+[0m       [44m [0m [35mlog_sent_pkts[30m [34mconn.c:278 [0mserv conn 0:39f0c90d, Handshake unacked: [32m0[0m..[32m1[0m
+[0m       [42m [0m [35mlog_cc[30m [34mrecovery.c:124 [0mserv conn 0:39f0c90d: in_flight=1686 ([32m+1686[0m), cwnd[0m=12000 (+0[0m), ssthresh=0 (+0[0m), srtt=0.000 (+0.000[0m), rttvar=0.000 (+0.000[0m)
+[0m[0m14.882[0m [42m [0m [35mabandon_pn[30m [34mpn.c:134 [0mabandoning serv Initial processing
+[0m       [46m [0m [35mvalidate_pmtu[30m [34mpkt.c:175 [0mPMTU 2020 validated
+[0m       [42m [0m [35mdec_pkt_hdr_remainder[30m [34mpkt.c:1075 [0mclnt path validated
+[0m[1m14.882[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:111 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=80 0xe3=[34mHandshake [0mvers=0xff00001d dcid=0:39f0c90d scid=0:0000000000000002 len=75 nr=[34m1[0m
+[0m       [44m [0m [35mlog_stream_or_crypto_frame[30m [34mframe.c:171 [0m[1m[34mCRYPTO[0m off=0 len=36 [seq]
+[0m       [44m [0m [35mdec_frames[30m [34mframe.c:1299 [0m[1m[34mPADDING[0m len=16
+[0m       [42m [0m [35mabandon_pn[30m [34mpn.c:134 [0mabandoning serv Handshake processing
+[0m[1m14.882[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:160 [0m[1m[32mTX[0m to=10.0.0.1:4989 0x40=[32mShort [0mkyph=0 spin=0 dcid=0:0000000000000002 nr=[32m0[0m
+[0m       [44m [0m [35menc_hshk_done_frame[30m [34mframe.c:1977 [0m[1m[32mHANDSHAKE_DONE[0m
+[0m       [44m [0m [35menc_new_token_frame[30m [34mframe.c:1930 [0m[1m[32mNEW_TOKEN[0m len=42 tok=28728949161efe29dc709c87d0351b41ee91d2f79274abbed1699bc9c6cef79b0439f0c90d0439f0c90d
+[0m       [44m [0m [35mlog_sent_pkts[30m [34mconn.c:278 [0mserv conn 0:39f0c90d, Data unacked: [32m0[0m
+[0m       [42m [0m [35mlog_cc[30m [34mrecovery.c:124 [0mserv conn 0:39f0c90d: in_flight=71 ([31m-1615[0m), cwnd[0m=12000 (+0[0m), ssthresh=0 (+0[0m), srtt=0.000 (+0.000[0m), rttvar=0.000 (+0.000[0m)
+[0m[1m15.138[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=28 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m1[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1212 [0m[1m[34mNEW_TOKEN[0m len=13383 tok=00000000000000000000000000000000c0557d55555500007d130000000000001c00000000000000c0557d5555550000c0557d5555550000430000000000000000537d555555000000000000000000000000000000000000705dffffff7f00000100000000000000797f765555550000c04e7d5555550000c0557d5555550000000000005555000043000000ff7f7d130000000055550000c0557d5555550000f05cffffff7f
+[0m       [41m [0m [35merr_close[30m [34mconn.c:1669 [0millegal tok len
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1651 [0mignoring new err 0x7; existing err is 0x7 (illegal tok len) 
+[0m[1m15.487[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=29 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m2[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1212 [0m[1m[34mNEW_TOKEN[0m len=2125137173677080576 tok=0000000000000000000000ffff7f0000c0557d55555500007d130000000000001d00000000000000c0557d5555550000c0557d5555550000430000000000000000537d555555000000000000000000000000000000000000705dffffff7f00000200000000000000797f765555550000c04e7d5555550000c0557d555555000000000000555500004300000000007d130000000055550000c0557d5555550000f05cffffff7f
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1651 [0mignoring new err 0x7; existing err is 0x7 (illegal tok len) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1651 [0mignoring new err 0x7; existing err is 0x7 (illegal tok len) 
+[0m[1m15.709[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=29 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m3[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1212 [0m[1m[34mNEW_TOKEN[0m len=4659632421979815936 tok=0000000000000000000000ffff7f0000c0557d55555500007d130000000000001d00000000000000c0557d5555550000c0557d5555550000430000000000000000537d555555000000000000000000000000000000000000705dffffff7f00000300000000000000797f765555550000c04e7d5555550000c0557d555555000000000000555500004300000000007d130000000055550000c0557d5555550000f05cffffff7f
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1651 [0mignoring new err 0x7; existing err is 0x7 (illegal tok len) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1651 [0mignoring new err 0x7; existing err is 0x7 (illegal tok len) 
+[0m[1m16.244[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=30 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m4[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1212 [0m[1m[34mNEW_TOKEN[0m len=148247212902580224 tok=000000000000000000000000ff7f0000c0557d55555500007d130000000000001e00000000000000c0557d5555550000c0557d5555550000430000000000000000537d555555000000000000000000000000000000000000705dffffff7f00000400000000000000797f765555550000c04e7d5555550000c0557d555555000000000000555500004300000000007d130000000055550000c0557d5555550000f05cffffff7f
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1651 [0mignoring new err 0x7; existing err is 0x7 (illegal tok len) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1651 [0mignoring new err 0x7; existing err is 0x7 (illegal tok len) 
+[0m[1m16.508[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=33 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m5[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1212 [0m[1m[34mNEW_TOKEN[0m len=2913416672113065984 tok=00000000000000000000000000000000c0557d55555500007d130000000000002100000000000000c0557d5555550000c0557d5555550000430000000000000000537d555555000000000000000000000000000000000000705dffffff7f00000500000000000000797f765555550000c04e7d5555550000c0557d555555000000000000555500004300000000007d130000000055550000c0557d5555550000f05cffffff7f
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1651 [0mignoring new err 0x7; existing err is 0x7 (illegal tok len) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1651 [0mignoring new err 0x7; existing err is 0x7 (illegal tok len) 
+[0m[1m17.140[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=31 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m6[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1212 [0m[1m[34mNEW_TOKEN[0m len=0 tok=
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1651 [0mignoring new err 0x7; existing err is 0x7 (illegal tok len) 
+[0m[1m18.124[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=28 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m7[0m
+[0m       [44m [0m [35mdec_new_token_frame[30m [34mframe.c:1212 [0m[1m[34mNEW_TOKEN[0m len=108396544 tok=00000000000000000000000000000000c0557d55555500007d130000000000001c00000000000000c0557d5555550000c0557d5555550000430000000000000000537d555555000000000000000000000000000000000000705dffffff7f00000700000000000000797f765555550000c04e7d5555550000c0557d555555000000000000555500004300000000007d130000000055550000c0557d5555550000f05cffffff7f
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1651 [0mignoring new err 0x7; existing err is 0x7 (illegal tok len) 
+[0m       [43m [0m [35merr_close[30m [34mconn.c:1651 [0mignoring new err 0x7; existing err is 0x7 (illegal tok len) 
+[0m[0m18.138[0m [43m [0m [35mq_close[30m [34mquic.c:733 [0mclosing serv conn 0:39f0c90d on 10.0.0.3:4443 w/err [0m0x0[0m
+[0m       [44m [0m [35mq_close[30m [34mquic.c:811 [0mserv conn 0:39f0c90d stats:
+[0m       [44m [0m [35mq_close[30m [34mquic.c:812 [0mpkts_in_valid = [0m2[0m
+[0m       [44m [0m [35mq_close[30m [34mquic.c:814 [0mpkts_in_invalid = [1m[31m7[0m
+[0m       [44m [0m [35mq_close[30m [34mquic.c:816 [0mpkts_out = 4
+[0m       [44m [0m [35mq_close[30m [34mquic.c:817 [0mpkts_out_lost = 0
+[0m       [44m [0m [35mq_close[30m [34mquic.c:818 [0mpkts_out_rtx = 0
+[0m       [44m [0m [35mq_close[30m [34mquic.c:819 [0mrtt = 0.000 (min = 0.000, max = 0.000, var = 0.000)
+[0m       [44m [0m [35mq_close[30m [34mquic.c:822 [0mcwnd = 12000 (max = 0)
+[0m       [44m [0m [35mq_close[30m [34mquic.c:824 [0mssthresh = 0
+[0m       [44m [0m [35mq_close[30m [34mquic.c:826 [0mpto_cnt = 0
+[0m       [44m [0m [35mq_close[30m [34mquic.c:827 [0mframe                  code        out         in
+[0m       [44m [0m [35mq_close[30m [34mquic.c:831 [0mPADDING                0x00          0       1041
+[0m       [44m [0m [35mq_close[30m [34mquic.c:831 [0mACK                    0x02          0          1
+[0m       [44m [0m [35mq_close[30m [34mquic.c:831 [0mCRYPTO                 0x06          0          5
+[0m       [44m [0m [35mq_close[30m [34mquic.c:831 [0mNEW_TOKEN              0x07          0          1
+[0m       [44m [0m [35mq_close[30m [34mquic.c:831 [0mHANDSHAKE_DONE         0x1e          0          1
+[0m       [44m [0m [35mq_close[30m [34mquic.c:835 [0mstrm_frms_in_seq = 2
+[0m       [44m [0m [35mq_close[30m [34mquic.c:836 [0mstrm_frms_in_ooo = 0
+[0m       [44m [0m [35mq_close[30m [34mquic.c:837 [0mstrm_frms_in_dup = 0
+[0m       [44m [0m [35mq_close[30m [34mquic.c:838 [0mstrm_frms_in_ign = 0
+[0m[1m18.427[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=44 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 44-byte Short pkt, ignoring
+[0m[1m18.927[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=44 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 44-byte Short pkt, ignoring
+[0m[1m19.722[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=44 0x57=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 44-byte Short pkt, ignoring
+[0m[1m20.225[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=49 0x41=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 49-byte Short pkt, ignoring
+[0m[1m20.647[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=43 0x40=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 43-byte Short pkt, ignoring
+[0m[1m21.395[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=51 0x55=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 51-byte Short pkt, ignoring
+[0m[1m22.059[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=48 0x45=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 48-byte Short pkt, ignoring
+[0m[1m22.394[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=45 0x5d=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 45-byte Short pkt, ignoring
+[0m[1m23.257[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=53 0x4a=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 53-byte Short pkt, ignoring
+[0m[1m23.662[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=44 0x49=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 44-byte Short pkt, ignoring
+[0m[1m23.960[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=44 0x51=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 44-byte Short pkt, ignoring
+[0m[1m24.811[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=46 0x53=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 46-byte Short pkt, ignoring
+[0m[1m25.298[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=46 0x56=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 46-byte Short pkt, ignoring
+[0m[1m25.825[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=43 0x42=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 43-byte Short pkt, ignoring
+[0m[1m26.780[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=52 0x49=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 52-byte Short pkt, ignoring
+[0m[1m28.547[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=65 0x40=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 65-byte Short pkt, ignoring
+[0m[1m29.082[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=43 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 43-byte Short pkt, ignoring
+[0m[1m29.848[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=55 0x4e=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 55-byte Short pkt, ignoring
+[0m[1m31.052[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=48 0x54=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 48-byte Short pkt, ignoring
+[0m[1m31.627[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=43 0x41=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 43-byte Short pkt, ignoring
+[0m[1m32.661[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=43 0x48=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 43-byte Short pkt, ignoring
+[0m[1m33.343[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=44 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 44-byte Short pkt, ignoring
+[0m[1m33.974[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=43 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 43-byte Short pkt, ignoring
+[0m[1m34.544[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=44 0x55=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 44-byte Short pkt, ignoring
+[0m[1m35.286[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=45 0x59=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 45-byte Short pkt, ignoring
+[0m[1m36.065[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=43 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 43-byte Short pkt, ignoring
+[0m[1m37.065[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=43 0x50=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 43-byte Short pkt, ignoring
+[0m[1m38.124[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=59 0x50=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 59-byte Short pkt, ignoring
+[0m[1m39.106[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=49 0x47=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 49-byte Short pkt, ignoring
+[0m[1m40.165[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=48 0x55=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 48-byte Short pkt, ignoring
+[0m[1m41.056[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=44 0x5c=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 44-byte Short pkt, ignoring
+[0m[1m41.989[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=45 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 45-byte Short pkt, ignoring
+[0m[1m42.654[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=43 0x54=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 43-byte Short pkt, ignoring
+[0m[1m43.625[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=49 0x42=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 49-byte Short pkt, ignoring
+[0m[1m44.448[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=43 0x4b=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 43-byte Short pkt, ignoring
+[0m[1m45.569[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=47 0x51=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 47-byte Short pkt, ignoring
+[0m[1m46.524[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=54 0x45=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 54-byte Short pkt, ignoring
+[0m[1m47.394[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=47 0x48=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 47-byte Short pkt, ignoring
+[0m[1m48.390[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=43 0x46=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 43-byte Short pkt, ignoring
+[0m[1m49.534[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=45 0x49=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 45-byte Short pkt, ignoring
+[0m[1m50.390[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=43 0x50=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 43-byte Short pkt, ignoring
+[0m[1m51.281[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=43 0x4e=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 43-byte Short pkt, ignoring
+[0m[1m52.204[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=43 0x4f=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 43-byte Short pkt, ignoring
+[0m[1m53.210[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=47 0x41=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 47-byte Short pkt, ignoring
+[0m[1m54.162[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=44 0x5d=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 44-byte Short pkt, ignoring
+[0m[1m55.362[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=44 0x57=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 44-byte Short pkt, ignoring
+[0m[1m56.810[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=50 0x40=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 50-byte Short pkt, ignoring
+[0m[1m58.523[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=60 0x44=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 60-byte Short pkt, ignoring
+[0m[1m59.660[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=48 0x4b=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 48-byte Short pkt, ignoring
+[0m[1m60.995[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=45 0x46=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 45-byte Short pkt, ignoring
+[0m[1m62.302[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=55 0x5f=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 55-byte Short pkt, ignoring
+[0m[1m63.766[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=48 0x54=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 48-byte Short pkt, ignoring
+[0m[1m65.127[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=52 0x5e=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 52-byte Short pkt, ignoring
+[0m[1m66.303[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=45 0x5c=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 45-byte Short pkt, ignoring
+[0m[1m67.491[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=45 0x44=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 45-byte Short pkt, ignoring
+[0m[1m68.613[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=44 0x5e=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 44-byte Short pkt, ignoring
+[0m[1m69.865[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=45 0x5c=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 45-byte Short pkt, ignoring
+[0m[1m71.173[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=45 0x55=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 45-byte Short pkt, ignoring
+[0m[1m72.704[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=50 0x5a=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 50-byte Short pkt, ignoring
+[0m[1m74.322[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=53 0x50=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 53-byte Short pkt, ignoring
+[0m[1m76.186[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=55 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 55-byte Short pkt, ignoring
+[0m[1m77.711[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=44 0x4f=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 44-byte Short pkt, ignoring
+[0m[1m79.154[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=44 0x4a=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 44-byte Short pkt, ignoring
+[0m[1m81.106[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=53 0x5e=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 53-byte Short pkt, ignoring
+[0m[1m82.683[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=43 0x5b=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 43-byte Short pkt, ignoring
+[0m[1m84.164[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=49 0x55=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 49-byte Short pkt, ignoring
+[0m[1m85.688[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=52 0x53=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 52-byte Short pkt, ignoring
+[0m[1m87.185[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=47 0x50=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 47-byte Short pkt, ignoring
+[0m[1m89.016[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=49 0x52=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 49-byte Short pkt, ignoring
+[0m[1m90.748[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=43 0x59=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 43-byte Short pkt, ignoring
+[0m[1m92.636[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=45 0x57=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 45-byte Short pkt, ignoring
+[0m[1m95.230[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=61 0x41=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 61-byte Short pkt, ignoring
+[0m[1m97.115[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=47 0x50=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 47-byte Short pkt, ignoring
+[0m[1m99.076[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=45 0x5a=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m       [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 45-byte Short pkt, ignoring
+[0m[1m100.869[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=43 0x4c=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 43-byte Short pkt, ignoring
+[0m[1m102.791[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=48 0x58=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 48-byte Short pkt, ignoring
+[0m[1m104.598[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=43 0x4e=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 43-byte Short pkt, ignoring
+[0m[1m106.697[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=47 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 47-byte Short pkt, ignoring
+[0m[1m108.745[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=44 0x59=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 44-byte Short pkt, ignoring
+[0m[1m110.943[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=47 0x5b=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 47-byte Short pkt, ignoring
+[0m[1m113.165[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=45 0x52=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 45-byte Short pkt, ignoring
+[0m[1m115.296[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=44 0x45=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 44-byte Short pkt, ignoring
+[0m[1m117.992[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=44 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 44-byte Short pkt, ignoring
+[0m[1m120.353[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=45 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 45-byte Short pkt, ignoring
+[0m[1m122.609[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=47 0x57=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 47-byte Short pkt, ignoring
+[0m[1m125.372[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=52 0x53=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 52-byte Short pkt, ignoring
+[0m[1m127.997[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=47 0x43=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 47-byte Short pkt, ignoring
+[0m[1m130.520[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=51 0x54=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 51-byte Short pkt, ignoring
+[0m[1m132.777[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=43 0x48=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 43-byte Short pkt, ignoring
+[0m[1m135.260[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=47 0x5b=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 47-byte Short pkt, ignoring
+[0m[1m137.690[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=43 0x5b=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 43-byte Short pkt, ignoring
+[0m[1m140.733[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=56 0x4f=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 56-byte Short pkt, ignoring
+[0m[1m143.529[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=45 0x56=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 45-byte Short pkt, ignoring
+[0m[1m146.236[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=43 0x5d=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 43-byte Short pkt, ignoring
+[0m[1m148.925[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=45 0x54=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 45-byte Short pkt, ignoring
+[0m[1m151.771[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=49 0x4c=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 49-byte Short pkt, ignoring
+[0m[1m154.430[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=47 0x47=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 47-byte Short pkt, ignoring
+[0m[1m157.446[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=45 0x48=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 45-byte Short pkt, ignoring
+[0m[1m160.362[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=43 0x4b=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 43-byte Short pkt, ignoring
+[0m[1m163.551[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=53 0x47=[34mShort [0mkyph=1 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 53-byte Short pkt, ignoring
+[0m[1m166.799[0m [46m [0m [35mlog_pkt[30m [34mpkt.c:119 [0m[1m[34mRX[0m from=10.0.0.1:4989 len=48 0x40=[34mShort [0mkyph=0 spin=0 dcid=0:39f0c90d nr=[34m0[0m
+[0m        [44m [0m [35mrx_pkts[30m [34mconn.c:1347 [0mcannot find conn 0:39f0c90d for 48-byte Short pkt, ignoring

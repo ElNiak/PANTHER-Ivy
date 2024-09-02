@@ -1,0 +1,36 @@
+#lang ivy1.7
+
+include order
+include file
+include ivy_target
+include ip
+include apt_stream_data_endpoint
+
+parameter target_addr_server : ip.addr = 0x0a000401
+parameter target_port_server : ip.port = 4430
+
+parameter target_addr_client : ip.addr = 0x0a000401
+parameter target_port_client : ip.port = 4430
+
+
+parameter is_target : bool = false
+
+after init {
+    mim_agent.ep_target_server.addr := target_addr_server;
+    mim_agent.ep_target_server.port := target_port_server;
+
+    mim_agent.ep_target_client.addr := target_addr_client;
+    mim_agent.ep_target_client.port := target_port_client;
+}
+# An ip endpoint for the client to migrate to. TODO
+
+# a socket for the server
+
+var sock_target : stream_data_net.socket
+
+# Open a server socket to listen on and create an instance of TLS.
+# TODO: we should have one instance of TLS per connection
+
+
+
+

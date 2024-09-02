@@ -1,0 +1,15 @@
+#lang ivy1.7
+
+include order
+include file
+# include system_locale
+include apt_system_endpoint
+include ivy_attacker
+
+# TODO create socket for client & server
+# TODO associate these data to the entities itself
+var sock_attacker : system_net.socket
+
+instance client : endpoint.client_attacker_endpoint.attacker_system_ep(
+    client_addr,client_port,server_port,true,true)
+

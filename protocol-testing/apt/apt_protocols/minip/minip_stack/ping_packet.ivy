@@ -1,0 +1,37 @@
+#lang ivy1.7
+
+# Here, we define functions for QUIC packet packet protection.
+
+include collections
+include ping_frame
+include apt_packet
+
+object packet = {
+    ...
+    object ping_packet = {
+        # Ping ping_frames contain no data, check peers still alive
+        variant this of packet = struct {
+            payload : ping_frame.arr
+        }
+        instance idx : unbounded_sequence
+        instance arr : array(idx,this) 
+    }    
+}
+
+function ping_length  : stream_pos
+
+function current_time : milliseconds
+relation enough_wait
+
+action ping_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) = {}
+
+around ping_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+    require num_queued_ping_frames(dst) = 2; # [7]
+    require pkt.payload = queued_ping_frames(dst);
+
+    ...
+
+    queued_ping_frames(dst)     := ping_frame.arr.empty;
+    num_queued_ping_frames(dst) := 0;
+    #timestamp_frame_pending := true;
+}

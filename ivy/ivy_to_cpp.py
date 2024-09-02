@@ -1977,6 +1977,7 @@ def module_to_cpp_class(classname,basename):
     header.append("typedef __int128_t int128_t;\n")
     header.append("typedef __uint128_t uint128_t;\n")
     header.append("#include <signal.h>\n")
+    # header.append("#include <execinfo.h>\n") # For backtrace
     header.append("int call_generating = 1;\n")
     
     
@@ -2543,7 +2544,7 @@ struct ivy_binary_deser_128 : public ivy_deser_128 {
     }
     void getn(int128_t &res, int bytes) {
         if (!more(bytes)) {
-	    std::cout << "ivy_binary_deser_128 getn deser_err\\n"; 
+	    std::cerr << "ivy_binary_deser_128 getn deser_err\\n"; 
             throw deser_err();
         } res = 0;
         for (int i = 0; i < bytes; i++)
@@ -2556,7 +2557,7 @@ struct ivy_binary_deser_128 : public ivy_deser_128 {
             res.push_back(inp[pos++]);
         }
         if(!(more(1) && inp[pos] == 0)) {
-	    std::cout << "ivy_binary_deser_128 get deser_err\\n"; 
+	    std::cerr << "ivy_binary_deser_128 get deser_err\\n"; 
             throw deser_err();
         } pos++;
     }
@@ -2582,13 +2583,13 @@ struct ivy_binary_deser_128 : public ivy_deser_128 {
         int128_t res;
         get(res);
         if (res >= tags.size()) {
-	    std::cout << "ivy_binary_deser_128 open_tag deser_err\\n"; 
+	    std::cerr << "ivy_binary_deser_128 open_tag deser_err\\n"; 
             throw deser_err();
         } return res;
     }
     void end() {
         if (!can_end()) {
-	    std::cout << "ivy_binary_deser_128 end deser_err\\n"; 
+	    std::cerr << "ivy_binary_deser_128 end deser_err\\n"; 
             throw deser_err();
 	}
     }
@@ -2993,7 +2994,7 @@ z3::expr __to_solver<bool>( gen &g, const  z3::expr &v, bool &val) {
 
 template <>
 z3::expr __to_solver<__strlit>( gen &g, const  z3::expr &v, __strlit &val) {
-//    std::cout << v << ":" << v.get_sort() << std::endl;
+//    std::cerr << v << ":" << v.get_sort() << std::endl;
     return v == g.int_to_z3(v.get_sort(),val);
 }
 
@@ -3725,7 +3726,7 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
             }
             else {
                 std::cerr << "unknown option: " << param << std::endl;
-                return 1;
+                //return 1;
             }
         }
     }
@@ -5174,9 +5175,14 @@ int ask_ret(long long bound) {
                 mode = std::string(env_p2);
             }
             
+            std::string current_protocol = "";
+            if(const char* current_protocol_env = std::getenv("PROTOCOL_TESTED")) { 
+                current_protocol = std::string(current_protocol_env);
+            }
+            
             std::string command = "";
             if(path.find("test") != std::string::npos) 
-		    path = std::string("$PROOTPATH/QUIC-Ivy-Attacker/doc/examples/quic/quic_tests/") + mode + std::string("_tests/") + path;
+		    path = std::string("/app/panther-ivy/protocol-testing/") + current_protocol + std::string("/") + current_protocol + std::string("_tests/") + mode + std::string("_tests/") + path;
         
             command = std::string("/bin/sed \'") + lineNumber + std::string("!d\' ")  + path + std::string(".ivy > temps.txt");
             //std::cerr << command.c_str() << "\\n";
@@ -5204,6 +5210,54 @@ int ask_ret(long long bound) {
     }
 
     #include <string>
+    
+    // Function to check if a line is within an action called _finalize
+    bool isLineInFinalizeAction(const std::string &path, const std::string &lineToCheck, int lineNumber) {
+        std::ifstream file(path);
+        if (!file.is_open()) {
+            std::cerr << "Error opening file: " << path << "\\n";
+            return false;
+        }
+
+        std::string line;
+        bool inFinalize = false;
+        int currentLineNumber = 0;
+        std::string targetLine;
+
+        while (std::getline(file, line)) {
+            currentLineNumber++;
+            if (currentLineNumber == lineNumber) {
+                targetLine = line;
+                break;
+            }
+        }
+
+        file.clear();
+        file.seekg(0, std::ios::beg);
+        currentLineNumber = 0;
+
+        while (std::getline(file, line)) {
+            currentLineNumber++;
+            if (line.find("export action _finalize") != std::string::npos && currentLineNumber < lineNumber) {
+                inFinalize = true;
+            }
+
+            if (inFinalize && currentLineNumber == lineNumber) {
+                if (line.find(lineToCheck) != std::string::npos) {
+                    file.close();
+                    return true;
+                }
+            }
+
+            if (line.find("}") != std::string::npos && inFinalize) {
+                inFinalize = false;
+            }
+        }
+
+        file.close();
+        return false;
+    }
+    
 
     virtual void ivy_assume(bool truth,const char *msg){
         if (!truth) {
@@ -5228,9 +5282,14 @@ int ask_ret(long long bound) {
                 mode = std::string(env_p2);
             }
             
+            std::string current_protocol = "";
+            if(const char* current_protocol_env = std::getenv("PROTOCOL_TESTED")) { 
+                current_protocol = std::string(current_protocol_env);
+            }
+            
             std::string command = "";
             if(path.find("test") != std::string::npos) 
-		    path = std::string("$PROOTPATH/QUIC-Ivy-Attacker/doc/examples/quic/quic_tests/") + mode + std::string("_tests/") + path;
+		    path = std::string("/app/panther-ivy/protocol-testing/") + current_protocol + std::string("/") + current_protocol + std::string("_tests/") + mode + std::string("_tests/") + path;
         
             command = std::string("/bin/sed \'") + lineNumber + std::string("!d\' ")  + path + std::string(".ivy > temps.txt");
             //std::cerr << command.c_str() << "\\n";
@@ -5253,7 +5312,10 @@ int ask_ret(long long bound) {
 	        std::cerr << msg << ": error: assumption failed\\n";
             __ivy_out << "assumption_failed(" << str << ")\\n";
             CLOSE_TRACE
-            __ivy_exit(1);
+            
+            bool is_LineInFinalizeAction = isLineInFinalizeAction(path + std::string(".ivy"), str, num);
+            std::cerr << "is_LineInFinalizeAction: " << is_LineInFinalizeAction << "\\n";
+            if (!is_LineInFinalizeAction) __ivy_exit(1);
         }
     }
         
@@ -5798,6 +5860,9 @@ def emit_repl_boilerplate3test(header,impl,classname):
             continue
         num_public_actions += 1
         action = im.module.actions[actname]
+        impl.append("std::cerr << \"action: {}\\n\";\n".format(actname))
+        impl.append("std::cerr << \"varname(actname): {}\\n\";\n".format(varname(actname)))
+        impl.append("std::cerr << \"index : {}\\n\";\n".format(num_public_actions-1))
         impl.append("        generators.push_back(new {}_gen(ivy));\n".format(varname(actname)))
         aname = (actname[4:] if actname.startswith('ext:') else actname) +'.weight'
         if aname in im.module.attributes:
@@ -5850,11 +5915,18 @@ def emit_repl_boilerplate3test(header,impl,classname):
             LARGE_INTEGER before;
             QueryPerformanceCounter(&before);
 #endif      
+            //std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
             bool sat = false;
             if (call_generating) {
                 ivy._generating = true;
                 sat = g.generate(ivy);
-            } 
+            }
+            //std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+            //unsigned long long duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+            //if(duration > 300) {
+            //    std::cerr << "Generating action: " << idx << std::endl;
+            //    std::cerr << "Performance generation measurement: " << duration << " milliseconds" << std::endl; 
+            //}
 #ifdef _WIN32
             LARGE_INTEGER after;
             QueryPerformanceCounter(&after);
@@ -6128,10 +6200,14 @@ public:
             if (foo.is_int()) {
                 assert(foo.is_numeral());
                 int v;
-                if (Z3_get_numeral_int(ctx,foo,&v) != Z3_TRUE) {
-                    assert(false && "integer value from Z3 too large for machine int");
+                if (Z3_get_numeral_int(ctx,foo,&v) == Z3_TRUE) {
+                   return v;
                 }
-                return v;
+                uint64_t vl;
+                if (Z3_get_numeral_uint64(ctx,foo,&vl) != Z3_TRUE) {
+                    assert(false && "bit vector value from Z3 too large for machine uint64");
+                }
+                return vl;
             }
             if (foo.is_bv()) {
                 assert(foo.is_numeral());

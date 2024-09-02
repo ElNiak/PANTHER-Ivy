@@ -1,0 +1,712 @@
+#lang ivy1.7
+
+include order
+include file
+# include random_value
+
+
+include ivy_quic_mim
+include ivy_quic_target
+include ivy_quic_attacker_client
+
+# include ivy_minip_shim
+# include ivy_minip_shim_mim
+
+include ivy_quic_shim
+include ivy_quic_shim_mim
+
+include ivy_man_in_the_middle_quic_behavior
+
+include ivy_quic_client_standard_tp
+
+
+# NB: need bigger timeout (at least 90 sec)
+
+after init {
+    is_mim_standalone := true;
+    # call mim_agent.configure_NAT_attack_bidir(client_addr,server_addr);
+    call mim_agent.configure_NAT_attack(client_addr,server_addr);
+    call mim_agent.configure_NAT_attack(server_addr,client_addr);
+
+    mim_agent.ep_target_server.addr := server_addr + 2;
+    mim_agent.ep_target_server.port := 4443;
+    mim_agent.ep_target_server.protocol := ip.udp;
+
+    # call mim_agent.configure_NAT_attack(mim_agent.ep_target_client.addr,mim_agent.ep_target_server.addr);
+    # call mim_agent.configure_NAT_attack(mim_agent.ep_target_server.addr,mim_agent.ep_target_client.addr);
+    call time_api.c_timer.start;
+}
+
+
+export packet.forward_to_client
+# attribute packet.forward_to_client.weight = "100"
+export packet.forward_to_server
+# attribute packet.forward_to_server.weight = "50"
+export packet.reflect_to
+
+object packet = {
+    ...
+    
+    object ping_packet = {
+        ...
+        before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+            
+            if _generating {
+                require pkt.payload = ping_packet_received_at_round(dst,
+                                                                    coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                    current_forwarding_round(dst)).payload;
+            } 
+        }
+
+        before replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+            
+            if _generating {
+                require pkt.payload = ping_packet_received_at_round(dst,
+                                                                    coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                    current_forwarding_round(dst)).payload;
+            } 
+        }
+
+        before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+            
+            if _generating {
+                require pkt.payload = ping_packet_received_at_round(dst,
+                                                                    coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                    current_forwarding_round(dst)).payload;
+            } 
+        }
+
+        before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+            
+            if _generating {
+                require pkt.payload = ping_packet_received_at_round(dst,
+                                                                    coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                    current_forwarding_round(dst)).payload;
+            } 
+        }
+
+        before modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+            
+            if _generating {
+                require pkt.payload = ping_packet_received_at_round(dst,
+                                                                                    coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                    current_forwarding_round(dst)).payload |
+                                      pkt.payload.end >= 0;
+            } 
+        }
+    }
+}
+
+object packet = {
+    ...
+    
+    object quic_packet = {
+        ...
+        before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
+           
+            if _generating {
+                var interest_pkt := quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst));
+                require pkt.ptype       = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).ptype;
+                require pkt.pversion    = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).pversion;
+                require pkt.dst_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).dst_cid;
+                require pkt.src_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).src_cid;
+                require pkt.token       = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).token;
+                require pkt.seq_num     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).seq_num;
+                require pkt.payload     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).payload;
+            } 
+        }
+
+        before replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
+           
+            if _generating {
+                var interest_pkt := quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst));
+                require pkt.ptype       = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).ptype;
+                require pkt.pversion    = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).pversion;
+                require pkt.dst_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).dst_cid;
+                require pkt.src_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).src_cid;
+                require pkt.token       = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).token;
+                require pkt.seq_num     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).seq_num;
+                require pkt.payload     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).payload;
+            } 
+        }
+
+        before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
+           
+            if _generating {
+                # require ~quic_packet_forwarded(dst,pkt);
+                # var interest_pkt := quic_packet_received_at_round(dst,
+                #                                                   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                #                                                   current_forwarding_round(dst));
+                require pkt.ptype       = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).ptype;
+                require pkt.pversion    = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).pversion;
+                require pkt.dst_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).dst_cid;
+                require pkt.src_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).src_cid;
+                require pkt.token       = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).token;
+                require pkt.seq_num     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).seq_num;
+                require pkt.payload     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).payload;
+            } 
+        }
+
+        before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
+           
+            if _generating {
+                # require ~quic_packet_forwarded(dst,pkt);
+                # var interest_pkt := quic_packet_received_at_round(dst,
+                #                                                   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                #                                                   current_forwarding_round(dst));
+                require pkt.ptype       = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).ptype;
+                require pkt.pversion    = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).pversion;
+                require pkt.dst_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).dst_cid;
+                require pkt.src_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).src_cid;
+                require pkt.token       = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).token;
+                require pkt.seq_num     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).seq_num;
+                require pkt.payload     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).payload;
+            } 
+        }
+
+        before modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
+           
+            if _generating {
+                require pkt.ptype       = quic_packet_type.one_rtt |
+                        pkt.ptype       = quic_packet_type.zero_rtt |
+                        pkt.ptype       = quic_packet_type.handshake |
+                        pkt.ptype       = quic_packet_type.retry |
+                        pkt.ptype       = quic_packet_type.initial;
+
+                require pkt.pversion    = 0x00000000 | 
+                        pkt.pversion    = 0x00000001 |
+                        pkt.pversion    = 0xff000022 |
+                        pkt.pversion    = 0xff00001d |
+                        pkt.pversion    = 0xff00001c |
+                        pkt.pversion    = 0xff00001b |
+                        (pkt.pversion   ~= 0x00000000 & pkt.pversion   ~= 0x00000001 &
+                         pkt.pversion   ~= 0xff000022 & pkt.pversion   ~= 0xff00001d &
+                         pkt.pversion   ~= 0xff00001c & pkt.pversion   ~= 0xff00001b);
+                
+                var interest_pkt := quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst));
+                
+                require (pkt.dst_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).dst_cid &
+                         pkt.src_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).src_cid) |
+                        (pkt.dst_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).src_cid &
+                         pkt.src_cid     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).dst_cid);
+
+                require (pkt.token       = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).token) | 
+                        (pkt.token.end >= 0);
+
+                require pkt.seq_num     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).seq_num |
+                        pkt.seq_num     < quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).seq_num |
+                        pkt.seq_num     > quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).seq_num;
+
+                require pkt.payload     = quic_packet_received_at_round(dst,
+                                                                  coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                  current_forwarding_round(dst)).payload |
+                                          pkt.payload.end >= 0;
+            } 
+        }
+    }
+}
+
+
+
+export packet.quic_packet.forward_to_server
+export packet.quic_packet.forward_to_client
+
+# attribute packet.quic_packet.forward_to_server.weight = "15"
+# attribute packet.quic_packet.forward_to_client.weight = "15"
+
+# export packet.quic_packet.replay_to_client
+# export packet.quic_packet.replay_to_server
+
+# attribute packet.quic_packet.replay_to_server.weight = "5"
+# attribute packet.quic_packet.replay_to_client.weight = "5"
+
+# export packet.quic_packet.modify
+# attribute packet.quic_packet.modify.weight = "5"
+
+import action show_last_cppkt_forwarded_to_client_debug_event(x:stream_pos)
+import action show_last_cppkt_forwarded_to_server_debug_event(x:stream_pos)
+
+
+object packet = {
+    ...
+    
+    object encrypted_quic_packet = {
+        ...
+
+        before reflect_packet_toward(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
+            # require _generating;
+            if _generating {
+                
+                        # src = mim_agent.ep_client & dst = mim_agent.ep_server |
+                        # src = mim_agent.ep_server & dst = mim_agent.ep_client |
+                var interest_pkt := encrypted_quic_packet_received_at_round(src,
+                                                                            coal_packet_forwarded_at_round(src,current_forwarding_round(src)),
+                                                                            current_forwarding_round(src));
+                require pkt.head_byte   =interest_pkt.head_byte;
+                require pkt.pversion    =interest_pkt.pversion;
+                require pkt.dst_cid     =interest_pkt.dst_cid;
+                require pkt.src_cid     =interest_pkt.src_cid;
+                require pkt.token       =interest_pkt.token;
+                # require pkt.payload_len = encrypted_quic_packet_received_at_round(dst,
+                                                                #   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                #   current_forwarding_round(dst)).payload_len;
+                # require pkt.seq_num     = encrypted_quic_packet_received_at_round(dst,
+                                                                #   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                #   current_forwarding_round(dst)).seq_num;
+                require pkt.seq_num_payload =interest_pkt.seq_num_payload &
+                        pkt.seq_num_payload.end =interest_pkt.seq_num_payload.end;
+            }
+        }
+
+        before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
+           
+            if _generating {
+                # require is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                var interest_pkt := encrypted_quic_packet_received_at_round(dst,
+                                                                            coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                            current_forwarding_round(dst));
+                require pkt.head_byte   =interest_pkt.head_byte;
+                require pkt.pversion    =interest_pkt.pversion;
+                require pkt.dst_cid     =interest_pkt.dst_cid;
+                require pkt.src_cid     =interest_pkt.src_cid;
+                require pkt.token       =interest_pkt.token;
+                # require pkt.payload_len = encrypted_quic_packet_received_at_round(dst,
+                                                                #   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                #   current_forwarding_round(dst)).payload_len;
+                # require pkt.seq_num     = encrypted_quic_packet_received_at_round(dst,
+                                                                #   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                #   current_forwarding_round(dst)).seq_num;
+                require pkt.seq_num_payload =interest_pkt.seq_num_payload &
+                        pkt.seq_num_payload.end =interest_pkt.seq_num_payload.end;
+            } 
+        }
+
+        before replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
+           
+            if _generating {
+                # require is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                var interest_pkt := encrypted_quic_packet_received_at_round(dst,
+                                                                            coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                            current_forwarding_round(dst));
+                require pkt.head_byte   =interest_pkt.head_byte;
+                require pkt.pversion    =interest_pkt.pversion;
+                require pkt.dst_cid     =interest_pkt.dst_cid;
+                require pkt.src_cid     =interest_pkt.src_cid;
+                require pkt.token       =interest_pkt.token;
+                # require pkt.payload_len = encrypted_quic_packet_received_at_round(dst,
+                                                                #   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                #   current_forwarding_round(dst)).payload_len;
+                # require pkt.seq_num     = encrypted_quic_packet_received_at_round(dst,
+                                                                #   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                #   current_forwarding_round(dst)).seq_num;
+                require pkt.seq_num_payload     =interest_pkt.seq_num_payload &
+                        pkt.seq_num_payload.end =interest_pkt.seq_num_payload.end;
+            } 
+        }
+
+        before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
+           
+            if _generating {
+                # require ~encrypted_quic_packet_forwarded(dst,pkt);
+                var interest_pkt := encrypted_quic_packet_received_at_round(dst,
+                                                                            coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                            current_forwarding_round(dst));
+                require pkt.head_byte   = interest_pkt.head_byte;
+                require pkt.pversion    = interest_pkt.pversion;
+                require pkt.dst_cid     = interest_pkt.dst_cid;
+                require pkt.src_cid     = interest_pkt.src_cid;
+                require pkt.token       = interest_pkt.token;
+                # require pkt.payload_len = encrypted_quic_packet_received_at_round(dst,
+                                                                #   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                #   current_forwarding_round(dst)).payload_len;
+                # require pkt.seq_num     = encrypted_quic_packet_received_at_round(dst,
+                                                                #   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                #   current_forwarding_round(dst)).seq_num;
+                require pkt.seq_num_payload  =interest_pkt.seq_num_payload &
+                        pkt.seq_num_payload.end =interest_pkt.seq_num_payload.end;
+                # require is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+            } 
+        }
+
+        before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
+           
+            if _generating {
+                # require ~encrypted_quic_packet_forwarded(dst,pkt);
+                var interest_pkt := encrypted_quic_packet_received_at_round(dst,
+                                                                            coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                            current_forwarding_round(dst));
+                require pkt.head_byte   =interest_pkt.head_byte;
+                require pkt.pversion    =interest_pkt.pversion;
+                require pkt.dst_cid     =interest_pkt.dst_cid;
+                require pkt.src_cid     =interest_pkt.src_cid;
+                require pkt.token       =interest_pkt.token;
+                # require pkt.payload_len = encrypted_quic_packet_received_at_round(dst,
+                #                                                   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                #                                                   current_forwarding_round(dst)).payload_len;
+                # # require pkt.seq_num     = encrypted_quic_packet_received_at_round(dst,
+                                                                #   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                #   current_forwarding_round(dst)).seq_num;
+                require pkt.seq_num_payload  =interest_pkt.seq_num_payload &
+                        pkt.seq_num_payload.end =interest_pkt.seq_num_payload.end;
+                # require is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+            } 
+        }
+
+        before modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
+           
+            if _generating {
+                var interest_pkt := encrypted_quic_packet_received_at_round(dst,
+                                                                            coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                            current_forwarding_round(dst));
+
+                require pkt.head_byte   =interest_pkt.head_byte;
+                # TODO
+                require pkt.pversion    = 0x00000000  -> 
+                            (pkt.token.end = 0 &  
+                             pkt.seq_num_payload.end = 0) | 
+                        pkt.pversion    = 0x00000001 |
+                        pkt.pversion    = 0xff000022 |
+                        pkt.pversion    = 0xff00001d |
+                        pkt.pversion    = 0xff00001c |
+                        pkt.pversion    = 0xff00001b |
+                        (pkt.pversion   ~= 0x00000000 & pkt.pversion    ~= 0x00000001 &
+                         pkt.pversion   ~= 0xff000022 & pkt.pversion    ~= 0xff00001d &
+                         pkt.pversion   ~= 0xff00001c & pkt.pversion    ~= 0xff00001b);
+                
+                require (pkt.dst_cid     =interest_pkt.dst_cid &
+                         pkt.src_cid     =interest_pkt.src_cid) |
+                        (pkt.dst_cid     =interest_pkt.src_cid &
+                         pkt.src_cid     =interest_pkt.dst_cid);
+
+                require (pkt.token       =interest_pkt.token);
+
+                        
+                # require pkt.seq_num     = encrypted_quic_packet_received_at_round(dst,
+                                                                #   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                #   current_forwarding_round(dst)).seq_num |
+                #         pkt.seq_num     < encrypted_quic_packet_received_at_round(dst,
+                                                                #   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                #   current_forwarding_round(dst)).seq_num |
+                #         pkt.seq_num     > encrypted_quic_packet_received_at_round(dst,
+                                                                #   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                #   current_forwarding_round(dst)).seq_num;
+                
+                require pkt.seq_num_payload =interest_pkt.seq_num_payload &
+                        pkt.seq_num_payload.end =interest_pkt.seq_num_payload.end;
+            } 
+        }
+    }
+}
+
+export packet.encrypted_quic_packet.forward_to_server
+export packet.encrypted_quic_packet.forward_to_client
+
+export packet.encrypted_quic_packet.reflect_packet_toward
+
+# attribute packet.encrypted_quic_packet.forward_to_server.weight = "100"
+# attribute packet.encrypted_quic_packet.forward_to_client.weight = "200"
+
+# export packet.encrypted_quic_packet.replay_to_client
+# export packet.encrypted_quic_packet.replay_to_server
+
+# attribute packet.encrypted_quic_packet.replay_to_server.weight = "5"
+# attribute packet.encrypted_quic_packet.replay_to_client.weight = "5"
+
+# export    packet.encrypted_quic_packet.modify
+# attribute packet.encrypted_quic_packet.modify.weight = "5"
+
+
+object packet = {
+    ...
+    
+    object random_padding_encrypted_quic_packet = {
+        ...
+
+        before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet) {
+           
+            if _generating {
+                var interest_pkt := random_padding_encrypted_quic_packet_received_at_round(dst,
+                    coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                    current_forwarding_round(dst));
+                # require is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require pkt.payload = interest_pkt.payload &
+                        pkt.payload.end = interest_pkt.payload.end;
+            } 
+        }
+
+        before replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet) {
+           
+            if _generating {
+                var interest_pkt := random_padding_encrypted_quic_packet_received_at_round(dst,
+                    coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                    current_forwarding_round(dst));
+                require pkt.payload = interest_pkt.payload;
+            } 
+        }
+
+        before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet) {
+           
+            if _generating {
+                var interest_pkt := random_padding_encrypted_quic_packet_received_at_round(dst,
+                    coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                    current_forwarding_round(dst));
+                # require ~random_padding_encrypted_quic_packet_forwarded(dst,pkt);
+                # require is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require pkt.payload = interest_pkt.payload &
+                        pkt.payload.end = interest_pkt.payload.end;
+            }
+        }
+
+        before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet) {
+           
+            if _generating {
+                # require ~random_padding_encrypted_quic_packet_forwarded(dst,pkt);
+                var interest_pkt := random_padding_encrypted_quic_packet_received_at_round(dst,
+                                                                                         coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                         current_forwarding_round(dst));
+                # require is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require pkt.payload = interest_pkt.payload &
+                        pkt.payload.end = interest_pkt.payload.end;
+            } 
+        }
+
+        before modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet) {
+           
+            if _generating {
+                var interest_pkt := random_padding_encrypted_quic_packet_received_at_round(dst,
+                    coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                    current_forwarding_round(dst));
+                require is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require pkt.payload = interest_pkt.payload | 
+                                      pkt.payload.end >= 0;
+            } 
+        }
+    }
+}
+
+export packet.random_padding_encrypted_quic_packet.forward_to_server
+export packet.random_padding_encrypted_quic_packet.forward_to_client
+
+# attribute packet.random_padding_encrypted_quic_packet.forward_to_server.weight = "15"
+# attribute packet.random_padding_encrypted_quic_packet.forward_to_client.weight = "15"
+
+# # export packet.random_padding_encrypted_quic_packet.replay_to_client
+# export packet.random_padding_encrypted_quic_packet.replay_to_server
+
+# attribute packet.random_padding_encrypted_quic_packet.replay_to_server.weight = "5"
+# attribute packet.random_padding_encrypted_quic_packet.replay_to_client.weight = "5"
+
+# export packet.random_padding_encrypted_quic_packet.modify
+
+# attribute packet.random_padding_encrypted_quic_packet.modify.weight = "5"
+
+object packet = {
+    ...
+    
+    object encrypted_short_quic_packet = {
+        ...
+
+        before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
+           
+            if _generating {
+                # require is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                var interest_pkt := encrypted_short_quic_packet_received_at_round(dst,
+                                                                                    coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                    current_forwarding_round(dst));
+                require pkt.head_byte   = interest_pkt.head_byte;
+                require pkt.dst_cid     = interest_pkt.dst_cid;
+                require pkt.payload     = interest_pkt.payload & 
+                        pkt.payload.end = interest_pkt.payload.end;
+            } 
+        }
+
+        before replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
+           
+            if _generating {
+                var interest_pkt := encrypted_short_quic_packet_received_at_round(dst,
+                                                                                    coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                    current_forwarding_round(dst));
+                # require is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require pkt.head_byte   = interest_pkt.head_byte;
+                require pkt.dst_cid     = interest_pkt.dst_cid;
+                require pkt.payload     = interest_pkt.payload & 
+                        pkt.payload.end = interest_pkt.payload.end;
+            }
+        }
+
+        before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
+           
+            if _generating {
+                var interest_pkt := encrypted_short_quic_packet_received_at_round(dst,
+                                                                                coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                current_forwarding_round(dst));
+                # require is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                # require ~encrypted_short_quic_packet_forwarded(dst,pkt);
+                require pkt.head_byte   = interest_pkt.head_byte;
+                require pkt.dst_cid     = interest_pkt.dst_cid;
+                require pkt.payload     = interest_pkt.payload & 
+                        pkt.payload.end = interest_pkt.payload.end;
+            } 
+        }
+
+        before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
+           
+            if _generating {
+                # require ~encrypted_short_quic_packet_forwarded(dst,pkt);
+                var interest_pkt := encrypted_short_quic_packet_received_at_round(dst,
+                                                                                coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                current_forwarding_round(dst));
+                # require is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require pkt.head_byte   = interest_pkt.head_byte;
+                require pkt.dst_cid     = interest_pkt.dst_cid;
+                require pkt.payload     = interest_pkt.payload & 
+                        pkt.payload.end = interest_pkt.payload.end;
+            } 
+        }
+
+        before modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
+           
+            if _generating {
+                var interest_pkt := encrypted_short_quic_packet_received_at_round(dst,
+                                                                                coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                current_forwarding_round(dst));
+                require pkt.head_byte   = interest_pkt.head_byte;
+
+                require (pkt.dst_cid    = interest_pkt.dst_cid | 
+                         pkt.dst_cid   ~= interest_pkt.dst_cid);
+
+                require pkt.payload     = interest_pkt.payload & 
+                        pkt.payload.end = interest_pkt.payload.end;
+            } 
+        }
+    }
+}
+
+
+export packet.encrypted_short_quic_packet.forward_to_server
+export packet.encrypted_short_quic_packet.forward_to_client
+
+# attribute packet.encrypted_short_quic_packet.forward_to_server.weight = "30"
+# attribute packet.encrypted_short_quic_packet.forward_to_client.weight = "30"
+
+# export packet.encrypted_short_quic_packet.replay_to_client
+# export packet.encrypted_short_quic_packet.replay_to_server
+
+# attribute packet.encrypted_short_quic_packet.replay_to_server.weight = "5"
+# attribute packet.encrypted_short_quic_packet.replay_to_client.weight = "5"
+
+# export packet.encrypted_short_quic_packet.modify
+
+# attribute packet.encrypted_short_quic_packet.modify.weight = "5"
+
+# Final check
+#
+# When the test is complete, the tester calls the special action `_finalize`.
+# We use this action to make some heuristic checks, for example that some
+# data was actually received from the server. We can add advice to this
+# action with additional checks.
+
+export action _finalize = {
+    # chris TODO 
+    call mim_agent.reset_NAT;
+}
+
+
+
+
+
+#lang ivy1.7
+
+# include stream_data_mim_test_forward
+# include minip_mim_test_forward
+# include quic_mim_test_forward
+
+# action get_net_from_port(p:ip.port, header_data: stream_data) returns (tp:target_protocol) = {
+#     if(p = 4430) {
+#         tp := target_protocol.minip
+#     } else if (p = 4430) {
+#         tp := target_protocol.quic
+#     } else if (p = 80) {
+#         tp := target_protocol.http
+#     } else {
+#         tp := target_protocol.stream_data
+#     }
+# }

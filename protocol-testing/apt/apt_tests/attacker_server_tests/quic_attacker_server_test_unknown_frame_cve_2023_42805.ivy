@@ -1,0 +1,138 @@
+#lang ivy1.7
+
+
+include order
+include file
+# include random_value
+
+include ivy_quic_mim
+include ivy_quic_target
+include ivy_quic_attacker_client
+
+include apt_shim
+include ivy_quic_shim
+include ivy_quic_shim_attacker_client
+
+include ivy_quic_client_behavior
+include ivy_quic_attacker_client_behavior
+
+include ivy_quic_client_standard_tp
+
+include apt_time
+
+
+# An endpoint MUST NOT initiate
+#   connection migration before the handshake is confirmed, as defined in
+#   section 4.1.2 of [QUIC-TLS].
+
+after init {
+    call time_api.c_timer.start;
+}
+
+import action show_endpoint_debug_event(ep:ip.endpoint)
+
+after init {
+    call show_endpoint_debug_event(client.ep);
+    call show_endpoint_debug_event(client.ep_server);
+    call show_endpoint_debug_event(server.ep);
+    verify_incoming_packet := true;
+    # slow_loris := true;
+
+    sock := quic_net.open(endpoint_id.client,client.ep);
+    sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
+    sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
+    
+    client.set_tls_id(1);
+    server.set_tls_id(0);
+
+    client_current_connection_id := 1;
+    tls_id_map_ep(client.tls_id)       := client.ep;
+    other_tls_id_map_ep(client.tls_id) := server.ep;
+    cid_map_tls_id(server_cid)         := client.tls_id;
+    cid_map_tls_id(the_cid)            := client.tls_id;
+    ep_map_tls_id(client.ep)           := client.tls_id;
+    ep_map_cid(client.ep)              := the_cid;
+    ep_present(client.ep)              := true;
+    used_client_ports(client.ep.port)  := true;
+    cid_map_sock(server_cid)           := sock;
+    cid_map_sock(the_cid)              := sock;
+    cid_map_ep(server_cid)             := server.ep;
+    cid_map_ep(the_cid)                := client.ep;
+
+    tls_id_map_cid(client.tls_id)       := the_cid;
+    other_tls_id_map_cid(client.tls_id) := server_cid;
+    tls_id_map_cid(server.tls_id)       := server_cid;
+    other_tls_id_map_cid(server.tls_id) := the_cid;
+    
+    call show_cid_event(the_cid);
+    call show_cid_event(server_cid);
+    
+    tls_id_map_ep(server.tls_id)       := server.ep;
+    other_tls_id_map_ep(server.tls_id) := client.ep;
+    ep_map_tls_id(server.ep)           := server.tls_id;
+    # ep_map_cid(server.ep)              := the_cid;
+   
+    var extns := tls_extensions.empty;
+    extns := extns.append(make_transport_parameters);
+    call tls_api.upper.create(client.tls_id,false,extns);  # false means this instance of tls is not a server
+}
+import action show_cid_event(cid:cid)
+after init {
+    token_saved := false;
+}
+
+# quinn-proto is a state machine for the QUIC transport protocol. 
+# Prior to versions 0.9.5 and 0.10.5, receiving unknown QUIC frames in a QUIC packet 
+# could result in a panic. 
+# The problem has been fixed in 0.9.5 and 0.10.5 maintenance releases.
+
+before quic_frame.malicious_unknown_frame.handle_maliciously(f:quic_frame.malicious_unknown_frame,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
+    if _generating {
+        require used_client_ports(src.port);
+        require src.protocol = ip.udp;
+        require src.interface = ip.veth_ivy;
+        require src.addr = client.ep.addr;
+	    require ep_present(src) &  scid = ep_map_cid(src);
+        require connected( ep_map_cid(src)) & dcid = connected_to( ep_map_cid(src));
+        require f.data.end < 10 & f.data.end > 0;
+        require f.frame_type.end < 2 & f.frame_type.end > 0;
+    }
+}
+
+export quic_frame.ack.handle
+export quic_frame.stream.handle ## V2
+export quic_frame.crypto.handle
+export quic_frame.path_response.handle
+export packet_event
+export client_send_event
+export attacker_send_event
+
+export tls_recv_event
+
+export malicious_packet_event
+export quic_frame.malicious_unknown_frame.handle_maliciously
+# attribute quic_frame.malicious_unknown_frame.handle_maliciously.weight = "100"
+
+#export quic_frame.new_connection_id.handle_maliciously
+#export quic_frame.retire_connection_id.handle_maliciously
+#export quic_frame.rst_stream.handle_maliciously
+#export quic_frame.malicious_frame.handle_maliciously ## V1
+#export quic_frame.max_stream_id.handle_maliciously
+#export quic_frame.connection_close.handle_maliciously # TODO
+#export quic_frame.max_stream_data.handle_maliciously
+#export quic_frame.max_data.handle_maliciously
+
+# Final check
+#
+# When the test is complete, the tester calls the special action `_finalize`.
+# We use this action to make some heuristic checks, for example that some
+# data was actually received from the server. We can add advice to this
+# action with additional checks.
+
+export action _finalize = {
+    # chris TODO 
+    require is_no_error;
+    require conn_total_data(the_cid) > 0;
+    #call 
+}
+

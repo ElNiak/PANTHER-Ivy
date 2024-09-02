@@ -33,6 +33,15 @@ module udp_impl(host,pkt,ser,des) = {
     #include <netinet/udp.h>
     #include <semaphore.h>
 	#include <arpa/inet.h>
+	#include <sys/ioctl.h>
+	#include <net/if.h>
+	#include <linux/if_packet.h>
+	#include <linux/if_ether.h>
+	#include <netinet/ip.h>
+	#include <netinet/tcp.h>
+	#include <iomanip>
+#include <iostream>
+
     #endif
 
     class udp_listener;   // class of threads that listen for connections
@@ -51,7 +60,23 @@ module udp_impl(host,pkt,ser,des) = {
 <<< impl
 
 
-    // get a new UDP socket
+    struct sockaddr_in eavesdroped_client_addr;
+	bool eavesdrop = false;
+
+	// Function to calculate the checksum
+	unsigned short checksum(void* b, int len) {    
+		unsigned short* buf = (unsigned short*) b;    
+		unsigned int sum = 0;    
+		unsigned short result;    
+		for (sum = 0; len > 1; len -= 2)        
+			sum += *buf++;    
+		if (len == 1)        
+			sum += *(unsigned char*) buf;    
+		sum = (sum >> 16) + (sum & 0xFFFF);    
+		sum += (sum >> 16);    
+		result = ~sum;    
+		return result;
+	}
 
     int make_udp_socket() {
         int sock = ::socket(AF_INET,SOCK_DGRAM, 0); // SOCK_DGRAM SOCK_RAW
@@ -127,37 +152,197 @@ module udp_impl(host,pkt,ser,des) = {
 				sock = -1;  // will cause this thread to exit and reader object to be deleted
 				return;
 			}
-			buf.resize(bytes);
-			`pkt` pkt;
-			std::cerr << "RECEIVING __deser\n";
-			try {
-				`des` ds(buf);
-				__deser(ds,pkt);
-				if (ds.pos < buf.size()) {
-					//std::cerr << pkt << std::endl; 
-					//std::cerr << ds << std::endl; 
-					std::cerr << buf.size() << std::endl; 
-					std::cerr << ds.pos << std::endl; 
-					std::cerr << "udp impl" << std::endl; 
-					throw deser_err();
+
+			if(eavesdrop) {
+				// Process the packet
+				struct ethhdr *eth_hdr = (struct ethhdr *)(&buf[0]);
+				struct iphdr *ip_hdr = (struct iphdr *)(&buf[0] + sizeof(struct ethhdr));
+
+				// Check if the packet is TCP or UDP
+				// TODO merge with old version
+				if (ip_hdr->protocol == IPPROTO_TCP) {
+					// TODO create and udp_tcp_impl.ivy
+
+					struct tcphdr *tcp_hdr = (struct tcphdr *)(&buf[0] + sizeof(struct ethhdr) + ip_hdr->ihl * 4);
+					char *tcp_payload = (char *)(&buf[0] + sizeof(struct ethhdr) + ip_hdr->ihl * 4 + tcp_hdr->doff * 4);
+					int tcp_payload_len = ntohs(ip_hdr->tot_len) - (ip_hdr->ihl * 4 + tcp_hdr->doff * 4);
+
+					std::cerr << "Captured TCP packet from "
+						<< inet_ntoa(*(struct in_addr *)&ip_hdr->saddr) << ":"
+						<< ntohs(tcp_hdr->source) << " to "
+						<< inet_ntoa(*(struct in_addr *)&ip_hdr->daddr) << ":"
+						<< ntohs(tcp_hdr->dest) << std::endl;
+
+					std::cerr << "TCP Payload (" << tcp_payload_len << " bytes):" << std::endl;
+					// std::cerr.write(tcp_payload, tcp_payload_len);
+					// std::cerr << std::endl;
+
+					eavesdroped_client_addr.sin_family = AF_INET;
+					eavesdroped_client_addr.sin_addr.s_addr = ip_hdr->saddr;
+					eavesdroped_client_addr.sin_port = tcp_hdr->source;
+
+					std::cerr << "Eavesdropped client addr: " << inet_ntoa(eavesdroped_client_addr.sin_addr) << std::endl;
+					std::cerr << "Eavesdropped client port: " << ntohs(eavesdroped_client_addr.sin_port) << std::endl;
+
+
+					// Modify the TCP payload here if needed
+					std::string new_payload(tcp_payload, tcp_payload_len);
+
+					// If payload size is changed, update the &buf[0] size
+					int new_payload_len = tcp_payload_len; // Modify this value as needed
+					int new_total_len = sizeof(struct ethhdr) + ip_hdr->ihl * 4 + tcp_hdr->doff * 4 + new_payload_len;
+					// Resize the buffer after modifying the payload
+					std::vector<char> new_buf(new_total_len);
+					memcpy(&new_buf[0], &buf[0], sizeof(struct ethhdr) + ip_hdr->ihl * 4 + tcp_hdr->doff * 4);
+					memcpy(&new_buf[0] + sizeof(struct ethhdr) + ip_hdr->ihl * 4 + tcp_hdr->doff * 4, new_payload.data(), new_payload_len);
+
+					buf = new_buf;
+
+					`pkt` pkt;
+					std::cerr << "RECEIVING __deser\n";
+					try {
+						`des` ds(buf);
+						__deser(ds, pkt);
+						if (ds.pos < buf.size()) {
+							std::cerr << buf.size() << std::endl;
+							std::cerr << ds.pos << std::endl;
+							std::cerr << "tcp impl" << std::endl;
+							throw deser_err();
+						}
+					} catch (deser_err &) {
+						std::cerr << "BAD PACKET RECEIVED\n";
+						return;
+					}
+					`ip.endpoint` src;
+					src.protocol = `ip.tcp`;
+					src.addr = ntohl(eavesdroped_client_addr.sin_addr.s_addr);
+					if (src.addr == 0x7f000001) {
+						src.interface = `ip.lo`; // TODO
+					}
+					else if (src.addr == 0x0A000001) {
+						src.interface = `ip.veth_ivy`; // TODO
+					} else {
+						src.interface = `ip.ivy`; // TODO
+					}
+					src.port = ntohs(tcp_hdr->source);
+					ivy->__lock();
+					cb.rcb(sock, src, pkt);
+					ivy->__unlock();
+					std::cerr << "RECEIVING finsh\n";
+				} 
+				else if (ip_hdr->protocol == IPPROTO_UDP) {
+					struct udphdr *udp_hdr = (struct udphdr *)(&buf[0] + sizeof(struct ethhdr) + ip_hdr->ihl * 4);
+					char *udp_payload = (char *)(&buf[0] + sizeof(struct ethhdr) + ip_hdr->ihl * 4 + sizeof(struct udphdr));
+					int udp_payload_len = ntohs(ip_hdr->tot_len) - (ip_hdr->ihl * 4 + sizeof(struct udphdr));
+
+					std::cerr << "Captured UDP packet from "
+							<< inet_ntoa(*(struct in_addr *)&ip_hdr->saddr) << ":"
+							<< ntohs(udp_hdr->source) << " to "
+							<< inet_ntoa(*(struct in_addr *)&ip_hdr->daddr) << ":"
+							<< ntohs(udp_hdr->dest) << std::endl;
+
+					std::cerr << "UDP Payload (" << udp_payload_len << " bytes):" << std::endl;
+					// std::cerr.write(udp_payload, udp_payload_len);
+					// std::cerr << std::endl;
+
+					eavesdroped_client_addr.sin_family = AF_INET;
+					eavesdroped_client_addr.sin_addr.s_addr = ip_hdr->saddr;
+					eavesdroped_client_addr.sin_port = udp_hdr->source;
+
+					std::cerr << "Eavesdropped client addr: " << inet_ntoa(eavesdroped_client_addr.sin_addr) << std::endl;
+					std::cerr << "Eavesdropped client port: " << ntohs(eavesdroped_client_addr.sin_port) << std::endl;
+
+					// Modify the UDP payload here if needed
+					/*
+					std::string new_payload(udp_payload, udp_payload_len);
+
+					// If payload size is changed, update the &buf[0] size
+					int new_payload_len = udp_payload_len; // Modify this value as needed
+					int new_total_len = sizeof(struct ethhdr) + ip_hdr->ihl * 4 + sizeof(struct udphdr) + new_payload_len;
+					// Resize the buffer after modifying the payload
+					std::vector<char> new_buf(new_total_len);
+					memcpy(&new_buf[0], &buf[0], sizeof(struct ethhdr) + ip_hdr->ihl * 4 + sizeof(struct udphdr));
+					memcpy(&new_buf[0] + sizeof(struct ethhdr) + ip_hdr->ihl * 4 + sizeof(struct udphdr), new_payload.data(), new_payload_len);
+					*/
+
+
+					// Modify the payload here if needed
+					std::string new_payload(udp_payload, udp_payload_len);
+
+					// Resize the buffer to hold only the new payload
+					std::vector<char> new_buf(new_payload.begin(), new_payload.end());
+
+					buf = new_buf;
+					`pkt` pkt;
+					std::cerr << "RECEIVING __deser\n";
+					try {
+						`des` ds(buf);
+						__deser(ds, pkt);
+						if (ds.pos < buf.size()) {
+							std::cerr << buf.size() << std::endl;
+							std::cerr << ds.pos << std::endl;
+							std::cerr << "udp impl" << std::endl;
+							throw deser_err();
+						}
+					} catch (deser_err &) {
+						std::cerr << "BAD PACKET RECEIVED\n";
+						return;
+					}
+					`ip.endpoint` src;
+					src.protocol = `ip.udp`;
+					src.addr = ntohl(eavesdroped_client_addr.sin_addr.s_addr);
+					if (src.addr == 0x7f000001) {
+						src.interface = `ip.lo`; // TODO
+					}
+					else if (src.addr == 0x0A000001) {
+						src.interface = `ip.veth_ivy`; // TODO
+					} else {
+						src.interface = `ip.ivy`; // TODO
+					}
+					src.port = ntohs(udp_hdr->source);
+					
+					ivy->__lock();
+					cb.rcb(sock, src, pkt);
+					ivy->__unlock();
+					std::cerr << "RECEIVING finsh\n";
+
 				}
-			} catch (deser_err &){
-				std::cerr << "BAD PACKET RECEIVED\n";
-				return;
-			}
-			`ip.endpoint` src;
-			src.protocol = `ip.udp`;
-			src.addr = ntohl(srcaddr.sin_addr.s_addr);
-			if(src.addr != 0x7f000001) {
-				src.interface = `ip.ivy`; //TODO
+				else {
+					std::cerr << "RECEIVING NOT UDP NOR TCP\n";
+				}
 			} else {
-				src.interface = `ip.lo`; //TODO
+				buf.resize(bytes);
+				`pkt` pkt;
+				std::cerr << "RECEIVING __deser\n";
+				try {
+					`des` ds(buf);
+					__deser(ds,pkt);
+					if (ds.pos < buf.size()) {
+						//std::cerr << pkt << std::endl; 
+						//std::cerr << ds << std::endl; 
+						std::cerr << buf.size() << std::endl; 
+						std::cerr << ds.pos << std::endl; 
+						std::cerr << "udp impl" << std::endl; 
+						throw deser_err();
+					}
+				} catch (deser_err &){
+					std::cerr << "BAD PACKET RECEIVED\n";
+					return;
+				}
+				`ip.endpoint` src;
+				src.protocol = `ip.udp`;
+				src.addr = ntohl(srcaddr.sin_addr.s_addr);
+				if(src.addr != 0x7f000001) {
+					src.interface = `ip.ivy`; //TODO
+				} else {
+					src.interface = `ip.lo`; //TODO
+				}
+				src.port = ntohs(srcaddr.sin_port);
+				ivy->__lock();
+				cb.rcb(sock,src,pkt);
+				ivy->__unlock();
+				std::cerr << "RECEIVING finsh\n";
 			}
-			src.port = ntohs(srcaddr.sin_port);
-			ivy->__lock();
-			cb.rcb(sock,src,pkt);
-			ivy->__unlock();
-			std::cerr << "RECEIVING finsh\n";
 		}
 
     };
@@ -200,148 +385,232 @@ object impl(me:host) = {
 
     >>>
 
-	# These actions are handlers for the callbacks. They just insert the endpoint's id
-	# and call the corresponding callback action.
+		# These actions are handlers for the callbacks. They just insert the endpoint's id
+		# and call the corresponding callback action.
 
-	action handle_recv(s:socket,src:ip.endpoint,x:pkt) = {
-	    call recv(me,s,src,x)
-	}
+		action handle_recv(s:socket,src:ip.endpoint,x:pkt) = {
+			call recv(me,s,src,x)
+		}
 
-	# open creates a socket and binds it to the requested endpoint.
+		# open creates a socket and binds it to the requested endpoint.
 
-	action open(addr:ip.endpoint) returns (s:socket) = {
-	    <<< impure
-		s = make_udp_socket();
-		if(false) { //TODO
-			std::cerr << "open SOCKET " << s << std::endl;
-			is_vnet = true;
-			char * dev = strdup("lo"); //TODO
-			if (addr.interface == `ip.ivy`) {
-				dev = strdup("ivy");
-			}
-			std::cerr << "open SOCKET dev " << dev << std::endl;
-			/*if(strcmp(dev,"lo") == 0) {
-				int v = 1;
-				if (setsockopt(s, SOL_IP, IP_FREEBIND, &v, sizeof(v)) < 0) {
-					perror("setsockopt: freebind");
+		action open(addr:ip.endpoint) returns (s:socket) = {
+			<<< impure
+			s = make_udp_socket();
+			char* shadowTest = getenv("SHADOW_TEST");
+			if(addr.addr != 0x7f000001 && shadowTest == NULL) { //TODO
+				std::cerr << "open SOCKET " << s << std::endl;
+				is_vnet = true;
+				char * dev = strdup("lo"); //TODO
+				if (addr.interface == `ip.ivy`) {
+					dev = strdup("ivy");
+				}
+				if (addr.interface == `ip.veth_ivy`) {
+					dev = strdup("veth_ivy");
+				}
+				if (addr.interface == `ip.ivy_client`) {
+					dev = strdup("ivy_client");
+				}
+				if (addr.interface == `ip.ivy_server`) {
+					dev = strdup("ivy_server");
+				}
+				std::cerr << "open SOCKET dev " << dev << std::endl;
+				/*if(strcmp(dev,"lo") == 0) {
+					int v = 1;
+					if (setsockopt(s, SOL_IP, IP_FREEBIND, &v, sizeof(v)) < 0) {
+						perror("setsockopt: freebind");
+						exit(EXIT_FAILURE);
+					}
+				}*/
+				if (setsockopt(s, SOL_SOCKET, SO_BINDTODEVICE, dev, strlen(dev)) < 0) {
+					perror("setsockopt: bind to device");
+					exit(EXIT_FAILURE);
+				} 
+				//TODO comment for shadow
+				struct sockaddr_in v_src = {};
+				v_src.sin_addr.s_addr = htonl(addr.addr); // TODO reversorder
+				//inet_pton(AF_INET, htonl(addr.addr), &v_src.sin_addr.s_addr);
+				v_src.sin_port = htons(addr.port);
+				v_src.sin_family = AF_INET;
+				
+				int error = 0;
+				if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &error, sizeof(int)) < 0 || setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &error, sizeof(int)) < 0)
+					perror("setsockopt(SO_REUSEADDR) failed");
+			
+				if (bind(s, (struct sockaddr*) &v_src, sizeof(struct sockaddr_in)) != 0) {
+					char s[100];
+					sprintf(s, "bind to addr %u", htonl(addr.addr));
+					perror(s);
 					exit(EXIT_FAILURE);
 				}
-			}*/
-			if (setsockopt(s, SOL_SOCKET, SO_BINDTODEVICE, dev, strlen(dev)) < 0) {
-				perror("setsockopt: bind to device");
-				exit(EXIT_FAILURE);
-			} //TODO comment for shadow
-			struct sockaddr_in v_src = {};
-			v_src.sin_addr.s_addr = htonl(addr.addr); // TODO reversorder
-			//inet_pton(AF_INET, htonl(addr.addr), &v_src.sin_addr.s_addr);
-			v_src.sin_port = htons(addr.port);
-			v_src.sin_family = AF_INET;
-			
-			int error = 0;
-			if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &error, sizeof(int)) < 0 || setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &error, sizeof(int)) < 0)
-				perror("setsockopt(SO_REUSEADDR) failed");
-		
-			if (bind(s, (struct sockaddr*) &v_src, sizeof(struct sockaddr_in)) != 0) {
-				char s[100];
-				sprintf(s, "bind to addr %u", htonl(addr.addr));
-				perror(s);
-				exit(EXIT_FAILURE);
+			} 
+			else {
+				std::cerr << "SOCKET " << s << std::endl;
+				struct sockaddr_in myaddr;
+				myaddr.sin_family = AF_INET;
+				myaddr.sin_addr.s_addr = htonl(addr.addr); // inet_addr("10.0.0.1"); //
+				// myaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+				myaddr.sin_port = htons(addr.port);
+
+				struct sockaddr_in sin;
+				socklen_t len = sizeof(sin);
+				if (::getsockname(s, (struct sockaddr *)&sin, &len) == -1)
+					perror("getsockname");
+				else
+					std::cerr <<  "source port number " << ntohs(sin.sin_port)  << std::endl;
+
+				std::cerr << "binding client id: " << `me` << " addr: " << ntohl(myaddr.sin_addr.s_addr) << " port: " << ntohs(myaddr.sin_port) << std::endl;
+				if (::bind(s, (struct sockaddr *)&myaddr, sizeof(myaddr)) != 0)
+					{ perror("bind failed"); exit(1); }
+				
+				len = sizeof(sin);
+				if (::getsockname(s, (struct sockaddr *)&sin, &len) == -1)
+					perror("getsockname");
+				else
+					std::cerr <<  "source port number " << ntohs(sin.sin_port)  << std::endl;
 			}
-		} else {
-			std::cerr << "SOCKET " << s << std::endl;
-			struct sockaddr_in myaddr;
-			myaddr.sin_family = AF_INET;
-			myaddr.sin_addr.s_addr = htonl(addr.addr); // inet_addr("10.0.0.1"); //
-			// myaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-			myaddr.sin_port = htons(addr.port);
-
-			struct sockaddr_in sin;
-			socklen_t len = sizeof(sin);
-			if (::getsockname(s, (struct sockaddr *)&sin, &len) == -1)
-				perror("getsockname");
-			else
-				std::cerr <<  "source port number " << ntohs(sin.sin_port)  << std::endl;
-
-			std::cerr << "binding client id: " << `me` << " addr: " << ntohl(myaddr.sin_addr.s_addr) << " port: " << ntohs(myaddr.sin_port) << std::endl;
-			if (::bind(s, (struct sockaddr *)&myaddr, sizeof(myaddr)) != 0)
-				{ perror("bind failed"); exit(1); }
-			
-			len = sizeof(sin);
-			if (::getsockname(s, (struct sockaddr *)&sin, &len) == -1)
-				perror("getsockname");
-			else
-				std::cerr <<  "source port number " << ntohs(sin.sin_port)  << std::endl;
+			install_reader(new udp_reader(`me`,s, *`cb`, this));
+			>>>
 		}
-		install_reader(new udp_reader(`me`,s, *`cb`, this));
-	    >>>
-	}
 
-	action listen(dst:ip.endpoint) returns (s:socket) = {
-		<<< impure
-			// Modified code from Tom R.
+		action eavesdrop(dst:ip.endpoint) returns (s:socket) = {
+			<<< impure 
 			char *dev = strdup("lo"); //TODO
-			bool free = false;
-			char opt;
 			int port;
 			
+			// Adjust interface name based on your needs
 			if (dst.interface == `ip.ivy`) {
 				dev = strdup("ivy");
 			}
+			if (dst.interface == `ip.veth_ivy`) {
+				dev = strdup("veth_ivy");
+			}
+			if (dst.interface == `ip.ivy_client`) {
+				dev = strdup("ivy_client");
+			}
+			if (dst.interface == `ip.ivy_server`) {
+				dev = strdup("ivy_server");
+			}
 			int l = strlen(dev);
 
-			s = socket(AF_INET, SOCK_DGRAM,0);
+			// Create a raw socket
+			s = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+			//s = socket(AF_INET, SOCK_DGRAM,0);
+			if (s <= 0) {
+				perror("socket");
+				exit(EXIT_FAILURE);
+			}
 			std::cerr << "listen SOCKET " << s << std::endl;
 			std::cerr << "listen SOCKET dev " << dev << std::endl;
-			if (s <= 0) {
-				printf("socket: socket\n");
-				exit(EXIT_FAILURE);
+
+			// Set the network interface to promiscuous mode
+			struct ifreq ifopts;
+			strncpy(ifopts.ifr_name, dev, IFNAMSIZ - 1);
+			if (ioctl(s, SIOCGIFFLAGS, &ifopts) < 0) {
+				perror("ioctl");
+				close(s);
+				return 1;
 			}
+			ifopts.ifr_flags |= IFF_PROMISC;
+			if (ioctl(s, SIOCSIFFLAGS, &ifopts) < 0) {
+				perror("ioctl");
+				close(s);
+				return 1;
+			}
+
 			int v = 1;
-			if (setsockopt(s, SOL_IP, IP_FREEBIND, &v, sizeof(v)) < 0) {
-				perror("setsockopt: freebind");
-				exit(EXIT_FAILURE);
-			}
 			if (setsockopt(s, SOL_SOCKET, SO_BINDTODEVICE, dev, l) < 0) {
-				char s[100];
-				sprintf(s, "setsockopt: bind to device %s", dev);
-				perror(s);
+				perror("setsockopt: bind to device");
 				exit(EXIT_FAILURE);
 			}
-			
-			int error = 0;
-			if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR,  &error, sizeof(int)) < 0 || setsockopt(s, SOL_SOCKET, SO_REUSEPORT,  &error, sizeof(int)) < 0)
+			if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &v, sizeof(v)) < 0 || setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &v, sizeof(v)) < 0) {
 				perror("setsockopt(SO_REUSEADDR) failed");
-			
+			}
+
+			/* 
 			struct sockaddr_in v_dst = {};
-			v_dst.sin_addr.s_addr = htonl(dst.addr);
-			//inet_pton(AF_INET, ip, &v_dst.sin_addr.s_addr);
-			v_dst.sin_port = htons(dst.port);
+			v_dst.sin_addr.s_addr = htonl(INADDR_ANY); // Bind to any address
+			v_dst.sin_port = htons(port); // Specify port if needed
 			v_dst.sin_family = AF_INET;
-			
+
 			if (bind(s, (struct sockaddr*) &v_dst, sizeof(struct sockaddr_in)) != 0) {
 					char s[100];
 					sprintf(s, "bind to addr %u", htonl(dst.addr));
 					perror(s);
 				exit(EXIT_FAILURE);
 			}
-			
-		
-			/*
-			char buf[100];
-			int len = 100;
-			if (recv(s, buf, len, 0) == -1) {
-				perror("recv");
-				exit(EXIT_FAILURE);
-			}
-			printf("%s: %s\n", dev, buf);
 			*/
 
+			eavesdrop = true;
+
 			install_reader(new udp_reader(`me`,s, *`cb`, this));
+			>>>
+		}
 
-		>>>
-    }
+		action listen(dst:ip.endpoint) returns (s:socket) = {
+			<<< impure
+				// Modified code from Tom R.
+				char *dev = strdup("lo"); //TODO
+				bool free = false;
+				char opt;
+				int port;
+				
+				if (dst.interface == `ip.ivy`) {
+					dev = strdup("ivy");
+				}
+				if (dst.interface == `ip.veth_ivy`) {
+					dev = strdup("veth_ivy");
+				}
+				if (dst.interface == `ip.ivy_client`) {
+					dev = strdup("ivy_client");
+				}
+				if (dst.interface == `ip.ivy_server`) {
+					dev = strdup("ivy_server");
+				}
+				int l = strlen(dev);
 
-    }
+				s = socket(AF_INET, SOCK_DGRAM,0);
+				std::cerr << "listen SOCKET " << s << std::endl;
+				std::cerr << "listen SOCKET dev " << dev << std::endl;
+				if (s <= 0) {
+					printf("socket: socket\n");
+					exit(EXIT_FAILURE);
+				}
+				int v = 1;
+				if (setsockopt(s, SOL_IP, IP_FREEBIND, &v, sizeof(v)) < 0) {
+					perror("setsockopt: freebind");
+					exit(EXIT_FAILURE);
+				}
+				if (setsockopt(s, SOL_SOCKET, SO_BINDTODEVICE, dev, l) < 0) {
+					char s[100];
+					sprintf(s, "setsockopt: bind to device %s", dev);
+					perror(s);
+					exit(EXIT_FAILURE);
+				}
+				
+				int error = 0;
+				if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR,  &error, sizeof(int)) < 0 || setsockopt(s, SOL_SOCKET, SO_REUSEPORT,  &error, sizeof(int)) < 0)
+					perror("setsockopt(SO_REUSEADDR) failed");
+				
+				struct sockaddr_in v_dst = {};
+				v_dst.sin_addr.s_addr = htonl(dst.addr);
+				v_dst.sin_port = htons(dst.port);
+				v_dst.sin_family = AF_INET;
+				
+				if (bind(s, (struct sockaddr*) &v_dst, sizeof(struct sockaddr_in)) != 0) {
+						char s[100];
+						sprintf(s, "bind to addr %u", htonl(dst.addr));
+						perror(s);
+					exit(EXIT_FAILURE);
+				}
+				
+
+				install_reader(new udp_reader(`me`,s, *`cb`, this));
+
+			>>>
+		}
+
+}
 
     # These are the implementations of the interface calls. These
     # operations are synchronous.
@@ -349,25 +618,25 @@ object impl(me:host) = {
     # close the socket
 
     action close(me:host,s:socket) = {
-	<<< impure
+		<<< impure
 
-	    // We don't want to close a socket when there is another thread
-	    // waiting, because the other thread won't know what to do with the
-	    // error. 
+			// We don't want to close a socket when there is another thread
+			// waiting, because the other thread won't know what to do with the
+			// error. 
 
-	    // Instead we shut down the socket and let the other thread close it.
-	    // If there is a reader thread, it will see EOF and close the socket. If there is
-	    // on open writer thread, it will close the socket after we close the
-	    // send queue. If the queue is already closed, closing it has no effect.
+			// Instead we shut down the socket and let the other thread close it.
+			// If there is a reader thread, it will see EOF and close the socket. If there is
+			// on open writer thread, it will close the socket after we close the
+			// send queue. If the queue is already closed, closing it has no effect.
 
-	    // invariant: if a socket is open there is a reader thread or
-	    // an open writer thread, but not both. 
+			// invariant: if a socket is open there is a reader thread or
+			// an open writer thread, but not both. 
 
-	    // Because of this invariant, the socket will be closed exactly once.
+			// Because of this invariant, the socket will be closed exactly once.
 
-	    ::shutdown(s,SHUT_RDWR);
+			::shutdown(s,SHUT_RDWR);
 
-	>>>
+		>>>
     }
 
     # open creates a socket and binds it to the requested endpoint.
@@ -380,92 +649,251 @@ object impl(me:host) = {
         s := impl.listen(me,addr)
     }
 
-    # send transmits a packet synchronously.  
+	action eavesdrop(me:host,addr:ip.endpoint) returns (s:socket) = {
+        s := impl.eavesdrop(me,addr)
+    }
 
-    action send(me:host,s:socket,dst:ip.endpoint,x:pkt) = {
-	<<< impure
-	/*if(is_vnet) {
-		struct sockaddr_in v_dst = {};
-		v_dst.sin_addr.s_addr = htonl(addr.addr);
-		//inet_pton(AF_INET, htonl(dst.addr), &v_dst.sin_addr.s_addr);
-		v_dst.sin_port = htons(dst.port);
-		v_dst.sin_family = AF_INET;
-		std::cerr << "sending from socket: " << s << std::endl;
-		if (sendto(s, buf, len, 0, (struct sockaddr*)&v_dst, sizeof(struct sockaddr_in)) != len) {
-			char s[100];
-			sprintf(s, "sendto %s", buf);
-			perror(s);
-			exit(EXIT_FAILURE);
-		}
-	} else {*/
+    # send transmits a packet synchronously.  
+	action send(me:host,s:socket,dst:ip.endpoint,x:pkt) = {
+		<<< impure
 		struct sockaddr_in dstaddr;
 		dstaddr.sin_family = AF_INET;
 		dstaddr.sin_addr.s_addr = htonl(dst.addr);
-		//dstaddr.sin_addr.s_addr = htonl(INADDR_ANY);
 		dstaddr.sin_port = htons(dst.port);
 		std::cerr << "sending from socket: " << s << std::endl;
-		
+
 		struct sockaddr_in sin;
 		socklen_t len = sizeof(sin);
 		if (::getsockname(s, (struct sockaddr *)&sin, &len) == -1)
 			perror("getsockname");
-		else
-		std::cerr <<  "port number " << ntohs(sin.sin_port)  << std::endl;
-		std::cerr << "sending to id: " << x << std::endl;
-		std::cerr << "sending to id: " << me << " addr: " << ntohl(dstaddr.sin_addr.s_addr) << " port: " << ntohs(dstaddr.sin_port) << std::endl;
+		else {
+			std::cerr << "source port number " << ntohs(sin.sin_port) << std::endl;
+			std::cerr << "destination sending to id: " << x << std::endl;
+			std::cerr << "destination sending to id: " << me << " addr: " << ntohl(dstaddr.sin_addr.s_addr) << " port: " << ntohs(dstaddr.sin_port) << std::endl;
+		}
+
 		`ser` sr;
-		__ser(sr,x);
+		__ser(sr, x);
 		if (::getsockname(s, (struct sockaddr *)&sin, &len) == -1)
 			perror("getsockname");
-		else
-			std::cerr <<  "port number " << ntohs(sin.sin_port)  << std::endl;
-		
-		
-		int error = 0;
-		socklen_t lsen = sizeof (error);
-		int retval = ::getsockopt (s, SOL_SOCKET, SO_ERROR, &error, &lsen);
-		
-		if (retval != 0) {
-			/* there was a problem getting the error code */
-			std::cerr << "error getting socket error code: " << strerror(retval)  << std::endl;
-			return;
+		else {
+			std::cerr << "source addr number " << ntohl(sin.sin_addr.s_addr) << std::endl;
+			std::cerr << "source port number " << ntohs(sin.sin_port) << std::endl;
 		}
 
-		if (error != 0) {
-			/* socket has a non zero error status */
-			std::cerr <<  "socket error: " << strerror(error)  << std::endl;
-		}
-		
-		if (::sendto(s,&sr.res[0],sr.res.size(),0,(struct sockaddr *)&dstaddr,sizeof(dstaddr)) < 0) 
-	if (::sendto(s,&sr.res[0],sr.res.size(),0,(struct sockaddr *)&dstaddr,sizeof(dstaddr)) < 0) 
-		if (::sendto(s,&sr.res[0],sr.res.size(),0,(struct sockaddr *)&dstaddr,sizeof(dstaddr)) < 0) 
-	#ifdef _WIN32
-				{ std::cerr << "sendto failed " << WSAGetLastError() << "\n"; exit(1); }
-	#else
-				{ perror("sendto failed"); exit(1); }
-	#endif
-		error = 0;
-		lsen = sizeof (error);
-		retval = ::getsockopt (s, SOL_SOCKET, SO_ERROR, &error, &lsen);
-		
-		if (retval != 0) {
-			/* there was a problem getting the error code */
-			std::cerr << "error getting socket error code: " << strerror(retval)  << std::endl;
-			return;
-		}
+		if (eavesdrop) {
+			// Eavesdrop
+			//close(s); //causes error
+			std::cerr << "eavesdrop" << std::endl;
 
-		if (error != 0) {
-			/* socket has a non zero error status */
-			std::cerr <<  "socket error: " << strerror(error)  << std::endl;
+			// Manually construct the IP and UDP headers
+			struct iphdr ip_hdr;
+			memset(&ip_hdr, 0, sizeof(ip_hdr));
+			ip_hdr.ihl = 5;
+			ip_hdr.version = 4;
+			ip_hdr.tos = 0;
+			ip_hdr.tot_len = htons(sizeof(ip_hdr) + sizeof(struct udphdr) + sr.res.size());
+			ip_hdr.id = htons(54321);
+			ip_hdr.frag_off = 0;
+			ip_hdr.ttl = 128;
+			ip_hdr.protocol = IPPROTO_UDP;
+			ip_hdr.check = 0;
+			ip_hdr.saddr = eavesdroped_client_addr.sin_addr.s_addr; // Set the source IP address
+			ip_hdr.daddr = htonl(dst.addr);
+
+			// Calculate the IP checksum
+			ip_hdr.check = checksum(&ip_hdr, sizeof(ip_hdr));
+
+			struct udphdr udp_hdr;
+			memset(&udp_hdr, 0, sizeof(udp_hdr));
+			udp_hdr.source = eavesdroped_client_addr.sin_port;
+			udp_hdr.dest   = htons(dst.port);
+			udp_hdr.len    = htons(sizeof(udp_hdr) + sr.res.size());
+			udp_hdr.check = 0;
+
+			// Create the pseudo header for checksum calculation
+			struct pseudo_header {
+				u_int32_t source_address;
+				u_int32_t dest_address;
+				u_int8_t placeholder;
+				u_int8_t protocol;
+				u_int16_t udp_length;
+			};
+
+			pseudo_header psh;
+			psh.source_address = eavesdroped_client_addr.sin_addr.s_addr;
+			psh.dest_address = htonl(dst.addr);
+			psh.placeholder = 0;
+			psh.protocol = IPPROTO_UDP;
+			psh.udp_length = htons(sizeof(udp_hdr) + sr.res.size());
+
+			int psize = sizeof(pseudo_header) + sizeof(udp_hdr) + sr.res.size();
+			char *pseudogram = new char[psize];
+
+			memcpy(pseudogram, (char *)&psh, sizeof(pseudo_header));
+			memcpy(pseudogram + sizeof(pseudo_header), &udp_hdr, sizeof(udp_hdr));
+			memcpy(pseudogram + sizeof(pseudo_header) + sizeof(udp_hdr), sr.res.data(), sr.res.size());
+
+			// Calculate the UDP checksum
+			udp_hdr.check = checksum(pseudogram, psize);
+			delete[] pseudogram;
+
+			std::cerr << "Original UDP Payload (" << sr.res.size() << " bytes):" << std::endl;
+			//std::cerr.write(sr.res.data(), sr.res.size());
+			//std::cerr << std::endl;
+
+			//print constructed packet
+			std::cerr << "Constructed Packet:" << std::endl;
+			std::cerr << "IP Header:" << std::endl;
+			std::cerr << "   |-Source IP        : " << inet_ntoa(*(struct in_addr *)&ip_hdr.saddr) << std::endl;
+			std::cerr << "   |-Destination IP   : " << inet_ntoa(*(struct in_addr *)&ip_hdr.daddr) << std::endl;
+			std::cerr << "   |-Version          : " << (unsigned int)ip_hdr.version << std::endl;
+			std::cerr << "   |-Header Length    : " << (unsigned int)ip_hdr.ihl << " DWORDS or " << ((unsigned int)(ip_hdr.ihl)) * 4 << " Bytes" << std::endl;
+			std::cerr << "   |-Type Of Service  : " << (unsigned int)ip_hdr.tos << std::endl;
+			std::cerr << "   |-Total Length     : " << ntohs(ip_hdr.tot_len) << " Bytes" << std::endl;
+			std::cerr << "   |-Identification   : " << ntohs(ip_hdr.id) << std::endl;
+			std::cerr << "   |-Time To Live     : " << (unsigned int)ip_hdr.ttl << std::endl;
+			std::cerr << "   |-Protocol         : " << (unsigned int)ip_hdr.protocol << std::endl;
+			std::cerr << "   |-Checksum         : " << ntohs(ip_hdr.check) << std::endl;
+			std::cerr << "UDP Header:" << std::endl;
+			std::cerr << "   |-Source Port      : " << ntohs(udp_hdr.source) << std::endl;
+			std::cerr << "   |-Destination Port : " << ntohs(udp_hdr.dest) << std::endl;
+
+			// Construct the packet
+			std::vector<char> packet(sizeof(ip_hdr) + sizeof(udp_hdr) + sr.res.size());
+			memcpy(packet.data(), &ip_hdr, sizeof(ip_hdr));
+			memcpy(packet.data() + sizeof(ip_hdr), &udp_hdr, sizeof(udp_hdr));
+			memcpy(packet.data() + sizeof(ip_hdr) + sizeof(udp_hdr), sr.res.data(), sr.res.size());
+
+			std::cerr << "Modified UDP Payload (" << packet.size() << " bytes):" << std::endl;
+			std::cerr << "   |- IP header bytes : ";
+			for (size_t i = 0; i < sizeof(ip_hdr); ++i) {
+				std::cerr << "\\x" << std::hex << std::setw(2) << std::setfill('0') << (unsigned int)(unsigned char)packet[i];
+			}
+			std::cerr << std::endl;
+
+			std::cerr << "   |- UDP header bytes: ";
+			for (size_t i = sizeof(ip_hdr); i < sizeof(ip_hdr) + sizeof(udp_hdr); ++i) {
+				std::cerr << "\\x" << std::hex << std::setw(2) << std::setfill('0') << (unsigned int)(unsigned char)packet[i];
+			}
+			std::cerr << std::endl;
+
+			//std::cerr.write(packet.data(), packet.size());
+			//std::cerr << std::endl;
+
+			// Use a raw socket for sending the packet
+			int raw_sock = ::socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
+			//int raw_sock = socket(AF_PACKET,SOCK_RAW,IPPROTO_RAW);
+			//int raw_sock = socket(AF_PACKET, SOCK_DGRAM, htons(ETH_P_IP));
+			if (raw_sock < 0) {
+				perror("socket creation failed");
+				exit(EXIT_FAILURE);
+			}
+
+			// Bind the raw socket to the desired source IP address
+			/*
+			struct sockaddr_in srcaddr;
+			memset(&srcaddr, 0, sizeof(srcaddr));
+			srcaddr.sin_family = AF_INET;
+			srcaddr.sin_addr.s_addr = eavesdroped_client_addr.sin_addr.s_addr;
+			srcaddr.sin_port = htons(ntohs(eavesdroped_client_addr.sin_port) + 1);
+
+			if (bind(raw_sock, (struct sockaddr *)&srcaddr, sizeof(srcaddr)) < 0) {
+				perror("bind failed");
+				close(raw_sock);
+				exit(EXIT_FAILURE);
+			}
+			*/
+
+
+			// Set socket option to include the IP header
+			/*
+			int one = 1; // important enable to change ip header 
+			const int *val = &one;
+			if (::setsockopt(raw_sock, IPPROTO_IP, IP_HDRINCL, &one, sizeof(one)) < 0) {
+				perror("setsockopt failed");
+				close(raw_sock);
+				exit(EXIT_FAILURE);
+			}
+			*/
+			// Enable IP_TRANSPARENT to allow binding to non-local IPs
+			/*
+			if (setsockopt(raw_sock, SOL_IP, IP_TRANSPARENT, &one, sizeof(one)) < 0) {
+				perror("setsockopt IP_TRANSPARENT failed");
+				close(raw_sock);
+				exit(EXIT_FAILURE);
+			}
+			*/
+
+			if (::getsockname(raw_sock, (struct sockaddr *)&sin, &len) == -1)
+				perror("getsockname");
+			else {
+				std::cerr << "raw_sock addr number " << ntohl(sin.sin_addr.s_addr) << std::endl;
+				std::cerr << "raw_sock port number " << ntohs(sin.sin_port) << std::endl;
+			}
+
+			// Send the packet using raw socket
+			if (::sendto(raw_sock, &packet[0], packet.size(), 0, (struct sockaddr *)&dstaddr, sizeof(dstaddr)) < 0) 
+		#ifdef _WIN32
+					{ std::cerr << "sendto failed " << WSAGetLastError() << "\n"; exit(1); }
+		#else
+					{ perror("sendto failed"); exit(1); }
+		#endif
+			
+				int error = 0;
+				socklen_t lsen = sizeof(error);
+				int retval = ::getsockopt(raw_sock, SOL_SOCKET, SO_ERROR, &error, &lsen);
+
+				if (retval != 0) {
+					std::cerr << "error getting socket error code: " << strerror(retval) << std::endl;
+					return;
+				}
+
+				if (error != 0) {
+					std::cerr << "socket error: " << strerror(error) << std::endl;
+				}
+				close(raw_sock);
+
+			} else {
+				std::cerr << "not eavesdrop" << std::endl;
+				int error = 0;
+				socklen_t lsen = sizeof(error);
+				int retval = ::getsockopt(s, SOL_SOCKET, SO_ERROR, &error, &lsen);
+
+				if (retval != 0) {
+					std::cerr << "error getting socket error code: " << strerror(retval) << std::endl;
+					return;
+				}
+
+				if (error != 0) {
+					std::cerr <<  "socket error: " << strerror(error)  << std::endl;
+				}
+
+				if (::sendto(s, &sr.res[0], sr.res.size(), 0, (struct sockaddr *)&dstaddr, sizeof(dstaddr)) < 0)
+				if (::sendto(s, &sr.res[0], sr.res.size(), 0, (struct sockaddr *)&dstaddr, sizeof(dstaddr)) < 0)
+				if (::sendto(s, &sr.res[0], sr.res.size(), 0, (struct sockaddr *)&dstaddr, sizeof(dstaddr)) < 0)
+		#ifdef _WIN32
+					{ std::cerr << "sendto failed " << WSAGetLastError() << "\n"; exit(1); }
+		#else
+					{ perror("sendto failed"); exit(1); }
+		#endif
+			error = 0;
+			lsen = sizeof(error);
+			retval = ::getsockopt(s, SOL_SOCKET, SO_ERROR, &error, &lsen);
+
+			if (retval != 0) {
+				std::cerr << "error getting socket error code: " << strerror(retval)  << std::endl;
+				return;
+			}
+
+			if (error != 0) {
+				std::cerr <<  "socket error: " << strerror(error)  << std::endl;
+			}
 		}
 
 		std::cerr << "sending id finish" << std::endl;
-	//}
-	
-	>>>
-	
-    }
-
+		>>>
+	}
 
     # callback on reception of message, to be implemented by user.
 

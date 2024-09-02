@@ -1,0 +1,1319 @@
+#lang ivy1.7
+
+include quic_frame
+
+object quic_frame = {
+    ...
+
+    # (0xtbd) 
+    object malicious_frame = {
+        # unknown_frame  quic_frame frames are a varianquic_framequic_frame and contains nothing
+        variant this of quic_frame = struct {
+            data: stream_data
+        }
+    } 
+
+    object malicious_unknown_frame = {
+        # unknown_frame  quic_frame frames are a varianquic_framequic_frame and contains nothing
+        variant this of quic_frame = struct {
+            frame_type: stream_data,
+            data: stream_data
+        }
+    } 
+}
+
+object quic_frame = {
+    ...
+    action handle_maliciously(f:this,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) = {        
+        require false; # this generic action should never be called
+    }
+}
+
+relation malicous_frame_present(S:cid)
+
+object quic_frame = {
+    ...
+    object ack = {
+        ...
+        action handle_maliciously(f:quic_frame.ack,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+
+	around handle_maliciously{
+            #call is_generating_debug_event(_generating);
+            # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
+            # require (~is_not_sleeping -> ~_generating);
+            # require (_generating -> is_not_sleeping);
+            # var tp := trans_params(dcid);
+            # if min_ack_delay.is_set(tp)  {
+            # };
+
+            if  ~_generating {
+                # On receiving an ACK_FREQUENCY quic_frame and updating its max_ack_delay and Ack-Eliciting Threshold values (Section 4), 
+                # the endpoint sends an acknowledgement when one of the following conditions are met:
+                # Since the last acknowledgement was sent, the number of received ack-eliciting packets is greater than the Ack-Eliciting Threshold.
+                # Since the last acknowledgement was sent, max_ack_delay amount of time has passed.
+                call is_ack_frequency_respected(num_ack_eliciting_pkt > ack_eliciting_threshold_val(scid));
+                call is_ack_frequency_respected(num_ack_eliciting_pkt > ack_eliciting_threshold_val(dcid));
+                num_ack_eliciting_pkt := 0;
+            }
+            
+            # ack_time := time_api.c_timer.now_micros;
+            # An endpoint generates an RTT sample on receiving an ACK quic_frame that meets the following two conditions:
+            # 1. the largest acknowledged packet number is newly acknowledged, and
+            # 2. at least one of the newly acknowledged packets was ack-eliciting.
+
+            require connected(dcid) & connected_to(dcid) = scid;
+            if _generating  {
+            	require ~(e = quic_packet_type.initial) & ~(e = quic_packet_type.handshake); #& ~(e = quic_packet_type.handshake)
+                require ~conn_closed(scid);
+                # An endpoint measures the delays intentionally introduced between the time the 
+                # packet with the largest packet number is received and the time an acknowledgment 
+                # is sent. The endpoint encodes this delay in the Ack Delay field of an ACK quic_frame; 
+                # see Section 19.3. This allows the receiver of the ACK to adjust for any intentional delays, 
+                # which is important for getting a better estimate of the path RTT when acknowledgments are delayed. 
+                # A packet might be held in the OS kernel or elsewhere on the host before being processed. 
+                # An endpoint MUST NOT include delays that it does not control when populating the
+                # Ack Delay field in an ACK quic_frame.
+
+                # Scaling in this fashion allows for a larger range of values with a shorter encoding at 
+                # the cost of lower resolution. Because the receiver doesn't use the ACK Delay for Initial 
+                # and Handshake packets, a sender SHOULD send a value of 0. TODO
+            };
+
+            require e = quic_packet_type.handshake -> established_handshake_keys(scid);  # [4]
+            require e = quic_packet_type.one_rtt -> established_1rtt_keys(scid);  # [4]
+            # Chris
+            # TODO ECN
+            require ~(e = quic_packet_type.version_negociation) & ~(e = quic_packet_type.retry) & ~(e = quic_packet_type.zero_rtt);
+            # Chris
+            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+            
+            var idx : quic_frame.ack.range.idx := 0;
+            var last := f.largest_acked;
+            if max_acked(dcid,e) < last {
+                max_acked(dcid,e) := last;  # [3]
+            };
+
+
+            call show_ack_eliciting_threshold_current_val(ack_eliciting_threshold_current_val(scid));
+            call show_ack_eliciting_threshold_current_val(ack_eliciting_threshold_current_val(dcid));
+            call show_ack_eliciting_threshold_val(ack_eliciting_threshold_val(scid));
+            call show_ack_eliciting_threshold_val(ack_eliciting_threshold_val(dcid));
+
+
+            
+            require f.ack_ranges.end > 0;
+            var some_new_ack := false;
+            while idx < f.ack_ranges.end {
+                var ack_range := f.ack_ranges.value(idx);
+                require idx > 0 -> ack_range.gap < last - 1;
+                var upper := last - ((ack_range.gap+2) if idx > 0 else 0);
+                require ack_range.ranges <= upper;
+                last := upper - ack_range.ranges;
+                var jdx := last;
+                while jdx <= upper {
+                        require sent_pkt(dcid,e,jdx);  # [1]
+                        if pkt_has_close(dcid,e,jdx) {
+                            conn_draining(scid) := true  # [5]
+                        };
+                        if ~acked_pkt(dcid,e,jdx) {
+                            #if ack_eliciting_threshold_current_val(dcid) >= ack_eliciting_threshold_val(dcid) {
+                                some_new_ack := true;
+                                call show_ack_generated_debug_event;
+                                ack_eliciting_threshold_current_val(dcid) := 0;
+                            #};
+                        };
+                    acked_pkt(dcid,e,jdx) := true;
+                    jdx := jdx + 1
+                };
+    #           acked_pkt(dcid,N) := (last <= N & N <= upper) | acked_pkt(dcid,N);  # [2]
+                idx := idx.next;
+            };
+            # var local_ack_delay := on_ack_sent(last_pkt_num(scid,e),e);
+            # require _generating -> local_ack_delay <= local_max_ack_delay_tp;
+            if _generating {
+
+                var current_time := time_api.c_timer.now_micros_last_bp;
+                require f.ack_delay ~= current_time;
+                # The attacker can prevent the receiver from sending out (the vast majority
+                # of) these `RETIRE_CONNECTION_ID` frames by collapsing the peers congestion window (by selectively 
+                # acknowledging received packets) and by manipulating the peer's RTT estimate. Version 0.42.0 contains
+                #  a patch for the issue. No known workarounds are available.
+
+                require some_new_ack;
+                require f.largest_acked = max_acked(dcid,e) | (f.largest_acked > 0 & f.largest_acked ~= max_acked(dcid,e));
+                # var local_ack_delay := on_ack_sent(max_acked(dcid,e) ,e);
+                # f.ack_delay := local_ack_delay;
+                # require local_ack_delay <= local_max_ack_delay_tp;
+                # call show_local_delay_ack(local_ack_delay,local_max_ack_delay_tp);
+                call show_ack_generated_debug_event;
+            } 
+	    ...
+            if ~_generating {
+                call on_ack_received(dst_endpoint,f.largest_acked, f.ack_delay,e);
+            } 
+            # else {
+            #     local_largest_acked_packet(e) := f.largest_acked;
+            # }
+            force_new_ack := false;
+            call enqueue_frame(scid,f,e,false,seq_num);
+        }
+    }
+}
+
+object quic_frame = {
+    ...
+    object ack_ecn = {
+        ...
+        action handle_maliciously(f:quic_frame.ack_ecn,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+
+	around handle_maliciously{
+            require connected(dcid) & connected_to(dcid) = scid;
+            if _generating  {
+            	require ~(e = quic_packet_type.initial) & ~(e = quic_packet_type.handshake); #& ~(e = quic_packet_type.handshake)
+            };
+
+            require e = quic_packet_type.handshake -> established_handshake_keys(scid);  # [4]
+            require e = quic_packet_type.one_rtt -> established_1rtt_keys(scid);  # [4]
+            #Chris
+            #TODO ECN
+            #require ~(e = quic_packet_type.version_negociation) & ~(e = quic_packet_type.retry);
+            #Chris
+            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+            var idx : quic_frame.ack_ecn.range.idx := 0;
+            var last := f.largest_acked;
+            if max_acked(dcid,e) < last {
+                max_acked(dcid,e) := last;  # [3]
+            };
+            require f.ack_ranges.end > 0;
+            var some_new_ack := false;
+            while idx < f.ack_ranges.end {
+                var ack_range := f.ack_ranges.value(idx);
+                require idx > 0 -> ack_range.gap < last - 1;
+                var upper := last - ((ack_range.gap+2) if idx > 0 else 0);
+                require ack_range.ranges <= upper;
+                last := upper - ack_range.ranges;
+                var jdx := last;
+                while jdx <= upper {
+                        require sent_pkt(dcid,e,jdx);  # [1]
+                        if pkt_has_close(dcid,e,jdx) {
+                            conn_draining(scid) := true  # [5]
+                        };
+                        if ~acked_pkt(dcid,e,jdx) {
+                            some_new_ack := true;
+                        };
+                    acked_pkt(dcid,e,jdx) := true;
+                    jdx := jdx + 1
+                };
+    #           acked_pkt(dcid,N) := (last <= N & N <= upper) | acked_pkt(dcid,N);  # [2]
+                idx := idx.next;
+            };
+            if _generating {
+                require some_new_ack;
+            }
+	    ...
+            force_new_ack := false;
+            call enqueue_frame(scid,f,e,false,seq_num);
+        }
+    }
+}
+
+
+#
+###### STREAM event
+#
+# STREAM frames carry stream data. 
+#
+# Requirements:
+#
+# - The upper bound of the stream quic_frame may not exceed the current
+#   value of `max_stream_data_val` for the given destination and cid, if
+#   it has been set [2].
+#
+# - If the stream is finished, the the quic_frame offset plus length must
+#   not exceed the stream length [5].
+#
+# - The stream id must be less than or equal to
+#   the max stream id for the kind of the stream [6].
+#
+# - The stream must not have been reset [7].
+#
+# - The connection must not have been closed by the source endpoint [8].
+#
+# - The connection id must have been seen at the source [9]
+#   and the connection between source and destination must not be initializing [10].
+#
+# - The 1rtt keys have been established [11].
+#
+# - If the sender as reset the stream to a given length, then the
+#   end of the stream quic_frame data must not exceed the reset length [13].
+
+# Effects:
+#
+# - If the stream has not been seen before, and if the
+#   `initial_max_stream_data` transport parameter has been set, then
+#   the `max_stream_data_val` value is set to the value of the
+#   `initial_max_stream_data` transport parameter [3].
+#
+# - The length of the stream is updated. 
+#
+# - If the fin bit is set, the stream is marked as finished.
+#
+# - The total amount of data received on the connection is
+#   updated. Note this reflects the total oframe.streamf the observed length of
+#   all streams, including any unreceived gaps.
+#
+
+object quic_frame = { # TODO cleanup
+    ...
+    object stream = {
+        ...
+        action handle_maliciously(f:quic_frame.stream,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+
+	around handle_maliciously{
+            if (~zero_rtt_allowed | zero_rtt_sent) & ~(e = quic_packet_type.zero_rtt) {
+                require tls_handshake_finished;
+                require (connected(dcid) & connected_to(dcid) = scid); # | (e = quic_packet_type.zero_rtt & established_0rtt_keys(scid)); #e = quic_packet_type.zero_rtt & 
+                require (e = quic_packet_type.one_rtt & established_1rtt_keys(scid)); # | (e = quic_packet_type.zero_rtt & established_0rtt_keys(scid)); # | e = quic_packet_type.zero_rtt  | e = quic_packet_type.zero_rtt & established_0rtt_keys(scid)  
+            } else {
+                require (e = quic_packet_type.one_rtt & established_1rtt_keys(scid)) | (e = quic_packet_type.zero_rtt & ~established_1rtt_keys(scid));
+            }
+
+            if ~zero_rtt_allowed | zero_rtt_sent {
+                require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+            }
+
+            require ~conn_closed(scid);  # [8]
+
+            var offset := f.offset if f.off else 0;
+
+            require ((offset) + (f.length)) <= stream_app_data_end(dcid,f.id);
+    
+            require f.data = stream_app_data(dcid,f.id).segment(offset,offset+f.length); # TODO
+            require f.fin <-> (stream_app_data_finished(dcid,f.id) & offset+f.length = stream_app_data_end(dcid,f.id));
+
+            var kind := get_stream_kind(f.id);
+
+            # Following assertion could fail because of packet
+            # re-ordering. QUESTION: what can we say?  require
+            # ~stream_reset(dcid,f.id); # [7]
+
+            if (~zero_rtt_allowed | zero_rtt_sent)  {  
+                require conn_seen(scid);  # [9]
+            }
+
+            if _generating  {
+                # require ~need_sent_ack_eliciting_application_packet & ~need_sent_ack_eliciting_handshake_packet & ~need_sent_ack_eliciting_initial_packet;
+            };
+
+            # & ~cid_mapped(f.scid)
+            #quinn bug: +-deadlock with new_connection_id
+            # require ((offset) + (f.length)) <= stream_max_data(dcid,f.id,e);  # [2]
+
+            
+            require stream_reset(dcid,f.id) ->
+                       ((offset) + (f.length)) <= stream_length(dcid,f.id);  # [13]
+	        
+            #remove for stream limit test
+            if ~zero_rtt_allowed | zero_rtt_sent  { # | ~_generating
+                require stream_id_allowed(dcid,f.id,e);  # [6]
+            } 
+            else if _generating {
+                require  f.id = 4; #  f.id = 8 |f.id = 4 |
+            }
+	        ...
+            
+            stream_seen(scid,f.id) := true;
+
+            var offset := f.offset if f.off else 0;
+            var length := offset + f.length;
+
+            # require stream_finished(dcid,f.id) -> length <= stream_length(dcid,f.id);  # [5] deadlock client
+            if stream_length(dcid,f.id) < length {
+                conn_total_data(dcid) := conn_total_data(dcid) +
+                                             (length - stream_length(dcid,f.id));  # [12]
+                stream_length(dcid,f.id) := length
+            };
+            if f.fin {
+                stream_finished(dcid,f.id) := true;
+            };
+            if (~zero_rtt_allowed | zero_rtt_sent) & ~(e = quic_packet_type.zero_rtt) { #TODO
+                call enqueue_frame(scid,f,e,false,seq_num);
+            } else {
+                first_zrtt_pkt := dcid;
+                call enqueue_frame_rtt(scid,f,e,false);
+            }
+        }
+    }
+}
+
+###### CRYPTO event
+#
+# CRYPTO frames carry crypto handshake data, that is, TLS records.
+#
+# Requirements:
+#
+# - The connection must not have been closed by the source endpoint [1].
+# - The bytes are present in `crypto_data` [2].
+#chris
+# - It can be sent in all packet types except 0-RTT. [4] (implicit, needed ?)
+#chris  
+# Effects:
+#
+# - The length of the crypto stream and the present bits are updated. [3]
+
+object quic_frame = {
+    ...
+    object crypto = {
+        ...
+        action handle_maliciously(f:quic_frame.crypto,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+
+	around handle_maliciously{
+	        #if ~scid=0 {
+            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+	        #};
+            # if _generating  {
+            #     # require ~need_sent_ack_eliciting_application_packet & ~need_sent_ack_eliciting_handshake_packet & ~need_sent_ack_eliciting_initial_packet;
+            # };
+            require ~conn_closed(scid);  # [1]
+            #chris
+            require e ~= quic_packet_type.zero_rtt;  # [4]
+            #chris
+	        #if  ~is_crypto_limit_test | ~_generating { #For crypto limit test
+                require ((f.offset) + (f.length)) <= crypto_data_end(scid,e);  # [2]
+                require f.data = crypto_data(scid,e).segment(f.offset,f.offset+f.length);  # [2]
+	        #};
+            ...
+            #require e ~= quic_packet_type.zero_rtt;  # [4]
+            var length := f.offset + f.length;
+            if crypto_length(scid,e) < length {
+                crypto_length(scid,e) := length;   # [3]
+                #call show_crypto_length(crypto_length(scid,e));
+            };
+            var idx := f.offset;
+            while idx < f.offset + f.length {
+                crypto_data_present(scid,e,idx) := true;  # [3]
+                idx := idx.next
+            };
+            call enqueue_frame(scid,f,e,false,seq_num);
+            # TODO: is the following needed? Maybe it belongs somewhere else?
+            if e = quic_packet_type.handshake {
+                established_1rtt_keys(scid) := true;
+            }
+        }
+    }
+}
+
+
+#
+###### RESET_STREAM events
+#
+# RESET_STREAM frames cause an identified stream to be abruptly terminated,
+# meaning the no further transmissions (or retransmissions) will be sent for
+# this stream and the receiver may ignore any data previously transmitted.
+#
+# Requirements:
+
+# - Stream id must has been created to be reset [8]. (FSM)
+# - Stream id must not exceed maximim stream id for the stream kind [4].
+# - QUESTION: Can a previously reset stream be reset?
+# - The final stream position may not be lesser than that of any previous
+#   stream quic_frame for the same stream id [1].
+# - The connection must not have been closed by the source endpoint [5].
+# - The encryption level must be 0rtt or 1rtt [6].
+# - If stream was previously reset or finished, final offset must be same [7].
+#
+# Effects:
+#
+# - The specified stream id is marked as reset [2].
+# - The stream length is set to the given final offset [3].
+#
+# Question: Where is it written that reset stream frames cannot occur in
+# initial or handshake packets?
+
+object quic_frame = { ...
+    object rst_stream = { ...
+        action handle_maliciously(f:quic_frame.rst_stream,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+
+	around handle_maliciously{
+            require connected(dcid) & connected_to(dcid) = scid;
+            require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);  # [6]
+            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+            require ~conn_closed(scid);  # [5]
+            require connected(scid) & connected_to(scid) = dcid;
+            require stream_length(dcid,f.id) <= f.final_offset;  # [1]
+             if _generating  {
+# require ~need_sent_ack_eliciting_application_packet & ~need_sent_ack_eliciting_handshake_packet & ~need_sent_ack_eliciting_initial_packet;
+};
+            require (stream_reset(dcid,f.id) | stream_finished(dcid,f.id)) -> stream_length(dcid,f.id) = f.final_offset;
+            stream_reset(dcid,f.id) := true;  # [2]
+            stream_length(dcid,f.id) := f.final_offset;  #[3]
+            #require stream_seen(dcid,f.id);  # [8]
+            require stream_id_allowed(dcid,f.id,e);  # [4]
+	    ...
+            if ~_generating {
+                call handle_transport_error(f.err_code);
+            };
+            call enqueue_frame(scid,f,e,false,seq_num);
+        }
+    }
+}
+
+#
+###### STOP_SENDING event
+#
+# STOP_SENDING frames are sent by the receiver of s stream to indicate that stream data
+# is being ignored and it should stop sending.
+#
+# Requirements:
+#
+# - Receiving a STOP_SENDING quic_frame for a
+#   locally-initiated stream that has not yet been created MUST be
+#   treated as a connection error of type STREAM_STATE_ERROR.. [8] (FSM)
+# - Stream id must not exceed maximim stream id for the stream kind [4].
+# - QUESTION: Can a previously reset stream be reset?
+# - The connection must not have been closed by the source endpoint [5].
+# - The encryption level must be 0rtt or 1rtt [6].
+#
+# Effects:
+#
+#   (None)
+#   An endpoint that receives a STOP_SENDING quic_frame
+#   MUST send a RESET_STREAM quic_frame if the stream is in the Ready or Send
+#   state
+#
+
+object quic_frame = { ...
+    object stop_sending = { ...
+        action handle_maliciously(f:quic_frame.stop_sending,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+
+	around handle_maliciously{# is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
+            # require (_generating  -> is_not_sleeping);
+            
+            # require (~is_not_sleeping -> ~_generating);
+            require connected(dcid) & connected_to(dcid) = scid;
+            require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);  # [6]
+            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+            if _generating  {
+                # require ~need_sent_ack_eliciting_application_packet & ~need_sent_ack_eliciting_handshake_packet & ~need_sent_ack_eliciting_initial_packet;
+            };
+            require ~conn_closed(scid);  # [5]
+            require connected(scid) & connected_to(scid) = dcid;
+            if ~_generating { # For tests
+                require stream_seen(dcid,f.id);  # [8]
+                require stream_id_allowed(dcid,f.id,e);  # [4]
+            };
+	    ...
+            if ~_generating {
+                call handle_transport_error(f.err_code);
+            };
+            stream_seen(scid,f.id) := true;
+            #receiving_ready := true;
+            call enqueue_frame(scid,f,e,false,seq_num);
+        }
+    }
+}
+
+#
+###### max_streams event
+#
+# max_streams frames cause the maximum stream id to be set. 
+# The receiver of the max stream id may use stream ids up to and including
+# the given maximum. Bit 1 of the stream id (the next-to-least significant)
+# determines whether the limit is set for unidirectional or bidirectional
+# streams. A max stream id containing a stream id lower than the current
+# maximum is allowed and ignored.
+#
+# Requirements:
+#
+# - The connection must not have been closed by the source endpoint [2].
+# - Max stream id frames may not occur in initial or handshake packets [3].
+# - The role of the stream id must equal the role of the peer in the given connection. [4]
+#   QUESTION: this requirement is not stated in the draft spec, but it is enforced
+#   by picoquic (see anomaly6). The spec should state explicitly what happens in this case.
+#chris
+# -  a lower stream limit than an endpoint has previously received. MAX_STREAMS frames that 
+#    do not increase the stream limit MUST be ignored. [5]
+#chris
+#
+# Effects:
+#
+# - The maximum stream id is set [1].
+#
+# QUESTION: must the stream id's be less than the max or less than or equal?
+# Picoquic seems to think less than, but the is not clear in the draft.
+
+# var some_max_streams : bool;
+#  var ms;
+
+object quic_frame = { ...
+    object max_streams = { ...
+        action handle_maliciously(f:quic_frame.max_streams,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+
+	around handle_maliciously{# is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
+            # require (_generating  -> is_not_sleeping);
+            
+            # require (~is_not_sleeping -> ~_generating);
+            require connected(dcid) & connected_to(dcid) = scid;
+            require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);  # [3]
+            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+            require connected(scid) & connected_to(scid) = dcid;
+             if _generating  {
+# require ~need_sent_ack_eliciting_application_packet & ~need_sent_ack_eliciting_handshake_packet & ~need_sent_ack_eliciting_initial_packet;
+};
+            require ~conn_closed(scid);  # [2]
+
+            var kind := bidir;
+            if ~ (max_stream_set(dcid,kind) & f.id < max_stream(dcid,kind)) { #[5]
+                max_stream_set(dcid,kind) := true;
+                max_stream(dcid,kind) := f.id; #  [1]
+		        #max_stream_id(dcid,kind) := cid_to_stream_id(f.id);
+            }
+
+            #  if _generating {
+            #      require some_max_streams;
+            #      require f.id = ms;
+            #  }
+
+	        ...
+
+            call enqueue_frame(scid,f,e,false,seq_num);
+        }
+    }
+}
+
+object quic_frame = { ...
+    object max_streams_bidi = { ...
+        action handle_maliciously(f:quic_frame.max_streams_bidi,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+
+	around handle_maliciously{# is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
+            # require (_generating  -> is_not_sleeping);
+            
+            # require (~is_not_sleeping -> ~_generating);
+            require connected(dcid) & connected_to(dcid) = scid;
+            require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);  # [3]
+            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+            require connected(scid) & connected_to(scid) = dcid;
+             if _generating  {
+# require ~need_sent_ack_eliciting_application_packet & ~need_sent_ack_eliciting_handshake_packet & ~need_sent_ack_eliciting_initial_packet;
+};
+            require ~conn_closed(scid);  # [2]
+
+            var kind := bidir;
+            if ~ (max_stream_set(dcid,kind) & f.id < max_stream(dcid,kind)) { #[5]
+                max_stream_set(dcid,kind) := true;
+                max_stream(dcid,kind) := f.id; #  [1]
+		        #max_stream_id(dcid,kind) := cid_to_stream_id(f.id);
+            }
+
+            #  if _generating {
+            #      require some_max_streams;
+            #      require f.id = ms;
+            #  }
+
+	        ...
+
+            call enqueue_frame(scid,f,e,false,seq_num);
+        }
+    }
+}
+
+#
+###### CONNECT_CLOSE event
+#
+# CONNECT_CLOSE frames indicate to the peer that the connection is being closed.
+# It is unclear what this means operationally, but it seems reasonable to assume that the
+# endpoint closing the connection will not send or receive any further data on the connection,
+# so it is as if all the open streams are reset by this operation.
+#
+# A connection close quic_frame can occur at any time. 
+#
+# Questions:
+#
+# - Are Ack frames still allowed after connection close?
+# - Are retransmissions allowed after connection close?
+# - When is a connection close allowed?
+#
+# Requirements:
+#
+# - The source and destination cid's must be connected. In effect,
+#   this means that a server hello message must have been sent for
+#   this connection Therefore a client cannot send a connection close
+#   before receiving at least one handshake message from the
+#   server. QUESTION: the spec is a bit vague about this, stating
+#   "Handshake packets MAY contain CONNECTION_CLOSE frames if the
+#   handshake is unsuccessful." Does "unsuccessful" necessarily mean that
+#   some handshake has been received? Also, can an initial packet contain
+#   connection close? 
+#
+# Effects:
+#
+# - The connection state is set to closed for the source endpoint.
+#
+
+object quic_frame = { ...
+    object connection_close = { ...
+        action handle_maliciously(f:quic_frame.connection_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+	around handle_maliciously{
+            
+            require connected(dcid) & connected_to(dcid) = scid;
+            require e = quic_packet_type.handshake -> established_handshake_keys(scid);
+            require e = quic_packet_type.one_rtt -> established_1rtt_keys(scid);
+            
+            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+            if _generating  {
+                # require ~need_sent_ack_eliciting_application_packet & ~need_sent_ack_eliciting_handshake_packet & ~need_sent_ack_eliciting_initial_packet;
+            };
+            require connected(scid) & connected_to(scid) = dcid;
+            require f.reason_phrase_length = f.reason_phrase.end;
+            if _generating {
+                require e = quic_packet_type.one_rtt;
+                require ~conn_closed(scid);
+            }
+            else {
+                connection_closed := true;
+            }; 
+            conn_closed(scid) := true;
+            call handle_transport_error(f.err_code);
+	    ...
+            # if _generating {
+            #     call _finalize;
+            # };
+            call enqueue_frame(scid,f,e,false,seq_num);
+        }
+    }
+}
+
+#
+###### APPLICATION_CLOSE event
+#
+# APPLICATION_CLOSE frames indicate to the peer that the connection is
+# being closed.  It is unclear what this means operationally, but it
+# seems reasonable to assume that the endpoint closing the connection
+# will not send or receive any further data on the connection, so it
+# is as if all the open streams are reset by this operation. In the
+# standard, an APPLICATION_CLOSE quic_frame is described as
+# CONNECTION_CLOSE quic_frame with a special tag field. Here, we use a
+# distinct variant type to represent it.
+#
+# An application close quic_frame can occur at any time. 
+#
+# Questions:
+#
+# - Are ACK frames still allowed after application close?
+# - Are retransmissions allowed after application close?
+# - When is a application close allowed?
+#
+# Requirements:
+#
+# (None)
+#
+# Effects:
+#
+# - The connection state is set to closed for the source endpoint.
+#
+
+object quic_frame = { ...
+    object application_close = { ...
+        action handle_maliciously(f:quic_frame.application_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+        around handle_maliciously{
+            
+            require connected(dcid) & connected_to(dcid) = scid;
+            #require e ~= quic_packet_type.initial;
+            require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
+            #require e = quic_packet_type.handshake -> established_handshake_keys(scid);
+            if _generating  {
+                # require ~need_sent_ack_eliciting_application_packet & ~need_sent_ack_eliciting_handshake_packet & ~need_sent_ack_eliciting_initial_packet;
+            };
+            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+            require connected(scid) & connected_to(scid) = dcid;
+            require f.reason_phrase_length = f.reason_phrase.end;
+            conn_closed(scid) := true;
+            call handle_transport_error(f.err_code);
+            if ~_generating {
+                connection_closed := true;
+            };
+	    ...
+            call enqueue_frame(scid,f,e,false,seq_num);
+        }
+    }
+}
+
+
+#
+###### MAX_STREAM_DATA event
+#
+# MAX_STREAM_DATA frames set the limit on data bytes that the source endpoint is willing
+# to receive for a given stream.
+#
+# Requirements
+#
+# - The stream must be open for receiving at the source endpoint [1].
+#   (A MAX_STREAM_DATA quic_frame can be sent for streams in the Recv state;)
+#   (Receiving a MAX_STREAM_DATA quic_frame for a locally-
+#    initiated stream that has not yet been created MUST be treated as a
+#    connection error of type STREAM_STATE_ERROR)
+
+# Effects
+# - If the given limit is greater than any previously set limit, then
+#   the max stream data limit for the given stream is updated [2].
+#
+
+object quic_frame = { ...
+    object max_stream_data = { ...
+        action handle_maliciously(f:quic_frame.max_stream_data,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+	around handle_maliciously{
+            require connected(dcid) & connected_to(dcid) = scid;
+            require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
+             if _generating  {
+# require ~need_sent_ack_eliciting_application_packet & ~need_sent_ack_eliciting_handshake_packet & ~need_sent_ack_eliciting_initial_packet;
+};
+            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+            require stream_seen(scid,f.id);
+            if ~max_stream_data_set(scid,f.id) | f.pos > max_stream_data_val(scid,f.id) {
+                max_stream_data_set(scid,f.id) := true;
+                max_stream_data_val(scid,f.id) := f.pos;  # [2]
+            }
+	    ...
+            #receiving_ready := true;
+            call enqueue_frame(scid,f,e,false,seq_num);
+        }
+    }
+}
+
+#
+###### stream_data_blocked event
+#     | 0x15        | STREAM_DATA_BLOCKED  | Section 19.13 | __01    |
+# stream_data_blocked frames indicate that sender wishes to send data on stream beyond current limit.
+#
+# Requirements
+#
+# - Connection must be established
+#chris
+# - The stream must be open for receiving at the destination endpoint [1]
+#   An endpoint that receives a STREAM_DATA_BLOCKED quic_frame for a send-only
+#   stream MUST terminate the connection with error STREAM_STATE_ERROR.
+#chris 
+# Effects
+#
+# (None)
+
+object quic_frame = { ...
+    object stream_data_blocked = { ...
+        action handle_maliciously(f:quic_frame.stream_data_blocked,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+	around handle_maliciously{
+            require connected(dcid) & connected_to(dcid) = scid;
+            require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
+             if _generating  {
+# require ~need_sent_ack_eliciting_application_packet & ~need_sent_ack_eliciting_handshake_packet & ~need_sent_ack_eliciting_initial_packet;
+};
+            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+	    ...
+            call enqueue_frame(scid,f,e,false,seq_num);
+        }
+    }
+}
+
+#
+###### data_blocked event
+#     | 0x14        | DATA_BLOCKED         | Section 19.12 | __01    |
+# data_blocked frames indicate that sender wishes to send data beyond current total limit
+# for all streams.
+#
+# Requirements
+#
+# - Connection must be established
+#
+# Effects
+#
+# (None)
+
+object quic_frame = { ...
+    object data_blocked = { ...
+        action handle_maliciously(f:quic_frame.data_blocked,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+	around handle_maliciously{
+            require connected(dcid) & connected_to(dcid) = scid;
+            require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
+             if _generating  {
+# require ~need_sent_ack_eliciting_application_packet & ~need_sent_ack_eliciting_handshake_packet & ~need_sent_ack_eliciting_initial_packet;
+};
+            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+	    ...
+            call enqueue_frame(scid,f,e,false,seq_num);
+        }
+    }
+}
+
+
+#
+###### streams_blocked event
+#     | 0x16 - 0x17 | STREAMS_BLOCKED      | Section 19.14 | __01    |
+# streams_blocked frames indicate that sender wishes to open a stream beyond current limit
+# on streams of a given kind.
+#
+# Requirements
+#
+# - Connection must be established
+#chris
+# A STREAMS_BLOCKED (by sender)
+# quic_frame of type 0x16 is used to indicate reaching the bidirectional
+# stream limit, and a STREAMS_BLOCKED quic_frame of type 0x17 is used to
+# indicate reaching the unidirectional stream limit. => receiver should increase max_stream (TODO)
+#chris
+# Effects
+#
+# (None)
+
+object quic_frame = { ...
+    object streams_blocked = { ...
+        action handle_maliciously(f:quic_frame.streams_blocked,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+	around handle_maliciously{
+            require connected(dcid) & connected_to(dcid) = scid;
+            require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
+            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+             if _generating  {
+# require ~need_sent_ack_eliciting_application_packet & ~need_sent_ack_eliciting_handshake_packet & ~need_sent_ack_eliciting_initial_packet;
+};
+            #  some_max_streams := true;
+            #  ms := f.id; #TODO not finished, should distinguish uni and bidi
+
+	    ...
+            call enqueue_frame(scid,f,e,false,seq_num);
+        }
+    }
+}
+
+object quic_frame = { ...
+    object streams_blocked_bidi = { ...
+        action handle_maliciously(f:quic_frame.streams_blocked_bidi,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+	around handle_maliciously{
+            require connected(dcid) & connected_to(dcid) = scid;
+            require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
+            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+             if _generating  {
+# require ~need_sent_ack_eliciting_application_packet & ~need_sent_ack_eliciting_handshake_packet & ~need_sent_ack_eliciting_initial_packet;
+};
+            #  some_max_streams := true;
+            #  ms := f.id; #TODO not finished, should distinguish uni and bidi
+
+	    ...
+            call enqueue_frame(scid,f,e,false,seq_num);
+        }
+    }
+}
+
+
+#
+###### MAX_DATA EVENT
+#     | 0x10        | MAX_DATA             | Section 19.9  | __01    |
+# MAX_DATA frames set the limit on the total data bytes that the source endpoint is willing
+# to receive for all streams combined.
+#
+# Requirements
+#
+# (None)
+#
+# Effects
+# - If the given limit is greater than any previously set limit, then
+#   the max data limit for the connection is updated [2].
+#
+
+object quic_frame = { ...
+    object max_data = { ...
+        action handle_maliciously(f:quic_frame.max_data,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+	around handle_maliciously{
+            require connected(dcid) & connected_to(dcid) = scid;
+            require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
+            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+             if _generating  {
+# require ~need_sent_ack_eliciting_application_packet & ~need_sent_ack_eliciting_handshake_packet & ~need_sent_ack_eliciting_initial_packet;
+};
+            if ~max_data_set(scid) | f.pos > max_data_val(scid) {
+                max_data_set(scid) := true;
+                max_data_val(scid) := f.pos;  # [2]
+            }
+	    ...
+            call enqueue_frame(scid,f,e,false,seq_num);
+        }
+    }
+}
+
+#
+###### PING event
+#     | 0x01        | PING                 | Section 19.2  | IH01    |
+# PING frames contain no data and have no semantics. They can
+# be used to keep a connection alive.
+#
+
+object quic_frame = { ...
+    object ping = { ...
+        action handle_maliciously(f:quic_frame.ping,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+	around handle_maliciously{
+            require e = quic_packet_type.handshake -> established_handshake_keys(scid);
+            require e = quic_packet_type.one_rtt -> established_1rtt_keys(scid);
+            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+            if _generating {
+                require ~(e = quic_packet_type.version_negociation) & ~(e = quic_packet_type.retry) & ~(e = quic_packet_type.zero_rtt);
+                require need_sent_ack_eliciting_application_packet | need_sent_ack_eliciting_handshake_packet | need_sent_ack_eliciting_initial_packet;
+                # require need_sent_ack_eliciting_application_packet -> e = quic_packet_type.one_rtt;
+                # require need_sent_ack_eliciting_handshake_packet -> e = quic_packet_type.handshake;
+                # require need_sent_ack_eliciting_initial_packet -> e = quic_packet_type.initial;
+                # TODO investigate -> activate _generating event
+                # require e = quic_packet_type.one_rtt;
+                # require e = quic_packet_type.one_rtt -> need_sent_ack_eliciting_application_packet;
+                # require e = quic_packet_type.handshake -> need_sent_ack_eliciting_handshake_packet;
+                # require e = quic_packet_type.initial -> need_sent_ack_eliciting_initial_packet;
+            };
+            ...
+            if _generating {
+                need_sent_ack_eliciting_application_packet := false;
+                need_sent_ack_eliciting_handshake_packet := false;
+                need_sent_ack_eliciting_initial_packet := false;
+            }
+            call enqueue_frame(scid,f,e,false,seq_num);
+        }
+    }
+}
+
+#
+###### unknown_frame event
+#
+# unknown_frame frames contain no data and have no semantics. They can
+# be used to keep a connection alive.
+#
+
+object quic_frame = { ...
+    object unknown_frame = { ...
+        action handle_maliciously(f:quic_frame.unknown_frame,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+	around handle_maliciously{
+            require connected(dcid) & connected_to(dcid) = scid;
+            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+            #volontary at any time or not ?
+            require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);            
+            #require e ~= quic_packet_type.initial & e ~= quic_packet_type.handshake;
+            #require e ~= quic_packet_type.retry & e ~= quic_packet_type.version_negociation;
+            require ~conn_closed(scid); 
+            ...
+            call enqueue_frame(scid,f,e,false,seq_num);
+        }
+    }
+}
+
+#
+###### PADDING event
+#
+# PADDING frames contain no data and have no semantics. They can
+# be used to keep a connection alive.
+#
+
+#object quic_frame = { ...
+#    object padding = { ...
+#        action handle_maliciously(f:quic_frame.padding,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+#	after handle {
+#            call enqueue_frame(scid,f,e,true,seq_num);
+#        }
+#    }
+#}
+
+#
+###### HANDSHAKE_DONE  event
+#
+# HANDSHAKE_DONE  frames contain no data and have no semantics. They can
+# be used to say handshake is done TODO
+#
+
+object quic_frame = { ...
+    object handshake_done = { ...
+        action handle_maliciously(f:quic_frame.handshake_done,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+	around handle_maliciously{ 
+            
+            require connected(dcid) & connected_to(dcid) = scid;
+            require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);  # [3]
+            require e ~= quic_packet_type.initial;
+	        require e ~= quic_packet_type.handshake;
+            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+            require tls_handshake_finished;
+                ...
+            if _generating {
+                handshake_done_send := true;
+            }
+            else {
+                handshake_done_recv := true;
+            };
+            call enqueue_frame(scid,f,e,false,seq_num);
+        }
+    }
+}
+
+#
+###### NEW_CONNECTION_ID event
+#
+# NEW_CONNECTION_ID frames are used to transmit additional cid's to the peer.
+#chris
+# Requirements
+#
+# - length field less than 1 and greater than 20 are invalid [1]
+# - An endpoint that is sending packets with a zero-length Destination
+#   Connection ID MUST treat receipt of a NEW_CONNECTION_ID quic_frame as a
+#   connection error of type PROTOCOL_VIOLATION. [2] 
+# - Receipt of the same quic_frame multiple times MUST NOT be treated as a connection
+#   error. [3]
+# - The Retire Prior To field MUST be less than or equal to the Sequence Number field [4]
+#
+# Effects
+#
+# - A receiver MUST ignore any Retire Prior To fields that do not increase the
+#   largest received Retire Prior To value [5]
+# - An endpoint that receives a NEW_CONNECTION_ID quic_frame with a sequence
+#   number smaller than the Retire Prior To field of a previously
+#   received NEW_CONNECTION_ID quic_frame MUST send a corresponding
+#   RETIRE_CONNECTION_ID quic_frame that retires the newly received connection
+#   ID, unless it has already done so for that sequence number. [6] 
+# -  An endpoint that selects a zero-length connection ID during the	
+#    handshake cannot issue a new connection ID.  [7]
+#
+#chris
+
+object quic_frame = { ...
+    object new_connection_id = { ...
+        action handle_maliciously(f:quic_frame.new_connection_id,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+	around handle_maliciously{
+            require connected(dcid) & connected_to(dcid) = scid;
+            require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
+            require num_queued_frames(scid) > 0 -> e = queued_level(scid); #Will change with implementing TODO
+            #chris
+            #require f.length >= 0x1 & f.length <= 0x14; #[1]
+
+            require ~issued_zero_length_cid; # [7]
+
+            if ~_generating { # For error test, carefull, should be specified in generating so
+                require f.retire_prior_to <= f.seq_num; #[4]
+            };
+            require f.seq_num < max_rtp_num(scid) -> send_retire_cid(dcid); #[6] 
+            # var tp := trans_params(dcid);
+            # if _generating {
+            #     if active_connection_id_limit.is_set(tp)  {
+            #         var max := active_connection_id_limit.value(tp).stream_pos_32;
+            #         require num_conn(dcid) < max;
+            #     }
+            # }
+
+            # if  count_newcid_frame(f.seq_num,f.retire_prior_to,f.length,f.scid,f.token) = 1 {
+            #     num_conn(dcid) := num_conn(dcid) + 1;
+            #     var tp := trans_params(dcid);
+            #     if active_connection_id_limit.is_set(tp)  { #~_generating & 
+            #         call acti_coid_check(dcid,num_conn(dcid));
+            #     };
+            # };
+            #chris
+            ...
+            
+	        cid_mapped(f.scid) := true;
+                #cid_mapped(f.dcid) := true;
+	        cid_to_aid(f.scid) := scid;
+                #cid_to_aid(f.dcid) := dcid;
+            seqnum_to_cid(scid,f.seq_num) := f.scid;
+            last_cid_seq(scid)            := f.seq_num; # ncid quant vuln
+            #seqnum_to_cid(dcid,f.seq_num) := f.dcid;
+            #call map_cids(scid,dcid); # ncid quant vuln ?
+            #call map_cids(dcid,scid);
+            count_newcid_frame(f.seq_num,f.retire_prior_to,f.length,f.scid,f.token) := count_newcid_frame(f.seq_num,f.retire_prior_to,f.length,f.scid,f.token) + 1;
+            # if  count_newcid_frame(f.seq_num,f.retire_prior_to,f.length,f.scid,f.token) = 1 {
+            num_conn(dcid) := num_conn(dcid) + 1;
+            #     var tp := trans_params(dcid);
+            #     if active_connection_id_limit.is_set(tp)  { #~_generating & 
+            #         call acti_coid_check(dcid,num_conn(dcid));
+            #     };
+            # };
+            
+            #chris
+            if (f.retire_prior_to > max_rtp_num(scid)) {
+               max_rtp_num(scid) := f.retire_prior_to; #[5] 
+            };
+            #chris
+            #Hamid
+            if (f.seq_num > max_seq_num(scid)) {
+                max_seq_num(scid) := f.seq_num;
+            };
+            #Hamid 
+	        call enqueue_frame(scid,f,e,true,seq_num);
+        }
+    }
+}
+
+#
+###### RETIRE_CONNECTION_ID event
+#
+# RETIRE_CONNECTION_ID frames are used to tell the sender of the new connection id that the connection id will no longer be used.
+#
+# Requirements:
+#  - Receipt of a RETIRE_CONNECTION_ID quic_frame containing a sequence number
+#    greater than any previously sent to the peer MUST be treated as a
+#    connection error of type PROTOCOL_VIOLATION. [1]
+#  - The sequence number specified in a RETIRE_CONNECTION_ID quic_frame MUST
+#    NOT refer to the Destination Connection ID field of the packet in
+#    which the quic_frame is contained.  The peer MAY treat this as a
+#    connection error of type PROTOCOL_VIOLATION. [2]
+#  - An endpoint that is sending packets with a zero-length Destination
+#    Connection ID MUST treat receipt of a NEW_CONNECTION_ID quic_frame as a
+#    connection error of type PROTOCOL_VIOLATION. [3] TODO
+object quic_frame = { ...
+    object retire_connection_id = { ...
+        action handle_maliciously(f:quic_frame.retire_connection_id,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+	    around handle_maliciously{
+            require connected(dcid) & connected_to(dcid) = scid;
+            require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
+            # Will change with implementing TODO
+            require num_queued_frames(scid) > 0 -> e = queued_level(scid); 
+            # TODO remember the highest sequence number that was sent
+            #Hamid
+            require f.seq_num <= max_seq_num(dcid); #[1]
+            #Hamid 
+            # TODO specify that you cannot retire the connection id of the current packet
+            #
+	        ... 
+	        cid_mapped(seqnum_to_cid(dcid, f.seq_num)) := false; #[2]
+            count_rcid_frame(f.seq_num) := count_rcid_frame(f.seq_num) + 1;
+            num_conn(dcid) := num_conn(dcid) - 1;
+            count_newcid_frame(f.seq_num,0,0,seqnum_to_cid(dcid, f.seq_num),0) := count_newcid_frame(f.seq_num,0,0,seqnum_to_cid(dcid, f.seq_num),0) - 1;
+            # if count_rcid_frame(f.seq_num) = 1 {
+            #     num_conn(scid) := num_conn(scid) - 1;
+            # };
+            #Hamid
+            # the connection id seqnum_to_cid is being retired, append it to an array and iterate over the array in packet
+            #Hamid
+	        call enqueue_frame(scid,f,e,false,seq_num);
+        }
+    }
+}
+
+
+#
+###### PATH_CHALLENGE event
+#
+# Path challenge frames are used to request verification of ownership
+# of an endpoint by a peer.
+#
+# A pending path challenge value me not be retransmitted [1]. That is,
+# according to quic-transport-draft-18, section 13.2:
+#
+#     PATH_CHALLENGE frames include a different payload each time they are sent.
+#
+# Notice that we do allow a PATH_CHALLENGE payload to be re-used after
+# it is responded to, on the theory that this is a new challenge and
+# not a retransmission, however, it is unclear that this is the
+# intention of the standard.
+
+object quic_frame = { ...
+    object path_challenge = { ...
+        action handle_maliciously(f:quic_frame.path_challenge,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+	around handle_maliciously{require connected(dcid) & connected_to(dcid) = scid;
+            require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
+            require handshake_done_recv | handshake_done_send;
+            # if _generating {
+            #     require handshake_done_send;
+            # } else {
+            #     require handshake_done_recv;
+            # };
+            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+            require f.data.end = 8;
+            require ~path_challenge_pending(dcid,f.data);
+            ...
+            path_challenge_pending(dcid,f.data) := true;
+            call enqueue_frame(scid,f,e,true,seq_num);
+        }
+    }
+}
+
+#
+###### PATH_RESPONSE event
+#
+# PATH_RESPONSE frames are used to verify ownership of an endpoint in
+# response to a path_challenge quic_frame.
+
+object quic_frame = { ...
+    object path_response = { ...
+        action handle_maliciously(f:quic_frame.path_response,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+	around handle_maliciously{ 
+            require connected(dcid) & connected_to(dcid) = scid;
+            require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
+            if _generating {
+                require ~path_challenge_sent(dcid); # avoid auto response
+            };
+            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+            require f.data.end = 8;
+            require path_challenge_pending(scid,f.data);
+            ...
+            path_challenge_pending(scid,f.data) := false;
+            path_validated := true; # TODO
+            path_validated_pkt_num := seq_num;
+            call enqueue_frame(scid,f,e,true,seq_num);
+        }
+    }
+}
+
+#
+###### NEW_TOKEN event
+#
+# NEW_TOKEN frames are sent by the server to provide the client a
+# token for establishing a new connection.
+
+object quic_frame = { ...
+    object new_token = { ...
+        action handle_maliciously(f:quic_frame.new_token,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+	around handle_maliciously{
+            # TODO for now we save token in clinet & server
+            require connected(dcid) & connected_to(dcid) = scid;
+            require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
+            require num_queued_frames(scid) > 0 -> e = queued_level(scid);
+            if ~_generating {
+                require ~is_client(scid);
+            };
+            ...
+
+            call tls_api.upper.save_token(f.data);
+            call enqueue_frame(scid,f,e,false,seq_num);
+        }
+    }
+}
+
+object quic_frame = {
+    ...
+    object malicious_frame = {
+        ...
+        action handle_maliciously(f:quic_frame.malicious_frame,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+
+        around handle_maliciously{
+                require tls_handshake_finished;
+                require connected(dcid) & connected_to(dcid) = scid;
+                require (e = quic_packet_type.one_rtt) & established_1rtt_keys(scid); # | e = quic_packet_type.zero_rtt  | e = quic_packet_type.zero_rtt & established_0rtt_keys(scid) 
+                require num_queued_frames(scid) = 0;
+                require ~malicous_frame_present(scid);
+                require ~conn_closed(scid);  # [8]
+                require conn_seen(scid);  # [9]
+                ...
+                malicous_frame_present(scid) := true;
+                call enqueue_frame(scid,f,e,false,seq_num);
+            }
+        }
+}
+
+object quic_frame = {
+    ...
+    object malicious_unknown_frame = {
+        ...
+        action handle_maliciously(f:quic_frame.malicious_unknown_frame,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+
+        around handle_maliciously{
+                require tls_handshake_finished;
+                require connected(dcid) & connected_to(dcid) = scid;
+                require (e = quic_packet_type.one_rtt) & established_1rtt_keys(scid); # | e = quic_packet_type.zero_rtt  | e = quic_packet_type.zero_rtt & established_0rtt_keys(scid) 
+                require num_queued_frames(scid) = 0;
+                require ~malicous_frame_present(scid);
+                require ~conn_closed(scid);  # [8]
+                require conn_seen(scid);  # [9]
+                ...
+                malicous_frame_present(scid) := true;
+                call enqueue_frame(scid,f,e,false,seq_num);
+            }
+        }
+}

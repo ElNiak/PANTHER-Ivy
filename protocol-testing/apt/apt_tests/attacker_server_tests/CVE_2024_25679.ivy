@@ -1,0 +1,4 @@
+# In PQUIC before 5bde5bb, retention of unused initial encryption keys allows attackers
+# to disrupt a connection with a PSK configuration by sending a CONNECTION_CLOSE frame
+# that is encrypted via the initial key computed. 
+# Network traffic sniffing is needed as part of exploitation.

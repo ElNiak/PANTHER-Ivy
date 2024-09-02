@@ -1,0 +1,106 @@
+DEBUG:panther-test:Setting process limits
+DEBUG:panther-test:Initial memory limits: soft=-1, hard=-1
+DEBUG:panther-test:Updated memory limits: soft=786432000, hard=-1
+fatal error: runtime: cannot allocate memory
+
+runtime stack:
+runtime.throw(0x7439e0, 0x1f)
+	/usr/local/go/src/runtime/panic.go:1117 +0x72
+runtime.persistentalloc1(0x20, 0x0, 0x97a5a0, 0xc0000a5a60)
+	/usr/local/go/src/runtime/malloc.go:1360 +0x2d1
+runtime.persistentalloc.func1()
+	/usr/local/go/src/runtime/malloc.go:1314 +0x45
+runtime.systemstack(0x469f54)
+	/usr/local/go/src/runtime/asm_amd64.s:379 +0x66
+runtime.mstart()
+	/usr/local/go/src/runtime/proc.go:1246
+
+goroutine 10 [running]:
+runtime.systemstack_switch()
+	/usr/local/go/src/runtime/asm_amd64.s:339 fp=0xc0000a58f8 sp=0xc0000a58f0 pc=0x46a080
+runtime.persistentalloc(0x20, 0x0, 0x97a5a0, 0x0)
+	/usr/local/go/src/runtime/malloc.go:1313 +0x85 fp=0xc0000a5940 sp=0xc0000a58f8 pc=0x40fc45
+runtime.getitab(0x6e8a40, 0x6f5600, 0x1, 0xc0006760b0)
+	/usr/local/go/src/runtime/iface.go:66 +0x157 fp=0xc0000a5990 sp=0xc0000a5940 pc=0x40bd97
+runtime.assertI2I2(0x6e8a40, 0x79f650, 0xc0006620c0, 0x10, 0x10, 0x79f650)
+	/usr/local/go/src/runtime/iface.go:472 +0x6a fp=0xc0000a59c0 sp=0xc0000a5990 pc=0x40d02a
+crypto/cipher.NewCTR(0x79f650, 0xc0006620c0, 0xc000674010, 0x10, 0x78, 0x0, 0x0)
+	/usr/local/go/src/crypto/cipher/ctr.go:36 +0x45 fp=0xc0000a5a18 sp=0xc0000a59c0 pc=0x4a22c5
+github.com/marten-seemann/qtls-go1-16.(*Conn).encryptTicket(0xc00015e000, 0xc000672000, 0x48, 0x80, 0x7fffd12c2a88, 0x419f01, 0x1007fffd12c2b10, 0x7fffd12c2db8, 0x0)
+	/root/go/pkg/mod/github.com/marten-seemann/qtls-go1-16@v0.1.5/ticket.go:158 +0x2f0 fp=0xc0000a5ac8 sp=0xc0000a5a18 pc=0x626a70
+github.com/marten-seemann/qtls-go1-16.(*Conn).getSessionTicketMsg(0xc00015e000, 0xc00066c000, 0x26, 0x40, 0xc000662060, 0x0, 0xc000662060)
+	/root/go/pkg/mod/github.com/marten-seemann/qtls-go1-16@v0.1.5/ticket.go:230 +0x336 fp=0xc0000a5c40 sp=0xc0000a5ac8 pc=0x627516
+github.com/marten-seemann/qtls-go1-16.(*Conn).GetSessionTicket(0xc00015e000, 0xc00066c000, 0x26, 0x40, 0x3fffffffffffffff, 0x5ac, 0x3a4aa2fbb, 0xc1aa6ff7d89ebc34, 0xc000028120)
+	/root/go/pkg/mod/github.com/marten-seemann/qtls-go1-16@v0.1.5/ticket.go:254 +0xda fp=0xc0000a5c88 sp=0xc0000a5c40 pc=0x6276da
+github.com/lucas-clemente/quic-go/internal/handshake.(*cryptoSetup).GetSessionTicket(0xc000682900, 0x8, 0x8, 0xc000026660, 0xc000070f00, 0xc000026660)
+	/app/implementations/quic-implementations/quic-go/internal/handshake/crypto_setup.go:482 +0x52 fp=0xc0000a5cf0 sp=0xc0000a5c88 pc=0x65ce52
+github.com/lucas-clemente/quic-go.(*connection).handleHandshakeComplete(0xc00014e000)
+	/app/implementations/quic-implementations/quic-go/connection.go:791 +0xfd fp=0xc0000a5d90 sp=0xc0000a5cf0 pc=0x672add
+github.com/lucas-clemente/quic-go.(*connection).run(0xc00014e000, 0x0, 0x0)
+	/app/implementations/quic-implementations/quic-go/connection.go:651 +0xfe5 fp=0xc0000a5fc8 sp=0xc0000a5d90 pc=0x671cc5
+runtime.goexit()
+	/usr/local/go/src/runtime/asm_amd64.s:1371 +0x1 fp=0xc0000a5fd0 sp=0xc0000a5fc8 pc=0x46bec1
+created by github.com/lucas-clemente/quic-go.(*baseServer).handleInitialImpl
+	/app/implementations/quic-implementations/quic-go/server.go:497 +0x4b8
+
+goroutine 1 [select]:
+github.com/lucas-clemente/quic-go.(*baseServer).accept(0xc0001324d0, 0x7a0150, 0xc0000180b0, 0x465a60, 0xc000117c28, 0xc000117c30, 0x18)
+	/app/implementations/quic-implementations/quic-go/server.go:271 +0xc5
+github.com/lucas-clemente/quic-go.(*earlyServer).Accept(0xc000010088, 0x7a0150, 0xc0000180b0, 0x7a2300, 0xc00014e000, 0x0, 0x0)
+	/app/implementations/quic-implementations/quic-go/server.go:119 +0x46
+github.com/lucas-clemente/quic-go/interop/http09.(*Server).ListenAndServe(0xc00007d260, 0xc, 0x0)
+	/app/implementations/quic-implementations/quic-go/interop/http09/server.go:81 +0x251
+main.runHTTP09Server(0xc000132420, 0x115b, 0xc000010028, 0x79be00)
+	/app/implementations/quic-implementations/quic-go/server/main.go:94 +0x23f
+main.main()
+	/app/implementations/quic-implementations/quic-go/server/main.go:73 +0x56f
+
+goroutine 8 [IO wait]:
+internal/poll.runtime_pollWait(0x7fffd1284f38, 0x72, 0xc00070e220)
+	/usr/local/go/src/runtime/netpoll.go:222 +0x55
+internal/poll.(*pollDesc).wait(0xc000090098, 0x72, 0xc00070e200, 0x0, 0x0)
+	/usr/local/go/src/internal/poll/fd_poll_runtime.go:87 +0x45
+internal/poll.(*pollDesc).waitRead(...)
+	/usr/local/go/src/internal/poll/fd_poll_runtime.go:92
+internal/poll.(*FD).RawRead(0xc000090080, 0xc0006b3040, 0x0, 0x0)
+	/usr/local/go/src/internal/poll/fd_unix.go:553 +0xff
+net.(*rawConn).Read(0xc000010050, 0xc0006b3040, 0x8, 0xc00012a2c0)
+	/usr/local/go/src/net/rawconn.go:43 +0x68
+golang.org/x/net/internal/socket.(*Conn).recvMsgs(0xc000066000, 0xc00012a2c0, 0x8, 0x8, 0x0, 0xc00000e180, 0xc000057e10, 0xc00004bc00)
+	/root/go/pkg/mod/golang.org/x/net@v0.0.0-20210428140749-89ef3d95e781/internal/socket/rawconn_mmsg.go:37 +0x1b2
+golang.org/x/net/internal/socket.(*Conn).RecvMsgs(...)
+	/root/go/pkg/mod/golang.org/x/net@v0.0.0-20210428140749-89ef3d95e781/internal/socket/socket.go:267
+golang.org/x/net/ipv4.(*payloadHandler).ReadBatch(0xc00007a060, 0xc00012a2c0, 0x8, 0x8, 0x0, 0x0, 0x0, 0x0)
+	/root/go/pkg/mod/golang.org/x/net@v0.0.0-20210428140749-89ef3d95e781/ipv4/batch.go:80 +0xaf
+github.com/lucas-clemente/quic-go.(*oobConn).ReadPacket(0xc000090100, 0xc0006c4360, 0x0, 0x0)
+	/app/implementations/quic-implementations/quic-go/sys_conn_oob.go:150 +0x1f5
+github.com/lucas-clemente/quic-go.(*packetHandlerMap).listen(0xc000132370)
+	/app/implementations/quic-implementations/quic-go/packet_handler_map.go:347 +0x6c
+created by github.com/lucas-clemente/quic-go.newPacketHandlerMap
+	/app/implementations/quic-implementations/quic-go/packet_handler_map.go:163 +0x285
+
+goroutine 9 [select]:
+github.com/lucas-clemente/quic-go.(*baseServer).run(0xc0001324d0)
+	/app/implementations/quic-implementations/quic-go/server.go:233 +0xfa
+created by github.com/lucas-clemente/quic-go.listen
+	/app/implementations/quic-implementations/quic-go/server.go:219 +0x545
+
+goroutine 21 [select]:
+github.com/lucas-clemente/quic-go.(*incomingBidiStreamsMap).AcceptStream(0xc0001562a0, 0x7a0150, 0xc0000180b0, 0x692eea, 0xc000651f78, 0xc000651f18, 0x0)
+	/app/implementations/quic-implementations/quic-go/streams_map_incoming_bidi.go:79 +0x146
+github.com/lucas-clemente/quic-go.(*streamsMap).AcceptStream(0xc0001561c0, 0x7a0150, 0xc0000180b0, 0xc00002c500, 0x7a2cd8, 0xc00014e000, 0xc000026900)
+	/app/implementations/quic-implementations/quic-go/streams_map.go:176 +0xc5
+github.com/lucas-clemente/quic-go.(*connection).AcceptStream(0xc00014e000, 0x7a0150, 0xc0000180b0, 0x441756, 0x7564e8, 0x0, 0x0)
+	/app/implementations/quic-implementations/quic-go/connection.go:1875 +0x4b
+github.com/lucas-clemente/quic-go/interop/http09.(*Server).handleConn(0xc00007d260, 0x7a2300, 0xc00014e000)
+	/app/implementations/quic-implementations/quic-go/interop/http09/server.go:91 +0x71
+created by github.com/lucas-clemente/quic-go/interop/http09.(*Server).ListenAndServe
+	/app/implementations/quic-implementations/quic-go/interop/http09/server.go:85 +0x225
+
+goroutine 13 [select]:
+github.com/lucas-clemente/quic-go.(*sendQueue).Run(0xc000700390, 0x0, 0x0)
+	/app/implementations/quic-implementations/quic-go/send_queue.go:60 +0xfb
+github.com/lucas-clemente/quic-go.(*connection).run.func1(0xc00014e000)
+	/app/implementations/quic-implementations/quic-go/connection.go:548 +0x34
+created by github.com/lucas-clemente/quic-go.(*connection).run
+	/app/implementations/quic-implementations/quic-go/connection.go:547 +0x125

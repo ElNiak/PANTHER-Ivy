@@ -1,0 +1,308 @@
+#lang ivy1.7 
+
+include collections
+
+object packet = {
+    
+    type this 
+
+    instance idx : unbounded_sequence
+    instance arr : array(idx,this) 
+
+    # Normal behavior
+
+    action handle(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
+        require false; 
+    }
+
+    ## Man in the middle
+
+    action forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.arr)
+    around forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.arr) {
+        # require _generating;
+        # require pkt.end > 0;
+        if _generating {
+            require pkt.end > 0;
+            if spoof_server_ip {
+                require src = mim_agent.ep_mim & dst = mim_agent.ep_client;
+            } else {
+                require src = mim_agent.ep_server & (dst = mim_agent.ep_client | dst = mim_agent.ep_target_client | dst = mim_agent.ep_target_server);
+            }
+            require mim_agent.nat_configured;
+            require src ~= dst;
+
+            call show_num_queued_packets_debug_event(dst,num_queued_packets(dst,current_forwarding_round(dst)));
+            call show_num_packets_received_at_round_debug_event(dst,num_packets_received_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst));
+            call show_current_forwarding_round_debug_event(dst,current_forwarding_round(dst));
+            call show_current_receving_round_debug_event(dst,current_receving_round(dst));
+            require num_queued_packets_to_reflect(dst,current_forwarding_round(dst)) = 0;
+            # require ~is_receiving(dst) & ~is_receiving(src);
+            require num_queued_packets(dst,current_forwarding_round(dst)) > 0;
+            # require num_packets_received_at_round(dst,current_forwarding_round(dst)) > 0;
+            require num_queued_packets(dst,current_forwarding_round(dst)) = num_packets_received_at_round(dst,current_forwarding_round(dst));
+            # require packet_to_forward(dst,current_forwarding_round(dst)).end = num_queued_packets(dst,current_forwarding_round(dst));
+
+            require pkt = packet_to_forward(dst,current_forwarding_round(dst));
+        }
+        ...
+        if _generating {
+            call update_forwarded_packet(src,dst);
+        }
+    }
+
+    action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.arr)
+    around forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.arr) {
+        # require _generating;
+        # 
+        if _generating {
+            require pkt.end > 0;
+            if spoof_client_ip {
+                require src = mim_agent.ep_mim & dst = mim_agent.ep_server;
+            } else {
+                require src = mim_agent.ep_client & (dst = mim_agent.ep_server | dst = mim_agent.ep_target_server | dst = mim_agent.ep_target_client);
+            }
+            require mim_agent.nat_configured;
+            require src ~= dst;
+            # require ~is_receiving(dst) & ~is_receiving(src);
+            
+            call show_num_queued_packets_debug_event(dst,num_queued_packets(dst,current_forwarding_round(dst)));
+            call show_num_packets_received_at_round_debug_event(dst,num_packets_received_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst));
+            call show_current_forwarding_round_debug_event(dst,current_forwarding_round(dst));
+            call show_current_receving_round_debug_event(dst,current_receving_round(dst));
+            require num_queued_packets_to_reflect(dst,current_forwarding_round(dst)) = 0;
+            require num_queued_packets(dst,current_forwarding_round(dst)) > 0;
+            # require num_packets_received_at_round(dst,current_forwarding_round(dst)) > 0;
+            require num_queued_packets(dst,current_forwarding_round(dst)) = num_packets_received_at_round(dst,current_forwarding_round(dst));
+            # require packet_to_forward(dst,current_forwarding_round(dst)).end = num_queued_packets(dst,current_forwarding_round(dst));
+            require pkt = packet_to_forward(dst,current_forwarding_round(dst));
+        }
+        ...
+        if _generating {
+            call update_forwarded_packet(src,dst);
+        }
+    }
+
+    action reflect_to(src:ip.endpoint,dst:ip.endpoint,pkt:packet.arr)
+    around reflect_to(src:ip.endpoint,dst:ip.endpoint,pkt:packet.arr) {
+        # require _generating;
+        # 
+        if _generating {
+            require pkt.end > 0;
+            if spoof_client_ip {
+                require src = mim_agent.ep_mim & dst = mim_agent.ep_server;
+            } else {
+                require (src = mim_agent.ep_client & dst = mim_agent.ep_target_server) |
+                        (src = mim_agent.ep_client & dst = mim_agent.ep_target_client) |
+                        (src = mim_agent.ep_server & dst = mim_agent.ep_target_server) |
+                        (src = mim_agent.ep_server & dst = mim_agent.ep_target_client);
+            }
+            require mim_agent.nat_configured;
+            require src ~= dst;
+            # require ~is_receiving(dst) & ~is_receiving(src);
+            
+            call show_num_queued_packets_debug_event(dst,num_queued_packets(dst,current_forwarding_round(dst)));
+            call show_num_packets_received_at_round_debug_event(dst,num_packets_received_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst));
+            call show_current_forwarding_round_debug_event(dst,current_forwarding_round(dst));
+            call show_current_receving_round_debug_event(dst,current_receving_round(dst));
+            
+            # require num_queued_packets_to_reflect(dst,current_forwarding_round(dst)) > 0;
+            # require num_packets_received_at_round(dst,current_forwarding_round(dst)) > 0;
+            require num_queued_packets_to_reflect(dst,current_forwarding_round(dst)) = 1;
+            # require packet_to_forward(dst,current_forwarding_round(dst)).end = num_queued_packets(dst,current_forwarding_round(dst));
+            require pkt = packet_to_reflect(dst,current_forwarding_round(dst));
+        }
+        ...
+        if _generating {
+            call update_forwarded_packet(src,dst);
+        }
+    }
+
+    action replay_to(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
+        require false; 
+    }
+
+    action replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
+        require false; 
+    }
+
+    action replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
+        require false; 
+    }
+
+    action drop(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
+        require false; 
+    }
+
+    action drop_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
+        require false; 
+    }
+
+    action drop_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
+        require false; 
+    }
+
+    action modify(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
+        require false; 
+    }
+
+    action modify_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
+        require false; 
+    }
+
+    action modify_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
+        require false; 
+    }
+
+    action delay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
+        require false; 
+    }
+
+    action delay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
+        require false; 
+    }
+
+    action duplicate_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
+        require false; 
+    }
+
+    action duplicate_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
+        require false; 
+    }
+
+    action reorder_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
+        require false; 
+    }
+
+    action reorder_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
+        require false; 
+    }
+
+    ## White noise
+
+    # 1. Denial-of-Service (DoS) Attacks
+
+    action flood(src:ip.endpoint,dst:ip.endpoint, pkt:this) = {
+        require false; 
+    }
+}
+
+
+# Packet protocol state
+# ---------------------
+
+relation is_receiving(C:ip.endpoint)
+function num_packets_received(C:ip.endpoint)                        : packet.idx
+function num_packets_received_at_round(C:ip.endpoint, R:stream_pos) : packet.idx
+
+function current_receving_round(C:ip.endpoint)                 : stream_pos
+function packets_received_at_round(C:ip.endpoint,R:stream_pos) : packet.arr
+function packets_received(C:ip.endpoint)                       : packet.arr
+
+function num_queued_packets(C:ip.endpoint,R:stream_pos) : packet.idx
+function num_queued_packets_to_reflect(C:ip.endpoint,R:stream_pos) : packet.idx
+function packet_to_forward(C:ip.endpoint,R:stream_pos)  : packet.arr
+function packet_to_reflect(C:ip.endpoint,R:stream_pos)  : packet.arr
+
+function current_forwarding_round(C:ip.endpoint)                                      : stream_pos
+function number_of_modified_packet_at_forwarding_round(C:ip.endpoint, R:stream_pos)   : stream_pos
+function coal_packet_forwarded_at_round(C:ip.endpoint,R:stream_pos)                   : stream_pos
+
+
+after init {
+    num_queued_packets(C,R)          := 0;
+    packet_to_forward(C,R)           := packet.arr.empty;
+    packets_received(C)              := packet.arr.empty;
+    packets_received_at_round(C,R)   := packet.arr.empty;
+}
+
+action enqueue_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet)
+
+before enqueue_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet) {
+    call show_enqueued_packets_debug_event(dst,pkt);
+    packet_to_forward(dst,current_forwarding_round(dst))    := packet_to_forward(dst,current_forwarding_round(dst)).append(pkt);
+    num_queued_packets(dst,current_forwarding_round(dst))   := packet_to_forward(dst,current_forwarding_round(dst)).end; 
+    
+    call show_num_queued_packets_debug_event(dst,num_queued_packets(dst,current_forwarding_round(dst)));
+    call show_num_packets_received_at_round_debug_event(dst,num_packets_received_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst));
+    call show_current_forwarding_round_debug_event(dst,current_forwarding_round(dst));
+    call show_current_receving_round_debug_event(dst,current_receving_round(dst));
+}
+
+action enqueue_packet_reflect(src:ip.endpoint,dst:ip.endpoint,pkt:packet)
+
+before enqueue_packet_reflect(src:ip.endpoint,dst:ip.endpoint,pkt:packet) {
+    call show_enqueued_packets_debug_event(dst,pkt);
+    packet_to_reflect(dst,current_forwarding_round(dst))    := packet_to_reflect(dst,current_forwarding_round(dst)).append(pkt);
+    num_queued_packets_to_reflect(dst,current_forwarding_round(dst))   := packet_to_reflect(dst,current_forwarding_round(dst)).end; 
+    
+    call show_num_queued_packets_debug_event(dst,num_queued_packets(dst,current_forwarding_round(dst)));
+    call show_num_packets_received_at_round_debug_event(dst,num_packets_received_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst));
+    call show_current_forwarding_round_debug_event(dst,current_forwarding_round(dst));
+    call show_current_receving_round_debug_event(dst,current_receving_round(dst));
+}
+
+action receiving_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet, pkt_num: stream_pos)
+after receiving_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet, pkt_num: stream_pos) {
+    call show_receiving_packet_debug_event(dst,pkt);
+    packets_received_at_round(dst,current_receving_round(dst))       := packets_received_at_round(dst,current_receving_round(dst)).append(pkt);
+    packets_received(dst)                                            := packets_received(dst).append(pkt);
+    
+    num_packets_received_at_round(dst,current_receving_round(dst))   := packets_received_at_round(dst,current_receving_round(dst)).end;
+    num_packets_received(dst)                                        := packets_received(dst).end;
+    
+    call show_number_of_coalesced_packets_debug_event(dst,pkt_num);
+    call show_num_queued_packets_debug_event(dst,num_queued_packets(dst,current_forwarding_round(dst)));
+    call show_num_packets_received_at_round_debug_event(dst,num_packets_received_at_round(dst,current_receving_round(dst)),current_receving_round(dst));
+    call show_current_forwarding_round_debug_event(dst,current_forwarding_round(dst));
+    call show_current_receving_round_debug_event(dst,current_receving_round(dst));
+}
+
+import action show_receiving_packet_debug_event(i:ip.endpoint, pkt:packet)
+import action show_enqueued_packets_debug_event(i:ip.endpoint, num:packet)
+import action show_current_forwarding_round_debug_event(i:ip.endpoint, num:stream_pos)
+import action show_current_receving_round_debug_event(i:ip.endpoint, num:stream_pos)
+import action show_number_of_coalesced_packets_debug_event(i:ip.endpoint, num:stream_pos)
+
+action already_forwarded(src:ip.endpoint,dst:ip.endpoint,pkt:packet) returns (res:bool) = {
+    var i : packet.idx := 0;
+    res := false;
+    # while i < packets_received(dst).end {
+    #     if packets_received(dst).value(i) = pkt {
+    #         res := true;
+    #     }
+    #     i := i.next;
+    # }
+}
+
+action update_forwarded_packet(src:ip.endpoint,dst:ip.endpoint) 
+after update_forwarded_packet(src:ip.endpoint,dst:ip.endpoint) {
+    call show_update_forwarded_packet_debug_event(dst);
+    packet_to_forward(dst,current_forwarding_round(dst))  := packet.arr.empty;
+    num_queued_packets(dst,current_forwarding_round(dst)) := 0;
+
+    packet_to_reflect(dst,current_forwarding_round(dst))  := packet.arr.empty;
+    num_queued_packets_to_reflect(dst,current_forwarding_round(dst)) := 0;
+
+    call show_num_queued_packets_debug_event(dst,num_queued_packets(dst,current_forwarding_round(dst)));
+    call show_after_queued_packets_debug_event(dst,packet_to_forward(dst,current_forwarding_round(dst)));
+
+    # var i : packet.idx := 0;
+    # while i < packets_received_at_round(dst,current_forwarding_round(dst)).end {
+    #     packets_received(dst) := packets_received(dst).append(packets_received_at_round(dst,current_forwarding_round(dst)).value(i));
+    #     i := i.next;
+    # }
+    # num_packets_received_at_round(dst,current_forwarding_round(dst)) := 0;
+    # num_packets_received(dst)                                        := packets_received(dst).end;
+    
+    coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := 0;
+    packets_received_at_round(dst,current_forwarding_round(dst))      := packet.arr.empty;
+
+    current_forwarding_round(dst)                                     := current_forwarding_round(dst) + 1;
+}
+
+import action show_update_forwarded_packet_debug_event(i:ip.endpoint)
+import action show_after_queued_packets_debug_event(i:ip.endpoint, num:packet.arr)
+import action show_num_queued_packets_debug_event(i:ip.endpoint, num:packet.idx)
+import action show_num_packets_received_at_round_debug_event(i:ip.endpoint, pkt:packet.idx,r:stream_pos)
+import action show_num_packets_forwarded_last_round_debug_event(i:ip.endpoint, pkt:stream_pos)
+

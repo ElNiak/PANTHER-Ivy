@@ -8,8 +8,8 @@ object ip = {
 
     type addr
     type port
-    type protocol = {udp,tcp}
-    type interface = {lo, ivy}
+    type protocol  = {udp,tcp}
+    type interface = {lo, ivy, ivy_client, ivy_server, veth_ivy}
 
     object endpoint = {
         type this = struct {

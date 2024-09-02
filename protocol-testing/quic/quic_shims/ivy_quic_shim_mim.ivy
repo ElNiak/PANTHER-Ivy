@@ -55,7 +55,7 @@ after modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_p
 }
 
 after forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_pkts) {
-    if _generating {  # & ~conn_closed(pkt.the_cid)
+    # if _generating {  # & ~conn_closed(pkt.the_cid)
         var idx := pkt.begin;
         
         # while idx < pkt.end {
@@ -73,12 +73,12 @@ after forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_
         call net.send(endpoint_id.mim,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
 
         mim_agent.last_cppkt_forwarded_to_server := mim_agent.last_cppkt_forwarded_to_server + 1;
-    }
+   # }
 }
 
 
 after forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_pkts) {
-    if _generating {  # & ~conn_closed(pkt.the_cid)
+   #  if _generating {  # & ~conn_closed(pkt.the_cid)
         var idx := pkt.begin;
 
         # while idx < pkt.end {
@@ -97,7 +97,7 @@ after forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_
         call net.send(endpoint_id.mim,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
         
         mim_agent.last_cppkt_forwarded_to_client := mim_agent.last_cppkt_forwarded_to_client + 1;
-    }
+    # }
 }
 
 after replay_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_pkts) {

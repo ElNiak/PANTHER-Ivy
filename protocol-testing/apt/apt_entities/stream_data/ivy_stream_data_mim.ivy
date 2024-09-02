@@ -1,0 +1,33 @@
+#lang ivy1.7
+
+include order
+include file
+include ip
+include apt_stream_data_endpoint
+include ivy_mim
+include ivy_stream_data_shim
+
+# TODO update packet src port/dst port for invisible on network and host
+ 
+# An ip endpoint for the client to migrate to. TODO
+
+# a socket for the server
+
+var sock_mim_server : stream_data_net.socket
+var sock_mim_client : stream_data_net.socket
+
+instance mim_agent : endpoint.man_in_the_middle_endpoint.mim_ep(server_addr,mim_port_in,server_port,true,true,true)
+
+instance tls_extensions      : vector(tls.extension)
+instance tls_hand_extensions : vector(tls.handshake)
+
+# Open a server socket to listen on and create an instance of TLS.
+# TODO: we should have one instance of TLS per connection
+
+after init {
+    malicious_packet_send := false;
+    mim_agent.ep_server.interface := ip.veth_ivy;
+}
+
+
+# udp && (udp.srcport == 4443 || udp.dstport == 4443 || udp.srcport == 4440 || udp.dstport == 4440 )
