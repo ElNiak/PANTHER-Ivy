@@ -1,0 +1,48 @@
+#lang ivy1.7
+
+###### https://datatracker.ietf.org/doc/draft-huitema-quic-ts/
+
+
+# 2.3.  TIMESTAMP frame format
+
+#    TIMESTAMP frames are identified by the frame type:
+
+#    *  TIMESTAMP (TBD)
+
+#    TIMESTAMP frames carry a single parameter, the timestamp.
+
+#     0                   1                   2                   3
+#     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+#    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+#    |                          Timestamp (i)                      ...
+#    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+#               Figure 1: TIMESTAMP Frame Format with Timestamp
+
+object quic_frame = {
+    ...
+    
+    # (757) 
+    # https://tools.ietf.org/html/draft-iyengar-quic-delayed-ack-02
+    object timestamp = { # TODO could be moved BUT need to refactor the deser/ser in csq 
+        # ACK_FREQUENCY  quic_frame frames are a varianquic_framequic_frame and contains nothing
+		# 1 byte quic_frame to increase the size of a packet
+         variant this of quic_frame = struct {
+			seq_num                     : stream_pos
+         }
+    } 
+}
+
+
+object quic_frame = { ...
+    object timestamp = { ...
+        action handle(f:quic_frame.timestamp,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint)
+	around handle {
+            require connected(dcid) & connected_to(dcid) = scid;
+            require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
+            require (num_queued_frames(scid) > 0) -> e = queued_level(scid);
+            ...
+            call enqueue_frame(scid,f,e,false,seq_num);
+        }
+    }
+}

@@ -52,14 +52,14 @@ checks = [
           ['ded1','OK'],
       ]
     ],
-    ['../doc/examples/testing',
+    ['../protocol-testing/testing',
       [
           ['pingpong','trusted=true','OK'],
           ['interference','trusted=true','error: Call out to right_player.intf_ping'],
           ['coveragefail','trusted=true','error: assertion is not checked'],
       ]
     ],
-    ['../doc/examples',
+    ['../protocol-testing',
      [
       ['account2','OK'],
       ['account3','OK'],
@@ -108,7 +108,7 @@ checks = [
 ]
 
 tests = [
-    ['../doc/examples/testing',
+    ['../protocol-testing/testing',
       [
          ['trivnet','test_completed'],
          ['pingpong','isolate=iso_l','test_completed'],
@@ -127,7 +127,7 @@ tests = [
 ]
 
 repls = [
-    ['../doc/examples',
+    ['../protocol-testing',
       [
          ['leader_election_ring_repl','isolate=iso_impl','leader_election_ring_repl_iso_impl_expect'],
          ['helloworld',None],
@@ -147,7 +147,7 @@ repls = [
 ]
 
 to_cpps = [
-    ['../doc/examples',
+    ['../protocol-testing',
       [
          ['leader_election_ring_repl_err','target=repl','isolate=iso_impl','error: relevant axiom asgn.injectivity not enforced'],
          ['leader_election_ring_repl_err2','target=repl','isolate=iso_impl','error: No implementation for action node.get_next'],

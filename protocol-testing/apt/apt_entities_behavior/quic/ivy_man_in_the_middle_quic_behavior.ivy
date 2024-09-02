@@ -1,0 +1,109 @@
+#lang ivy1.7
+
+include order
+include file
+# include ivy_quic_mim
+include ivy_mim
+
+# Network setup
+# -------------
+var sock : quic_net.socket
+var sock_alt : quic_net.socket
+var sock_vn : quic_net.socket
+
+# Server
+action socket_endpoint_mim(host:endpoint_id,s:quic_net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
+    dst := mim_agent.ep_client if src = mim_agent.ep_server else mim_agent.ep_server; # is_mim_standalone | 
+    call socket_endpoint_mim_event_debug_event(host,s,src,dst);
+}
+
+import action socket_endpoint_mim_event_debug_event(host:endpoint_id,s:quic_net.socket,src:ip.endpoint,dst:ip.endpoint)
+
+action endpoint_to_socket_mim(src:ip.endpoint) returns (socket:quic_net.socket) = {
+    socket := sock_mim_server if src = mim_agent.ep_server else sock_mim_client; #  & ~forged_packet_send
+}
+
+# Get the IP endpoint associated to a host id and socket number.
+
+action socket_endpoint(host:endpoint_id,s:quic_net.socket) returns (src:ip.endpoint) = {
+    src := mim_agent.ep_server; # TODO
+}
+
+# Returns true if an IP endpoint is controlled by the generator.
+# TODO: shouldn't be needed.
+
+action dst_is_generated(dst:ip.endpoint) returns (res:bool) = {
+    res := dst = mim_agent.ep_server; # | dst = client_alt | dst = client_vn
+}
+
+action dst_is_generated_tls(dst:ip.endpoint) returns (res:bool) = {
+    res := dst = mim_agent.ep_server; # | dst = client_alt | dst = client_vn
+}
+
+# Returns the TLS instance associated to a destination IP endppoint.
+# TODO: shouldn't be needed.
+# toward 
+action dst_tls_id(dst:ip.endpoint) returns (tls_id:tls_api.id) = {
+    tls_id := 1;
+}
+
+action src_tls_id(src:ip.endpoint) returns (tls_id:tls_api.id) = {
+    tls_id := 0;
+    # if src = mim_agent.ep_server 
+    # else second_client.tls_id; #TODO can cause error server vn eg
+}
+
+action tls_id_to_src(tls_id:tls_api.id) returns (src:ip.endpoint) = {
+    src := client.ep if tls_id = client.tls_id & ~version_negociated else (client_vn if tls_id = client.tls_id & version_negociated else server.ep);
+}
+
+action other_tls_id_to_cid(tls_id:tls_api.id) returns (scid:cid) = {
+    scid := server_cid;
+}
+
+# Get the destination IP endpoint associated to a TLS instance
+# TODO: this shouldn't be needed.
+
+action tls_id_to_dst(tls_id:tls_api.id) returns (dst:ip.endpoint) = {
+    dst := server.ep if tls_id = client.tls_id else client.ep;
+}
+
+# Get cid associated to a TLS instance
+
+action tls_id_to_cid(tls_id:tls_api.id) returns (scid:cid) = {
+    scid := the_cid;
+}
+# Client
+# action socket_endpoint_mim(host:endpoint_id,s:quic_net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
+#     dst := client.ep if (is_mim_standalone | src = mim_agent.ep_server) else server.ep;
+# }
+
+# action endpoint_to_socket_mim(src:ip.endpoint) returns (socket:quic_net.socket) = {
+#     socket := sock_mim_client if src = mim_agent.ep_client else sock_mim_server; #  & ~forged_packet_send
+# }
+
+
+action endpoint_to_socket(src:ip.endpoint) returns (socket:quic_net.socket) = {
+    if src = mim_agent.ep_server {
+        socket := sock_mim_server;
+    } 
+    # else if src = client_alt {
+    #     socket := sock_alt;
+    # } else if src = client_vn {
+    #     socket := sock_vn;
+    # } 
+}
+
+after init {
+    sock_mim_server := quic_net.eavesdrop(endpoint_id.man_in_the_middle, mim_agent.ep_server);
+    # sock_mim_client := quic_net.listen(endpoint_id.man_in_the_middle, mim_agent.ep_client);
+    mim_agent.set_tls_id(4); # 0 is default value, we dont wont that
+    mim_agent.ep_mim.addr := mim_addr;
+    if spoof_client_ip { # TODO here opposite of spoofing IP address
+        mim_agent.ep_mim.port := client_port;
+    } else if spoof_server_ip {
+        mim_agent.ep_mim.port := server_port;
+    } else {
+        mim_agent.ep_mim.port := client_port;
+    }
+}

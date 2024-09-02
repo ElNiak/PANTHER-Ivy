@@ -1,0 +1,201 @@
+#lang ivy1.7
+
+
+# Initial state
+# -------------
+
+# The history variables are initialized as follows.  Initially, no
+# connections have been seen and no packets have been sent or
+# acknowledged.
+
+
+object packet = {
+   ...
+
+    # 1-RTT Packet {
+    #     Header Form (1) = 0,
+    #     Fixed Bit (1) = 1,
+    #     Spin Bit (1),
+    #     Reserved Bits (2),         # Protected
+    #     Key Phase (1),             # Protected
+    #     Packet Number Length (2),  # Protected
+    #     Destination Connection ID (0..160),
+    #     Packet Number (8..32),     # Protected
+    #     Protected Payload (0..24), # Skipped Part
+    #     Protected Payload (128),   # Sampled Part
+    #     Protected Payload (..),    # Remainder
+    # }
+  
+    object encrypted_short_quic_packet = {
+        variant this of packet = struct {
+            head_byte : stream_pos, # [2]
+            dst_cid : cid, # [4]
+            payload : stream_data # [8]
+        }
+
+        #Hamid
+        #instance retired_cids : array(idx, cid_seq)
+        #Hamid
+
+        instance idx : unbounded_sequence
+        instance arr : array(idx,this) 
+
+    }
+}
+
+
+object packet = {
+    ...
+
+    object encrypted_short_quic_packet = {
+        ...
+        
+        action forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet)
+        around forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
+            # require _generating;
+            if _generating {
+                require mim_agent.nat_configured;
+                if spoof_server_ip {
+                    require src = mim_agent.ep_mim & dst = mim_agent.ep_client;
+                } else {
+                    require src = mim_agent.ep_server & dst = mim_agent.ep_client;
+                }
+                # require num_packets_received_at_round(dst,current_forwarding_round(dst)) > 0;
+                # require num_queued_packets(dst,current_forwarding_round(dst)) <= num_packets_received_at_round(dst,current_forwarding_round(dst));
+                require is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require src ~= dst;
+                require pkt.payload.end > 0;
+            }
+            ...
+            if _generating {
+                call enqueue_packet(src,dst,pkt);
+                is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
+                coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
+                call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+            }
+        }
+
+        action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet)
+        around forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
+            # require _generating;
+            if _generating {
+                require mim_agent.nat_configured;
+                if spoof_client_ip {
+                    require src = mim_agent.ep_mim & dst = mim_agent.ep_server;
+                } else {
+                    require src = mim_agent.ep_client & dst = mim_agent.ep_server;
+                }
+                # require num_packets_received_at_round(dst,current_forwarding_round(dst)) > 0;
+                # require num_queued_packets(dst,current_forwarding_round(dst)) <= num_packets_received_at_round(dst,current_forwarding_round(dst));
+                require is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require src ~= dst;
+                require pkt.payload.end > 0;
+            }
+            ...
+            if _generating {
+                call enqueue_packet(src,dst,pkt);
+                is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
+                coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
+                call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+            }
+        }
+
+        action replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet)
+        around replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
+            # require _generating;
+            if _generating {
+                require pkt.payload.end > 0;
+                require mim_agent.nat_configured;
+                if spoof_server_ip {
+                    require src = mim_agent.ep_mim & dst = mim_agent.ep_client;
+                } else {
+                    require src = mim_agent.ep_server & dst = mim_agent.ep_client;
+                }
+                require is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require src ~= dst;
+            }
+            ...
+            if _generating {
+                call enqueue_packet(src,dst,pkt);
+                is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := true;
+                coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
+                call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+            }
+        }
+
+        action replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet)
+        around replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
+            # require _generating;
+            if _generating {
+                require pkt.payload.end > 0;
+                require mim_agent.nat_configured;
+                if spoof_client_ip {
+                    require src = mim_agent.ep_mim & dst = mim_agent.ep_server;
+                } else {
+                    require src = mim_agent.ep_client & dst = mim_agent.ep_server;
+                }
+                require is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require src ~= dst;
+            }
+            ...
+            if _generating {
+                call enqueue_packet(src,dst,pkt);
+                is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := true;
+                coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
+                call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+            }
+        }
+
+        action modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet)
+        around modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
+            # require _generating;
+            if _generating {
+                require pkt.payload.end > 0;
+                require mim_agent.nat_configured;
+                require is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+                require src ~= dst;
+                if spoof_client_ip {
+                    require src = mim_agent.ep_mim & dst = mim_agent.ep_server;
+                } else {
+                    require src = mim_agent.ep_client & dst = mim_agent.ep_server;
+                }
+            }
+            ...
+            if _generating {
+                call enqueue_packet(src,dst,pkt);
+                is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := true;
+                coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
+                call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+            }            
+        }
+    }
+
+}
+
+function encrypted_short_quic_packets_received_last_round(C:ip.endpoint) : packet.encrypted_short_quic_packet.arr 
+function encrypted_short_quic_packet_received_at_round(C:ip.endpoint,P:stream_pos,R:stream_pos) : packet.encrypted_short_quic_packet
+relation is_encrypted_short_quic_packet_received(C:ip.endpoint, P:packet.encrypted_short_quic_packet, P:stream_pos) 
+relation encrypted_short_quic_packet_forwarded(C:ip.endpoint, P:packet.encrypted_short_quic_packet)
+
+after init {
+    encrypted_short_quic_packets_received_last_round(C) := packet.encrypted_short_quic_packet.arr.empty;
+}
+
+before enqueue_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet) {
+    if some(cf:packet.encrypted_short_quic_packet) pkt *> cf  {
+        encrypted_short_quic_packet_forwarded(dst,cf) := true;
+    } 
+}
+
+after receiving_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet, pkt_num: stream_pos) {
+    if some(cf:packet.encrypted_short_quic_packet) pkt *> cf  {
+        encrypted_short_quic_packet_received_at_round(dst,pkt_num,current_receving_round(dst))  := cf;
+        is_encrypted_short_quic_packet_received(dst,cf,pkt_num)       := true;
+        encrypted_short_quic_packets_received_last_round(dst)         := encrypted_short_quic_packets_received_last_round(dst).append(cf);
+    } 
+}
+
+after update_forwarded_packet(src:ip.endpoint,dst:ip.endpoint) {
+    # is_encrypted_short_quic_packet_received(dst) := false;
+    encrypted_short_quic_packets_received_last_round(dst) := packet.encrypted_short_quic_packet.arr.empty;
+}

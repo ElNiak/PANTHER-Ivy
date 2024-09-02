@@ -1,0 +1,79 @@
+#lang ivy1.7
+
+object endpoint_id = {
+    type this = {
+        client, client_alt, server,
+
+        # QUIC specific
+        client_vn,
+
+        target, target_alt, malicious_client, malicious_server, man_in_the_middle, c2_server, bot
+    }
+}
+
+object target_application_protocol = {
+    type this = {
+        quic, minip, http, stream_data
+    }
+}
+
+# We use this type as a host id. There are two client host ids so we can model migration.
+
+
+action endpoint_id_addr(ep_id : endpoint_id) returns (ep:ip.endpoint) = {
+    ep.protocol := ip.udp; # TODO 
+
+    ep.addr := target_addr_server if ep_id = endpoint_id.target | ep_id = endpoint_id.target_alt  
+                else (client_addr if ep_id = endpoint_id.client
+                else (server_addr if ep_id = endpoint_id.server
+                # else (client_vn_addr if ep_id = endpoint_id.client_vn
+                else (mim_addr if ep_id = endpoint_id.man_in_the_middle
+                else (malicious_client_addr if ep_id = endpoint_id.malicious_client
+                else (malicious_server_addr if ep_id = endpoint_id.malicious_server
+                else (c2_server_addr if ep_id = endpoint_id.c2_server
+                else (bot_addr)))))));
+
+    ep.port := target_port_server if ep_id = endpoint_id.target
+                else (target_port_client if ep_id = endpoint_id.target_alt
+                else (client_port if ep_id = endpoint_id.client
+                else (server_port if ep_id = endpoint_id.server
+                else (client_port_vn if ep_id = endpoint_id.client_vn
+                else (mim_port_in if ep_id = endpoint_id.man_in_the_middle
+                else (malicious_client_port if ep_id = endpoint_id.malicious_client
+                else (malicious_server_port if ep_id = endpoint_id.malicious_server
+                else (c2_server_port if ep_id = endpoint_id.c2_server
+                else (bot_port)))))))));
+
+}
+
+object endpoint = {
+    type this
+
+    object client_endpoint = {
+        variant this of endpoint = struct { }
+    }
+
+    object server_endpoint = {
+        variant this of endpoint = struct { }
+    }
+
+    object man_in_the_middle_endpoint = {
+        variant this of endpoint = struct { }
+    }
+
+    object client_attacker_endpoint = {
+        variant this of endpoint = struct { }
+    }
+    
+    object server_attacker_endpoint = {
+        variant this of endpoint = struct { }
+    }
+
+    module c2_server_ep(address:ip.addr, port: ip.port) = {
+        
+    }
+
+    module bot_ep(address:ip.addr, port:ip.port) = {
+
+    }
+}

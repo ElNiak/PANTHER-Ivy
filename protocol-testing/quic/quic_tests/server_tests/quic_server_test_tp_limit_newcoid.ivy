@@ -43,7 +43,7 @@ action make_transport_parameters returns (tp:quic_transport_parameters) = {
     #    close the connection with an error of type CONNECTION_ID_LIMIT_ERROR.
 
     # We check here during the execution if we never exceed 2 active connections 
-    # in quic_frame.ivy
+    # in frame.ivy
 
     var acid : active_connection_id_limit;
     acid.stream_pos_32 := 2;

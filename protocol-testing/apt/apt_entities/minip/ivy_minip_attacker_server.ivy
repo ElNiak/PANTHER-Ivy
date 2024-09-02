@@ -1,0 +1,16 @@
+#lang ivy1.7
+
+include order
+include file
+# include quic_locale
+include apt_minip_endpoint
+include ivy_attacker
+
+# TODO create socket for client & server
+# TODO associate these data to the entities itself
+
+instance server : endpoint.server_attacker_endpoint.attacker_minip_ep(
+    server_addr,
+    server_port,
+    client_port,true,true)
+

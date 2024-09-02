@@ -1,0 +1,117 @@
+#lang ivy1.7
+
+include order
+include file
+# include random_value
+
+include ivy_minip_mim
+include ivy_minip_target
+include ivy_minip_attacker_client
+
+include ivy_minip_shim
+include ivy_minip_shim_mim
+
+include ivy_man_in_the_middle_minip_behavior
+
+include ivy_quic_client_standard_tp
+
+# NB: need bigger timeout (at least 90 sec)
+
+after init {
+    is_mim_standalone := true;
+    call mim_agent.configure_NAT_attack(client_addr,server_addr);
+    call mim_agent.configure_NAT_attack(server_addr,client_addr);
+    call time_api.c_timer.start;
+}
+
+
+export packet.forward_to_client
+# attribute packet.forward_to_client.weight = "100"
+export packet.forward_to_server
+# attribute packet.forward_to_server.weight = "50"
+
+
+object packet = {
+    ...
+    
+    object ping_packet = {
+        ...
+        before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+            
+            if _generating {
+                require pkt.payload = ping_packet_received_at_round(dst,
+                                                                    coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                    current_forwarding_round(dst)).payload;
+            } 
+        }
+
+        before replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+            
+            if _generating {
+                require pkt.payload = ping_packet_received_at_round(dst,
+                                                                    coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                    current_forwarding_round(dst)).payload;
+            } 
+        }
+
+        before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+            
+            if _generating {
+                require pkt.payload = ping_packet_received_at_round(dst,
+                                                                    coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                    current_forwarding_round(dst)).payload;
+            } 
+        }
+
+        before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+            
+            if _generating {
+                require pkt.payload = ping_packet_received_at_round(dst,
+                                                                    coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                    current_forwarding_round(dst)).payload;
+            } 
+        }
+
+        before modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+            
+            if _generating {
+                require pkt.payload = ping_packet_received_at_round(dst,
+                                                                                    coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
+                                                                                    current_forwarding_round(dst)).payload |
+                                      pkt.payload.end >= 0;
+            } 
+        }
+    }
+}
+
+
+
+export packet.ping_packet.forward_to_server
+export packet.ping_packet.forward_to_client
+
+# attribute packet.ping_packet.forward_to_server.weight = "15"
+# attribute packet.ping_packet.forward_to_client.weight = "15"
+
+# export packet.ping_packet.replay_to_client
+# export packet.ping_packet.replay_to_server
+
+# attribute packet.ping_packet.replay_to_server.weight = "5"
+# attribute packet.ping_packet.replay_to_client.weight = "5"
+
+# export packet.ping_packet.modify
+
+# attribute packet.ping_packet.modify.weight = "5"
+
+# Final check
+#
+# When the test is complete, the tester calls the special action `_finalize`.
+# We use this action to make some heuristic checks, for example that some
+# data was actually received from the server. We can add advice to this
+# action with additional checks.
+
+export action _finalize = {
+    # chris TODO 
+    call mim_agent.reset_NAT;
+}
+
+

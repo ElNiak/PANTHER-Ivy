@@ -1,0 +1,76 @@
+#lang ivy1.7 
+
+include apt_packet
+
+# Injecting random or meaningless packets into network 
+# traffic to overwhelm the network, disrupt legitimate 
+# communications, or mask malicious activities.
+
+# 1. Denial-of-Service (DoS) Attacks
+
+    #Description: Overwhelming a network or service with a flood of traffic to make 
+    # it unavailable to legitimate users.
+
+# see apt_packet.ivy
+
+# 2. Distributed Denial-of-Service (DDoS) Attacks
+
+    # Description: Similar to DoS but conducted from multiple distributed 
+    # sources, making it harder to mitigate.
+
+action botnet_ddos() = {}
+
+action amplification_ddos() = {}
+
+action chargen_ddos() = {}
+
+# 3. Protocol Abuse Attacks
+
+    # Description: Exploiting weaknesses or peculiarities in network protocols 
+    # to generate excessive traffic or disrupt communications.
+    
+action syn_flood() = {}
+
+action ack_flood() = {}
+
+action fin_flood() = {}
+
+action rst_flood() = {}
+
+action fragmentation_flood() = {}
+
+action teardrop_attack() = {}
+
+action ping_of_death() = {}
+
+action land_attack() = {}
+
+# 4. Traffic Analysis Obfuscation
+
+#     Description: Injecting noise into network traffic to obscure patterns and
+#     make it difficult for traffic analysis systems to detect anomalies or 
+#     malicious activities.
+
+
+action decoy_traffic() = {}
+
+action random_traffic() = {}
+
+action time_based_traffic() = {}
+
+action protocol_mixing_traffic() = {}
+
+action padding_traffic() = {}
+
+
+# 5. Bandwidth Exhaustion
+
+#     Description: Consuming available bandwidth with high-volume, 
+    # low-content traffic to degrade the quality of service for legitimate users.
+
+action continuous_traffic() = {}
+
+action burst_traffic() = {}
+
+action intermittent_traffic() = {}
+

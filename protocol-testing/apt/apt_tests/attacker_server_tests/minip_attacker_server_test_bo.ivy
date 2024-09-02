@@ -1,0 +1,99 @@
+#lang ivy1.7
+
+include order
+include file
+# include random_value
+
+include ivy_minip_mim
+include ivy_minip_target
+include ivy_minip_attacker_client
+
+
+include apt_shim
+include ivy_minip_shim
+include ivy_minip_shim_attacker_client
+
+include ivy_ping_client_behavior
+include ivy_minip_attacker_client_behavior
+
+include ivy_quic_client_standard_tp
+
+include apt_time
+
+
+# An endpoint MUST NOT initiate
+#   connection migration before the handshake is confirmed, as defined in
+#   section 4.1.2 of [minip-TLS].
+
+after init {
+    call time_api.c_timer.start;
+}
+
+import action show_endpoint_debug_event(ep:ip.endpoint)
+
+after init {
+    sock := quic_net.open(endpoint_id.client,client.ep);
+    client.set_tls_id(1);
+    server.set_tls_id(0);
+}
+
+function number_ping_send : stream_pos
+
+before ping_frame.ping.handle_maliciously(f:ping_frame.ping,dst:ip.endpoint) {
+    if _generating {
+        # require ~size_used(f.data.end);
+        require f.data.end  = 13;
+        # require number_ping_send > 2;
+        # require f.data.end > 1 & f.data.end < 100000;
+        require exists I. I < f.data.end-8  & 
+        (f.data.value(I)   = 0x25  & f.data.value(I+1) = 0x78  &
+         f.data.value(I+2) = 0x25  & f.data.value(I+3) = 0x78  &
+         f.data.value(I+4) = 0x25  & f.data.value(I+5) = 0x78  &
+         f.data.value(I+6) = 0x25  & f.data.value(I+7) = 0x6e);
+        require dst = server.ep;
+    }
+} 
+
+after ping_frame.ping.handle_maliciously {
+    if _generating {
+        ping_frame_pending := true;
+        size_used(f.data.end) := true;
+    }
+}
+
+before ping_frame.timestamp.handle(f:ping_frame.timestamp,dst:ip.endpoint) {
+    if _generating {
+        require dst = server.ep;
+    }
+}
+
+before ping_frame.ping.handle(f:ping_frame.ping,dst:ip.endpoint) {
+    if _generating {
+        require dst = server.ep;
+    }
+}
+
+after ping_frame.ping.handle {
+    if _generating {
+        number_ping_send := number_ping_send + 1;
+    }
+}
+
+# export ping_frame.ping.handle
+export ping_frame.ping.handle_maliciously
+export ping_frame.timestamp.handle
+
+# export ping_packet_event
+export ping_packet_event_malicious
+
+# export client_send_event_malicious
+# export client_send_event
+#
+# When the test is complete, the tester calls the special action `_finalize`.
+# We use this action to make some heuristic checks, for example that some
+# data was actually received from the server. We can add advice to this
+# action with additional checks.
+
+export action _finalize = { 
+}
+

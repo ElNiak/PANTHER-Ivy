@@ -1,0 +1,32 @@
+#lang ivy1.7
+include order
+include file
+include apt_shim 
+include ip
+include tls_record
+
+#################################################
+# Attacker related parameters
+#################################################
+
+parameter malicious_client_addr : ip.addr = 0x0a000001
+parameter malicious_client_port : ip.port = 4441
+
+parameter malicious_server_addr : ip.addr = 0x0a000001
+parameter malicious_server_port : ip.port = 4442
+
+parameter is_scanning         : bool = true
+parameter start_scanning_port : ip.port = 4442
+parameter end_scanning_port   : ip.port = 4443
+parameter scanning_interval   : stream_pos = 1
+parameter scanning_timeout    : stream_pos = 1
+parameter scanning_timeout_max: stream_pos = 10
+parameter scanning_timeout_min: stream_pos = 1
+parameter scanning_timeout_step: stream_pos = 1
+parameter scanning_timeout_max_retries: stream_pos = 3
+parameter scanning_timeout_min_retries: stream_pos = 1
+parameter scanning_common_ports : bool = true
+
+parameter verify_incoming_packet : bool = true
+parameter slow_loris : bool = false
+

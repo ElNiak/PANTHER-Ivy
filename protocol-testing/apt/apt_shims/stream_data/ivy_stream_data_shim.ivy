@@ -1,0 +1,37 @@
+#lang ivy1.7
+
+include apt_shim
+
+instance stream_prot : protection.stream_data_protection(tls_api.id,tls_api.upper)
+
+include stream_data_locale
+include apt_endpoint
+
+include ivy_stream_data_mim
+include ivy_stream_data_target
+include ivy_stream_data_attacker
+include ivy_c2_server
+include ivy_bot
+
+
+implement stream_data_net.recv(host:endpoint_id, s:stream_data_net.socket, src:ip.endpoint, pkts:stream_prot.arr) {
+    # call show_current_time_debug_event(time_api.c_timer.now_micros_last_bp);
+    call show_socket_debug_event(s);
+    if host = endpoint_id.server {       
+        call server.behavior(host,s,src,pkts);
+    } else if host = endpoint_id.client | host = endpoint_id.client_alt { 
+        call client.behavior(host,s,src,pkts);
+    } else if host = endpoint_id.target {
+        call host_debug_event(host);
+    } else if host = endpoint_id.man_in_the_middle {
+        call mim_agent.behavior(host,s,src,pkts);
+    } else {
+        # ERROR
+        call undefined_host_error(host,s,src);
+    };    
+}
+
+
+import action show_socket_debug_event(s:stream_data_net.socket)
+import action host_debug_event(host:endpoint_id)
+import action undefined_host_error(host:endpoint_id,s:stream_data_net.socket,src:ip.endpoint)

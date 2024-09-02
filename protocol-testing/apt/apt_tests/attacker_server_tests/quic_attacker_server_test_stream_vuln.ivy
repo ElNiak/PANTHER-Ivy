@@ -1,0 +1,190 @@
+#lang ivy1.7
+
+include order
+include file
+# include random_value
+
+include ivy_quic_mim
+include ivy_quic_target
+include ivy_quic_attacker_client
+
+include apt_shim
+include ivy_quic_shim
+include ivy_quic_shim_attacker_client
+
+include ivy_quic_client_behavior
+include ivy_quic_attacker_client_behavior
+
+include ivy_quic_client_standard_tp
+
+include apt_time
+
+
+# An endpoint MUST NOT initiate
+#   connection migration before the handshake is confirmed, as defined in
+#   section 4.1.2 of [QUIC-TLS].
+
+after init {
+    call time_api.c_timer.start;
+}
+
+import action show_endpoint_debug_event(ep:ip.endpoint)
+
+after init {
+    call show_endpoint_debug_event(client.ep);
+    call show_endpoint_debug_event(client.ep_server);
+    call show_endpoint_debug_event(server.ep);
+    verify_incoming_packet := true;
+    # slow_loris := true;
+
+    sock := quic_net.open(endpoint_id.client,client.ep);
+    sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
+    sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
+    
+    client.set_tls_id(1);
+    server.set_tls_id(0);
+
+    client_current_connection_id := 1;
+    tls_id_map_ep(client.tls_id)       := client.ep;
+    other_tls_id_map_ep(client.tls_id) := server.ep;
+    cid_map_tls_id(server_cid)         := client.tls_id;
+    cid_map_tls_id(the_cid)            := client.tls_id;
+    ep_map_tls_id(client.ep)           := client.tls_id;
+    ep_map_cid(client.ep)              := the_cid;
+    ep_present(client.ep)              := true;
+    used_client_ports(client.ep.port)  := true;
+    cid_map_sock(server_cid)           := sock;
+    cid_map_sock(the_cid)              := sock;
+    cid_map_ep(server_cid)             := server.ep;
+    cid_map_ep(the_cid)                := client.ep;
+
+    call show_cid_event(the_cid);
+    call show_cid_event(server_cid);
+    
+    tls_id_map_ep(server.tls_id)       := server.ep;
+    other_tls_id_map_ep(server.tls_id) := client.ep;
+    ep_map_tls_id(server.ep)           := server.tls_id;
+    # ep_map_cid(server.ep)              := the_cid;
+   
+    var extns := tls_extensions.empty;
+    extns := extns.append(make_transport_parameters);
+    call tls_api.upper.create(client.tls_id,false,extns);  # false means this instance of tls is not a server
+}
+import action show_cid_event(cid:cid)
+after init {
+    token_saved := false;
+}
+
+# The protocol specification describes all the events occurring the
+# system at all protocol layers. When constructing the test mirror,
+# however, we need to generate only events that are outputs of the
+# environment. Ivy doesn't have any built-in mechanism to do this,
+# so we have to add a constraint to every generated action. 
+#
+# We also add other pre-conditions to the actions to try to restrict
+# them to relevant parameter values. 
+#
+# To restrict the generated events, we use the built-in predicate
+# "_generating" that is true if this is a generated event.
+#
+# This is the mirror constraint for the stream quic_frame protocol. We add
+# some requirements to make the tests more interesting. In particular,
+# we don't want the tester to produce lots of tiny frames (or empty
+# ones) so we require that a stream quic_frame send all of the available
+# stream data. 
+#
+# TODO: We reuquire tje `off` and `len` bits to be true. Maybe these should
+# determined in the low-level packet encoding stage.
+
+# static uint8_t test_frame_stream_hang[] = {
+#     0x01, 
+#     0x00, 0x0D, 0xFF, 0xFF, 0xFF, 0x01, 0x00,
+#     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+#     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+# };
+# https://github.com/private-octopus/picoquic/issues/969
+before quic_frame.stream.handle_maliciously(f:quic_frame.stream,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
+    if _generating {
+        require used_client_ports(src.port);
+        require src.protocol = ip.udp;
+        require src.interface = ip.veth_ivy;
+        require src.addr = client.ep.addr;
+	    require ep_present(src) &  scid = ep_map_cid(src);
+        require connected( ep_map_cid(src)) & dcid = connected_to( ep_map_cid(src));
+        # require f.len & f.off; 
+        # require f.length > 0;
+        # require f.offset = stream_length(dcid,f.id);
+        f.offset := 0xffffffff;
+        # require f.length = (stream_app_data_end(dcid,f.id)) - f.offset;
+        #f.id := 0xffffffff;
+        #f.length:= 110;
+    };
+}
+
+
+# static uint8_t test_frame_stream_hang[] = {
+#     0x01, 
+#     0x00, 0x0D, 0xFF, 0xFF, 0xFF, 0x01, 0x00,
+#     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+#     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+# };
+
+# before quic_frame.malicious_frame.handle_maliciously(f:quic_frame.malicious_frame,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
+#     if _generating {
+#         require scid = the_cid;
+#         f.data := stream_data.empty;
+#         f.data := f.data.append(0x00);
+#         f.data := f.data.append(0x0D);
+#         f.data := f.data.append(0xFF);
+#         f.data := f.data.append(0xFF);
+#         f.data := f.data.append(0xFF);
+#         f.data := f.data.append(0x01);
+#         f.data := f.data.append(0x00);
+#         f.data := f.data.append(0xFF);
+#         f.data := f.data.append(0xFF);
+#         f.data := f.data.append(0xFF);
+#         f.data := f.data.append(0xFF);
+#         f.data := f.data.append(0xFF);
+#         f.data := f.data.append(0xFF);
+#         f.data := f.data.append(0xFF);
+#         f.data := f.data.append(0xFF);
+#         f.data := f.data.append(0xFF);
+#         f.data := f.data.append(0xFF);
+#         f.data := f.data.append(0xFF);
+#         f.data := f.data.append(0xFF);
+#         f.data := f.data.append(0xFF);
+#         f.data := f.data.append(0xFF);
+#     }
+# }
+
+export quic_frame.ack.handle
+export quic_frame.stream.handle_maliciously ## V2
+export quic_frame.crypto.handle
+export quic_frame.path_response.handle
+export malicious_packet_event
+export packet_event
+export client_send_event
+export tls_recv_event
+#export quic_frame.new_connection_id.handle_maliciously
+#export quic_frame.retire_connection_id.handle_maliciously
+#export quic_frame.rst_stream.handle_maliciously
+#export quic_frame.malicious_frame.handle_maliciously ## V1
+#export quic_frame.max_stream_id.handle_maliciously
+#export quic_frame.connection_close.handle_maliciously # TODO
+#export quic_frame.max_stream_data.handle_maliciously
+#export quic_frame.max_data.handle_maliciously
+
+# Final check
+#
+# When the test is complete, the tester calls the special action `_finalize`.
+# We use this action to make some heuristic checks, for example that some
+# data was actually received from the server. We can add advice to this
+# action with additional checks.
+
+export action _finalize = {
+    # chris TODO 
+    require is_no_error;
+    require conn_total_data(the_cid) > 0;
+    #call 
+}
+

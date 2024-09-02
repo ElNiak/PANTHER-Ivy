@@ -688,60 +688,60 @@ module tcp_impl(pkt,me,ip_addr, port_base,ser,des) = {
 # Here we put any new members of the ivy C++ class. If we have allocated a per-instance
 # object, we declared it here anti-quoted. The plugs in the actual member name, which may
 # be any array if this is a parameterized instance.
-    object impl = {
+object impl = {
 
-<<< member
+    <<< member
 
-    tcp_listener *`rdr`;             // the listener task
-    tcp_listener_accept *`rdra`;             // the listener task
-    tcp_callbacks *`cb`;             // the callbacks to ivy
-    hash_space::hash_map<int,tcp_queue *> `send_queue`;   // queues of blocked packets, per socket
+        tcp_listener *`rdr`;             // the listener task
+        tcp_listener_accept *`rdra`;             // the listener task
+        tcp_callbacks *`cb`;             // the callbacks to ivy
+        hash_space::hash_map<int,tcp_queue *> `send_queue`;   // queues of blocked packets, per socket
 
->>>
+    >>>
 
-<<< member
+    <<< member
 
-    tcp_config *the_tcp_config;  // the current configurations
+        tcp_config *the_tcp_config;  // the current configurations
 
-    // Get the current TCP configuration. If none, create a default one.
+        // Get the current TCP configuration. If none, create a default one.
 
-    tcp_config *get_tcp_config() {
-        if (!the_tcp_config) 
-            the_tcp_config = new tcp_config();
-        return the_tcp_config; 
-    }
+        tcp_config *get_tcp_config() {
+            if (!the_tcp_config) 
+                the_tcp_config = new tcp_config();
+            return the_tcp_config; 
+        }
 
-    // Set the current TCP configuration. This is called by the runtime environment.
+        // Set the current TCP configuration. This is called by the runtime environment.
 
-    void set_tcp_config(tcp_config *conf) {
-        the_tcp_config = conf;
-    }
+        void set_tcp_config(tcp_config *conf) {
+            the_tcp_config = conf;
+        }
 
->>>
+    >>>
 
-# Here, we put code to go in the initializer. If this is a
-# parameterized instance, then this code will be run in a loop, so we
-# have to be careful that any initialization of common objects is
-# idempotent.
+    # Here, we put code to go in the initializer. If this is a
+    # parameterized instance, then this code will be run in a loop, so we
+    # have to be careful that any initialization of common objects is
+    # idempotent.
 
-<<< init
+    <<< init
 
-    the_tcp_config = 0;
+        the_tcp_config = 0;
 
-    // Create the callbacks. In a parameterized instance, this creates
-    // one set of callbacks for each endpoint id. When you put an
-    // action in anti-quotes it creates a function object (a "thunk")
-    // that captures the instance environment, in this case including
-    // the instance's endpoint id "me".
+        // Create the callbacks. In a parameterized instance, this creates
+        // one set of callbacks for each endpoint id. When you put an
+        // action in anti-quotes it creates a function object (a "thunk")
+        // that captures the instance environment, in this case including
+        // the instance's endpoint id "me".
 
-    `cb` = new tcp_callbacks(`handle_accept`,`handle_recv`,`handle_fail`,`handle_connected`);
+        `cb` = new tcp_callbacks(`handle_accept`,`handle_recv`,`handle_fail`,`handle_connected`);
 
-    // Install a listener task for this endpoint. If parameterized, this creates
-    // one for each endpoint.
-    std::cerr << "INSTALLING LISTENER tcp_listener" <<std::endl;
-    this->install_reader(`rdr` = new tcp_listener(`me`,*`cb`,this));
+        // Install a listener task for this endpoint. If parameterized, this creates
+        // one for each endpoint.
+        std::cerr << "INSTALLING LISTENER tcp_listener" <<std::endl;
+        this->install_reader(`rdr` = new tcp_listener(`me`,*`cb`,this));
 
->>>
+    >>>
 
     # These actions are handlers for the callbacks. They just insert the endpoint's id
     # and call the corresponding callback action.

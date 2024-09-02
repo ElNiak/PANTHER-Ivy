@@ -1,0 +1,405 @@
+#lang ivy1.7
+
+
+include apt_endpoint
+
+object endpoint = {
+
+    ...
+
+    object man_in_the_middle_endpoint = {
+        ...
+
+        module mim_minip_ep(address:ip.addr,
+                            port:ip.port, 
+                            oport:ip.port, 
+                            toward_client:bool, 
+                            standalone: bool,
+                            bridged: bool) = { 
+            
+                # variant this of man_in_the_middle_endpoint = struct { }
+                individual ep_mim    : ip.endpoint
+                individual ep_client : ip.endpoint
+                individual ep_server : ip.endpoint
+                individual ep_target_server : ip.endpoint
+                individual ep_target_client : ip.endpoint
+
+                individual tls_id : tls_api.id
+
+                individual nat_configured : bool
+
+                individual server_initial_response : bool
+
+
+                after init {
+                    if ep_server.addr = 0x7f000001 {
+                        ep_server.interface := ip.lo;
+                    } else {
+                        ep_client.protocol := ip.udp;
+                        ep_client.addr := address;
+                        ep_client.port := port;
+
+                        ep_mim.protocol := ip.udp;
+                        ep_mim.addr := address;
+                        ep_mim.port := port;
+
+                        ep_server.protocol := ip.udp;
+                        ep_server.addr := address;
+                        ep_server.port := oport;
+                        if standalone {
+                            if bridged {
+                                    ep_client.interface := ip.veth_ivy;
+                                    ep_mim.interface    := ip.veth_ivy;
+                                    ep_server.interface := ip.veth_ivy;
+                            }
+                            else {
+                                if toward_client {
+                                    ep_client.interface  := ip.ivy_server;
+                                    ep_server.interface  := ip.ivy_client;
+                                } 
+                                else {
+                                    ep_client.interface := ip.ivy_client;
+                                    ep_server.interface := ip.ivy_server;
+                                }
+                            }
+                        }
+                        else {
+                            ep_client.interface  := ip.lo;
+                            ep_server.interface := ip.ivy;
+                        }
+                    }
+                    
+                    nat_configured := false;
+                    server_initial_response := false;
+                }
+                
+                action set_ep(e:ip.endpoint) = {
+                    ep_mim := e; # TODO
+                }
+
+                action set_tls_id(e:tls_api.id) = {
+                    tls_id := e;
+                }
+
+                action behavior(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:net_prot.arr) = {
+                    var dst := socket_endpoint_mim(host,s,src);  # because quic_net API doesn't tell us the dst socket_endpoint_mim
+                    var idx := pkts.begin;
+                    is_receiving(dst) := true;
+    
+                    # TODO should not be here
+
+                    if ~nat_configured {
+                        nat_configured := true;
+                        ep_client := src; # Like initial connection from client 
+                        client.set_ep(src);
+                        call nat_configured_event(src,dst);
+                    } 
+                    
+                    var packet_number_of_coalesed : stream_pos := 0;
+                    var to_forward : bool := false;
+
+                    while idx < pkts.end {
+                        var ppkt := pkts.value(idx);
+                        var rppkt := ping_packet_serdes.from_bytes(ppkt);
+                        call recv_packet(host,src,dst,rppkt);
+
+                        var jdx := rppkt.payload.begin;
+                        while jdx < rppkt.payload.end {
+                            var f := rppkt.payload.value(jdx);
+                            # TODO frame 
+                            jdx := jdx.next;
+                        };
+
+                        if forward_packets { # To server
+                            to_forward := true;
+                            call receiving_packet(src,dst,rppkt, packet_number_of_coalesed);
+                            packet_number_of_coalesed := packet_number_of_coalesed + 1;
+                        };
+                        idx := idx.next; 
+                    };
+
+                    if forward_packets & keep_coalesed & to_forward { # To server
+                        current_receving_round(dst) := current_receving_round(dst) + 1;
+                    };
+                    is_receiving(dst) := false;
+                }
+
+                action configure_NAT_attack(src:ip.addr, dst:ip.addr) = {
+                    <<<
+                        //  very important for modifying the packet
+                        struct in_addr src_addr;
+                        src_addr.s_addr = htonl(src); // Convert to network byte order
+                        struct in_addr dst_addr;
+                        dst_addr.s_addr = htonl(dst); // Convert to network byte order
+                        std::string command = "arpspoof -i veth_ivy -t " + std::string(inet_ntoa(src_addr)) + " " + std::string(inet_ntoa(dst_addr)) + " &";
+                        int n = command.length();
+                        char command_array[n + 1];
+                        strcpy(command_array, command.c_str());
+                        int cr = system(command_array);
+                    >>>
+                }
+
+                action configure_NAT_attack_bidir(src:ip.endpoint, dst:ip.endpoint) = {
+                    <<<
+                        //  very important for modifying the packet
+                        struct in_addr src_addr;
+                        src_addr.s_addr = htonl(src); // Convert to network byte order
+                        struct in_addr dst_addr;
+                        dst_addr.s_addr = htonl(dst); // Convert to network byte order
+                        std::string command = "arpspoof -i veth_ivy -t " + std::string(inet_ntoa(src_addr)) + "  -r " + std::string(inet_ntoa(dst_addr)) + " &";
+                        int n = command.length();
+                        char command_array[n + 1];
+                        strcpy(command_array, command.c_str());
+                        int cr = system(command_array);
+                    >>>
+                }
+
+                action reset_NAT = {
+                    <<<
+                        const char * command = "pkill arpspoof;"; 
+                        int cr = system( command );
+                    >>>
+                }
+            import action nat_configured_event(src:ip.endpoint, dst:ip.endpoint)
+            import action client_target_setup_event(src:ip.endpoint)
+            import action recv_packet(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet)
+        }
+    
+    }
+
+    object client_attacker_endpoint = {
+        ...
+
+        module attacker_minip_ep(address:ip.addr, 
+            port:ip.port,
+            oport:ip.port, 
+            bridged:bool, 
+            standalone:bool) = {
+
+            #variant endpoint of client_attacker_endpoint = struct { }
+            individual ep        : ip.endpoint
+            individual ep_server : ip.endpoint
+            individual ep_target_server : ip.endpoint
+            individual ep_target_client : ip.endpoint
+
+            individual tls_id : tls_api.id
+
+            individual nat_configured : bool
+
+
+            after init {
+                if ep.addr = 0x7f000001 {
+                    ep.interface := ip.lo;
+                } else {
+                    ep.protocol := ip.udp;
+                    ep.addr     := address;
+                    ep.port     := port;
+
+                    ep_server.protocol := ip.udp;
+                    ep_server.addr     := address;
+                    ep_server.port     := oport;
+                    if standalone {
+                        if bridged {
+                            ep.interface        := ip.veth_ivy;
+                            ep_server.interface := ip.veth_ivy;
+                        }
+                        else {
+                            ep.interface        := ip.ivy_client;
+                            ep_server.interface := ip.ivy_server;
+                        }
+                    }
+                    else {
+                        ep.interface        := ip.lo;
+                        ep_server.interface := ip.ivy;
+                    }
+                }
+                nat_configured := false;
+            }
+
+            action set_ep(e:ip.endpoint) = {
+                ep := e;
+            }
+
+            action set_tls_id(e:tls_api.id) = {
+                tls_id := e;
+            }
+
+            action behavior(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:net_prot.arr) = {
+                var dst := socket_endpoint(host,s);  # because quic_net API doesn't tell us the dst
+                var idx := pkts.begin;
+                while idx < pkts.end {
+                    var ppkt := pkts.value(idx);
+                    var pkt := ping_packet_serdes.from_bytes(ppkt);
+                    call recv_pong(host,src,dst,pkt);
+                    var jdx := pkt.payload.begin;
+                    while jdx < pkt.payload.end {
+                        var f := pkt.payload.value(jdx);
+                        call f.handle(dst);
+                        jdx := jdx.next;
+                    };
+                    call ping_packet_event(src,dst,pkt);       # also an inferred event
+                    idx := idx.next;
+                };  
+            }
+
+            action configure_NAT_attack(src:ip.addr, dst:ip.addr) = {
+                <<<
+                    //  very important for modifying the packet
+                    struct in_addr src_addr;
+                    src_addr.s_addr = htonl(src); // Convert to network byte order
+                    struct in_addr dst_addr;
+                    dst_addr.s_addr = htonl(dst); // Convert to network byte order
+                    std::string command = "arpspoof -i veth_ivy -t " + std::string(inet_ntoa(src_addr)) + " " + std::string(inet_ntoa(dst_addr)) + " &";
+                    int n = command.length();
+                    char command_array[n + 1];
+                    strcpy(command_array, command.c_str());
+                    int cr = system(command_array);
+                >>>
+            }
+
+            action configure_NAT_attack_bidir(src:ip.endpoint, dst:ip.endpoint) = {
+                <<<
+                    //  very important for modifying the packet
+                    struct in_addr src_addr;
+                    src_addr.s_addr = htonl(src); // Convert to network byte order
+                    struct in_addr dst_addr;
+                    dst_addr.s_addr = htonl(dst); // Convert to network byte order
+                    std::string command = "arpspoof -i veth_ivy -t " + std::string(inet_ntoa(src_addr)) + "  -r " + std::string(inet_ntoa(dst_addr)) + " &";
+                    int n = command.length();
+                    char command_array[n + 1];
+                    strcpy(command_array, command.c_str());
+                    int cr = system(command_array);
+                >>>
+            }
+
+            action reset_NAT = {
+                <<<
+                    const char * command = "pkill arpspoof;"; 
+                    int cr = system( command );
+                >>>
+            }
+        }
+    }
+
+    object server_attacker_endpoint = {
+        ...
+
+        module attacker_minip_ep(address:ip.addr, 
+            port:ip.port,
+            oport:ip.port, 
+            bridged:bool, 
+            standalone:bool) = {
+
+            #variant endpoint of client_attacker_endpoint = struct { }
+            individual ep        : ip.endpoint
+            individual ep_server : ip.endpoint
+            individual ep_target_server : ip.endpoint
+            individual ep_target_client : ip.endpoint
+
+            individual tls_id : tls_api.id
+
+            individual nat_configured : bool
+
+            individual initial_response : bool
+
+
+            after init {
+                if ep.addr = 0x7f000001 {
+                    ep.interface := ip.lo;
+                } else {
+                    ep.protocol := ip.udp;
+                    ep.addr     := address;
+                    ep.port     := port;
+
+                    ep_server.protocol := ip.udp;
+                    ep_server.addr     := address;
+                    ep_server.port     := oport;
+                    if standalone {
+                        if bridged {
+                            ep.interface        := ip.veth_ivy;
+                            ep_server.interface := ip.veth_ivy;
+                        }
+                        else {
+                            ep.interface        := ip.ivy_client;
+                            ep_server.interface := ip.ivy_server;
+                        }
+                    }
+                    else {
+                        ep.interface        := ip.lo;
+                        ep_server.interface := ip.ivy;
+                    }
+                }
+                nat_configured := false;
+            }
+
+            action set_ep(e:ip.endpoint) = {
+                ep := e;
+            }
+
+            action set_tls_id(e:tls_api.id) = {
+                tls_id := e;
+            }
+
+            action behavior(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:net_prot.arr) = {
+                var dst := socket_endpoint(host,s);  # because quic_net API doesn't tell us the dst
+                var idx := pkts.begin;
+                if ~initial_response {
+                    client.set_ep(src);
+                    initial_response := true;
+                    call time_api.c_timer.start;
+                }
+                while idx < pkts.end {
+                    var ppkt := pkts.value(idx);
+                    var tls_id := src_tls_id(dst); # todo multiple
+                    var pkt := ping_packet_serdes.from_bytes(ppkt);
+                    call recv_ping(host,src,dst,pkt);
+                    var jdx := pkt.payload.begin;
+                    while jdx < pkt.payload.end {
+                        var f := pkt.payload.value(jdx);
+                        call f.handle(dst);
+                        jdx := jdx.next;
+                    };
+                    call ping_packet_event(src,dst,pkt);       # also an inferred event
+                    idx := idx.next;
+                };
+            }
+
+            action configure_NAT_attack(src:ip.addr, dst:ip.addr) = {
+                <<<
+                    //  very important for modifying the packet
+                    struct in_addr src_addr;
+                    src_addr.s_addr = htonl(src); // Convert to network byte order
+                    struct in_addr dst_addr;
+                    dst_addr.s_addr = htonl(dst); // Convert to network byte order
+                    std::string command = "arpspoof -i veth_ivy -t " + std::string(inet_ntoa(src_addr)) + " " + std::string(inet_ntoa(dst_addr)) + " &";
+                    int n = command.length();
+                    char command_array[n + 1];
+                    strcpy(command_array, command.c_str());
+                    int cr = system(command_array);
+                >>>
+            }
+
+            action configure_NAT_attack_bidir(src:ip.endpoint, dst:ip.endpoint) = {
+                <<<
+                    //  very important for modifying the packet
+                    struct in_addr src_addr;
+                    src_addr.s_addr = htonl(src); // Convert to network byte order
+                    struct in_addr dst_addr;
+                    dst_addr.s_addr = htonl(dst); // Convert to network byte order
+                    std::string command = "arpspoof -i veth_ivy -t " + std::string(inet_ntoa(src_addr)) + "  -r " + std::string(inet_ntoa(dst_addr)) + " &";
+                    int n = command.length();
+                    char command_array[n + 1];
+                    strcpy(command_array, command.c_str());
+                    int cr = system(command_array);
+                >>>
+            }
+
+            action reset_NAT = {
+                <<<
+                    const char * command = "pkill arpspoof;"; 
+                    int cr = system( command );
+                >>>
+            }
+        }
+    }
+}

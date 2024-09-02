@@ -1,0 +1,11 @@
+#lang ivy1.7
+
+include ip
+include tls_record
+
+#################################################
+# C2 Server
+#################################################
+
+parameter c2_server_addr : ip.addr = 0x0a000005
+parameter c2_server_port : ip.port = 4442

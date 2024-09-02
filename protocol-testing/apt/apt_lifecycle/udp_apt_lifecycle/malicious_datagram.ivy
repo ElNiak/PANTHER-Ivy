@@ -1,0 +1,61 @@
+#lang ivy1.7
+
+include ip
+include apt_datagram
+
+#
+# Forged UDP datagram
+# ------------------
+
+# This section defines the foged packet datatype. Forged UDP datagram are the basic
+# unit of communication between endpoints and MiM agent. It consist in UDP headers 
+# containing QUIC packet as payloads
+# Packet
+
+# The type `datagram` represents forged UDP datagram. 
+
+# The fields are:
+#
+
+
+object datagram = {
+    
+   ...
+    
+    object udp_datagram = {
+        variant this of datagram = struct {
+            src_port : ip.port, # [2]
+            dst_port : ip.port, # [3]
+            checksum : stream_data, # [4]
+            payload : stream_data # [8]
+        }
+
+        instance idx : unbounded_sequence
+        instance arr : array(idx,this)
+
+    }
+}
+
+# Forged UDP datagram protocol events
+# -----------------------
+
+# The Forged UDP datagram event
+# ================
+#
+# This event corresponds to transmission of a Forged UDP datagram containing QUIC packets.
+#
+# Parameters
+# ----------
+#
+# - `src`: the source endpoint
+# - `dst`: the destination endpoint
+# - `pkt` : the packet contents
+
+action malicious_datagram_event(src:ip.endpoint,dst:ip.endpoint,pkt:datagram) = {}
+
+
+# Forged datagram protocol state
+# ------------------------------
+
+function malicious_datagram_to_made : datagram 
+

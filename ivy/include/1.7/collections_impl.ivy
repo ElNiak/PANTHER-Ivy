@@ -109,11 +109,28 @@ module array_impl = {
 	<<< impl
 	    std::ostream &operator <<(std::ostream &s, const `t` &a) {
 	        s << '[';
-		for (unsigned i = 0; i < a.size(); i++) {
-		    if (i != 0)
-		        s << ',';
-		    s << a[i];
+		//TODO env var for max size
+		if(a.size() > 20) {
+			for (unsigned i = 0; i < 5; i++) {
+				if (i != 0)
+					s << ',';
+				s << a[i];
+			}
+			s << ",... (" << a.size() << ") ...";
+			for (unsigned i = a.size()-5; i < a.size(); i++) {
+				if (i != 0)
+					s << ',';
+				s << a[i];
+			}
 		}
+		else {
+			for (unsigned i = 0; i < a.size(); i++) {
+				if (i != 0)
+					s << ',';
+				s << a[i];
+			}
+		}
+		
 	        s << ']';
 		return s;
             }

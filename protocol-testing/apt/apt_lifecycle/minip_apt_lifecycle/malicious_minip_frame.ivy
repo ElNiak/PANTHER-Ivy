@@ -1,0 +1,81 @@
+#lang ivy1.7
+
+include ping_frame
+
+object ping_frame = {
+    ...
+
+    # (0xtbd) 
+    object malicious_frame = {
+        # unknown_frame  ping_frame frames are a varianping_frameping_frame and contains nothing
+        variant this of ping_frame = struct {
+            data: stream_data
+        }
+    } 
+}
+
+object ping_frame = {
+    ...
+    object malicious_frame = {
+        ...
+        
+        action handle_maliciously(f:ping_frame.malicious_frame, dst:ip.endpoint)
+
+        around handle_maliciously 
+        {
+            current_time := time_api.c_timer.now_millis_last_bp;
+            call show_current_time_debug_event(current_time);
+            ...
+            call enqueue_ping_frame(dst,f);
+        }
+    }
+}
+
+
+object ping_frame = {
+    ...
+    object ping = {
+        ...
+        action handle_maliciously(f:ping_frame.ping,dst:ip.endpoint)
+
+        around handle_maliciously {
+            current_time := time_api.c_timer.now_millis_last_bp;
+            call show_current_time_debug_event(current_time);
+            ...
+            call enqueue_ping_frame(dst,f);
+        }
+    }
+}
+
+relation size_used(D:stream_pos)
+
+
+object ping_frame = {
+    ...
+    object pong = {
+        ...
+        action handle_maliciously(f:ping_frame.pong,dst:ip.endpoint)
+
+        around handle_maliciously {
+            current_time := time_api.c_timer.now_millis_last_bp;
+            call show_current_time_debug_event(current_time);
+            ...
+            call enqueue_ping_frame(dst,f);
+        }
+    }
+}
+
+object ping_frame = {
+    ...
+    object timestamp = {
+        ...
+        action handle_maliciously(f:ping_frame.timestamp,dst:ip.endpoint)
+
+        around handle_maliciously {
+            current_time := time_api.c_timer.now_millis_last_bp;
+            call show_current_time_debug_event(current_time);
+            ...
+            call enqueue_ping_frame(dst,f);
+        }
+    }
+}

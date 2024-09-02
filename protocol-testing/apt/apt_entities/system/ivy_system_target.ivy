@@ -1,0 +1,52 @@
+#lang ivy1.7
+
+include order
+include file
+include ivy_target
+include ip
+include apt_endpoint
+
+parameter target_addr_server : ip.addr = 0x0a000401
+parameter target_port_server : ip.port = 4430
+
+parameter target_addr_client : ip.addr = 0x0a000401
+parameter target_port_client : ip.port = 4430
+
+
+parameter is_target : bool = false
+
+after init {
+    mim_agent.ep_target_server.addr := target_addr_server;
+    mim_agent.ep_target_server.port := target_port_server;
+}
+
+parameter the_cid : cid = 0xd
+parameter n_clients : stream_pos = 0x1
+parameter max_stream_data : stream_pos = 0x2000
+parameter initial_max_streams_bidi : stream_id = 200
+
+var server_cid : cid
+var the_cid_vn  : cid
+var client_alt : ip.endpoint
+var client_vn  : ip.endpoint
+
+after init {
+    client_alt := endpoint_id_addr(endpoint_id.client_alt);
+    client_vn  := endpoint_id_addr(endpoint_id.client_vn);
+}
+
+# instance server : endpoint.server_endpoint.server_system_ep(server_addr,server_port)
+# instance client : endpoint.client_endpoint.client_system_ep(client_addr,client_port)
+
+# An ip endpoint for the client to migrate to. TODO
+
+# a socket for the server
+
+var sock_target : system_net.socket
+
+# Open a server socket to listen on and create an instance of TLS.
+# TODO: we should have one instance of TLS per connection
+
+
+
+

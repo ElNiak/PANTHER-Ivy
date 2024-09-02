@@ -1,0 +1,115 @@
+#lang ivy1.7
+
+# Packet protocol state
+# ---------------------
+
+object packet = {
+    ...
+
+    object ping_packet = {
+
+        ...
+
+        action forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet)
+        around forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+            # require _generating;
+            require pkt.payload.end > 0;
+            require mim_agent.nat_configured;
+            require is_ping_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+            require src ~= dst;
+            require dst = mim_agent.ep_client & src = mim_agent.ep_server;
+            ...
+            call enqueue_packet(src,dst,pkt);
+            is_ping_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
+            ping_packet_forwarded_last_round(dst) := ping_packet_forwarded_last_round(dst) + 1;
+        }
+        
+        action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet)
+        around forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+            # require _generating;
+            require pkt.payload.end > 0;
+            require mim_agent.nat_configured;
+            require is_ping_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+            require src ~= dst;
+           require dst = mim_agent.ep_server & src = mim_agent.ep_client;
+            ...
+            call enqueue_packet(src,dst,pkt);
+            is_ping_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
+            ping_packet_forwarded_last_round(dst) := ping_packet_forwarded_last_round(dst) + 1;
+        }
+
+        action replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet)
+        around replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+            # require _generating;
+            require pkt.payload.end > 0;
+            require is_ping_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+            require mim_agent.nat_configured;
+            require src = mim_agent.ep_server & dst = mim_agent.ep_client;
+            require src ~= dst;
+            ...
+            call enqueue_packet(src,dst,pkt);
+            is_ping_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := true;
+            ping_packet_forwarded_last_round(dst) := ping_packet_forwarded_last_round(dst) + 1;
+        }
+
+        action replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet)
+        around replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+            # require _generating;
+            require pkt.payload.end > 0;
+            require is_ping_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+            require mim_agent.nat_configured;
+            require src = mim_agent.ep_client & dst = mim_agent.ep_server;
+            require src ~= dst;
+            ...
+            call enqueue_packet(src,dst,pkt);
+            is_ping_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := true;
+            ping_packet_forwarded_last_round(dst) := ping_packet_forwarded_last_round(dst) + 1;
+        }
+
+        action modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet)
+        around modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
+            # require _generating;
+            require pkt.payload.end > 0;
+            require mim_agent.nat_configured;
+            require dst = mim_agent.ep_server & src = mim_agent.ep_client | 
+                    dst = mim_agent.ep_client & src = mim_agent.ep_server;
+            require is_ping_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
+            require src ~= dst;
+            ...
+            call enqueue_packet(src,dst,pkt);
+            is_ping_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
+            ping_packet_forwarded_last_round(dst) := ping_packet_forwarded_last_round(dst) + 1;
+        }   
+    }
+}
+
+
+function ping_packets_received_last_round(C:ip.endpoint) : packet.ping_packet.arr 
+function ping_packet_received_at_round(C:ip.endpoint,P:stream_pos, R:stream_pos) : packet.ping_packet
+relation is_ping_packet_received(C:ip.endpoint, P:packet.ping_packet, P:stream_pos) 
+relation ping_packet_forwarded(C:ip.endpoint, P:packet.ping_packet)
+function ping_packet_forwarded_last_round(C:ip.endpoint) : stream_pos
+
+after init {
+    ping_packets_received_last_round(C) := packet.ping_packet.arr.empty;
+}
+
+before enqueue_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet) {
+    if some(cf:packet.ping_packet) pkt *> cf  {
+        ping_packet_forwarded(dst,cf) := true;
+    } 
+}
+
+after receiving_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet, pkt_num: stream_pos) {
+    if some(cf:packet.ping_packet) pkt *> cf  {
+        ping_packet_received_at_round(dst,pkt_num,current_receving_round(dst))  := cf;
+        is_ping_packet_received(dst,cf,pkt_num)       := true;
+        ping_packets_received_last_round(dst)         := ping_packets_received_last_round(dst).append(cf);
+    } 
+}
+
+after update_forwarded_packet(src:ip.endpoint,dst:ip.endpoint) {
+    # is_ping_packet_received(dst) := false;
+    ping_packets_received_last_round(dst) := packet.ping_packet.arr.empty;
+    ping_packet_forwarded_last_round(dst) := 0;
+}
