@@ -6,8 +6,8 @@
 
 from textwrap import dedent
 
-import tactics_api as ta
-from tactics_api import (Tactic, tactic, arg_add_facts, push_goal,
+from . import tactics_api as ta
+from .tactics_api import (Tactic, tactic, arg_add_facts, push_goal,
                          arg_get_preds_action, implied_facts,
                          forward_image, arg_get_fact, get_diagram,
                          arg_initial_node, get_safety_property,
@@ -16,12 +16,12 @@ from tactics_api import (Tactic, tactic, arg_add_facts, push_goal,
                          remove_goal, arg_is_covered, arg_get_pred,
                          arg_preorder_traversal, arg_get_conjuncts,
                          goal_tactic)
-from ivy_logic_utils import negate_clauses, false_clauses
-from logic import Or, And
-from logic_util import normalize_quantifiers
-import ivy_alpha
-from z3_utils import z3_implies
-from interrupt_context import InterruptContext
+from .ivy_logic_utils import negate_clauses, false_clauses
+from .logic import Or, And
+from .logic_util import normalize_quantifiers
+from . import ivy_alpha
+from .z3_utils import z3_implies
+from .interrupt_context import InterruptContext
 
 
 @goal_tactic
@@ -260,7 +260,7 @@ class UPDR(Tactic):
 
                     if current_goal.node == init_frame:
                         # no invariant
-                        print "No Invariant!"
+                        print("No Invariant!")
                         return False
 
                     push_diagram(current_goal, False)
@@ -288,12 +288,12 @@ class UPDR(Tactic):
                     recalculate_facts(frames[i], list(facts_to_check))
 
             assert ic.interrupted
-            print "UPDR Interrupted by SIGINT"
+            print("UPDR Interrupted by SIGINT")
             return None
 
 
 if __name__ == '__main__':
-    from proof import AnalysisSession
+    from .proof import AnalysisSession
     #fn = '../src/ivy/test.ivy'
     fn = '../examples/ivy/client_server_sorted.ivy'
     #fn = '../examples/pldi16/leader_sorted.ivy'

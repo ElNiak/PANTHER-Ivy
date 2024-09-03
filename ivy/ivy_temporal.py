@@ -114,12 +114,12 @@
 # step occurs) or upon exit from the operator's environment (i.e., after a
 # call statement into the environment from the outside.
 
-import ivy_logic as il
-import ivy_ast as ia
-import ivy_proof as ipr
-import ivy_utils as iu
-import ivy_actions as iact
-import ivy_logic_utils as ilu
+from . import ivy_logic as il
+from . import ivy_ast as ia
+from . import ivy_proof as ipr
+from . import ivy_utils as iu
+from . import ivy_actions as iact
+from . import ivy_logic_utils as ilu
 from collections import defaultdict
 
 class ActionTerm(ia.AST):
@@ -159,7 +159,7 @@ class ActionTermBinding(ia.AST):
     @property
     def args(self):
         """ the only subterm is the statement """
-        return [self.stmt]
+        return [self.action]
     def clone(self,args):
         """ clone relaces the action in a binding """
         res = ActionTermBinding(self.name,args[0])
@@ -184,6 +184,9 @@ class NormalProgram(ia.AST):
     @property
     def binding_map(self):
         return dict((x.name,new_action_to_old(x.action)) for x in self.bindings)
+    @property
+    def fmlas(self):
+        return self.bindings + [self.init] + self.invars + self.asms
     def __str__(self):
         res = ['\nlet\n']
         for b in self.bindings:
@@ -208,7 +211,7 @@ def new_action_to_old(act):
     return act.stmt
 
 def normal_program_from_module(mod):
-    bindings = [ActionTermBinding(name,old_action_to_new(act)) for name,act in mod.actions.iteritems()]
+    bindings = [ActionTermBinding(name,old_action_to_new(act)) for name,act in mod.actions.items()]
     init = iact.Sequence(*[action for actname,action in mod.initializers])
     invars = mod.labeled_conjs
     asms = mod.assumed_invariants
@@ -324,7 +327,7 @@ def invariance_tactic(prover,goals,proof):
         for sym in ilu.symbols_ast(prop):
             symprops[sym].append(prop)
     actions = dict((b.name,b.action) for b in model.bindings)
-    lines = dict(zip(gprops,gproplines))
+    lines = dict(list(zip(gprops,gproplines)))
             
     def instr_stmt(stmt,labels):
 
@@ -421,7 +424,7 @@ ipr.register_tactic('invariance',invariance_tactic)
 
 def implicit_tactic(prover,goals,proof):
     implicit_axioms = [x for x in prover.axioms if not x.explicit]
-    print 'temporal axioms: {}'.format([x.temporal for x in implicit_axioms])
+    print('temporal axioms: {}'.format([x.temporal for x in implicit_axioms]))
     goal,goals = goals[0],goals[1:]
     goal = ipr.goal_prefix_prems(goal,implicit_axioms,goal.lineno)
     return [goal]+goals

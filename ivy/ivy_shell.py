@@ -1,6 +1,6 @@
 import os
 import platform
-import ivy_to_cpp
+from . import ivy_to_cpp
 
 def main():
     if platform.system() == 'Darwin':

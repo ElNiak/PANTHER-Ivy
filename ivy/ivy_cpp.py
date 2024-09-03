@@ -407,8 +407,8 @@ if __name__ == "__main__":
         with CppClass("other_class"):
             CppMember(myvec,"bif")
             
-        print 'header:'
-        print context.globals.get()
-        print 'impl:'
-        print context.impls.get()
+        print('header:')
+        print(context.globals.get())
+        print('impl:')
+        print(context.impls.get())
         

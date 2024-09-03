@@ -2,14 +2,14 @@
 # Copyright (c) Microsoft Corporation. All Rights Reserved.
 #
 
-import ivy_ui
-import ivy_ui_util as uu
-import ivy_utils as iu
-import ivy_graph_ui
-from cy_elements import *
-from Tkinter import *
-import Tkconstants, tkFileDialog
-import Tix
+from . import ivy_ui
+from . import ivy_ui_util as uu
+from . import ivy_utils as iu
+from . import ivy_graph_ui
+from .cy_elements import *
+from tkinter import *
+import tkinter.constants, tkinter.filedialog
+import tkinter.tix
 import functools
 
 # Functions for displaying a layed out CyElements graph in a Tk Canvas
@@ -47,7 +47,7 @@ def get_dimensions(element):
 # (x0,y0,x1,y1,...)
 
 def get_bspline(element):
-    bspline = map(get_coord,element['data']['bspline'])
+    bspline = list(map(get_coord,element['data']['bspline']))
     coords = []
     for p in bspline:
         coords.append(p[0])
@@ -131,7 +131,7 @@ class TkCyCanvas(Canvas):
                 self.tag_bind(eid, "<Button-1>", lambda y, elem=elem: self.click_edge("left",y,elem))
                 self.tag_bind(eid, "<Button-3>", lambda y, elem=elem: self.click_edge("right",y,elem))
             elif group == 'shapes':
-                coords = map(get_coord,get_coords(elem))
+                coords = list(map(get_coord,get_coords(elem)))
                 (x0,y0),(x1,y1) = coords
                 self.create_rectangle((x0,y0,x1,y1))
                     

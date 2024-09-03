@@ -1,21 +1,21 @@
 #
 # Copyright (c) Microsoft Corporation. All Rights Reserved.
 #
-import ivy
-import ivy_interp as itp
-import ivy_actions as act
-import ivy_utils as utl
-import ivy_logic_utils as lut
-import tk_ui as ui
-import ivy_logic as lg
-import ivy_utils as iu
-import ivy_module as im
-import ivy_alpha
-import ivy_art
-import ivy_interp
-import ivy_compiler
-import ivy_isolate
-import ivy_init
+from . import ivy
+from . import ivy_interp as itp
+from . import ivy_actions as act
+from . import ivy_utils as utl
+from . import ivy_logic_utils as lut
+from . import tk_ui as ui
+from . import ivy_logic as lg
+from . import ivy_utils as iu
+from . import ivy_module as im
+from . import ivy_alpha
+from . import ivy_art
+from . import ivy_interp
+from . import ivy_compiler
+from . import ivy_isolate
+from . import ivy_init
 
 import sys
 
@@ -23,7 +23,7 @@ diagnose = iu.BooleanParameter("diagnose",False)
 
     
 def usage():
-    print "usage: \n  {} file.ivy".format(sys.argv[0])
+    print("usage: \n  {} file.ivy".format(sys.argv[0]))
     sys.exit(1)
 
 def check_module():

@@ -1,7 +1,7 @@
 #
 # Copyright (c) Microsoft Corporation. All Rights Reserved.
 #
-from ivy_lexer import *
+from .ivy_lexer import *
 import ply.yacc as yacc
 
 # Parser for formulas
@@ -26,7 +26,7 @@ precedence = (
     ('left', 'DOT'),
 )
 
-from ivy_logic_parser import *
+from .ivy_logic_parser import *
 
 def p_error(token):
     raise LogicParseError(token,"syntax error")

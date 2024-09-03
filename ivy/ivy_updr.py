@@ -5,16 +5,16 @@
 import sys
 import pickle
 import string
-from ivy_utils import set_parameters, gen_to_set
-import ivy_logic_utils as lu
-import ivy_logic
-import ivy
-import ivy_transrel as tr
+from .ivy_utils import set_parameters, gen_to_set
+from . import ivy_logic_utils as lu
+from . import ivy_logic
+from . import ivy
+from . import ivy_transrel as tr
 from itertools import chain
-import ivy_solver as sv
+from . import ivy_solver as sv
 import z3
 import mini_pdr as pd
-import ivy_utils as iu
+from . import ivy_utils as iu
 
 from pattern.debug.profile import Stopwatch
 
@@ -57,29 +57,29 @@ if __name__ == "__main__":
     err_act = ag.actions["error"].update(ag.domain,state.in_scope)
     axioms = state.domain.background_theory(state.in_scope)
     error = tr.reverse_image([],axioms,err_act)
-    print "error = {}".format(error)
+    print("error = {}".format(error))
 
     # get actions as updates
     updates = [action.update(ag.domain,state.in_scope) for action in actions]
 
     # get all the flexible (updated) variables
     flex = set(sym for u in updates for sym in u[0])
-    print "flex = {}".format(flex)
+    print("flex = {}".format(flex))
 
     # inflex is all non-skolem symbols in signature that are not updated
     all_syms = sig.symbols
     inflex = set(sym for sym in all_syms if sym not in flex and not tr.is_new(sym) and not tr.is_skolem(sym))
-    print "inflex = {}".format(inflex)
+    print("inflex = {}".format(inflex))
 
     # get all the skolem symbols
     all_syms = sig.symbols
     skolems = set(sym for sym in all_syms if tr.is_skolem(sym))
-    print "skolems = {}".format(skolems)
+    print("skolems = {}".format(skolems))
 
     # make frames explicit
     updates = [tr.frame_update(u,flex,sig) for u in updates]
     for u in updates:
-        print u
+        print(u)
 
     # locals are flexible and skolem symbols (next values unused for skolems)
     ns = sv.native_symbol
@@ -89,32 +89,32 @@ if __name__ == "__main__":
     # globals are the inflexible symbols
     gsyms = [ns(sym) for sym in inflex]
     
-    print "lsyms = {}".format(lsyms)
-    print "gsyms = {}".format(gsyms)
+    print("lsyms = {}".format(lsyms))
+    print("gsyms = {}".format(gsyms))
 
     init = state.clauses
     init = forward_clauses(init,inflex)
-    print "init = {}".format(init)
+    print("init = {}".format(init))
 
     error = forward_clauses(error,inflex)
-    print "error = {}".format(error)
+    print("error = {}".format(error))
 
     axioms += forward_clauses(axioms,inflex)
 
     init_z3 = sv.clauses_to_z3(init)
-    print "init_z3 = {}".format(init_z3)
+    print("init_z3 = {}".format(init_z3))
     for a in updates:
-        print lu.simplify_clauses(a[1])
+        print(lu.simplify_clauses(a[1]))
     rho_z3 = z3.Or(*[sv.clauses_to_z3(lu.simplify_clauses(a[1])) for a in updates])
-    print "rho_z3 = {}".format(rho_z3)
+    print("rho_z3 = {}".format(rho_z3))
     bad_z3 = sv.clauses_to_z3(error)
-    print "bad_z3 = {}".format(bad_z3)
+    print("bad_z3 = {}".format(bad_z3))
     background_z3 = sv.clauses_to_z3(axioms)
-    print "background_z3 = {}".format(background_z3)
+    print("background_z3 = {}".format(background_z3))
     #relations_z3 = [ns(rel) for rel in sig.relations if tr.is_new(rel) or rel in inflex]
     relations_z3 =  [ x for x in gsyms if not z3.is_const(x) or (z3.is_const(x) and x.sort() == z3.BoolSort()) ]
     relations_z3 += [ x for _,x in lsyms if not z3.is_const(x) or (z3.is_const(x) and x.sort() == z3.BoolSort()) ]
-    print "relations_z3 = {}".format(relations_z3)
+    print("relations_z3 = {}".format(relations_z3))
 
     ### HACK: remove skolem predicates from the list of predicate symbols
     #relations_z3 = [ x for x in relations_z3 if not x in skolems ]
@@ -128,23 +128,23 @@ if __name__ == "__main__":
     if outcome:
         status = "valid"
         if hasattr(pdr, 'verify') and not pdr.verify(outcome):
-            print "incorrect!!"
+            print("incorrect!!")
             status = "incorrect"
     else:
-        print "NOT VALID"
+        print("NOT VALID")
         #status = report_failure(pdr, z3g, vocab)
 
     if outcome:
-        print "(%d clauses)" % num_clauses(outcome)
-        print "(%d universal clauses)" % num_univ_clauses(outcome)
+        print("(%d clauses)" % num_clauses(outcome))
+        print("(%d universal clauses)" % num_univ_clauses(outcome))
         #fol_outcome = z3g.formula_back(outcome)
         #fol_invariant = FolSubstitution(extra.defs)( fol_outcome )
         #print fol_invariant
 
-    print "PDR: %.2fs" % watch.clock.elapsed
-    print "N =", pdr.N
-    print pdr.iteration_count, "iterations"
-    print pdr.sat_query_count, "calls to SAT"
+    print("PDR: %.2fs" % watch.clock.elapsed)
+    print("N =", pdr.N)
+    print(pdr.iteration_count, "iterations")
+    print(pdr.sat_query_count, "calls to SAT")
             
 
 #    syms = set(s for (upd,tr,pre) in updates for s in lu.symbols_clauses(tr))

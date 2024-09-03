@@ -11,16 +11,17 @@ from collections import defaultdict
 import re
 import functools
 
-import z3
-import ivy_logic
-from ivy_logic_utils import used_variables_clause, used_variables_ast, variables_ast,\
+import ivy.z3 as z3
+from . import ivy_logic
+from .ivy_logic_utils import used_variables_clause, used_variables_ast, variables_ast,\
    to_clauses, constants_clauses, used_relations_clauses, rel_inst, fun_eq_inst, \
    is_ground_lit, used_constants_clauses, substitute_constants_clauses, eq_atom, \
    functions_clauses, fun_inst, substitute_lit, used_constants_clause, used_symbols_clause,Clauses, used_symbols_clause, and_clauses, true_clauses, used_symbols_ast, sym_placeholders, used_symbols_clauses, ground_apps_clauses, dual_clauses
-from ivy_core import minimize_core, biased_core
-import ivy_utils as iu
-import ivy_unitres as ur
-import logic as lg
+from .ivy_core import minimize_core, biased_core
+from . import ivy_utils as iu
+from . import ivy_unitres as ur
+from . import logic as lg
+from . import ivy_ast
 
 import sys
 
@@ -32,7 +33,7 @@ z3_to_expr_ref = z3._to_expr_ref if '_to_expr_ref' in z3.__dict__ else z3.z3._to
 use_z3_enums = True
 
 def set_seed(seed):
-    print 'setting seed to {}'.format(seed)
+    print('setting seed to {}'.format(seed))
     z3.set_param('smt.random_seed',seed)
 
 opt_seed = iu.Parameter("seed",0,process=int)
@@ -62,12 +63,14 @@ def solver_name(symbol):
         if bfe_to_z3(symbol) is not None:
             return None
     elif name in iu.polymorphic_symbols:
-        sort = symbol.sort.domain[0].name
+        sort = symbol.sort.domain[0].name if name != 'arrcst' else symbol.sort.rng.name
         if sort in ivy_logic.sig.interp and not isinstance(ivy_logic.sig.interp[sort],ivy_logic.EnumeratedSort):
             return None
 #        name += ':' + sort
         for s in symbol.sort.domain:
             name += ':' + s.name
+        if name == 'arrcst':
+            name += ':' + sort.name
     if name in ivy_logic.sig.interp:
         return None
     if name in z3_builtins:
@@ -83,16 +86,38 @@ def my_minus(*args):
     return args[0] - args[1]
 
 def my_eq(x,y):
+    if z3.is_true(y):
+        return x
+    if z3.is_false(y):
+        return z3.Not(x)
     ctx = z3.main_ctx()
 #    print "my_eq: {} = {}".format(x,y)
     return z3.BoolRef(z3.Z3_mk_eq(ctx.ref(), x.as_ast(), y.as_ast()), ctx)
 
 z3_sort_parser = re.compile(r'bv\[[0-9]+\]')
 
+def parse_array_theory(name):
+    pname = ivy_ast.parse_name(name)
+    if not(isinstance(pname,ivy_ast.Bracket)
+           and isinstance(pname.args[0],ivy_ast.Bracket)
+           and isinstance(pname.args[0].args[0],ivy_ast.Symbol)):
+        return None
+    return pname.args[0].args[1].unparse(),pname.args[1].unparse()
+    
+def sort_name_to_z3(name):
+    sort = ivy_logic.find_sort(name)
+    return sort.to_z3()
+
 def sorts(name):
     if name.startswith('bv[') and name.endswith(']'):
         width = int(name[3:-1])
         return z3.BitVecSort(width)
+    if name.startswith('arr[') and name.endswith(']'):
+        p = parse_array_theory(name)
+        if p is None:
+            return p
+        dom,rng = p
+        return z3.ArraySort(sort_name_to_z3(dom),sort_name_to_z3(rng))
     if name.startswith('strbv[') and name.endswith(']'):
         width = int(name[6:-1])
         return z3.BitVecSort(width)
@@ -110,6 +135,8 @@ def sorts(name):
         return z3.BitVecSort(width)
     if name == 'int':
         return z3.IntSort()
+    if name == 'real':
+        return z3.RealSort()
     if name == 'nat':
         return z3.IntSort()
     if name == 'strlit':
@@ -130,12 +157,14 @@ def parse_int_params(name):
 
 def is_solver_sort(name):
     return name.startswith('bv[') and name.endswith(']') or name == 'int' or name == 'nat' or name == 'strlit' or name.startswith('strbv[') \
-        or name.startswith('intbv[') or name.startswith('longbv[') or name.startswith('microsecondsbv[') or name.startswith('millisecondsbv[')
+        or name.startswith('intbv[') or name.startswith('longbv[') or name.startswith('microsecondsbv[') or name.startswith('millisecondsbv[') \
+        or name.startswith('arr[')
 
 relations_dict = {'<':(lambda x,y: z3.ULT(x, y) if z3.is_bv(x) else x < y),
                 '<=':(lambda x,y: z3.ULE(x, y) if z3.is_bv(x) else x <= y),
                 '>':(lambda x,y: z3.UGT(x, y) if z3.is_bv(x) else x > y),
                 '>=':(lambda x,y: z3.UGE(x, y) if z3.is_bv(x) else x >= y),
+                "arrsel":(lambda x,y: z3.Select(x,y)),
                 }
 
 def relations(name):
@@ -149,6 +178,8 @@ functions_dict = {"+":(lambda x,y: x + y),
              "bvand":(lambda x,y: x & y),
              "bvor":(lambda x,y: x | y),
              "bvnot":(lambda x: ~x),
+             "arrsel":(lambda x,y: z3.Select(x,y)),
+             "arrupd":(lambda x,y,z: z3.Update(x,y,z)),
              }
 
 def bfe_to_z3(sym):
@@ -258,7 +289,7 @@ def range_sort_bounds_to_z3(itp):
     ub = term_to_z3(itp.ub)
     handle_range_sorts = True
     if not (z3.is_int_value(lb) and z3.is_int_value(lb)):
-        print "error: bounds for range sort {} are not interpreted as int"
+        print("error: bounds for range sort {} are not interpreted as int")
         exit(1)
     return lb,ub
 
@@ -268,6 +299,10 @@ def lookup_native(thing,table,kind):
     if z3name == None:
         if  thing.name.startswith('bfe['):
             return bfe_to_z3(thing)
+        if thing.name == 'arrcst':
+            sort = thing.sort.rng
+            if sort.name in ivy_logic.sig.interp:
+                return lambda x: z3.K(sort.to_z3().domain(),x)
         if thing.name in iu.polymorphic_symbols:
             sort = thing.sort.domain[0].name
             if sort in ivy_logic.sig.interp and not isinstance(ivy_logic.sig.interp[sort],ivy_logic.EnumeratedSort):
@@ -320,7 +355,7 @@ def check_native_compat_sym(sym):
         raise iu.IvyError(None,'cannot interpret {} as {}: {}'.format(sym,ivy_logic.sig.interp[sym.name],e))
 
 def check_compat():
-    for name,value in ivy_logic.sig.interp.iteritems():
+    for name,value in ivy_logic.sig.interp.items():
         if name in ivy_logic.sig.symbols:
             sym = ivy_logic.sig.symbols[name]
             sorts = sym.sort.sorts if isinstance(sym.sort,ivy_logic.UnionSort) else [sym.sort]
@@ -424,8 +459,8 @@ def term_to_z3(term):
         return z3.If(formula_to_z3_int(term.args[0]),term_to_z3(term.args[1]),term_to_z3(term.args[2]))
     else:
         if not hasattr(term,'rep'):
-            print term
-            print term.lineno
+            print(term)
+            print(term.lineno)
         fun = z3_functions.get(term.rep)
         if fun is None:
             fun = lookup_native(term.rep,functions,"function")
@@ -559,18 +594,31 @@ def clauses_to_z3(clauses):
 
 def formula_to_z3_int(fmla):
 #    print "formula_to_z3_int: {} : {}".format(fmla,type(fmla))
+    if isinstance(fmla,ivy_logic.Definition or ivy_logic.is_eq(fmla) or isinstance(fmla,ivy_logic.Iff)):
+        if ivy_logic.is_true(fmla.args[1]):
+            return formula_to_z3_int(fmla.args[0])
+        if ivy_logic.is_false(fmla.args[1]):
+            return z3.Not(formula_to_z3_int(fmla.args[0]))
     if ivy_logic.is_atom(fmla):
         return atom_to_z3(fmla)
     if isinstance(fmla,ivy_logic.Definition) and ivy_logic.is_enumerated(fmla.args[0]) and not use_z3_enums:
         return encode_equality(*fmla.args)
     args = [formula_to_z3_int(arg) for arg in fmla.args]
     if isinstance(fmla,ivy_logic.And):
+        if len(args) == 0:
+            return z3.BoolVal(True)
         return z3.And(args)
     if isinstance(fmla,ivy_logic.Or):
+        if len(args) == 0:
+            return z3.BoolVal(False)
         return z3.Or(args)
     if isinstance(fmla,ivy_logic.Not):
         return z3.Not(args[0])
-    if isinstance(fmla,ivy_logic.Definition):
+    if isinstance(fmla,ivy_logic.Definition or ivy_logic.is_eq(fmla) or isinstance(fmla,ivy_logic.Iff)):
+        if ivy_logic.is_true(fmla.args[1]):
+            return args[0]
+        if ivy_logic.is_false(fmla.args[1]):
+            return z3.Not(args[0])
         z3_body = my_eq(args[0],args[1])
         return z3_body
         assert all(ivy_logic.is_variable(v) for v in fmla.args[0].args)
@@ -590,7 +638,7 @@ def formula_to_z3_int(fmla):
         return res
     if ivy_logic.is_individual(fmla) or ivy_logic.is_variable(fmla):
         return term_to_z3(fmla)
-    print "bad fmla: {!r}".format(fmla)
+    print("bad fmla: {!r}".format(fmla))
     assert False
 
 def formula_to_z3_closed(fmla):
@@ -642,6 +690,25 @@ def unsat_core(clauses1, clauses2, implies = None, unlikely=lambda x:False):
 #    print "unsat_core res = {}".format(res)
     return Clauses(res,list(clauses1.defs))
 
+def binary_interpolant(clauses2, clauses1):
+    print ("binary_interpolant clauses1 = {}, clauses2 = {}".format(clauses1,clauses2))
+#    assert clauses1.defs == []
+    print ("clauses1: {}".format(clauses_to_z3(clauses1)))
+    print ("clauses2: {}".format(clauses_to_z3(clauses2)))
+    s = new_solver()
+    add_clauses(s,clauses2);
+    add_clauses(s,clauses1);
+    f = open("ivy.smt2","w")
+    f.write(s.to_smt2())
+    f.close()
+    
+    try:
+        print ("computing interpolant")
+        z3itp = z3.binary_interpolant(clauses_to_z3(clauses2),clauses_to_z3(clauses1))
+        return Clauses([z3_to_formula(z3itp)])
+    except Exception as e:
+        print ("exception: {}".format(e))
+        return None
 
 def cube_to_z3(cube):
     if len(cube) == 0:
@@ -720,7 +787,7 @@ class SortOrder(object):
         self.order = order
         self.model = model
     def __call__(self,x,y):
-        interp = zip(self.vs,(x,y))
+        interp = list(zip(self.vs,(x,y)))
         fact = substitute(self.order,*interp)
         fact_val = self.model.eval(fact)
 #        print "order: %s = %s" % (fact,fact_val)
@@ -738,7 +805,7 @@ def collect_numerals(z3term):
 def from_z3_numeral(z3term,sort):
     name = str(z3term)
     if not(name[0].isdigit() or name[0] == '"' or name[0] == '-'):
-        print "unexpected numeral from Z3 model: {}".format(name)
+        print("unexpected numeral from Z3 model: {}".format(name))
     return ivy_logic.Symbol(name,sort)
 
 def collect_model_values(sort,model,sym):
@@ -756,7 +823,7 @@ def mine_interpreted_constants(model,vocab):
             sort_values[sort].update(collect_model_values(sort,model,s))
     def get_const(c):
         return model.eval(term_to_z3(c),model_completion=True)
-    return dict((x,map(get_const,list(y))) for x,y in sort_values.iteritems())
+    return dict((x,list(map(get_const,list(y)))) for x,y in sort_values.items())
     
 def enumerated_range(sort):
     res = [z3_constants[x] for x in sort.defines()]
@@ -783,7 +850,7 @@ class HerbrandModel(object):
         vs = [ivy_logic.Variable(s,sort) for s in ["X","Y"]]
         order = ivy_logic.Symbol("<",ivy_logic.RelationSort([sort,sort]))
         order_atom = atom_to_z3(order(*vs))
-        z3_vs = map(term_to_z3,vs)
+        z3_vs = list(map(term_to_z3,vs))
 #        print "order_atom: {}".format(order_atom)
         try:
             fun = z3.Function
@@ -812,13 +879,14 @@ class HerbrandModel(object):
         s = self.solver
         m = self.model
         ranges = [enumerated_range(x.sort) if isinstance(x.sort,ivy_logic.EnumeratedSort) else
-                  self.constants[x.sort] for x in vs]
+                  [z3.BoolVal(False),z3.BoolVal(True)] if isinstance(x.sort,ivy_logic.BooleanSort) else self.constants[x.sort]
+                  for x in vs]
         z3_fmla = literal_to_z3(fmla)
 #        print "z3_fmla = {}".format(z3_fmla)
         z3_vs = [term_to_z3(v) for v in vs]
         insts = []
         for tup in itertools.product(*ranges):
-            interp = zip(z3_vs,tup)
+            interp = list(zip(z3_vs,tup))
             fact = substitute(z3_fmla,*interp)
             fact_val = m.eval(fact,model_completion=True)
 #            print "%s = %s" % (fact,fact_val)
@@ -862,7 +930,7 @@ def get_model_constant(m,t):
 #        print "model: {}".format(m.sexpr())
 #        print "term: {}".format(t)
         res = ivy_logic.Constant(ivy_logic.Symbol(s.defines()[0],s))
-        print "warning: model doesn't give a value for enumerated term {}. returning {}.".format(t,res)
+        print("warning: model doesn't give a value for enumerated term {}. returning {}.".format(t,res))
         return res
 #        assert False # model doesn't give a value for enumerated term
     return constant_from_z3(s,m.eval(term_to_z3(t),model_completion=True))
@@ -891,7 +959,7 @@ def clauses_imply_list(clauses1, clauses2_list):
     s.add(z1)
 
     res = []
-    negs = map(dual_clauses,clauses2_list)
+    negs = list(map(dual_clauses,clauses2_list))
         
     for clauses2 in negs:
         z2 = clauses_to_z3(clauses2)
@@ -1087,7 +1155,7 @@ def model_if_none(clauses1,implied,model):
                 s.add(formula_to_z3(sort_size_constraint(sort,sort_size)))
             if s.check() != z3.unsat:
                 m = get_model(s)
-                print "model = {}, size = {}".format(m,sort_size)
+                print("model = {}, size = {}".format(m,sort_size))
 ##        print "clauses1 = {}".format(clauses1)
 ##        print "z3c = {}".format(str(z3c))
                 syms = used_symbols_clauses(clauses1)
@@ -1102,15 +1170,15 @@ def model_if_none(clauses1,implied,model):
 
 
 def decide(s,atoms=None):
-    # print "solving{"
+    # print ("solving{")
     # f = open("ivy.smt2","w")
     # f.write(s.to_smt2())
     # f.close()
     res = s.check() if atoms == None else s.check(atoms)
     if res == z3.unknown:
-        print s.to_smt2()
+        print(s.to_smt2())
         raise iu.IvyError(None,"Solver produced inconclusive result")
-    # print "}"
+    # print ("}")
     return res
 
 def get_small_model(clauses, sorts_to_minimize, relations_to_minimize, final_cond=None, shrink=True):
@@ -1139,15 +1207,15 @@ def get_small_model(clauses, sorts_to_minimize, relations_to_minimize, final_con
     """
 
     if opt_show_vcs.get():
-        print ''
-        print "definitions:"
+        print('')
+        print("definitions:")
         for df in clauses.defs:
-            print df
-            print
-        print "axioms:"
+            print(df)
+            print()
+        print("axioms:")
         for fmla in clauses.fmlas:
-            print fmla
-            print
+            print(fmla)
+            print()
 
     s = z3.Solver()
     the_fmla = clauses_to_z3(clauses)
@@ -1171,7 +1239,7 @@ def get_small_model(clauses, sorts_to_minimize, relations_to_minimize, final_con
                 fc.start()
                 if fc.assume():
                     if opt_show_vcs.get():
-                        print '\nassume: {}'.format(fc.cond())
+                        print('\nassume: {}'.format(fc.cond()))
                         sys.stdout.flush()
                     s.add(clauses_to_z3(fc.cond()))
                     assumes.append(fc.cond())
@@ -1183,7 +1251,7 @@ def get_small_model(clauses, sorts_to_minimize, relations_to_minimize, final_con
                     foo = fc.cond()
                     sys.stdout.flush()
                     if opt_show_vcs.get():
-                        print '\nassert: {}'.format(foo)
+                        print('\nassert: {}'.format(foo))
                         sys.stdout.flush()
                     the_fmla = clauses_to_z3(foo)
                     # iu.dbg('the_fmla')
@@ -1207,7 +1275,7 @@ def get_small_model(clauses, sorts_to_minimize, relations_to_minimize, final_con
         return None
 
     if shrink:
-        print "searching for a small model...",
+        print("searching for a small model...", end=' ')
         sys.stdout.flush()
         for x in chain(sorts_to_minimize, relations_to_minimize):
             for n in itertools.count(1):
@@ -1219,12 +1287,12 @@ def get_small_model(clauses, sorts_to_minimize, relations_to_minimize, final_con
                     break
                 else:
                     s.pop()
-        print "done"
+        print("done")
     m = get_model(s)
-#    print "model = {}".format(m)
-#    f = open("ivy.smt2","w")
-#    f.write(s.to_smt2())
-#    f.close()
+    # print ("model = {}".format(m))
+    # f = open("ivy.smt2","w")
+    # f.write(s.to_smt2())
+    # f.close()
     h = HerbrandModel(s,m,used_symbols_clauses(clauses))
     return h
 
@@ -1260,9 +1328,9 @@ def model_facts(h,ignore,clauses1,upclose=False):
 #    print "model_facts vc = {}".format(vc)
     # values of relations in formula
 #    print "used_relations_clauses = {}".format(used_relations_clauses(clauses1))
-    urc = dict((ivy_logic.normalize_symbol(r),n) for r,n in used_relations_clauses(clauses1).iteritems())
+    urc = dict((ivy_logic.normalize_symbol(r),n) for r,n in used_relations_clauses(clauses1).items())
     vr = [[l]
-          for (r,n) in urc.iteritems()
+          for (r,n) in urc.items()
           if not ignore(r)
           for l in relation_model_to_clauses(h,r,n)]
     # values of functions in formula
@@ -1294,7 +1362,7 @@ def numeral_assign(clauses,h):
             numv = h.eval_constant(num)
 #            print "eval: {}:{} = {}".format(num,num.sort,numv)
             if numv in foom:
-                print "two numerals assigned same value!: {} = {}".format(num,foom[numv])
+                print("two numerals assigned same value!: {} = {}".format(num,foom[numv]))
             else:
 #                print "assigning {} to {}".format(num,numv)
                 foom[numv] = num
@@ -1353,7 +1421,7 @@ def bound_quantifiers_clauses(h,clauses,reps):
        bq_res = ivy_logic.Implies(ivy_logic.And(*cnsts),fmla) if cnsts else fmla
        return bq_res
 
-   new_fmlas = map(bq,clauses.fmlas)
+   new_fmlas = list(map(bq,clauses.fmlas))
    return Clauses(fmlas=new_fmlas,defs=list(clauses.defs))
 
 def filter_redundant_facts(clauses,axioms):
@@ -1385,7 +1453,7 @@ def filter_redundant_facts(clauses,axioms):
 
 
 
-def clauses_model_to_diagram(clauses1,ignore = None, implied = None,model = None,axioms=None,weaken=True,numerals=True):
+def clauses_model_to_diagram(clauses1,ignore = None, implied = None,model = None,axioms=None,weaken=True,numerals=True,upward_close=True):
     """ Return a diagram of a model of clauses1 or None.  The function "ignore", if
     provided, returns true for symbols that should be ignored in the
     diagram.
@@ -1443,11 +1511,16 @@ def clauses_model_to_diagram(clauses1,ignore = None, implied = None,model = None
 #    print "foo = {}".format(unsat_core(and_clauses(uc,axioms),true_clauses(),clauses1))
 
     # filter out non-rep skolems
-    repset = set(c.rep for e,c in reps.iteritems())
+    repset = set(c.rep for e,c in reps.items())
 #    print "clauses_model_to_diagram repset = {}".format(repset)
     ign = lambda x,ignore=ignore: (ignore(x) and not x in repset)
     res = Clauses([cl for cl in res.fmlas if not any(ign(c) for c in used_symbols_ast(cl))])
 #    print "clauses_model_to_diagram res = {}".format(res)
+    if not upward_close:
+        uc = Clauses([ivy_logic.Or(*[ivy_logic.Equals(ivy_logic.Variable('X',c.get_sort()),reps[c.rep])
+                   for c in h.sort_universe(s)]) for s in h.sorts()])
+        res = and_clauses(res,uc)
+#    uc = Clauses([Or(*[Equals(Variable('X',s),v) for v in state.universe[s]]) for s in state.universe])
     return res
 
 def relation_model_to_clauses(h,r,n):
@@ -1465,7 +1538,7 @@ def get_lit_facts(h,lit,res):
 ##    print "rows = {}".format(rows)
     for r in rows:
 ##        print "r = {}".format(r)
-        subst = dict(zip([v.rep for v in vs],r))
+        subst = dict(list(zip([v.rep for v in vs],r)))
 ##        print "subst = {}".format(subst)
         res += [substitute_lit(lit,subst)]
 
@@ -1529,7 +1602,7 @@ def encode_term(t,n,sort):
         try:
             m = sort.defines().index(t.rep.name)
         except ValueError:
-            print "{} : {} : {}".format(sort,sort.defines(),t.rep)
+            print("{} : {} : {}".format(sort,sort.defines(),t.rep))
             exit(1)
         return binenc(m,n)
     elif isinstance(t,ivy_logic.Variable):
@@ -1541,12 +1614,12 @@ def encode_term(t,n,sort):
 #        return [atom_to_z3(ivy_logic.Atom(t.rep + ':' + str(n-1-i),t.args))
 #                for i in range(n)]
         args = [term_to_z3(arg) for arg in t.args]
-        print "encode_term t={}".format(t)
+        print("encode_term t={}".format(t))
         sig = ivy_logic.RelationSort(t.rep.sort.dom).to_z3()
 
         res = [apply_z3_func(z3_function(t.rep.name + ':' + str(n-1-i),sig),args)
                for i in range(n)]
-        print "encode_term res={}".format(res)
+        print("encode_term res={}".format(res))
         return res
 
 def encode_equality(*terms):
@@ -1573,6 +1646,49 @@ def substitute(t, *m):
         _to[i]   = m[i][1].as_ast()
     return z3_to_expr_ref(z3.Z3_substitute(t.ctx.ref(), t.as_ast(), num, _from, _to), t.ctx)
 
+def z3sort_to_sort(z3sort):
+    if z3sort.kind() == z3.Z3_BOOL_SORT:
+        return ivy_logic.BooleanSort()
+    return ivy_logic.ConstantSort(z3sort.name())
+
+def z3decl_to_symbol(z3decl):
+    if z3.is_func_decl(z3decl):
+        arity = z3decl.arity()
+        rng = z3sort_to_sort(z3decl.range())
+        dom = [z3sort_to_sort(z3decl.domain(i)) for i in range(arity)]
+        name = z3decl.name().split(':')[0]
+        if arity == 0:
+            return ivy_logic.Symbol(name,rng)
+        return ivy_logic.Symbol(name,ivy_logic.FunctionSort(*(dom + [rng])))
+    
+
+def z3_to_formula(z3expr,vars = []):
+    if z3.is_app(z3expr):
+        arity = z3expr.num_args()
+        z3args = [z3expr.arg(i) for i in range(arity)]
+        args = [z3_to_formula(x,vars) for x in z3args]
+        if z3.is_and(z3expr):
+            return ivy_logic.And(*args)
+        if z3.is_or(z3expr):
+            return ivy_logic.Or(*args)
+        if z3.is_not(z3expr):
+            return ivy_logic.Not(*args)
+        if z3.is_eq(z3expr):
+            return ivy_logic.Equals(*args)
+        sym = z3decl_to_symbol(z3expr.decl())
+        return sym if arity == 0 else sym(*args)
+    def fix_var_name(name):
+        return ('V'+name[1:]) if name.startswith('%') else name
+    if z3.is_quantifier(z3expr):
+        vs = [ivy_logic.Variable(fix_var_name(z3expr.var_name(i).split(':')[0]),z3sort_to_sort(z3expr.var_sort(i)))
+              for i in range(z3expr.num_vars())]
+        body = z3_to_formula(z3expr.body(),vars = list(reversed(vs))+vars)
+        quant = ivy_logic.ForAll if z3expr.is_forall() else ivy_logic.Exists
+        return quant(vs,body)
+    if z3.is_var(z3expr):
+        return vars[z3.get_var_index(z3expr)]
+    print ("cannot parse: {}".format(z3expr))
+    
 
 if __name__ == '__main__':
     # clauses = ivy_logic.to_clauses("[[~n(V,_y)],[~n(V1,V),~n(V2,V),=(V1,V2)]]")
@@ -1605,4 +1721,4 @@ if __name__ == '__main__':
         ivy_logic.sig.constructors.add(t)
     add_symbol('f',ivy_logic.FunctionSort([ivy_logic.universe],s))
     cls = to_clauses("f(x) = a & f(y) = b")
-    print clauses_model_to_clauses(cls)
+    print(clauses_model_to_clauses(cls))

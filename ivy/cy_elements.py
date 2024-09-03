@@ -52,7 +52,7 @@ class CyElements(object):
         assert self.elements is not None, "This object us not reusable"
         if label is None:
             label = str(obj)
-        if not isinstance(classes, basestring):
+        if not isinstance(classes, str):
             classes = ' '.join(str(x) for x in classes)
         nid = 'n{}'.format(len(self.node_id))
         assert obj not in self.node_id, "obj must be unique"
@@ -86,7 +86,7 @@ class CyElements(object):
         assert self.elements is not None, "This object us not reusable"
         if label is None:
             label = str(obj)
-        if not isinstance(classes, basestring):
+        if not isinstance(classes, str):
             classes = ' '.join(str(x) for x in classes)
         eid = 'e{}'.format(len(self.edge_id))
         assert (obj, source_obj, target_obj) not in self.edge_id
@@ -115,7 +115,7 @@ class CyElements(object):
         Add a node. See class docstring for details.
         """
         assert self.elements is not None, "This object us not reusable"
-        if not isinstance(classes, basestring):
+        if not isinstance(classes, str):
             classes = ' '.join(str(x) for x in classes)
         sid = 's{}'.format(len(self.shape_id))
         self.shape_id[obj] = sid

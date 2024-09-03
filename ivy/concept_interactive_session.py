@@ -7,14 +7,14 @@
 from itertools import product
 import copy
 
-from concept_alpha import alpha
-from logic import Var, Const, And, Not, ForAll, Eq, TopSort, SortError
-from logic_util import (free_variables, used_constants,
+from .concept_alpha import alpha
+from .logic import Var, Const, And, Not, ForAll, Eq, TopSort, SortError
+from .logic_util import (free_variables, used_constants,
                         is_tautology_equality, normalize_quantifiers, substitute)
-from z3_utils import z3_implies
-from concept import Concept
+from .z3_utils import z3_implies
+from .concept import Concept
 
-from ivy_utils import constant_name_generator, dbg
+from .ivy_utils import constant_name_generator, dbg
 
 
 def _normalize_facts(facts):
@@ -76,7 +76,7 @@ class ConceptInteractiveSession(object):
 
     def _fresh_const_name(self, extra=frozenset()):
         contents = ([self._to_formula()] +
-                    [c.formula for n,c in self.domain.concepts.iteritems() if isinstance(c,Concept)])
+                    [c.formula for n,c in self.domain.concepts.items() if isinstance(c,Concept)])
         used = frozenset(c.name for c in (
             used_constants(*contents) | extra
         ))

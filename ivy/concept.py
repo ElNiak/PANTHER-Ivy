@@ -11,14 +11,14 @@ This file currently defines the following classes:
 from itertools import product, chain
 from collections import OrderedDict, defaultdict
 
-from general import IvyError
-from utils.recstruct_object import record
-from logic import (Var, Const, Apply, Eq, Not, And, Or, Implies,
+from .general import IvyError
+from .utils.recstruct_object import record
+from .logic import (Var, Const, Apply, Eq, Not, And, Or, Implies,
                    ForAll, Exists)
-from logic import UninterpretedSort, FunctionSort, first_order_sort, Boolean, TopSort, SortError, contains_topsort
-from logic_util import free_variables, substitute, substitute_apply, used_constants
-from type_inference import concretize_sorts
-from z3_utils import z3_implies
+from .logic import UninterpretedSort, FunctionSort, first_order_sort, Boolean, TopSort, SortError, contains_topsort
+from .logic_util import free_variables, substitute, substitute_apply, used_constants
+from .type_inference import concretize_sorts
+from .z3_utils import z3_implies
 
 
 class ArityError(IvyError):
@@ -106,7 +106,7 @@ class ConceptCombiner(record('Concept', ['variables', 'formula'])):
             raise ArityError(self.arities, concepts)
         return concretize_sorts(substitute_apply(
             self.formula,
-            zip(self.variables, concepts),
+            list(zip(self.variables, concepts)),
             by_name=True,
         ))
 
@@ -145,7 +145,7 @@ def _resolve_name(d, x):
     """
     if x == '*':
         return _resolve_name(d, [k for k in d])
-    elif isinstance(x, basestring):
+    elif isinstance(x, str):
         v = d.get(x, ())
         if type(v) in (list,set,tuple) or isinstance(v,ConceptSet):
             return _resolve_name(d, v)
@@ -160,7 +160,7 @@ def _replace_name(x, name, new):
     Return a list obtained from x by replacing occurances of name with
     the list new and flattening.
     """
-    if isinstance(x, basestring):
+    if isinstance(x, str):
         return x
     else:
         new = list(new)
@@ -207,13 +207,13 @@ class ConceptDomain(object):
         return self.__copy__()
 
     def concepts_by_arity(self, a):
-        return [name for name, concept in self.concepts.iteritems()
+        return [name for name, concept in self.concepts.items()
                 if type(concept) is Concept and concept.arity == a]
 
     def possible_node_labes(self):
         nodes = set(self.concepts['nodes'])
         return [
-            name for name, concept in self.concepts.iteritems() if
+            name for name, concept in self.concepts.items() if
             type(concept) is Concept and
             concept.arity == 1 and
             name not in nodes
@@ -309,8 +309,8 @@ class ConceptDomain(object):
             formulas = [c2(*variables),Not(c2(*variables))]
             new_names = ['({}+{})'.format(concept, split_by), '({}-{})'.format(concept, split_by)]
         new_concepts = [Concept(n,variables,And(c1.formula,f)) for n,f in zip(new_names,formulas)]
-        names = self.concepts.keys()
-        self.concepts.update(zip(new_names, new_concepts))
+        names = list(self.concepts.keys())
+        self.concepts.update(list(zip(new_names, new_concepts)))
         self.concepts = ConceptDict((k, self.concepts[k]) for k in _replace_name(names, concept, new_names))
         self.replace_concept(concept, new_names)
 
@@ -318,7 +318,7 @@ class ConceptDomain(object):
         """
         concept is a concept name, and new is a list of names to replace it with
         """
-        for k, v in self.concepts.iteritems():
+        for k, v in self.concepts.items():
             if not isinstance(v,Concept) and not isinstance(v,ConceptSet):
                 self.concepts[k] = _replace_name(v, concept, new)
         self.combinations = [
@@ -327,15 +327,15 @@ class ConceptDomain(object):
         ]
 
     def output(self):
-        print "Concepts:"
-        for k, v in self.concepts.iteritems():
-            print '   ', k, ':', v
-        print "Concept Combiners:"
-        for k, v in self.combiners.iteritems():
-            print '   ', k, ':', v
-        print "Combinations:"
+        print("Concepts:")
+        for k, v in self.concepts.items():
+            print('   ', k, ':', v)
+        print("Concept Combiners:")
+        for k, v in self.combiners.items():
+            print('   ', k, ':', v)
+        print("Combinations:")
         for v in self.combinations:
-            print '   ', v
+            print('   ', v)
 
 
 def get_standard_combiners():
@@ -494,7 +494,7 @@ def get_diagram_concept_domain(sig, diagram):
     # add concepts from relations and constants in the signature and
     # in the diagram
     if sig is not None:
-        sig_symbols = frozenset(sig.symbols.values())
+        sig_symbols = frozenset(list(sig.symbols.values()))
     else:
         sig_symbols = frozenset()
     for c in sorted(sig_symbols | used_constants(diagram)):
@@ -580,7 +580,7 @@ def get_structure_concept_domain(state, sig=None):
     state_formula = state.clauses.to_formula()
     symbols = used_constants(state_formula)
     if sig is not None:
-        symbols = symbols | frozenset(sig.symbols.values())
+        symbols = symbols | frozenset(list(sig.symbols.values()))
     symbols = symbols - frozenset(elements)
     symbols = sorted(symbols)
     for c in symbols:
@@ -697,7 +697,7 @@ def get_structure_concept_abstract_value(state):
                 if type(lit.t1) is Const:
                     # unary equality concept
                     label_name = '={}'.format(lit.t1.name)
-                    for uc, node_name in nodes.iteritems():
+                    for uc, node_name in nodes.items():
                         if uc.sort != lit.t2.sort:
                             continue
                         polarity = uc == lit.t2
@@ -711,7 +711,7 @@ def get_structure_concept_abstract_value(state):
                     if lit.t1.func.sort.arity == 1:
                         edge_name = lit.t1.func.name
                         source_name = nodes[lit.t1.terms[0]]
-                        for uc, target_name in nodes.iteritems():
+                        for uc, target_name in nodes.items():
                             if uc.sort != lit.t2.sort:
                                 continue
                             polarity = uc == lit.t2
@@ -764,7 +764,7 @@ def get_structure_renaming(state, order_relations=()):
     result is a dictionary mapping universe constant names to prettier
     names that should be used for displaying to the user
     """
-    from ivy_utils import topological_sort
+    from .ivy_utils import topological_sort
 
     order_relations = frozenset(order_relations)
 
@@ -797,7 +797,7 @@ def get_structure_renaming(state, order_relations=()):
 
 if __name__ == '__main__':
     def test(st):
-        print st, "=", eval(st)
+        print(st, "=", eval(st))
 
     S = UninterpretedSort('S')
     T = TopSort()
@@ -832,10 +832,10 @@ if __name__ == '__main__':
     test('c00')
     test('cu')
     test('crn')
-    print
-    for k, v in combiners.iteritems():
-        print k, ':', v
-    print
+    print()
+    for k, v in combiners.items():
+        print(k, ':', v)
+    print()
 
     cd = ConceptDomain(
         OrderedDict([
@@ -853,13 +853,13 @@ if __name__ == '__main__':
         combinations,
     )
 
-    print "cd = ("
+    print("cd = (")
     cd.output()
-    print ")\n"
+    print(")\n")
 
     facts = cd.get_facts()
     if True:
-        print "facts ({}) = [".format(len(facts))
+        print("facts ({}) = [".format(len(facts)))
         for tag, formula in facts:
-            print '   ', tag, ':', formula, ','
-        print "]\n"
+            print('   ', tag, ':', formula, ',')
+        print("]\n")

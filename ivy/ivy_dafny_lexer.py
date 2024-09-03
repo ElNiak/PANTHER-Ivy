@@ -95,7 +95,7 @@ def t_SYMBOL(t):
     return t
 
 def t_error(t):
-    print "Illegal character '%s'" % t.value[0]
+    print("Illegal character '%s'" % t.value[0])
     t.lexer.skip(1)
 
 lexer = lex.lex()

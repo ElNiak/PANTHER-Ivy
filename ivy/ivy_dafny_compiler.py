@@ -1,9 +1,9 @@
 #
 # Copyright (c) Microsoft Corporation. All Rights Reserved.
 #
-import ivy_dafny_ast as da
-import ivy_parser as ip
-import ivy_utils as iu
+from . import ivy_dafny_ast as da
+from . import ivy_parser as ip
+from . import ivy_utils as iu
 
 class Context(object):
     def __enter__(self):
@@ -38,7 +38,7 @@ class ScopeContext(Context):
     def __init__(self):
         # copy existing local variabes if any
         if 'scope_context' in globals() and scope_context:
-            self.locals = dict(scope_context.locals.iteritems())
+            self.locals = dict(iter(scope_context.locals.items()))
         else:
             self.locals = dict()
         self.new_locals = []
@@ -218,7 +218,7 @@ def get_while_modset(mods):
     if mods:
         return [ip.Atom(s.to_ivy([]).rep,[]) for s in mods]
     elif method_context.modifies:
-        return method_context.modifies + [ip.Atom(y.rep,[]) for x,y in scope_context.locals.iteritems()]
+        return method_context.modifies + [ip.Atom(y.rep,[]) for x,y in scope_context.locals.items()]
     return None
 
 def whilestmt(s):
@@ -428,7 +428,7 @@ def subst_symbols_app(s,m):
 
 da.App.subst_symbols = subst_symbols_app
 
-import ivy_dafny_parser as dp
+from . import ivy_dafny_parser as dp
 
 preamble = """
 type int
@@ -454,7 +454,7 @@ def parse_to_ivy(s):
     im = ip.parse(preamble)
     with ModuleContext(dm,im):
         dm.to_ivy()
-        print im
+        print(im)
         return im
 
 if __name__ == "__main__":
@@ -473,6 +473,6 @@ if __name__ == "__main__":
         im = ip.Ivy()
         with ModuleContext(dm,im):
             dm.to_ivy()
-            print im
+            print(im)
 
     

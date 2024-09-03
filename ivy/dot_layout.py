@@ -7,20 +7,20 @@ Use DOT to layout a graph for cytoscape.js
 TODO: add support for middle points in edges
 """
 
-from __future__ import division
+
 
 from collections import deque, defaultdict
 
 import platform
 if True or platform.system() == 'Windows':
-    from ivy_graphviz import AGraph
+    from .ivy_graphviz import AGraph
 else:
     from pygraphviz import AGraph
 
 
-from ivy_utils import topological_sort
+from .ivy_utils import topological_sort
 
-import ivy_utils as iu
+from . import ivy_utils as iu
 
 # import pygraphviz
 
@@ -130,7 +130,7 @@ def _to_coord_list(st):
     """ create a sequence of positions from a dot-generated string """
     nums = st.split(',')
     pairs = [','.join((nums[2*i],nums[2*i+1])) for i in range(len(nums)//2)]
-    return map(_to_position,pairs)
+    return list(map(_to_position,pairs))
 
 
 def dot_layout(cy_elements,edge_labels=False,subgraph_boxes=False,node_gt=None):
@@ -243,6 +243,8 @@ def dot_layout(cy_elements,edge_labels=False,subgraph_boxes=False,node_gt=None):
     global y_origin
     y_origin = 0.0
     for n in g.nodes():
+        if 'pos' not in n.attr:
+            continue
         top = float(n.attr['pos'].split(',')[1]) + float(n.attr['height'])/2
         if top > y_origin:
             y_origin = top

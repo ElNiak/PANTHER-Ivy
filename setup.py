@@ -3,8 +3,14 @@ import os
 import platform
 
 from setuptools import setup, find_packages
+from setuptools.dist import Distribution
 
-
+# Workaround for bdist_wheel so that we get a platform-specific package
+class BinaryDistribution(Distribution):
+    """Distribution which always forces a binary package with platform name"""
+    def has_ext_modules(foo):
+        return True
+      
 # Get the long description from the README file
 here = os.path.abspath(os.path.dirname(__file__))
 try:
@@ -15,7 +21,8 @@ except:
   long_description = None
 
 setup(name='ms_ivy',
-      version='1.8.24',
+      python_requires='>=3.10',
+      version='1.8.25',
       description='IVy verification tool',
       long_description=long_description,
       url='https://github.com/microsoft/ivy',
@@ -29,7 +36,7 @@ setup(name='ms_ivy',
                     if platform.system() == 'Darwin' else
                     {'ivy':['include/*/*.ivy','include/*/*.h','include/*.h','lib/*.so','lib/*.a','z3/*.so','ivy2/s3/ivyc_s3','bin/*']}),
       install_requires=[
-          'pyparsing==2.1.4',
+          'pyparsing',
           'ply',
           'tarjan',
           'pydot',
@@ -37,5 +44,6 @@ setup(name='ms_ivy',
       entry_points = {
         'console_scripts': ['ivy=ivy.ivy:main','ivy_check=ivy.ivy_check:main','ivy_to_cpp=ivy.ivy_to_cpp:main','ivy_show=ivy.ivy_show:main','ivy_ev_viewer=ivy.ivy_ev_viewer:main','ivyc=ivy.ivy_to_cpp:ivyc','ivy_to_md=ivy.ivy_to_md:main','ivy_libs=ivy.ivy_libs:main','ivy_shell=ivy.ivy_shell:main','ivy_launch=ivy.ivy_launch:main'],
         },
-      zip_safe=False)
+      zip_safe=False,
+      distclass=BinaryDistribution)
 

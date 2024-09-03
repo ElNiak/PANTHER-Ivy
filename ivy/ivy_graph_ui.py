@@ -11,11 +11,11 @@ concept graphs """
 #TODO: the import *'s are creating conflicts
 import functools
 import string
-from ivy_graph import *
-import ivy_logic
-import ivy_logic_utils as lu
-import ivy_interp
-from ivy_utils import topological_sort
+from .ivy_graph import *
+from . import ivy_logic
+from . import ivy_logic_utils as lu
+from . import ivy_interp
+from .ivy_utils import topological_sort
 from collections import defaultdict
 
 repr = str
@@ -35,6 +35,7 @@ class GraphWidget(object):
         return [("menu","Action",
                  [("button","Undo",self.undo),
                   ("button","Redo",self.redo),
+                  ("button","PDR step",self.pdr_step),
                   ("button","Concrete",self.concrete),
                   ("button","Gather",self.gather),
                   ("button","Reverse",self.reverse),
@@ -245,7 +246,7 @@ class GraphWidget(object):
         if hasattr(self,'fact_elems'):
             for fact in self.get_active_facts():
                 for elem in self.fact_elems[fact]:
-                    concepts = map(self.g.concept_from_id,elem)
+                    concepts = list(map(self.g.concept_from_id,elem))
                     if len(elem) == 1: # a node
                         self.select_node(concepts[0],True)
                     elif len(elem) == 3: # an edge
@@ -275,6 +276,7 @@ class GraphWidget(object):
         if self.parent != None and self.g.parent_state != None:
             self.checkpoint(set_backtrack_point=True)
             g = self.g
+            print ("type(g) =  {}|".format(type(g)))
             p = self.parent.reverse_update_concrete_clauses(g.parent_state, g.constraints)
             if p == None:
                 self.ui_parent.ok_dialog("Cannot reverse.")
@@ -282,11 +284,24 @@ class GraphWidget(object):
             clauses, parent_state = p
             g.parent_state = parent_state
             g.set_state(ilu.and_clauses(parent_state.clauses,clauses),clear_constraints=True)
-            print "reverse: state = {}".format(g.state)
+            print("reverse: state = {}".format(g.state))
             # This is a HACK to support "diagram"
             g.reverse_result = (parent_state.clauses,clauses)
             self.update()
 
+    def pdr_step(self):
+        self.reverse();
+        g = self.g
+        if g.reverse_result[1].is_false():
+            self.backtrack()
+            self.recalculate()
+            if self.graph_stack.can_undo() and hasattr(self.g,'reverse_result'):
+                self.backtrack()
+            else:
+                self.ui_parent.ok_dialog("PDR terminated")
+        else:
+            self.diagram()
+            
     # Recalculate the current state
 
     def recalculate(self):
@@ -406,7 +421,7 @@ class GraphWidget(object):
                 text = str(clauses_to_formula(interp))
                 self.ui_parent.text_dialog(msg,text,on_cancel=None)
                 goal = lu.reskolemize_clauses(core,self.g.parent_state.domain.skolemizer())
-                g.constraints = goal
+                g.set_facts(goal)
                 g.set_state(goal)
                 self.update()
             else:
@@ -421,14 +436,22 @@ class GraphWidget(object):
             self.checkpoint()
             g = self.g
             if hasattr(g,'reverse_result'):
+                print ("have reverse result")
                 dgm = ivy_interp.diagram(self.g.parent_state,
                                          self.g.reverse_result[1],
-                                         extra_axioms = self.g.reverse_result[0])
+                                         extra_axioms = self.g.reverse_result[0],
+                                         upward_close=False, weaken=False)
+                if dgm is None:
+                    self.ui_parent.ok_dialog("The current state is vacuous. Backtracking.")
+                    self.backtrack()
+                    self.diagram()
             else:
-                dgm = ivy_interp.diagram(self.g.parent_state,self.g.state)
+                dgm = ivy_interp.diagram(self.g.parent_state,self.g.state,upward_close=False, weaken=False)
             if dgm != None:
                 goal = lu.reskolemize_clauses(dgm,self.g.parent_state.domain.skolemizer())
-                g.constraints = goal
+                print (type(g))
+                print (g.constraints)
+                g.set_facts(goal.fmlas)
                 g.set_state(goal)
                 self.update()
             else:
@@ -468,10 +491,10 @@ class GraphWidget(object):
     def materialize_from_selected(self,node):
         if hasattr(self,'mark'):
             sorts = tuple(self.g.node_sort(x) for x in [self.mark,node])
-            print "sorts: {}".format(sorts)
+            print("sorts: {}".format(sorts))
             for r in self.g.relations:
-                print "{}".format(r)
-                print ": {}".format(r.sorts)
+                print("{}".format(r))
+                print(": {}".format(r.sorts))
             rels = [r for r in self.g.relations if r.sorts == sorts]
             items = [self.g.concept_label(r) for r in rels]
             msg = "Materialize this relation from selected node:"

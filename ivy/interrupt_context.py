@@ -25,8 +25,8 @@ if __name__ == '__main__':
     with InterruptContext() as c:
         while True:
             i += 1
-            print i
+            print(i)
             sleep(3)
-            print c.interrupted
+            print(c.interrupted)
             c.interrupted = False
-            print
+            print()

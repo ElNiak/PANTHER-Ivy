@@ -1,7 +1,7 @@
 #
 # Copyright (c) Microsoft Corporation. All Rights Reserved.
 #
-from ivy_logic import *
+from .ivy_logic import *
 from collections import defaultdict
 
 class UndoRep(object):
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     c.union(to_term("v"),to_term("w"))
     c.push()
     c.union(to_term("u"),to_term("v"))
-    print c.find(to_term("w"))
+    print(c.find(to_term("w")))
     c.pop()
-    print c.tab
-    print c.theory()
+    print(c.tab)
+    print(c.theory())

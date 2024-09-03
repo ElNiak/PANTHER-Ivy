@@ -1,12 +1,12 @@
 #
 # Copyright (c) Microsoft Corporation. All Rights Reserved.
 #
-from ivy_resolution import mgu_eq
-from ivy_logic import *
-from ivy_logic_utils import * 
-import ivy_congclos as congclos
+from .ivy_resolution import mgu_eq
+from .ivy_logic import *
+from .ivy_logic_utils import * 
+from . import ivy_congclos as congclos
 from collections import defaultdict
-import ivy_logic
+from . import ivy_logic
 
 def verbose():
     return False
@@ -162,7 +162,7 @@ def find_subsumed_rec(index, terms, idx):
         return
     t = terms[idx]
     if isinstance(t,Variable):
-        for x,sub_index in index[2].iteritems():
+        for x,sub_index in index[2].items():
             for y in find_subsumed_rec(sub_index, terms, idx+1):
                 yield y
     else:
@@ -189,7 +189,7 @@ def find_unifying_rec(index, terms, idx):
         return
     t = terms[idx]
     if isinstance(t,Variable) or t.rep.startswith('__v'):
-        for x,sub_index in index[2].iteritems():
+        for x,sub_index in index[2].items():
             for y in find_unifying_rec(sub_index, terms, idx+1):
                 yield y
     else:
@@ -285,7 +285,7 @@ class UnitRes(object):
                 self.unit_queue_gen.append(gen)
                 self.unit_ids.add(litid)
                 if verbose():
-                    print "added %s %s" % (lit,litid)
+                    print("added %s %s" % (lit,litid))
         else:
             i = len(self.clauses)
             self.clauses.append(cl)
@@ -305,7 +305,7 @@ class UnitRes(object):
                         new_rhs = substitute_constants_lit(rhs,subs)
                         if not lit_eq(rhs,new_rhs):
                             new_cl = [lhs,new_rhs]
-                            print "applied transitivity: %s" % cl
+                            print("applied transitivity: %s" % cl)
                             self.add_clause_basic(new_cl,gen)
 
     def update_equational_theory(self,lit):
@@ -314,7 +314,7 @@ class UnitRes(object):
             if isinstance(t0,Constant) and isinstance(t1,Constant):
                 equational_theory.union(t0,t1)
                 if verbose():
-                    print "merged %s %s" % (t0,t1)
+                    print("merged %s %s" % (t0,t1))
 
     def get_watching(self,lit):
         return index_lookup(self.index,lit)[1]
@@ -335,7 +335,7 @@ class UnitRes(object):
             if not isinstance(t,Variable) and t.rep not in used:
                 used.add(t.rep)
                 if any(lit_eq(self.unit_queue[j],self.unit_queue[i]) for j in self.unit_term_index[t.rep]):
-                    print "bad add: %s %s %s" % (self.unit_queue[i],i,self.unit_term_index[t.rep])
+                    print("bad add: %s %s %s" % (self.unit_queue[i],i,self.unit_term_index[t.rep]))
                     exit(1)
                 self.unit_term_index[t.rep].append(i)
         # also index units by their relation name
@@ -375,7 +375,7 @@ class UnitRes(object):
             if not new_specialization or is_unit:
                 return True
             if eqs and verbose():
-                print "spec: %s, %s -> %s" % (lit,other,eqs)
+                print("spec: %s, %s -> %s" % (lit,other,eqs))
             self.detected_specializations.extend(eqs)
         return not eqs
 
@@ -393,7 +393,7 @@ class UnitRes(object):
             if not lit_eq(lit2,lit3):
                 new_cl = [lit3]
                 if verbose():
-                    print "rewrite! %s,%s -> %s" % (lit,lit2,new_cl)
+                    print("rewrite! %s,%s -> %s" % (lit,lit2,new_cl))
                 new_gen = max(gen+1,self.unit_queue_gen[lit_idx])
                 self.add_clause(new_cl,new_gen)
                 if self.unsat:
@@ -402,7 +402,7 @@ class UnitRes(object):
         for lit_idx in self.unit_term_index[t1.rep]:
             lit2 = self.unit_queue[lit_idx]
             if verbose():
-                print "re-propagate: %s" % lit2
+                print("re-propagate: %s" % lit2)
             self.propagate_lit(lit2,max(gen+1,self.unit_queue_gen[lit_idx]))
             if self.unsat:
                 return
@@ -443,7 +443,7 @@ class UnitRes(object):
         #            print "cl: %s lit: %s" % (cl,lit)
                     lit2 = lit_rep(cl[j])
                     if lit2.polarity != 1-lit.polarity or lit2.atom.relname != lit.atom.relname:
-                        print "!!! %s %s %s %s %s" % (i,j,lit,lit2,cl)
+                        print("!!! %s %s %s %s %s" % (i,j,lit,lit2,cl))
                         exit(1)
                     if is_equality_lit(lit2) and all(isinstance(t,Variable) for t in lit2.atom.args):
                         continue
@@ -457,12 +457,12 @@ class UnitRes(object):
                         new_cl = [substitute_lit(lit1, subs) for k,lit1 in enumerate(cl) if k != j] + [Literal(0,eq) for eq in eqs]
                         if not new_specialization and not (specs == None):
                             if verbose():
-                                print "using specs: %s" % specs
+                                print("using specs: %s" % specs)
                             new_cl = substitute_constants_clause(new_cl,specs)
                         new_cl = simplify_clause(new_cl)
                         if not is_tautology(new_cl) and not self.subsumed_by_used_lit(lit,cl,new_cl):
                             if verbose():
-                                print "%s,%s -> %s" % (lit,cl,new_cl)
+                                print("%s,%s -> %s" % (lit,cl,new_cl))
                             new_gen = max(gen+1,self.clauses_gen[i])
                             self.add_clause(new_cl,new_gen)
                             if self.unsat:
@@ -491,7 +491,7 @@ class UnitRes(object):
                 new_cl = [Literal(0,eq) for eq in eqs]
                 if not self.subsumed_by_used_lit(lit,lit2,new_cl):
                     if verbose():
-                        print "units resolve! %s,%s -> %s" % (lit,lit2,new_cl)
+                        print("units resolve! %s,%s -> %s" % (lit,lit2,new_cl))
                     new_gen = max(gen+1,self.unit_queue_gen[lit_idx])
                     self.add_clause(new_cl,new_gen)
                     if self.unsat:
@@ -542,5 +542,5 @@ if __name__ == "__main__":
     r = UnitRes(to_clauses("p(U,v) & v = u & (~p(x,u) | q(u))"))
     with r.context():
         r.propagate()
-        print r.unit_queue
+        print(r.unit_queue)
 
