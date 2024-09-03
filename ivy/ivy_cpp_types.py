@@ -556,15 +556,15 @@ class LongBV(XBVI):
     def __init__(self,classname,loval,hival,bits):
         """ bits is the number of bits in the bit vector representation """
         add_once_global("""
-    struct LongClass {
-        LongClass() : val(0) {}
-        LongClass(int128_t val) : val(val) {}
-        int128_t val;
-        int128_t __hash() const {return val;}
-    };
-""")
-	#"std::ostream& operator<<(std::ostream&s, const LongClass &v) {return s << v.val;}\n"
-	printed = """
+        struct LongClass {
+            LongClass() : val(0) {}
+            LongClass(int128_t val) : val(val) {}
+            int128_t val;
+            int128_t __hash() const {return val;}
+        };
+        """)
+	    #"std::ostream& operator<<(std::ostream&s, const LongClass &v) {return s << v.val;}\n"
+        printed = """
 	std::ostream& operator<<(std::ostream&s, const LongClass &v) {
 		std::ostream::sentry ss( s ); 
 		if ( ss ) { 
