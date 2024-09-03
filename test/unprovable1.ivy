@@ -1,0 +1,46 @@
+#lang ivy1.8
+
+# This test shows an example of using the 'unprovable' keyword. THis
+# keyword can be used to include sanity checks that make sure that
+# assumptions you are making are consistent.  If you prefix an
+# assertion or a invariant declaration with 'unprovable', Ivy will try
+# to prove the assertion, and will report a failure in case it is
+# *provable*. This is only done if you use the option
+# 'unprovable=true' on the command line. Otherwise the 'unprovable'
+# assertions are completely ignored.
+#
+# In the following, when using 'unprovable=true', you should see that:
+#
+# 1) 'foo1' is ignored, since unprovable assertions cannot be assumptions
+# 2) 'foo2' passes, since 'false' cannot be proved
+# 3) 'foo3' fails, since 'true' is provable
+# 4) 'foo4' passes, since '~p' cannot be proved
+# 4) 'foo5' fails, since p can be proved after executing action 'a'.
+#
+# Notice if we remove 'invariant p', 'foo4' passes, since without this
+# invariant 'p' cannot be proved. Notice also that Ivy only checks consecution
+# of the 'unprovable' invariants and not initiation. This is to avoid
+# spuriously reporting the invariant provable initially. In principle, Ivy should
+# check both initiation and consecution and report a failure when both cases
+# are proved.
+#
+# Also, notice that is is not sensible to attach a proof to an
+# 'unprovable' assertion.  Ivy doesn't report this as an error, but
+# you may get strange results if you do this.
+
+
+relation p
+
+after init {
+    p := true
+}
+
+export action a = {
+    unprovable require [foo1] false;
+    unprovable assert [foo2] false;
+    unprovable assert [foo3] true;
+    p := p;
+}
+invariant p
+unprovable invariant [foo4] ~p
+unprovable invariant [foo5] p

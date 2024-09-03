@@ -77,3 +77,25 @@ module serdes(data,bytes,serializer,deserializer) = {
 
 >>>
 
+
+object std_serdes = {
+
+    object serializer = {}
+    object deserializer = {}
+
+    implementation {
+    <<< header
+
+        class ivy_binary_ser;
+        class ivy_binary_deser;
+
+    >>>
+
+    <<< member
+
+        typedef ivy_binary_ser `serializer`;
+        typedef ivy_binary_deser `deserializer`;
+
+    >>>
+    }
+}

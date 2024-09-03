@@ -1,11 +1,11 @@
 
 # Copyright (c) Microsoft Corporation. All Rights Reserved.
 #
-from ivy_concept_space import NamedSpace, ProductSpace, SumSpace
-from ivy_ast import *
-from ivy_actions import AssumeAction, AssertAction, EnsuresAction, SetAction, AssignAction, VarAction, HavocAction, IfAction, AssignFieldAction, NullFieldAction, CopyFieldAction, InstantiateAction, CallAction, LocalAction, LetAction, Sequence, UpdatePattern, PatternBasedUpdate, SymbolList, UpdatePatternList, Schema, ChoiceAction, NativeAction, WhileAction, Ranking, RequiresAction, EnsuresAction, CrashAction, ThunkAction, DebugAction
-from ivy_lexer import *
-import ivy_utils as iu
+from .ivy_concept_space import NamedSpace, ProductSpace, SumSpace
+from .ivy_ast import *
+from .ivy_actions import AssumeAction, AssertAction, EnsuresAction, SetAction, AssignAction, VarAction, HavocAction, IfAction, AssignFieldAction, NullFieldAction, CopyFieldAction, InstantiateAction, CallAction, LocalAction, LetAction, Sequence, UpdatePattern, PatternBasedUpdate, SymbolList, UpdatePatternList, Schema, ChoiceAction, NativeAction, WhileAction, Ranking, RequiresAction, EnsuresAction, CrashAction, ThunkAction, DebugAction, check_unprovable
+from .ivy_lexer import *
+from . import ivy_utils as iu
 import copy
 from collections import defaultdict
 
@@ -38,7 +38,7 @@ if not (iu.get_numeric_version() <= [1,2]):
     else:
         precedence = (
             ('left', 'SEMI'),
-            ('left', 'GLOBALLY', 'EVENTUALLY'),
+            ('left', 'GLOBALLY', 'EVENTUALLY','WHENFIRST','WHENLAST','WHENNEXT','WHENPREV'),
             ('left', 'IF'),
             ('left', 'ELSE'),
             ('left', 'OR'),
@@ -105,6 +105,7 @@ def get_lineno(p,n):
     return iu.Location(iu.filename,p.lineno(n))
 
 def report_error(error):
+#    assert False,error
     error_list.append(error)
 
 def stack_lookup(name):
@@ -130,7 +131,7 @@ def inst_mod(ivy,module,pref,subst,vsubst,modname=None,lineno=None):
     save = ivy.attributes
     ivy.attributes = tuple(x for x in ivy.attributes if x == "common")
     static = module.static.copy()
-    for name,dfs in module.defined.iteritems():
+    for name,dfs in module.defined.items():
         if any((df[1] is TypeDecl) or (df[1] is DestructorDecl) for df in dfs):
             static.add(name)
     def spaa(decl,subst,pref):
@@ -153,7 +154,7 @@ def inst_mod(ivy,module,pref,subst,vsubst,modname=None,lineno=None):
             if dvsubst:
                 map1 = distinct_variable_renaming(used_variables_ast(dpref),used_variables_ast(decl))
                 vpref = substitute_ast(dpref,map1)
-                vvsubst = dict((x,map1[y.rep]) for x,y in dvsubst.iteritems())
+                vvsubst = dict((x,map1[y.rep]) for x,y in dvsubst.items())
                 idecl = AttributeDecl(*[x.clone([compose_atoms(vpref,x.args[0]),x.args[1]]) for x in decl.args]) if vpref is not None else decl
                 idecl = substitute_constants_ast(idecl,vvsubst)
             else:
@@ -161,7 +162,7 @@ def inst_mod(ivy,module,pref,subst,vsubst,modname=None,lineno=None):
         elif dvsubst:
             map1 = distinct_variable_renaming(used_variables_ast(dpref),used_variables_ast(decl))
             vpref = substitute_ast(dpref,map1)
-            vvsubst = dict((x,map1[y.rep]) for x,y in dvsubst.iteritems())
+            vvsubst = dict((x,map1[y.rep]) for x,y in dvsubst.items())
             idecl = spaa(decl,subst,vpref)
             idecl = substitute_constants_ast2(idecl,vvsubst)
         else:
@@ -173,7 +174,7 @@ def inst_mod(ivy,module,pref,subst,vsubst,modname=None,lineno=None):
         if isinstance(idecl,ActionDecl):
             for foo in idecl.args:
                 if not hasattr(foo.args[1],'lineno'):
-                    print 'no lineno: {}'.format(foo)
+                    print('no lineno: {}'.format(foo))
         idecl.attributes = decl.attributes
         if isinstance(idecl,ObjectDecl):
             ivy.declare(idecl)
@@ -205,7 +206,7 @@ def do_insts(ivy,insts):
             subst = dict((x.rep,y.rep) for x,y in zip(fparams,aparams) if not isinstance(y,Variable))
             vsubst = dict((x.rep,y) for x,y in zip(fparams,aparams) if isinstance(y,Variable))
             pvars = set(x.rep for x in pref.args) if pref != None else set()
-            for v in vsubst.values():
+            for v in list(vsubst.values()):
                 if v.rep not in pvars:
                     raise iu.IvyError(instantiation,"variable {} is unbound".format(v))
             module = defn.args[1]
@@ -331,6 +332,9 @@ class Ivy(object):
         return None
 
     def set_object_defined(self,name,defined):
+#        print ('name: {}, defined: {}'.format(name,defined))
+        if defined is not None:
+            defined = defaultdict(list,((k,v.copy()) for k,v in defined.items()))
 #        print 'set_object_defined: {}'.format(name)
         if name in self.defined:
 #            print 'prev: {}'.format(self.defined[name])
@@ -400,6 +404,19 @@ def p_opttemporal_symbol(p):
 
 def addtemporal(lf):
     lf.temporal = True
+    return lf
+
+def p_optunprovable(p):
+    'optunprovable : '
+    p[0] = None
+
+def p_optunprovable_symbol(p):
+    'optunprovable : UNPROVABLE'
+    p[0] = True
+
+def addunprovable(lf,cond):
+    if cond:
+        lf.unprovable = True
     return lf
 
 def addexplicit(lf):
@@ -501,13 +518,28 @@ if not iu.get_numeric_version() <= [1,6]:
         'top : top optexplicit INVARIANT labeledfmla optproof'
         p[0] = p[1]
         lf = addlabel(p[4],'invar')
+        lf.unprovable = False
         if p[2]:
             lf.explicit = True
         d = ConjectureDecl(lf)
         d.lineno = get_lineno(p,3)
-        p[0].declare(d)
-        if p[5] is not None:
-            p[0].declare(ProofDecl(p[5]))
+        if not lf.unprovable or check_unprovable.get():
+            p[0].declare(d)
+            if p[5] is not None:
+                p[0].declare(ProofDecl(p[5]))
+
+    def p_top_unprovable_invariant_labeledfmla(p):
+        'top : top UNPROVABLE INVARIANT labeledfmla optproof'
+        p[0] = p[1]
+        lf = addlabel(p[4],'invar')
+        lf.unprovable = True
+        lf.explicit = True
+        d = ConjectureDecl(lf)
+        d.lineno = get_lineno(p,3)
+        if not lf.unprovable or check_unprovable.get():
+            p[0].declare(d)
+            if p[5] is not None:
+                p[0].declare(ProofDecl(p[5]))
 
 def p_modulestart(p):
     'modulestart :'
@@ -1037,7 +1069,7 @@ else:
         'proofstep : ASSUME atype optrenaming'
         a = Atom(p[2])
         a.lineno = get_lineno(p,2)
-        p[0] = AssumeTactic(a,p[3])
+        p[0] = AssumeGlobalTactic(a,p[3])
         p[0].label = NoneAST()
         p[0].lineno = get_lineno(p,1)
 
@@ -1182,7 +1214,7 @@ else:
         'proofstep : ASSUME atype optrenaming WITH matches'
         a = Atom(p[2])
         a.lineno = get_lineno(p,2)
-        p[0] = AssumeTactic(*([a,p[3]]+p[5]))
+        p[0] = AssumeGlobalTactic(*([a,p[3]]+p[5]))
         p[0].label = NoneAST()
         p[0].lineno = get_lineno(p,1)
 
@@ -1248,7 +1280,7 @@ else:
 
     def p_pflet_var_eq_fmla(p):
         'pflet : var EQ fmla'
-        p[0] = Definition(p[1],check_non_temporal(p[3]))
+        p[0] = Definition(p[1],p[3])
         p[0].lineno = get_lineno(p,2)
 
     def p_pflets_pflet(p):
@@ -1280,14 +1312,33 @@ else:
         p[0] = TacticWith()
 
     def p_opttacticwith_with_tacticwithlist(p):
-        'opttacticwith : WITH tacticwithlist'
-        p[0] = TacticWith(*p[2])
+        'opttacticwith : WITH tacticwithlistchoice'
+        p[0] = p[2]
         p[0].lineno = get_lineno(p,1)
+
+    def p_tacticwithlistchoice_tactwithlist(p):
+        'tacticwithlistchoice : tacticwithlist'
+        p[0] = TacticWith(*p[1])
+
+    def p_tacticwithlistchoice_pflets(p):
+        'tacticwithlistchoice : pflets'
+        p[0] = TacticLets(*p[1])
 
     def p_tacticwithelem_invariant(p):
         'tacticwithelem : INVARIANT labeledfmla'
         p[0] = addlabel(p[2],'invar')
         
+    def p_tacticwithelem_fun_defn(p):
+        'tacticwithelem : DEFINITION typeddefn EQ fmla'
+        df = Definition(app_to_atom(p[2]),p[4])
+        df.lineno = get_lineno(p,3)
+        p[0] = DerivedDecl(addlabel(mk_lf(df),'def'))
+
+    def p_tacticwithelem_trigger(p):
+        'tacticwithelem : TRIGGER atype WITH terms'
+        p[0] = Trigger(*([Atom(p[2])]+p[4]))
+        p[0].lineno = get_lineno(p,3)
+
     def p_tactwithlist_tacticwithelem(p):
         'tacticwithlist : tacticwithelem'
         p[0] = [p[1]]
@@ -1739,7 +1790,7 @@ else:
     p[0].declare(decl)
     for foo in decl.args:
         if not hasattr(foo.args[1],'lineno'):
-            print 'no lineno!!!: {}'.format(foo)
+            print('no lineno!!!: {}'.format(foo))
     if p[2]:
         if p[2] == ExportDecl:
             d = ExportDecl(ExportDef(Atom(p[4]),Atom('')))
@@ -2080,7 +2131,7 @@ def parse_nativequote(p,n):
     string = p[n][3:-3] # drop the quotation marks
     fields = string.split('`')
     bqs = [(Atom(This()) if s == 'this' else Atom(s))  for idx,s in enumerate(fields) if idx % 2 == 1]
-    text = "`".join([(s if idx % 2 == 0 else str(idx/2)) for idx,s in enumerate(fields)])
+    text = "`".join([(s if idx % 2 == 0 else str(idx//2)) for idx,s in enumerate(fields)])
     eols = [sum(1 for c in s if c == '\n') for idx,s in enumerate(fields) if idx % 2 == 0]
     seols = 0
     loc = get_lineno(p,n)
@@ -2321,51 +2372,69 @@ def p_action_complexact(p):
     p[0] = p[1]
 
 def p_action_assume(p):
-    'simpleact : ASSUME fmla'
-    p[0] = AssumeAction(check_non_temporal(p[2]))
+    'simpleact : ASSUME labeledfmla'
+    p[0] = AssumeAction(check_non_temporal(addlabel(p[2],'asrt')))
     p[0].lineno = get_lineno(p,1)
 
 
 if iu.get_numeric_version() <= [1,6]:
     def p_action_assert(p):
-        'simpleact : ASSERT fmla'
-        p[0] = AssertAction(check_non_temporal(p[2]))
+        'simpleact : ASSERT labeledfmla'
+        p[0] = AssertAction(check_non_temporal(addlabel(p[2],'asrt')))
         p[0].lineno = get_lineno(p,1)
 
     def p_action_ensures(p):
-        'simpleact : ENSURES fmla'
-        p[0] = EnsuresAction(check_non_temporal(p[2]))
+        'simpleact : ENSURES labeledfmla'
+        p[0] = EnsuresAction(check_non_temporal(addlabel(p[2],'asrt')))
         p[0].lineno = get_lineno(p,1)
 else:
     def p_action_assert(p):
-         'simpleact : ASSERT fmla'
-         p[0] = AssertAction(check_non_temporal(p[2]))
-         p[0].lineno = get_lineno(p,1)
+         'simpleact : optunprovable ASSERT labeledfmla'
+         p[0] = AssertAction(check_non_temporal(addlabel(p[3],'asrt')))
+         addunprovable(p[0].args[0],p[1])
+         if p[1] and not check_unprovable.get():
+             p[0] = Sequence()
+         p[0].lineno = get_lineno(p,2)
 
     def p_action_assert_proof_proofstep(p):
-         'simpleact : ASSERT fmla PROOF proofstep'
-         p[0] = AssertAction(check_non_temporal(p[2]),p[4])
-         p[0].lineno = get_lineno(p,1)
+         'simpleact : optunprovable ASSERT labeledfmla PROOF proofstep'
+         p[0] = AssertAction(check_non_temporal(addlabel(p[3],'asrt')),p[5])
+         addunprovable(p[0].args[0],p[1])
+         if p[1] and not check_unprovable.get():
+             p[0] = Sequence()
+         p[0].lineno = get_lineno(p,2)
 
     def p_action_ensure(p):
-         'simpleact : ENSURE fmla'
-         p[0] = EnsuresAction(check_non_temporal(p[2]))
-         p[0].lineno = get_lineno(p,1)
+         'simpleact : optunprovable ENSURE labeledfmla'
+         p[0] = EnsuresAction(check_non_temporal(addlabel(p[3],'asrt')))
+         addunprovable(p[0].args[0],p[1])
+         if p[1] and not check_unprovable.get():
+             p[0] = Sequence()
+         p[0].lineno = get_lineno(p,2)
 
     def p_action_ensure_proof_proofstep(p):
-         'simpleact : ENSURE fmla PROOF proofstep'
-         p[0] = EnsuresAction(check_non_temporal(p[2]),p[4])
-         p[0].lineno = get_lineno(p,1)
+         'simpleact : optunprovable ENSURE labeledfmla PROOF proofstep'
+         p[0] = EnsuresAction(check_non_temporal(addlabel(p[3],'asrt')),p[5])
+         addunprovable(p[0].args[0],p[1])
+         if p[1] and not check_unprovable.get():
+             p[0] = Sequence()
+         p[0].lineno = get_lineno(p,2)
 
     def p_action_require(p):
-         'simpleact : REQUIRE fmla'
-         p[0] = RequiresAction(check_non_temporal(p[2]))
-         p[0].lineno = get_lineno(p,1)
+         'simpleact : optunprovable REQUIRE labeledfmla'
+         p[0] = RequiresAction(check_non_temporal(addlabel(p[3],'asrt')))
+         addunprovable(p[0].args[0],p[1])
+         if p[1] and not check_unprovable.get():
+             p[0] = Sequence()
+         p[0].lineno = get_lineno(p,2)
 
     def p_action_require_proof_proofstep(p):
-         'simpleact : REQUIRE fmla PROOF proofstep'
-         p[0] = RequiresAction(check_non_temporal(p[2]),p[4])
-         p[0].lineno = get_lineno(p,1)
+         'simpleact : optunprovable REQUIRE labeledfmla PROOF proofstep'
+         p[0] = RequiresAction(check_non_temporal(addlabel(p[3],'asrt')),p[5])
+         addunprovable(p[0].args[0],p[1])
+         if p[1] and not check_unprovable.get():
+             p[0] = Sequence()
+         p[0].lineno = get_lineno(p,2)
 
     # def p_action_ensure_optproof(p):
     #     'simpleact : ENSURE fmla optproof'
@@ -2498,17 +2567,17 @@ else:
         p[0] = []
 
     def p_invariant_invariant_fmla(p):
-        'invariants : invariants INVARIANT fmla'
+        'invariants : invariants INVARIANT labeledfmla'
         p[0] = p[1]
-        inv = check_non_temporal(p[3])
+        inv = check_non_temporal(addlabel(p[3],'asrt'))
         a = AssertAction(inv)
         a.lineno = get_lineno(p,2)
         p[0].append(a)
 
     def p_invariant_invariant_fmla_proof(p):
-        'invariants : invariants INVARIANT fmla PROOF proofstep'
+        'invariants : invariants INVARIANT labeledfmla PROOF proofstep'
         p[0] = p[1]
-        inv = check_non_temporal(p[3])
+        inv = check_non_temporal(addlabel(p[3],'asrt'))
         a = AssertAction(inv,p[5])
         a.lineno = get_lineno(p,2)
         p[0].append(a)
@@ -2986,7 +3055,7 @@ def p_state_expr_entry(p):
     'state_expr : ENTRY'
     p[0] = RME(And(),[],And())
 
-from ivy_logic_parser import *
+from .ivy_logic_parser import *
 
 def p_error(token):
     if token is not None:
@@ -3040,7 +3109,7 @@ def expand_autoinstances(ivy):
                     for inst in autos[key]:
                         pref,parms = iu.extract_parameters_name(inst.args[0].rep)
                         lhs = Atom(tname,[]) 
-                        subst = dict(zip(parms,refparms))
+                        subst = dict(list(zip(parms,refparms)))
                         rhs = inst.args[1].clone([Atom(subst.get(a.rep,a.rep),[]) for a in inst.args[1].args])
                         newinst = Instantiation(lhs,rhs)
                         if hasattr(decl,"lineno"):
@@ -3074,13 +3143,13 @@ if __name__ == '__main__':
 #       except EOFError:
 #           break
 #       if not s: continue
-       s = open('test.ivy','rU').read()
+       s = open('test.ivy','r').read()
        try:
            result = parse(s)
-           print result
-           print result.defined
+           print(result)
+           print(result.defined)
        except iu.ErrorList as e:
-           print repr(e)
+           print(repr(e))
 #       print "enum: %s" % result.enumerate(dict(),lambda x:True)
 
 def clauses_to_concept(name,clauses):

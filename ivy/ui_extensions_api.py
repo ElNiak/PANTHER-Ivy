@@ -20,9 +20,9 @@ from IPython import get_ipython
 from IPython.display import display
 import IPython.html.widgets as widgets
 
-from widget_modal import ModalWidget
-from ivy_logic_utils import and_clauses, Clauses, close_epr
-from z3_utils import z3_implies
+from .widget_modal import ModalWidget
+from .ivy_logic_utils import and_clauses, Clauses, close_epr
+from .z3_utils import z3_implies
 
 
 

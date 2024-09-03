@@ -432,7 +432,7 @@ theorem [thm16] {
     function p(X:t) : bool
     function q(X:t) : bool
     property exists X. p(X)
-    property forall X,Y. p(X) -> q(Y)
+    property forall X. forall Y. p(X) -> q(Y)
     property forall Y. q(Y)
 }
 proof {
@@ -441,6 +441,7 @@ proof {
     apply elimImp with p = p(x);
     apply elimA with X = y;
     apply elimA<Z/Y> with X = x
+    showgoals
 }
 
 

@@ -28,18 +28,18 @@ that all symbols *not* in S are preserved.
 
 """
 
-from ivy_utils import UniqueRenamer, union_to_list, list_union, list_diff, IvyError, inverse_map, compose_maps, pretty
-from ivy_logic import Variable, Constant, Literal, Atom, Not, And, Or,App, RelationSort, Definition, is_prenex_universal
-from ivy_logic_utils import symbols_clauses, used_symbols_clauses, rename_clauses, clauses_using_symbols, simplify_clauses,\
+from .ivy_utils import UniqueRenamer, union_to_list, list_union, list_diff, IvyError, inverse_map, compose_maps, pretty
+from .ivy_logic import Variable, Constant, Literal, Atom, Not, And, Or,App, RelationSort, Definition, is_prenex_universal
+from .ivy_logic_utils import symbols_clauses, used_symbols_clauses, rename_clauses, clauses_using_symbols, simplify_clauses,\
     used_variables_clauses, used_constants_clauses, substitute_constants_clause, substitute_constants_clauses, constants_clauses,\
     relations_clauses, eq_lit, condition_clauses, or_clauses, ite_clauses, and_clauses, false_clauses, true_clauses,\
     formula_to_clauses, clauses_to_formula, formula_to_clauses_tseitin, is_ground_clause, \
     relations_clause, Clauses, sym_inst, negate_clauses, negate
-from ivy_solver import unsat_core, clauses_imply, clauses_imply_formula, clauses_sat, clauses_case, get_model_clauses, clauses_model_to_clauses, get_small_model
-import ivy_logic
-import ivy_logic_utils as lu
-import ivy_utils as iu
-from logic_util import is_tautology_equality
+from .ivy_solver import unsat_core, clauses_imply, clauses_imply_formula, clauses_sat, clauses_case, get_model_clauses, clauses_model_to_clauses, get_small_model, binary_interpolant
+from . import ivy_logic
+from . import ivy_logic_utils as lu
+from . import ivy_utils as iu
+from .logic_util import is_tautology_equality
 
 
 def new(sym):
@@ -230,7 +230,7 @@ def bind_olds_action(action):
 class CounterExample(object):
     def __init__(self,clauses):
         self.clauses = clauses
-    def __nonzero__(self):
+    def __bool__(self):
         return False
 
 def clauses_imply_formula_cex(clauses,fmla):
@@ -399,10 +399,10 @@ def hide_state_map(syms,update):
     return trmap, (new_updated,new_tr,new_pre)
 
 def subst_action(update,subst):
-    print subst
-    syms = dict(subst.iteritems())
+    print(subst)
+    syms = dict(iter(subst.items()))
     syms.update((new(s),new(syms[s])) for s in update[0] if s in syms)
-    print syms
+    print(syms)
     new_updated = [subst.get(s,s) for s in update[0]]
     new_tr = rename_clauses(update[1],syms)
     new_pre = rename_clauses(update[2],syms)
@@ -459,7 +459,7 @@ def extract_pre_post_model(clauses,model,updated):
     ignore = lambda s: s.is_skolem() or (not is_new(s) and s in renaming)
     post_clauses = clauses_model_to_clauses(clauses,ignore = ignore,model = model,numerals=use_numerals())
     post_clauses = rename_clauses(post_clauses,inverse_map(renaming))
-    return map(remove_taut_eqs_clauses,(pre_clauses,post_clauses))
+    return list(map(remove_taut_eqs_clauses,(pre_clauses,post_clauses)))
 
 def compose_state_action(state,axioms,action, check=True):
     """ Compose a state and an action, returning a state """
@@ -499,10 +499,16 @@ def reverse_image(post_state,axioms,update):
     return res
 
 def interpolant(clauses1,clauses2,axioms,interpreted):
-#    print "interpolant clauses1={} clauses2={}".format(clauses1,clauses2)
+    print ("interpolant clauses1={} clauses2={}".format(clauses1,clauses2))
 #    print "axioms = {}".format(axioms)
     foo = and_clauses(clauses1,axioms)
     clauses2 = simplify_clauses(clauses2)
+
+    itp = binary_interpolant(foo,clauses2)
+    print ("itp = {}".format(itp))
+    return None if itp is None else (clauses1,itp)
+        
+
     core = unsat_core(clauses2,foo)
     if core == None:
         return None

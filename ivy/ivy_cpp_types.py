@@ -4,10 +4,10 @@
 
 # A collection of C++ types used to model IVy types in compiled code.
 
-from ivy_cpp import *
-import ivy_utils as iu
-import ivy_solver
-import ivy_logic
+from .ivy_cpp import *
+from . import ivy_utils as iu
+from . import ivy_solver
+from . import ivy_logic
 
 class XBV(CppClass):
     """ A type that represents a large type t using a bit vector. It

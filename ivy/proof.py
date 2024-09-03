@@ -8,9 +8,9 @@ process. It will later be split to multiple modules.
 
 from copy import deepcopy
 
-from ivy_compiler import ivy_load_file, ivy_new, IvyError
-from ivy_art import AnalysisGraph
-from ivy_utils import use_numerals
+from .ivy_compiler import ivy_load_file, ivy_new, IvyError
+from .ivy_art import AnalysisGraph
+from .ivy_utils import use_numerals
 
 class IvyModel(object):
     """
@@ -78,7 +78,7 @@ class AnalysisSession(object):
             (self.analysis_state, info)
          ))
         if 'msg' in info:
-            print info['msg']
+            print(info['msg'])
         if self.widget is not None:
             self.widget.step()
 

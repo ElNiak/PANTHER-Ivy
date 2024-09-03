@@ -9,7 +9,7 @@ class AST(object):
     def __init__(self,*args):
         self.args = args
     def __repr__(self):
-        d = "{%s}" % ', '.join( "%s: %s" % (k,v) for k,v in self.__dict__.iteritems())
+        d = "{%s}" % ', '.join( "%s: %s" % (k,v) for k,v in self.__dict__.items())
         return "%s %s" % (type(self).__name__, d)
     def clone(self,args):
         res = type(self)(*args)
@@ -105,7 +105,7 @@ class App(Expr):
             res.lineno = self.lineno
         return res
 
-class True(Expr):
+class TrueAst(Expr):
     def __repr__(self):
         return "true"
 

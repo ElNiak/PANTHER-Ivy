@@ -18,10 +18,10 @@ c(A0, B0) &
 
 """
 
-from logic import *
-from concept import *
-from concept_alpha import alpha
-from logic_util import *
+from .logic import *
+from .concept import *
+from .concept_alpha import alpha
+from .logic_util import *
 
 client_sort = UninterpretedSort('client')
 server_sort = UninterpretedSort('server')
@@ -72,50 +72,50 @@ concepts.add('edges','c', [X,Y], c(X,Y))
 cd = ConceptDomain(concepts, get_standard_combiners(), get_standard_combinations())
 
 if __name__ == '__main__':
-    print "State:"
-    print state
-    print
+    print("State:")
+    print(state)
+    print()
 
-    print "Skolemized State:"
-    print state_sk
-    print
+    print("Skolemized State:")
+    print(state_sk)
+    print()
 
 
-    print "Concept Domain:"
+    print("Concept Domain:")
     cd.output()
-    print
+    print()
 
-    print "Facts:"
+    print("Facts:")
     for tag, formula in cd.get_facts():
-        print '   ', tag, formula
-    print
+        print('   ', tag, formula)
+    print()
 
-    print "alpha:"
+    print("alpha:")
     a = alpha(cd, state_sk)
     for tag, value in a:
         if value:
-            print '   ', tag
-    print
+            print('   ', tag)
+    print()
 
-    print "\n=== Splitting c_server on c_s ===\n"
+    print("\n=== Splitting c_server on c_s ===\n")
 
     cd.split('server', 's')
 
-    print "Concept Domain:"
+    print("Concept Domain:")
     cd.output()
-    print
+    print()
 
-    print "Facts:"
+    print("Facts:")
     for tag, formula in cd.get_facts():
-        print '   ', tag, formula
-    print
+        print('   ', tag, formula)
+    print()
 
-    print "alpha:"
+    print("alpha:")
     a = alpha(cd, state_sk)
     for tag, value in a:
         if value:
-            print '   ', tag
-    print
+            print('   ', tag)
+    print()
 
     from concept_render import render_concept_graph
 
@@ -125,7 +125,7 @@ if __name__ == '__main__':
         cd.concepts['edges'],
         cd.concepts['node_labels'],
     )
-    print "graph elements:"
+    print("graph elements:")
     for x in elements:
-        print '   ', x, ','
-    print
+        print('   ', x, ',')
+    print()

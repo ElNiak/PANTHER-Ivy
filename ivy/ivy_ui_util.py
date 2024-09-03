@@ -1,10 +1,10 @@
 #
 # Copyright (c) Microsoft Corporation. All Rights Reserved.
 #
-from Tkinter import *
-import Tkconstants, tkFileDialog
-import Tix
-import ivy_utils as iu
+from tkinter import *
+import tkinter.constants, tkinter.filedialog
+import tkinter.tix
+from . import ivy_utils as iu
 import functools
 
 class MenuBar(Frame):
@@ -59,7 +59,7 @@ class FileBrowser(Frame):
         self.lineno = None
     def set(self,filename,lineno):
         if filename != self.filename:
-            f = open(filename,'rU')
+            f = open(filename,'r')
             if not f:
                 raise IvyError(None,"file {} not found".format(filename))
             self.filename = filename
@@ -84,21 +84,21 @@ def center_window(toplevel):
     w = toplevel.winfo_screenwidth()
     h = toplevel.winfo_screenheight()
     size = tuple(int(_) for _ in toplevel.geometry().split('+')[0].split('x'))
-    x = w/2 - size[0]/2
-    y = h/2 - size[1]/2
+    x = w//2 - size[0]//2
+    y = h//2 - size[1]//2
     toplevel.geometry("%dx%d+%d+%d" % (size + (x, y)))
 
 def center_window_on_window(toplevel,win):
     win = win.winfo_toplevel()
     toplevel.update_idletasks()
     wg = win.geometry().split('+')
-    wx,wy = map(int,wg[1:3])
-    wxs,wys = map(int,wg[0].split('x'))
-    xc = wx + wxs/2
-    yc = wy + wys/2
+    wx,wy = list(map(int,wg[1:3]))
+    wxs,wys = list(map(int,wg[0].split('x')))
+    xc = wx + wxs//2
+    yc = wy + wys//2
     size = tuple(int(_) for _ in toplevel.geometry().split('+')[0].split('x'))
-    x = xc - size[0]/2
-    y = yc - size[1]/2
+    x = xc - size[0]//2
+    y = yc - size[1]//2
     toplevel.geometry("%dx%d+%d+%d" % (size + (x, y)))
 
 def destroy_then_aux(dlg,command):
@@ -109,7 +109,7 @@ def destroy_then(dlg,command):
     return functools.partial(destroy_then_aux,dlg,command)
 
 def destroy_then_command_on_selection_aux(dlg,lbox,command,mult):
-    sel = map(int, lbox.curselection())
+    sel = list(map(int, lbox.curselection()))
     dlg.destroy()
     if sel:
         command(sel if mult else sel[0])

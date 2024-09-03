@@ -12,8 +12,8 @@ cytoscape.js's JSON format.
 from itertools import product
 from collections import defaultdict
 
-from tactics_api import refuted_goal
-from widget_cy_graph import CyElements
+from .tactics_api import refuted_goal
+from .widget_cy_graph import CyElements
 
 
 def get_shape(concept_name):
@@ -51,14 +51,14 @@ def get_transitive_reduction(widget, a, edges):
 
 _label_prefix = {
     'node_necessarily': '',
-    'node_necessarily_not': u'\u00AC', # negation sign
+    'node_necessarily_not': '\u00AC', # negation sign
     'node_maybe': '?',
 }
 
 _label_prefix_equality = {
     'node_necessarily': '=',
-    'node_necessarily_not': u'\u2260', # not equal sign
-    'node_maybe': u'\u225F', # =? sign
+    'node_necessarily_not': '\u2260', # not equal sign
+    'node_maybe': '\u225F', # =? sign
 }
 
 def render_concept_graph(widget):
@@ -76,7 +76,7 @@ def render_concept_graph(widget):
 
     # treat custom_edge_info and custom_node_label
     custom = set()
-    for tag in a.keys():
+    for tag in list(a.keys()):
         if tag[0].startswith('custom_'):
             not_custom_tag = (tag[0][len('custom_'):],) + tag[1:]
             a[not_custom_tag] = a[tag]

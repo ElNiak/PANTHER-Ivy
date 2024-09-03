@@ -7,11 +7,11 @@
 from itertools import product, chain
 from functools import partial
 
-from logic import (Var, Const, Apply, Eq, Ite, Not, And, Or, Implies,
-                   Iff, ForAll, Exists, Lambda, NamedBinder, Globally, Eventually)
-from logic import contains_topsort
+from .logic import (Var, Const, Apply, Eq, Ite, Not, And, Or, Implies,
+                    Iff, ForAll, Exists, Lambda, NamedBinder, Globally, Eventually, WhenOperator)
+from .logic import contains_topsort
 
-import ivy_utils as iu
+from . import ivy_utils as iu
 
 class CaptureError(Exception):
     def __init__(self,variables):
@@ -158,13 +158,22 @@ def substitute(t, subs):
     elif type(t) in (Globally, Eventually):
         return type(t)(t.environ, *(substitute(x, subs) for x in t))
 
+    elif type(t) is WhenOperator:
+        return type(t)(t.name, *(substitute(x, subs) for x in t))
+
     elif type(t) in (ForAll, Exists, Lambda, NamedBinder):
-        forbidden_variables = free_variables(*subs.values())
+        newsubs = dict((k, v) for k, v in subs.items()
+                       if k not in t.variables)
+        forbidden_variables = free_variables(*list(newsubs.values()))
         if forbidden_variables.isdisjoint(t.variables):
-            return type(t)(t.variables, substitute(t.body, (
-                (k, v) for k, v in subs.iteritems()
-                if k not in t.variables
-            )))
+            if type(t) is NamedBinder:
+                return type(t)(t.name,t.variables,t.environ,substitute(t.body, (
+                    newsubs
+                )))
+            else: 
+                return type(t)(t.variables, substitute(t.body, (
+                    newsubs
+                )))
         else:
             raise CaptureError(forbidden_variables.intersection(t.variables))
             assert False, (t, subs) # capturing would be created
@@ -220,7 +229,7 @@ def substitute_apply(t, subs, by_name=False):
 
     elif type(t) in (ForAll, Exists, Lambda, NamedBinder):
         return type(t)(t.variables, _substitute_apply(t.body, subs=dict(
-            (k, v) for k, v in subs.iteritems()
+            (k, v) for k, v in subs.items()
             if k not in t.variables
         )))
     else:
@@ -268,7 +277,7 @@ def is_tautology_equality(t):
 
 
 if __name__ == '__main__':
-    from logic import *
+    from .logic import *
     s1 = UninterpretedSort('s1')
     s2 = UninterpretedSort('s2')
     X1 = Var('X', s1)

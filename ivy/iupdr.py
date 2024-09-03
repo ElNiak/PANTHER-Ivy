@@ -12,13 +12,13 @@ import IPython.html.widgets as widgets
 
 import z3
 
-import tactics_api as ta
-import tactics as t
-import ivy_transrel
-from ivy_logic_utils import negate_clauses, Clauses, and_clauses, simplify_clauses
-from ui_extensions_api import interaction, ShowModal, InteractionError, UserSelectMultiple
-import ivy_solver
-from ivy_solver import clauses_to_z3
+from . import tactics_api as ta
+from . import tactics as t
+from . import ivy_transrel
+from .ivy_logic_utils import negate_clauses, Clauses, and_clauses, simplify_clauses
+from .ui_extensions_api import interaction, ShowModal, InteractionError, UserSelectMultiple
+from . import ivy_solver
+from .ivy_solver import clauses_to_z3
 
 class UserSelectCore(ShowModal):
     """
@@ -139,7 +139,7 @@ def interactive_updr():
 
             if current_goal.node == init_frame:
                 # no invariant
-                print "No Invariant!"
+                print("No Invariant!")
                 # return False
 
             dg = ta.get_diagram(current_goal, False)
@@ -150,7 +150,7 @@ def interactive_updr():
                 options=options,
                 title="Generalize Diagram",
                 prompt="Choose which literals to take as the refutation goal",
-                default=options.values()
+                default=list(options.values())
             ))
             assert user_selection is not None
             ug = ta.goal_at_arg_node(Clauses(list(user_selection)), current_goal.node)

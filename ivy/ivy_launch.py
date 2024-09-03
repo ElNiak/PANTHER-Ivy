@@ -1,5 +1,5 @@
 
-import ivy_init
+from . import ivy_init
 import sys
 import json
 import platform
@@ -10,7 +10,7 @@ import itertools
 import subprocess
 
 def usage():
-    print "usage: \n {} {{option=value...}} <file>[.dsc]".format(sys.argv[0])
+    print("usage: \n {} {{option=value...}} <file>[.dsc]".format(sys.argv[0]))
     sys.exit(1)
 
 next_unused_port = 49123
@@ -34,7 +34,7 @@ def read_params():
     ps = dict()
     args = sys.argv[1:]
     while args and '=' in args[0]:
-        thing = string.split(args[0],'=')
+        thing = str.split(args[0],'=')
         if len(thing) > 2:
             usage()
         ps[thing[0]] = thing[1]
@@ -84,7 +84,7 @@ def main():
         legal_params.update(descriptor['test_params'])
     for prm in ps:
         if prm not in legal_params:
-            print "unknown parameter: {}".format(prm)
+            print("unknown parameter: {}".format(prm))
             exit(1)
     
     def get_process_dimensions(process):
@@ -93,7 +93,7 @@ def main():
             try:
                 dim = eval(ps[pname],{},{})
             except:
-                print "bad argument: {}={}".format(pname,ps[pname])
+                print("bad argument: {}={}".format(pname,ps[pname]))
                 exit(1)
             dim = [x if isinstance(x,list) else [x] for x in dim]
         else:
@@ -115,7 +115,7 @@ def main():
                             sys.stderr.write('need an integer value on command line for parameter {}\n'.format(b))
                             sys.exit(1)
                     return b
-                rng = map(get_bound,rng)
+                rng = list(map(get_bound,rng))
                 ranges.append(list(range(rng[0],rng[1]+1)))
             dim = list(itertools.product(*ranges))
         return dim
@@ -125,7 +125,7 @@ def main():
         dim = get_process_dimensions(process)
         pparms = process['indices']
         if not all(len(d) == len(pparms) for d in dim):
-            print "wrong number of parameters in instance list for process {}".format(pname)
+            print("wrong number of parameters in instance list for process {}".format(pname))
             exit(1)
         for param in process['params']:
             ptype = param['type']
@@ -178,7 +178,7 @@ def main():
                             cmd.append('{}={}'.format(param,ps[param]))
                 if have_runs:
                     cmd.append("seed={}".format(run))
-                print ' '.join(cmd)
+                print(' '.join(cmd))
                 pname = process['name']
                 if pname == 'this':
                     pname = dscfname[:-4]
@@ -210,7 +210,7 @@ def main():
                 with open(logfile,"a") as file:
                     file.write('{}\n'.format(counts))
             except:
-                print "error: cannot find log file: {}".format(logfile)
+                print("error: cannot find log file: {}".format(logfile))
                 
         if any(rc != 0 for rc in retcodes):
             if runs > 1:

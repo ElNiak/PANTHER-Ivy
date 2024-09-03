@@ -6,23 +6,24 @@ Symbolic interpreter for Ivy
 """
 
 import sys
-import z3
+import ivy.z3 as z3
 import string
 from collections import defaultdict
 
-from ivy_logic import *
-from ivy_logic_utils import *
-from ivy_solver import unsat_core, clauses_imply, clauses_imply_formula, clauses_imply_list, clauses_model_to_clauses, clauses_model_to_diagram, get_model_clauses
-from ivy_transrel import compose_state_action, forward_interpolant, reverse_image, interpolant, \
+from .ivy_logic import *
+from .ivy_logic_utils import *
+from .ivy_solver import unsat_core, clauses_imply, clauses_imply_formula, clauses_imply_list, clauses_model_to_clauses, clauses_model_to_diagram, get_model_clauses
+from .ivy_transrel import compose_state_action, forward_interpolant, reverse_image, interpolant, \
     join_state, implies_state, ActionFailed, null_update, forward_image, reverse_interpolant_case, \
     is_skolem, interpolant_case, History, top_state, action_failure
-from ivy_actions import type_check,Action,RME
-import ivy_ast as ia
-import ivy_actions
-import ivy_transrel as tr
-import ivy_utils as iu
-import ivy_module as im
-import ivy_solver as islvr
+from .ivy_actions import type_check,Action,RME
+from . import ivy_ast as ia
+from . import ivy_actions
+from . import ivy_transrel as tr
+from . import ivy_utils as iu
+from . import ivy_module as im
+from . import ivy_solver as islvr
+from functools import reduce
   
 def type_check_list(domain,l):
     for x in l:
@@ -47,7 +48,7 @@ def module_type_check(self):
 def module_type_check_concepts(self):
     # tricky because we must consider concepts as relations
     relations = self.relations
-    self.relations = dict(relations.iteritems())
+    self.relations = dict(iter(relations.items()))
     self.relations.update((x.rep,len(x.args)) for x,y in self.concept_spaces)
     type_check_list(self,[y for x,y in self.concept_spaces])
     self.relations = relations
@@ -289,7 +290,7 @@ def reach_state(state,clauses=None):
     pre = join_unders(state.pred)
     if clauses == None:
         clauses = state.clauses
-    print "reach_state: clauses = {}".format(clauses)
+    print("reach_state: clauses = {}".format(clauses))
     axioms = state.domain.background_theory(state.in_scope)
     img = and_clauses(forward_image(pre,axioms,state.update),axioms,clauses)
     m = get_model_clauses(img)
@@ -333,14 +334,14 @@ def case_conjecture(state,clauses):
         state.conjs.append(interp)
     return ri
 
-def diagram(state,clauses,implied=false_clauses(),extra_axioms=None,weaken=True):
+def diagram(state,clauses,implied=false_clauses(),extra_axioms=None,weaken=True,upward_close=True):
     """ Return the diagram of a single model of clauses in state or
     None if clauses are unsat.
     """
     axioms = state.domain.background_theory(state.in_scope)
     if extra_axioms:
         axioms = and_clauses(axioms,extra_axioms)
-    under = clauses_model_to_diagram(clauses,is_skolem,implied,axioms=axioms,weaken=weaken)
+    under = clauses_model_to_diagram(clauses,is_skolem,implied,axioms=axioms,weaken=weaken,upward_close=upward_close)
     return under
 
 def underapproximate_state(state,implied=[[]]):

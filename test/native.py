@@ -46,8 +46,8 @@ with im.Module():
     classname = 'foo'
     with ivy_cpp.CppContext():
         header,impl = i2c.module_to_cpp_class(classname,classname)
-    print header
-    print impl
+    print(header)
+    print(impl)
 
 #     main_ui.answer("OK")
 #     ui.check_inductiveness()
