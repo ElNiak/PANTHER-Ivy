@@ -191,7 +191,7 @@ module chrono_time_wrapper(timer) = {
 				unsigned long  long time = chrono_getTimeFromBreakpoint(chrono_last_bp_micro,true);
 				std::cerr << "chrono time = now_micros_last_bp - timer chrono_started" << std::endl;
 				std::cerr << "chrono time = now_micros_last_bp - time = " << time << std::endl;
-				int int_last_bp = stoi(chrono_last_bp_micro);
+				int int_last_bp = std::stoi(chrono_last_bp_micro);
 				int_last_bp++;
 				chrono_last_bp_micro = std::to_string(int_last_bp);
 				chrono_insertBreakpoint(chrono_last_bp_micro);
@@ -209,7 +209,7 @@ module chrono_time_wrapper(timer) = {
 				unsigned long  long time = chrono_getTimeFromBreakpoint(chrono_last_bp_ms,false);
 				std::cerr << "chrono time = now_millis_last_bp - timer chrono_started" << std::endl;
 				std::cerr << "chrono time = now_millis_last_bp - time = " << time << std::endl;
-				int int_last_bp = stoi(chrono_last_bp_ms);
+				int int_last_bp = std::stoi(chrono_last_bp_ms);
 				int_last_bp++;
 				chrono_last_bp_ms = std::to_string(int_last_bp);
 				chrono_insertBreakpoint(chrono_last_bp_ms);

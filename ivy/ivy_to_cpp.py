@@ -559,8 +559,8 @@ def make_thunk(impl,vs,expr):
                     emit_decl(impl,sym,sym_name=sym_name+'.c_str()',prefix='g.')
                     close_scope(impl)
                     return sym_name
-                vsyms = [il.Symbol(name+'_arg_{}'.format(idx),v.sort) for idx,v in enumerate(vs)]
-                rsym = il.Symbol(name+'_res_{}'.format(idx),expr.sort)
+                vsyms = [il.Symbol(name+'_arg_{}'.format(idx),v.sort) for idx,v in enumerate(vs)] 
+                rsym = il.Symbol(name+'_res_{}'.format(0),expr.sort) # chris: error here with idx instead of 0 len(list(enumerate(vs)))
                 envsyms = [il.Symbol(name+'_env_{}'.format(idx),v.sort) for idx,v in enumerate(env)]
                 for v in vsyms+envsyms+[rsym]:
                     open_scope(impl,line='if (g.decls_by_name.find("{}") == g.decls_by_name.end())'.format(v.name))
@@ -1978,6 +1978,7 @@ def module_to_cpp_class(classname,basename):
     header.append("typedef __int128_t int128_t;\n")
     header.append("typedef __uint128_t uint128_t;\n")
     header.append("#include <signal.h>\n")
+    header.append("#include <chrono> \n")
     # header.append("#include <execinfo.h>\n") # For backtrace
     header.append("int call_generating = 1;\n")
     
@@ -6686,20 +6687,17 @@ def main_int(is_ivyc):
             if isolate != None:
                 isolates = [isolate]
             else:
-                if target.get() == 'test':
-                    isolates = ['this']
-                else:
-                    extracts = list((x,y) for x,y in im.module.isolates.items()
-                                    if isinstance(y,ivy_ast.ExtractDef))
-                    if len(extracts) == 0:
-                        isol = ivy_ast.ExtractDef(ivy_ast.Atom('extract'),ivy_ast.Atom('this'))
-                        isol.with_args = 1
-                        im.module.isolates['extract'] = isol
-                        isolates = ['extract']
-                    else:
-                        isolates = [ex[0] for ex in extracts]
-#                    elif len(extracts) == 1:
-#                        isolates = [extracts[0][0]]
+                extracts = list((x,y) for x,y in im.module.isolates.items()
+                                if isinstance(y,ivy_ast.ExtractDef))
+                if len(extracts) == 0:
+                    isol = ivy_ast.ExtractDef(ivy_ast.Atom('extract'),ivy_ast.Atom('this'))
+                    isol.with_args = 1
+                    im.module.isolates['extract'] = isol
+                    isolates = ['extract']
+                elif len(extracts) == 1:
+                    isolates = [extracts[0][0]]
+                print(isolates)
+                print(extracts)
         else:
             if isolate != None:
                 isolates = [isolate]

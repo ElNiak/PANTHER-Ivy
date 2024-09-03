@@ -29,7 +29,7 @@ also work on other Debian-based distributions.
 
 ### Prerequisites
 
-    $ sudo apt-get install python3 python3-pip g++ cmake python3-ply python3-pygraphviz git python3-tk tix pkg-config libssl-dev libreadline-dev
+    $ sudo apt-get install python3.10 python3.10-pip g++ cmake python3.10-ply python3.10-pygraphviz git python3.10-tk tix pkg-config libssl-dev libreadline-dev
 
 ### Install IVy
 
@@ -40,16 +40,16 @@ Get the source like this:
 
 Build the submodules like this (it takes a while):
 
-    $ python3 build_submodules.py
+    $ python3.10 build_submodules.py
 
 Install into your local Python like this:
 
-    $ sudo python3 setup.py install
+    $ sudo python3.10 setup.py install
 
 If you want to run from the source tree for development purposes, do
 this instead:
 
-    $ sudo python3 setup.py develop
+    $ sudo python3.10 setup.py develop
 
 Optionally, build the experimental Ivy v2.0 compiler:
 
@@ -104,7 +104,7 @@ These instructions have not been tested on recent MacOS versions.
    machine.
 
         $ sudo port install python310 py310-pip graphviz tix py310-tkinter git cmake openssl
-        $ sudo port select --set python3 python310
+        $ sudo port select --set python3.10 python310
         $ sudo port select --set pip3 pip310
         
 5. Install Ivy:
@@ -114,11 +114,11 @@ These instructions have not been tested on recent MacOS versions.
 
     Build the submodules like this (it takes a while):
 
-        $ python3 build_submodules.py
+        $ python3.10 build_submodules.py
 
     Install into your local Python like this
 
-        $ sudo python3 setup.py install
+        $ sudo python3.10 setup.py install
         $ sudo ln -s /opt/local/Library/Frameworks/Python.framework/Versions/3.10/bin/ivy* /opt/local/bin
 
     The second command may not be necessary, but works around a bug in
@@ -147,7 +147,7 @@ Ivy is released as a Python package in the PyPI repository. I
 
 ### <a name="linuxbinary"> Install binary release on Linux
 
-    $ sudo apt-get install python3 python3-pip g++ cmake python3-ply python3-pygraphviz git python3-tk tix pkg-config libssl-dev libreadline-dev
+    $ sudo apt-get install python3.10 python3.10-pip g++ cmake python3.10-ply python3.10-pygraphviz git python3.10-tk tix pkg-config libssl-dev libreadline-dev
     $ sudo pip3 install ms-ivy
 
 Note, if you omit `sudo` in the second command, Ivy will be installed
