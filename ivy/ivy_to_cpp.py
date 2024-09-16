@@ -9388,7 +9388,7 @@ unsigned string_hash(const char * str, unsigned length, unsigned init_value) {
         c += reinterpret_cast<const unsigned *>(str)[2];
         mix(a,b,c);
         str += 12; len -= 12;
-    }
+    } 
 
     /*------------------------------------- handle the last 11 bytes */
     c += length;
