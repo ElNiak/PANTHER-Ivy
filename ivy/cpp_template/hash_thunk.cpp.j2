@@ -1,0 +1,25 @@
+template <typename D, typename R>
+struct thunk {
+    virtual R operator()(const D &) = 0;
+    int ___ivy_choose(int rng,const char *name,int id) {
+        return 0;
+    }
+};
+template <typename D, typename R, class HashFun = hash_space::hash<D> >
+struct hash_thunk {
+    thunk<D,R> *fun;
+    hash_space::hash_map<D,R,HashFun> memo;
+    hash_thunk() : fun(0) {}
+    hash_thunk(thunk<D,R> *fun) : fun(fun) {}
+    ~hash_thunk() {
+//        if (fun)
+//            delete fun;
+    }
+    R &operator[](const D& arg){
+        std::pair<typename hash_space::hash_map<D,R>::iterator,bool> foo = memo.insert(std::pair<D,R>(arg,R()));
+        R &res = foo.first->second;
+        if (foo.second && fun)
+            res = (*fun)(arg);
+        return res;
+    }
+};
