@@ -1,0 +1,21 @@
+{% if name in paired_tests %}
+    {% set first_test = paired_tests[name] %}
+    {% if name in ['quic_client_test_0rtt'] %}
+        {% if iteration == 1 %}
+            {% set first_test = first_test + "_app_close" %}
+        {% elif iteration == 2 %}
+            {% set first_test = first_test + "_co_close" %}
+        {% endif %}
+    {% endif %}
+    {{ timeout_cmd }}{{ prefix }}{{ build_dir }}/{{ first_test }} seed={{ seed }} the_cid={{ the_cid }}
+        server_port={{ server_port }} iversion={{ iversion }} server_addr={{ server_addr }}
+        client_port={{ client_port }} client_port_alt={{ client_port_alt }} client_addr={{ client_addr }}  > /app/logs/tester.log 2>&1
+    ; sleep 1;
+    {{ timeout_cmd }}{{ prefix }}{{ build_dir }}/{{ name }} seed={{ seed }} the_cid={{ the_cid_2 }}
+        server_port={{ server_port_2 }} iversion={{ iversion }} server_addr={{ server_addr }}
+        client_port={{ client_port }} client_port_alt={{ client_port_alt }} client_addr={{ client_addr }}  > /app/logs/tester.log 2>&1
+{% else %}
+    {{ timeout_cmd }}{{ prefix }}{{ build_dir }}/{{ name }} seed={{ seed }} the_cid={{ the_cid }}
+        server_port={{ server_port }} iversion={{ iversion }} server_addr={{ server_addr }}
+        client_port={{ client_port }} client_port_alt={{ client_port_alt }} client_addr={{ client_addr }}  > /app/logs/tester.log 2>&1
+{% endif %}
