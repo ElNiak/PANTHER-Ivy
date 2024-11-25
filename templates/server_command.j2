@@ -11,11 +11,11 @@
         server_port={{ server_port }} iversion={{ iversion }} server_addr={{ server_addr }}
         server_cid={{ server_cid }} client_port={{ client_port }} client_port_alt={{ client_port_alt }} client_addr={{ client_addr }} > /app/logs/tester1.log 2>&1
     ; sleep 1;
-    {{ timeout_cmd }}{{ prefix }}{{ build_dir }}/{{ name }} seed={{ seed }} the_cid={{ the_cid_2 }}
+    {{ timeout_cmd }}{{ prefix }}{{ build_dir }}/{{ test_name }} seed={{ seed }} the_cid={{ the_cid_2 }}
         server_port={{ server_port_2 }} iversion={{ iversion }} server_addr={{ server_addr }}
         server_cid={{ server_cid_2 }} client_port={{ client_port }} client_port_alt={{ client_port_alt }} client_addr={{ client_addr }} > /app/logs/tester2.log 2>&1
 {% else %}
-    {{ timeout_cmd }}{{ prefix }}{{ build_dir }}/{{ name }} seed={{ seed }} the_cid={{ the_cid }}
+    {{ timeout_cmd }}{{ prefix }}{{ build_dir }}/{{ test_name }} seed={{ seed }} the_cid={{ the_cid }}
         server_port={{ server_port }} iversion={{ iversion }} server_addr={{ server_addr }}
         server_cid={{ server_cid }} client_port={{ client_port }} client_port_alt={{ client_port_alt }} client_addr={{ client_addr }} > /app/logs/tester.log 2>&1
 {% endif %}
