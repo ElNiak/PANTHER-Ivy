@@ -2305,7 +2305,7 @@ def import_module(name):
         try:
             f = open(fname,'r')
         except Exception:
-            raise IvyError(None,"module {} not found in current directory or module path".format(name))
+            raise IvyError(None,"module {} not found in current directory or module path".format(fname))
     with iu.SourceFile(fname):
         mod = read_module(f,nested=True)
     return mod

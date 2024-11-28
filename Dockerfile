@@ -26,6 +26,8 @@ RUN addgroup --gid ${USER_GID} ${USER_N} && \
     adduser --disabled-password --gecos '' --uid ${USER_UID} --gid ${USER_GID} ${USER_N} && \
     usermod -aG wireshark ${USER_N}
 
+RUN usermod -aG wireshark root
+
 # Give the user ownership of the /app directory (or any directories you need)
 RUN mkdir -p /app
 RUN chown -R ${USER_N}:${USER_N} /app
@@ -108,33 +110,10 @@ RUN apt update; \
     dsniff \
     sudo
 
-
-
-# Tester-specific dependencies + installation
-# ARG USE_LOCAL=1  # 1: Use local files, 0: Clone from repo
-# RUN if [ "$USE_LOCAL" = "0" ]; then \
-#         cd /opt && \
-#         git clone https://github.com/ElNiak/PANTHER-Ivy.git panther_ivy && \
-#         cd /opt/panther_ivy && \
-#         git checkout ${VERSION} && \
-#         git submodule update --init --recursive \
-#     fi
-
-
-RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
-# For Panther-Ivy
-RUN python3.10 -m pip install pexpect \
-    chardet \
-    gperf \
-    pandas \
-    scandir \
-    ply  \
-    pygraphviz \ 
-    pydot \
-    progressbar2
     
 # picotls
 
+RUN apt-get install -y jq
 # Function to parse and build dependencies
 # TODO make more modular
 RUN cd /opt && \ 
@@ -159,6 +138,31 @@ RUN cd /opt && \
         fi; \
     done
 
+
+
+# Tester-specific dependencies + installation
+# ARG USE_LOCAL=1  # 1: Use local files, 0: Clone from repo
+# RUN if [ "$USE_LOCAL" = "0" ]; then \
+#         cd /opt && \
+#         git clone https://github.com/ElNiak/PANTHER-Ivy.git panther_ivy && \
+#         cd /opt/panther_ivy && \
+#         git checkout ${VERSION} && \
+#         git submodule update --init --recursive \
+#     fi
+
+
+RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
+# For Panther-Ivy
+RUN python3.10 -m pip install pexpect \
+    chardet \
+    gperf \
+    pandas \
+    scandir \
+    ply  \
+    pygraphviz \ 
+    pydot \
+    progressbar2
+
 # For Ivy
 ADD setup.py build_submodules.py .gitmodules /opt/panther_ivy/
 ADD templates /opt/panther_ivy/templates/
@@ -168,19 +172,20 @@ ADD ivy /opt/panther_ivy/ivy/
 ADD lib /opt/panther_ivy/lib/
 ADD scripts /opt/panther_ivy/scripts/
 
-ENV PYTHONPATH="${PYTHONPATH}:/opt/panther_ivy/ivy/"
-    
-RUN cd /opt/panther_ivy/; python3.10 -m pip install . ;\
+ENV PYTHONPATH="$$PYTHONPATH:/opt/panther_ivy/"
+
+WORKDIR /opt/panther_ivy/
+
+RUN python3.10 -m pip install . ;\
     python3.10 build_submodules.py; \
     sudo python3.10 setup.py install; \
     cp lib/libz3.so submodules/z3/build/python/z3;
 
+
+RUN chown -R root:root /app
+RUN chown -R root:root /opt
+
 ADD protocol-testing /opt/panther_ivy/protocol-testing/
-
-RUN chown -R ${USER_N}:${USER_N} /app
-RUN chown -R ${USER_N}:${USER_N} /opt
-
-# USER ${USER_N}
 
 ## Compilation of the tests
 # ADD prepare_tests.py /opt/prepare_tests.py
@@ -188,4 +193,4 @@ RUN chown -R ${USER_N}:${USER_N} /opt
 # RUN python3 /opt/prepare_tests.py --install ${tests}
 
 # Set entrypoint (can be overridden)
-ENTRYPOINT [ "/bin/bash", "-l", "-c" ]
+ENTRYPOINT [ "/bin/sh", "-l", "-c" ]
