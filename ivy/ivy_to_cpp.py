@@ -6852,7 +6852,7 @@ int ask_ret(long long bound) {
             
             std::string command = "";
             if(path.find("test") != std::string::npos) 
-		    path = std::string("/app/panther-ivy/protocol-testing/") + current_protocol + std::string("/") + current_protocol + std::string("_tests/") + mode + std::string("_tests/") + path;
+		    path = std::string("/opt/panther_ivy/protocol-testing/") + current_protocol + std::string("/") + current_protocol + std::string("_tests/") + mode + std::string("_tests/") + path;
         
             command = std::string("/bin/sed \'") + lineNumber + std::string("!d\' ")  + path + std::string(".ivy > temps.txt");
             //std::cerr << command.c_str() << "\\n";
@@ -6959,7 +6959,7 @@ int ask_ret(long long bound) {
             
             std::string command = "";
             if(path.find("test") != std::string::npos) 
-		    path = std::string("/app/panther-ivy/protocol-testing/") + current_protocol + std::string("/") + current_protocol + std::string("_tests/") + mode + std::string("_tests/") + path;
+		    path = std::string("/opt/panther_ivy/protocol-testing/") + current_protocol + std::string("/") + current_protocol + std::string("_tests/") + mode + std::string("_tests/") + path;
         
             command = std::string("/bin/sed \'") + lineNumber + std::string("!d\' ")  + path + std::string(".ivy > temps.txt");
             //std::cerr << command.c_str() << "\\n";
