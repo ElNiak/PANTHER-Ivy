@@ -168,6 +168,7 @@ ADD setup.py build_submodules.py .gitmodules /opt/panther_ivy/
 ADD templates /opt/panther_ivy/templates/
 ADD submodules /opt/panther_ivy/submodules/
 ADD configs /opt/panther_ivy/configs/
+# TODO only python file for building
 ADD ivy /opt/panther_ivy/ivy/
 ADD lib /opt/panther_ivy/lib/
 ADD scripts /opt/panther_ivy/scripts/
@@ -182,8 +183,8 @@ RUN python3.10 -m pip install . ;\
     cp lib/libz3.so submodules/z3/build/python/z3;
 
 
-RUN chown -R root:root /app
-RUN chown -R root:root /opt
+# RUN chown -R root:root /app
+# RUN chown -R root:root /opt
 
 ADD protocol-testing /opt/panther_ivy/protocol-testing/
 

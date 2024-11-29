@@ -246,6 +246,10 @@ class PantherIvyServiceManager(IServiceManager):
         global_env   = self.config.get("panther_ivy", {}).get("env", {})
         self.environments = {**global_env, **protocol_env}
         
+        # TODO refine the config
+        self.environments["TEST_TYPE"] = 'client' if self.role == 'server' else 'server'
+        # self.environments["ZERORTT_TEST"]
+        
         test_to_compile_information = self.config.get("panther_ivy", {}).get(self.protocol,{})\
             .get("versions", {}).get(self.protocol_version,{}) \
             .get(self.role,{}).get("tests",{}).get(test_to_compile, {})
@@ -260,13 +264,16 @@ class PantherIvyServiceManager(IServiceManager):
             exit(1)
         return self.update_ivy_tool() + " (" + self.build_tests(test_to_compile) + " )" # TODO
     
-
+    def oppose_role(self, role):
+        # TODO fix logic in ivy itself
+        return "client" if role == "server" else "server"
+    
     def build_tests(self, test):
         # TODO make more flexible, for now only work in docker "/opt/panther_ivy/"
         """Compile and prepare the tests."""
         self.logger.info("Compiling tests...")
         self.logger.info(f"Mode: {self.role} for test: {test}")
-        file_path = os.path.join("/opt/panther_ivy/protocol-testing/",self.protocol, self.config["panther_ivy"][self.protocol]["parameters"]["tests_dir"]["value"], self.role + "_tests")
+        file_path = os.path.join("/opt/panther_ivy/protocol-testing/",self.protocol, self.config["panther_ivy"][self.protocol]["parameters"]["tests_dir"]["value"], self.oppose_role(self.role) + "_tests")
         self.logger.debug(f"Building file: {file_path}")
         cmd = f"cd {file_path}; PYTHONPATH=$$PYTHON_IVY_DIR ivyc trace=false show_compiled=false target=test test_iters={self.config['panther_ivy']['parameters']['internal_iterations_per_test']['value']} {test}.ivy >> /app/logs/ivy_setup.log 2>&1 ;"
         self.logger.info(f"Tests compilation command: {cmd}")
@@ -325,17 +332,17 @@ class PantherIvyServiceManager(IServiceManager):
             "server_port": self.config.get("panther_ivy").get(self.protocol).get("parameters").get("server_port").get("value"),
             "version": self.protocol_version,
             "iversion": self.config.get("panther_ivy").get(self.protocol).get("parameters").get("iversion").get("value"),
-            "server_addr": service_params.get("target"), # self.config.get("panther_ivy").get(self.protocol).get("parameters").get("server_addr").get("value"),
+            "server_addr": "$$TARGET_IP_HEX" if self.oppose_role(self.role) == "server" else "$$IVY_IP_HEX", #elf.config.get("panther_ivy").get(self.protocol).get("parameters").get("server_addr").get("value"),
             "server_cid": self.config.get("panther_ivy").get(self.protocol).get("parameters").get("server_cid").get("value"),
             "client_port": self.config.get("panther_ivy").get(self.protocol).get("parameters").get("client_port").get("value"),
             "client_port_alt": self.config.get("panther_ivy").get(self.protocol).get("parameters").get("client_port_alt").get("value"),
-            "client_addr": service_params.get("target"), #  self.config.get("panther_ivy").get(self.protocol).get("parameters").get("client_addr").get("value"),
+            "client_addr": "$$TARGET_IP_HEX" if self.oppose_role(self.role) == "client" else "$$IVY_IP_HEX", #  self.config.get("panther_ivy").get(self.protocol).get("parameters").get("client_addr").get("value"),
             "modify_packets": "false",
             "name": service_params.get("name"),
             # TODO managed paired tests
             #"paired_tests": self.config.get("ivy", {}).get("paired_tests", {}),
             "iteration": self.config.get("panther_ivy").get("parameters").get("value"),  # Example iteration for testing
-            "is_client": self.role == "client",
+            "is_client": self.oppose_role(self.role) == "client",
             "certificates": {
                 "cert_param": version_config.get(self.role, {}).get("certificates", {}).get("cert", {}).get("param"),
                 "cert_file": version_config.get(self.role, {}).get("certificates", {}).get("cert", {}).get("file"),
@@ -364,8 +371,10 @@ class PantherIvyServiceManager(IServiceManager):
         # TODO setup working directory
         
         # Collect volume mappings
+        ivy_include_protocol_testing_dir = os.path.abspath("plugins/testers/panther_ivy/ivy/include/1.7")
         local_protocol_testing_dir = os.path.abspath("plugins/testers/panther_ivy/protocol-testing/"+ self.protocol)
         volumes = [
+            ivy_include_protocol_testing_dir + ":/opt/panther_ivy/ivy/include/1.7",
             local_protocol_testing_dir + ":/opt/panther_ivy/protocol-testing/" + self.protocol,
             "shared_logs:/app/sync_logs"
         ]
@@ -390,7 +399,7 @@ class PantherIvyServiceManager(IServiceManager):
             })
 
         try:
-            template_name = f"{self.role}_command.jinja"
+            template_name = f"{self.oppose_role(self.role)}_command.jinja"
             self.logger.debug(f"Rendering command using template '{template_name}' with parameters: {params}")
             template = self.jinja_env.get_template(template_name)
             command = template.render(**params)
@@ -501,7 +510,7 @@ class PantherIvyServiceManager(IServiceManager):
                 self.logger.error(f"Failed to stop Ivy tester service: {e}")
 
     def __str__(self) -> str:
-        return  f"(Ivy tester Service Manager - {self.config})"
+        return f"(Ivy tester Service Manager - {self.config})"
     
     def __repr__(self):
         return f"(Ivy tester Service Manager - {self.config})"
