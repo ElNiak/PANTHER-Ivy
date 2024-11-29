@@ -73,7 +73,7 @@ panther_ivy:
         value: 0
         description: "Server connection ID (default: 0)"
       client_port:
-        value: 4443
+        value: 4997
         description: "Client port (default: 4443)"
       client_port_alt:
         value: 4444
@@ -82,6 +82,8 @@ panther_ivy:
         value: 0x7F000001
         description: "Client address (default: 0x7F000001)"
     env:
+      TEST_ALPN: "hq-interop"
+      PROTOCOL_TESTED: "quic"
       ZRTT_SSLKEYLOGFILE: "$SOURCE_DIR/panther_ivy/protocol-testing/quic/last_tls_key.txt"
       RETRY_TOKEN_FILE: "$SOURCE_DIR/panther_ivy/protocol-testing/quic/last_retry_token.txt"
       NEW_TOKEN_FILE: "$SOURCE_DIR/panther_ivy/protocol-testing/quic/last_new_token.txt"
@@ -103,144 +105,6 @@ panther_ivy:
             url: "https://github.com/h2o/picotls.git"
             commit: "047c5fe20bb9ea91c1caded8977134f19681ec76"
         client:
-          tests:
-            quic_client_test_max:
-              enabled: False
-              description: "Test QUIC client max"
-            quic_client_test_ext_min_ack_delay:
-              enabled: False
-              description: "Test QUIC client extension minimum ACK delay"
-            quic_client_test_unknown:
-              enabled: False
-              description: "Test QUIC client unknown"
-            quic_client_test_unknown_tp:
-              enabled: False
-              description: "Test QUIC client unknown transport parameter"
-            quic_client_test_double_tp_error:
-              enabled: False
-              description: "Test QUIC client double transport parameter error"
-            quic_client_test_tp_error:
-              enabled: False
-              description: "Test QUIC client transport parameter error"
-            quic_client_test_tp_acticoid_error:
-              enabled: False
-              description: "Test QUIC client active connection ID error"
-            quic_client_test_no_ocid:
-              enabled: False
-              description: "Test QUIC client no original connection ID"
-            quic_client_test_new_token_error:
-              enabled: False
-              description: "Test QUIC client new token error"
-            quic_client_test_max_limit_error:
-              enabled: False
-              description: "Test QUIC client max limit error"
-            quic_client_test_blocked_streams_maxstream_error:
-              enabled: False
-              description: "Test QUIC client blocked streams max stream error"
-            quic_client_test_retirecoid_error:
-              enabled: False
-              description: "Test QUIC client retire connection ID error"
-            quic_client_test_0rtt:
-              enabled: False
-              description: "Test QUIC client 0-RTT"
-              pair: quic_client_test_0rtt_max
-            quic_client_test_0rtt_invalid:
-              enabled: False
-              description: "Test QUIC client 0-RTT invalid"
-              pair: quic_client_test_0rtt_max
-            quic_client_test_0rtt_max:
-              enabled: False
-              description: "Test QUIC client 0-RTT max"
-              pair: quic_client_test_0rtt_max_co_close
-            quic_client_test_0rtt_max_co_close:
-              enabled: False
-              description: "Test QUIC client 0-RTT max connection close"
-              pair: quic_client_test_0rtt_max_app_close
-            quic_client_test_0rtt_max_app_close:
-              enabled: False
-              description: "Test QUIC client 0-RTT max application close"
-            quic_client_test_0rtt_add_val:
-              enabled: False
-              description: "Test QUIC client 0-RTT additional validation"
-              pair: quic_client_test_0rtt_max_add_val
-            quic_client_test_0rtt_invalid:
-              enabled: False
-              description: "Test QUIC client 0-RTT invalid"
-            quic_client_test_new_token_address_validation:
-              enabled: False
-              description: "Test QUIC client new token address validation"
-            quic_client_test_retry:
-              enabled: False
-              description: "Test QUIC client retry"
-            quic_client_test_deadconnection:
-              enabled: False
-              description: "Test QUIC client dead connection"
-            quic_client_test_deadconnection_signal:
-              enabled: False
-              description: "Test QUIC client dead connection signal"
-            quic_client_test_deadconnection_no_sleep:
-              enabled: False
-              description: "Test QUIC client dead connection no sleep"
-            quic_client_test_deadconnection_no_sleep_validation:
-              enabled: False
-              description: "Test QUIC client dead connection no sleep validation"
-            quic_client_test_timeout:
-              enabled: False
-              description: "Test QUIC client timeout"
-            quic_client_test_timeout_no_sleep:
-              enabled: False
-              description: "Test QUIC client timeout no sleep"
-            quic_client_test_timeout_no_sleep_validation:
-              enabled: False
-              description: "Test QUIC client timeout no sleep validation"
-            quic_client_test_loss_recovery:
-              enabled: False
-              description: "Test QUIC client loss recovery"
-            quic_client_test_congestion_control:
-              enabled: False
-              description: "Test QUIC client congestion control"           
-          protocol:
-            alpn:
-              param: "-a"
-              value: "hq-interop"
-            additional_parameters: ""
-          binary:
-            dir: "/opt/panther_ivy/protocol-testing/quic/quic_tests/"
-            name: ""
-          network:
-            interface:
-              param: "-e"
-              value: "eth0"
-            port: 4443
-            destination: "11.0.0.1"
-          certificates:
-            cert:
-              param: "-c"
-              file: "/opt/certs/cert.pem"
-              local_file: "config/certs/cert.pem"
-            key:
-              param: "-k"
-              file: "/opt/certs/key.pem"
-              local_file: "config/certs/key.pem"
-          ticket_file:
-            param: "-T"
-            file: "/opt/ticket/tester_ticket.key"
-            local_file: "config/tls_keys/"
-          logging:
-            log_path: "/app/logs/client.log"
-            qlog:
-              param: "-q"
-              path: "/app/logs/client.qlog"
-
-        server:
-          the_cid: "0"
-          iversion: "1"
-          server_port: 4443
-          server_addr: 0x7F000001
-          server_cid: "0"
-          client_port: 4443
-          client_port_alt: 4444
-          client_addr: 0x7F000001
           tests: 
             quic_server_test_stream:
               enabled: False
@@ -369,6 +233,147 @@ panther_ivy:
             quic_server_test_congestion_control:
               enabled: False
               description: "Test QUIC server congestion control"   
+          
+          protocol:
+            alpn:
+              param: "-a"
+              value: "hq-interop"
+            additional_parameters: ""
+          binary:
+            dir: "/opt/panther_ivy/protocol-testing/quic/quic_tests/"
+            name: ""
+          network:
+            interface:
+              param: "-e"
+              value: "eth0"
+            port: 4443
+            destination: "11.0.0.1"
+          certificates:
+            cert:
+              param: "-c"
+              file: "/opt/certs/cert.pem"
+              local_file: "config/certs/cert.pem"
+            key:
+              param: "-k"
+              file: "/opt/certs/key.pem"
+              local_file: "config/certs/key.pem"
+          ticket_file:
+            param: "-T"
+            file: "/opt/ticket/tester_ticket.key"
+            local_file: "config/tls_keys/"
+          logging:
+            log_path: "/app/logs/client.log"
+            err_path: "/app/logs/client.err.log"
+            qlog:
+              param: "-q"
+              path: "/app/logs/client.qlog"
+
+        server:
+          the_cid: "0"
+          iversion: "1"
+          server_port: 4443
+          server_addr: 0x7F000001
+          server_cid: "1"
+          client_port: 4997
+          client_port_alt: 4444
+          client_addr: 0x7F000001
+          tests:
+            quic_client_test_max:
+              enabled: False
+              description: "Test QUIC client max"
+            quic_client_test_ext_min_ack_delay:
+              enabled: False
+              description: "Test QUIC client extension minimum ACK delay"
+            quic_client_test_unknown:
+              enabled: False
+              description: "Test QUIC client unknown"
+            quic_client_test_unknown_tp:
+              enabled: False
+              description: "Test QUIC client unknown transport parameter"
+            quic_client_test_double_tp_error:
+              enabled: False
+              description: "Test QUIC client double transport parameter error"
+            quic_client_test_tp_error:
+              enabled: False
+              description: "Test QUIC client transport parameter error"
+            quic_client_test_tp_acticoid_error:
+              enabled: False
+              description: "Test QUIC client active connection ID error"
+            quic_client_test_no_ocid:
+              enabled: False
+              description: "Test QUIC client no original connection ID"
+            quic_client_test_new_token_error:
+              enabled: False
+              description: "Test QUIC client new token error"
+            quic_client_test_max_limit_error:
+              enabled: False
+              description: "Test QUIC client max limit error"
+            quic_client_test_blocked_streams_maxstream_error:
+              enabled: False
+              description: "Test QUIC client blocked streams max stream error"
+            quic_client_test_retirecoid_error:
+              enabled: False
+              description: "Test QUIC client retire connection ID error"
+            quic_client_test_0rtt:
+              enabled: False
+              description: "Test QUIC client 0-RTT"
+              pair: quic_client_test_0rtt_max
+            quic_client_test_0rtt_invalid:
+              enabled: False
+              description: "Test QUIC client 0-RTT invalid"
+              pair: quic_client_test_0rtt_max
+            quic_client_test_0rtt_max:
+              enabled: False
+              description: "Test QUIC client 0-RTT max"
+              pair: quic_client_test_0rtt_max_co_close
+            quic_client_test_0rtt_max_co_close:
+              enabled: False
+              description: "Test QUIC client 0-RTT max connection close"
+              pair: quic_client_test_0rtt_max_app_close
+            quic_client_test_0rtt_max_app_close:
+              enabled: False
+              description: "Test QUIC client 0-RTT max application close"
+            quic_client_test_0rtt_add_val:
+              enabled: False
+              description: "Test QUIC client 0-RTT additional validation"
+              pair: quic_client_test_0rtt_max_add_val
+            quic_client_test_0rtt_invalid:
+              enabled: False
+              description: "Test QUIC client 0-RTT invalid"
+            quic_client_test_new_token_address_validation:
+              enabled: False
+              description: "Test QUIC client new token address validation"
+            quic_client_test_retry:
+              enabled: False
+              description: "Test QUIC client retry"
+            quic_client_test_deadconnection:
+              enabled: False
+              description: "Test QUIC client dead connection"
+            quic_client_test_deadconnection_signal:
+              enabled: False
+              description: "Test QUIC client dead connection signal"
+            quic_client_test_deadconnection_no_sleep:
+              enabled: False
+              description: "Test QUIC client dead connection no sleep"
+            quic_client_test_deadconnection_no_sleep_validation:
+              enabled: False
+              description: "Test QUIC client dead connection no sleep validation"
+            quic_client_test_timeout:
+              enabled: False
+              description: "Test QUIC client timeout"
+            quic_client_test_timeout_no_sleep:
+              enabled: False
+              description: "Test QUIC client timeout no sleep"
+            quic_client_test_timeout_no_sleep_validation:
+              enabled: False
+              description: "Test QUIC client timeout no sleep validation"
+            quic_client_test_loss_recovery:
+              enabled: False
+              description: "Test QUIC client loss recovery"
+            quic_client_test_congestion_control:
+              enabled: False
+              description: "Test QUIC client congestion control"           
+          
           protocol:
             alpn:
               param: "-a"
@@ -398,6 +403,7 @@ panther_ivy:
             local_file: "config/tls_keys/"
           logging:
             log_path: "/app/logs/server.log"
+            err_path: "/app/logs/server.err.log"
             qlog:
               param: "-q"
               path: "/app/logs/server.qlog"

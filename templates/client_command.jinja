@@ -8,14 +8,11 @@
         {% endif %}
     {% endif %}
     {{ timeout_cmd }}{{ prefix }}{{ build_dir }}/{{ first_test }} seed={{ seed }} the_cid={{ the_cid }}
-        server_port={{ server_port }} iversion={{ iversion }} server_addr={{ server_addr }}
-        client_port={{ client_port }} client_port_alt={{ client_port_alt }} client_addr={{ client_addr }}  > /app/logs/tester.log 2>&1
+        server_port={{ server_port }} iversion={{ iversion }} server_addr={{ server_addr }}  server_cid={{ server_cid }} > /app/logs/tester.log 2> /app/logs/tester.err
     ; sleep 1;
     {{ timeout_cmd }}{{ prefix }}{{ build_dir }}/{{ test_name }} seed={{ seed }} the_cid={{ the_cid_2 }}
-        server_port={{ server_port_2 }} iversion={{ iversion }} server_addr={{ server_addr }}
-        client_port={{ client_port }} client_port_alt={{ client_port_alt }} client_addr={{ client_addr }}  > /app/logs/tester.log 2>&1
+        server_port={{ server_port_2 }} iversion={{ iversion }} server_addr={{ server_addr }} server_cid={{ server_cid }} > /app/logs/tester.log 2> /app/logs/tester.err
 {% else %}
     {{ timeout_cmd }}{{ prefix }}{{ build_dir }}/{{ test_name }} seed={{ seed }} the_cid={{ the_cid }}
-        server_port={{ server_port }} iversion={{ iversion }} server_addr={{ server_addr }}
-        client_port={{ client_port }} client_port_alt={{ client_port_alt }} client_addr={{ client_addr }}  > /app/logs/tester.log 2>&1
+        server_port={{ server_port }} iversion={{ iversion }} server_addr={{ server_addr }} server_cid={{ server_cid }} > /app/logs/tester.log 2> /app/logs/tester.err
 {% endif %}
