@@ -1,5 +1,5 @@
-from plugins.implementations.protocol_interface import IProtocolPlugin
-from plugins.testers.panther_ivy.service_manager import PantherIvyServiceManager
+from plugins.services.implementations.protocol_interface import IProtocolPlugin
+from plugins.services.testers.panther_ivy.service_manager import PantherIvyServiceManager
 
 class PantherIvyPlugin(IProtocolPlugin):
     def __init__(self):
