@@ -6,6 +6,7 @@ import os
 from typing import Any, Dict, Optional
 import yaml
 import traceback
+from config.config_experiment_schema import ServiceConfig
 from plugins.services.testers.tester_interface import ITesterManager
 from plugins.plugin_loader import PluginLoader
 from pathlib import Path
@@ -18,7 +19,7 @@ from jinja2 import Environment, FileSystemLoader, Template
 class PantherIvyServiceManager(ITesterManager):
     def __init__(
         self,
-        type: str,
+        service_type: str,
         protocol: str,
         implementation_name: str,
     ):
@@ -27,8 +28,6 @@ class PantherIvyServiceManager(ITesterManager):
         self.protocol = None
         self.protocol_version = None
         self.protocol_model_path = None
-
-        
 
     def get_base_url(self, service_name: str) -> str:
         """
@@ -47,52 +46,14 @@ class PantherIvyServiceManager(ITesterManager):
             self.logger.error(f"No port mapping found for service '{service_name}'")
             return ""
 
-    def get_implementation_name(self) -> str:
-        return "panther_ivy"
-
     def get_service_name(self) -> str:
         return self.service_name
 
-    def validate_config(self):
-        """
-        Validates the loaded implementation configuration.
-        """
-
-        def keys_exists(element, keys):
-            """
-            Check if *keys (nested) exists in `element` (dict).
-            """
-            if not isinstance(element, dict):
-                raise AttributeError("keys_exists() expects dict as first argument.")
-            if len(keys) == 0:
-                raise AttributeError(
-                    "keys_exists() expects at least two arguments, one given."
-                )
-
-            _element = element
-            for key in keys:
-                try:
-                    _element = _element[key]
-                except KeyError:
-                    return False
-            return True
-
-        if not self.config:
-            self.logger.error("Implementation configuration is empty.")
-            raise ValueError("Empty implementation configuration.")
-        # Additional validation can be implemented here
-        # For example, check required keys are present
-        # required_keys = [["client",'seed'], ["client",'seed']]
-        # for key in required_keys:
-        #     if not keys_exists(self.config, key):
-        #         self.logger.error(f"Missing required key '{key}' in configuration.")
-        #         raise KeyError(f"Missing required key '{key}' in configuration.")
-
     def prepare(self, plugin_loader: Optional[PluginLoader] = None):
         """
-        Prepares the Ivy tester service manager.
+        Prepares the Ivy testers service manager.
         """
-        self.logger.info("Preparing Ivy tester service manager...")
+        self.logger.info("Preparing Ivy testers service manager...")
         self.build_submodules()
 
         protocol_testing_dir = os.path.abspath(
@@ -113,7 +74,7 @@ class PantherIvyServiceManager(ITesterManager):
         # TODO load the configuration file: get the protocol name and the version + tests + versions
 
         plugin_loader.build_docker_image(self.get_implementation_name())
-        self.logger.info("Ivy tester service manager prepared.")
+        self.logger.info("Ivy testers service manager prepared.")
 
     def build_submodules(self):
         current_dir = os.getcwd()
@@ -239,10 +200,10 @@ class PantherIvyServiceManager(ITesterManager):
         )
         self.logger.debug(f"Environment: {environment}")
 
-        self.protocol_version = service_params.get("protocol").get("version")
-        self.role = service_params.get("role")
+        self.protocol_version = service_params.protocol.version
+        self.role =  service_params.protocol.role
 
-        test_to_compile = service_params.get("protocol").get("test")
+        test_to_compile = service_params.implementation.test
 
         protocol_env = (
             self.config.get("panther_ivy", {}).get(self.protocol, {}).get("env", {})
@@ -331,9 +292,7 @@ class PantherIvyServiceManager(ITesterManager):
             )
             exit(1)
 
-    def generate_deployment_commands(
-        self, service_params: Dict[str, Any], environment: str
-    ) -> Dict[str, Any]:
+    def generate_deployment_commands(self, service_params: ServiceConfig, environment: str) -> Dict[str, Any]:
         """
         Generates deployment commands and collects volume mappings based on service parameters.
 
@@ -346,9 +305,9 @@ class PantherIvyServiceManager(ITesterManager):
             f"Generating deployment commands for service: {service_params}"
         )
 
-        self.role = service_params.get("role")
-        self.protocol_version = service_params.get("version", "rfc9000")
-        self.protocol = service_params.get("protocol").get("name")
+        self.role =  service_params.protocol.role
+        self.protocol_version =  service_params.protocol.version
+        self.protocol = service_params.protocol.name
         self.ivy_log_level = (
             self.config.get("panther_ivy")
             .get("parameters")
@@ -369,7 +328,7 @@ class PantherIvyServiceManager(ITesterManager):
 
         # Build parameters for the command template
         params = {
-            "test_name": service_params.get("protocol").get("test"),
+            "test_name": service_params.implementation.name,
             # TODO pass that to the environment
             # "tshark_timeout": self.config.get("panther_ivy").get("parameters").get("timeout").get("value") - 10,
             "timeout_cmd": f"timeout {self.config.get('panther_ivy').get('parameters').get('timeout').get('value')} ",  # Example timeout
@@ -425,7 +384,7 @@ class PantherIvyServiceManager(ITesterManager):
                 else "$$IVY_IP_HEX"
             ),  #  self.config.get("panther_ivy").get(self.protocol).get("parameters").get("client_addr").get("value"),
             "modify_packets": "false",
-            "name": service_params.get("name"),
+            "name": service_params.name,
             # TODO managed paired tests
             # "paired_tests": self.config.get("ivy", {}).get("paired_tests", {}),
             "iteration": self.config.get("panther_ivy")
@@ -485,12 +444,7 @@ class PantherIvyServiceManager(ITesterManager):
                 "port": version_config.get(self.role, {})
                 .get("network", {})
                 .get("port", 4443),
-                "destination": service_params.get(
-                    "target",
-                    version_config.get(self.role, {})
-                    .get("network", {})
-                    .get("destination", "picoquic_server"),
-                ),
+                "destination": service_params.protocol.target,
             },
         }
         # TODO add timeout parameter
@@ -512,7 +466,7 @@ class PantherIvyServiceManager(ITesterManager):
         ]
 
         # Only add certificate volumes if the user doesn't want to generate new certificates
-        # if not service_params.get('generate_new_certificates', False):
+        # if not service_params.generate_new_certificates:
         #     # Certificates
         #     volumes.append({
         #         "local": os.path.abspath(params["certificates"]["cert_local_file"]),
@@ -558,7 +512,7 @@ class PantherIvyServiceManager(ITesterManager):
             command_str =  command.replace("\t", " ").replace("\n", " ").strip()
             working_dir = self.protocol_model_path
 
-            service_name = service_params.get("name")
+            service_name = service_params.name
             self.logger.debug(
                 f"Generated command for '{service_name}': {command_str} with {compilation_command}"
             )
@@ -584,7 +538,7 @@ class PantherIvyServiceManager(ITesterManager):
             raise e
 
     def __str__(self) -> str:
-        return f"(Ivy tester Service Manager - {self.config})"
+        return f"(Ivy testers Service Manager - {self.config})"
 
     def __repr__(self):
-        return f"(Ivy tester Service Manager - {self.config})"
+        return f"(Ivy testers Service Manager - {self.config})"
