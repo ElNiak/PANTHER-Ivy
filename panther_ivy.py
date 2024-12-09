@@ -7,6 +7,7 @@ from typing import Any, Dict, Optional
 import yaml
 import traceback
 from config.config_experiment_schema import ServiceConfig
+from plugins.services.testers.panther_ivy.config_schema import PantherIvyConfig
 from plugins.services.testers.tester_interface import ITesterManager
 from plugins.plugin_loader import PluginLoader
 from pathlib import Path
@@ -19,11 +20,12 @@ from jinja2 import Environment, FileSystemLoader, Template
 class PantherIvyServiceManager(ITesterManager):
     def __init__(
         self,
+        service_config_to_test: PantherIvyConfig,
         service_type: str,
         protocol: str,
         implementation_name: str,
     ):
-        super().__init__(type, protocol,implementation_name)
+        super().__init__(service_config_to_test, service_type, protocol,implementation_name)
         
         self.protocol = None
         self.protocol_version = None
@@ -206,9 +208,9 @@ class PantherIvyServiceManager(ITesterManager):
         test_to_compile = service_params.implementation.test
 
         protocol_env = (
-            self.config.get("panther_ivy", {}).get(self.protocol, {}).get("env", {})
+            self.service_master_config.get("panther_ivy", {}).get(self.protocol, {}).get("env", {})
         )
-        global_env = self.config.get("panther_ivy", {}).get("env", {})
+        global_env = self.service_master_config.get("panther_ivy", {}).get("env", {})
         self.environments = {**global_env, **protocol_env}
 
         # TODO refine the config
@@ -216,7 +218,7 @@ class PantherIvyServiceManager(ITesterManager):
         # self.environments["ZERORTT_TEST"]
 
         test_to_compile_information = (
-            self.config.get("panther_ivy", {})
+            self.service_master_config.get("panther_ivy", {})
             .get(self.protocol, {})
             .get("versions", {})
             .get(self.protocol_version, {})
@@ -249,15 +251,15 @@ class PantherIvyServiceManager(ITesterManager):
         file_path = os.path.join(
             "/opt/panther_ivy/protocol-testing/",
             self.protocol,
-            self.config["panther_ivy"][self.protocol]["parameters"]["tests_dir"][
+            self.service_master_config["panther_ivy"][self.protocol]["parameters"]["tests_dir"][
                 "value"
             ],
             self.oppose_role(self.role) + "_tests",
         )
         self.logger.debug(f"Building file: {file_path}")
-        cmd = f"cd {file_path}; PYTHONPATH=$$PYTHON_IVY_DIR ivyc trace=false show_compiled=false target=test test_iters={self.config['panther_ivy']['parameters']['internal_iterations_per_test']['value']} {test}.ivy >> /app/logs/ivy_setup.log 2>&1; "
+        cmd = f"cd {file_path}; PYTHONPATH=$$PYTHON_IVY_DIR ivyc trace=false show_compiled=false target=test test_iters={self.service_master_config['panther_ivy']['parameters']['internal_iterations_per_test']['value']} {test}.ivy >> /app/logs/ivy_setup.log 2>&1; "
         self.logger.info(f"Tests compilation command: {cmd}")
-        mv_command = f"cp {os.path.join(file_path,test)}* {os.path.join('/opt/panther_ivy/protocol-testing/',self.protocol, self.config['panther_ivy']['parameters']['tests_build_dir']['value'])}; "
+        mv_command = f"cp {os.path.join(file_path,test)}* {os.path.join('/opt/panther_ivy/protocol-testing/',self.protocol, self.service_master_config['panther_ivy']['parameters']['tests_build_dir']['value'])}; "
         self.logger.info(f"Moving built files: {mv_command}")
         return (
             cmd
@@ -265,7 +267,7 @@ class PantherIvyServiceManager(ITesterManager):
             + " "
             + mv_command
             + (
-                f"ls {os.path.join('/opt/panther_ivy/protocol-testing/',self.protocol, self.config['panther_ivy']['parameters']['tests_build_dir']['value'])} >> /app/logs/ivy_setup.log 2>&1 ; "
+                f"ls {os.path.join('/opt/panther_ivy/protocol-testing/',self.protocol, self.service_master_config['panther_ivy']['parameters']['tests_build_dir']['value'])} >> /app/logs/ivy_setup.log 2>&1 ; "
                 if True
                 else ""
             )
@@ -275,16 +277,16 @@ class PantherIvyServiceManager(ITesterManager):
         """
         Loads the YAML configuration file.
         """
-        config_file = Path(self.config_path)
+        config_file = Path(self.service_master_config_path)
         if not config_file.exists():
             self.logger.error(
-                f"Configuration file '{self.config_path}' does not exist."
+                f"Configuration file '{self.service_master_config_path}' does not exist."
             )
             return {}
         try:
             with open(config_file, "r") as f:
                 config = yaml.safe_load(f)
-            self.logger.info(f"Loaded configuration from '{self.config_path}'")
+            self.logger.info(f"Loaded configuration from '{self.service_master_config_path}'")
             return config
         except Exception as e:
             self.logger.error(
@@ -309,7 +311,7 @@ class PantherIvyServiceManager(ITesterManager):
         self.protocol_version =  service_params.protocol.version
         self.protocol = service_params.protocol.name
         self.ivy_log_level = (
-            self.config.get("panther_ivy")
+            self.service_master_config.get("panther_ivy")
             .get("parameters")
             .get("log_level")
             .get("value")
@@ -320,7 +322,7 @@ class PantherIvyServiceManager(ITesterManager):
         )
 
         version_config = (
-            self.config.get("panther_ivy", {})
+            self.service_master_config.get("panther_ivy", {})
             .get(self.protocol, {})
             .get("versions", {})
             .get(self.protocol_version, {})
@@ -330,30 +332,30 @@ class PantherIvyServiceManager(ITesterManager):
         params = {
             "test_name": service_params.implementation.name,
             # TODO pass that to the environment
-            # "tshark_timeout": self.config.get("panther_ivy").get("parameters").get("timeout").get("value") - 10,
-            "timeout_cmd": f"timeout {self.config.get('panther_ivy').get('parameters').get('timeout').get('value')} ",  # Example timeout
+            # "tshark_timeout": self.service_master_config.get("panther_ivy").get("parameters").get("timeout").get("value") - 10,
+            "timeout_cmd": f"timeout {self.service_master_config.get('panther_ivy').get('parameters').get('timeout').get('value')} ",  # Example timeout
             "prefix": "",
-            "build_dir": self.config.get("panther_ivy")
+            "build_dir": self.service_master_config.get("panther_ivy")
             .get("parameters")
             .get("tests_build_dir")
             .get("value"),
-            "seed": self.config.get("panther_ivy")
+            "seed": self.service_master_config.get("panther_ivy")
             .get(self.protocol)
             .get("parameters")
             .get("seed")
             .get("value"),
-            "the_cid": self.config.get("panther_ivy")
+            "the_cid": self.service_master_config.get("panther_ivy")
             .get(self.protocol)
             .get("parameters")
             .get("the_cid")
             .get("value"),
-            "server_port": self.config.get("panther_ivy")
+            "server_port": self.service_master_config.get("panther_ivy")
             .get(self.protocol)
             .get("parameters")
             .get("server_port")
             .get("value"),
             "version": self.protocol_version,
-            "iversion": self.config.get("panther_ivy")
+            "iversion": self.service_master_config.get("panther_ivy")
             .get(self.protocol)
             .get("parameters")
             .get("iversion")
@@ -363,17 +365,17 @@ class PantherIvyServiceManager(ITesterManager):
                 if self.oppose_role(self.role) == "server"
                 else "$$IVY_IP_HEX"
             ),  # elf.config.get("panther_ivy").get(self.protocol).get("parameters").get("server_addr").get("value"),
-            "server_cid": self.config.get("panther_ivy")
+            "server_cid": self.service_master_config.get("panther_ivy")
             .get(self.protocol)
             .get("parameters")
             .get("server_cid")
             .get("value"),
-            "client_port": self.config.get("panther_ivy")
+            "client_port": self.service_master_config.get("panther_ivy")
             .get(self.protocol)
             .get("parameters")
             .get("client_port")
             .get("value"),
-            "client_port_alt": self.config.get("panther_ivy")
+            "client_port_alt": self.service_master_config.get("panther_ivy")
             .get(self.protocol)
             .get("parameters")
             .get("client_port_alt")
@@ -382,12 +384,12 @@ class PantherIvyServiceManager(ITesterManager):
                 "$$TARGET_IP_HEX"
                 if self.oppose_role(self.role) == "client"
                 else "$$IVY_IP_HEX"
-            ),  #  self.config.get("panther_ivy").get(self.protocol).get("parameters").get("client_addr").get("value"),
+            ),  #  self.service_master_config.get("panther_ivy").get(self.protocol).get("parameters").get("client_addr").get("value"),
             "modify_packets": "false",
             "name": service_params.name,
             # TODO managed paired tests
-            # "paired_tests": self.config.get("ivy", {}).get("paired_tests", {}),
-            "iteration": self.config.get("panther_ivy")
+            # "paired_tests": self.service_master_config.get("ivy", {}).get("paired_tests", {}),
+            "iteration": self.service_master_config.get("panther_ivy")
             .get("parameters")
             .get("value"),  # Example iteration for testing
             "is_client": self.oppose_role(self.role) == "client",
@@ -497,7 +499,7 @@ class PantherIvyServiceManager(ITesterManager):
             # Generate compilation commands
             compilation_command = ""
             if (
-                self.config.get("panther_ivy", {})
+                self.service_master_config.get("panther_ivy", {})
                 .get("parameters", {})
                 .get("compile_tests", {})
                 .get("value", False)
@@ -524,7 +526,7 @@ class PantherIvyServiceManager(ITesterManager):
                     "working_dir": working_dir,
                     "compilation_command": compilation_command,
                     "environment": self.environments,
-                    "timeout": self.config.get("panther_ivy")
+                    "timeout": self.service_master_config.get("panther_ivy")
                             .get("parameters")
                             .get("timeout")
                             .get("value"),
@@ -538,7 +540,7 @@ class PantherIvyServiceManager(ITesterManager):
             raise e
 
     def __str__(self) -> str:
-        return f"(Ivy testers Service Manager - {self.config})"
+        return f"(Ivy testers Service Manager - {self.service_master_config})"
 
     def __repr__(self):
-        return f"(Ivy testers Service Manager - {self.config})"
+        return f"(Ivy testers Service Manager - {self.service_master_config})"
