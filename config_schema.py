@@ -38,6 +38,7 @@ class ParametersConfig:
     
 @dataclass
 class PantherIvyVersion(VersionBase):
+    version: str = ""
     commit: str = ""
     dependencies: List[Dict[str, str]] = field(default_factory=list)
     env: Optional[Dict] = field(default_factory=dict)
