@@ -1,5 +1,6 @@
 # PANTHER-SCP/panther/plugins/services/implementations/ivy_rfc9000/service_manager.py
 
+from pathlib import Path
 import subprocess
 import logging
 import os
@@ -10,7 +11,6 @@ from config.config_experiment_schema import ServiceConfig
 from plugins.services.testers.panther_ivy.config_schema import PantherIvyConfig
 from plugins.services.testers.tester_interface import ITesterManager
 from plugins.plugin_loader import PluginLoader
-from pathlib import Path
 from plugins.protocols.config_schema import ProtocolConfig, RoleEnum
 
 
@@ -28,6 +28,9 @@ class PantherIvyServiceManager(ITesterManager):
         super().__init__(
             service_config_to_test, service_type, protocol, implementation_name
         )
+        # TODO
+        service_config_to_test.directories_to_start = [
+        ]
         self.test_to_compile = self.service_config_to_test.implementation.test
         self.protocol = protocol
         self.protocol_model_path = os.path.join(
@@ -45,6 +48,7 @@ class PantherIvyServiceManager(ITesterManager):
         self.run_cmd = {
             "pre_compile_cmds": self.generate_pre_compile_commands(),
             "compile_cmds": self.generate_compile_commands(),
+            "post_compile_cmds": self.generate_post_compile_commands(),
             "pre_run_cmds": self.generate_pre_run_commands(),
             "run_cmd": self.generate_run_command(),
             "post_run_cmds": self.generate_post_run_commands(),
@@ -94,11 +98,20 @@ class PantherIvyServiceManager(ITesterManager):
             super().generate_compile_commands() + self.generate_compilation_commands() + [" && "] + [" (touch /app/sync_logs/ivy_ready.log ) && "]
         )
 
+
+    def generate_post_compile_commands(self):
+        """
+        Generates post-compile commands.
+        """
+        return super().generate_post_compile_commands() + [
+            f"cd {self.protocol_model_path};"
+        ]
+        
     def generate_pre_run_commands(self):
         """
         Generates pre-run commands.
         """
-        return super().generate_pre_run_commands() + [f"cd {self.protocol_model_path};"]
+        return super().generate_pre_run_commands() + []
 
     def generate_run_command(self):
         """
@@ -117,7 +130,7 @@ class PantherIvyServiceManager(ITesterManager):
         Generates post-run commands.
         """
         return super().generate_post_run_commands() + [
-            f"&& cp {os.path.join(self.service_config_to_test.implementation.parameters.tests_build_dir.value + self.test_to_compile)} /app/logs/{self.test_to_compile};"
+            f"cp {os.path.join(self.protocol_model_path,self.service_config_to_test.implementation.parameters.tests_build_dir.value,self.test_to_compile)} /app/logs/{self.test_to_compile};"
         ]
 
     def get_base_url(self, service_name: str) -> str:
@@ -163,8 +176,13 @@ class PantherIvyServiceManager(ITesterManager):
                 )
 
         # TODO load the configuration file: get the protocol name and the version + tests + versions
-
-        plugin_loader.build_docker_image(self.get_implementation_name())
+        plugin_loader.build_docker_image_from_path(Path(os.path.join(
+            os.getcwd(),
+            "plugins",
+            "services",
+            "Dockerfile",
+        )),"panther_base","service")
+        plugin_loader.build_docker_image(self.get_implementation_name(), self.service_config_to_test.implementation.version)
         self.logger.info("Ivy testers service manager prepared.")
 
     def build_submodules(self):
@@ -422,29 +440,6 @@ class PantherIvyServiceManager(ITesterManager):
                 else [")"]
             )
         )
-
-    def load_config(self) -> dict:
-        """
-        Loads the YAML configuration file.
-        """
-        config_file = Path(self.service_config_to_test_path)
-        if not config_file.exists():
-            self.logger.error(
-                f"Configuration file '{self.service_config_to_test_path}' does not exist."
-            )
-            return {}
-        try:
-            with open(config_file, "r") as f:
-                config = yaml.safe_load(f)
-            self.logger.info(
-                f"Loaded configuration from '{self.service_config_to_test_path}'"
-            )
-            return config
-        except Exception as e:
-            self.logger.error(
-                f"Failed to load configuration: {e}\n{traceback.format_exc()}"
-            )
-            exit(1)
 
     def generate_deployment_commands(self) -> str:
         """
