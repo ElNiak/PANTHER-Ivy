@@ -6,8 +6,8 @@ from enum import Enum
 
 from omegaconf import OmegaConf
 
-from plugins.services.iut.config_schema import ImplementationConfig, Parameter, VersionBase
-from plugins.services.iut.config_schema import ImplementationType
+from panther.plugins.services.iut.config_schema import ImplementationConfig, Parameter, VersionBase
+from panther.plugins.services.iut.config_schema import ImplementationType
 @dataclass
 class EnvironmentConfig:
     PROTOCOL_TESTED: str = ""
@@ -62,7 +62,7 @@ class PantherIvyConfig(ImplementationConfig):
     parameters: ParametersConfig = field(default_factory=lambda: ParametersConfig())
 
     @staticmethod
-    def load_versions_from_files(version_configs_dir: str = "plugins/services/testers/panther_ivy/version_configs/quic/") -> PantherIvyVersion:
+    def load_versions_from_files(version_configs_dir: str = "panther/plugins/services/testers/panther_ivy/version_configs/quic/") -> PantherIvyVersion:
         """Load version configurations dynamically from YAML files."""
         logging.debug(f"Loading PantherIvy versions from {version_configs_dir}")
         for version_file in os.listdir(version_configs_dir):
