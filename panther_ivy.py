@@ -7,11 +7,11 @@ import os
 from typing import Any, Dict, List, Optional
 import yaml
 import traceback
-from config.config_experiment_schema import ServiceConfig
-from plugins.services.testers.panther_ivy.config_schema import PantherIvyConfig
-from plugins.services.testers.tester_interface import ITesterManager
-from plugins.plugin_loader import PluginLoader
-from plugins.protocols.config_schema import ProtocolConfig, RoleEnum
+from panther.config.config_experiment_schema import ServiceConfig
+from panther.plugins.services.testers.panther_ivy.config_schema import PantherIvyConfig
+from panther.plugins.services.testers.tester_interface import ITesterManager
+from panther.plugins.plugin_loader import PluginLoader
+from panther.plugins.protocols.config_schema import ProtocolConfig, RoleEnum
 
 
 # TODO Tom create test template for QUIC implementations new users
@@ -145,7 +145,7 @@ class PantherIvyServiceManager(ITesterManager):
         self.build_submodules()
 
         protocol_testing_dir = os.path.abspath(
-            "plugins/services/testers/panther_ivy/protocol-testing/"
+            "panther/plugins/services/testers/panther_ivy/protocol-testing/"
         )
         for subdir in os.listdir(protocol_testing_dir):
             subdir_path = os.path.join(protocol_testing_dir, subdir)
@@ -162,6 +162,7 @@ class PantherIvyServiceManager(ITesterManager):
         # TODO load the configuration file: get the protocol name and the version + tests + versions
         plugin_loader.build_docker_image_from_path(Path(os.path.join(
             os.getcwd(),
+            "panther",
             "plugins",
             "services",
             "Dockerfile",
@@ -492,10 +493,10 @@ class PantherIvyServiceManager(ITesterManager):
         volumes = []
         # Collect volume mappings
         ivy_include_protocol_testing_dir = os.path.abspath(
-            "plugins/services/testers/panther_ivy/ivy/include/1.7"
+            "panther/plugins/services/testers/panther_ivy/ivy/include/1.7"
         )
         local_protocol_testing_dir = os.path.abspath(
-            "plugins/services/testers/panther_ivy/protocol-testing/"
+            "panther/plugins/services/testers/panther_ivy/protocol-testing/"
             + self.protocol.name
         )
         self.volumes = self.volumes + [
