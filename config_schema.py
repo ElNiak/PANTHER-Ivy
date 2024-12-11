@@ -52,6 +52,7 @@ class PantherIvyConfig(ImplementationConfig):
     type: ImplementationType = ImplementationType.testers  # Default type for panther_ivy
     test: str = field(default="")  # Test name for testers
     shadow_compatible: bool = field(default=True) 
+    gperf_compatible: bool = field(default=True) 
     protocol: str = field(default="quic")  # Protocol tested by the implementation
     # TODO: remove the path, make dynamic 
     version: PantherIvyVersion = field(
