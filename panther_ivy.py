@@ -123,6 +123,7 @@ class PantherIvyServiceManager(ITesterManager):
             "command_binary": os.path.join(self.service_config_to_test.implementation.parameters.tests_build_dir.value + self.test_to_compile),
             "command_args": cmd_args,
             "timeout": self.service_config_to_test.timeout,
+            "command_env": {},
         }
 
     def generate_post_run_commands(self):
@@ -132,23 +133,6 @@ class PantherIvyServiceManager(ITesterManager):
         return super().generate_post_run_commands() + [
             f"cp {os.path.join(self.protocol_model_path,self.service_config_to_test.implementation.parameters.tests_build_dir.value,self.test_to_compile)} /app/logs/{self.test_to_compile};"
         ]
-
-    def get_base_url(self, service_name: str) -> str:
-        """
-        Returns the base URL for the given service.
-        """
-        # Assuming services are accessible via localhost and mapped ports
-        # You might need to adjust this based on your actual setup
-        port_mappings = {
-            "ivy_server": 8080,
-            "ivy_client": 8081,
-        }
-        port = port_mappings.get(service_name, None)
-        if port:
-            return f"http://localhost:{port}/"
-        else:
-            self.logger.error(f"No port mapping found for service '{service_name}'")
-            return ""
 
     def get_service_name(self) -> str:
         return self.service_name
@@ -390,7 +374,7 @@ class PantherIvyServiceManager(ITesterManager):
         self.logger.debug(f"Test information: {available_tests}")
         self.logger.debug(f"Environments: {self.environments}")
         self.logger.debug(f"Protocol: {self.protocol}")
-        self.logger.debug(f"Version: {self.service_version}")
+        self.logger.debug(f"Version: {self.service_version.name}")
         if self.test_to_compile not in available_tests.keys():
             self.logger.error(
                 f"Test '{self.test_to_compile}' not found in configuration."
@@ -458,7 +442,7 @@ class PantherIvyServiceManager(ITesterManager):
             self.service_config_to_test.implementation.parameters.log_level
         )
         # Create the command list
-        self.logger.debug(f"Role: {self.role}, Version: {self.service_version}")
+        self.logger.debug(f"Role: {self.role}, Version: {self.service_version.name}")
 
         # Determine if network interface parameters should be included based on environment
         # TODO
@@ -524,7 +508,7 @@ class PantherIvyServiceManager(ITesterManager):
 
         # Render the appropriate template
         try:
-            template_name = f"{str(self.oppose_role(self.role.name))}_command.jinja"
+            template_name = f"{self.protocol.name}/{str(self.oppose_role(self.role.name))}_command.jinja"
             self.logger.debug(
                 f"Rendering command using template '{template_name}' with parameters: {params}"
             )
@@ -541,241 +525,6 @@ class PantherIvyServiceManager(ITesterManager):
         except Exception as e:
             self.logger.error(
                 f"Failed to render command for service '{self.service_config_to_test.name}': {e}\n{traceback.format_exc()}"
-            )
-            raise e
-
-        self.logger.debug(
-            f"Generating deployment commands for service: {service_params}"
-        )
-
-        self.role = service_params.protocol.role
-        self.protocol_version = service_params.protocol.version
-        self.protocol = service_params.protocol.name
-        self.ivy_log_level = (
-            self.service_config_to_test.get("panther_ivy")
-            .get("parameters")
-            .get("log_level")
-            .get("value")
-        )
-
-        self.protocol_model_path = os.path.join(
-            "/opt/panther_ivy/protocol-testing/", self.protocol
-        )
-
-        version_config = (
-            self.service_config_to_test.get("panther_ivy", {})
-            .get(self.protocol, {})
-            .get("versions", {})
-            .get(self.protocol_version, {})
-        )
-
-        # Build parameters for the command template
-        params = {
-            "test_name": service_params.implementation.name,
-            # TODO pass that to the environment
-            # "tshark_timeout": self.service_config_to_test.get("panther_ivy").get("parameters").get("timeout").get("value") - 10,
-            "timeout_cmd": f"timeout {self.service_config_to_test.get('panther_ivy').get('parameters').get('timeout').get('value')} ",  # Example timeout
-            "prefix": "",
-            "build_dir": self.service_config_to_test.get("panther_ivy")
-            .get("parameters")
-            .get("tests_build_dir")
-            .get("value"),
-            "seed": self.service_config_to_test.get("panther_ivy")
-            .get(self.protocol)
-            .get("parameters")
-            .get("seed")
-            .get("value"),
-            "the_cid": self.service_config_to_test.get("panther_ivy")
-            .get(self.protocol)
-            .get("parameters")
-            .get("the_cid")
-            .get("value"),
-            "server_port": self.service_config_to_test.get("panther_ivy")
-            .get(self.protocol)
-            .get("parameters")
-            .get("server_port")
-            .get("value"),
-            "version": self.protocol_version,
-            "iversion": self.service_config_to_test.get("panther_ivy")
-            .get(self.protocol)
-            .get("parameters")
-            .get("iversion")
-            .get("value"),
-            "server_addr": (
-                "$$TARGET_IP_HEX"
-                if self.oppose_role(self.role) == "server"
-                else "$$IVY_IP_HEX"
-            ),  # elf.config.get("panther_ivy").get(self.protocol).get("parameters").get("server_addr").get("value"),
-            "server_cid": self.service_config_to_test.get("panther_ivy")
-            .get(self.protocol)
-            .get("parameters")
-            .get("server_cid")
-            .get("value"),
-            "client_port": self.service_config_to_test.get("panther_ivy")
-            .get(self.protocol)
-            .get("parameters")
-            .get("client_port")
-            .get("value"),
-            "client_port_alt": self.service_config_to_test.get("panther_ivy")
-            .get(self.protocol)
-            .get("parameters")
-            .get("client_port_alt")
-            .get("value"),
-            "client_addr": (
-                "$$TARGET_IP_HEX"
-                if self.oppose_role(self.role) == "client"
-                else "$$IVY_IP_HEX"
-            ),  #  self.service_config_to_test.get("panther_ivy").get(self.protocol).get("parameters").get("client_addr").get("value"),
-            "modify_packets": "false",
-            "name": service_params.name,
-            # TODO managed paired tests
-            # "paired_tests": self.service_config_to_test.get("ivy", {}).get("paired_tests", {}),
-            "iteration": self.service_config_to_test.get("panther_ivy")
-            .get("parameters")
-            .get("value"),  # Example iteration for testing
-            "is_client": self.oppose_role(self.role) == "client",
-            "certificates": {
-                "cert_param": version_config.get(self.role, {})
-                .get("certificates", {})
-                .get("cert", {})
-                .get("param"),
-                "cert_file": version_config.get(self.role, {})
-                .get("certificates", {})
-                .get("cert", {})
-                .get("file"),
-                "cert_local_file": version_config.get(self.role, {})
-                .get("certificates", {})
-                .get("cert", {})
-                .get("local_file"),
-                "key_param": version_config.get(self.role, {})
-                .get("certificates", {})
-                .get("key", {})
-                .get("param"),
-                "key_file": version_config.get(self.role, {})
-                .get("certificates", {})
-                .get("key", {})
-                .get("file"),
-                "key_local_file": version_config.get(self.role, {})
-                .get("certificates", {})
-                .get("key", {})
-                .get("local_file"),
-            },
-            "ticket_file": {
-                "param": version_config.get(self.role, {})
-                .get("ticket_file", {})
-                .get("param"),
-                "file": version_config.get(self.role, {})
-                .get("ticket_file", {})
-                .get("file"),
-                "local_file": version_config.get(self.role, {})
-                .get("ticket_file", {})
-                .get("local_file"),
-            },
-            "logging": version_config.get(self.role, {}).get("logging", {}),
-            "protocol": {
-                "alpn": version_config.get(self.role, {})
-                .get("protocol", {})
-                .get("alpn", {}),
-                "additional_parameters": version_config.get(self.role, {})
-                .get("protocol", {})
-                .get("additional_parameters", ""),
-            },
-            "network": {
-                "interface": version_config.get(self.role, {})
-                .get("network", {})
-                .get("interface", {}),
-                "port": version_config.get(self.role, {})
-                .get("network", {})
-                .get("port", 4443),
-                "destination": service_params.protocol.target,
-            },
-        }
-        # TODO add timeout parameter
-        # TODO setup working directory
-
-        # Collect volume mappings
-        ivy_include_protocol_testing_dir = os.path.abspath(
-            "plugins/services/testers/panther_ivy/ivy/include/1.7"
-        )
-        local_protocol_testing_dir = os.path.abspath(
-            "plugins/services/testers/panther_ivy/protocol-testing/" + self.protocol
-        )
-        volumes = [
-            ivy_include_protocol_testing_dir + ":/opt/panther_ivy/ivy/include/1.7",
-            local_protocol_testing_dir
-            + ":/opt/panther_ivy/protocol-testing/"
-            + self.protocol,
-            "shared_logs:/app/sync_logs",
-        ]
-
-        # Only add certificate volumes if the user doesn't want to generate new certificates
-        # if not service_params.generate_new_certificates:
-        #     # Certificates
-        #     volumes.append({
-        #         "local": os.path.abspath(params["certificates"]["cert_local_file"]),
-        #         "container": params["certificates"]["cert_file"]
-        #     })
-        #     volumes.append({
-        #         "local": os.path.abspath(params["certificates"]["key_local_file"]),
-        #         "container": params["certificates"]["key_file"]
-        #     })
-
-        # Ticket file (if applicable)
-        if params["ticket_file"]["local_file"]:
-            volumes.append(
-                {
-                    "local": os.path.abspath(params["ticket_file"]["local_file"]),
-                    "container": params["ticket_file"]["file"],
-                }
-            )
-
-        try:
-            template_name = f"{self.oppose_role(self.role)}_command.jinja"
-            self.logger.debug(
-                f"Rendering command using template '{template_name}' with parameters: {params}"
-            )
-            template = self.jinja_env.get_template(template_name)
-            command = template.render(**params)
-
-            # Generate compilation commands
-            compilation_command = ""
-            if (
-                self.service_config_to_test.get("panther_ivy", {})
-                .get("parameters", {})
-                .get("compile_tests", {})
-                .get("value", False)
-            ):
-                compilation_command = self.generate_compilation_commands(
-                    service_params, environment
-                )
-            # Clean up the command string
-            compilation_command = (
-                compilation_command + " && " + " ( touch /app/sync_logs/ivy_ready )"
-            )
-            command_str = command.replace("\t", " ").replace("\n", " ").strip()
-            working_dir = self.protocol_model_path
-
-            service_name = service_params.name
-            self.logger.debug(
-                f"Generated command for '{service_name}': {command_str} with {compilation_command}"
-            )
-            return {
-                service_name: {
-                    "command_binary": params["build_dir"] + "/" + params["test_name"],
-                    "args": command_str,
-                    "volumes": volumes,
-                    "working_dir": working_dir,
-                    "compilation_command": compilation_command,
-                    "environment": self.environments,
-                    "timeout": self.service_config_to_test.get("panther_ivy")
-                    .get("parameters")
-                    .get("timeout")
-                    .get("value"),
-                }
-            }
-        except Exception as e:
-            self.logger.error(
-                f"Failed to render command: {e}\n{traceback.format_exc()}"
             )
             raise e
 

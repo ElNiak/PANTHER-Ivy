@@ -25,7 +25,6 @@ RUN apt update; \
     g++ \
     cmake \
     tix \
-    gperf \
     pkg-config \
     libssl-dev \
     lsof \
@@ -127,7 +126,6 @@ RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
 # For Panther-Ivy
 RUN python3.10 -m pip install pexpect \
     chardet \
-    gperf \
     pandas \
     scandir \
     ply  \

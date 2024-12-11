@@ -1,0 +1,82 @@
+# TODO - the template should be defined in the plugin protocols
+
+version: "random"
+commit: "development-scp-refactor"
+
+parameters:
+  tests_dir: 
+    value: "minip_tests/"
+    description: "Directory where the Ivy MiniP tests are stored (default: minip_tests/)"
+  seed: 
+    value: 0
+    description: "Seed for the random generator (default: 0)"
+  the_cid:
+    value: 0
+    description: "Client Initial connection ID (default: 0)"
+  server_port:
+    value: 4443
+    description: "Server port (default: 4443)"
+  iversion:
+    value: 1
+    description: "Initial version (default: 1)"
+  server_addr:
+    value: 0x7F000001
+    description: "Server address (default: 0x7F000001)"
+  server_cid:
+    value: 0
+    description: "Server connection ID (default: 0)"
+  client_port:
+    value: 4997
+    description: "Client port (default: 4443)"
+  client_port_alt:
+    value: 4444
+    description: "Client port alternative (default: 4444)"
+  client_addr:
+    value: 0x7F000001
+    description: "Client address (default: 0x7F000001)"
+
+server: 
+  server_port: 4443
+  server_addr: 0x7F000001
+  client_port: 4997
+  client_port_alt: 4444
+  client_addr: 0x7F000001
+  binary:
+    dir: "/opt/panther_ivy/protocol-testing/"
+    name: ""
+  network:
+    port: 4443
+    source: "127.0.0.1"
+  logging:
+    log_path: "/app/logs/server.log"
+    err_path: "/app/logs/server.err.log"
+    qlog:
+      param: "-q"
+      path: "/app/logs/server.qlog"
+  tests:
+    ping_client_test:
+      enabled: False
+      description: "Test MiniP client"
+
+client:
+  server_port: 4443
+  server_addr: 0x7F000001
+  client_port: 4997
+  client_port_alt: 4444
+  client_addr: 0x7F000001
+  binary:
+    dir: "/opt/panther_ivy/protocol-testing/"
+    name: ""
+  network:
+    port: 4443
+    destination: "11.0.0.1"
+  logging:
+    log_path: "/app/logs/client.log"
+    err_path: "/app/logs/client.err.log"
+    qlog:
+      param: "-q"
+      path: "/app/logs/client.qlog"
+  tests:
+    ping_server_test:
+      enabled: False
+      description: "Test MiniP server"
