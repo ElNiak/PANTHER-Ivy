@@ -153,15 +153,7 @@ RUN python3.10 -m pip install . ;\
     cp lib/libz3.so submodules/z3/build/python/z3;
 
 
-# RUN chown -R root:root /app
-# RUN chown -R root:root /opt
-
 ADD protocol-testing /opt/panther_ivy/protocol-testing/
-
-## Compilation of the tests
-# ADD prepare_tests.py /opt/prepare_tests.py
-# ARG tests="[]"
-# RUN python3 /opt/prepare_tests.py --install ${tests}
 
 # Set entrypoint (can be overridden)
 ENTRYPOINT [ "/bin/sh", "-l", "-c" ]

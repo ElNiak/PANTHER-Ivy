@@ -1,13 +1,8 @@
-# PANTHER-SCP/panther/plugins/services/implementations/ivy_rfc9000/service_manager.py
-
 from pathlib import Path
 import subprocess
-import logging
 import os
-from typing import Any, Dict, List, Optional
-import yaml
+from typing import List, Optional
 import traceback
-from panther.config.config_experiment_schema import ServiceConfig
 from panther.plugins.services.testers.panther_ivy.config_schema import PantherIvyConfig
 from panther.plugins.services.testers.tester_interface import ITesterManager
 from panther.plugins.plugin_loader import PluginLoader
@@ -17,13 +12,48 @@ from panther.plugins.protocols.config_schema import ProtocolConfig, RoleEnum
 # TODO Tom create test template for QUIC implementations new users
 # TODO add more attributes
 # TODO make the debug event working
+def oppose_role(role):
+    # TODO fix logic in ivy itself
+    return "client" if role == "server" else "server"
+
+
 class PantherIvyServiceManager(ITesterManager):
+    """
+    Manages the Ivy testers service for the Panther project.
+
+    This class is responsible for configuring, preparing, compiling, and running Ivy tests
+    for a given protocol implementation. It interacts with Docker, manages environment
+    variables, and handles the setup of necessary directories and files.
+
+    Attributes:
+        service_config_to_test (PantherIvyConfig): Configuration for the service to be tested.
+        service_type (str): Type of the service.
+        protocol (ProtocolConfig): Protocol configuration.
+        implementation_name (str): Name of the implementation.
+        test_to_compile (str): Test to be compiled.
+        protocol_model_path (str): Path to the protocol model.
+        ivy_log_level (str): Log level for Ivy.
+
+    Methods:
+        generate_pre_compile_commands(): Generates pre-compile commands.
+        generate_compile_commands(): Generates compile commands.
+        generate_post_compile_commands(): Generates post-compile commands.
+        generate_run_command(): Generates the run command.
+        generate_post_run_commands(): Generates post-run commands.
+        prepare(plugin_loader: Optional[PluginLoader] = None): Prepares the Ivy testers service manager.
+        build_submodules(): Initializes git submodules.
+        pair_compile_file(file, replacements): Replaces file names and compiles the file.
+        update_ivy_tool() -> List[str]: Updates the Ivy tool and includes paths.
+        generate_compilation_commands() -> list[str]: Generates compilation commands.
+        build_tests() -> List[str]: Compiles and prepares the tests.
+        generate_deployment_commands() -> str: Generates deployment commands and collects volume mappings.
+    """
     def __init__(
-        self,
-        service_config_to_test: PantherIvyConfig,
-        service_type: str,
-        protocol: ProtocolConfig,
-        implementation_name: str,
+            self,
+            service_config_to_test: PantherIvyConfig,
+            service_type: str,
+            protocol: ProtocolConfig,
+            implementation_name: str,
     ):
         super().__init__(
             service_config_to_test, service_type, protocol, implementation_name
@@ -40,20 +70,6 @@ class PantherIvyServiceManager(ITesterManager):
             self.service_config_to_test.implementation.parameters.log_level
         )
         self.initialize_commands()
-
-    def initialize_commands(self):
-        """
-        Initializes the commands to be executed
-        """
-        self.run_cmd = {
-            "pre_compile_cmds": self.generate_pre_compile_commands(),
-            "compile_cmds": self.generate_compile_commands(),
-            "post_compile_cmds": self.generate_post_compile_commands(),
-            "pre_run_cmds": self.generate_pre_run_commands(),
-            "run_cmd": self.generate_run_command(),
-            "post_run_cmds": self.generate_post_run_commands(),
-        }
-        self.logger.debug(f"Run commands: {self.run_cmd}")
 
     def generate_pre_compile_commands(self):
         """
@@ -95,9 +111,9 @@ class PantherIvyServiceManager(ITesterManager):
         Generates compile commands.
         """
         return (
-            super().generate_compile_commands() + self.generate_compilation_commands() + [" && "] + [" (touch /app/sync_logs/ivy_ready.log ) && "]
+                super().generate_compile_commands() + self.generate_compilation_commands() + \
+                [" && "] + [" (touch /app/sync_logs/ivy_ready.log) && "]
         )
-
 
     def generate_post_compile_commands(self):
         """
@@ -106,12 +122,6 @@ class PantherIvyServiceManager(ITesterManager):
         return super().generate_post_compile_commands() + [
             f"cd {self.protocol_model_path};"
         ]
-        
-    def generate_pre_run_commands(self):
-        """
-        Generates pre-run commands.
-        """
-        return super().generate_pre_run_commands() + []
 
     def generate_run_command(self):
         """
@@ -120,7 +130,8 @@ class PantherIvyServiceManager(ITesterManager):
         cmd_args = self.generate_deployment_commands()
         return {
             "working_dir": self.protocol_model_path,
-            "command_binary": os.path.join(self.service_config_to_test.implementation.parameters.tests_build_dir.value + self.test_to_compile),
+            "command_binary": os.path.join(
+                self.service_config_to_test.implementation.parameters.tests_build_dir.value + self.test_to_compile),
             "command_args": cmd_args,
             "timeout": self.service_config_to_test.timeout,
             "command_env": {},
@@ -131,11 +142,8 @@ class PantherIvyServiceManager(ITesterManager):
         Generates post-run commands.
         """
         return super().generate_post_run_commands() + [
-            f"cp {os.path.join(self.protocol_model_path,self.service_config_to_test.implementation.parameters.tests_build_dir.value,self.test_to_compile)} /app/logs/{self.test_to_compile};"
+            f"cp {os.path.join(self.protocol_model_path, self.service_config_to_test.implementation.parameters.tests_build_dir.value, self.test_to_compile)} /app/logs/{self.test_to_compile};"
         ]
-
-    def get_service_name(self) -> str:
-        return self.service_name
 
     def prepare(self, plugin_loader: Optional[PluginLoader] = None):
         """
@@ -166,8 +174,9 @@ class PantherIvyServiceManager(ITesterManager):
             "plugins",
             "services",
             "Dockerfile",
-        )),"panther_base","service")
-        plugin_loader.build_docker_image(self.get_implementation_name(), self.service_config_to_test.implementation.version)
+        )), "panther_base", "service")
+        plugin_loader.build_docker_image(self.get_implementation_name(),
+                                         self.service_config_to_test.implementation.version)
         self.logger.info("Ivy testers service manager prepared.")
 
     def build_submodules(self):
@@ -182,9 +191,6 @@ class PantherIvyServiceManager(ITesterManager):
             self.logger.error(f"Failed to initialize submodules: {e}")
         finally:
             os.chdir(current_dir)
-
-    def prepare_environment():
-        pass
 
     def pair_compile_file(self, file, replacements):
         """_summary_
@@ -203,19 +209,65 @@ class PantherIvyServiceManager(ITesterManager):
         Update Ivy tool and include paths.
         Note: ":" cannot be used in the command as it is used to separate commands.
         This script is compatible with /bin/sh syntax.
+
+        update_ivy_tool() {
+            echo "Updating Ivy tool..." >> /app/logs/ivy_setup.log;
+            cd "/opt/panther_ivy" || exit 1;
+            sudo python3.10 setup.py install >> /app/logs/ivy_setup.log 2>&1 &&
+            cp lib/libz3.so submodules/z3/build/python/z3 >> /app/logs/ivy_setup.log 2>&1 &&
+            echo "Copying updated Ivy files..." >> /app/logs/ivy_setup.log &&
+            find /opt/panther_ivy/ivy/include/1.7/ -type f -name "*.ivy" -exec cp {} /usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/1.7/ \; >> /app/logs/ivy_setup.log 2>&1 &&
+            echo "Copying updated Z3 files..." >> /app/logs/ivy_setup.log &&
+            cp -f -a /opt/panther_ivy/ivy/lib/*.a "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/lib/" >> /app/logs/ivy_setup.log 2>&1;
+        }
+        update_ivy_tool &&
+
+        echo "Copying QUIC libraries..." >> /app/logs/ivy_setup.log &&
+        cp -f -a /opt/picotls/*.a "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/lib/" &&
+        cp -f -a /opt/picotls/*.a "/opt/panther_ivy/ivy/lib/" &&
+        cp -f /opt/picotls/include/picotls.h "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/picotls.h" &&
+        cp -f /opt/picotls/include/picotls.h "/opt/panther_ivy/ivy/include/picotls.h" &&
+        cp -r -f /opt/picotls/include/picotls/. "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/picotls" &&
+        cp -f "{protocol_model_path}/quic_utils/quic_ser_deser.h" "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/1.7/" &&
+
+        remove_debug_events() {{
+            echo "Removing debug events..." >> /app/logs/ivy_setup.log;
+            printf "%s\\n" "$@" | xargs -I {{}} sh -c "
+                if [ -f \\"\\$1\\" ]; then
+                    sed -i \\"s/^\\\\([^#]*debug_event.*\\\\)/##\\\\1/\\" \\"\$1\\";
+                else
+                    echo \\"File not found - \\$1\\" >> /app/logs/ivy_setup.log;
+                fi
+            " _ {{}};
+        }}
+        restore_debug_events() {{
+            echo "Restoring debug events..." >> /app/logs/ivy_setup.log;
+            printf "%s\\n" "$@" | xargs -I {{}} sh -c "
+                if [ -f \\"\\$1\\" ]; then
+                    sed -i \\"s/^##\\\\(.*debug_event.*\\\\)/\\\\1/\\" \\"\\\$1\\";
+                else
+                    echo \\"File not found - \\$1\\" >> /app/logs/ivy_setup.log;
+                fi
+            " _ {{}};
+        }}
+        setup_ivy_model() {{
+            echo "Setting up Ivy model..." >> /app/logs/ivy_setup.log &&
+            echo "Updating include path of Python with updated version of the project from {protocol_model_path}" >> /app/logs/ivy_setup.log &&
+            echo "Finding .ivy files..." >> /app/logs/ivy_setup.log &&
+            find "{protocol_model_path}" -type f -name "*.ivy" -exec sh -c "
+                echo \\"Found Ivy file - \\$1\\" >> /app/logs/ivy_setup.log;
+                if [ {log_level_ivy} -gt 10 ]; then
+                    echo \\"Removing debug events from \\$1\\" >> /app/logs/ivy_setup.log;
+                    remove_debug_events \\"\\$1\\";
+                fi;
+                echo \\"Copying Ivy file to include path...\\" >> /app/logs/ivy_setup.log;
+                cp -f \\"\\$1\\" \\"/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/1.7/\\";
+            " _ {{}} \;;
+            ls -l /usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/1.7/ >> /app/logs/ivy_setup.log;
+        }}
+        setup_ivy_model &&
         """
 
-        # update_ivy_tool() {
-        #     echo "Updating Ivy tool..." >> /app/logs/ivy_setup.log;
-        #     cd "/opt/panther_ivy" || exit 1;
-        #     sudo python3.10 setup.py install >> /app/logs/ivy_setup.log 2>&1 &&
-        #     cp lib/libz3.so submodules/z3/build/python/z3 >> /app/logs/ivy_setup.log 2>&1 &&
-        #     echo "Copying updated Ivy files..." >> /app/logs/ivy_setup.log &&
-        #     find /opt/panther_ivy/ivy/include/1.7/ -type f -name "*.ivy" -exec cp {} /usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/1.7/ \; >> /app/logs/ivy_setup.log 2>&1 &&
-        #     echo "Copying updated Z3 files..." >> /app/logs/ivy_setup.log &&
-        #     cp -f -a /opt/panther_ivy/ivy/lib/*.a "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/lib/" >> /app/logs/ivy_setup.log 2>&1;
-        # }
-        # update_ivy_tool &&
         update_command = [
             " ",
             "update_ivy_tool() {",
@@ -232,13 +284,6 @@ class PantherIvyServiceManager(ITesterManager):
             "update_ivy_tool &&",
         ]
 
-        # echo "Copying QUIC libraries..." >> /app/logs/ivy_setup.log &&
-        # cp -f -a /opt/picotls/*.a "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/lib/" &&
-        # cp -f -a /opt/picotls/*.a "/opt/panther_ivy/ivy/lib/" &&
-        # cp -f /opt/picotls/include/picotls.h "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/picotls.h" &&
-        # cp -f /opt/picotls/include/picotls.h "/opt/panther_ivy/ivy/include/picotls.h" &&
-        # cp -r -f /opt/picotls/include/picotls/. "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/picotls" &&
-        # cp -f "{protocol_model_path}/quic_utils/quic_ser_deser.h" "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/1.7/" &&
         update_for_quic_apt_cmd = [
             'echo "Copying QUIC libraries..." >> /app/logs/ivy_setup.log &&',
             'cp -f -a /opt/picotls/*.a "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/lib/" &&',
@@ -251,42 +296,6 @@ class PantherIvyServiceManager(ITesterManager):
             ),
         ]
 
-        # remove_debug_events() {{
-        #     echo "Removing debug events..." >> /app/logs/ivy_setup.log;
-        #     printf "%s\\n" "$@" | xargs -I {{}} sh -c "
-        #         if [ -f \\"\\$1\\" ]; then
-        #             sed -i \\"s/^\\\\([^#]*debug_event.*\\\\)/##\\\\1/\\" \\"\$1\\";
-        #         else
-        #             echo \\"File not found - \\$1\\" >> /app/logs/ivy_setup.log;
-        #         fi
-        #     " _ {{}};
-        # }}
-        # restore_debug_events() {{
-        #     echo "Restoring debug events..." >> /app/logs/ivy_setup.log;
-        #     printf "%s\\n" "$@" | xargs -I {{}} sh -c "
-        #         if [ -f \\"\\$1\\" ]; then
-        #             sed -i \\"s/^##\\\\(.*debug_event.*\\\\)/\\\\1/\\" \\"\\\$1\\";
-        #         else
-        #             echo \\"File not found - \\$1\\" >> /app/logs/ivy_setup.log;
-        #         fi
-        #     " _ {{}};
-        # }}
-        # setup_ivy_model() {{
-        #     echo "Setting up Ivy model..." >> /app/logs/ivy_setup.log &&
-        #     echo "Updating include path of Python with updated version of the project from {protocol_model_path}" >> /app/logs/ivy_setup.log &&
-        #     echo "Finding .ivy files..." >> /app/logs/ivy_setup.log &&
-        #     find "{protocol_model_path}" -type f -name "*.ivy" -exec sh -c "
-        #         echo \\"Found Ivy file - \\$1\\" >> /app/logs/ivy_setup.log;
-        #         if [ {log_level_ivy} -gt 10 ]; then
-        #             echo \\"Removing debug events from \\$1\\" >> /app/logs/ivy_setup.log;
-        #             remove_debug_events \\"\\$1\\";
-        #         fi;
-        #         echo \\"Copying Ivy file to include path...\\" >> /app/logs/ivy_setup.log;
-        #         cp -f \\"\\$1\\" \\"/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/1.7/\\";
-        #     " _ {{}} \;;
-        #     ls -l /usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/1.7/ >> /app/logs/ivy_setup.log;
-        # }}
-        # setup_ivy_model &&
         setup_ivy_model_cmd = [
             " ",
             "remove_debug_events() {",
@@ -354,12 +363,11 @@ class PantherIvyServiceManager(ITesterManager):
 
         protocol_env = self.service_config_to_test.implementation.version.env
         global_env = self.service_config_to_test.implementation.environment
-        self.environments = {**global_env, **protocol_env}
+        self.environments = {**global_env, **protocol_env, "TEST_TYPE": (
+            "client" if self.role.name == "server" else "server"
+        )}
 
         # TODO refine the config
-        self.environments["TEST_TYPE"] = (
-            "client" if self.role.name == "server" else "server"
-        )
         # self.environments["ZERORTT_TEST"]
 
         if self.role == RoleEnum.server:
@@ -381,14 +389,9 @@ class PantherIvyServiceManager(ITesterManager):
                 f"Test '{self.test_to_compile}' not found in configuration."
             )
             exit(1)
-        return self.update_ivy_tool() + self.build_tests() 
-
-    def oppose_role(self, role):
-        # TODO fix logic in ivy itself
-        return "client" if role == "server" else "server"
+        return self.update_ivy_tool() + self.build_tests()
 
     def build_tests(self) -> List[str]:
-        # TODO make more flexible, for now only work in docker "/opt/panther_ivy/"
         """Compile and prepare the tests."""
         self.logger.info("Compiling tests...")
         self.logger.info(
@@ -400,7 +403,7 @@ class PantherIvyServiceManager(ITesterManager):
             self.service_config_to_test.implementation.version.parameters["tests_dir"][
                 "value"
             ],
-            self.oppose_role(self.role.name) + "_tests",
+            oppose_role(self.role.name) + "_tests",
         )
         self.logger.debug(f"Building file: {file_path}")
         cmd = [
@@ -409,21 +412,21 @@ class PantherIvyServiceManager(ITesterManager):
         ]
         self.logger.info(f"Tests compilation command: {cmd}")
         mv_command = [
-            f"cp {os.path.join(file_path,self.test_to_compile)}* {os.path.join('/opt/panther_ivy/protocol-testing/',self.protocol.name, self.service_config_to_test.implementation.parameters.tests_build_dir.value)}; "
+            f"cp {os.path.join(file_path, self.test_to_compile)}* {os.path.join('/opt/panther_ivy/protocol-testing/', self.protocol.name, self.service_config_to_test.implementation.parameters.tests_build_dir.value)}; "
         ]
         self.logger.info(f"Moving built files: {mv_command}")
         return (
-            cmd
-            + (["(ls >> /app/logs/ivy_setup.log 2>&1 ;"] if True else ["()"])
-            + [" "]
-            + mv_command
-            + (
-                [
-                    f"ls {os.path.join('/opt/panther_ivy/protocol-testing/',self.protocol.name, self.service_config_to_test.implementation.parameters.tests_build_dir.value)} >> /app/logs/ivy_setup.log 2>&1 ;) "
-                ]
-                if True
-                else [")"]
-            )
+                cmd
+                + (["(ls >> /app/logs/ivy_setup.log 2>&1 ;"] if True else ["()"])
+                + [" "]
+                + mv_command
+                + (
+                    [
+                        f"ls {os.path.join('/opt/panther_ivy/protocol-testing/', self.protocol.name, self.service_config_to_test.implementation.parameters.tests_build_dir.value)} >> /app/logs/ivy_setup.log 2>&1 ;) "
+                    ]
+                    if True
+                    else [")"]
+                )
         )
 
     def generate_deployment_commands(self) -> str:
@@ -434,7 +437,6 @@ class PantherIvyServiceManager(ITesterManager):
         :param environment: The environment in which the services are being deployed.
         :return: A dictionary with service name as key and a dictionary containing command and volumes.
         """
-        # TODO add developper volumes -> do not rebuilt the docker in that case !
         self.logger.debug(
             f"Generating deployment commands for service: {self.service_name} with service parameters: {self.service_config_to_test}"
         )
@@ -446,11 +448,7 @@ class PantherIvyServiceManager(ITesterManager):
         self.logger.debug(f"Role: {self.role}, Version: {self.service_version.name}")
 
         # Determine if network interface parameters should be included based on environment
-        # TODO
-        # include_interface = environment not in ["docker_compose"]
         include_interface = True
-
-        # Build parameters for the command template
         # TODO ensure that the parameters are correctly set
         if self.role == RoleEnum.server:
             params = self.service_config_to_test.implementation.version.server
@@ -473,25 +471,23 @@ class PantherIvyServiceManager(ITesterManager):
         params["target"] = self.service_config_to_test.protocol.target
         params["server_addr"] = (
             "$$TARGET_IP_HEX"
-            if self.oppose_role(self.role.name) == "server"
+            if oppose_role(self.role.name) == "server"
             else "$$IVY_IP_HEX"
         )
         params["client_addr"] = (
             "$$TARGET_IP_HEX"
-            if self.oppose_role(self.role.name) == "client"
+            if oppose_role(self.role.name) == "client"
             else "$$IVY_IP_HEX"
         )
-        params["is_client"] = self.oppose_role(self.role.name) == "client"
+        params["is_client"] = oppose_role(self.role.name) == "client"
         params["test_name"] = self.test_to_compile
-        params["timeout_cmd"] = f"timeout {self.service_config_to_test.timeout} " 
+        params["timeout_cmd"] = f"timeout {self.service_config_to_test.timeout} "
         self.working_dir = self.protocol_model_path
+
         # Conditionally include network interface parameters
         if not include_interface:
             params["network"].pop("interface", None)
 
-        # Collect volume mappings
-        volumes = []
-        # Collect volume mappings
         ivy_include_protocol_testing_dir = os.path.abspath(
             "panther/plugins/services/testers/panther_ivy/ivy/include/1.7"
         )
@@ -509,19 +505,8 @@ class PantherIvyServiceManager(ITesterManager):
 
         # Render the appropriate template
         try:
-            template_name = f"{self.protocol.name}/{str(self.oppose_role(self.role.name))}_command.jinja"
-            self.logger.debug(
-                f"Rendering command using template '{template_name}' with parameters: {params}"
-            )
-            template = self.jinja_env.get_template(template_name)
-            command = template.render(**params)
-
-            # Clean up the command string
-            command_str = command.replace("\t", " ").replace("\n", " ").strip()
-
-            service_name = self.service_config_to_test.name
-            self.logger.debug(f"Generated command for '{service_name}': {command_str}")
-            return command_str
+            template_name = f"{self.protocol.name}/{str(oppose_role(self.role.name))}_command.jinja"
+            return super().render_commands(params, template_name)
 
         except Exception as e:
             self.logger.error(

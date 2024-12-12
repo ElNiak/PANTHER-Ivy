@@ -2,12 +2,13 @@ from dataclasses import dataclass, field
 import logging
 import os
 from typing import Dict, List, Optional
-from enum import Enum
 
 from omegaconf import OmegaConf
 
 from panther.plugins.services.iut.config_schema import ImplementationConfig, Parameter, VersionBase
 from panther.plugins.services.iut.config_schema import ImplementationType
+
+
 @dataclass
 class EnvironmentConfig:
     PROTOCOL_TESTED: str = ""
@@ -24,18 +25,22 @@ class EnvironmentConfig:
     ADDITIONAL_PYTHONPATH: str = "/app/implementations/quic-implementations/aioquic/src/:$IVY_DIR/submodules/z3/build/python:$PYTHON_IVY_DIR"
     ADDITIONAL_PATH: str = "/go/bin:$IVY_DIR/submodules/z3/build"
 
+
 @dataclass
 class ParametersConfig:
-    tests_output_dir: Parameter = Parameter(value="temp/", description="Directory where the tests output will be stored")
+    tests_output_dir: Parameter = Parameter(value="temp/",
+                                            description="Directory where the tests output will be stored")
     tests_build_dir: Parameter = Parameter(value="build/", description="Directory where the tests will be built")
     iterations_per_test: Parameter = Parameter(value="1", description="Number of iterations per test")
-    internal_iterations_per_test: Parameter = Parameter(value="100", description="Number of internal iterations per test")
+    internal_iterations_per_test: Parameter = Parameter(value="100",
+                                                        description="Number of internal iterations per test")
     timeout: Parameter = Parameter(value="120", description="Timeout for each test (in seconds)")
     keep_alive: Parameter = Parameter(value="False", description="Keep the Ivy process alive after the tests")
     run_in_docker: Parameter = Parameter(value="True", description="Run the tests in a Docker container")
     get_tests_stats: Parameter = Parameter(value="True", description="Get the statistics of the tests")
     log_level: Parameter = Parameter(value="DEBUG", description="Log level for Ivy")
-    
+
+
 @dataclass
 class PantherIvyVersion(VersionBase):
     version: str = ""
@@ -45,24 +50,26 @@ class PantherIvyVersion(VersionBase):
     parameters: Optional[Dict] = field(default_factory=dict)
     client: Optional[Dict] = field(default_factory=dict)
     server: Optional[Dict] = field(default_factory=dict)
-       
+
+
 @dataclass
 class PantherIvyConfig(ImplementationConfig):
-    name: str  = "panther_ivy" # Implementation name
+    name: str = "panther_ivy"  # Implementation name
     type: ImplementationType = ImplementationType.testers  # Default type for panther_ivy
     test: str = field(default="")  # Test name for testers
-    shadow_compatible: bool = field(default=True) 
-    gperf_compatible: bool = field(default=True) 
+    shadow_compatible: bool = field(default=True)
+    gperf_compatible: bool = field(default=True)
     protocol: str = field(default="quic")  # Protocol tested by the implementation
     # TODO: remove the path, make dynamic 
     version: PantherIvyVersion = field(
         default_factory=lambda: PantherIvyConfig.load_versions_from_files()
     )
-    environment : EnvironmentConfig = field(default_factory=lambda: EnvironmentConfig())
+    environment: EnvironmentConfig = field(default_factory=lambda: EnvironmentConfig())
     parameters: ParametersConfig = field(default_factory=lambda: ParametersConfig())
 
     @staticmethod
-    def load_versions_from_files(version_configs_dir: str = "panther/plugins/services/testers/panther_ivy/version_configs/quic/") -> PantherIvyVersion:
+    def load_versions_from_files(
+            version_configs_dir: str = "panther/plugins/services/testers/panther_ivy/version_configs/quic/") -> PantherIvyVersion:
         """Load version configurations dynamically from YAML files."""
         logging.debug(f"Loading PantherIvy versions from {version_configs_dir}")
         for version_file in os.listdir(version_configs_dir):
