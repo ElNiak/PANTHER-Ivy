@@ -5,10 +5,10 @@
 """
 
 # from z3_utils import z3_implies
-import ivy_solver as slvr
-from logic import Or, Not
+from . import ivy_solver as slvr
+from .logic import Or, Not
 import time
-import ivy_utils as iu
+from . import ivy_utils as iu
 
 def alpha(concept_domain, state, cache=None, projection=None):
     """
@@ -56,14 +56,14 @@ def alpha(concept_domain, state, cache=None, projection=None):
 
 if __name__ == '__main__':
     from collections import ConceptDict
-    from logic import (Var, Const, Apply, Eq, Not, And, Or, Implies,
+    from .logic import (Var, Const, Apply, Eq, Not, And, Or, Implies,
                        ForAll, Exists)
-    from logic import UninterpretedSort, FunctionSort, first_order_sort, Boolean
-    from logic_util import free_variables, substitute, substitute_apply
-    from concept import Concept, ConceptCombiner, ConceptDomain
+    from .logic import UninterpretedSort, FunctionSort, first_order_sort, Boolean
+    from .logic_util import free_variables, substitute, substitute_apply
+    from .concept import Concept, ConceptCombiner, ConceptDomain
 
     def test(st):
-        print st, "=", eval(st)
+        print(st, "=", eval(st))
 
     S = UninterpretedSort('S')
     UnaryRelation = FunctionSort(S, Boolean)
@@ -127,10 +127,10 @@ if __name__ == '__main__':
     )
 
     facts = cd.get_facts()
-    print "facts = ["
+    print("facts = [")
     for tag, formula in facts:
-        print '   ', tag, formula, ','
-    print "]\n"
+        print('   ', tag, formula, ',')
+    print("]\n")
 
     state = And(
         ForAll([X,Y,Z], And(
@@ -146,7 +146,7 @@ if __name__ == '__main__':
     )
 
     abstract_value = alpha(cd, state)
-    print "abstract_value = ["
+    print("abstract_value = [")
     for tag, value in abstract_value:
-        print '   ', tag, value, ','
-    print "]\n"
+        print('   ', tag, value, ',')
+    print("]\n")

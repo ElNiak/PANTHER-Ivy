@@ -2,7 +2,7 @@
 # Copyright (c) Microsoft Corporation. All Rights Reserved.
 #
 import itertools
-import ivy_utils as iu
+from . import ivy_utils as iu
 
 def mymap(fun,obj):
     res = obj.map(fun)
@@ -132,15 +132,15 @@ class DictValue(dict):
         return str(self)
     @property
     def subs(self):
-        return [DictEntry(entry) for entry in self.iteritems()]
+        return [DictEntry(entry) for entry in self.items()]
     def __str__(self):
-        return '{' + ','.join(x + ':' + str(y) for x,y in self.iteritems()) + '}'
+        return '{' + ','.join(x + ':' + str(y) for x,y in self.items()) + '}'
     def match(self,d,binding=None):
         return (isinstance(d,Symbol) and (d.name == '*')
                 or (isinstance(d,DictValue)
-                    and all(k in self and self[k].match(v,binding) for k,v in d.iteritems())))
+                    and all(k in self and self[k].match(v,binding) for k,v in d.items())))
     def map(self,fun):
-        return type(self)(*[(x,mymap(fun,y)) for x,y in self.iteritems()])
+        return type(self)(*[(x,mymap(fun,y)) for x,y in self.items()])
 
 class EventGen(object):
     def __call__(self,evs):
@@ -163,7 +163,7 @@ class EventRevGen(object):
                 yield cs[0],thing
         else:
             num = len(things)
-        for idx in xrange(num-1,-1,-1):
+        for idx in range(num-1,-1,-1):
             thing = things[idx]
             for a,t in self.rec(thing.children,None,start=1):
                 yield str(idx+start)+'/'+a,t
@@ -278,7 +278,7 @@ def t_SYMBOL(t):
     return t
 
 def t_error(t):
-    print "Illegal character '%s'" % t.value[0]
+    print("Illegal character '%s'" % t.value[0])
     t.lexer.skip(1)
 
 lexer = lex.lex()
@@ -408,7 +408,7 @@ def parse(s):
     error_list = []
     res = parser.parse(s)
     if error_list:
-        print error_list
+        print(error_list)
         raise iu.ErrorList(error_list)
     return res
     
@@ -422,7 +422,7 @@ parser = yacc.yacc(tabmodule='ev_parsetab',errorlog=yacc.NullLogger(),outputdir=
 if __name__ == '__main__':
     while True:
        try:
-           s = raw_input('events > ')
+           s = input('events > ')
        except EOFError:
            break
        if not s: continue
@@ -431,13 +431,13 @@ if __name__ == '__main__':
 #       for a,x in EventFwdGen("2/2")(result):
 #           print a + ':' + x.text()
        try:
-           patstring = raw_input('patterns > ')
+           patstring = input('patterns > ')
        except EOFError:
            break
        if not s: continue
        pats = parser.parse(patstring)
        for e,b in bind(EventGen()(result),pats):
-           print 'event: {} binding: {}'.format(e,list((n,str(v)) for n,v in b.iteritems()))
+           print('event: {} binding: {}'.format(e,list((n,str(v)) for n,v in b.items())))
            
            
 

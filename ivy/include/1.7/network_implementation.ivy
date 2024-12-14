@@ -1374,7 +1374,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 			<<< impure 
 				s = make_udp_socket();
 				char *shadowTest = getenv("SHADOW_TEST");
-				if (addr.addr != 0x7f000001 && shadowTest == NULL)
+				if (addr.addr != 0x7f000001 && shadowTest == NULL && false)
 				{ 
 					// TODO
 					std::cerr << "open SOCKET " << s << std::endl;

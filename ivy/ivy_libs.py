@@ -43,7 +43,7 @@ def main():
     prefix = sys.argv[3] if len(sys.argv) >= 4 else default_prefix
     libdir = [os.path.join(prefix,sys.argv[4])] if len(sys.argv) >= 5 else []
 
-    print 'Adding library {} at prefix {}.'.format(name,prefix)
+    print('Adding library {} at prefix {}.'.format(name,prefix))
 
     specfilename = os.path.join(libpath,'specs')
 

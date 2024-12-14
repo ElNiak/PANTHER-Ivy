@@ -403,7 +403,7 @@ object impl(me:host) = {
 				is_vnet = true;
 				char * dev = strdup("lo"); //TODO
 				if (addr.interface == `ip.ivy`) {
-					dev = strdup("ivy");
+					dev = strdup("eth0");
 				}
 				if (addr.interface == `ip.veth_ivy`) {
 					dev = strdup("veth_ivy");

@@ -87,10 +87,10 @@ if __name__ == '__main__':
     # if X.ipynb exists, open it, otherwise create a new X.ivy.ipynb
     notebook_filename = ivy_filename[:-4] + '.ipynb'
     if os.path.isfile(notebook_filename):
-        print "Opening existing notebook: {}".format(notebook_filename)
+        print("Opening existing notebook: {}".format(notebook_filename))
     else:
         notebook_filename = ivy_filename + '.ipynb'
-        print "Creating new notebook: {}".format(notebook_filename)
+        print("Creating new notebook: {}".format(notebook_filename))
         open(notebook_filename, 'w').write(notebook_source)
 
     d = dirname(__file__)

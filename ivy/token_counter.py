@@ -1,4 +1,4 @@
-import ivy_lexer
+from . import ivy_lexer
 import sys
 
 f = open(sys.argv[1],'r')
@@ -12,5 +12,5 @@ while True:
         break      # No more input
     count += 1
 
-print count
+print(count)
 

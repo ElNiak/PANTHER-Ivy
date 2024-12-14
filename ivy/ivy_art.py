@@ -1,16 +1,16 @@
 #
 # Copyright (c) Microsoft Corporation. All Rights Reserved.
 #
-import ivy_actions
-from ivy_interp import *
-import ivy_utils as iu
-import ivy_module as im
-from cy_elements import CyElements
+from . import ivy_actions
+from .ivy_interp import *
+from . import ivy_utils as iu
+from . import ivy_module as im
+from .cy_elements import CyElements
 from string import *
 import copy
 import functools
 import pickle
-import ivy_actions
+from . import ivy_actions
 
 
 ################################################################################
@@ -54,7 +54,7 @@ class AC(ivy_actions.ActionContext):
 class Counterexample(object):
     def __init__(self,clauses,state,conc,msg):
         self.clauses, self.state, self.msg, self.conc = clauses, state, msg, conc
-    def __nonzero__(self):
+    def __bool__(self):
         return False
 
 ########################################
@@ -101,7 +101,7 @@ class AnalysisGraph(object):
 
     def add_initial_state(self, ic = None, abstractor = None):
         if ic == None:
-            ic = im.init_cond
+            ic = self.domain.init_cond
         s = self.domain.new_state(ic)
         if self.domain.initializers:
             action = ivy_actions.Sequence(*[a for n,a in self.domain.initializers])
@@ -124,17 +124,16 @@ class AnalysisGraph(object):
             if self.predicates:
                 if not im.module.init_cond.is_true():
                     raise IvyError(None,"init and state declarations are not compatible");
-                for n,p in self.predicates.iteritems():
+                for n,p in self.predicates.items():
                     s = eval_state_facts(p)
                     if s is not None:
                         s.label = n
             else:
                 self.add_initial_state(self.domain.init_cond,abstractor)
 
-
     def state_actions(self,state):
         if hasattr(state,'label') and state.label != None:
-            return [state_equation(post,expr) for post,e in self.predicates.iteritems() for expr in eval_state_actions(e,state)]
+            return [state_equation(post,expr) for post,e in self.predicates.items() for expr in eval_state_actions(e,state)]
         return [state_equation(None,action_app(a,state)) for a in self.actions if a in self.public_actions]
 
     def do_state_action(self,equation,abstractor):
@@ -172,7 +171,7 @@ class AnalysisGraph(object):
             if covered.id == poststate.id:
                 self.covering.remove(c)
                 self.cover(poststate,covering)
-        print "recalculated state %s: %s" % (poststate.id,poststate.clauses)
+        print("recalculated state %s: %s" % (poststate.id,poststate.clauses))
 
     def recalculate_state(self,state,abstractor=None):
         if hasattr(state,'pred') and state.pred:
@@ -212,16 +211,16 @@ class AnalysisGraph(object):
             state2 = self.states[len(self.states)-1]
         joined_state = self.join_states(state1,state2,abstractor)
         self.add(joined_state,state_join(state1,state2))
-        print "joined state: %s" % joined_state.clauses
+        print("joined state: %s" % joined_state.clauses)
         return joined_state
 
     def cover(self,covered_node,covering_node):
         if covered_node.domain.order(covered_node,covering_node):
-            print "Covering succeeded: %s %s" % (covered_node.id, covering_node.id)
+            print("Covering succeeded: %s %s" % (covered_node.id, covering_node.id))
             self.covering.append((covered_node,covering_node))
             return True
         else:
-            print "Covering failed"
+            print("Covering failed")
             return False
 
     def is_covered(self,node):
@@ -230,18 +229,18 @@ class AnalysisGraph(object):
     def unreachable(self,covered_node):
         covering_node = State(covered_node.domain,[[]])
         if covered_node.domain.order(covered_node,covering_node):
-            print "Unreachable: %s" % covered_node.id
+            print("Unreachable: %s" % covered_node.id)
             covered_node.clauses = [[]]
             return True
         else:
-            print "Unreachability check failed"
+            print("Unreachability check failed")
             return False
 
     def show_core(self,clause_str,state = None):
         clause = to_clause(clause_str)
         if state == None:
             state = self.states[len(self.states)-1]
-        print state.domain.get_core(state,clause)
+        print(state.domain.get_core(state,clause))
 
     def add(self,state,expr=None):
         state.id = len(self.states)
@@ -429,8 +428,8 @@ class AnalysisGraph(object):
         for state in self.uncovered_states:
             if hasattr(state,'label'):
                 fpc[state.label].append(state)
-        print "fpc = {}".format(fpc)
-        return defaultdict(bottom_state,((x,join(*y)) for x,y in fpc.iteritems()))
+        print("fpc = {}".format(fpc))
+        return defaultdict(bottom_state,((x,join(*y)) for x,y in fpc.items()))
 
     def state_extensions(self,state, join = state_join):
         sas = self.state_actions(state)

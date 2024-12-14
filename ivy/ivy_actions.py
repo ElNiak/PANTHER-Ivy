@@ -1,20 +1,20 @@
 #
 # Copyright (c) Microsoft Corporation. All Rights Reserved.
 #
-from ivy_logic import Variable,Constant,Atom,Literal,App,sig,Iff,And,Or,Not,Implies,EnumeratedSort,Ite,Definition, is_atom, equals, Equals, Symbol,ast_match_lists, is_in_logic, Exists, RelationSort, is_boolean, is_app, is_eq, pto, close_formula,symbol_is_polymorphic,is_interpreted_symbol 
+from .ivy_logic import Variable,Constant,Atom,Literal,App,sig,Iff,And,Or,Not,Implies,EnumeratedSort,Ite,Definition, is_atom, equals, Equals, Symbol,ast_match_lists, is_in_logic, Exists, RelationSort, is_boolean, is_app, is_eq, pto, close_formula,symbol_is_polymorphic,is_interpreted_symbol 
 
-from ivy_logic_utils import to_clauses, formula_to_clauses, substitute_constants_clause,\
+from .ivy_logic_utils import to_clauses, formula_to_clauses, substitute_constants_clause,\
     substitute_clause, substitute_ast, used_symbols_clauses, used_symbols_ast, rename_clauses, subst_both_clauses,\
     variables_distinct_ast, is_individual_ast, variables_distinct_list_ast, sym_placeholders, sym_inst, apps_ast,\
     eq_atom, eq_lit, eqs_ast, TseitinContext, formula_to_clauses_tseitin,\
     used_symbols_asts, symbols_asts, symbols_ast, has_enumerated_sort, false_clauses, true_clauses, or_clauses, dual_formula, Clauses, and_clauses, substitute_constants_ast, rename_ast, bool_const, used_variables_ast, unfold_definitions_clauses, skolemize_formula
-from ivy_transrel import state_to_action,new, compose_updates, condition_update_on_fmla, hide, join_action, ite_action, \
+from .ivy_transrel import state_to_action,new, compose_updates, condition_update_on_fmla, hide, join_action, ite_action, \
     subst_action, null_update, exist_quant, hide_state, hide_state_map, constrain_state, bind_olds_action, old
-from ivy_utils import unzip_append, IvyError, IvyUndefined, distinct_obj_renaming, dbg
-import ivy_ast
-from ivy_ast import AST, compose_atoms, MixinAfterDef
-import ivy_module
-import ivy_utils as iu
+from .ivy_utils import unzip_append, IvyError, IvyUndefined, distinct_obj_renaming, dbg
+from . import ivy_ast
+from .ivy_ast import AST, compose_atoms, MixinAfterDef
+from . import ivy_module
+from . import ivy_utils as iu
 
 def p_c_a(s):
     a = s.split(':')
@@ -22,6 +22,7 @@ def p_c_a(s):
 
 checked_assert = iu.Parameter("assert","",check=lambda s: len(s.split(':'))==2,
                               process=p_c_a)
+check_unprovable = iu.BooleanParameter("unprovable",False)
 
 class Schema(AST):
     def __init__(self,defn):
@@ -312,9 +313,18 @@ class AssumeAction(Action):
     sort_infer_root = True
     def name(self):
         return 'assume'
+    @property
+    def formula(self):
+        fmla = self.args[0]
+        return fmla.formula if isinstance(fmla,ivy_ast.LabeledFormula) else fmla
     def action_update(self,domain,pvars):
-        type_check(domain,self.args[0])
-        clauses = formula_to_clauses_tseitin(skolemize_formula(self.args[0]))
+        fmla = self.args[0]
+        if isinstance(fmla,ivy_ast.LabeledFormula):
+            if fmla.unprovable:
+                return ([],true_clauses(annot = EmptyAnnotation()),false_clauses(annot = EmptyAnnotation()))
+            fmla = fmla.formula
+        type_check(domain,fmla)
+        clauses = formula_to_clauses_tseitin(skolemize_formula(fmla))
         clauses = unfold_definitions_clauses(clauses)
         clauses = Clauses(clauses.fmlas,clauses.defs,EmptyAnnotation())
         return ([],clauses,false_clauses(annot = EmptyAnnotation()))
@@ -326,14 +336,27 @@ class AssertAction(Action):
     sort_infer_root = True
     def name(self):
         return 'assert'
+    @property
+    def formula(self):
+        fmla = self.args[0]
+        return fmla.formula if isinstance(fmla,ivy_ast.LabeledFormula) else fmla
     def action_update(self,domain,pvars):
-        type_check(domain,self.args[0])
-#        print type(self.args[0])
+        fmla = self.args[0]
+        unprovable = False
+        if isinstance(fmla,ivy_ast.LabeledFormula):
+            unprovable = fmla.unprovable
+            fmla = fmla.formula
+        type_check(domain,fmla)
+        if check_unprovable.get() != unprovable:
+            return ([],true_clauses(annot = EmptyAnnotation()),false_clauses(annot = EmptyAnnotation()))
         ca = checked_assert.get()
         if ca:
             if ca != self.lineno:
-                return ([],formula_to_clauses(self.args[0],annot = EmptyAnnotation()),false_clauses(annot = EmptyAnnotation()))
-        cl = formula_to_clauses(dual_formula(self.args[0]))
+                if unprovable:
+                    return ([],true_clauses(annot = EmptyAnnotation()),false_clauses(annot = EmptyAnnotation()))
+                return ([],formula_to_clauses(fmla,annot = EmptyAnnotation()),false_clauses(annot = EmptyAnnotation()))
+    
+        cl = formula_to_clauses(dual_formula(fmla))
 #        return ([],formula_to_clauses_tseitin(self.args[0]),cl)
         cl = Clauses(cl.fmlas,cl.defs,EmptyAnnotation())
         return ([],true_clauses(annot = EmptyAnnotation()),cl)
@@ -418,7 +441,7 @@ def destr_asgn_val(lhs,fmlas):
     vs = sym_placeholders(n)
     dlhs = n(*([lval] + vs[1:]))
     drhs = n(*([mut] + vs[1:]))
-    eqs = [eq_atom(v,a) for (v,a) in zip(vs,lhs.args)[1:] if not isinstance(a,Variable)]
+    eqs = [eq_atom(v,a) for (v,a) in list(zip(vs,lhs.args))[1:] if not isinstance(a,Variable)]
     if eqs:
         fmlas.append(Or(And(*eqs),equiv_ast(dlhs,drhs)))
     for destr in ivy_module.module.sort_destructors[mut.sort.name]:
@@ -493,6 +516,7 @@ class AssignAction(Action):
 
         lhs_vars = used_variables_ast(lhs)
         if any(v not in lhs_vars for v in used_variables_ast(rhs)):
+            print (self)
             raise IvyError(self,"multiply assigned: {}".format(lhs.rep))
 
         type_check(domain,rhs)
@@ -741,13 +765,18 @@ class InstantiateAction(Action):
         n = self.args[0].rep
         return InstantiateAction(ivy_ast.Atom(n,mas))
 
-
+def my_str(x,depth=0):
+    if depth > 25:
+        return '...'
+    return x.dstr(depth) if hasattr(x,'dstr') else str(x)
 
 class Sequence(Action):
     def name(self):
         return 'sequence'
-    def __str__(self):
-        return '{' + '; '.join(str(x) for x in self.args) + '}'
+    def dstr(self,depth=0):  
+        return '{' + '; '.join(my_str(x,depth+1) for x in self.args) + '}'
+    def __str__(self):  
+        return '{' + '; '.join(my_str(x) for x in self.args) + '}'
     def int_update(self,domain,pvars):
         update = ([],true_clauses(EmptyAnnotation()),false_clauses(EmptyAnnotation()))
         axioms = domain.background_theory(pvars)
@@ -834,8 +863,8 @@ class EnvAction(ChoiceAction):
     def formal_returns(self):
         return []
 
-def bracket_action(action):
-    return ('{' + str(action) + '}') if not isinstance(action,Sequence) else str(action)
+def bracket_action(action,depth=0):
+    return ('{' + my_str(action,depth) + '}') if not isinstance(action,Sequence) else my_str(action,depth)
 
 class IfAction(Action):
     def name(self):
@@ -881,6 +910,7 @@ class IfAction(Action):
 #        update = self.args[1].int_update(domain,pvars)
 #        return condition_update_on_fmla(update,self.args[0],domain.relations)
         if used_variables_ast(self.args[0]):
+            print (self)
             raise IvyError(self,'variables in "if" conditions must be explicitly quantified')
         if not isinstance(self.args[0],ivy_ast.Some):
             if not is_boolean(self.args[0]):
@@ -1031,8 +1061,10 @@ class LocalAction(Action):
         local_action_ctr += 1
     def name(self):
         return 'local'
+    def dstr(self,depth=0):
+        return 'local ' + ','.join(my_str(a,depth+1) for a in self.args[0:-1]) + ' ' + bracket_action(self.args[-1],depth+1)
     def __str__(self):
-        return 'local ' + ','.join(str(a) for a in self.args[0:-1]) + ' ' + bracket_action(self.args[-1])
+        return 'local ' + ','.join(my_str(a) for a in self.args[0:-1]) + ' ' + bracket_action(self.args[-1])
     def int_update(self,domain,pvars):
         update = self.args[-1].int_update(domain,pvars)
 #        syms = used_symbols_asts(self.args[0:-1])
@@ -1191,7 +1223,7 @@ class CallAction(Action):
 #        subst = dict(zip(v.formal_params+v.formal_returns, formal_params+formal_returns))
         vocab = list(symbols_asts(actual_params+actual_returns))
         subst = distinct_obj_renaming(v.formal_params+v.formal_returns,vocab)
-        for s,t in list(subst.iteritems()):
+        for s,t in list(subst.items()):
             subst[old(s)] = old(t)
 #        print "apply_actuals: subst: {}".format(subst)
         formal_params = [subst[s] for s in  v.formal_params] # rename to prevent capture
@@ -1203,17 +1235,17 @@ class CallAction(Action):
         if len(formal_params) != len(actual_params):
             raise IvyError(self,"wrong number of input parameters");
         if len(formal_returns) != len(actual_returns):
-            print self
+            print(self)
             raise IvyError(self,"wrong number of output parameters");
         for x,y in zip(formal_params,actual_params):
             if x.sort != y.sort and not domain.is_variant(x.sort,y.sort):
                 raise IvyError(self,"value for input parameter {} has wrong sort".format(x))
         for x,y in zip(formal_returns,actual_returns):
             if x.sort != y.sort and not domain.is_variant(y.sort,x.sort):
-                print y
-                print y.sort
-                print x.sort
-                print self
+                print(y)
+                print(y.sort)
+                print(x.sort)
+                print(self)
                 raise IvyError(self,"value for output parameter {} has wrong sort".format(x))
         input_asgns = [AssignAction(x,y) for x,y in zip(formal_params,actual_params)]
         output_asgns = [AssignAction(y,x) for x,y in zip(formal_returns,actual_returns)]
@@ -1261,7 +1293,15 @@ class CallAction(Action):
         # print "callee = {}".format(callee)
         # print "post = {}".format(post)
         return res
-        
+    def split_returns(self):
+        actual_returns = self.args[1:]
+        rn = iu.UniqueRenamer('',used_symbols_ast(self))
+        new_returns = [x.rename(rn) for x in actual_returns]
+        asgn = Sequence(*([self.clone([self.args[0]] + new_returns)]
+                          +[AssignAction(x,y).sln(self.lineno)
+                            for x,y in zip(actual_returns,new_returns)]))
+        res = LocalAction(*(new_returns+[asgn])).sln(self.lineno)
+        return res
 
 class RME(AST):
     """ A requires-modifies-ensures clause """
@@ -1300,11 +1340,11 @@ def concat_actions(*actions):
 
 def apply_mixin(decl,action1,action2):
     if not hasattr(action1,'lineno'):
-        print action1
-        print type(action1)
+        print(action1)
+        print(type(action1))
     assert hasattr(action1,'lineno')
     if not hasattr(action2,'lineno'):
-        print action2
+        print(action2)
     assert  hasattr(action2,'lineno')
     name1,name2 = (a.relname for a in decl.args)
     if len(action1.formal_params) != len(action2.formal_params):
@@ -1315,7 +1355,7 @@ def apply_mixin(decl,action1,action2):
     for x,y in zip(formals1,formals2):
         if x.sort != y.sort:
             raise IvyError(decl,"parameter {} of mixin {} has wrong sort".format(str(x),name1))
-    subst = dict(zip(formals1,formals2))
+    subst = dict(list(zip(formals1,formals2)))
     action1_renamed = substitute_constants_ast(action1,subst)
 #    print "action1_renamed: {}".format(action1_renamed)
     if isinstance(decl,MixinAfterDef):
@@ -1452,7 +1492,7 @@ class RenameAnnotation(Annotation):
         self.map = map.copy()
         self.arg = arg
     def __str__(self):
-        return 'Rename({},'.format(str(self.arg)) + '{' + ','.join('{}:{}'.format(x,y) for x,y in self.map.iteritems()) + '})'
+        return 'Rename({},'.format(str(self.arg)) + '{' + ','.join('{}:{}'.format(x,y) for x,y in self.map.items()) + '})'
 
 class IteAnnotation(Annotation):
     def __init__(self,cond,thenb,elseb):
@@ -1498,6 +1538,11 @@ class ReturnAction(object):
         return ([], true_clauses(EmptyAnnotation()), false_clauses(EmptyAnnotation()))
     def __str__(self):
         return 'return'
+    @property
+    def args(self):
+        return []
+    def clone(self,args):
+        return self
 
 
 class IgnoreAction(object):
@@ -1506,12 +1551,12 @@ class IgnoreAction(object):
 def match_annotation(action,annot,handler):
     def recur(action,annot,env,pos=None):
         def show_me():
-            print 'lineno: {} annot: {} pos: {}'.format(action.lineno if hasattr(action,'lineno') else None,annot,pos)
+            print('lineno: {} annot: {} pos: {}'.format(action.lineno if hasattr(action,'lineno') else None,annot,pos))
 
         try:
             if isinstance(annot,RenameAnnotation):
                 save = dict()
-                for x,y in annot.map.iteritems():
+                for x,y in annot.map.items():
                     if x in env:
                         save[x] = env[x]
                     env[x] = env.get(y,y)
@@ -1523,7 +1568,7 @@ def match_annotation(action,annot,handler):
                     pos = len(action.args)
                 if pos == 0:
                     if not isinstance(annot,EmptyAnnotation):
-                        print "annotation error: should be empty annotation"
+                        print("annotation error: should be empty annotation")
 #                        raise AnnotationError()
                     return
                 if isinstance(annot,IteAnnotation):
@@ -1540,7 +1585,7 @@ def match_annotation(action,annot,handler):
                         recur(action,annot.elseb,env,pos=pos-1)
                         return
                 if not isinstance(annot,ComposeAnnotation):
-                    print "annotation error: should be ComposeAnnotation"
+                    print("annotation error: should be ComposeAnnotation")
                     return
 #                        raise AnnotationError()
                 recur(action,annot.args[0],env,pos-1)
@@ -1553,7 +1598,7 @@ def match_annotation(action,annot,handler):
                 try:
                     cond = handler.eval(rncond)
                 except KeyError:
-                    print '{}skipping conditional'.format(action.lineno)
+                    print('{}skipping conditional'.format(action.lineno))
                     iu.dbg('str_map(env)')
                     iu.dbg('env.get(annot.cond,annot.cond)')
                     return
@@ -1575,7 +1620,7 @@ def match_annotation(action,annot,handler):
                 assert isinstance(annot,IteAnnotation)
                 annots = unite_annot(annot)
                 assert len(annots) == len(action.args)
-                for act,(cond,ann) in reversed(zip(action.args,annots)):
+                for act,(cond,ann) in reversed(list(zip(action.args,annots))):
                     rncond = env.get(cond,cond)
                     if handler.eval(rncond):
                         if isinstance(action,EnvAction) and not hasattr(action,'label'):
@@ -1620,7 +1665,7 @@ def match_annotation(action,annot,handler):
         recur(action,annot,dict())
     except AnnotationError:
         assert False
-        print "internal error: cannot convert satisfying assignment to program trace"
+        print("internal error: cannot convert satisfying assignment to program trace")
     
 def env_action(actname,label=None):
     actnames = sorted(ivy_module.module.public_actions) if actname is None else [actname] 

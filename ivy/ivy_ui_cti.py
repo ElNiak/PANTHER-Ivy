@@ -1,16 +1,16 @@
-import ivy_ui
-import ivy_logic as il
-import logic as lg
-from ivy_interp import State,EvalContext,reverse,decompose_action_app, universe_constraint
-import ivy_module as im
-import ivy_logic_utils as ilu
-import logic_util as lu
-import ivy_utils as iu
-import ivy_graph_ui
-import ivy_actions as ia
-import ivy_trace
+from . import ivy_ui
+from . import ivy_logic as il
+from . import logic as lg
+from .ivy_interp import State,EvalContext,reverse,decompose_action_app, universe_constraint
+from . import ivy_module as im
+from . import ivy_logic_utils as ilu
+from . import logic_util as lu
+from . import ivy_utils as iu
+from . import ivy_graph_ui
+from . import ivy_actions as ia
+from . import ivy_trace
 
-from concept import (get_initial_concept_domain,
+from .concept import (get_initial_concept_domain,
                      get_diagram_concept_domain,
                      get_structure_concept_domain,
                      get_structure_concept_abstract_value,
@@ -65,15 +65,15 @@ class AnalysisGraphUI(ivy_ui.AnalysisGraphUI):
         return ConceptGraphUI
 
     def new_ag(self):
-        from ivy_art import AnalysisGraph
+        from .ivy_art import AnalysisGraph
         ag = AnalysisGraph()
         return ag
 
     def autodetect_transitive(self):
-        import logic as lg
-        from ivy_logic_utils import Clauses
-        from ivy_solver import clauses_imply
-        from concept import Concept
+        from . import logic as lg
+        from .ivy_logic_utils import Clauses
+        from .ivy_solver import clauses_imply
+        from .concept import Concept
 
 #        self.edge_display_checkboxes['=']['transitive'].value = True
 #        self.edge_display_checkboxes['=']['all_to_all'].value = True
@@ -104,12 +104,12 @@ class AnalysisGraphUI(ivy_ui.AnalysisGraphUI):
 
 
     def check_inductiveness(self, button=None):
-        import ivy_transrel
-        from ivy_solver import get_small_model
-        from proof import ProofGoal
-        from ivy_logic_utils import Clauses, and_clauses, dual_clauses
+        from . import ivy_transrel
+        from .ivy_solver import get_small_model
+        from .proof import ProofGoal
+        from .ivy_logic_utils import Clauses, and_clauses, dual_clauses
         from random import randrange
-        from ivy_art import AnalysisGraph
+        from .ivy_art import AnalysisGraph
         
         with self.ui_parent.run_context():
 
@@ -123,7 +123,7 @@ class AnalysisGraphUI(ivy_ui.AnalysisGraphUI):
 #                conj = to_test.pop(randrange(len(to_test)))
                 conj = to_test.pop(0)
                 assert conj == None or conj.is_universal_first_order()
-                used_names = frozenset(x.name for x in il.sig.symbols.values())
+                used_names = frozenset(x.name for x in list(il.sig.symbols.values()))
                 def witness(v):
                     c = lg.Const('@' + v.name, v.sort)
                     assert c.name not in used_names
@@ -132,7 +132,7 @@ class AnalysisGraphUI(ivy_ui.AnalysisGraphUI):
                 # TODO: this is still a bit hacky, and without nice error reporting
                 if self.relations_to_minimize.value == 'relations to minimize':
                     self.relations_to_minimize.value = ' '.join(sorted(
-                        k for k, v in il.sig.symbols.iteritems()
+                        k for k, v in il.sig.symbols.items()
                         if (type(v.sort) is lg.FunctionSort and
                             v.sort.range == lg.Boolean and
                             v.name not in self.transitive_relations 
@@ -205,8 +205,8 @@ class AnalysisGraphUI(ivy_ui.AnalysisGraphUI):
         self.current_concept_graph.update()
 
     def diagram(self):
-        from ivy_solver import clauses_model_to_diagram, get_model_clauses
-        from ivy_transrel import is_skolem, reverse_image
+        from .ivy_solver import clauses_model_to_diagram, get_model_clauses
+        from .ivy_transrel import is_skolem, reverse_image
         if not self.have_cti:
             if self.check_inductiveness() or len(self.g.states) != 2:
                 return
@@ -230,7 +230,7 @@ class AnalysisGraphUI(ivy_ui.AnalysisGraphUI):
         self.cg = self.view_state(s0, reset=True)
         
     def show_result(self,res):
-        print res
+        print(res)
 
     def weaken(self, conjs = None, button=None):
         if conjs == None:
@@ -278,10 +278,10 @@ class AnalysisGraphUI(ivy_ui.AnalysisGraphUI):
             f.close()
 
     def bmc_conjecture(self, button=None, bound = None, conjecture=None, verbose=False, tell_unsat=True):
-        import ivy_transrel
-        import ivy_solver
-        from proof import ProofGoal
-        from ivy_logic_utils import Clauses, and_clauses, dual_clauses
+        from . import ivy_transrel
+        from . import ivy_solver
+        from .proof import ProofGoal
+        from .ivy_logic_utils import Clauses, and_clauses, dual_clauses
 
         # get the bound, if not specified
 
@@ -306,7 +306,7 @@ class AnalysisGraphUI(ivy_ui.AnalysisGraphUI):
                 conj = and_clauses(*self.conjectures)
             
             assert conj.is_universal_first_order()
-            used_names = frozenset(x.name for x in il.sig.symbols.values())
+            used_names = frozenset(x.name for x in list(il.sig.symbols.values()))
             def witness(v):
                 c = lg.Const('@' + v.name, v.sort)
                 assert c.name not in used_names
@@ -319,7 +319,7 @@ class AnalysisGraphUI(ivy_ui.AnalysisGraphUI):
                 ag.add_initial_state(ag.init_cond)
                 post = ag.states[0]
             if 'initialize' in im.module.actions:
-                print "got here"
+                print("got here")
                 init_action = im.module.actions['initialize']
                 post = ag.execute(init_action, None, None, 'initialize')
 
@@ -337,7 +337,7 @@ class AnalysisGraphUI(ivy_ui.AnalysisGraphUI):
                             n,
                             str(conj.to_formula()),
                         )
-                    print '\n' + msg + '\n'
+                    print('\n' + msg + '\n')
                 if res is not None:
     #                ta.step()
                     cmd = lambda: self.ui_parent.add(res,ui_class=ivy_ui.AnalysisGraphUI)
@@ -402,12 +402,12 @@ class ConceptGraphUI(ivy_graph_ui.GraphWidget):
 
         The result is a Clauses object
         """
-        from logic_util import used_constants, free_variables, substitute
-        from ivy_logic_utils import negate, Clauses, simplify_clauses
+        from .logic_util import used_constants, free_variables, substitute
+        from .ivy_logic_utils import negate, Clauses, simplify_clauses
 
         facts = self.get_active_facts()
         assert len(free_variables(*facts)) == 0, "conjecture would contain existential quantifiers..."
-        sig_symbols = frozenset(il.sig.symbols.values())
+        sig_symbols = frozenset(list(il.sig.symbols.values()))
         facts_consts = used_constants(*facts)
         subs = {}
         rn = iu.VariableGenerator()
@@ -453,7 +453,7 @@ class ConceptGraphUI(ivy_graph_ui.GraphWidget):
 
 
     def conjecture(self):
-        print self.get_selected_conjecture()
+        print(self.get_selected_conjecture())
 
 
     def bmc_conjecture(self, button=None, bound = None, conjecture=None, verbose=False, add_to_crg=True, tell_unsat=True):
@@ -466,12 +466,12 @@ class ConceptGraphUI(ivy_graph_ui.GraphWidget):
 
 
     def minimize_conjecture(self, button=None, bound=None):
-        import ivy_transrel
-        import ivy_solver
-        from proof import ProofGoal
-        from ivy_logic_utils import Clauses, and_clauses, dual_clauses, used_symbols_clauses, negate
-        from ivy_solver import unsat_core
-        from logic_util import free_variables, substitute
+        from . import ivy_transrel
+        from . import ivy_solver
+        from .proof import ProofGoal
+        from .ivy_logic_utils import Clauses, and_clauses, dual_clauses, used_symbols_clauses, negate
+        from .ivy_solver import unsat_core
+        from .logic_util import free_variables, substitute
 
         if self.bmc_conjecture(bound=bound,tell_unsat=False):
             # found a BMC counter-example
@@ -492,7 +492,7 @@ class ConceptGraphUI(ivy_graph_ui.GraphWidget):
             post_clauses = and_clauses(post.clauses, axioms)
 
             used_names = (
-                frozenset(x.name for x in il.sig.symbols.values()) |
+                frozenset(x.name for x in list(il.sig.symbols.values())) |
                 frozenset(x.name for x in used_symbols_clauses(post_clauses))
             )
             facts = self.get_active_facts()
@@ -521,10 +521,10 @@ class ConceptGraphUI(ivy_graph_ui.GraphWidget):
         TODO: this has a lot in common with check_inductiveness,
         should refactor common parts out
         """
-        import ivy_transrel
-        import ivy_solver
-        from proof import ProofGoal
-        from ivy_logic_utils import Clauses, and_clauses, dual_clauses
+        from . import ivy_transrel
+        from . import ivy_solver
+        from .proof import ProofGoal
+        from .ivy_logic_utils import Clauses, and_clauses, dual_clauses
         from random import randrange
 
         with self.ui_parent.run_context():
@@ -543,7 +543,7 @@ class ConceptGraphUI(ivy_graph_ui.GraphWidget):
             post.clauses = ilu.true_clauses(annot=ia.EmptyAnnotation())
 
             assert target_conj.is_universal_first_order()
-            used_names = frozenset(x.name for x in il.sig.symbols.values())
+            used_names = frozenset(x.name for x in list(il.sig.symbols.values()))
             def witness(v):
                 c = lg.Const('@' + v.name, v.sort)
                 assert c.name not in used_names
@@ -569,10 +569,10 @@ class ConceptGraphUI(ivy_graph_ui.GraphWidget):
         TODO: this has a lot in common with check_inductiveness and is_sufficient,
         should refactor common parts out
         """
-        import ivy_transrel
-        import ivy_solver
-        from proof import ProofGoal
-        from ivy_logic_utils import Clauses, and_clauses, dual_clauses
+        from . import ivy_transrel
+        from . import ivy_solver
+        from .proof import ProofGoal
+        from .ivy_logic_utils import Clauses, and_clauses, dual_clauses
         from random import randrange
 
         with self.ui_parent.run_context():
@@ -590,7 +590,7 @@ class ConceptGraphUI(ivy_graph_ui.GraphWidget):
             post.clauses = ilu.true_clauses(annot=ia.EmptyAnnotation())
 
             assert target_conj.is_universal_first_order()
-            used_names = frozenset(x.name for x in il.sig.symbols.values())
+            used_names = frozenset(x.name for x in list(il.sig.symbols.values()))
             def witness(v):
                 c = lg.Const('@' + v.name, v.sort)
                 assert c.name not in used_names

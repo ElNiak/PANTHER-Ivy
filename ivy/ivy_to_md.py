@@ -1,12 +1,12 @@
 import sys
 import xml
 import xml.etree.ElementTree as ET
-import StringIO
+import io
 
 def main():
 
     if len(sys.argv) != 2 or not sys.argv[1].endswith('.ivy'):
-        print 'usage: {} <file>.ivy'.format(sys.argv[0])
+        print('usage: {} <file>.ivy'.format(sys.argv[0]))
 
     inpname = sys.argv[1]
     outname = inpname[:-3]+'md'
@@ -15,13 +15,13 @@ def main():
         with open(inpname) as f:
             content = f.readlines()
     except IOError:
-        print 'file {} not found'.format(inpname)
+        print('file {} not found'.format(inpname))
         exit(1)
 
     try:
         outf = open(outname,'w')
     except:
-        print 'could not open {} for output'.format(outname)
+        print('could not open {} for output'.format(outname))
 
 
     last_was_comment = True

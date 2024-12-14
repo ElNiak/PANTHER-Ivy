@@ -13,33 +13,33 @@ if __name__ == "__main__":
 
 import pickle
 import string
-from ivy_compiler import IvyError, ivy_new, ivy_load_file
-from ivy_utils import Parameter, set_parameters
-import ivy_logic
-import proof as pf
-import ivy_utils as iu
-import ivy_module
+from .ivy_compiler import IvyError, ivy_new, ivy_load_file
+from .ivy_utils import Parameter, set_parameters
+from . import ivy_logic
+from . import proof as pf
+from . import ivy_utils as iu
+from . import ivy_module
 #import tactics_api as ta
 
 # mode = Parameter("mode",None)
 
 def usage():
-    print "usage: \n  {} <file>.[a2g,ivy,dfy]\n {} <file>.a2g <file.[ivy,dfy]> ".format(sys.argv[0],sys.argv[0])
+    print("usage: \n  {} <file>.[a2g,ivy,dfy]\n {} <file>.a2g <file.[ivy,dfy]> ".format(sys.argv[0],sys.argv[0]))
     sys.exit(1)
 
 def open_read(fn):
     try:
-        f = open(fn,'rU')
+        f = open(fn,'r')
         return f
     except:
-        print "not found: %s" % fn
+        print("not found: %s" % fn)
         sys.exit(1)
 
 def read_params():
     ps = dict()
     args = sys.argv[1:]
     while args and '=' in args[0]:
-        thing = string.split(args[0],'=')
+        thing = str.split(args[0],'=')
         if len(thing) > 2:
             usage()
         ps[thing[0]] = thing[1]
@@ -47,7 +47,7 @@ def read_params():
     try:
         set_parameters(ps)
     except IvyError as e:
-        print e
+        print(e)
         exit(1)
     sys.argv = sys.argv[0:1] + args
 
@@ -74,7 +74,7 @@ def source_file(fn,f,**kwargs):
     except IvyError as e:
         if not hasattr(e,'filename'):
             e.filename = fn
-        print str(e)
+        print(str(e))
         sys.exit(1)
 
 def ivy_init(**kwargs):

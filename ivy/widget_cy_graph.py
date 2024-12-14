@@ -12,7 +12,7 @@ from IPython.html import widgets
 from IPython.utils.traitlets import Unicode, Any, Bool, Tuple
 from IPython.utils.py3compat import string_types
 
-from cy_elements import CyElements
+from .cy_elements import CyElements
 
 def _object_key(x):
     return str(id(x))
@@ -164,7 +164,7 @@ class CyElements(object):
         assert self.elements is not None, "This object us not reusable"
         if label is None:
             label = str(obj)
-        if not isinstance(classes, basestring):
+        if not isinstance(classes, str):
             classes = ' '.join(str(x) for x in classes)
         nid = 'n{}'.format(len(self.node_id))
         assert obj not in self.node_id, "obj must be unique"
@@ -198,7 +198,7 @@ class CyElements(object):
         assert self.elements is not None, "This object us not reusable"
         if label is None:
             label = str(obj)
-        if not isinstance(classes, basestring):
+        if not isinstance(classes, str):
             classes = ' '.join(str(x) for x in classes)
         eid = 'e{}'.format(len(self.edge_id))
         assert (obj, source_obj, target_obj) not in self.edge_id

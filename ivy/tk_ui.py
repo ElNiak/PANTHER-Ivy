@@ -2,16 +2,16 @@
 # Copyright (c) Microsoft Corporation. All Rights Reserved.
 #
 
-import ivy_ui
-import ivy_ui_util as uu
-import ivy_utils as iu
-import tk_graph_ui
-import tk_cy
-from cy_elements import *
-from dot_layout import dot_layout
-from Tkinter import *
-import Tkconstants, tkFileDialog
-import Tix
+from . import ivy_ui
+from . import ivy_ui_util as uu
+from . import ivy_utils as iu
+from . import tk_graph_ui
+from . import tk_cy
+from .cy_elements import *
+from .dot_layout import dot_layout
+from tkinter import *
+import tkinter.constants, tkinter.filedialog
+import tkinter.tix
 
 class RunContext(object):
     """ Context Manager that handles exceptions and reports errors. """
@@ -42,7 +42,7 @@ class TkUI(object):
 
     def __init__(self,tk=None,frame=None):
         if tk == None:
-            tk = Tix.Tk()
+            tk = tkinter.tix.Tk()
             tk.tk_setPalette(background='white')
             tk.wm_title("ivy")
             frame = tk
@@ -50,7 +50,7 @@ class TkUI(object):
             frame = Toplevel(tk)
         self.tk = tk
         self.frame = frame
-        self.notebook = Tix.NoteBook(frame)
+        self.notebook = tkinter.tix.NoteBook(frame)
         self.notebook.pack(fill=BOTH,expand=1)
         self.tab_counter = 0
         self.tabs = 0
@@ -88,7 +88,7 @@ class TkUI(object):
         if not hasattr(art,'state_graphs'):
             art.state_graphs = []
         tab = nb.add(name,label=label) 
-        pw=Tix.PanedWindow(tab,orientation='horizontal')
+        pw=tkinter.tix.PanedWindow(tab,orientation='horizontal')
         pw.pack(fill=BOTH,expand=1)
         frame=pw.add('f1',min=50)
         state_frame=pw.add('f2',min=200)
@@ -178,7 +178,7 @@ class TkUI(object):
     # filetypes is a list of pairs (extension, description).
 
     def saveas_dialog(self,msg,filetypes):
-        return tkFileDialog.asksaveasfile(mode='w',filetypes=filetypes,title=msg,parent=self.frame)
+        return tkinter.filedialog.asksaveasfile(mode='w',filetypes=filetypes,title=msg,parent=self.frame)
 
     # Return a context object to use for a computation that might take
     # take or throw an error the needs reporting

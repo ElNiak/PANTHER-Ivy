@@ -4,13 +4,13 @@
 import sys
 import itertools
 from collections import defaultdict
-import z3
+import ivy.z3 as z3
 
-from ivy_logic_utils import to_literal, false_clauses, Clauses
-from ivy_solver import *
-from ivy_logic_utils import *
-from ivy_concept_space import *
-from ivy_utils import Parameter
+from .ivy_logic_utils import to_literal, false_clauses, Clauses
+from .ivy_solver import *
+from .ivy_logic_utils import *
+from .ivy_concept_space import *
+from .ivy_utils import Parameter
 
 test_bottom = True
 
@@ -44,26 +44,26 @@ class ProgressiveDomain(object):
         id = self.cube_id(cube)
         if id not in self.inhabited_cubes:
             if log:
-                print "inhabited: %s" % cube
+                print("inhabited: %s" % cube)
 #            print "witness: %s" % witness
             self.inhabited_cubes[id] = truth
 
     def model_check(self):
         return
         if log:
-            print "model_check {"
+            print("model_check {")
 #        print "  model: %s" % get_model(self.solver)
         ra = RelAlg3(self.solver,self.new_sym,self)
         memo = dict()
         for atom,cs in self.concept_spaces:
-            print "model check concept space: %s" % atom
+            print("model check concept space: %s" % atom)
             insts = cs.eval(memo,ra)
             memo[atom.relname] = ([t.rep for t in atom.args],insts)
             for cube,tab in insts:
                 self.inhabited_cube(cube)
 
         if log:
-            print "} model_check"
+            print("} model_check")
 
     def inhabited_lit(self,lit):
         self.inhabited_cube([lit])
@@ -77,14 +77,14 @@ class ProgressiveDomain(object):
     def test_cube(self,cube):
         canon_cube = canonize_clause(cube)
         if log:
-            print "cube: {}".format([str(c) for c in canon_cube])
+            print("cube: {}".format([str(c) for c in canon_cube]))
         my_id = self.cube_id(canon_cube)
         if my_id in self.inhabited_cubes:
             if log:
-                print "cached: %s" % [str(c) for c in cube]
+                print("cached: %s" % [str(c) for c in cube])
             return self.inhabited_cubes[my_id]
         if log:
-            print "test: %s" % [str(c) for c in cube]
+            print("test: %s" % [str(c) for c in cube])
         cube = rename_clause(cube,self.new_sym)
         vs = used_variables_clause(cube)
         # TODO: these constants need to have right sorts
@@ -98,7 +98,7 @@ class ProgressiveDomain(object):
         else:
             self.inferred.append([~lit for lit in cube])
             if log:
-                print "uninhabited: %s" % [str(c) for c in canon_cube]
+                print("uninhabited: %s" % [str(c) for c in canon_cube])
             self.inhabited_cubes[my_id] = False
         return res
 
@@ -110,12 +110,12 @@ class ProgressiveDomain(object):
         self.z3_cubes = []
         self.memo = dict()
         if log:
-            print "concrete state: %s" % theory
-            print "background: %s" % background_theory
+            print("concrete state: %s" % theory)
+            print("background: %s" % background_theory)
         add_clauses(self.solver, and_clauses(theory,background_theory))
         self.unsat = test_bottom and self.solver.check() == z3.unsat
         if self.unsat:
-            print "core: %s" % unsat_core(and_clauses(theory,background_theory),true_clauses())
+            print("core: %s" % unsat_core(and_clauses(theory,background_theory),true_clauses()))
         
     def post_step(self,concept_spaces):
         if self.unsat:
@@ -124,14 +124,14 @@ class ProgressiveDomain(object):
 #        print "cs: {}".format(concept_spaces)
         for atom,cs in concept_spaces:
             if log:
-                print "concept space: %s" % atom
+                print("concept space: %s" % atom)
             concepts = cs.enumerate(self.memo,self.test_cube)
             if log:
-                print "result: {}".format([str(c) for c in concepts])
+                print("result: {}".format([str(c) for c in concepts]))
             self.memo[atom.relname] = ([t.rep for t in atom.args], concepts)
         res = self.inferred
         if log:
-            print "inferred: {}".format([[str(c) for c in cls] for cls in res])
+            print("inferred: {}".format([[str(c) for c in cls] for cls in res]))
         del self.inferred
         return Clauses(res)
 
@@ -257,7 +257,7 @@ class RelAlg2(object):
                                  if not isinstance(x,Variable)])
             cubes = [cube] if is_sat(self.temp_solver,cube) else []
             if not cubes:
-                print "unsat: %s" % cube
+                print("unsat: %s" % cube)
                 exit(0)
         else:
             new_lit = rename_lit(lit,self.new_sym)
@@ -279,7 +279,7 @@ class RelAlg2(object):
 #        print "prod: %s * %s = %s" % (x,y,cubes)
         return cubes
     def subst(self,tab,subst):
-        subs = [(term_to_z3(Constant(x)),term_to_z3(y)) for x,y in subst.iteritems()]
+        subs = [(term_to_z3(Constant(x)),term_to_z3(y)) for x,y in subst.items()]
 #        print subs
  #       print all([isinstance(p, tuple) and z3.is_expr(p[0]) and z3.is_expr(p[1]) and p[0].sort().eq(p[1].sort()) for p in subs])
         res = [z3.substitute(x,*subs) for x in tab]
@@ -290,7 +290,7 @@ class RelAlg2(object):
                 
 class RelAlg3(RelAlg2):
     def prim(self,lit):
-        print "prim: %s" % lit
+        print("prim: %s" % lit)
         z3lit = literal_to_z3(lit)
 #        print z3lit
         id = get_id(z3lit)
@@ -307,6 +307,24 @@ class RelAlg3(RelAlg2):
         self.prim_cache[id] = cubes
         self.prim_list.append(z3lit) # so id not lost
         return cubes
+
+def predicate_alpha(state):
+    print ("running predicate alpha")
+    slvr = new_solver()
+    clauses = and_clauses(state.clauses,state.domain.background_theory())
+    add_clauses(slvr, clauses)
+    res = Clauses()
+    for pred in state.domain.abstraction_predicates:
+        slvr.push()
+        add_clauses(slvr,dual_clauses(pred))
+        cr = slvr.check()
+        "predicate: {} result {}".format(pred,cr)
+        if slvr.check() == z3.unsat:
+            res = and_clauses(res,pred)
+        slvr.pop()
+    state.clauses = res
+        
+
     
         
 if __name__ == "__main__":
@@ -316,7 +334,7 @@ if __name__ == "__main__":
     d.add_concept_space(to_atom("s3(X,Y)"),to_concept_space("(~p(X,c) * =(X,a))"))
     theory = to_clauses("[[p(a,b)],[~p(b,a)],[p(a,c)],[~p(a,a)]]")
     cons = d.post(theory,[],dict(),[])
-    print cons
+    print(cons)
     # solver = new_solver()
     # add_clauses(solver,to_clauses("[[p(a,b)],[~p(b,a)],[p(a,c)],[~p(a,a)]]"))
     # res = check_cube(solver,[])

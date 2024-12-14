@@ -13,11 +13,11 @@ raised if the unification fails.
 
 from itertools import product, chain
 
-from logic import (Var, Const, Apply, Eq, Ite, Not, And, Or, Implies,
-                   Iff, ForAll, Exists, NamedBinder)
-from logic import (UninterpretedSort, FunctionSort, Boolean, TopSort,
+from .logic import (Var, Const, Apply, Eq, Ite, Not, And, Or, Implies,
+                    Iff, ForAll, Exists, NamedBinder, Globally, Eventually, WhenOperator, Cond)
+from .logic import (UninterpretedSort, FunctionSort, Boolean, TopSort,
                    SortError, contains_topsort, is_polymorphic)
-from logic_util import used_constants, free_variables
+from .logic_util import used_constants, free_variables
 
 
 class SortVar(object):
@@ -207,6 +207,28 @@ def infer_sorts(t, env=None):
             x() for x in terms_t
         ])
 
+    elif type(t) in (Globally, Eventually):
+        xys = [infer_sorts(tt, env) for tt in t]
+        terms_s = [x for x, y in xys]
+        terms_t = [y for x, y in xys]
+        for s in terms_s:
+            unify(s, Boolean)
+        return Boolean, lambda: type(t)(t.environ,*[
+            x() for x in terms_t
+        ])
+
+    elif type(t) is WhenOperator:
+        s_then, t_then = infer_sorts(t.t1, env)
+        s_cond, t_cond = infer_sorts(t.t2, env)
+        unify(s_cond, Boolean)
+        return s_then, lambda: WhenOperator(t.name, t_then(), t_cond())
+
+    elif type(t) is Cond:
+        s_cond, t_cond = infer_sorts(t.t1, env)
+        s_then, t_then = infer_sorts(t.t2, env)
+        unify(s_cond, Boolean)
+        return s_then, lambda: Cond(t_cond(),t_then())
+
     elif type(t) in (ForAll, Exists):
         # create a copy of the environment and shadow that quantified
         # variables
@@ -305,28 +327,28 @@ if __name__ == '__main__':
 
     f1 = And(ps(XS), ps(xs))
     cf1 = concretize_sorts(f1)
-    print repr(f1)
-    print repr(cf1)
+    print(repr(f1))
+    print(repr(cf1))
     assert f1 == cf1
-    print
+    print()
 
     f2 = And(ps(XT), pt(xs))
     cf2 = concretize_sorts(f2)
-    print repr(f2)
-    print repr(cf2)
-    print
+    print(repr(f2))
+    print(repr(cf2))
+    print()
 
     f3 = Exists([TT], And(ps(XT), TT(xs)))
     cf3 = concretize_sorts(f3)
-    print repr(f3)
-    print repr(cf3)
-    print
+    print(repr(f3))
+    print(repr(cf3))
+    print()
 
     f4 = Iff(xt, Ite(yt, xt, XT))
     cf4 = concretize_sorts(f4)
-    print repr(f4)
-    print repr(cf4)
-    print
+    print(repr(f4))
+    print(repr(cf4))
+    print()
 
     # alpha = SortVar()
     # polyfS = FunctionSort(alpha, alpha)
@@ -339,19 +361,19 @@ if __name__ == '__main__':
 
     f6 = NamedBinder('mybinder', [XT], None, ps(XT))
     cf6 = concretize_sorts(f6)
-    print repr(f6)
-    print f6.sort
-    print repr(cf6)
-    print cf6.sort
-    print
+    print(repr(f6))
+    print(f6.sort)
+    print(repr(cf6))
+    print(cf6.sort)
+    print()
 
     f7 = NamedBinder('mybinder', [], None, ps(XT))
     cf7 = concretize_sorts(f7)
-    print repr(f7)
-    print f7.sort
-    print repr(cf7)
-    print cf7.sort
-    print
+    print(repr(f7))
+    print(f7.sort)
+    print(repr(cf7))
+    print(cf7.sort)
+    print()
 
 
     # TODO: add more tests, specifically a test that checks

@@ -1,7 +1,7 @@
 #
 # Copyright (c) Microsoft Corporation. All Rights Reserved.
 #
-import ivy_dafny_ast as da
+from . import ivy_dafny_ast as da
 
 #### TODO: ghost, static, this, constructor
 

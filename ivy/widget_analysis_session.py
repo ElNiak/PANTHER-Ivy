@@ -11,41 +11,41 @@ from collections import defaultdict, OrderedDict
 from textwrap import dedent
 from itertools import chain
 import os.path
-from cPickle import dumps
+from pickle import dumps
 import time
 
 import IPython.html.widgets as widgets
 from IPython.html.widgets import HBox, VBox
 
-from widget_cy_graph import CyGraphWidget
-from widget_dialog import DialogWidget
-from widget_modal_messages import ModalMessagesWidget
-from cy_render import render_concept_graph, render_rg, render_proof_stack
-from concept_interactive_session import ConceptInteractiveSession
-from concept import (get_initial_concept_domain,
+from .widget_cy_graph import CyGraphWidget
+from .widget_dialog import DialogWidget
+from .widget_modal_messages import ModalMessagesWidget
+from .cy_render import render_concept_graph, render_rg, render_proof_stack
+from .concept_interactive_session import ConceptInteractiveSession
+from .concept import (get_initial_concept_domain,
                      get_diagram_concept_domain,
                      get_structure_concept_domain,
                      get_structure_concept_abstract_value,
                      get_structure_renaming,
                      get_standard_combinations)
-import cy_styles
-from dot_layout import dot_layout
-from logic import And, Or, Not, Eq, Apply
-from logic_util import used_constants, free_variables
-from proof import ProofGoal
-from ivy_interp import State
-from ui_extensions_api import (arg_node_actions, goal_node_actions,
+from . import cy_styles
+from .dot_layout import dot_layout
+from .logic import And, Or, Not, Eq, Apply
+from .logic_util import used_constants, free_variables
+from .proof import ProofGoal
+from .ivy_interp import State
+from .ui_extensions_api import (arg_node_actions, goal_node_actions,
                                interaction, UserSelectMultiple)
-import tactics_api as ta
-from ivy_logic_utils import true_clauses, false_clauses
-import logic as lg
-import logic_util as lu
+from . import tactics_api as ta
+from .ivy_logic_utils import true_clauses, false_clauses
+from . import logic as lg
+from . import logic_util as lu
 
 
 
 
 def _print_args(*args, **kwargs):
-    print args, kwargs
+    print(args, kwargs)
 
 _edge_display_classes = ['all_to_all', 'edge_unknown', 'none_to_none']
 _edge_display_checkboxes = _edge_display_classes + ['transitive']
@@ -104,7 +104,7 @@ class ConceptSessionControls(object):
         ])
 
         view_control_header_buttons = []
-        for label, edge_class in zip(['+', '?', '-', u'\u2264'], _edge_display_checkboxes):
+        for label, edge_class in zip(['+', '?', '-', '\u2264'], _edge_display_checkboxes):
             btn = SmallButton(
                 description=label,
                 margin='0px',
@@ -193,9 +193,9 @@ class ConceptSessionControls(object):
             edge_class = button.edge_class
             new_value = not all(
                 x[edge_class].value
-                for x in self.edge_display_checkboxes.values()
+                for x in list(self.edge_display_checkboxes.values())
             )
-            for x in self.edge_display_checkboxes.values():
+            for x in list(self.edge_display_checkboxes.values()):
                 x[edge_class].value = new_value
         finally:
             self.ignore_display_checkbox_change = False
@@ -618,7 +618,7 @@ class TransitionViewWidget(ConceptSessionControls):
                 ('fact_list_value', self.facts_list.value),
                 ('active_facts', self.get_active_facts()),
                 ('selected_conjecture', self.get_selected_conjecture()),
-            ] + extra.items()}
+            ] + list(extra.items())}
          ]) + '\n')
 
     def register_session(self, session):
@@ -747,7 +747,7 @@ class TransitionViewWidget(ConceptSessionControls):
         self.facts_list.value = ()
 
     def apply_structure_renaming(self, st):
-        for k in sorted(self.structure_renaming.keys(), key=len, reverse=True):
+        for k in sorted(list(self.structure_renaming.keys()), key=len, reverse=True):
             st = st.replace(k, self.structure_renaming[k])
         return st
 
@@ -767,18 +767,18 @@ class TransitionViewWidget(ConceptSessionControls):
         return result
 
     def new_ag(self):
-        from ivy_art import AnalysisGraph
+        from .ivy_art import AnalysisGraph
         ag = AnalysisGraph(ta._ivy_ag.domain, ta._ivy_ag.pvars)
         ag.actions = ta._ivy_ag.actions
         ag.init_cond = ta._ivy_ag.init_cond
         return ag
 
     def check_inductiveness(self, button=None):
-        import ivy_transrel
-        from ivy_solver import get_small_model
-        import tactics_api as ta
-        from proof import ProofGoal
-        from ivy_logic_utils import Clauses, and_clauses, dual_clauses
+        from . import ivy_transrel
+        from .ivy_solver import get_small_model
+        from . import tactics_api as ta
+        from .proof import ProofGoal
+        from .ivy_logic_utils import Clauses, and_clauses, dual_clauses
         from random import randrange
 
         ag = self.new_ag()
@@ -796,7 +796,7 @@ class TransitionViewWidget(ConceptSessionControls):
             # clicking again
             conj = to_test.pop(randrange(len(to_test)))
             assert conj.is_universal_first_order()
-            used_names = frozenset(x.name for x in self.session.analysis_state.ivy_interp.sig.symbols.values())
+            used_names = frozenset(x.name for x in list(self.session.analysis_state.ivy_interp.sig.symbols.values()))
             def witness(v):
                 c = lg.Const('@' + v.name, v.sort)
                 assert c.name not in used_names
@@ -807,7 +807,7 @@ class TransitionViewWidget(ConceptSessionControls):
             # TODO: this is still a bit hacky, and without nice error reporting
             if self.relations_to_minimize.value == 'relations to minimize':
                 self.relations_to_minimize.value = ' '.join(sorted(
-                    k for k, v in self.session.analysis_state.ivy_interp.sig.symbols.iteritems()
+                    k for k, v in self.session.analysis_state.ivy_interp.sig.symbols.items()
                     if (type(v.sort) is lg.FunctionSort and
                         v.sort.range == lg.Boolean and
                         v.name not in self.transitive_relations and
@@ -864,12 +864,12 @@ class TransitionViewWidget(ConceptSessionControls):
 
         The result is a Clauses object
         """
-        from logic_util import used_constants, free_variables, substitute
-        from ivy_logic_utils import negate, Clauses, simplify_clauses
+        from .logic_util import used_constants, free_variables, substitute
+        from .ivy_logic_utils import negate, Clauses, simplify_clauses
 
         facts = self.get_active_facts()
         assert len(free_variables(*facts)) == 0, "conjecture would contain existential quantifiers..."
-        sig_symbols = frozenset(self.session.analysis_state.ivy_interp.sig.symbols.values())
+        sig_symbols = frozenset(list(self.session.analysis_state.ivy_interp.sig.symbols.values()))
         facts_consts = used_constants(*facts)
         subs = {}
         count = defaultdict(int)
@@ -910,10 +910,10 @@ class TransitionViewWidget(ConceptSessionControls):
         return result
 
     def bmc_conjecture(self, button=None, conjecture=None, verbose=False, add_to_crg=True):
-        import ivy_transrel
-        import ivy_solver
-        from proof import ProofGoal
-        from ivy_logic_utils import Clauses, and_clauses, dual_clauses
+        from . import ivy_transrel
+        from . import ivy_solver
+        from .proof import ProofGoal
+        from .ivy_logic_utils import Clauses, and_clauses, dual_clauses
 
 
         # TODO: get from somewhere else
@@ -927,7 +927,7 @@ class TransitionViewWidget(ConceptSessionControls):
             conj = conjecture
 
         assert conj.is_universal_first_order()
-        used_names = frozenset(x.name for x in self.session.analysis_state.ivy_interp.sig.symbols.values())
+        used_names = frozenset(x.name for x in list(self.session.analysis_state.ivy_interp.sig.symbols.values()))
         def witness(v):
             c = lg.Const('@' + v.name, v.sort)
             assert c.name not in used_names
@@ -951,7 +951,7 @@ class TransitionViewWidget(ConceptSessionControls):
                         n,
                         str(conj.to_formula()),
                     )
-                print '\n' + msg + '\n'
+                print('\n' + msg + '\n')
             if res is not None:
                 ta.step()
                 self.show_result('BMC with bound {} found a counter-example to:\n{}'.format(
@@ -969,12 +969,12 @@ class TransitionViewWidget(ConceptSessionControls):
 
 
     def minimize_conjecture(self, button=None):
-        import ivy_transrel
-        import ivy_solver
-        from proof import ProofGoal
-        from ivy_logic_utils import Clauses, and_clauses, dual_clauses, used_symbols_clauses, negate
-        from ivy_solver import unsat_core
-        from logic_util import free_variables, substitute
+        from . import ivy_transrel
+        from . import ivy_solver
+        from .proof import ProofGoal
+        from .ivy_logic_utils import Clauses, and_clauses, dual_clauses, used_symbols_clauses, negate
+        from .ivy_solver import unsat_core
+        from .logic_util import free_variables, substitute
 
         if self.bmc_conjecture():
             # found a BMC counter-example
@@ -995,7 +995,7 @@ class TransitionViewWidget(ConceptSessionControls):
         post_clauses = and_clauses(post.clauses, axioms)
 
         used_names = (
-            frozenset(x.name for x in self.session.analysis_state.ivy_interp.sig.symbols.values()) |
+            frozenset(x.name for x in list(self.session.analysis_state.ivy_interp.sig.symbols.values())) |
             frozenset(x.name for x in used_symbols_clauses(post_clauses))
         )
         facts = self.get_active_facts()
@@ -1075,17 +1075,17 @@ class TransitionViewWidget(ConceptSessionControls):
 
 
     def autodetect_transitive(self):
-        import tactics_api as ta
-        import logic as lg
-        from ivy_logic_utils import Clauses
-        from ivy_solver import clauses_imply
+        from . import tactics_api as ta
+        from . import logic as lg
+        from .ivy_logic_utils import Clauses
+        from .ivy_solver import clauses_imply
 
         self.edge_display_checkboxes['=']['transitive'].value = True
         self.edge_display_checkboxes['=']['all_to_all'].value = True
         self.transitive_relations = []
 
         axioms = self.session.analysis_state.ivy_interp.background_theory()
-        for c in self.session.analysis_state.ivy_interp.sig.symbols.values():
+        for c in list(self.session.analysis_state.ivy_interp.sig.symbols.values()):
             if (type(c.sort) is lg.FunctionSort and
                 c.sort.arity == 2 and
                 c.sort.domain[0] == c.sort.domain[1] and
@@ -1108,11 +1108,11 @@ class TransitionViewWidget(ConceptSessionControls):
         TODO: this has a lot in common with check_inductiveness,
         should refactor common parts out
         """
-        import ivy_transrel
-        import ivy_solver
-        import tactics_api as ta
-        from proof import ProofGoal
-        from ivy_logic_utils import Clauses, and_clauses, dual_clauses
+        from . import ivy_transrel
+        from . import ivy_solver
+        from . import tactics_api as ta
+        from .proof import ProofGoal
+        from .ivy_logic_utils import Clauses, and_clauses, dual_clauses
         from random import randrange
 
         conj = self.get_selected_conjecture()
@@ -1128,7 +1128,7 @@ class TransitionViewWidget(ConceptSessionControls):
         post.clauses = true_clauses()
 
         assert target_conj.is_universal_first_order()
-        used_names = frozenset(x.name for x in self.session.analysis_state.ivy_interp.sig.symbols.values())
+        used_names = frozenset(x.name for x in list(self.session.analysis_state.ivy_interp.sig.symbols.values()))
         def witness(v):
             c = lg.Const('@' + v.name, v.sort)
             assert c.name not in used_names
@@ -1156,11 +1156,11 @@ class TransitionViewWidget(ConceptSessionControls):
         TODO: this has a lot in common with check_inductiveness and is_sufficient,
         should refactor common parts out
         """
-        import ivy_transrel
-        import ivy_solver
-        import tactics_api as ta
-        from proof import ProofGoal
-        from ivy_logic_utils import Clauses, and_clauses, dual_clauses
+        from . import ivy_transrel
+        from . import ivy_solver
+        from . import tactics_api as ta
+        from .proof import ProofGoal
+        from .ivy_logic_utils import Clauses, and_clauses, dual_clauses
         from random import randrange
 
         conj = self.get_selected_conjecture()
@@ -1176,7 +1176,7 @@ class TransitionViewWidget(ConceptSessionControls):
         post.clauses = true_clauses()
 
         assert target_conj.is_universal_first_order()
-        used_names = frozenset(x.name for x in self.session.analysis_state.ivy_interp.sig.symbols.values())
+        used_names = frozenset(x.name for x in list(self.session.analysis_state.ivy_interp.sig.symbols.values()))
         def witness(v):
             c = lg.Const('@' + v.name, v.sort)
             assert c.name not in used_names
@@ -1239,7 +1239,7 @@ class TransitionViewWidget(ConceptSessionControls):
         collect_literals(clauses.to_formula())
 
         const_to_node = dict()
-        for tag, value in a.iteritems():
+        for tag, value in a.items():
             if tag[:2] == ('node_label', 'node_necessarily') and tag[3][0] == '=' and value:
                 const_to_node[tag[3][1:]] = tag[2]
 
@@ -1310,7 +1310,7 @@ class AnalysisSessionWidget(object):
         self.buttons = _make_buttons([
             ('first', self.first),
             ('prev', self.prev),
-            ('next', self.next),
+            ('next', self.__next__),
             ('last', self.last),
         ])
 
@@ -1569,7 +1569,7 @@ class AnalysisSessionWidget(object):
         self.proof_graph.execute_new_cell(code)
 
     def concept_check(self, button=None):
-        from ivy_logic_utils import Clauses
+        from .ivy_logic_utils import Clauses
         assert self.current_step == len(self.session.history) - 1 # TODO: maybe this is too restrictive?
         assert self.current_step == self.concept.current_step
 
@@ -1584,7 +1584,7 @@ class AnalysisSessionWidget(object):
             self.concept.result.value = 'SAT'
 
     def concept_min_unsat_core(self, button=None):
-        from ivy_logic_utils import Clauses
+        from .ivy_logic_utils import Clauses
         import tactic_api as ta
         assert self.current_step == len(self.session.history) - 1 # TODO: maybe this is too restrictive?
         assert self.current_step == self.concept.current_step
@@ -1603,13 +1603,13 @@ class AnalysisSessionWidget(object):
 
     def concept_refine(self, button=None):
         import z3
-        import tactics_api as ta
-        import tactics as t
-        import ivy_transrel
-        from ivy_logic_utils import negate_clauses, Clauses, and_clauses, simplify_clauses
-        from ui_extensions_api import interaction, ShowModal, InteractionError, UserSelectMultiple
-        import ivy_solver
-        from ivy_solver import clauses_to_z3
+        from . import tactics_api as ta
+        from . import tactics as t
+        from . import ivy_transrel
+        from .ivy_logic_utils import negate_clauses, Clauses, and_clauses, simplify_clauses
+        from .ui_extensions_api import interaction, ShowModal, InteractionError, UserSelectMultiple
+        from . import ivy_solver
+        from .ivy_solver import clauses_to_z3
 
         assert self.current_step == len(self.session.history) - 1 # TODO: maybe this is too restrictive?
         assert self.current_step == self.concept.current_step

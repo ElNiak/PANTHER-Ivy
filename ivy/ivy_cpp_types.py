@@ -4,10 +4,10 @@
 
 # A collection of C++ types used to model IVy types in compiled code.
 
-from ivy_cpp import *
-import ivy_utils as iu
-import ivy_solver
-import ivy_logic
+from .ivy_cpp import *
+from . import ivy_utils as iu
+from . import ivy_solver
+from . import ivy_logic
 
 class XBV(CppClass):
     """ A type that represents a large type t using a bit vector. It
@@ -556,15 +556,15 @@ class LongBV(XBVI):
     def __init__(self,classname,loval,hival,bits):
         """ bits is the number of bits in the bit vector representation """
         add_once_global("""
-    struct LongClass {
-        LongClass() : val(0) {}
-        LongClass(int128_t val) : val(val) {}
-        int128_t val;
-        int128_t __hash() const {return val;}
-    };
-""")
-	#"std::ostream& operator<<(std::ostream&s, const LongClass &v) {return s << v.val;}\n"
-	printed = """
+        struct LongClass {
+            LongClass() : val(0) {}
+            LongClass(int128_t val) : val(val) {}
+            int128_t val;
+            int128_t __hash() const {return val;}
+        };
+        """)
+	    #"std::ostream& operator<<(std::ostream&s, const LongClass &v) {return s << v.val;}\n"
+        printed = """
 	std::ostream& operator<<(std::ostream&s, const LongClass &v) {
 		std::ostream::sentry ss( s ); 
 		if ( ss ) { 

@@ -1,14 +1,14 @@
-import ivy_actions as ia
-import ivy_module as im
-import ivy_logic as il
-import ivy_utils as iu
-import logic_util as lu
-import ivy_logic_utils as ilu
-import ivy_theory as thy
+from . import ivy_actions as ia
+from . import ivy_module as im
+from . import ivy_logic as il
+from . import ivy_utils as iu
+from . import logic_util as lu
+from . import ivy_logic_utils as ilu
+from . import ivy_theory as thy
 from collections import defaultdict
 from tarjan import tarjan
 from itertools import chain
-from ivy_union_find import *
+from .ivy_union_find import *
 
 # Here we have rules for checking that VC's are in
 # a decidable fragment
@@ -380,25 +380,25 @@ def create_strat_map(assumes,asserts,macros):
 # Show a stratification graph. This is just for debugging.
 
 def show_strat_graph(m,a):
-    print 'nodes = {'
-    for x,y in m.iteritems():
+    print('nodes = {')
+    for x,y in m.items():
         z = find(y)
         if isinstance(x,tuple):
-            print '({},{}) : {} -> {}'.format(x[0],x[1],y,z)
+            print('({},{}) : {} -> {}'.format(x[0],x[1],y,z))
         else:
-            print '{} : {} -> {}'.format(x,y,z)
-    print '}'
-    print 'arcs = {'
+            print('{} : {} -> {}'.format(x,y,z))
+    print('}')
+    print('arcs = {')
     for arc in a:
-        print '(' + ','.join(str(x) for x in arc) + ')'
-    print '}'
+        print('(' + ','.join(str(x) for x in arc) + ')')
+    print('}')
     
         
 def report_feu_error(text):
     raise iu.IvyError(None,"The verification condition is not in the fragment FAU.\n\n{}".format(text))
 
 def get_node_sort(n):
-    for t,m in strat_map.iteritems():
+    for t,m in strat_map.items():
         if m is n:
             if isinstance(t,tuple):
                 return t[0].sort.dom[t[1]]
@@ -430,7 +430,7 @@ def report_interp_over_var(fmla,lineno,node):
     # First, try to fibd the offending variable in the strat map
 
     var_msg = ''
-    for v,n in strat_map.iteritems():
+    for v,n in strat_map.items():
         if n is node:
             if v in universally_quantified_variables:
                 lf = universally_quantified_variables[v]
@@ -451,9 +451,9 @@ def check_feu(assumes,asserts,macros):
     def vupair(p):
         return (var_uniq(p[0]),p[1])
 
-    assumes = map(vupair,assumes)
-    asserts = map(vupair,asserts)
-    macros = map(vupair,macros)
+    assumes = list(map(vupair,assumes))
+    asserts = list(map(vupair,asserts))
+    macros = list(map(vupair,macros))
 
     # Create the stratificaiton graph, as described above.
 

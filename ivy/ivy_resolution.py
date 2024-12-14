@@ -1,8 +1,8 @@
 #
 # Copyright (c) Microsoft Corporation. All Rights Reserved.
 #
-from ivy_logic import *
-from ivy_logic_utils import *
+from .ivy_logic import *
+from .ivy_logic_utils import *
 
 def env_find(env, t):
     v = t
@@ -35,7 +35,7 @@ def terms_mgu(terms1, terms2):
 
     #print env
 
-    subs = dict( (rep, env_find(env, env[rep])) for rep in env.iterkeys() )
+    subs = dict( (rep, env_find(env, env[rep])) for rep in env.keys() )
     return True, subs
 
 def test_terms_mgu():
@@ -88,7 +88,7 @@ def terms_mgu_eq(terms1, terms2):
 
     #print env
 
-    subs = dict( (rep, env_find(env, env[rep])) for rep in env.iterkeys() )
+    subs = dict( (rep, env_find(env, env[rep])) for rep in env.keys() )
     return True, subs, eqs
 
 

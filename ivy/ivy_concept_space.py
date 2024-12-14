@@ -2,8 +2,8 @@
 # Copyright (c) Microsoft Corporation. All Rights Reserved.
 #
 import itertools
-from ivy_logic import *
-from ivy_logic_utils import substitute_clause, canonize_clause, used_variables_clauses
+from .ivy_logic import *
+from .ivy_logic_utils import substitute_clause, canonize_clause, used_variables_clauses
 
 class NamedSpace(AST):
     def __init__(self, lit):
@@ -16,7 +16,7 @@ class NamedSpace(AST):
         if self.lit.polarity == 1 and is_atom(atom) and atom.relname in memo:
             params,value = memo[atom.relname]
             assert len(params) == len(atom.args)
-            subst = dict(zip(params,atom.args))
+            subst = dict(list(zip(params,atom.args)))
             res = [substitute_clause(cl,subst) for cl in value]
 #            print "blif: {} {} {} {}".format(atom,params,value,res)
             return res
@@ -26,9 +26,9 @@ class NamedSpace(AST):
         if self.lit.polarity == 1 and atom.relname in memo:
             params,value = memo[atom.relname]
             if len(params) != len(atom.args):
-                print "{} {} {}".format(self,params,value)
+                print("{} {} {}".format(self,params,value))
             assert len(params) == len(atom.args)
-            subst = dict(zip(params,atom.args))
+            subst = dict(list(zip(params,atom.args)))
             return [(substitute_clause(cl,subst),relalg.subst(r,subst)) for (cl,r) in value]
         v = relalg.prim(self.lit)
         return [([self.lit],v)] if not relalg.empty(v) else []
@@ -110,7 +110,7 @@ def t_SYMBOL(t):
     return t
 
 def t_error(t):
-    print "Illegal character '%s'" % t.value[0]
+    print("Illegal character '%s'" % t.value[0])
     t.lexer.skip(1)
 
 lexer = lex.lex()
@@ -180,7 +180,7 @@ def p_sum_sum_expr(p):
 
     
 def p_error(p):
-    print "Syntax error in input!"
+    print("Syntax error in input!")
 
 # Build the parser
 import os
@@ -193,13 +193,13 @@ def to_concept_space(s):
 if __name__ == '__main__':
     while True:
        try:
-           s = raw_input('calc > ')
+           s = input('calc > ')
        except EOFError:
            break
        if not s: continue
        result = parser.parse(s)
-       print result
-       print "enum: %s" % result.enumerate(dict(),lambda x:True)
+       print(result)
+       print("enum: %s" % result.enumerate(dict(),lambda x:True))
 
 def clauses_to_concept(name,clauses):
     vars =  used_variables_clauses(clauses)

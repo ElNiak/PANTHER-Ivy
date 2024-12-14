@@ -16,9 +16,9 @@ object quic_deser_short_enc_server = {}
     #define QUIC_DESER_FAKE_CHECKSUM_LENGTH 0
     //TODO
     #if defined(IS_NOT_DOCKER) 
-        #include "/home/user/Documents/QUIC-RFC9000/panther-ivy/protocol-testing/quic/quic_utils/quic_ser_deser.h"
+        #include "/home/user/Documents/QUIC-RFC9000/panther_ivy/protocol-testing/quic/quic_utils/quic_ser_deser.h"
     #else 
-         #include "/app/panther-ivy/protocol-testing/apt/apt_protocols/quic/quic_utils/quic_ser_deser.h"
+         #include "/opt/panther_ivy/protocol-testing/apt/apt_protocols/quic/quic_utils/quic_ser_deser.h"
     #endif
 
     class `quic_deser_short_enc_server` : public ivy_binary_deser_128 {
