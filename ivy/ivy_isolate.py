@@ -2,20 +2,20 @@
 # Copyright (c) Microsoft Corporation. All Rights Reserved.
 #
 
-import ivy_logic
-import ivy_dafny_compiler as dc
-import ivy_solver as slv
-import ivy_logic_utils as lu
+from . import ivy_logic
+from . import ivy_dafny_compiler as dc
+from . import ivy_solver as slv
+from . import ivy_logic_utils as lu
 import string
-import ivy_ast
-import ivy_utils as iu
-import ivy_actions as ia
-import ivy_alpha
-import ivy_module as im
-import ivy_theory as ith
-from ivy_ast import ASTContext
+from . import ivy_ast
+from . import ivy_utils as iu
+from . import ivy_actions as ia
+from . import ivy_alpha
+from . import ivy_module as im
+from . import ivy_theory as ith
+from .ivy_ast import ASTContext
 from collections import defaultdict
-import ivy_printer
+from . import ivy_printer
 
 show_compiled = iu.BooleanParameter("show_compiled",False)
 cone_of_influence = iu.BooleanParameter("coi",True)
@@ -256,14 +256,14 @@ def strip_action(ast,strip_map,strip_binding,is_init=False,init_params=[]):
                 lhs_params = strip_map_lookup(sym.name,strip_map)
                 if len(lhs_params) != num_isolate_params:
                     if not (len(lhs_params) == 0 and len(strip_binding) == 0 and is_init):
-                        print (sym.name)
-                        print (sym.sort)
+                        print((sym.name))
+                        print((sym.sort))
                         print (lhs_params)
-                        print num_isolate_params
+                        print(num_isolate_params)
                         raise iu.IvyError(ast,"assignment may be interfering")
     if isinstance(ast,ia.AssignAction) and len(init_params) > 0:
         lhs = ast.args[0]
-        xtra_bindings = zip(lhs.args[len(strip_binding):],init_params)
+        xtra_bindings = list(zip(lhs.args[len(strip_binding):],init_params))
         if any(not ivy_logic.is_variable(x) for x,y in xtra_bindings):
             raise iu.IvyError(ast,"assignment may be interfering")
         strip_binding = strip_binding.copy()
@@ -372,7 +372,7 @@ def strip_isolate(mod,isolate,impl_mixins,all_after_inits,extra_strip):
                 if a.rep in ivy_logic.sig.symbols:
                     raise iu.IvyError(a,"isolate parameter redefines {}",a.rep)
             strip_map[name] = [a.rep for a in atom.args]
-    for ms in impl_mixins.values():
+    for ms in list(impl_mixins.values()):
         for m in ms:
             if isinstance(m,ivy_ast.MixinImplementDef):
                 strip_params = strip_map_lookup(canon_act(m.mixer()),strip_map)
@@ -382,7 +382,7 @@ def strip_isolate(mod,isolate,impl_mixins,all_after_inits,extra_strip):
 #        strip_map[imp.imported()] = [a.rep for a in isolate.params()]
     # strip the actions
     new_actions = {}
-    for name,action in mod.actions.iteritems():
+    for name,action in mod.actions.items():
         strip_params = strip_map_lookup(canon_act(name),strip_map,with_dot=False)
         orig_name = name[4:] if name.startswith('ext:') else name
         is_init=(orig_name in all_after_inits)
@@ -392,7 +392,7 @@ def strip_isolate(mod,isolate,impl_mixins,all_after_inits,extra_strip):
                 init_params = strip_params[len(action.formal_params):]
             else:
                 raise iu.IvyError(action,"cannot strip isolate parameters from {}".format(name))
-        strip_binding = dict(zip(action.formal_params,strip_params))
+        strip_binding = dict(list(zip(action.formal_params,strip_params)))
 #        if isinstance(action,ia.NativeAction) and len(strip_params) != num_isolate_params:
 #            raise iu.IvyError(None,'foreign function {} may be interfering'.format(name))
         new_action = strip_action(action,strip_map,strip_binding,is_init=is_init,init_params=init_params)
@@ -413,7 +413,7 @@ def strip_isolate(mod,isolate,impl_mixins,all_after_inits,extra_strip):
 
     # strip the signature
     new_symbols = {}
-    for name,sym in ivy_logic.sig.symbols.iteritems():
+    for name,sym in ivy_logic.sig.symbols.items():
         if sym not in im.module.sig.constructors:
             strip_params = strip_map_lookup(name,strip_map)
             if strip_params:
@@ -572,7 +572,7 @@ def find_references(mod,syms,new_actions):
     for x in mod.labeled_axioms+mod.labeled_props+mod.labeled_inits+mod.labeled_conjs+mod.definitions:
         if syms.intersection(lu.used_symbols_ast(x.formula)):
             refs.add(x.lineno)
-    for x in new_actions.values():
+    for x in list(new_actions.values()):
         if syms.intersection(lu.used_symbols_ast(x)):
             refs.add(x.lineno)
     return refs
@@ -591,7 +591,7 @@ def check_interference(mod,new_actions,summarized_actions,impl_mixins,check_term
     callouts = dict()  # these are triples (midcalls,headcalls,tailcalls,bothcalls)
     for actname in new_actions:
         get_callouts(mod,new_actions,summarized_actions,actname,callouts)
-    for actname,action in new_actions.iteritems():
+    for actname,action in new_actions.items():
         if actname not in summarized_actions:
             for called_name in action.iter_calls():
                 called_name = canon_act(called_name)
@@ -664,7 +664,7 @@ def get_prop_dependencies(mod):
     """ get a list of pairs (p,ds) where p is a property ds is a list
     of objects its proof depends on """
     depmap = defaultdict(list)
-    for iso in mod.isolates.values():
+    for iso in list(mod.isolates.values()):
         for v in iso.verified():
             depmap[v.rep].extend(w.rep for w in iso.verified()+iso.present())
     objs = set()
@@ -672,7 +672,7 @@ def get_prop_dependencies(mod):
         if ax.label:
             for n in ancestors(ax.label.rep):
                 objs.add(n)
-    for itps in mod.interps.values():
+    for itps in list(mod.interps.values()):
         for itp in itps:
             if itp.label:
                 for n in ancestors(itp.label.rep):
@@ -692,7 +692,7 @@ def set_privates_prefer(mod,isolate,preferred):
     mod.privates = set(mod.privates)
     if 'this' not in verified and suff in mod.hierarchy and preferred in mod.hierarchy:
         mod.privates.add(suff)
-    for n,l in mod.hierarchy.iteritems():
+    for n,l in mod.hierarchy.items():
         if n not in verified:
             if suff in l and preferred in l:
                 mod.privates.add(iu.compose_names(n,suff))
@@ -714,7 +714,7 @@ def set_privates(mod,isolate,suff=None):
     mod.privates = set(mod.privates)
     if suff in mod.hierarchy:
         mod.privates.add(suff)
-    for n,l in mod.hierarchy.iteritems():
+    for n,l in mod.hierarchy.items():
         nsuff = get_private_from_attributes(mod,n,suff,isolate)
         for ns in ['impl','spec'] if nsuff == 'priv' else [nsuff]:
             if ns in l:
@@ -729,11 +729,11 @@ def set_privates(mod,isolate,suff=None):
                 mod.privates.add(p)
     global vprivates
     vprivates = set()
-    for isol in mod.isolates.values():
+    for isol in list(mod.isolates.values()):
         for v in isol.verified():
             vprivates.add(v.rep)
     if isinstance(isolate,ivy_ast.ProcessDef):
-        for isol in mod.isolates.values():
+        for isol in list(mod.isolates.values()):
             if isinstance(isol,ivy_ast.ProcessDef):
                 if isolate.name() != isol.name():
                     mod.privates.add(isol.name())
@@ -762,7 +762,7 @@ def get_props_proved_in_isolate(mod,isolate):
         set_privates(mod,isolate,'impl')
         verified,present = get_isolate_info(mod,isolate,'impl')
         if not iu.version_le(iu.get_string_version(),"1.6"):
-            for other_iso in mod.isolates.values():
+            for other_iso in list(mod.isolates.values()):
                 if other_iso is not isolate:
                     for other_verified in other_iso.verified():
                         ovn = other_verified.relname
@@ -794,7 +794,7 @@ def check_with_parameters(mod,isolate_name):
         
     propnames = set(x.label.rep for x in (mod.labeled_props+mod.labeled_axioms+mod.labeled_conjs) if x.label is not None)
     objs = set()
-    for itps in mod.interps.values():
+    for itps in list(mod.interps.values()):
         for itp in itps:
             if itp.label:
                 objs.add(itp.label.rep)        
@@ -821,7 +821,7 @@ def get_isolate_info(mod,isolate,kind,extra_with=[]):
     present.update(xtra)
 
     vp = set()
-    for isol in mod.isolates.values():
+    for isol in list(mod.isolates.values()):
         for v in isol.verified():
             vp.add(v.rep)
     for name in mod.attributes:
@@ -1424,7 +1424,7 @@ def isolate_component(mod,isolate_name,extra_with=[],extra_strip=None,after_init
 
     impl_mixins = defaultdict(list)
     # delegate all the stub actions to their implementations
-    for actname,ms in mod.mixins.iteritems():
+    for actname,ms in mod.mixins.items():
         implements = [m for m in ms if isinstance(m,ivy_ast.MixinImplementDef)]
         impl_mixins[actname].extend(implements)
         before_after = [m for m in ms if not isinstance(m,ivy_ast.MixinImplementDef)]
@@ -1488,7 +1488,7 @@ def isolate_component(mod,isolate_name,extra_with=[],extra_strip=None,after_init
                                   else []))
 
     summarized_actions = set()
-    for actname,action in mod.actions.iteritems():
+    for actname,action in mod.actions.items():
         ver = vstartswith_eq_some(actname,verified,mod)
         pre = startswith_eq_some(actname,present,mod)
         if pre: 
@@ -1561,7 +1561,7 @@ def isolate_component(mod,isolate_name,extra_with=[],extra_strip=None,after_init
     explicit_exports = set(exported)
 
     with_effects = set()
-    for actname,action in mod.actions.iteritems():
+    for actname,action in mod.actions.items():
         if not startswith_eq_some(actname,present,mod):
             for subaction in action.iter_subactions():
                 if isinstance(subaction,ia.CallAction):
@@ -1627,7 +1627,7 @@ def isolate_component(mod,isolate_name,extra_with=[],extra_strip=None,after_init
     if not isinstance(isolate,ivy_ast.ExtractDef):
         proved,not_proved = get_props_proved_in_isolate(mod,isolate)
         # mod.labeled_axioms.extend(not_proved)
-        mod.labeled_axioms = [m for m in mod.labeled_axioms if not m.explicit or m.name in exact_present]
+        mod.labeled_axioms = [m for m in mod.labeled_axioms if not m.explicit or m.name in exact_present or m.temporal]
         new_props = []
         proved_ids = set(p.id for p in proved)
         not_proved_ids = set(p.id for p in not_proved)
@@ -1676,7 +1676,7 @@ def isolate_component(mod,isolate_name,extra_with=[],extra_strip=None,after_init
     # Get rid of the inaccessible actions
 
     cone = get_mod_cone(mod,actions=new_actions,roots=exported,after_inits=after_inits)        
-    new_actions = dict((x,y) for x,y in new_actions.iteritems() if x in cone)
+    new_actions = dict((x,y) for x,y in new_actions.items() if x in cone)
     mod.isolate_info.implementations = [(impl,actname,action) for impl,actname,action in mod.isolate_info.implementations
                                        if actname in new_actions or 'ext:'+actname in new_actions]
     mod.isolate_info.monitors = [(mixer,mixee,action) for mixer,mixee,action in mod.isolate_info.monitors
@@ -1691,14 +1691,14 @@ def isolate_component(mod,isolate_name,extra_with=[],extra_strip=None,after_init
     for x in [mod.labeled_axioms,mod.labeled_props,mod.labeled_inits,mod.labeled_conjs]:
         asts += [y.formula for y in x if not isinstance(y.formula,ivy_ast.SchemaBody)]
 #    asts += [action for action in new_actions.values()]
-    for a in mod.actions.values():
+    for a in list(mod.actions.values()):
         asts.extend(a.formal_params)
         asts.extend(a.formal_returns)
     for tmp in mod.natives:
         asts.extend(tmp.args[2:])
 #    all_syms = set(lu.used_symbols_asts(asts))
     all_syms = set(map(ivy_logic.normalize_symbol,lu.used_symbols_asts(asts)))
-    for action in new_actions.values():
+    for action in list(new_actions.values()):
         action.get_references(all_syms)
     follow_definitions(mod.definitions,all_syms)
     if opt_keep_destructors.get():
@@ -1714,7 +1714,7 @@ def isolate_component(mod,isolate_name,extra_with=[],extra_strip=None,after_init
 
     # erase assignments to unreferenced variables
 
-    new_actions = dict((actname,action.erase_unrefed(all_syms,all_names)) for actname,action in new_actions.iteritems())
+    new_actions = dict((actname,action.erase_unrefed(all_syms,all_names)) for actname,action in new_actions.items())
 
     # check that any dropped axioms do not refer to the isolate's signature
 
@@ -1728,7 +1728,7 @@ def isolate_component(mod,isolate_name,extra_with=[],extra_strip=None,after_init
             for x in lu.used_symbols_ast(a.formula):
                 if x in all_syms and not ivy_logic.is_interpreted_symbol(x) and x not in determined:
                     raise iu.IvyError(a,"relevant axiom {} not enforced (uses symbol {})".format(pname(a),x))
-        for actname,action in mod.actions.iteritems():
+        for actname,action in mod.actions.items():
             if startswith_eq_some(actname,present,mod):
                 for c in action.iter_calls():
                     imp = implementation_map.get(c,c)
@@ -1778,10 +1778,10 @@ def isolate_component(mod,isolate_name,extra_with=[],extra_strip=None,after_init
     asts = []
     for x in [mod.labeled_axioms,mod.labeled_props,mod.labeled_inits,mod.labeled_conjs,mod.definitions]:
         asts.extend(y.formula for y in x if not isinstance(y.formula,ivy_ast.SchemaBody))
-    asts.extend(action for action in mod.actions.values())
+    asts.extend(action for action in list(mod.actions.values()))
     if opt_keep_destructors.get():
         asts.extend(mod.params) # if compiling, keep all of the parameters
-    for a in mod.actions.values():
+    for a in list(mod.actions.values()):
         asts.extend(a.formal_params)
         asts.extend(a.formal_returns)
     for tmp in mod.natives:
@@ -1804,7 +1804,7 @@ def isolate_component(mod,isolate_name,extra_with=[],extra_strip=None,after_init
     # check that any properties have dependencies present
 
     if enforce_axioms.get() and not isinstance(isolate,ivy_ast.ExtractDef):
-        all_syms_norm = map(ivy_logic.normalize_symbol,all_syms)
+        all_syms_norm = list(map(ivy_logic.normalize_symbol,all_syms))
         for p,ds in prop_deps:
             for d in ds:
                 if not startswith_eq_some(d,present,mod):
@@ -1869,7 +1869,7 @@ def isolate_component(mod,isolate_name,extra_with=[],extra_strip=None,after_init
     # check that native code does not occur in an untrusted isolate
 
     if type(isolate) == ivy_ast.IsolateDef and isolate_mode.get() == 'check':
-        for action in mod.actions.values():
+        for action in list(mod.actions.values()):
             if isinstance(action,ia.NativeAction):
                 raise iu.IvyError(action,'trusted code used in untrusted isolate')
         for ldf in mod.definitions:
@@ -1916,7 +1916,7 @@ class SortOrder(object):
 
 def get_mixin_order(iso,mod):
     arcs = [(rdf.args[0].relname,rdf.args[1].relname) for rdf in mod.mixord]
-    actions = mod.mixins.keys()
+    actions = list(mod.mixins.keys())
     for action in actions:
         mixins = mod.mixins[action]
         implements = [m for m in mixins if isinstance(m,ivy_ast.MixinImplementDef)]
@@ -2014,7 +2014,7 @@ def fix_initializers(mod,after_inits):
 def set_up_implementation_map(mod):
     global implementation_map
     implementation_map = {}
-    for actname,ms in mod.mixins.iteritems():
+    for actname,ms in mod.mixins.items():
         implements = [m for m in ms if isinstance(m,ivy_ast.MixinImplementDef)]
         for m in implements:
             implementation_map[m.mixee()] = m.mixer()
@@ -2044,18 +2044,19 @@ def apply_present_conjectures(isol,mod):
     mod.assumed_invariants = list(conjs)
     conjs = [c for c in conjs if not c.explicit]
     post_conjs = get_isolate_post_conjs(mod,isol)
+    post_conjs = [c for c in post_conjs if not c.explicit]
     cg = mod.call_graph()  # TODO: cg should be cached
     myexports = get_isolate_exports(mod,cg,isol)
     for actname in myexports:
-        assumes = map(conj_to_assume,conjs)
-        post_assumes = map(conj_to_assume,post_conjs)
+        assumes = list(map(conj_to_assume,conjs))
+        post_assumes = list(map(conj_to_assume,post_conjs))
         brackets.append((actname,assumes,post_assumes))
     posts = defaultdict(list)
     for conj in conjs:
         for actname in mod.conj_actions[conj.label.rep]:
             if actname not in myexports:
                 posts[actname].append(conj_to_assume(conj))
-    for actname,assumes in posts.iteritems():
+    for actname,assumes in posts.items():
         brackets.append((actname,[],assumes))
     return brackets
 
@@ -2311,7 +2312,7 @@ def create_isolate(iso,mod = None,**kwargs):
 
         # check all mixin declarations
 
-        for name,mixins in mod.mixins.iteritems():
+        for name,mixins in mod.mixins.items():
             for mixin in mixins:
                 with ASTContext(mixin):
                     action1,action2 = (lookup_action(mixin,mod,a.relname) for a in mixin.args)
@@ -2389,7 +2390,7 @@ def create_isolate(iso,mod = None,**kwargs):
             mod.imports = newimps
 
         mixers = set()
-        for ms in mod.mixins.values():
+        for ms in list(mod.mixins.values()):
             for m in ms:
                 mixers.add(m.mixer())
 
@@ -2408,7 +2409,7 @@ def create_isolate(iso,mod = None,**kwargs):
             # apply all the mixins in no particular order
             mod.isolate_info = im.IsolateInfo()
             implemented = set()
-            for name,mixins in mod.mixins.iteritems():
+            for name,mixins in mod.mixins.items():
                 for mixin in mixins:
                     action1,action2 = (lookup_action(mixin,mod,a.relname) for a in mixin.args)
                     mixed_name = mixin.args[1].relname
@@ -2423,7 +2424,7 @@ def create_isolate(iso,mod = None,**kwargs):
                     else:
                         mod.isolate_info.monitors.append(triple)
                     implemented.add(mixin.mixer())
-            for actname,action in mod.actions.iteritems():
+            for actname,action in mod.actions.items():
                 if actname not in implemented:
                     mod.isolate_info.implementations.append((actname,actname,action))
             # find the globally exported actions (all if none specified, for compat)
@@ -2532,7 +2533,7 @@ def check_isolate_completeness(mod = None):
     global implementation_map
     implementation_map = {}
     impl_mixins = defaultdict(list)
-    for actname,ms in mod.mixins.iteritems():
+    for actname,ms in mod.mixins.items():
         implements = [m for m in ms if isinstance(m,ivy_ast.MixinImplementDef)]
         impl_mixins[actname].extend(implements)
         for m in implements:
@@ -2541,7 +2542,7 @@ def check_isolate_completeness(mod = None):
                     raise IvyError(m,'action {} not defined'.format(foo))
             implementation_map[m.mixee()] = m.mixer()
     
-    for iso_name,isolate in mod.isolates.iteritems():
+    for iso_name,isolate in mod.isolates.items():
         verified,present = get_isolate_info(mod,isolate,'impl')
         save_privates = mod.privates
         set_privates(mod,isolate)
@@ -2573,7 +2574,7 @@ def check_isolate_completeness(mod = None):
         if lbl:
             trusted.add(lbl.rep)
             
-    for actname,action in mod.actions.iteritems():
+    for actname,action in mod.actions.items():
         if startswith_eq_some(actname,trusted,mod):
             continue
         for callee in action.iter_calls():
@@ -2613,20 +2614,20 @@ def check_isolate_completeness(mod = None):
         for x,y,z in missing:
             mixer = y.mixer() if isinstance(y,ivy_ast.MixinDef) else y
             mixee = y.mixee() if isinstance(y,ivy_ast.MixinDef) else y
-            print iu.IvyError(find_some_assertion(mod,mixer,kind=z),"assertion is not checked")
+            print(iu.IvyError(find_some_assertion(mod,mixer,kind=z),"assertion is not checked"))
             if mixee != mixer:
-                print iu.IvyError(mod.actions[mixee],"...in action {}".format(mixee))
+                print(iu.IvyError(mod.actions[mixee],"...in action {}".format(mixee)))
             if x == "external":
-                print "error: ...when called from the environment"
+                print("error: ...when called from the environment")
             else:
-                print iu.IvyError(find_some_call(mod,x,mixee),"...when called from {}".format(x))
+                print(iu.IvyError(find_some_call(mod,x,mixee),"...when called from {}".format(x)))
     
     done = set()
     for prop in mod.labeled_props:
         if prop.label:
             label = prop.label.relname
             if label not in checked_props and label not in done:
-                print iu.IvyError(prop,"property {} not checked".format(label))
+                print(iu.IvyError(prop,"property {} not checked".format(label)))
                 missing.append((label,None,None))
                 done.add(label)
         
@@ -2650,7 +2651,7 @@ def iter_isolate(mod,iso,fun,verified=True,present=True):
     # Record all the isolate roots, so we can detect sub-isolates
 
     vp = set()
-    for isol in mod.isolates.values():
+    for isol in list(mod.isolates.values()):
         for v in isol.verified():
             vp.add(v.rep)
             
@@ -2732,7 +2733,7 @@ def get_isolate_exports(mod,cg,iso):
 
 def get_isolate_map(mod,verified=True,present=True):
     res = defaultdict(list)
-    for ison,isol in mod.isolates.iteritems():
+    for ison,isol in mod.isolates.items():
         def fun(name):
             res[name].append(ison)
         iter_isolate(mod,isol,fun,verified,present)

@@ -29,5 +29,5 @@ export a
 with im.Module():
     iu.set_parameters({'show_compiled':'true'})
     ivy_from_string(prog,create_isolate=False)
-    print im.module.actions["a"].update(im.module,{})
+    print(im.module.actions["a"].update(im.module,{}))
 

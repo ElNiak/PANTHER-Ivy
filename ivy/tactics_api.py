@@ -13,18 +13,18 @@ remains the same.
 import re
 import inspect
 
-from ivy_actions import ChoiceAction
-import ivy_transrel
-import ivy_solver
-from ivy_transrel import is_skolem
-import ivy_alpha
-from ivy_logic_utils import (and_clauses, formula_to_clauses,
+from .ivy_actions import ChoiceAction
+from . import ivy_transrel
+from . import ivy_solver
+from .ivy_transrel import is_skolem
+from . import ivy_alpha
+from .ivy_logic_utils import (and_clauses, formula_to_clauses,
                              clauses_to_formula, true_clauses,
                              false_clauses, negate_clauses, Clauses)
-from logic import And, Not
-from logic_util import normalize_quantifiers
-from proof import ProofGoal
-import ui_extensions_api
+from .logic import And, Not
+from .logic_util import normalize_quantifiers
+from .proof import ProofGoal
+from . import ui_extensions_api
 
 
 # class Facts(object):
@@ -111,7 +111,7 @@ def arg_add_action_node(pre, action, abstractor=None):
     Add a new node with an action edge from pre, and return it.
     """
     try:
-        label = [k for k, v in _ivy_ag.actions.iteritems() if v == action][0]
+        label = [k for k, v in _ivy_ag.actions.items() if v == action][0]
     except IndexError:
         label = None
     node = _ivy_ag.execute(action, pre, abstractor, label)
@@ -291,7 +291,7 @@ def refine_or_reverse(goal):
     axioms = _ivy_interp.background_theory()
     #import IPython
     #IPython.embed()
-    print "calling ivy_transrel.forward_interpolant"
+    print("calling ivy_transrel.forward_interpolant")
     x = ivy_transrel.forward_interpolant(
         pred.clauses,
         action.update(_ivy_interp, None),
@@ -299,7 +299,7 @@ def refine_or_reverse(goal):
         axioms,
         None,
     )
-    print "    got: {!r}".format(x)
+    print("    got: {!r}".format(x))
     if x is None:
         bi = backward_image(goal.formula, action)
         return False, goal_at_arg_node(bi, pred)
@@ -312,7 +312,7 @@ def implied_facts(premise, facts_to_check):
     Return a list of facts from facts_to_check that are implied by
     theory
     """
-    from z3_utils import z3_implies_batch
+    from .z3_utils import z3_implies_batch
     axioms = _ivy_interp.background_theory()
     premise = normalize_quantifiers((and_clauses(axioms, premise)).to_formula())
     facts_to_check = [f.to_formula() if type(f) is Clauses else f for f in facts_to_check]
@@ -334,7 +334,7 @@ def get_diagram(goal, weaken=False):
 
 
 def refuted_goal(goal):
-    from z3_utils import z3_implies
+    from .z3_utils import z3_implies
     axioms = _ivy_interp.background_theory()
     premise = (and_clauses(axioms, goal.node.clauses)).to_formula()
     f = Not(goal.formula.to_formula())
@@ -396,10 +396,10 @@ class Tactic(object):
         from IPython import embed
         set_context(self.analysis_session)
         # call pre hooks
-        print "Applying tactic: {}".format(type(self).__name__)
+        print("Applying tactic: {}".format(type(self).__name__))
         #embed()
         result = self.apply(*args, **kwargs)
-        print "Applying tactic: {} resulted in {}".format(type(self).__name__, result)
+        print("Applying tactic: {} resulted in {}".format(type(self).__name__, result))
         #embed()
         # call post hooks
         return result
@@ -454,7 +454,7 @@ def goal_tactic(tactic_cls):
 
 
 if __name__ == '__main__':
-    from proof import AnalysisSession
+    from .proof import AnalysisSession
 
     session = AnalysisSession('../src/ivy/test.ivy')
     set_context(session)

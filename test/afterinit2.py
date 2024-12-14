@@ -30,5 +30,5 @@ with im.Module():
         ick.check_module()
         assert False,"safety should have failed"
     except iu.IvyError as e:
-        print e
+        print(e)
         assert str(e) == "error: failed checks: 1"

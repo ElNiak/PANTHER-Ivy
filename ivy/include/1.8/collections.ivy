@@ -816,7 +816,8 @@ module partial_function(dom,rng) = {
 
     object spec = {
 	after init {
-            map(X,Y) := false
+            map(X,Y) := false;
+            pre(X) := false
         }
 
 	implement remap {

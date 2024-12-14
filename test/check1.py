@@ -40,7 +40,7 @@ with im.Module():
         ick.check_module()
         assert False,"property should have been false"
     except iu.IvyError as e:
-        print str(e)
+        print(str(e))
         assert str(e) == 'error: failed checks: 1'
 
 

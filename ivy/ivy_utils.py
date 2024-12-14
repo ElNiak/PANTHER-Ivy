@@ -88,7 +88,7 @@ def unzip_append(tups):
 
 def unzip_pairs(tups):
     """ turn a list of pairs into a pair of lists """
-    return zip(*tups) if tups else ([],[])
+    return list(zip(*tups)) if tups else ([],[])
 
 def flatten(l):
     """ flatten a generator """
@@ -124,12 +124,12 @@ def distinct_unordered_pairs(l):
             yield (l[i],l[j])
 
 def inverse_map(m):
-    return dict((y,x) for x,y in m.iteritems())
+    return dict((y,x) for x,y in m.items())
 
 def compose_maps(m1,m2):
     """ compose two maps as functions. a map is assumed to be the identity for keys not present """
     res = m2.copy()
-    res.update((x,m2.get(y,y)) for x,y in m1.iteritems())
+    res.update((x,m2.get(y,y)) for x,y in m1.items())
     return res
 
 def partition(things,key):
@@ -290,7 +290,7 @@ class IvyError(Exception):
         self.lineno = ast.lineno if hasattr(ast,'lineno') else Location()
         self.msg = msg
         if not catch.get():
-            print str(self)
+            print(str(self))
             assert False
     def __str__(self):
         def recur(lineno):
@@ -310,7 +310,7 @@ class IvyUndefined(IvyError):
         super(IvyUndefined,self).__init__(ast,"undefined: " + name)
 
 def warn(ast,msg):
-    print str(IvyError(ast,msg)).replace('error: ','warning: ')
+    print(str(IvyError(ast,msg)).replace('error: ','warning: '))
 
 # This module provides a generic parameter mechanism similar to
 # "parameterize" in racket. 
@@ -381,7 +381,7 @@ class Parameter(object):
         self.value = self.process(new_val)
         self.callback(self.value)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return True if self.value else False
 
     def set_callback(self,callback):
@@ -443,7 +443,7 @@ def pairs_to_dict(pairs,key=lambda x:x):
     return d
 
 def dict_to_pairs(d):
-    return [(x,y) for x,l in d.iteritems() for y in l]
+    return [(x,y) for x,l in d.items() for y in l]
 
 def topological_sort(items,order,key=lambda x:x):
     """ items is a list, key maps list elements to hashable keys,
@@ -524,7 +524,7 @@ class ErrorPrinter(object):
         return self
     def __exit__(self,exc_type, exc_val, exc_tb):
         if exc_type == IvyError or isinstance(exc_val,IvyError):
-            print str(exc_val)
+            print(str(exc_val))
             exit(1)
             return True
         return False # don't block any other exceptions
@@ -581,7 +581,7 @@ def get_string_version():
     return ivy_language_version
 
 def string_version_to_numeric_version(v):
-    return map(int,string.split(v,'.'))
+    return list(map(int,str.split(v,'.')))
 
 def get_numeric_version():
     return string_version_to_numeric_version(ivy_language_version)
@@ -626,6 +626,8 @@ def skip_subscript(name,pos):
 
 
 def split_name(name):
+    if name.startswith('"'):
+        return [name]
     res = []
     old = 0
     pos = skip_symbol(name,old)
@@ -705,6 +707,9 @@ polymorphic_symbols = set(
      'bvor',
      'bvnot',
      'cast',
+     'arrsel',
+     'arrupd',
+     'arrcst',
     ]
 )
 
@@ -712,7 +717,7 @@ use_numerals = BooleanParameter("use_numerals",True)
 use_new_ui = BooleanParameter("new_ui",False)
 catch = BooleanParameter("catch",True)
 
-default_ui = Parameter("ui","art")
+default_ui = Parameter("ui","cti")
 
 def get_default_ui_module():
     defui = default_ui.get()
@@ -745,7 +750,7 @@ def dbg(*exprs):
         locs = frame.f_back.f_locals
         globs = frame.f_back.f_globals
         for e in exprs:
-            print "{}:{}".format(e,eval(e,globs,locs))
+            print("{}:{}".format(e,eval(e,globs,locs)))
     finally:
         del frame
 

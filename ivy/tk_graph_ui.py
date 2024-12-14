@@ -2,16 +2,16 @@
 # Copyright (c) Microsoft Corporation. All Rights Reserved.
 #
 
-import ivy_ui
-import ivy_ui_util as uu
-import ivy_utils as iu
-import ivy_graph_ui
-from Tkinter import *
-import Tkconstants, tkFileDialog
-import Tix
+from . import ivy_ui
+from . import ivy_ui_util as uu
+from . import ivy_utils as iu
+from . import ivy_graph_ui
+from tkinter import *
+import tkinter.constants, tkinter.filedialog
+import tkinter.tix
 import functools
-from cy_elements import *
-from tk_cy import *
+from .cy_elements import *
+from .tk_cy import *
 
 node_styles = {
     'at_least_one' : {'width' : 4, 'double' : 5},
@@ -267,6 +267,10 @@ class TkGraphWidget(TkCyCanvas,uu.WithMenuBar):
             # tk.eval('set myfd [open {' + f + '} w]')
             # tk.eval('$graph write $myfd dot')
             # tk.eval('close $myfd')
+            f = tkinter.filedialog.asksaveasfilename(filetypes = [('dot files', '.dot')],title='Export graph as...',parent=self)
+            tk.eval('set myfd [open {' + f + '} w]')
+            tk.eval('$graph write $myfd dot')
+            tk.eval('close $myfd')
 
     def node_from_cy_elem(self,elem):
         return self.g.concept_from_id(get_obj(elem))
@@ -343,7 +347,7 @@ def create_relbuttons_window(gw,relbuttons):
     lb = Label(relbuttons,text="State: {}".format(gw.parent.state_label(gw.g.parent_state)))
     gw.state_label_widget = lb
     lb.pack(side = TOP)
-    sbtns = Tix.ScrolledHList(relbuttons,options='hlist.columns 5 hlist.background #ffffff',width=300)
+    sbtns = tkinter.tix.ScrolledHList(relbuttons,options='hlist.columns 5 hlist.background #ffffff',width=300)
     sbtns.pack(side="left", fill="both", expand=True)
     btns = sbtns.subwidget('hlist')
     return lb,btns

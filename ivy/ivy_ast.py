@@ -5,9 +5,9 @@
 Ivy abstract syntax trees.
 """
 
-from ivy_utils import flatten, gen_to_set, UniqueRenamer, compose_names, split_name, IvyError, base_name, ivy_compose_character, LocationTuple
-import ivy_utils as iu
-import ivy_logic
+from .ivy_utils import flatten, gen_to_set, UniqueRenamer, compose_names, split_name, IvyError, base_name, ivy_compose_character, LocationTuple
+from . import ivy_utils as iu
+from . import ivy_logic
 import re
 
 reference_lineno = None
@@ -131,9 +131,26 @@ class Eventually(Formula):
     def __repr__(self):
         return '(eventually ' + repr(self.args[0]) + ')'
 
+class WhenOperator(Formula):
+    """
+    Temporal whennext operator
+    """
+    def __init__(self,name,*args):
+        assert len(args) == 2
+        self.name = name
+        self.args = args
+    def __repr__(self):
+        return '(' + repr(self.args[0]) + ' ' + self.name + 'whennext ' + repr(self.args[1]) + ')'
+    def clone(self,args):
+        res = WhenOperator(self.name,*args)
+        if hasattr(self,'lineno'):
+            res.lineno = lineno_add_ref(self.lineno)
+        return res
+
+
 def has_temporal(f):
     assert f is not None
-    return (type(f) in [Globally, Eventually]) or any(has_temporal(x) for x in f.args)
+    return (type(f) in [Globally, Eventually, WhenOperator]) or any(has_temporal(x) for x in f.args)
 
 class Let(Formula):
     """
@@ -610,6 +627,7 @@ class LabeledFormula(AST):
         self.explicit = False
         self.definition = False
         self.assumed = False
+        self.unprovable = False
         lf_counter += 1
     @property
     def label(self):
@@ -635,6 +653,7 @@ class LabeledFormula(AST):
         res.explicit = self.explicit
         res.definition = self.definition
         res.assumed = self.assumed
+        res.unprovable = self.unprovable
         return res
 
     def clone_with_fresh_id(self,args):
@@ -644,6 +663,7 @@ class LabeledFormula(AST):
         res.explicit = self.explicit
         res.definition = self.definition
         res.assumed = self.assumed
+        res.unprovable = self.unprovable
         return res
 
     def rename(self,s):
@@ -764,6 +784,9 @@ class AssumeTactic(TacticWithMatch):
         res.label = self.label
         return res
 
+class AssumeGlobalTactic(AssumeTactic):
+    pass
+
 class UnfoldSpec(AST):
     @property
     def defname(self):
@@ -876,12 +899,19 @@ class TacticTactic(Tactic):
         return self.args[0].rep
     @property
     def tactic_decls(self):
-        return self.args[1].args
+        return self.args[1].args if isinstance(self.args[1],TacticWith) else []
+    @property
+    def tactic_lets(self):
+        return self.args[1].args if isinstance(self.args[1],TacticLets) else []
     @property
     def tactic_proof(self):
         return self.args[2] if len(self.args) > 2 and not isinstance(self.args[2],NoneAST) else None
     def __str__(self):
         res = 'tactic ' + str(self.args[0]) + str(self.args[1])
+    def vocab(self,names):
+        names.update(symbols_ast(self.args[1]))
+        if not isinstance(self.args[2],NoneAST):
+            self.args[2].vocab(names)
 
 class ProofTactic(Tactic):
     @property
@@ -899,6 +929,10 @@ class TacticWith(Tactic):
     def __str__(self):
         res = (' with ' + ' '.join(str(x) for x in self.args[1].args)) if self.args[1].args > 0 else ''
 
+class TacticLets(Tactic):
+    def __str__(self):
+        res = (' with ' + ' '.join(str(x) for x in self.args[1].args)) if self.args[1].args > 0 else ''
+
 class ComposeTactics(Tactic):
     def __str__(self):
         return '; '.join(map(str,self.args))
@@ -906,6 +940,9 @@ class ComposeTactics(Tactic):
         for arg in self.args:
             arg.vocab(names)
 
+class Trigger(AST):
+    def __repr__(self):
+        return 'trigger' + str(self.args[0]) + ' with ' + ','.join(str(s) for s in self.args[1:])  
 
 class Instantiation(AST):
     def __init__(self,*args):
@@ -1279,7 +1316,9 @@ class NativeDef(AST):
         return 'native'
     def __str__(self):
         res = ('[' + str(self.args[0]) + '] ') if self.args[0] else ''
-        res += native_to_string(self.args[1:])
+        for  s in self.args[1:]:
+            res += ' ' + str(s)
+        # res += native_to_string(self.args[1:])
         return res
 
 class NativeDecl(Decl):
@@ -1350,7 +1389,7 @@ class ActionDef(Definition):
         return self.args[1].iter_internal_defines()
     def clone(self,args):
         if not hasattr(self.args[1],'lineno'):
-            print 'no lineno!!!!!: {}'.format(self)
+            print('no lineno!!!!!: {}'.format(self))
         res = ActionDef(args[0],args[1])
         res.formal_params = self.formal_params
         res.formal_returns = self.formal_returns
@@ -1703,7 +1742,7 @@ def ast_rewrite(x,rewrite):
         return x.clone(ast_rewrite(x.args,rewrite)) # yikes!
     if x is None:
         return None
-    print "wtf: {} {}".format(x,type(x))
+    print("wtf: {} {}".format(x,type(x)))
     assert False
 
 def subst_prefix_atoms_ast(ast,subst,pref,to_pref,static=None):
@@ -1831,7 +1870,7 @@ used_variables_ast = gen_to_set(variables_ast)
 def symbols_ast(ast):
     if isinstance(ast,(App,Atom)):
         yield ast.rep
-    elif ast != None and not isinstance(ast,str):
+    if ast != None and not isinstance(ast,str):
 #        if not hasattr(ast,'args'):
 #            print ast
 #            print type(ast)

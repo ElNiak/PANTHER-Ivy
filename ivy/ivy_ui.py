@@ -1,20 +1,20 @@
 #
 # Copyright (c) Microsoft Corporation. All Rights Reserved.
 #
-from ivy_interp import *
-from ivy_graph import *
+from .ivy_interp import *
+from .ivy_graph import *
 from string import *
 import copy
 import functools
 import pickle
-from ivy_concept_space import clauses_to_concept
-import ivy_actions
-import ivy_graph_ui
-import ivy_alpha
-from ivy_art import AnalysisGraph, AnalysisSubgraph
-from ivy_graph_ui import GraphWidget
-import ivy_ui_util as uu
-import ivy_utils as iu
+from .ivy_concept_space import clauses_to_concept
+from . import ivy_actions
+from . import ivy_graph_ui
+from . import ivy_alpha
+from .ivy_art import AnalysisGraph, AnalysisSubgraph
+from .ivy_graph_ui import GraphWidget
+from . import ivy_ui_util as uu
+from . import ivy_utils as iu
 
 # Following is a hint to center window. Needs more research.
 # from tkinter import *
@@ -23,8 +23,8 @@ import ivy_utils as iu
 
 
 
-modes = ["abstract","concrete","bounded","induction"]
-default_mode = iu.Parameter("mode","abstract",lambda s: s in modes)
+modes = ["abstract","concrete","bounded","induction","pdr"]
+default_mode = iu.Parameter("mode","pdr",lambda s: s in modes)
 
 class AnalysisGraphUI(object):
 
@@ -43,7 +43,8 @@ class AnalysisGraphUI(object):
                    [("Concrete","concrete"),
                     ("Abstract","abstract"),
                     ("Bounded","bounded"),
-                    ("Induction","induction")])]),
+                    ("Induction","induction"),
+                    ("Pdr","pdr")])]),
                  ("menu","Action",
                   [("button","Recalculate all",self.recalculate_all),
                    ("button","Show reachable states",self.show_reachable_states),])]
@@ -67,6 +68,7 @@ class AnalysisGraphUI(object):
         if 'mode' in self.radios:
             return (None if (self.mode.get() == "concrete" or self.mode.get() == "abstract")
                     else ivy_alpha.alpha if self.mode.get() == "induction"
+                    else ivy_alpha.predicate_alpha if self.mode.get() == "pdr"
                     else top_alpha)
         return top_alpha
         
@@ -177,7 +179,7 @@ class AnalysisGraphUI(object):
         g = self.g
         covering_node = self.get_mark()
         if covering_node is not None:
-            print "Trying to cover %s by %s" % (covered_node.id,covering_node.id)
+            print("Trying to cover %s by %s" % (covered_node.id,covering_node.id))
             with self.ui_parent.run_context():
                 if not g.cover(covered_node,covering_node):
                     raise IvyError(None,"Covering failed")
@@ -212,6 +214,7 @@ class AnalysisGraphUI(object):
     def get_alpha(self):
         return (None if self.mode.get() == "concrete"
                 else ivy_alpha.alpha if (self.mode.get() == "abstract" or self.mode.get() == "induction")
+                else ivy_alpha.predicate_alpha if self.mode.get() == "pdr"
                 else top_alpha)
 
     # Get the node with given id
@@ -224,19 +227,21 @@ class AnalysisGraphUI(object):
     def do_state_action(self,a,node=None):
         with self.ui_parent.run_context():
             with EvalContext(check=False):
-                print "action {"
+                print("action {")
                 s = self.g.do_state_action(a,self.get_alpha())
-                print "state = {}".format(s)
-                print "} action %s" % a.args[0]
+                print("state = {}".format(s))
+                print("} action %s" % a.args[0])
+        self.view_state(s,reset=True)
         self.rebuild()
 
+        
     # Evaluate an action at a node
 
     def execute_action(self,n,a):
         with self.ui_parent.run_context():
-            print "action %s {" % a
+            print("action %s {" % a)
             s = self.g.execute_action(a,n,self.get_alpha())
-            print "} action %s" % a
+            print("} action %s" % a)
         self.rebuild()
 
     # Display the reached states tree
@@ -467,7 +472,12 @@ class AnalysisGraphUI(object):
 
     def reverse_goal(self, state, clauses):
         if state.pred != None:
-            print "reverse from %s to %s: post_state = %s" % (state.id,state.pred.id,clauses)
+            if not hasattr(state,"id"):
+                print ("state has no id")
+            elif not hasattr(state.pred,"id"):
+                print ("state.pred has no id")
+            else:
+                print("reverse from %s to %s: post_state = %s" % (state.id,state.pred.id,clauses))
             next_state = state.pred
             clauses = reverse_update_concrete_clauses(state,clauses)
             return (clauses,state.pred)
@@ -481,11 +491,20 @@ class AnalysisGraphUI(object):
     # it.
 
     def refine_with_interpolant(self,interp):
-        concept = self.interp_to_refinement(interp)
-        msg = "The pre-state is vacuous. The following concept can be used to prove your goal in the post-state:"
-        text = 'concept ' + repr(concept[0]) + ' = ' + repr(concept[1])
-        cmd = functools.partial(self.refine,concept)
-        self.ui_parent.text_dialog(msg,text,command=cmd,command_label="Refine")
+        if self.mode.get() == "pdr":
+            msg = "The pre-state is vacuous. The following predicate can be used to prove your goal in the post-state:"
+            text = repr(interp)
+            cmd = functools.partial(self.add_predicate,interp)
+            self.ui_parent.text_dialog(msg,text,command=cmd,command_label="Refine")
+        else:
+            concept = self.interp_to_refinement(interp)
+            msg = "The pre-state is vacuous. The following concept can be used to prove your goal in the post-state:"
+            text = 'concept ' + repr(concept[0]) + ' = ' + repr(concept[1])
+            cmd = functools.partial(self.refine,concept)
+            self.ui_parent.text_dialog(msg,text,command=cmd,command_label="Refine")
+
+    def add_predicate(self,interp):
+        self.g.domain.abstraction_predicates.append(interp)
 
     # Refine the abstract domain with an interpolant (as a Clauses)
     # Displays the refinement and gives the user the option to apply
@@ -494,6 +513,7 @@ class AnalysisGraphUI(object):
     def interp_to_refinement(self,interp):
         used_names = used_symbols_clauses(Clauses([[Literal(0,a)] for a,d in self.g.domain.concept_spaces]))
         name = unused_name_with_base('itp',set(s.name for s in used_names))
+        print ("interp: {}".format(interp))
         return clauses_to_concept(name,interp)
 
     # Conjecture a separator between state underapprox and clauses.
@@ -563,7 +583,7 @@ class IvyUI(object):
             cmd = lambda idx: self.try_property(udc[idx])
             self.listbox_dialog(msg,udc_text,command=cmd)
         else:
-            print "type(prop) = {}".format(type(prop))
+            print("type(prop) = {}".format(type(prop)))
             if hasattr(prop,'lineno'):
                 filename,lineno = prop.lineno
                 self.browse(filename,lineno)

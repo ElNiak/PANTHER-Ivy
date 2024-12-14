@@ -2,7 +2,7 @@
 # Copyright (c) Microsoft Corporation. All Rights Reserved.
 #
 import ply.lex as lex
-import ivy_utils as iu
+from . import ivy_utils as iu
 
 tokens = (
    'COMMA',
@@ -39,6 +39,12 @@ tokens = (
    'CARET',
     'LB',
     'RB',
+    'WHENFIRST',
+    'WHENLAST',
+    'WHENPREV',
+    'WHENNEXT',
+    'UNPROVABLE'
+    'TRIGGER'
 )
 
 reserved = all_reserved = {
@@ -157,6 +163,12 @@ reserved = all_reserved = {
     'debug' : 'DEBUG',
     'for' : 'FOR',
     'subclass' : 'SUBCLASS',
+    'whenfirst' : 'WHENFIRST',
+    'whenlast' : 'WHENLAST',
+    'whenprev' : 'WHENPREV',
+    'whennext' : 'WHENNEXT',
+    'unprovable' : 'UNPROVABLE',
+    'trigger' : 'TRIGGER',
 }
 
 tokens += tuple(all_reserved.values())
@@ -223,7 +235,7 @@ class TokenErrorNode(object):
 
 def t_error(t):
     raise iu.IvyError(TokenErrorNode(t),"illegal character '{}'".format(t.value[0]))
-    print "Illegal character '%s'" % t.value[0]
+    print("Illegal character '%s'" % t.value[0])
 
 lexer = lex.lex(errorlog=lex.NullLogger())
 
@@ -266,7 +278,7 @@ class LexerVersion(object):
                 if s in reserved:
                     del reserved[s]
         if self.version <= [1,7]:
-            for s in ['global','common','debug','field','for','process','subclass','template']:
+            for s in ['global','common','debug','field','for','process','subclass','template','whenfirst','whenlast','whennext','whenprev','unprovable','trigger']:
                 if s in reserved:
                     del reserved[s]
         else:

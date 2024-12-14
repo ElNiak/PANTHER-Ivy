@@ -7,11 +7,12 @@ Conversion of logic.py's formulas to Z3 and some tests using Z3
 Ideally, this file should be the only file to improt the z3 module
 """
 
-import z3
+import ivy.z3 as z3
 
-from logic import (Var, Const, Apply, Eq, Ite, Not, And, Or, Implies,
+
+from .logic import (Var, Const, Apply, Eq, Ite, Not, And, Or, Implies,
                    Iff, ForAll, Exists)
-from logic import (UninterpretedSort, FunctionSort, Boolean, true,
+from .logic import (UninterpretedSort, FunctionSort, Boolean, true,
                    false, first_order_sort)
 
 
@@ -127,7 +128,7 @@ def z3_implies(f1, f2, timeout=False):
         return True
     else:
         # no caching of unknown results
-        print "z3 returned: {}".format(res)
+        print("z3 returned: {}".format(res))
         assert False
         return None
 
@@ -164,7 +165,7 @@ def z3_implies_batch(premise, formulas, timeout=False):
                 result.append(True)
             else:
                 # no caching of unknown results
-                print "z3 returned: {}".format(res)
+                print("z3 returned: {}".format(res))
                 assert False
                 result.append(None)
     return result
@@ -180,17 +181,17 @@ if __name__ == '__main__':
     transitive3 = Not(Exists((X, Y, Z), And(leq(X,Y), leq(Y,Z), Not(leq(X,Z)))))
     antisymmetric = ForAll((X, Y), Implies(And(leq(X,Y), leq(Y,X), true), Eq(Y,X)))
 
-    print z3_implies(transitive1, transitive2)
-    print z3_implies(transitive2, transitive3)
-    print z3_implies(transitive3, transitive1)
-    print z3_implies(transitive3, antisymmetric)
-    print
+    print(z3_implies(transitive1, transitive2))
+    print(z3_implies(transitive2, transitive3))
+    print(z3_implies(transitive3, transitive1))
+    print(z3_implies(transitive3, antisymmetric))
+    print()
 
-    print z3_implies(true, Iff(transitive1, transitive2))
-    print
+    print(z3_implies(true, Iff(transitive1, transitive2)))
+    print()
 
     x, y = (Const(n, S) for n in ['x', 'y'])
     b = Const('b', Boolean)
-    print z3_implies(b, Eq(Ite(b, x, y), x))
-    print z3_implies(Not(b), Eq(Ite(b, x, y), y))
-    print z3_implies(Not(Eq(x,y)), Iff(Eq(Ite(b, x, y), x), b))
+    print(z3_implies(b, Eq(Ite(b, x, y), x)))
+    print(z3_implies(Not(b), Eq(Ite(b, x, y), y)))
+    print(z3_implies(Not(Eq(x,y)), Iff(Eq(Ite(b, x, y), x), b)))

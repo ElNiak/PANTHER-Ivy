@@ -28,10 +28,10 @@ with im.Module():
     ivy_from_string(prog,create_isolate=False)
     for adecl in im.module.labeled_axioms:
         f = adecl.args[1]
-        print
-        print str(f)
-        print il.to_str_with_var_sorts(f)
-        print il.fmla_to_str_ambiguous(f)
+        print()
+        print(str(f))
+        print(il.to_str_with_var_sorts(f))
+        print(il.fmla_to_str_ambiguous(f))
 
 #     main_ui.answer("OK")
 #     ui.check_inductiveness()

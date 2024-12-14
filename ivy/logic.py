@@ -6,8 +6,8 @@
 
 from operator import itemgetter
 
-from general import IvyError
-from utils.recstruct_object import recstruct
+from .general import IvyError
+from .utils.recstruct_object import recstruct
 
 # Exceptions
 
@@ -175,7 +175,7 @@ class Apply(recstruct('Apply', [], ['func', '*terms'])):
                 ', '.join(str(t) for t in self.terms)
             )
 
-    sort = property(lambda self: TopS if self.func.sort == TopS else
+    sort = property(lambda self: TopS if isinstance(self.func.sort,TopSort) else
                     self.func.sort.range)
 
 
@@ -261,6 +261,34 @@ class Eventually(recstruct('Eventually', ['environ'], ['body'])):
         environ = self.environ
         return 'eventually{}({})'.format('' if environ is None else '['+str(environ)+']',self.body)
 
+class WhenOperator(recstruct('WhenOperator', ['sort','name'], ['t1','t2'])):
+    __slots__ = ()
+    def __init__(self, name, t1, t2):
+        super(WhenOperator, self).__init__(t1.sort,name,t1,t2)
+    @classmethod
+    def _preprocess_(cls, sort, name, t1, t2):
+        assert isinstance(name,str)
+        if t2.sort not in (Boolean, TopS):
+            raise SortError("WhenOperator second argument must be Boolean: {}".format(t2))
+        return sort, name, t1, t2
+    def __str__(self):
+        return 'WhenOperator({},{},{})'.format(self.name,self.t1,self.t2)
+
+class Cond(recstruct('Cond', ['sort'], ['t1', 't2'])):
+    __slots__ = ()
+    def __init__(self, t1, t2):
+        super(Cond, self).__init__(t2.sort,t1,t2)
+    @classmethod
+    def _preprocess_(cls, sort, t1, t2):
+        bad_sorts = [i for i, t in enumerate([t1])
+                     if i == 1 and t.sort not in (Boolean, TopS)]
+        if len(bad_sorts) > 0:
+            raise SortError("Bad sorts in: Cond({}, {}) (positions: {})".format(
+                t1, t2, bad_sorts,
+            ))
+        return sort, t1, t2
+    def __str__(self):
+        return 'Cond({}, {})'.format(self.t1, self.t2)
 
 class And(recstruct('And', [], ['*terms'])):
     __slots__ = ()
@@ -444,13 +472,13 @@ if __name__ == '__main__':
     assert contains_topsort(h)
 
     b = NamedBinder('mybinder', [X,Y,Z], None, Implies(And(f(X,Y), f(X,Z)), Eq(Y,Z)))
-    print b
-    print b.sort
-    print
+    print(b)
+    print(b.sort)
+    print()
 
     b = NamedBinder('mybinder', [X,Y,Z], None, Z)
-    print b
-    print b.sort
+    print(b)
+    print(b.sort)
 
 
     # TODO: add more tests, add tests for errors

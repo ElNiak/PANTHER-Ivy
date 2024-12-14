@@ -25,7 +25,7 @@ with im.Module():
     try:
         ick.check_module()
     except iu.IvyError as e:
-        print str(e)
+        print(str(e))
         assert False,"property should have been true"
 
     

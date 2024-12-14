@@ -3,7 +3,7 @@ import os
 import platform
 
 def do_cmd(cmd):
-    print cmd
+    print(cmd)
     status = os.system(cmd)
     if status:
         exit(1)
@@ -12,7 +12,7 @@ def make_dir_exist(dir):
     if not os.path.exists(dir):
         os.mkdir(dir)
     elif not os.path.isdir(dir):
-        print "cannot create directory {}".format(dir)
+        print("cannot create directory {}".format(dir))
         exit(1)
         
 
@@ -39,14 +39,14 @@ def find_vs():
             vcvars = dir + '\\VC\\vcvars64.bat'
             if os.path.exists(vcvars):
                 return vcvars
-    print 'Cannot find a suitable version of Visual Studio (require 10.0-15.0 or 2017 or 2019)'
+    print('Cannot find a suitable version of Visual Studio (require 10.0-15.0 or 2017 or 2019)')
 
 def build_z3():
 
     cwd = os.getcwd()
 
     if not os.path.exists('submodules/z3'):
-        print "submodules/z3 not found. try 'git submodule update; git submodule update'"
+        print("submodules/z3 not found. try 'git submodule update; git submodule update'")
         exit(1)
 
     os.chdir('submodules/z3')
@@ -55,9 +55,9 @@ def build_z3():
 
 
     if platform.system() != 'Windows':
-        cmd = 'python scripts/mk_make.py --python --prefix {} --pypkgdir {}/'.format(cwd,ivydir)
+        cmd = 'python3.10 scripts/mk_make.py --python --prefix {} --pypkgdir {}/'.format(cwd,ivydir)
     else:
-        cmd = 'python scripts/mk_make.py -x --python --pypkgdir {}/'.format(ivydir)
+        cmd = 'python3.10 scripts/mk_make.py -x --python --pypkgdir {}/'.format(ivydir)
 
     do_cmd(cmd)
 
@@ -95,7 +95,7 @@ def install_z3():
 def build_picotls():
         
     if not os.path.exists('submodules/picotls'):
-        print "submodules/picotls not found. try 'git submodule update; git submodule update'"
+        print("submodules/picotls not found. try 'git submodule update; git submodule update'")
         exit(1)
 
     cwd = os.getcwd()
@@ -143,7 +143,7 @@ def build_v2_compiler():
     cwd = os.getcwd()
 
     os.chdir('ivy/ivy2/s1')
-    do_cmd('python ../../ivy_to_cpp.py target=repl ivyc_s1.ivy')
+    do_cmd('python3.10 ../../ivy_to_cpp.py target=repl ivyc_s1.ivy')
     do_cmd('g++ -O2 -o ivyc_s1 ivyc_s1.cpp -pthread')
 
     os.chdir('../s2')
@@ -204,9 +204,9 @@ if __name__ == "__main__":
     install_picotls()
 
     if platform.system() == 'Windows':
-        print "*******************************************"
-        print "Model checking not supported on Windows"
-        print "*******************************************"
+        print("*******************************************")
+        print("Model checking not supported on Windows")
+        print("*******************************************")
     else:
         build_aiger()
         install_aiger()

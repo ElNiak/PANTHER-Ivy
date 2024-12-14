@@ -4,16 +4,16 @@
 #TODO: get z3 references out of this file
 #TODO: the import *'s are creating conflicts
 
-from ivy_logic import Variable,EnumeratedSort,UninterpretedSort,all_symbols,Equals,And
-import ivy_logic as il
-import  ivy_logic_utils as ilu
+from .ivy_logic import Variable,EnumeratedSort,UninterpretedSort,all_symbols,Equals,And
+from . import ivy_logic as il
+from . import  ivy_logic_utils as ilu
 import functools
 from collections import defaultdict
-import concept as co
-import concept_interactive_session as cis
-from dot_layout import dot_layout
-from cy_elements import CyElements
-import ivy_utils as iu
+from . import concept as co
+from . import concept_interactive_session as cis
+from .dot_layout import dot_layout
+from .cy_elements import CyElements
+from . import ivy_utils as iu
 from copy import deepcopy
 
 # This creates a concept from a formula with free variables, using the
@@ -214,7 +214,7 @@ def render_concept_graph(widget):
 
     # treat custom_edge_info and custom_node_label
     custom = set()
-    for tag in a.keys():
+    for tag in list(a.keys()):
         if tag[0].startswith('custom_'):
             not_custom_tag = (tag[0][len('custom_'):],) + tag[1:]
             a[not_custom_tag] = a[tag]
@@ -484,7 +484,7 @@ class Graph(object):
     @property
     def relations(self):
         """ Returns all the concepts that need check-boxes """
-        return map(self.concept_from_id,self.relation_ids)
+        return list(map(self.concept_from_id,self.relation_ids))
 
     @property
     def node_ids(self):
@@ -494,7 +494,7 @@ class Graph(object):
     @property
     def nodes(self):
         """ Returns all the concepts that need check-boxes """
-        return map(self.concept_from_id,self.node_ids)
+        return list(map(self.concept_from_id,self.node_ids))
     
     def node_sort(self,node):
         return node.sorts[0]
@@ -632,8 +632,8 @@ class Graph(object):
 
     def show_checkboxes(self):
         def thing(n,c):
-            return (str(n) + ':' + str(set(x for x,y in c.iteritems() if y.value)))
-        return '\n'.join(thing(n,c) for n,c in self.edge_display_checkboxes.iteritems())
+            return (str(n) + ':' + str(set(x for x,y in c.items() if y.value)))
+        return '\n'.join(thing(n,c) for n,c in self.edge_display_checkboxes.items())
 
     def get_transitive_reduction(self):
         return [] # TODO: implement
@@ -776,7 +776,7 @@ class GraphStack(object):
         del self.redo_stack[:]
 
 def standard_graph(parent_state=None):
-    sorts = [s for s in il.sig.sorts.values() if il.is_first_order_sort(s)]
+    sorts = [s for s in list(il.sig.sorts.values()) if il.is_first_order_sort(s)]
     g = Graph(sorts,parent_state)
     return GraphStack(g)
     

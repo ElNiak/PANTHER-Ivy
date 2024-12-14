@@ -1,30 +1,31 @@
 #
 # Copyright (c) Microsoft Corporation. All Rights Reserved.
 #
-from ivy_art import *
+from .ivy_art import *
 import pickle
-from ivy_interp import Interp, eval_state_facts
+from .ivy_interp import Interp, eval_state_facts
 from functools import partial
-from ivy_concept_space import *
-from ivy_parser import parse,ConstantDecl,ActionDef,Ivy,inst_mod
-from ivy_actions import DerivedUpdate, NamedUpdate, type_check_action, type_check, SymbolList, UpdatePattern, ActionContext, LocalAction, AssignAction, CallAction, Sequence, IfAction, WhileAction, AssertAction, AssumeAction, NativeAction, ChoiceAction, CrashAction, ThunkAction, DebugAction, has_code
-from ivy_utils import IvyError
-import ivy_logic
-import ivy_dafny_compiler as dc
-import ivy_solver as slv
-import ivy_logic_utils as lu
+from .ivy_concept_space import *
+from .ivy_parser import parse,ConstantDecl,ActionDef,Ivy,inst_mod
+from .ivy_actions import DerivedUpdate, NamedUpdate, type_check_action, type_check, SymbolList, UpdatePattern, ActionContext, LocalAction, AssignAction, CallAction, Sequence, IfAction, WhileAction, AssertAction, AssumeAction, NativeAction, ChoiceAction, CrashAction, ThunkAction, DebugAction, has_code
+from .ivy_utils import IvyError
+from . import ivy_logic
+from . import ivy_dafny_compiler as dc
+from . import ivy_solver as slv
+from . import ivy_logic_utils as lu
 import string
-import ivy_ast
-import ivy_utils as iu
-import ivy_actions as ia
-import ivy_alpha
-import ivy_module as im
-import ivy_theory as ith
-import ivy_isolate as iso
-import ivy_printer
-import ivy_proof as ip
+from . import ivy_ast
+from . import ivy_utils as iu
+from . import ivy_actions as ia
+from . import ivy_alpha
+from . import ivy_module as im
+from . import ivy_theory as ith
+from . import ivy_isolate as iso
+from . import ivy_printer
+from . import ivy_proof as ip
 from collections import defaultdict
 from tarjan import tarjan
+import importlib
 
 opt_mutax = iu.BooleanParameter("mutax",False)
 
@@ -39,7 +40,7 @@ class IvyDeclInterp(object):
                     for x in decl.args:
                         getattr(self,n)(x)
 
-from ivy_ast import ASTContext
+from .ivy_ast import ASTContext
 
 # ast compilation
 
@@ -87,6 +88,7 @@ def compile_args(self):
 for fc,tc in op_pairs:
     fc.cmpl = lambda self,tc=tc: tc(*compile_args(self))
 
+ivy_ast.WhenOperator.cmpl = lambda self: ivy_logic.WhenOperator(self.name,*compile_args(self))
 
 class Context(object):
     def __enter__(self):
@@ -133,7 +135,7 @@ class EmptyVariableContext(object):
 
 class VariableContext(Context):
     def __init__(self,vs):
-        self.map = dict(variable_context.map.iteritems())
+        self.map = dict(iter(variable_context.map.items()))
         for v in vs:
             self.map[v.name] = v.sort
         self.name = 'variable_context'
@@ -302,7 +304,7 @@ def compile_app(self,old=False):
         return ivy_logic.And() if rep == "true" else ivy_logic.Or()
     with ReturnContext(None):
         if any(isinstance(a,ivy_logic.Variable) for a in self.args):
-            print "foo!: {}".format(self)
+            print("foo!: {}".format(self))
         args = [a.compile() for a in self.args]
     # handle action calls in rhs of assignment
     if expr_context and top_context and rep in top_context.actions:
@@ -406,7 +408,7 @@ ivy_ast.NamedBinder.cmpl = lambda self: ivy_logic.NamedBinder(
     self.args[0].compile()
 )
 
-ivy_ast.LabeledFormula.cmpl = lambda self: self.clone([self.label,
+ivy_ast.LabeledFormula.cmpl = lambda self: self.clone([None if self.label is None else self.label.clone([sortify_with_inference(x) for x in self.label.args]),
                                                        self.formula.compile() 
                                                        if isinstance(self.formula,ivy_ast.SchemaBody)
                                                        else sortify_with_inference(self.formula)])
@@ -445,7 +447,7 @@ def get_relation_sort(sig,args,term=None):
     return ivy_logic.RelationSort(get_arg_sorts(sig,args,term))
 
 def sortify(ast):
-#    print "compiling : {}".format(ast)
+    # print ("compiling : {}".format(ast))
     return ast.compile()
 
 def sortify_with_inference(ast):
@@ -635,12 +637,12 @@ IfAction.cmpl = compile_if_action
 def compile_while_action(self):
         if isinstance(self.args[0],ivy_ast.Some):
             res = compile_if_action(self.clone(self.args[:2]))
-            invars = map(sortify_with_inference,self.args[2:])
+            invars = list(map(sortify_with_inference,self.args[2:]))
             return res.clone(res.args+invars)
         ctx = ExprContext(lineno = self.lineno)
         with ctx:
             cond = sortify_with_inference(self.args[0])
-            invars = map(sortify_with_inference,self.args[2:])
+            invars = list(map(sortify_with_inference,self.args[2:]))
         body = self.args[1].compile()
         if ctx.code:
             raise iu.IvyError(self,'while condition may not contain action calls')
@@ -653,7 +655,10 @@ WhileAction.cmpl = compile_while_action
 def compile_assert_action(self):
     ctx = ExprContext(lineno = self.lineno)
     with ctx:
-        cond = sortify_with_inference(self.args[0])
+        if isinstance(self.args[0],ivy_ast.LabeledFormula):
+            cond = self.args[0].compile()
+        else:
+            cond = sortify_with_inference(self.args[0])
     if len(self.args) > 1:
         pf = self.args[1].compile()
         asrt = self.clone([cond,pf])
@@ -670,7 +675,7 @@ def compile_crash_action(self):
     name = self.args[0].rep
     if isinstance(name,ivy_ast.This):
         name = 'this'
-    thing = ivy_ast.Atom(name,map(sortify_with_inference,self.args[0].args))
+    thing = ivy_ast.Atom(name,list(map(sortify_with_inference,self.args[0].args)))
     res = self.clone([thing])
     return res
 
@@ -751,7 +756,7 @@ def compile_native_arg(arg):
         return sortify_with_inference(arg)
     if arg.rep in ivy_logic.sig.symbols:
         return sortify_with_inference(arg)
-    res = arg.clone(map(sortify_with_inference,arg.args)) # handles action names
+    res = arg.clone(list(map(sortify_with_inference,arg.args))) # handles action names
     return res.rename(resolve_alias(res.rep))
 
 
@@ -792,7 +797,7 @@ def compile_native_type(self):
 def compile_action_def(a,sig):
     sig = sig.copy()
     if not hasattr(a.args[1],'lineno'):
-        print a
+        print(a)
     assert hasattr(a.args[1],'lineno')
     with sig:
         with ASTContext(a.args[1]):
@@ -864,7 +869,7 @@ def compile_defn(df):
     
 def compile_schema_prem(self,sig):
     if isinstance(self,ivy_ast.ConstantDecl):
-        with ivy_logic.WithSorts(sig.sorts.values()):
+        with ivy_logic.WithSorts(list(sig.sorts.values())):
             sym = compile_const(self.args[0],sig)
         return self.clone([sym])
     elif isinstance(self,ivy_ast.DerivedDecl):
@@ -875,7 +880,7 @@ def compile_schema_prem(self,sig):
         return t
     elif isinstance(self,ivy_ast.LabeledFormula):
         with ivy_logic.WithSymbols(sig.all_symbols()):
-            with ivy_logic.WithSorts(sig.sorts.values()):
+            with ivy_logic.WithSorts(list(sig.sorts.values())):
                 return self.compile()
     # elif isinstance(self,ivy_ast.SchemaBody):
     #     with ivy_logic.WithSymbols(sig.all_symbols()):
@@ -884,7 +889,7 @@ def compile_schema_prem(self,sig):
     
 def compile_schema_conc(self,sig):
     with ivy_logic.WithSymbols(sig.all_symbols()):
-        with ivy_logic.WithSorts(sig.sorts.values()):
+        with ivy_logic.WithSorts(list(sig.sorts.values())):
             if isinstance(self,ivy_ast.Definition):
                 return compile_defn(self)
             return sortify_with_inference(self)
@@ -933,7 +938,7 @@ def compile_schema_instantiation(self,fmla):
             sorted_pairs.append((x,y))
 
     return self.clone([self.args[0]]+
-                      [ivy_ast.Definition(x,y) for x,y in sortmap.iteritems()] +
+                      [ivy_ast.Definition(x,y) for x,y in sortmap.items()] +
                       [ivy_ast.Definition(x,y) for x,y in sorted_pairs])
 
 last_fmla = None
@@ -998,6 +1003,11 @@ def compile_proof_tactic(self):
     
 ivy_ast.ProofTactic.compile = compile_proof_tactic
 
+def compile_trigger(self):
+    return self.clone([self.args[0]]+[sortify_with_inference(x) for x in self.args[1:]])
+
+ivy_ast.Trigger.compile = compile_trigger
+
 def resolve_alias_int(name): 
     if name in im.module.aliases:
         return im.module.aliases[name]
@@ -1010,7 +1020,7 @@ def resolve_alias(name):
     res = resolve_alias_int(name)
     return res
 
-defined_attributes = set(["weight","test","check","mc","bmc","method","separate","iterable","cardinality","radix","override","cppstd","libspec","macro_finder","global_parameter"])
+defined_attributes = set(["weight","test","check","mc","bmc","method","separate","iterable","cardinality","radix","override","cppstd","libspec","macro_finder","global_parameter","complete"])
 
 class IvyDomainSetup(IvyDeclInterp):
     def __init__(self,domain):
@@ -1308,7 +1318,7 @@ class IvyDomainSetup(IvyDeclInterp):
                 self.domain.functions[sym] = 0
                 self.domain.sig.symbols[c] = sym
                 self.domain.sig.constructors.add(sym)
-            print interp[lhs]
+            print(interp[lhs])
             return
         for x,y,z in zip([sig.sorts,sig.symbols],
                          [slv.is_solver_sort,slv.is_solver_op],
@@ -1443,10 +1453,12 @@ class IvyARGSetup(IvyDeclInterp):
         oname = iu.ivy_compose_character.join(fields[:-1])
         oname = 'this' if oname == '' else oname
         aname = fields[-1]
-        if oname not in self.mod.actions and oname not in self.mod.hierarchy and oname != 'this' and oname not in ivy_logic.sig.sorts and oname not in ivy_logic.sig.symbols:
+        if oname not in self.mod.actions and oname not in self.mod.hierarchy and oname != 'this' and oname not in ivy_logic.sig.sorts and oname not in ivy_logic.sig.symbols and oname not in self.mod.isolates:
             raise IvyError(a,'"{}" does not name an action, object or type'.format(oname))
         if aname not in defined_attributes:
             raise IvyError(a,'"{}" does not name a defined attribute'.format(aname))
+        if aname == 'complete' and rhs.rep not in ivy_logic.logics:
+            raise IvyError(a,'"{}" is not a known logic'.format(rhs))
         self.mod.attributes[lhs.rep] = rhs
     def scenario(self,scen):
         init_tokens = set(p.rep for p in scen.args[0].args)
@@ -1462,7 +1474,7 @@ class IvyARGSetup(IvyDeclInterp):
             iact.lineno = scen.lineno
             self.mod.actions[iname] = iact
             self.mixin(ivy_ast.MixinAfterDef(ivy_ast.Atom(iname),ivy_ast.Atom('init')))
-        for actname,trs in transs_by_action.iteritems():
+        for actname,trs in transs_by_action.items():
             choices = []
             params = None
             afters = []
@@ -1496,7 +1508,7 @@ class IvyARGSetup(IvyDeclInterp):
                     mixee = scmix.args[1].args[0]
                 else:
                     aparams = df.formal_params + df.formal_returns
-                    subst = dict(zip(aparams,params+returns))
+                    subst = dict(list(zip(aparams,params+returns)))
                     seq = substitute_constants_ast(seq,subst)
                 seq.lineno = tr.lineno
                 if not is_after:
@@ -1527,11 +1539,11 @@ def BalancedChoice(choices):
 
 def get_file_version(filename):
     try:
-        f = open(filename,'rU')
+        f = open(filename,'r')
     except:
         raise IvyError(None,"not found: %s" % filename)
     header = f.readline()
-    header = string.strip(header)
+    header = str.strip(header)
     if header.startswith('#lang ivy'):
         version = header[len('#lang ivy'):]
         if version.strip() != '':
@@ -1541,7 +1553,7 @@ def get_file_version(filename):
 def ivy_new(filename = None):
 #    d = Interp()
     if filename:
-        f = open(filename,'rU')
+        f = open(filename,'r')
         if not f:
             raise IvyError(None,"not found: %s" % filename)
         ivy_load_file(f)
@@ -1672,14 +1684,14 @@ def attach_proofs(mod):
         if pf[0].formula is None:
             lab = pf[0].label.rep
             if lab in used:
-                raise(IvyError(pf[1],'redundant proof for {}'.format(lab)))
+                raise IvyError
             used.add(lab)
             if lab in m:
                 mod.proofs.append((m[lab],pf[1]))
             elif lab in mod.isolates:
                 mod.isolate_proofs[lab] = pf[1]
             else:
-                raise(IvyError(pf[1],'proof label {} is not a property or isolate'.format(lab)))
+                raise IvyError
         
                 
 def check_definitions(mod):
@@ -1726,7 +1738,7 @@ def check_definitions(mod):
     
     if iu.version_le("1.7",iu.get_string_version()):
         side_effects = dict()
-        for action in mod.actions.values():
+        for action in list(mod.actions.values()):
             for sub in action.iter_subactions():
                 for s in sub.modifies():
                     if s not in side_effects:
@@ -1753,7 +1765,7 @@ def check_definitions(mod):
     dmap = dict((d.formula.defines(),d) for d in mod.definitions)
     pmap = dict((lf.id,p) for lf,p in mod.proofs)
     sccs = tarjan_arcs(arcs)
-    import ivy_proof
+    from . import ivy_proof
     prover = ivy_proof.ProofChecker(mod.labeled_axioms,[],mod.schemata)
     for scc in sccs:
         if len(scc) > 1:
@@ -1846,8 +1858,8 @@ def reorder_props(mod,props):
         
 
 def create_constructor_schemata(mod):
-    import ivy_proof
-    for sortname,destrs in mod.sort_destructors.iteritems():
+    from . import ivy_proof
+    for sortname,destrs in mod.sort_destructors.items():
         if any(len(f.sort.dom) > 1 for f in destrs):
             continue # TODO: higher-order constructors!
         sort = ivy_logic.find_sort(sortname)
@@ -1884,14 +1896,14 @@ def create_constructor_schemata(mod):
             goal.lineno = None
             mod.schemata[name.relname] = goal
 
-    for sortname,conss in mod.sort_constructors.iteritems():
+    for sortname,conss in mod.sort_constructors.items():
         for cons in conss:
             if sortname not in mod.sort_destructors:
                 raise iu.IvyError(cons,"Cannot define constructor {} for type {} because {} is not a structure type".format(cons,sortname,sortname))
     
         
 def fix_constructors(mod):
-    for sortname,destrs in mod.sort_destructors.iteritems():
+    for sortname,destrs in mod.sort_destructors.items():
         if any(len(f.sort.dom) > 1 for f in destrs):
             continue # TODO: higher-order constructors!
         sort = ivy_logic.find_sort(sortname)
@@ -1912,10 +1924,11 @@ def fix_constructors(mod):
     
 def apply_assert_proof(prover,self,pf):
     cond = self.args[0]
-    goal = ivy_ast.LabeledFormula(None,cond)
+    goal = cond if isinstance(cond,ivy_ast.LabeledFormula) else ivy_ast.LabeledFormula(None,cond)
+    cond = ip.goal_conc(goal)
     goal.lineno = self.lineno
     subgoals = prover.get_subgoals(goal,pf)
-    subgoals = map(theorem_to_property,subgoals)
+    subgoals = list(map(theorem_to_property,subgoals))
     assm = AssumeAction(ivy_logic.close_formula(cond))
     assm.lineno = self.lineno
     sgas = [ia.SubgoalAction(sg.formula) for sg in subgoals]
@@ -1947,11 +1960,11 @@ def apply_assert_proofs(mod,prover):
                         new_invars.extend(r.args)
                     else:
                         new_invars.append(r)
-                return self.clone(map(recur,self.args[0:2]) + new_invars)
+                return self.clone(list(map(recur,self.args[0:2])) + new_invars)
         if isinstance(self,LocalAction):
             with ivy_logic.WithSymbols(self.args[0:-1]):
-                return self.clone(map(recur,self.args))
-        return self.clone(map(recur,self.args))
+                return self.clone(list(map(recur,self.args)))
+        return self.clone(list(map(recur,self.args)))
     for actname in list(mod.actions.keys()):
         action = mod.actions[actname]
         with ivy_logic.WithSymbols(list(set(action.formal_params+action.formal_returns))):
@@ -1984,7 +1997,7 @@ def check_properties(mod):
             prop = prop.clone_with_fresh_id([prop.label,fmla])
         return prop
             
-    import ivy_proof
+    from . import ivy_proof
     prover = ivy_proof.ProofChecker(mod.labeled_axioms,mod.definitions,mod.schemata)
 
     for prop in props:
@@ -2005,7 +2018,7 @@ def check_properties(mod):
                 else:
                     mod.schemata[prop.label.relname] = prop
             else:
-                subgoals = map(theorem_to_property,subgoals)
+                subgoals = list(map(theorem_to_property,subgoals))
                 lb = ivy_ast.Labeler()
                 for g in subgoals:
                     if prop.label is None:
@@ -2049,8 +2062,8 @@ def ivy_compile_theory(mod,decls,**kwargs):
     IvyDomainSetup(mod)(decls)
     
 def ivy_compile_theory_from_string(mod,theory,sortname,**kwargs):
-    import StringIO
-    sio = StringIO.StringIO(theory)
+    import io
+    sio = io.StringIO(theory)
     module = read_module(sio)
     ivy = Ivy()
     inst_mod(ivy,module,None,{'t':sortname},dict())
@@ -2062,7 +2075,7 @@ def compile_theory(mod,sortname,theoryname,**kwargs):
         ivy_compile_theory_from_string(mod,theory,sortname,**kwargs)
     
 def compile_theories(mod,**kwargs):
-    for name,value in mod.sig.interp.iteritems():
+    for name,value in mod.sig.interp.items():
         if name in mod.sig.sorts and (isinstance(value,str) or isinstance(value,ivy_logic.RangeSort)):
             theory = th.get_theory_schemata(value)
             ivy_compile_theory_from_string(mod,theory,name,**kwargs)
@@ -2081,7 +2094,7 @@ def create_conj_actions(mod):
     myexports = dict()
     objects = defaultdict(list)
     cg = mod.call_graph()
-    for ison,isol in mod.isolates.iteritems():
+    for ison,isol in mod.isolates.items():
         myexports[isol.name()] = iso.get_isolate_exports(mod,cg,isol)
         for x in isol.verified():
             objects[x.rep].append(isol)
@@ -2101,10 +2114,10 @@ def create_conj_actions(mod):
     # check that object invariants are used correctly
     
     if iso.do_check_interference.get():
-        for ison,actions in myexports.iteritems():
+        for ison,actions in myexports.items():
             for action in actions:
                 action_isos[action].add(ison)
-        for ison,isol in mod.isolates.iteritems():
+        for ison,isol in mod.isolates.items():
             memo = set()
             conjs = iso.get_isolate_conjs(mod,isol,verified=False)
             exports = myexports[ison]
@@ -2153,7 +2166,7 @@ def handle_temporals(mod):
     #         add_labels_to_proof(proof,isonames)
     # mod.labeled_props = new_props
     imap = iso.get_isolate_map(mod,verified=True,present=True)
-    for actname,action in mod.actions.iteritems():
+    for actname,action in mod.actions.items():
         action.labels = imap[actname]
 
 def add_labels_to_proof(proof,labels):
@@ -2172,8 +2185,8 @@ def add_action_label(action,label):
     action.labels.append(label)
 
 def show_call_graph(cg):
-    for caller,callees in cg.iteritems():
-        print '{} -> {}'.format(caller,','.join(callees))
+    for caller,callees in cg.items():
+        print('{} -> {}'.format(caller,','.join(callees)))
     
 def ivy_compile(decls,mod=None,create_isolate=True,**kwargs):
     mod = mod or im.module
@@ -2198,11 +2211,11 @@ def ivy_compile(decls,mod=None,create_isolate=True,**kwargs):
             remove_symbol(p.defines())
         mod.type_check()
         # try instantiating all the actions to type check them
-        for name,action in mod.actions.iteritems():
+        for name,action in mod.actions.items():
 #            print "checking: {} = {}".format(name,action)
             type_check_action(action,mod)
             if not hasattr(action,'lineno'):
-                print "no lineno: {}".format(name)
+                print("no lineno: {}".format(name))
             assert hasattr(action,'formal_params'), action
     
         # from version 1.7, there is always one global "isolate"
@@ -2224,7 +2237,7 @@ def ivy_compile(decls,mod=None,create_isolate=True,**kwargs):
                 pp,pc = iu.parent_child_name(p)
                 if pp == 'this' or iu.compose_names(pp,'global') not in im.module.attributes:
                     global_objects.append(ivy_ast.Atom(p,[]))
-        for iso in im.module.isolates.values():
+        for iso in list(im.module.isolates.values()):
             iso.args += tuple(global_objects)
             iso.with_args += len(global_objects)
                     
@@ -2253,11 +2266,11 @@ def clear_rules(modname):
             del d[s]
 
 def read_module(f,nested=False):
-    import ivy_logic_parser
-    import ivy_parser
+    from . import ivy_logic_parser
+    from . import ivy_parser
     header = f.readline()
     s = '\n' + f.read() # newline at beginning to preserve line numbers
-    header = string.strip(header)
+    header = str.strip(header)
     if header.startswith('#lang ivy'):
         version = header[len('#lang ivy'):]
         if version.strip() != '':
@@ -2269,8 +2282,8 @@ def read_module(f,nested=False):
     #            print "version: {}, old_version: {}".format(version,old_version)
                 clear_rules('ivy_logic_parser')
                 clear_rules('ivy_parser')
-                reload(ivy_logic_parser)
-                reload(ivy_parser)
+                importlib.reload(ivy_logic_parser)
+                importlib.reload(ivy_parser)
         ivy_parser.importer = import_module
         decls = parse(s,nested)
     elif header == '//lang dafny1':
@@ -2286,13 +2299,13 @@ def read_module(f,nested=False):
 def import_module(name):
     fname = name + '.ivy'
     try: 
-        f = open(fname,'rU')
+        f = open(fname,'r')
     except Exception:
         fname = os.path.join(iu.get_std_include_dir(),fname)
         try:
-            f = open(fname,'rU')
+            f = open(fname,'r')
         except Exception:
-            raise IvyError(None,"module {} not found in current directory or module path".format(name))
+            raise IvyError(None,"module {} not found in current directory or module path".format(fname))
     with iu.SourceFile(fname):
         mod = read_module(f,nested=True)
     return mod
@@ -2302,7 +2315,7 @@ def ivy_load_file(f,**kwargs):
     ivy_compile(decls,**kwargs)
 
 def ivy_from_string(string,**kwargs):
-    import StringIO
-    sio = StringIO.StringIO(string)
+    import io
+    sio = io.StringIO(string)
     ivy_load_file(sio,**kwargs)
     return ivy_new()

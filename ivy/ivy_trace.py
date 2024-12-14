@@ -5,16 +5,16 @@
 #  Construct counterexample traces suitable for viewing with the GUI
 #
 
-import ivy_solver as islv
-import ivy_art as art
-import ivy_interp as itp
-import ivy_actions as act
-import ivy_logic as lg
-import ivy_transrel as itr
-import ivy_logic_utils as lut
-import ivy_utils as iu
-import ivy_module as im
-import ivy_solver as slv
+from . import ivy_solver as islv
+from . import ivy_art as art
+from . import ivy_interp as itp
+from . import ivy_actions as act
+from . import ivy_logic as lg
+from . import ivy_transrel as itr
+from . import ivy_logic_utils as lut
+from . import ivy_utils as iu
+from . import ivy_module as im
+from . import ivy_solver as slv
 from collections import defaultdict
 
 ################################################################################
@@ -37,8 +37,13 @@ class TraceBase(art.AnalysisGraph):
         self.sub = None
         self.returned = None
         self.hidden_symbols = lambda sym: False
+        self.renaming = None
         self.is_full_trace = False
         
+    def rename(self,map):
+        self.renaming = map
+        return self
+
     def is_skolem(self,sym):
         res = itr.is_skolem(sym) and not (sym.name.startswith('__') and sym.name[2:3].isupper())
         # if not res and self.top_level:
@@ -64,10 +69,13 @@ class TraceBase(art.AnalysisGraph):
             self.add(state)
 
 
-    def label_from_action(self,action):
+    def label_from_action(self,action,renaming=None):
         if hasattr(action,'label'):
             return action.label + '\n'
 #        lineno = str(action.lineno) if hasattr(action,'lineno') else ''
+        if renaming is not None and not isinstance(action,itp.fail_action):
+            action = lut.rename_ast(action,renaming)
+            action = lut.reduce_named_binders(action)
         return iu.pretty(str(action),max_lines=4)
 
     def eval_in_state(self,state,param):
@@ -76,7 +84,8 @@ class TraceBase(art.AnalysisGraph):
                 return c.args[1]
         return None
 
-    def to_lines(self,lines,hash,indent,hidden,failed=False):
+    def to_lines(self,lines,hash,indent,hidden,failed=False,renaming=None):
+        renaming = renaming or self.renaming
         for idx,state in enumerate(self.states):
             if hasattr(state,'expr') and state.expr is not None:
                 expr = state.expr
@@ -84,7 +93,7 @@ class TraceBase(art.AnalysisGraph):
                 if option_detailed.get():
                     if not hasattr(action,'label') and hasattr(action,'lineno'):
                         lines.append(str(action.lineno) + '\n')
-                    newlines = [indent * '    ' + x + '\n' for x in self.label_from_action(action).split('\n')]
+                    newlines = [indent * '    ' + x + '\n' for x in self.label_from_action(action,renaming).split('\n')]
                     lines.extend(newlines)
                 else:
                     if isinstance(action,itp.fail_action):
@@ -118,7 +127,7 @@ class TraceBase(art.AnalysisGraph):
                         state_hash = dict((x.args[0],x.args[1]) for x in state.clauses.fmlas)
                         def eval_in_state(param):
                             if lg.is_app(param):
-                                args = map(eval_in_state,param.args)
+                                args = list(map(eval_in_state,param.args))
                                 args = [x if y is None else y for x,y in zip(param.args,args)]
                                 param = param.clone(args)
                             return state_hash.get(param,None)
@@ -147,7 +156,7 @@ class TraceBase(art.AnalysisGraph):
                 if hasattr(expr,'subgraph'):
                     if option_detailed.get():
                         lines.append(indent * '    ' + '{\n')
-                    expr.subgraph.to_lines(lines,hash,indent+1,hidden,failed=failed)
+                    expr.subgraph.to_lines(lines,hash,indent+1,hidden,failed=failed,renaming=renaming)
                     if option_detailed.get():
                         lines.append(indent * '    ' + '}\n')
                 if option_detailed.get():
@@ -159,7 +168,10 @@ class TraceBase(art.AnalysisGraph):
                 for c in state.clauses.fmlas:
                     if hidden(c.args[0].rep):
                         continue
-                    s1,s2 = map(str,c.args)
+                    if renaming is not None:
+                        c = lut.rename_ast(c,renaming)
+                    c = lut.reduce_named_binders(c)
+                    s1,s2 = list(map(str,c.args))
                     if not(s1 in hash and hash[s1] == s2): # or state is self.states[0]:
                         hash[s1] = s2
                         if not foo:
@@ -260,7 +272,7 @@ class Trace(TraceBase):
         for sym in self.vocab:
             if sym not in env and not itr.is_new(sym) and not self.is_skolem(sym):
                 sym_pairs.append((sym,sym))
-        for sym,renamed_sym in env.iteritems():
+        for sym,renamed_sym in env.items():
             if not itr.is_new(sym) and not self.is_skolem(sym):
                 sym_pairs.append((sym,renamed_sym))
         self.new_state_pairs(sym_pairs,env)
@@ -324,7 +336,7 @@ def check_vc(clauses,action,final_cond=None,rels_to_min=[],shrink=False,handler_
         vocab = lut.used_symbols_clauses(mclauses)
         handler = (handler_class(mclauses,model,vocab) if handler_class is not None
                    else Trace(mclauses,model,vocab))
-        print "Converting model to trace..."
+        print("Converting model to trace...")
         act.match_annotation(action,clauses.annot,handler)
         handler.end()
         return handler
@@ -368,7 +380,7 @@ def make_vc(action,precond=[],postcond=[],check_asserts=True):
     clauses = lut.and_clauses(clauses,axioms)
     fc = lut.Clauses([lf.formula for lf in postcond])
     fc.annot = act.EmptyAnnotation()
-    used_names = frozenset(x.name for x in lg.sig.symbols.values())
+    used_names = frozenset(x.name for x in list(lg.sig.symbols.values()))
     def witness(v):
         c = lg.Symbol('@' + v.name, v.sort)
         assert c.name not in used_names

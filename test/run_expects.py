@@ -10,7 +10,7 @@ if platform.system() == 'Windows':
     import pexpect.popen_spawn
     spawn = pexpect.popen_spawn.PopenSpawn
 else:
-    spawn = pexpect.spawn
+    spawn = pexpect.spawnu
 
 checks = [
     ['.',
@@ -165,33 +165,33 @@ class Test(object):
     def run(self):
         oldcwd = os.getcwd()
         os.chdir(self.dir)
-        print '{}/{} ...'.format(self.dir,self.name)
+        print('{}/{} ...'.format(self.dir,self.name))
         status = self.run_expect()
-        print 'PASS' if status else 'FAIL'
+        print('PASS' if status else 'FAIL')
         os.chdir(oldcwd)
         return status
     def run_expect(self):
         for pc in self.preprocess_commands():
-            print 'executing: {}'.format(pc)
+            print('executing: {}'.format(pc))
             child = spawn(pc)
             child.logfile = sys.stdout
             child.expect(pexpect.EOF)
             child.close()
             if child.exitstatus != 0:
 #            if child.wait() != 0:
-                print child.before
+                print(child.before)
                 return False
         return self.expect()
     def expect(self):
         command = self.command()
-        print command
+        print(command)
         child = spawn(command)
 #        child.logfile = sys.stdout
         try:
             child.expect(self.res)
             return True
         except pexpect.EOF:
-            print child.before
+            print(child.before)
             return False
     def preprocess_commands(self):
         return []
@@ -220,7 +220,7 @@ class IvyRepl(Test):
         make_directory_exist('build')
         return ['ivy_to_cpp target=repl build=true '+' '.join(self.opts) + ' '+self.name+'.ivy']
     def expect(self):
-        print 'wd:{}'.format(os.getcwd())
+        print('wd:{}'.format(os.getcwd()))
         modname = self.res if self.res != None else (self.name+'_expect')
         mod = imp.load_source(modname,modname+'.py')
         return mod.run('build/'+self.name,self.opts,self.res)
@@ -228,7 +228,7 @@ class IvyRepl(Test):
 class IvyToCpp(Test):
     def command(self):
         res = 'ivy_to_cpp ' + ' '.join(self.opts) + ' '+self.name+'.ivy'
-        print 'compiling: {}'.format(res)
+        print('compiling: {}'.format(res))
         return res
 
 def make_directory_exist(dir):
@@ -257,13 +257,13 @@ for arg in sys.argv[1:]:
         usage()
 
 def usage():
-    print """usage:
+    print("""usage:
     {} [option...]
 options:
     type=<test type pattern>
     dir=<test directory pattern>
     name=<test name pattern>
-""".format(sys.argv[0])
+""".format(sys.argv[0]))
     sys.exit(1)
 
 def get_tests(cls,arr):
@@ -289,9 +289,9 @@ for test in all_tests:
     if not status:
         num_failures += 1
 if num_failures:
-    print 'error: {} tests(s) failed'.format(num_failures)
+    print('error: {} tests(s) failed'.format(num_failures))
 else:
-    print 'OK'
+    print('OK')
 
 # for checkd in checks:
 #     dir,checkl = checkd

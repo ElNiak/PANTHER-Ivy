@@ -3,23 +3,23 @@
 # Copyright (c) Microsoft Corporation. All Rights Reserved.
 #
 
-import ivy_init
-import ivy_logic as il
-import ivy_module as im
-import ivy_utils as iu
-import ivy_actions as ia
-import logic as lg
-import logic_util as lu
-import ivy_solver as slv
-import ivy_transrel as tr
-import ivy_logic_utils as ilu
-import ivy_compiler as ic
-import ivy_isolate as iso
-import ivy_ast
+from . import ivy_init
+from . import ivy_logic as il
+from . import ivy_module as im
+from . import ivy_utils as iu
+from . import ivy_actions as ia
+from . import logic as lg
+from . import logic_util as lu
+from . import ivy_solver as slv
+from . import ivy_transrel as tr
+from . import ivy_logic_utils as ilu
+from . import ivy_compiler as ic
+from . import ivy_isolate as iso
+from . import ivy_ast
 import itertools
-import ivy_cpp
-import ivy_cpp_types
-import ivy_fragment as ifc
+from . import ivy_cpp
+from . import ivy_cpp_types
+from . import ivy_fragment as ifc
 import sys
 import os
 import platform
@@ -27,9 +27,16 @@ import platform
 from collections import defaultdict
 from operator import mul
 import re
+from functools import reduce
 
 
 def all_state_symbols():
+    """
+    Returns a list of all state symbols excluding constructors.
+
+    Returns:
+        list: A list of state symbols.
+    """
     syms = il.all_symbols()
     return [s for s in syms if s not in il.sig.constructors and slv.solver_name(il.normalize_symbol(s)) != None]
 
@@ -41,8 +48,23 @@ def all_state_symbols():
 # 
 
 def extensional_relations():
+    """
+    Returns a list of extensional relations in the module.
+
+    Extensional relations are defined as relations that are initialized and not modified
+    within the module. This function iterates through all actions in the module and checks
+    if the action is an assignment, havoc, or call action. For assignment actions, it checks
+    if the left-hand side (lhs) is not a destructor sort and if the right-hand side (rhs) is
+    not a false value or all lhs arguments are not variables. For havoc actions, it checks
+    if the lhs is not a destructor sort and if all lhs arguments are not variables. For call
+    actions, it checks if the lhs is not a destructor sort and if all lhs arguments are not
+    variables. It then collects all the extensional relations and returns them as a list.
+
+    Returns:
+        res (list): A list of extensional relations in the module.
+    """
     bad = set()
-    for action in im.module.actions.values():
+    for action in list(im.module.actions.values()):
         for sub in action.iter_subactions():
             if isinstance(sub,ia.AssignAction):
                 lhs,rhs = sub.args
@@ -75,6 +97,18 @@ def extensional_relations():
     return res
 
 def sort_card(sort):
+    """
+    Returns the cardinality of the given sort.
+
+    Args:
+        sort: The sort for which the cardinality is to be determined.
+
+    Returns:
+        The cardinality of the sort.
+
+    Raises:
+        IvyError: If the sort has no finite interpretation.
+    """
     if hasattr(sort,'card'):
         return sort.card
     if sort.is_relational():
@@ -107,7 +141,7 @@ def get_indent(line):
         if char == ' ':
             lindent += 1
         elif char == '\t':
-            lindent = (lindent + 8) / 8 * 8
+            lindent = (lindent + 8) // 8 * 8
         else:
             break
     return lindent
@@ -120,6 +154,20 @@ def indent_code(header,code):
         header.append((indent_level * 4 + get_indent(line) - indent) * ' ' + line.strip() + '\n')
 
 def sym_decl(sym,c_type = None,skip_params=0,classname=None,isref=False,ival=None):
+    """
+    Generate a declaration string for a symbol.
+
+    Parameters:
+        sym (Symbol): The symbol for which the declaration string is generated.
+        c_type (str, optional): The C type of the symbol. Defaults to None.
+        skip_params (int, optional): The number of parameters to skip. Defaults to 0.
+        classname (str, optional): The name of the class. Defaults to None.
+        isref (bool, optional): Indicates if the symbol is a reference. Defaults to False.
+        ival (str, optional): The initial value of the symbol. Defaults to None.
+
+    Returns:
+        str: The declaration string for the symbol.
+    """
     name, sort = sym.name,sym.sort
     dims = []
     the_c_type,dims = ctype_function(sort,skip_params=skip_params,classname=classname)
@@ -136,6 +184,38 @@ def sym_decl(sym,c_type = None,skip_params=0,classname=None,isref=False,ival=Non
     return res
     
 def declare_symbol(header,sym,c_type = None,skip_params=0,classname=None,isref=False,ival=None):
+    """
+    Declare a symbol in the header.
+
+    Args:
+        header (list): The list representing the header file.
+        sym (str): The symbol to declare.
+        c_type (str, optional): The C type of the symbol. Defaults to None.
+        skip_params (int, optional): The number of parameters to skip. Defaults to 0.
+        classname (str, optional): The name of the class. Defaults to None.
+        isref (bool, optional): Whether the symbol is a reference. Defaults to False.
+        ival (str, optional): The initial value of the symbol. Defaults to None.
+
+    Returns:
+        None: If the symbol is interpreted, it is skipped.
+
+    Description:
+        This function is used to declare a symbol in the header file. It appends the declaration
+        of the symbol to the provided header list.
+
+    Pre:
+        - The header list is a valid list representing a header file.
+        - The sym parameter is a valid symbol name.
+        - The c_type parameter, if provided, is a valid C type.
+        - The skip_params parameter is a non-negative integer.
+        - The classname parameter, if provided, is a valid class name.
+        - The isref parameter is a boolean value.
+        - The ival parameter, if provided, is a valid initial value.
+
+    Post:
+        - If the symbol is interpreted, it is skipped and no declaration is added to the header list.
+        - If the symbol is not interpreted, its declaration is added to the header list.
+    """
     if slv.solver_name(sym) == None:
         return # skip interpreted symbols
     header.append('    '+sym_decl(sym,c_type,skip_params,classname=classname,isref=isref,ival=ival)+';\n')
@@ -150,6 +230,16 @@ special_names = {
 puncs = re.compile('[\.\[\]]')
 
 def varname(name):
+    """
+    Convert a variable name to a valid C++ identifier.
+
+    Args:
+        name (str or object): The variable name or object.
+
+    Returns:
+        str: The converted variable name.
+
+    """
     global special_names
     if not isinstance(name,str):
         name = name.name
@@ -158,18 +248,48 @@ def varname(name):
     if name.startswith('"'):
         return name
     
-    name = name.replace('loc:','loc__').replace('ext:','ext__').replace('___branch:','__branch__').replace('__prm:','prm__').replace('prm:','prm__').replace('__fml:','').replace('fml:','').replace('ret:','')
+    name = name.replace('loc:', 'loc__') \
+            .replace('ext:', 'ext__') \
+            .replace('___branch:', '__branch__') \
+            .replace('__prm:', 'prm__') \
+            .replace('prm:', 'prm__') \
+            .replace('__fml:', '') \
+            .replace('fml:', '') \
+            .replace('ret:', '')
+            
     name = re.sub(puncs,'__',name).replace('@@','.')
     return name.replace(':','__COLON__')
 #    return name.split(':')[-1]
 
 def other_varname(name):
+    """
+    Returns the variable name with the global classname prepended if it exists.
+
+    Parameters:
+        name (str): The name of the variable.
+
+    Returns:
+        str: The variable name with the global classname prepended if it exists, otherwise the variable name itself.
+    """
     if global_classname is not None:
         return global_classname + '::' + varname(name)
     return varname(name)
     
 
 def funname(name):
+    """
+    Returns a modified version of the given name.
+
+    Parameters:
+    name (str or object): The name to be modified.
+
+    Returns:
+    str: The modified name.
+
+    Raises:
+    IvyError: If the name is a quoted string.
+
+    """
     if not isinstance(name,str):
         name = name.name
     if name[0].isdigit():
@@ -182,17 +302,51 @@ def funname(name):
         
 
 def mk_nondet(code,v,rng,name,unique_id):
+    """
+    Generates a non-deterministic assignment statement in the given code.
+
+    Parameters:
+        code (list): The list of code lines to append the assignment statement to.
+        v: The variable to assign a non-deterministic value to.
+        rng: The range of possible values for the non-deterministic assignment.
+        name (str): The name of the non-deterministic assignment.
+        unique_id: The unique identifier for the non-deterministic assignment.
+
+    Returns:
+        None
+    """
     global nondet_cnt
     indent(code)
     ct = 'int' if isinstance(v,str) else ctype(v.sort)
     code.append(varname(v) + ' = ('+ct+')___ivy_choose(' + str(0) + ',"' + name + '",' + str(unique_id) + ');\n')
 
 def is_native_sym(sym):
+    """
+    Check if a symbol is a native symbol.
+
+    Args:
+        sym: The symbol to be checked.
+
+    Returns:
+        bool: True if the symbol is a native symbol, False otherwise.
+    """
     assert hasattr(sym.sort,'rng'),sym
     return il.is_uninterpreted_sort(sym.sort.rng) and sym.sort.rng.name in im.module.native_types    
 
 
 def mk_nondet_sym(code,sym,name,unique_id):
+    """
+    Generates a non-deterministic symbol and assigns it a value.
+
+    Args:
+        code (str): The code to be generated.
+        sym: The symbol to be assigned a value.
+        name (str): The name of the symbol.
+        unique_id: The unique identifier of the symbol.
+
+    Returns:
+        None
+    """
     global nondet_cnt
     if is_native_sym(sym) or ctype(sym.sort.rng) == '__strlit' or sym.sort.rng in sort_to_cpptype:
         return  # native classes have their own initializers
@@ -213,28 +367,67 @@ def mk_nondet_sym(code,sym,name,unique_id):
         assign_symbol_value(code,[varname(sym)],fun,sym,same=True)
 
 def assign_zero_symbol(code,sym):
+    """
+    Assigns a zero symbol to the given code and symbol.
+
+    Parameters:
+    - code (str): The code to assign the zero symbol to.
+    - sym (str): The symbol to assign the zero value to.
+
+    Returns:
+    None
+    """
     fun = lambda v: (('('+ctype(v.sort)+')0')
                      if not (is_native_sym(v) or ctype(v.sort) == '__strlit' or v.sort in sort_to_cpptype) else None)
     assign_symbol_value(code,[varname(sym)],fun,sym,same=True)
     
 
 def field_eq(s,t,field):
+    """
+    Check if the field of two objects are equal.
+
+    Args:
+        s: The first object.
+        t: The second object.
+        field: The field to compare.
+
+    Returns:
+        bool: True if the field of the two objects are equal, False otherwise.
+    """
     vs = [il.Variable('X{}'.format(idx),sort) for idx,sort in enumerate(field.sort.dom[1:])]
     if not vs:
         return il.Equals(field(s),field(t))
     return il.ForAll(vs,il.Equals(field(*([s]+vs)),field(*([t]+vs))))
 
 def memname(sym):
+    """
+    Returns the memory name of a symbol.
+
+    Parameters:
+        sym (str or Symbol): The symbol whose memory name is to be retrieved.
+
+    Returns:
+        str: The memory name of the symbol.
+
+    """
     if not(isinstance(sym,str)):
         sym = sym.name
     return field_names.get(sym,sym.split('.')[-1])
-
-
 
 def basename(name):
     return name.split('::')[-1]
 
 def ctuple(dom,classname=None):
+    """
+    Generates a C++ tuple representation of the given domain.
+
+    Parameters:
+    - dom (list): The domain to be converted into a tuple.
+    - classname (str, optional): The name of the class to be prepended to the tuple elements.
+
+    Returns:
+    - tuple: The C++ tuple representation of the domain.
+    """
     if len(dom) == 1:
         return ctypefull(dom[0],classname=classname)
     return (classname+'::' if classname else '') + '__tup__' + '__'.join(basename(ctypefull(s).replace(" ","_")) for s in dom)
@@ -242,6 +435,16 @@ def ctuple(dom,classname=None):
 declared_ctuples = set()
 
 def declare_ctuple(header,dom):
+    """
+    Declare a C++ struct representing a tuple with the given domain.
+
+    Args:
+        header (list): The list to append the struct declaration to.
+        dom (list): The domain of the tuple.
+
+    Returns:
+        None
+    """
     if len(dom) == 1:
         return
     t = ctuple(dom)
@@ -266,6 +469,17 @@ def ctuple_hash(dom):
         return 'hash__' + ctuple(dom)
 
 def declare_ctuple_hash(header,dom,classname):
+    """
+    Declare a hash function for a custom tuple type.
+
+    Args:
+        header (list): The header file to append the hash function declaration to.
+        dom (list): The domain of the custom tuple type.
+        classname (str): The name of the class containing the custom tuple type.
+
+    Returns:
+        None
+    """
     t = ctuple(dom)
     the_type = classname+'::'+t
     header.append("""
@@ -279,6 +493,15 @@ class the_hash_type {
 
                   
 def declare_hash_thunk(header):
+    """
+    Declare a hash thunk structure.
+
+    Args:
+        header (list): The list to which the declaration code will be appended.
+
+    Returns:
+        None
+    """
     header.append("""
 template <typename D, typename R>
 struct thunk {
@@ -308,11 +531,31 @@ struct hash_thunk {
 """)        
 
 def all_members():
+    """
+    Returns an iterator that yields all symbols that are members and have a non-null solver name.
+
+    Returns:
+        Iterator: An iterator that yields symbols.
+    """
     for sym in il.all_symbols():
         if sym_is_member(sym) and not slv.solver_name(sym) == None:
             yield sym
 
 def all_ctuples():
+    """
+    Generates all possible ctuples.
+
+    Returns:
+        Generator: A generator that yields all possible ctuples.
+
+    Example:
+        >>> for ctuple in all_ctuples():
+        ...     print(ctuple)
+        ...
+        (dom1, dom2, dom3)
+        (dom4, dom5, dom6)
+        ...
+    """
     done = set()
     for sym in all_members():
         if hasattr(sym.sort,'dom') and len(sym.sort.dom) > 1 and is_large_type(sym.sort):
@@ -324,6 +567,16 @@ def all_ctuples():
             yield res
     
 def all_hash_thunk_domains(classname):
+    """
+    Generates the names of all hash thunk domains for a given class.
+
+    Parameters:
+    - classname (str): The name of the class.
+
+    Yields:
+    - str: The name of a hash thunk domain.
+
+    """
     done = set()
     for sym in all_members():
         if hasattr(sym.sort,'dom') and len(sym.sort.dom) == 1 and is_large_type(sym.sort):
@@ -361,6 +614,19 @@ def is_numeric_range(sort):
 
 
 def ctype_remaining_cases(sort,classname):
+    """
+    Determines the C type for the remaining cases of a given sort.
+
+    Parameters:
+    - sort: The sort to determine the C type for.
+    - classname: The name of the class (optional).
+
+    Returns:
+    - The C type for the remaining cases of the given sort.
+
+    Raises:
+    - IvyError: If the sort is too large to represent with a machine integer.
+    """
     if isinstance(sort,il.EnumeratedSort):
         if is_numeric_range(sort):
             return 'int'
@@ -413,6 +679,33 @@ class ReturnRefType(object): # return by reference in argument position "pos"
         return "ReturnRefType({})".format(self.pos)
 
 def ctype(sort,classname=None,ptype=None):
+    """
+    Converts the given sort to its corresponding C++ type.
+
+    Parameters:
+        sort (Sort): The sort to be converted.
+        classname (str, optional): The name of the class. Defaults to None.
+        ptype (ValueType, optional): The value type. Defaults to None.
+
+    Returns:
+        ValueType: The converted C++ type.
+
+    Raises:
+        None
+
+    Examples:
+        # Convert an uninterpreted sort to C++ type
+        ctype(sort)
+
+        # Convert an uninterpreted sort to C++ type with a specific class name
+        ctype(sort, classname="MyClass")
+
+        # Convert an uninterpreted sort to C++ type with a specific value type
+        ctype(sort, ptype=ValueTye())
+
+        # Convert an uninterpreted sort to C++ type with a specific class name and value type
+        ctype(sort, classname="MyClass", ptype=ValueTye())
+    """
     ptype = ptype or ValueType()
     classname = classname or global_classname
     if il.is_uninterpreted_sort(sort):
@@ -440,13 +733,13 @@ large_thresh = 1024
 def is_large_destr(sort):
     if hasattr(sort,'dom') and any(not is_any_integer_type(s) for s in sort.dom[1:]):
         return True
-    cards = map(sort_card,sort.dom[1:] if hasattr(sort,'dom') else [])
+    cards = list(map(sort_card,sort.dom[1:] if hasattr(sort,'dom') else []))
     return not(all(cards) and reduce(mul,cards,1) <= large_thresh)
 
 def is_large_type(sort):
     if hasattr(sort,'dom') and any(not is_any_integer_type(s) for s in sort.dom):
         return True
-    cards = map(sort_card,sort.dom if hasattr(sort,'dom') else [])
+    cards = list(map(sort_card,sort.dom if hasattr(sort,'dom') else []))
     return not(all(cards) and reduce(mul,cards,1) <= large_thresh)
 
 def is_large_lhs(term):
@@ -458,7 +751,7 @@ def is_large_lhs(term):
     
 
 def ctype_function(sort,classname=None,skip_params=0):
-    cards = map(sort_card,sort.dom[skip_params:] if hasattr(sort,'dom') else [])
+    cards = list(map(sort_card,sort.dom[skip_params:] if hasattr(sort,'dom') else []))
     cty = ctypefull(sort.rng,classname)
     if all(cards) and reduce(mul,cards,1) <= large_thresh:
         if not(hasattr(sort,'dom') and any(not is_any_integer_type(s) for s in sort.dom[skip_params:])):
@@ -482,6 +775,17 @@ def expr_to_z3_no_type_cnst(expr,prefix=''):
 
 
 def gather_referenced_symbols(expr,res,ignore=[]):
+    """
+    Gathers the referenced symbols from the given expression.
+
+    Parameters:
+    - expr: The expression to analyze.
+    - res: A set to store the referenced symbols.
+    - ignore: A list of symbols to ignore.
+
+    Returns:
+    None
+    """
     for sym in ilu.used_symbols_ast(expr):
         if (not sym.is_numeral() and not slv.solver_name(sym) == None
             and sym.name not in im.module.destructor_sorts and sym not in res and sym not in ignore):
@@ -498,6 +802,23 @@ def is_numeric_or_enumerated_constant(s):
 
 
 def make_thunk(impl,vs,expr):
+    """
+    Create a thunk object for the given implementation, variables, and expression.
+    
+    Thunks are useful in object-oriented programming platforms that allow a class to inherit multiple interfaces, 
+    leading to situations where the same method might be called via any of several interfaces. 
+
+    Args:
+        impl: The implementation object.
+        vs: A list of variables.
+        expr: The expression.
+
+    Returns:
+        A hash_thunk object.
+
+    Raises:
+        None.
+    """
     global the_classname
     dom = [v.sort for v in vs]
     D = ctuple(dom,classname=the_classname)
@@ -558,8 +879,8 @@ def make_thunk(impl,vs,expr):
                     emit_decl(impl,sym,sym_name=sym_name+'.c_str()',prefix='g.')
                     close_scope(impl)
                     return sym_name
-                vsyms = [il.Symbol(name+'_arg_{}'.format(idx),v.sort) for idx,v in enumerate(vs)]
-                rsym = il.Symbol(name+'_res_{}'.format(idx),expr.sort)
+                vsyms = [il.Symbol(name+'_arg_{}'.format(idx),v.sort) for idx,v in enumerate(vs)] 
+                rsym = il.Symbol(name+'_res_{}'.format(0),expr.sort) # chris: error here with idx instead of 0 len(list(enumerate(vs)))
                 envsyms = [il.Symbol(name+'_env_{}'.format(idx),v.sort) for idx,v in enumerate(env)]
                 for v in vsyms+envsyms+[rsym]:
                     open_scope(impl,line='if (g.decls_by_name.find("{}") == g.decls_by_name.end())'.format(v.name))
@@ -567,7 +888,7 @@ def make_thunk(impl,vs,expr):
                     close_scope(impl)
                 subst = dict((x.name,y) for x,y in zip(vs,vsyms))
                 orig_expr = ilu.substitute_ast(orig_expr,subst)
-                subst = dict(zip(env,envsyms))
+                subst = dict(list(zip(env,envsyms)))
                 orig_expr = ilu.rename_ast(orig_expr,subst)
 #                def solver_add(impl,text):
 #                    code_line(impl,'res = res && {}'.format(text))
@@ -610,6 +931,16 @@ def make_thunk(impl,vs,expr):
 #     return '+'.join('hash_space::hash<{}>()({})'.format(hashtype(s),varname(f)) for s,f in zip(field_sorts,field_names))
 
 def struct_hash_fun(field_names,field_sorts):
+    """
+    Calculates the hash value for a struct based on its field names and field sorts.
+
+    Args:
+        field_names (list): A list of field names.
+        field_sorts (list): A list of field sorts.
+
+    Returns:
+        str: The calculated hash value for the struct.
+    """
     code = []
     code_line(code,'size_t hv = 0')
     for sort,f in zip(field_sorts,field_names):
@@ -624,6 +955,18 @@ def struct_hash_fun(field_names,field_sorts):
     
 
 def emit_struct_hash(header,the_type,field_names,field_sorts):
+    """
+    Generates a hash function specialization for a given struct type.
+
+    Args:
+        header (list): The header list to append the generated code to.
+        the_type (str): The name of the struct type.
+        field_names (list): The list of field names in the struct.
+        field_sorts (list): The list of field sorts in the struct.
+
+    Returns:
+        None
+    """
     header.append("""
     template<> class hash<the_type> {
         public:
@@ -634,6 +977,15 @@ def emit_struct_hash(header,the_type,field_names,field_sorts):
 """.replace('the_type',the_type).replace('the_val',struct_hash_fun(['__s.'+n for n in field_names],field_sorts)))
 
 def is_primitive_sort(sort):
+    """
+    Check if the given sort is a primitive sort.
+
+    Parameters:
+    sort (Sort): The sort to be checked.
+
+    Returns:
+    bool: True if the sort is a primitive sort, False otherwise.
+    """
     if not sort.dom:
         name = sort.name
         if name in im.module.native_types:
@@ -642,6 +994,15 @@ def is_primitive_sort(sort):
     return False
             
 def emit_cpp_sorts(header):
+    """
+    Emits C++ code for the sorts defined in the module.
+
+    Args:
+        header (list): The list to which the C++ code will be appended.
+
+    Returns:
+        None
+    """
     for name in im.module.sort_order:
         if name in im.module.native_types:
             nt = native_type_full(im.module.native_types[name]).strip()
@@ -661,7 +1022,7 @@ def emit_cpp_sorts(header):
             destrs = im.module.sort_destructors[name]
             for destr in destrs:
                 declare_symbol(header,destr,skip_params=1)
-            header.append("        size_t __hash() const { "+struct_hash_fun(map(memname,destrs),[d.sort for d in destrs]) + "}\n")
+            header.append("        size_t __hash() const { "+struct_hash_fun(list(map(memname,destrs)),[d.sort for d in destrs]) + "}\n")
             header.append("    };\n");
         elif isinstance(il.sig.sorts[name],il.EnumeratedSort):
             sort = il.sig.sorts[name]
@@ -686,7 +1047,31 @@ def emit_cpp_sorts(header):
 
 
 def emit_sorts(header):
-    for name,sort in il.sig.sorts.iteritems():
+    """
+    Emits the sorts to the given header file.
+
+    Args:
+        header (list): The list representing the header file.
+
+    Returns:
+        None
+
+    Raises:
+        None
+
+    Notes:
+        - This function iterates over the sorts in the il.sig.sorts dictionary.
+        - It skips the "bool" sort.
+        - If the sort has an interpretation in il.sig.interp, it uses that interpretation.
+        - If the interpretation is an EnumeratedSort or a RangeSort, it uses that as the sort.
+        - If the sort is not an EnumeratedSort, it checks if it has an interpretation in il.sig.interp.
+        - If the interpretation is 'int', 'nat', or a RangeSort, it adds code to the header to create an integer sort.
+        - If the interpretation is in the form 'bv[n]', where n is an integer, it adds code to the header to create a bitvector sort of width n.
+        - If the interpretation is 'strlit', it adds code to the header to create a string sort.
+        - If the sort has an interpretation in sort_to_cpptype and is not in im.module.variants, it adds code to the header to create an enum sort.
+        - If the sort is an EnumeratedSort, it adds code to the header to create an enum sort with the given values.
+    """
+    for name,sort in il.sig.sorts.items():
         if name == "bool":
             continue
         if name in il.sig.interp:
@@ -729,6 +1114,29 @@ def emit_sorts(header):
         header.append('mk_enum("{}",{},{}_values);\n'.format(name,card,cname))
 
 def emit_decl(header,symbol,sym_name=None,prefix=''):
+    """
+    Emits a declaration in the header file.
+
+    Args:
+        header (list): The list representing the header file.
+        symbol: The symbol to emit the declaration for.
+        sym_name (str, optional): The name of the symbol. Defaults to None.
+        prefix (str, optional): The prefix to use in the declaration. Defaults to ''.
+
+    Returns:
+        None
+
+    Raises:
+        None
+
+    Notes:
+        - If the symbol is interpreted in some theory, the declaration is not emitted.
+        - If the symbol name is '*>', the declaration name will be '__pto__' + the first domain sort name + '__' + the second domain sort name. Otherwise, the declaration name will be the symbol name.
+        - If the sort is relational, the range name will be 'Bool'. Otherwise, the range name will be the name of the range sort.
+        - If the domain of the sort is empty, a constant declaration is emitted using the symbol name or the provided symbol name.
+        - If the domain of the sort is not empty, a declaration with the domain is emitted using the symbol name or the provided symbol name.
+
+    """
     name = symbol.name
     sname = slv.solver_name(symbol)
     if sname == None:  # this means the symbol is interpreted in some theory
@@ -771,6 +1179,19 @@ def int_to_z3(sort,val):
     return 'int_to_z3(sort("'+sort.name+'"),'+val+')'
 
 def emit_eval(header,symbol,obj=None,classname=None,lhs=None): 
+    """
+    Emit the evaluation code for a symbol in C++.
+
+    Args:
+        header (list): The list to store the generated C++ code.
+        symbol: The symbol to be evaluated.
+        obj: The object on which the symbol is evaluated.
+        classname: The name of the class.
+        lhs: The left-hand side of the evaluation.
+
+    Returns:
+        None
+    """
     global indent_level
     name = symbol.name
     sname = slv.solver_name(symbol)
@@ -805,6 +1226,23 @@ def solver_add_default(header,text):
     code_line(header,'slvr.add({})'.format(text))
 
 def emit_set_field(header,symbol,lhs,rhs,nvars=0,solver_add=solver_add_default,prefix='',obj='obj.',gen='*this'):
+    """
+    Emits code to set the value of a field in a header object.
+
+    Parameters:
+    - header: The header object.
+    - symbol: The symbol representing the field.
+    - lhs: The left-hand side of the assignment.
+    - rhs: The right-hand side of the assignment.
+    - nvars: The number of variables.
+    - solver_add: The solver add function.
+    - prefix: The prefix for the apply function.
+    - obj: The object name.
+    - gen: The generation name.
+
+    Returns:
+    None
+    """
     global indent_level
     name = symbol.name
     sname = '"' + slv.solver_name(symbol) + '"'
@@ -813,7 +1251,7 @@ def emit_set_field(header,symbol,lhs,rhs,nvars=0,solver_add=solver_add_default,p
     domain = sort.dom[1:]
     vs = variables(domain,start=nvars)
     open_loop(header,vs)
-    lhs1 = prefix+'apply('+sname+''.join(','+s for s in ([lhs]+map(var_to_z3_val,vs))) + ')'
+    lhs1 = prefix+'apply('+sname+''.join(','+s for s in ([lhs]+list(map(var_to_z3_val,vs)))) + ')'
     rhs1 = rhs + ''.join('[{}]'.format(varname(v)) for v in vs) + '.' + memname(symbol)
     if sort.rng.name in im.module.sort_destructors:
         destrs = im.module.sort_destructors[sort.rng.name]
@@ -825,6 +1263,22 @@ def emit_set_field(header,symbol,lhs,rhs,nvars=0,solver_add=solver_add_default,p
     close_loop(header,vs)
 
 def emit_set(header,symbol,solver_add=solver_add_default,csname=None,cvalue=None,prefix='',obj='obj.',gen='*this'): 
+    """
+    Emits code to set the value of a symbol in the header file.
+
+    Args:
+        header (str): The header file to emit the code into.
+        symbol (Symbol): The symbol to set the value for.
+        solver_add (function, optional): The solver add function. Defaults to solver_add_default.
+        csname (str, optional): The custom symbol name. Defaults to None.
+        cvalue (str, optional): The custom value name. Defaults to None.
+        prefix (str, optional): The prefix for the code. Defaults to ''.
+        obj (str, optional): The object name. Defaults to 'obj.'.
+        gen (str, optional): The generation name. Defaults to '*this'.
+
+    Returns:
+        None
+    """
     global indent_level
     name = symbol.name
     sname = '"' + slv.solver_name(symbol) + '"' if csname is None else csname 
@@ -904,6 +1358,17 @@ def mk_rand(sort,classname=None,obj=None):
                                                       else "0")
 
 def emit_init_gen(header,impl,classname):
+    """
+    Generates the initialization code for the `init_gen` class.
+
+    Args:
+        header (list): The list to append the header code to.
+        impl (list): The list to append the implementation code to.
+        classname (str): The name of the class.
+
+    Returns:
+        None
+    """
     global indent_level
     global global_classname
     global_classname = classname
@@ -978,7 +1443,20 @@ public:
     global_classname = None
     
 def emit_randomize(header,symbol,classname=None):
+    """
+    Generates randomization code for a given symbol in C++.
 
+    Args:
+        header (list): The list to store the generated code.
+        symbol (Symbol): The symbol to be randomized.
+        classname (str, optional): The name of the class. Defaults to None.
+
+    Raises:
+        IvyError: If the type of the symbol is uninterpreted.
+
+    Returns:
+        None
+    """
     global indent_level
     name = symbol.name
     sname = slv.solver_name(symbol)
@@ -1026,6 +1504,25 @@ def fix_definition(df):
 # the definitions, so the values of the defined inputs can be computed.
 
 def extract_defined_parameters(pre_clauses,inputs):
+    """
+    Extracts defined parameters from the given pre_clauses and inputs.
+
+    Args:
+        pre_clauses (ilu.Clauses): The pre_clauses containing formulas and definitions.
+        inputs (list): The list of input parameters.
+
+    Returns:
+        tuple: A tuple containing the modified pre_clauses and the list of extracted parameter definitions.
+
+    Raises:
+        None
+
+    Example:
+        pre_clauses = ilu.Clauses([f1, f2, f3], [d1, d2])
+        inputs = ['x', 'y']
+        result = extract_defined_parameters(pre_clauses, inputs)
+        # result: (modified_pre_clauses, extracted_defs)
+    """
     change = True
     inputset = set(inputs)
     defmap = {}
@@ -1035,7 +1532,7 @@ def extract_defined_parameters(pre_clauses,inputs):
     inpdefs = []
     while change:
         change = False
-        for input,fmla in list(defmap.iteritems()):
+        for input,fmla in list(defmap.items()):
             if (all(input not in ilu.used_symbols_ast(f) or f == fmla for f in pre_clauses.fmlas)
                 and all(input not in ilu.used_symbols_ast(d) for d in pre_clauses.defs)):
                 pre_clauses = ilu.Clauses([f for f in pre_clauses.fmlas if f != fmla],pre_clauses.defs)
@@ -1047,6 +1544,25 @@ def extract_defined_parameters(pre_clauses,inputs):
     return pre_clauses,inpdefs
 
 def collect_used_definitions(pre,inpdefs,ssyms):
+    """
+    Collects used definitions from the given input definitions and returns a list of used definitions and unused symbols.
+
+    Parameters:
+    - pre: The preprocessor object containing definitions.
+    - inpdefs: A list of input definitions.
+    - ssyms: A set of symbols.
+
+    Returns:
+    - res: A list of used definitions.
+    - usyms: A list of unused symbols.
+
+    Example:
+    >>> pre = Preprocessor()
+    >>> inpdefs = [def1, def2, def3]
+    >>> ssyms = {'sym1', 'sym2', 'sym3'}
+    >>> collect_used_definitions(pre, inpdefs, ssyms)
+    ([def1, def2], ['sym3'])
+    """
     defmap = dict((d.defines(),d) for d in pre.defs)
     used = set()
     res = []
@@ -1067,6 +1583,20 @@ def collect_used_definitions(pre,inpdefs,ssyms):
     
 
 def emit_defined_inputs(pre,inpdefs,code,classname,ssyms,fsyms):
+    """
+    Emits defined inputs based on the given parameters.
+
+    Args:
+        pre (str): The preprocessor code.
+        inpdefs (list): List of input definitions.
+        code (str): The code to emit.
+        classname (str): The name of the class.
+        ssyms (list): List of symbols.
+        fsyms (dict): Dictionary of symbols.
+
+    Returns:
+        None
+    """
     global delegate_enums_to
     delegate_enums_to = classname
     udefs,usyms = collect_used_definitions(pre,inpdefs,ssyms)
@@ -1092,6 +1622,23 @@ def emit_defined_inputs(pre,inpdefs,code,classname,ssyms,fsyms):
     delegate_enums_to = ''
     
 def minimal_field_references(fmla,inputs):
+    """
+    Returns a dictionary containing minimal field references for a given formula and inputs.
+
+    Parameters:
+    - fmla (Formula): The formula for which minimal field references are to be determined.
+    - inputs (list): The list of input variables.
+
+    Returns:
+    - dict: A dictionary where the keys are input variables and the values are sets of minimal field references.
+
+    Example:
+    >>> fmla = Formula(...)
+    >>> inputs = ['x', 'y', 'z']
+    >>> minimal_refs = minimal_field_references(fmla, inputs)
+    >>> print(minimal_refs)
+    {'x': {<FieldReference1>, <FieldReference2>}, 'y': {<FieldReference3>}, 'z': set()}
+    """
     inpset = set(inputs)
     res = defaultdict(set)
     def field_ref(f):
@@ -1121,10 +1668,26 @@ def minimal_field_references(fmla,inputs):
         return set(y for y in refs if all(not(lt(x,y)) for x in refs))
             
     recur(fmla)
-    res = dict((inp,get_minima(refs)) for inp,refs in res.iteritems())
+    res = dict((inp,get_minima(refs)) for inp,refs in res.items())
     return res
                 
 def minimal_field_siblings(inputs,mrefs):
+    """
+    Returns a dictionary containing the minimal field siblings for each input.
+
+    Parameters:
+    - inputs (list): A list of input values.
+    - mrefs (dict): A dictionary mapping inputs to their corresponding field references.
+
+    Returns:
+    - dict: A dictionary where the keys are the inputs and the values are sets of minimal field siblings.
+
+    Example:
+    >>> inputs = ['A', 'B', 'C']
+    >>> mrefs = {'A': ['F1', 'F2'], 'B': ['F3'], 'C': []}
+    >>> minimal_field_siblings(inputs, mrefs)
+    {'A': {'D1', 'D2'}, 'B': {'B'}, 'C': {'C'}}
+    """
     res = defaultdict(set)
     for inp in inputs:
         if inp in mrefs:
@@ -1141,25 +1704,76 @@ def minimal_field_siblings(inputs,mrefs):
     return res
 
 def extract_input_fields(pre_clauses,inputs):
+    """
+    Extracts input fields from pre_clauses and returns modified pre_clauses, inputs, and fsyms.
+
+    Parameters:
+    - pre_clauses (ilu.Clauses): The pre_clauses object containing formulas and definitions.
+    - inputs (list): The list of input fields.
+
+    Returns:
+    - pre_clauses (ilu.Clauses): The modified pre_clauses object with updated formulas and definitions.
+    - inputs (list): The list of input fields.
+    - fsyms (dict): A dictionary mapping field symbol names to their corresponding symbols.
+
+    Description:
+    This function extracts input fields from pre_clauses by performing the following steps:
+    1. Calls minimal_field_references to obtain minimal field references from the formula in pre_clauses.
+    2. Calls minimal_field_siblings to obtain minimal field siblings from the inputs and minimal field references.
+    3. Defines a field_symbol_name function to generate field symbol names based on the arguments of the field.
+    4. Constructs a dictionary fsyms that maps field symbol names to their corresponding symbols.
+    5. Constructs a reverse dictionary rfsyms that maps symbols to their corresponding field symbol names.
+    6. Defines a recur function to recursively process the formula and update it based on the minimal field references.
+    7. Updates pre_clauses by applying the recur function to its formulas and definitions.
+    8. Updates inputs with the keys of fsyms.
+    9. Returns the modified pre_clauses, inputs, and fsyms.
+
+    Note:
+    - The function assumes the existence of the following modules: il, ilu, and im.
+    - The function assumes the existence of the following functions: minimal_field_references and minimal_field_siblings.
+    """
     mrefs = minimal_field_references(pre_clauses.to_formula(),inputs)
     mrefs = minimal_field_siblings(inputs,mrefs)
     def field_symbol_name(f):
         if len(f.args) == 1:
             return field_symbol_name(f.args[0]) + '__' + f.rep.name
         return f.rep.name
-    fsyms = dict((il.Symbol(field_symbol_name(y),y.sort),y) for l in mrefs.values() for y in l)
-    rfsyms  = dict((y,x) for x,y in fsyms.iteritems())
+    fsyms = dict((il.Symbol(field_symbol_name(y),y.sort),y) for l in list(mrefs.values()) for y in l)
+    rfsyms  = dict((y,x) for x,y in fsyms.items())
     def recur(f):
         if il.is_app(f):
             if f.rep in mrefs or f.rep.name in im.module.destructor_sorts and len(f.args) == 1:
                 if f in rfsyms:
                     return rfsyms[f]
-        return f.clone(map(recur,f.args))
-    pre_clauses = ilu.Clauses(map(recur,pre_clauses.fmlas),map(recur,pre_clauses.defs))
+        return f.clone(list(map(recur,f.args)))
+    pre_clauses = ilu.Clauses(list(map(recur,pre_clauses.fmlas)),list(map(recur,pre_clauses.defs)))
     inputs = list(fsyms.keys())
     return pre_clauses,inputs,fsyms
 
 def expand_field_references(pre_clauses):
+    """
+    Expands field references in the given pre_clauses.
+
+    Args:
+        pre_clauses (ilu.Clauses): The pre_clauses to expand field references in.
+
+    Returns:
+        ilu.Clauses: The expanded pre_clauses.
+
+    Raises:
+        None
+
+    Notes:
+        - This function expands field references in the given pre_clauses.
+        - Field references are expanded based on a mapping defined in the function.
+        - The mapping is created by extracting certain clauses from the pre_clauses.
+        - The function recursively expands field references until no more expansions are possible.
+        - The expanded pre_clauses are returned as the result.
+
+    Example:
+        pre_clauses = ilu.Clauses(...)
+        expanded_clauses = expand_field_references(pre_clauses)
+    """
     defmap = dict((x.args[0].rep,x.args[1]) for x in pre_clauses.defs
                   if len(x.args[0].args) == 0 and il.is_app(x.args[1])
                       and  (len(x.args[1].args) == 0 or
@@ -1168,20 +1782,20 @@ def expand_field_references(pre_clauses):
     def recur(f):
         if il.is_app(f) and f.rep in defmap:
             return recur(defmap[f.rep])
-        return f.clone(map(recur,f.args))
+        return f.clone(list(map(recur,f.args)))
     def recur_def(d):
         return d.clone([d.args[0],recur(d.args[1])])
-    dfs = map(recur,pre_clauses.defs)
+    dfs = list(map(recur,pre_clauses.defs))
     dfs = [df for df in dfs if df.args[0] != df.args[1]]
-    return ilu.Clauses(map(recur,pre_clauses.fmlas),dfs)
+    return ilu.Clauses(list(map(recur,pre_clauses.fmlas)),dfs)
 
 def get_lib_dirs(with_z3=True):
     import platform
     def file_dir_path(x):
         return os.path.dirname(os.path.abspath(x))
     files = [__file__]
-    if sys.version_info[0] >= 3 and with_z3:
-        files.append(z3.__file__)
+#    if sys.version_info[0] >= 3 and with_z3:
+#        files.append(z3.__file__)
     dirs = [file_dir_path(x) for x in files]
     if platform.system() == 'Darwin':
         dirs.append('/usr/local/opt/openssl')  # work around Mac openssl bug
@@ -1191,6 +1805,19 @@ def get_lib_dirs(with_z3=True):
 
 
 def emit_action_gen(header,impl,name,action,classname):
+    """
+    Emits the code for generating an action in C++.
+
+    Args:
+        header (list): The list to append the header code to.
+        impl (list): The list to append the implementation code to.
+        name (str): The name of the action.
+        action (Action): The action object.
+        classname (str): The name of the class.
+
+    Returns:
+        None
+    """
     global indent_level
     global global_classname
     global_classname = classname
@@ -1350,12 +1977,40 @@ def emit_action_gen(header,impl,name,action,classname):
 
 
 def emit_derived(header,impl,df,classname,inline=False):
+    """
+    Emits a derived function in C++ code.
+
+    Parameters:
+    - header (str): The header file to write the function declaration to.
+    - impl (str): The implementation file to write the function definition to.
+    - df (DerivedFunction): The derived function object.
+    - classname (str): The name of the class the function belongs to.
+    - inline (bool, optional): Whether to declare the function as inline. Defaults to False.
+
+    Returns:
+    None
+
+    Raises:
+    None
+
+    Description:
+    This function takes in a DerivedFunction object and emits the corresponding C++ code for the derived function.
+    It writes the function declaration to the specified header file and the function definition to the specified implementation file.
+    The function name is determined by the name attribute of the DerivedFunction object.
+    The function body is generated based on the arguments and expression of the DerivedFunction object.
+    The formal parameters and return type of the function are extracted from the arguments and expression of the DerivedFunction object.
+    The emitted code includes the necessary includes, namespace, and class scope.
+    If the inline parameter is set to True, the function is declared as inline in the header file.
+
+    Example:
+    emit_derived("my_header.h", "my_impl.cpp", derived_function, "MyClass", inline=True)
+    """
     name = df.defines().name
     sort = df.defines().sort.rng
     retval = il.Symbol("ret:val",sort)
     vs = df.args[0].args
     ps = [ilu.var_to_skolem('fml:',v) for v in vs]
-    mp = dict(zip(vs,ps))
+    mp = dict(list(zip(vs,ps)))
     rhs = ilu.substitute_ast(df.args[1],mp)
     action = ia.AssignAction(retval,rhs)
     action.formal_params = ps
@@ -1363,6 +2018,16 @@ def emit_derived(header,impl,df,classname,inline=False):
     emit_some_action(header,impl,name,action,classname,inline)
 
 def emit_constructor(header,impl,cons,classname,inline=False):
+    """
+    Emits a constructor for a given class.
+
+    Args:
+        header (str): The header file where the constructor will be emitted.
+        impl (str): The implementation file where the constructor will be emitted.
+        cons (Cons): The constructor object.
+        classname (str): The name of the class.
+        inline (bool, optional): Whether the constructor should be inline or not. Defaults to False.
+    """
     name = cons.name
     sort = cons.sort.rng
     retval = il.Symbol("ret:val",sort)
@@ -1377,6 +2042,24 @@ def emit_constructor(header,impl,cons,classname,inline=False):
 
 
 def native_split(string):
+    """
+    Splits a string into a tag and the remaining content.
+
+    Parameters:
+    - string (str): The input string to be split.
+
+    Returns:
+    - tuple: A tuple containing the tag and the remaining content.
+        - tag (str): The tag extracted from the string. If no tag is found, it defaults to "member".
+        - content (str): The remaining content after the tag.
+
+    Example:
+    >>> native_split("tag\ncontent")
+    ('tag', 'content')
+
+    >>> native_split("content")
+    ('member', 'content')
+    """
     split = string.split('\n',1)
     if len(split) == 2:
         tag = split[0].strip()
@@ -1384,10 +2067,33 @@ def native_split(string):
     return "member",split[0]
 
 def native_type(native):
+    """
+    Returns the tag of the native type.
+
+    Parameters:
+    native (object): The native type object.
+
+    Returns:
+    str: The tag of the native type.
+
+    """
     tag,code = native_split(native.args[1].code)
     return tag
 
 def native_declaration(atom):
+    """
+    Generate the native declaration for the given atom.
+
+    Parameters:
+    - atom: The atom for which the native declaration is generated.
+
+    Returns:
+    - res: The native declaration string.
+
+    Raises:
+    - iu.IvyError: If an array cannot be allocated over a non-finite sort.
+
+    """
     if atom.rep in im.module.sig.sorts:
         res = ctype(im.module.sig.sorts[atom.rep],classname=native_classname)
 #        print 'type(atom): {} atom.rep: {} res: {}'.format(type(atom),atom.rep,res)
@@ -1411,6 +2117,18 @@ def thunk_name(actname):
     return 'thunk__' + varname(actname)
 
 def create_thunk(impl,actname,action,classname):
+    """
+    Creates a thunk struct for the given action.
+
+    Args:
+        impl (list): The implementation list to append the generated code to.
+        actname (str): The name of the action.
+        action (Action): The action object.
+        classname (str): The name of the class.
+
+    Returns:
+        None
+    """
     tc = thunk_name(actname)
     impl.append('struct ' + tc + '{\n')
     impl.append('    ' + classname + ' *__ivy' + ';\n')
@@ -1443,6 +2161,24 @@ def native_z3name(arg):
     return arg.rep.name
 
 def native_to_str(native,reference=False,code=None):
+    """
+    Converts a native object to a string representation.
+
+    Parameters:
+        native (object): The native object to convert.
+        reference (bool, optional): Flag indicating whether to use reference or declaration format. Defaults to False.
+        code (str, optional): The code to split. If None, it will be extracted from the native object. Defaults to None.
+
+    Returns:
+        str: The string representation of the native object.
+
+    Raises:
+        IndexError: If the native object does not have the required attributes.
+
+    Example:
+        native = ...
+        result = native_to_str(native, reference=True)
+    """
     if code is None:
         tag,code = native_split(native.args[1].code)
     fields = code.split('`')
@@ -1478,7 +2214,30 @@ def emit_native(header,impl,native,classname):
 # by value so as not to confused external callers.
 
 def annotate_action(name,action):
+    """
+    Annotates the given action with parameter and return types based on the provided name.
 
+    Args:
+        name (str): The name of the action.
+        action (Action): The action to be annotated.
+
+    Returns:
+        None
+
+    Raises:
+        None
+
+    Notes:
+        - If the name is in the module's public actions, the action's parameter types and return types will be set to empty lists.
+        - Otherwise, the action's parameter types and return types will be determined based on the formal parameters and returns of the action.
+        - If a formal parameter is also a formal return, its parameter type will be set as a reference type.
+        - If a formal parameter is assigned within the action or is not a struct, its parameter type will be set as a value type.
+        - Otherwise, its parameter type will be set as a constant reference type.
+        - The return types will be determined based on the formal returns of the action.
+        - If a formal return matches a formal parameter, its return type will be set as a reference type with the index of the matching parameter.
+        - If a formal return does not match any formal parameter and is not the first return, its return type will be set as a reference type with the next available argument position.
+        - Otherwise, its return type will be set as a value type.
+    """
     if name in im.module.public_actions:
         action.param_types = [ValueType() for p in action.formal_params]
         action.return_types = [ValueType() for p in action.formal_returns]
@@ -1533,6 +2292,23 @@ def may_alias(x,y):
 # emit parameter declarations of the approriate parameter types
 
 def emit_param_decls(header,name,params,extra=[],classname=None,ptypes=None):
+    """
+    Emit parameter declarations for a function in a header file.
+
+    Args:
+        header (list): The list to append the parameter declarations to.
+        name (str): The name of the function.
+        params (list): The list of parameters.
+        extra (list, optional): Extra elements to include in the parameter declarations. Defaults to [].
+        classname (str, optional): The name of the class. Defaults to None.
+        ptypes (list, optional): The list of parameter types. Defaults to None.
+
+    Raises:
+        IvyError: If a parameter has a function sort.
+
+    Returns:
+        None
+    """
     header.append(funname(name) + '(')
     # CHRIS
     for p in params:
@@ -1542,6 +2318,24 @@ def emit_param_decls(header,name,params,extra=[],classname=None,ptypes=None):
     header.append(')')
 
 def emit_param_decls_with_inouts(header,name,params,classname,ptypes,returns,return_ptypes):
+    """
+    Emit parameter declarations with inouts.
+
+    Args:
+        header (str): The header string.
+        name (str): The name of the function.
+        params (list): The list of parameters.
+        classname (str): The name of the class.
+        ptypes (list): The list of parameter types.
+        returns (list): The list of return values.
+        return_ptypes (list): The list of return value types.
+
+    Returns:
+        None
+
+    Raises:
+        None
+    """
     extra_params = []
     extra_ptypes = []
     for (r,rp) in zip(returns,return_ptypes):
@@ -1551,9 +2345,26 @@ def emit_param_decls_with_inouts(header,name,params,classname,ptypes,returns,ret
     emit_param_decls(header,name,params+extra_params,classname=classname,ptypes=ptypes+extra_ptypes)
 
 def emit_method_decl(header,name,action,body=False,classname=None,inline=False):
+    """
+    Generates a method declaration for a given action.
+
+    Args:
+        header (list): The list to append the generated method declaration to.
+        name (str): The name of the action.
+        action (Action): The action object.
+        body (bool, optional): Indicates whether the method declaration is for a method body. Defaults to False.
+        classname (str, optional): The name of the class. Defaults to None.
+        inline (bool, optional): Indicates whether the method declaration should be inline. Defaults to False.
+
+    Raises:
+        IvyError: If there are multiple output parameters in exported actions.
+
+    Returns:
+        None
+    """
     if not hasattr(action,"formal_returns"):
-        print "bad name: {}".format(name)
-        print "bad action: {}".format(action)
+        print("bad name: {}".format(name))
+        print("bad action: {}".format(action))
     rs = action.formal_returns
     ptypes,rtypes = get_param_types(name,action)
     if not body:
@@ -1576,6 +2387,26 @@ def emit_action(header,impl,name,classname):
     emit_some_action(header,impl,name,action,classname)
 
 def trace_action(impl,name,action):
+    """
+    Trace an action in the implementation code.
+
+    Args:
+        impl (list): The list representing the implementation code.
+        name (str): The name of the action.
+        action (Action): The Action object representing the action.
+
+    Returns:
+        None
+
+    Raises:
+        None
+
+    Example:
+        >>> impl = []
+        >>> name = "my_action"
+        >>> action = Action(...)
+        >>> trace_action(impl, name, action)
+    """
     indent(impl)
     if name.startswith('ext:'):
         name = name[4:]
@@ -1592,6 +2423,17 @@ def trace_action(impl,name,action):
     impl.append(' << std::endl;\n')
 
 def emit_some_action(header,impl,name,action,classname,inline=False):
+    """
+    Emits the code for a specific action in the given header and implementation files.
+
+    Args:
+        header (list): The list representing the header file.
+        impl (list): The list representing the implementation file.
+        name (str): The name of the action.
+        action (ivy_ast.Action): The action object.
+        classname (str): The name of the class.
+        inline (bool, optional): Specifies whether the action should be emitted inline. Defaults to False.
+    """
     global indent_level
     global import_callers
     if not inline:
@@ -1642,6 +2484,17 @@ def init_method():
     return res
 
 def emit_initial_action(header,impl,classname):
+    """
+    Emit the initial action for the given header, implementation, and classname.
+
+    Args:
+        header (str): The header file path.
+        impl (str): The implementation file path.
+        classname (str): The name of the class.
+
+    Returns:
+        None
+    """
     global thunks
     thunks = impl
     code_line(header,'void __init()')
@@ -1661,6 +2514,15 @@ def is_finite_iterable_sort(sort):
     return is_iterable_sort(sort) and sort_card(sort) is not None
 
 def is_any_integer_type(sort):
+    """
+    Check if the given sort is any integer type.
+
+    Parameters:
+    sort (object): The sort to be checked.
+
+    Returns:
+    bool: True if the sort is an integer type, False otherwise.
+    """
     if ctype(sort) not in int_ctypes:
         if il.is_uninterpreted_sort(sort) and sort.name in im.module.native_types:
             nt = native_type_full(im.module.native_types[sort.name]).strip()
@@ -1682,6 +2544,27 @@ def fix_bound(sym,obj):
     return res
 
 def sort_bounds(sort,obj=None):
+    """
+    Returns the bounds for a given sort.
+
+    Parameters:
+        sort (Sort): The sort for which the bounds are to be determined.
+        obj (object, optional): The object for which the bounds are to be fixed. Defaults to None.
+
+    Returns:
+        list or None: A list containing the lower and upper bounds of the sort, or None if the sort has no bounds.
+
+    Raises:
+        None
+
+    Examples:
+        >>> sort_bounds(sort)
+        ['0', '10']
+
+        >>> sort_bounds(sort, obj)
+        ['(lb+1)', 'ub']
+
+    """
     itp = il.sig.interp.get(sort.name,None)
     if isinstance(itp,il.RangeSort):
         lb = fix_bound(itp.lb,obj)
@@ -1695,6 +2578,10 @@ def sort_size(sort):
     if isinstance(itp,il.RangeSort):
         return 1 # just a guess!
     return sort_card(sort)
+
+###
+# Control flow management
+###
 
 def open_loop(impl,vs,declare=True,bounds=None):
     global indent_level
@@ -1739,16 +2626,27 @@ def close_scope(impl,semi=False):
     indent(impl)
     impl.append('}'+(';' if semi else '')+'\n')
 
-# This generates the "tick" method, called by the test environment to
-# represent passage of time. For each progress property, if it is not
-# satisfied the counter is incremented else it is set to zero. For each
-# property the maximum of the counter values for all its relies is
-# computed and the test environment's ivy_check_progress function is called.
-
-# This is currently a bit bogus, since we could miss satisfaction of
-# the progress property occurring between ticks.
 
 def emit_tick(header,impl,classname):
+    """
+   This generates the "tick" method, called by the test environment to
+    represent passage of time. For each progress property, if it is not
+    satisfied the counter is incremented else it is set to zero. For each
+    property the maximum of the counter values for all its relies is
+    computed and the test environment's ivy_check_progress function is called.
+
+    This is currently a bit bogus, since we could miss satisfaction of
+    the progress property occurring between ticks.
+
+    Args:
+        header (list): The list representing the header file.
+        impl (list): The list representing the implementation file.
+        classname (str): The name of the class.
+
+    Returns:
+        None
+        
+    """
     global indent_level
     indent_level += 1
     indent(header)
@@ -1791,7 +2689,7 @@ def emit_tick(header,impl,classname):
                 continue
             rvs = list(lu.free_variables(r.args[0]))
             assert len(rvs) == len(vs)
-            subs = dict(zip(rvs,vs))
+            subs = dict(list(zip(rvs,vs)))
 
             ## TRICKY: If there are any free variables on rhs of
             ## rely not occuring on left, we must prevent their capture
@@ -1830,7 +2728,7 @@ def csortcard(s):
     return str(card) if card and card < 2 ** 64 else "0"
 
 def check_member_names(classname):
-    names = map(varname,(list(il.sig.symbols) + list(il.sig.sorts) + list(im.module.actions)))
+    names = list(map(varname,(list(il.sig.symbols) + list(il.sig.sorts) + list(im.module.actions))))
     if classname in names:
         raise iu.IvyError(None,'Cannot create C++ class {} with member {}.\nUse command line option classname=... to change the class name.'
                           .format(classname,classname))
@@ -1841,6 +2739,16 @@ def emit_ctuple_to_solver(header,dom,classname):
     emit_hash_thunk_to_solver(header,dom,classname,ct_name,ch_name)
     
 def emit_hash_thunk_to_solver(header,dom,classname,ct_name,ch_name):
+    """
+    Emit the hash thunk to solver class for a given header, domain, classname, ct_name, and ch_name.
+
+    Parameters:
+    - header: The header file to emit the code into.
+    - dom: The domain.
+    - classname: The name of the class.
+    - ct_name: The ct_name.
+    - ch_name: The ch_name.
+    """
     open_scope(header,line='template<typename R> class to_solver_class<hash_thunk<D,R> >'.replace('D',ct_name).replace('H',ch_name))
     code_line(header,'public:')
     open_scope(header,line='z3::expr operator()( gen &g, const  z3::expr &v, hash_thunk<D,R> &val)'.replace('D',ct_name).replace('H',ch_name))
@@ -1863,7 +2771,17 @@ def emit_hash_thunk_to_solver(header,dom,classname,ct_name,ch_name):
     close_scope(header)
     close_scope(header,semi=True)
 
-def emit_all_ctuples_to_solver(header,classname):
+def emit_all_ctuples_to_solver(header, classname):
+    """
+    Emits all ctuples to the solver.
+
+    Args:
+        header (str): The header file path.
+        classname (str): The name of the class.
+
+    Returns:
+        None
+    """
 #    emit_hash_thunk_to_solver(header,None,classname,'__strlit','hash<__strlit>')
 #    for cpptype in cpptypes:
 #        emit_hash_thunk_to_solver(header,None,classname,cpptype.short_name(),'hash<'+cpptype.short_name()+'>')
@@ -1873,6 +2791,17 @@ def emit_all_ctuples_to_solver(header,classname):
         emit_ctuple_to_solver(header,dom,classname)
 
 def emit_ctuple_equality(header,dom,classname):
+    """
+    Generates the equality operator function for a given class and its corresponding ctuple.
+
+    Args:
+        header (str): The header file to write the function to.
+        dom (list): The list of arguments for the ctuple.
+        classname (str): The name of the class.
+
+    Returns:
+        None
+    """
     t = ctuple(dom)
     open_scope(header,line = 'bool operator==(const {}::{} &x, const {}::{} &y)'.format(classname,t,classname,t))
     code_line(header,'return '+' && '.join('x.arg{} == y.arg{}'.format(n,n) for n in range(len(dom))))
@@ -1899,6 +2828,16 @@ def find_import_callers():
             import_callers.add(name[5:])
             
 def module_to_cpp_class(classname,basename):
+    """
+    Converts a module to a C++ class.
+
+    Args:
+        classname (str): The name of the C++ class.
+        basename (str): The base name of the C++ file.
+
+    Returns:
+        None
+    """
     global the_classname
     the_classname = classname
     global encoded_sorts
@@ -1908,7 +2847,7 @@ def module_to_cpp_class(classname,basename):
     is_derived = dict()
     for ldf in im.module.definitions + im.module.native_definitions:
         is_derived[ldf.formula.defines()] = ldf
-    for sortname, conss in im.module.sort_constructors.iteritems():
+    for sortname, conss in im.module.sort_constructors.items():
         for cons in conss:
             is_derived[cons] = True
     global the_extensional_relations
@@ -1920,7 +2859,7 @@ def module_to_cpp_class(classname,basename):
     sort_to_cpptype = {}
     global field_names
     field_names = dict()
-    for destrs in im.module.sort_destructors.values():
+    for destrs in list(im.module.sort_destructors.values()):
         if destrs: # paranoia
             dest_base,_ = iu.parent_child_name(destrs[0].name)
             if not all(iu.parent_child_name(d.name)[0] == dest_base for d in destrs):
@@ -1931,7 +2870,7 @@ def module_to_cpp_class(classname,basename):
         for t in list(il.sig.interp):
             attr = iu.compose_names(t,'override')
             if attr in im.module.attributes:
-                print 'override: interpreting {} as {}'.format(t,im.module.attributes[attr].rep)
+                print('override: interpreting {} as {}'.format(t,im.module.attributes[attr].rep))
                 il.sig.interp[t] = im.module.attributes[attr].rep
 
     global number_format
@@ -1941,10 +2880,10 @@ def module_to_cpp_class(classname,basename):
         
     # remove the actions not reachable from exported
         
-# TODO: may want to call internal actions from testbench
+    # TODO: may want to call internal actions from testbench
 
-#    ra = iu.reachable(im.module.public_actions,lambda name: im.module.actions[name].iter_calls())
-#    im.module.actions = dict((name,act) for name,act in im.module.actions.iteritems() if name in ra)
+   # ra = iu.reachable(im.module.public_actions,lambda name: im.module.actions[name].iter_calls())
+   # im.module.actions = dict((name,act) for name,act in im.module.actions.iteritems() if name in ra)
 
     header = ivy_cpp.context.globals.code
     import platform
@@ -1962,7 +2901,7 @@ def module_to_cpp_class(classname,basename):
 #    header.append('#include <vector>\n')
 
     if target.get() in ["gen","test"]:
-         header.append('#include "z3++.h"\n')
+        header.append('#include "z3++.h"\n')
 
 
     header.append(hash_h)
@@ -1977,10 +2916,10 @@ def module_to_cpp_class(classname,basename):
     header.append("typedef __int128_t int128_t;\n")
     header.append("typedef __uint128_t uint128_t;\n")
     header.append("#include <signal.h>\n")
+    header.append("#include <chrono> \n")
     # header.append("#include <execinfo.h>\n") # For backtrace
     header.append("int call_generating = 1;\n")
-    
-    
+
     declare_hash_thunk(header)
 
     once_memo = set()
@@ -2274,7 +3213,7 @@ void CLASSNAME::install_timer(timer *r) {
     native_exprs = []
     for n in im.module.natives:
         native_exprs.extend(n.args[2:])
-    for actn,actb in im.module.actions.iteritems():
+    for actn,actb in im.module.actions.items():
         for n in actb.iter_subactions():
             if isinstance(n,ia.NativeAction):
                 native_exprs.extend(n.args[1:])
@@ -3135,22 +4074,21 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
             impl.append('template <>\n')
             impl.append('void __randomize<' + cfsname + '>( gen &g, const  z3::expr &v, const std::string &sort_name);\n')
         
-    if True or target.get() == "repl":
-        for sort_name in sorted(im.module.sort_destructors):
-            csname = varname(sort_name)
-            cfsname = classname + '::' + csname
-            if sort_name not in encoded_sorts:
-                impl.append('std::ostream &operator <<(std::ostream &s, const {} &t);\n'.format(cfsname))
-                impl.append('template <>\n')
-                impl.append(cfsname + ' _arg<' + cfsname + '>(std::vector<ivy_value> &args, unsigned idx, long long bound);\n')
-                impl.append('template <>\n')
-                impl.append('void  __ser<' + cfsname + '>(ivy_ser &res, const ' + cfsname + '&);\n')
-                impl.append('template <>\n')
-                impl.append('void  __deser<' + cfsname + '>(ivy_deser &inp, ' + cfsname + ' &res);\n')                
-                impl.append('template <>\n')
-                impl.append('void  __ser<' + cfsname + '>(ivy_ser_128 &res, const ' + cfsname + '&);\n')
-                impl.append('template <>\n')
-                impl.append('void  __deser<' + cfsname + '>(ivy_deser_128 &inp, ' + cfsname + ' &res);\n')              
+    for sort_name in sorted(im.module.sort_destructors):
+        csname = varname(sort_name)
+        cfsname = classname + '::' + csname
+        if sort_name not in encoded_sorts:
+            impl.append('std::ostream &operator <<(std::ostream &s, const {} &t);\n'.format(cfsname))
+            impl.append('template <>\n')
+            impl.append(cfsname + ' _arg<' + cfsname + '>(std::vector<ivy_value> &args, unsigned idx, long long bound);\n')
+            impl.append('template <>\n')
+            impl.append('void  __ser<' + cfsname + '>(ivy_ser &res, const ' + cfsname + '&);\n')
+            impl.append('template <>\n')
+            impl.append('void  __deser<' + cfsname + '>(ivy_deser &inp, ' + cfsname + ' &res);\n')                
+            impl.append('template <>\n')
+            impl.append('void  __ser<' + cfsname + '>(ivy_ser_128 &res, const ' + cfsname + '&);\n')
+            impl.append('template <>\n')
+            impl.append('void  __deser<' + cfsname + '>(ivy_deser_128 &inp, ' + cfsname + ' &res);\n')              
     
 
     if target.get() in ["test","gen"]:
@@ -3219,7 +4157,7 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
     for ldf in im.module.definitions + im.module.native_definitions:
         with ivy_ast.ASTContext(ldf):
             emit_derived(header,impl,ldf.formula,classname)
-    for sortname, conss in im.module.sort_constructors.iteritems():
+    for sortname, conss in im.module.sort_constructors.items():
         for cons in conss:
             emit_constructor(header,impl,cons,classname)
     for native in im.module.natives:
@@ -3323,26 +4261,23 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
         if target.get() == "gen":
             emit_boilerplate1(sf,impl,classname)
         emit_init_gen(sf,impl,classname)
-        for name,action in im.module.actions.iteritems():
+        for name,action in im.module.actions.items():
             if name in im.module.public_actions:
                 emit_action_gen(sf,impl,name,action,classname)
 
     enum_sort_names = [s for s in sorted(il.sig.sorts) if isinstance(il.sig.sorts[s],il.EnumeratedSort)]
     if True or target.get() == "repl":
-
         # forward declare all the equality operations for variant types
-
         for sort_name in im.module.sort_order:
             if sort_name in im.module.variants:
                 csname = varname(sort_name)
                 cfsname = classname + '::' + csname
                 code_line(header,'inline bool operator ==(const {} &s, const {} &t);'.format(cfsname,cfsname))
 
-
         # Tricky: inlines for for supertypes have to come *after* the inlines
         # for the subtypes. So we re-sort the types accordingly.
         arcs = [(x,s) for s in im.module.sort_order for x in im.sort_dependencies(im.module,s,with_variants=True)]
-        variant_of = set((x.name,y) for y,l in im.module.variants.iteritems() for x in l)
+        variant_of = set((x.name,y) for y,l in im.module.variants.items() for x in l)
         arcs = [a for a in arcs if a in variant_of]
         inline_sort_order = iu.topological_sort(im.module.sort_order,arcs)
         global_classname = classname
@@ -3656,8 +4591,8 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
     """.replace('thing',thing).replace('actname',username).replace('methodname',varname(actname)).replace('numargs',str(len(action.formal_params))).replace('getargs',getargs))
                 emit_repl_boilerplate2(header,impl,classname)
 
-                print "test_iter ="
-                print opt_test_iters.get()
+                print("test_iter =")
+                print(opt_test_iters.get())
                 impl.append("int "+ opt_main.get() + "(int argc, char **argv){\n")
                 impl.append("        int test_iters = TEST_ITERS;\n".replace('TEST_ITERS',opt_test_iters.get()))
                 impl.append("        int runs = TEST_RUNS;\n".replace('TEST_RUNS',opt_test_runs.get()))
@@ -3844,6 +4779,16 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
     return ivy_cpp.context.globals.get_file(), ivy_cpp.context.impls.get_file()
 
 def emit_value_parser(impl,s,arg,classname,lineno=None):
+    """
+    Parses a value and assigns it to a variable.
+
+    Args:
+        impl (list): The list to append the implementation code to.
+        s (str): The name of the variable.
+        arg (str): The argument to parse.
+        classname (str): The name of the class.
+        lineno (int, optional): The line number. Defaults to None.
+    """
     impl.append('    try {\n')
     impl.append('        int pos = 0;\n')
     impl.append('        std::vector<ivy_value> arg_values; arg_values.resize(1); arg_values[0] = parse_value({},pos);\n'.format(arg))
@@ -3861,6 +4806,20 @@ def check_representable(sym,ast=None,skip_args=0):
     return True
 
 def really_check_representable(sym,ast=None,skip_args=0):
+    """
+    Check if a symbol is representable.
+
+    Args:
+        sym: The symbol to check.
+        ast: The abstract syntax tree (AST) associated with the symbol. (default: None)
+        skip_args: The number of arguments to skip in the domain of the symbol's sort. (default: 0)
+
+    Raises:
+        iu.IvyError: If the initial constraint cannot be compiled due to a large type.
+
+    Returns:
+        None
+    """                
     sort = sym.sort
     if hasattr(sort,'dom'):
         for domsort in sort.dom[skip_args:]:
@@ -3881,10 +4840,20 @@ def variables(sorts,start=0):
 
 
 def assign_symbol_value(header,lhs_text,m,v,same=False):
+    """
+    Assigns a symbol value to the header.
+
+    Args:
+        header (list): The header to which the assignment will be appended.
+        lhs_text (list): The left-hand side text of the assignment.
+        m (function): The function used to convert the symbol value to a string.
+        v: The symbol value to be assigned.
+        same (bool, optional): Indicates whether the symbol value is the same for all iterations. Defaults to False.
+    """
     sort = v.sort
     if hasattr(sort,'name') and sort.name in im.module.sort_destructors:
         for sym in im.module.sort_destructors[sort.name]:
-            check_representable(sym,skip_args=1)
+            check_representable(sym,skip_args=1) # TODO return always true
             dom = sym.sort.dom[1:]
             if dom:
                 if same:
@@ -3895,7 +4864,7 @@ def assign_symbol_value(header,lhs_text,m,v,same=False):
                     assign_symbol_value(header,lhs_text+[ctext],m,term,same)
                     close_loop(header,vs)
                 else:
-                    for args in itertools.product(*[range(sort_card(s)) for s in dom]):
+                    for args in itertools.product(*[list(range(sort_card(s))) for s in dom]):
                         term = sym(*([v] + [il.Symbol(str(a),s) for a,s in zip(args,dom)]))
                         ctext = memname(sym) + ''.join('['+str(a)+']' for a in args)
                         assign_symbol_value(header,lhs_text+[ctext],m,term,same)
@@ -3908,6 +4877,21 @@ def assign_symbol_value(header,lhs_text,m,v,same=False):
         
 
 def assign_symbol_from_model(header,sym,m):
+    """
+    Assigns a symbol from the model to the header.
+
+    This function evaluates a given symbol from the model and assigns its value
+    to the header. It skips interpreted symbols and structs. For symbols with
+    domains, it iterates over all possible arguments and assigns values accordingly.
+
+    Args:
+        header (str): The header to which the symbol's value will be assigned.
+        sym (Symbol): The symbol to be evaluated and assigned.
+        m (Model): The model from which the symbol's value is evaluated.
+
+    Returns:
+        None
+    """
     if slv.solver_name(sym) == None:
         return # skip interpreted symbols
     if sym.name in im.module.destructor_sorts:
@@ -3916,7 +4900,7 @@ def assign_symbol_from_model(header,sym,m):
     really_check_representable(sym)
     fun = lambda v: cstr(m.eval_to_constant(v))
     if hasattr(sort,'dom'):
-        for args in itertools.product(*[range(sort_card(s)) for s in sym.sort.dom]):
+        for args in itertools.product(*[list(range(sort_card(s))) for s in sym.sort.dom]):
             term = sym(*[il.Symbol(str(a),s) for a,s in zip(args,sym.sort.dom)])
             ctext = varname(sym.name) + ''.join('['+str(a)+']' for a in args)
             assign_symbol_value(header,[ctext],fun,term)
@@ -3924,6 +4908,23 @@ def assign_symbol_from_model(header,sym,m):
         assign_symbol_value(header,[varname(sym.name)],fun,sym)
 
 def assign_array_from_model(impl,sym,prefix,fun):
+    """
+    Assigns values to an array from a model.
+
+    This function assigns values to an array based on the provided model symbol.
+    If the symbol's sort has a domain, it iterates over the variables in the domain,
+    constructs the corresponding term, and assigns the value using the provided function.
+    If the symbol's sort does not have a domain, it directly assigns the value.
+
+    Args:
+        impl: The implementation context or object.
+        sym: The model symbol whose values are to be assigned.
+        prefix: A string prefix to be used in the assignment.
+        fun: A function used to assign values to the symbol.
+
+    Returns:
+        None
+    """
     name, sort = sym.name,sym.sort
     if hasattr(sort,'dom'):
         vs = variables(sym.sort.dom)
@@ -3938,6 +4939,19 @@ def assign_array_from_model(impl,sym,prefix,fun):
         assign_symbol_value(impl,[prefix+varname(sym.name)],fun,sym)
         
 def check_init_cond(kind,lfmlas):
+    """
+    Checks the initial conditions for logical formulas.
+
+    This function verifies that none of the logical formulas in `lfmlas` depend on any stripped parameters.
+    If a dependency is found, an IvyError is raised.
+
+    Args:
+        kind (str): A string representing the kind of logical formula.
+        lfmlas (list): A list of logical formula objects to be checked.
+
+    Raises:
+        IvyError: If any logical formula depends on a stripped parameter.
+    """
     params = set(im.module.params)
     for lfmla in lfmlas:
         if any(c in params for c in ilu.used_symbols_ast(lfmla.formula)):
@@ -3945,6 +4959,30 @@ def check_init_cond(kind,lfmlas):
         
     
 def emit_one_initial_state(header):
+    """
+    Emit the initial state for the given header.
+
+    This function checks the initial conditions and axioms, constructs the 
+    necessary constraints, and generates the initial state based on these 
+    constraints. If the initial conditions and/or axioms are inconsistent, 
+    it raises an IvyError.
+
+    Args:
+        header: The header to which the initial state code will be emitted.
+
+    Raises:
+        IvyError: If the initial conditions and/or axioms are inconsistent.
+
+    Notes:
+        - The function uses the `im.module` to access initial conditions, 
+          axioms, and relevant definitions.
+        - It constructs constraints from initial conditions and axioms, 
+          converts them to clauses, and attempts to get a model from these 
+          clauses.
+        - If a model is found, it assigns symbols from the model to the 
+          header. If a symbol is not used, it creates a non-deterministic 
+          symbol.
+    """
     check_init_cond("initial condition",im.module.labeled_inits)
     check_init_cond("axiom",im.module.labeled_axioms)
         
@@ -3957,7 +4995,7 @@ def emit_one_initial_state(header):
 #    clauses = ilu.and_clauses(im.module.init_cond,im.module.background_theory())
     m = slv.get_model_clauses(clauses)
     if m == None:
-        print clauses
+        print(clauses)
         if iu.version_le(iu.get_string_version(),"1.6"):
             raise iu.IvyError(None,'Initial condition and/or axioms are inconsistent')
         else:
@@ -3981,6 +5019,20 @@ def emit_one_initial_state(header):
 #    action.emit(header)
 
 def emit_parameter_assignments(impl):
+    """
+    Generates and emits parameter assignment code for the given implementation.
+
+    This function iterates over the parameters defined in the module and generates
+    code to assign values to these parameters. For each parameter, it creates the
+    necessary variable declarations, constructs the assignment expression, and 
+    emits the corresponding code lines.
+
+    Args:
+        impl: The implementation object where the generated code will be emitted.
+
+    Returns:
+        None
+    """
     for sym in im.module.params:
             vs = variables(sym.sort.dom)
             expr = sym(*vs) if vs else sym
@@ -3990,6 +5042,35 @@ def emit_parameter_assignments(impl):
     
 
 def emit_constant(self,header,code):
+    """
+    Emits the C++ code representation of a constant symbol.
+
+    This function appends the appropriate C++ code for a given constant symbol
+    to the provided `code` list. The behavior of the function depends on the 
+    type and properties of the symbol.
+
+    Parameters:
+    - self: The symbol to be emitted.
+    - header: A list to which any necessary header declarations can be appended.
+    - code: A list to which the generated C++ code will be appended.
+
+    Behavior:
+    - If the symbol is derived, it appends the function name followed by '()'.
+    - If the symbol is a numeral and has an interpretation as a range sort, it 
+        generates a ternary expression to ensure the numeral is within bounds.
+    - If the symbol is a native symbol, it generates a literal representation.
+    - If the symbol has a string interpretation and is not a literal string, it 
+        raises an error unless the symbol is '0', in which case it appends an empty string.
+    - If the symbol's sort has destructors or is interpreted as a bit-vector, 
+        it generates the appropriate C++ code.
+    - If the symbol's sort has a corresponding C++ type, it uses the type's 
+        literal method to generate the code.
+    - If the symbol is a constructor and there is a delegate for enums, it 
+        appends the delegate's namespace.
+
+    Raises:
+    - IvyError: If the symbol cannot be compiled due to unsupported numeral or sort.
+    """
     if self in is_derived:
         code.append(funname(self.name)+'()')
         return
@@ -4029,7 +5110,7 @@ def emit_constant(self,header,code):
     if self in is_derived:
         code.append('()')
 
-il.Symbol.emit = emit_constant
+il.Symbol.emit   = emit_constant
 il.Variable.emit = emit_constant
 
 def emit_native_expr(self,header,code):
@@ -4046,6 +5127,23 @@ def parse_int_params(name):
     return name,[int(t[:-1]) for t in things]
 
 def emit_special_op(self,op,header,code):
+    """
+    Emit C++ code for special operations.
+
+    This method handles the emission of C++ code for specific operations such as 
+    'concat' and bit-field extraction (bfe). It appends the generated C++ code 
+    to the provided `code` list based on the operation type.
+
+    Parameters:
+    - op (str): The operation to be emitted. Supported operations are 'concat' 
+        and operations starting with 'bfe['.
+    - header (list): A list to which any necessary header includes or declarations 
+        can be appended.
+    - code (list): A list to which the generated C++ code will be appended.
+
+    Raises:
+    - IvyError: If the operation cannot be emitted as C++ code.
+    """
     if op == 'concat':
         sort_name = il.sig.interp[self.args[1].sort.name]
         sname,sparms = parse_int_params(sort_name)
@@ -4072,6 +5170,26 @@ bv_ops = {
 }
 
 def emit_bv_op(self,header,code):
+    """
+    Emits the bit-vector operation code for the given operation.
+
+    Args:
+        header (list): A list to which header code can be appended.
+        code (list): A list to which the generated code will be appended.
+
+    Raises:
+        IvyError: If the bit-field extraction operator is malformed.
+
+    Notes:
+        - The function handles different bit-vector operations based on the 
+            function name.
+        - For bit-field extraction (bfe), it parses the parameters and emits 
+            the appropriate code.
+        - For other operations, it uses a dictionary to map the function name 
+            to the corresponding operator.
+        - The result is masked to fit within the bit-width specified by the 
+            sort parameters.
+    """
     sname,sparms = parse_int_params(il.sig.interp[self.sort.name])
     code.append('(')
     code.append('(')
@@ -4097,6 +5215,19 @@ def is_bv_term(self):
             or self.rep.name.startswith('bfe[') and ctype(self.args[0].sort) in int_ctypes)
 
 def capture_emit(a,header,code,capture_args):
+    """
+    Emits code with a given header and optionally captures the emitted code.
+
+    Parameters:
+    a (object): An object that has an `emit` method.
+    header (str): The header to be emitted.
+    code (list): A list where the emitted code will be appended.
+    capture_args (list or None): If not None, the emitted code will be captured 
+                                    and appended to this list as a single string.
+
+    Returns:
+    None
+    """
     if capture_args != None:
         tmp = []
         a.emit(header,tmp)
@@ -4106,9 +5237,25 @@ def capture_emit(a,header,code,capture_args):
         a.emit(header,code)
 
 delegate_methods_to = ''
-delegate_enums_to = ''
+delegate_enums_to   = ''
 
 def emit_app(self,header,code,capture_args=None):
+    """
+    Emit the application of a function or operator in C++ code.
+
+    This method handles various cases including macros, interpreted operations,
+    bit-vector operations, casting, and uninterpreted operations. It generates
+    the appropriate C++ code for the given function application.
+
+    Args:
+        header (list): A list to which header code lines are appended.
+        code (list): A list to which the generated C++ code is appended.
+        capture_args (optional): Additional arguments for capturing, if any.
+
+    Raises:
+        IvyError: If the symbol has no interpretation or if polymorphic operations
+                    cannot be handled.
+    """
     # handle macros
     if il.is_macro(self):
         return il.expand_macro(self).emit(header,code)
@@ -4211,6 +5358,22 @@ def emit_app(self,header,code,capture_args=None):
 lg.Apply.emit = emit_app
 
 class HavocSymbol(object):
+    """
+    A class representing a Havoc symbol.
+
+    Attributes:
+        sort (str): The sort/type of the symbol.
+        name (str): The name of the symbol.
+        unique_id (int): A unique identifier for the symbol.
+        args (list): A list of arguments associated with the symbol.
+
+    Methods:
+        __init__(sort, name, unique_id):
+            Initializes a new instance of the HavocSymbol class.
+        
+        clone(args):
+            Creates a clone of the current HavocSymbol instance with the given arguments.
+    """
     def __init__(self,sort,name,unique_id):
         self.sort,self.name,self.unique_id = sort,name,unique_id
         self.args = []
@@ -4229,6 +5392,16 @@ HavocSymbol.emit = emit_havoc_symbol
 temp_ctr = 0
 
 def new_temp(header,sort=None):
+    """
+    Generates a new temporary variable name and appends its declaration to the header.
+
+    Args:
+        header (list): A list of strings representing the header where the variable declaration will be appended.
+        sort (optional): The type of the variable. If None, the variable is assumed to be of type 'int'.
+
+    Returns:
+        str: The name of the newly generated temporary variable.
+    """
     name = new_temp_name()
     if sort is None:
         indent(header)
@@ -4250,6 +5423,24 @@ def find_definition(sym):
     return None
 
 def get_bound_exprs(v0,variables,body,exists,res):
+    """
+    Recursively collects bound expressions from a given logical formula.
+
+    This function traverses a logical formula represented by `body` and collects
+    expressions that are bound by certain logical operators (e.g., Not, Implies, Or, And).
+    The collected expressions are appended to the `res` list along with a boolean flag
+    indicating the context of their existence.
+
+    Args:
+        v0 (Variable): The variable to check for in derived expressions.
+        variables (list): A list of variables in the logical formula.
+        body (Expression): The logical formula to traverse.
+        exists (bool): A flag indicating the current context of existence.
+        res (list): A list to store the collected bound expressions and their context.
+
+    Returns:
+        None: The function modifies the `res` list in place.
+    """
     global is_derived
     if isinstance(body,il.Not):
         return get_bound_exprs(v0,variables,body.args[0],not exists,res)
@@ -4287,6 +5478,23 @@ class BoundsError(object):
         raise iu.IvyError(self.ast,self.msg)
         
 def get_bounds(header,v0,variables,body,exists,varname=None):
+    """
+    Compute the lower and upper bounds for a given variable within a specified context.
+
+    Args:
+        header (str): The header information used for code evaluation.
+        v0 (Variable): The variable for which bounds are being determined.
+        variables (list): A list of variables present in the context.
+        body (Expression): The body of the expression where the variable is used.
+        exists (bool): A flag indicating the existence of certain conditions.
+        varname (str, optional): The name of the variable. Defaults to None.
+
+    Returns:
+        tuple: A tuple containing the lower bound and upper bound as strings.
+
+    Raises:
+        BoundsError: If a lower or upper bound cannot be determined.
+    """
     bes = []
     get_bound_exprs(v0,variables,body,exists,bes)
     los = []
@@ -4323,7 +5531,23 @@ def get_bounds(header,v0,variables,body,exists,varname=None):
             return BoundsError(None,'cannot find an upper bound for {}'.format(varname))
     return los[0],his[0]
 
-def get_all_bounds(header,variables,body,exists,varnames):
+def get_all_bounds(header, variables, body, exists, varnames):
+    """
+    Recursively computes bounds for a list of variables.
+
+    Args:
+        header (str): The header information required for computing bounds.
+        variables (list): A list of variables for which bounds need to be computed.
+        body (str): The body of the expression or function where the variables are used.
+        exists (bool): A flag indicating whether the variables exist in the given context.
+        varnames (list): A list of variable names corresponding to the variables.
+
+    Returns:
+        list: A list of computed bounds for the given variables.
+
+    Raises:
+        BoundsError: If there is an error in computing bounds for any variable.
+    """
 #    get_bound_exprs(v0,variables,body,exists,bes)
     if not variables:
         return []
@@ -4336,7 +5560,19 @@ def get_all_bounds(header,variables,body,exists,varnames):
         b.throw()
     return [b] + get_all_bounds(header,variables,body,exists,varnames)
 
-def get_extensional_bound_exprs(v0,body,exists,res):
+def get_extensional_bound_exprs(v0, body, exists, res):
+    """
+    Recursively collects extensional bound expressions from a given logical body.
+
+    Args:
+        v0 (Variable): The variable to check within the body.
+        body (Expression): The logical expression to analyze.
+        exists (bool): A flag indicating whether the variable should exist in the expression.
+        res (list): A list to store the resulting expressions that meet the criteria.
+
+    Returns:
+        None: The function modifies the `res` list in place.
+    """
     global is_derived
     if isinstance(body,il.Not):
         return get_extensional_bound_exprs(v0,body.args[0],not exists,res)
@@ -4365,7 +5601,28 @@ def get_extensional_bound_exprs(v0,body,exists,res):
             get_extensional_bound_exprs(v0,thing,exists,res)
 
 
-def emit_quant(variables,body,header,code,exists=False):
+def emit_quant(variables, body, header, code, exists=False):
+    """
+    Emit C++ code for a quantified expression.
+
+    This function generates C++ code for a quantified expression, either existential or universal,
+    based on the provided variables and body. The generated code is appended to the `header` and `code` lists.
+
+    Args:
+        variables (list): A list of variables involved in the quantification.
+        body (object): The body of the quantified expression.
+        header (list): A list to which the generated C++ code header will be appended.
+        code (list): A list to which the generated C++ code will be appended.
+        exists (bool, optional): If True, generates code for an existential quantifier. If False, generates code for a universal quantifier. Defaults to False.
+
+    Raises:
+        IvyError: If a type is not a variant type but is used as the first argument of `*>`.
+        IvyError: If a sort has an iterable attribute but no iterator.
+        BoundsError: If the bounds for iteration cannot be determined.
+
+    Returns:
+        None
+    """
     global indent_level
     if len(variables) == 0:
         body.emit(header,code)
@@ -4403,7 +5660,7 @@ def emit_quant(variables,body,header,code,exists=False):
         if iter_sort_name not in il.sig.sorts:
             iter_sort_name = iu.compose_names(iter,'t')
         if iter_sort_name not in il.sig.sorts:
-            print iter_sort_name
+            print(iter_sort_name)
             raise iu.IvyError(None,'sort {} has iterable attribute but no iterator'.format(v0.sort))
         iter_sort = il.sig.sorts[iter_sort_name]
         zero = []
@@ -4471,7 +5728,22 @@ def code_eval(impl,expr):
     expr.emit(impl,code)
     return ''.join(code)
 
-def emit_some(self,header,code):
+def emit_some(self, header, code):
+    """
+    Emit code for handling the 'Some' and 'SomeMinMax' constructs in Ivy.
+
+    This function generates C++ code for the Ivy constructs 'Some' and 'SomeMinMax'.
+    It handles the translation of these constructs into appropriate C++ code, including
+    variable declarations, loops, conditionals, and assignments.
+
+    Parameters:
+    self (ivy_ast.Some or ivy_ast.SomeMinMax): The Ivy AST node representing the 'Some' or 'SomeMinMax' construct.
+    header (list): A list to which the generated C++ header code will be appended.
+    code (list): A list to which the generated C++ code will be appended.
+
+    Returns:
+    None
+    """
     if isinstance(self,ivy_ast.Some):
         fmla = self.fmla()
         if len(self.params()) == 1 and il.is_app(fmla) and fmla.func.name == '*>' and fmla.args[1] == self.params()[0]:
@@ -4488,7 +5760,7 @@ def emit_some(self,header,code):
                 return
             
         vs = [il.Variable('X__'+str(idx),p.sort) for idx,p in enumerate(self.params())]
-        subst = dict(zip(self.params(),vs))
+        subst = dict(list(zip(self.params(),vs)))
         fmla = ilu.substitute_constants_ast(self.fmla(),subst)
         params = self.params()
     else:
@@ -4546,13 +5818,38 @@ ivy_ast.Some.emit = emit_some
 
 il.Some.emit = emit_some
 
-def emit_unop(self,header,code,op):
+def emit_unop(self, header, code, op):
+    """
+    Appends a unary operation to the code list and emits the argument.
+
+    Args:
+        header: The header information (not used in this function).
+        code (list): The list to which the operation and its argument will be appended.
+        op (str): The unary operation to be appended to the code list.
+
+    Returns:
+        None
+    """
     code.append(op)
     self.args[0].emit(header,code)
 
 lg.Not.emit = lambda self,header,code: emit_unop(self,header,code,'!')
 
-def emit_binop(self,header,code,op,ident=None):
+def emit_binop(self, header, code, op, ident=None):
+    """
+    Emits a binary operation in the form of a string representation.
+
+    Parameters:
+    - header: A header object that may be used by the emit method of the arguments.
+    - code: A list of strings where the emitted code will be appended.
+    - op: A string representing the binary operator.
+    - ident: An optional identifier to be used when there are no arguments.
+
+    Behavior:
+    - If there are no arguments (`self.args` is empty), the method asserts that `ident` is not None and appends `ident` to `code`.
+    - If there are arguments, it emits the first argument, then iterates over the remaining arguments, appending the operator and emitting each argument.
+    - The emitted binary operation is enclosed in parentheses.
+    """
     if len(self.args) == 0:
         assert ident != None
         code.append(ident)
@@ -4564,7 +5861,22 @@ def emit_binop(self,header,code,op,ident=None):
         a.emit(header,code)
     code.append(')')
     
-def emit_implies(self,header,code):
+def emit_implies(self, header, code):
+    """
+    Appends a logical implication to the provided code list.
+
+    This method generates a logical implication expression in C++ code
+    and appends it to the `code` list. The implication is represented
+    as `(!A || B)` where `A` and `B` are the first and second arguments
+    of the current object, respectively.
+
+    Args:
+        header: Unused parameter, kept for consistency with other emit methods.
+        code (list): The list to which the generated code will be appended.
+
+    Returns:
+        None
+    """
     code.append('(')
     code.append('!')
     self.args[0].emit(header,code)
@@ -4579,7 +5891,23 @@ lg.Implies.emit = emit_implies
 lg.And.emit = lambda self,header,code: emit_binop(self,header,code,'&&','true')
 lg.Or.emit = lambda self,header,code: emit_binop(self,header,code,'||','false')
 
-def emit_ternop(self,header,code):
+def emit_ternop(self, header, code):
+    """
+    Emits a ternary operation in C++ code.
+
+    This method appends a ternary operation to the provided code list. 
+    The ternary operation is constructed using the `self.args` list, 
+    where `self.args[0]` is the condition, `self.args[1]` is the 
+    expression if the condition is true, and `self.args[2]` is the 
+    expression if the condition is false.
+
+    Args:
+        header: A header object that may be used by the emit method of 
+                the arguments.
+        code (list): A list of strings representing the code being 
+                        generated. The ternary operation will be appended 
+                        to this list.
+    """
     code.append('(')
     self.args[0].emit(header,code)
     code.append(' ? ')
@@ -4590,7 +5918,23 @@ def emit_ternop(self,header,code):
     
 lg.Ite.emit = emit_ternop
 
-def emit_traced_lhs(self,trace,captured_args):
+def emit_traced_lhs(self, trace, captured_args):
+    """
+    Appends a string representation of the left-hand side (LHS) of an expression to the trace list.
+
+    This method constructs a string representation of the LHS of an expression, including its arguments,
+    and appends it to the provided trace list. If the expression is a constant, it simply appends the
+    representation of the constant. If the expression has arguments, it appends the arguments in a
+    comma-separated format within parentheses.
+
+    Args:
+        trace (list): A list to which the string representation of the LHS will be appended.
+        captured_args (list): A list of arguments that have been captured so far. This list may be modified
+                                and returned with any additional captured arguments.
+
+    Returns:
+        list: The list of captured arguments, potentially modified to exclude those that have been processed.
+    """
     trace.append('<< "{}"'.format(self.rep))
     if il.is_constant(self):
         return
@@ -4609,7 +5953,37 @@ def emit_traced_lhs(self,trace,captured_args):
         trace.append(' << ")"')
     return captured_args[num_args:]
 
-def emit_assign_simple(self,header):
+def emit_assign_simple(self, header):
+    """
+    Generates C++ code for a simple assignment operation.
+
+    This function constructs the C++ code for an assignment operation, 
+    potentially including tracing information if the `opt_trace` option is enabled.
+    
+    Args:
+        self: The instance of the class containing this method.
+        header (list): A list to which the generated C++ code will be appended.
+    
+    The function performs the following steps:
+    1. Initializes a list `code` to store the generated code.
+    2. Adds indentation to the `code` list.
+    3. If tracing is enabled and the left-hand side (LHS) of the assignment does not contain a colon:
+        - Initializes a list `trace` to store tracing information.
+        - Adds indentation to the `trace` list.
+        - Appends tracing information to `trace`.
+        - Determines if the LHS is a constant and emits the appropriate code.
+        - Appends the assignment operator (`=`) to `code`.
+        - Emits the right-hand side (RHS) of the assignment and appends it to `code`.
+        - Extends `trace` with the RHS information and appends it to `header`.
+    4. If tracing is not enabled or the LHS contains a colon:
+        - Emits the LHS and appends it to `code`.
+        - Appends the assignment operator (`=`) to `code`.
+        - Determines the sorts of the LHS and RHS.
+        - If the sorts are variants, appends the upcasted RHS to `code`.
+        - Otherwise, emits the RHS and appends it to `code`.
+    5. Appends a semicolon (`;`) to `code`.
+    6. Extends `header` with the contents of `code`.
+    """
     code = []
     indent(code)
     if opt_trace.get() and ':' not in self.args[0].rep.name:
@@ -4639,7 +6013,21 @@ def emit_assign_simple(self,header):
     code.append(';\n')    
     header.extend(code)
 
-def emit_assign_large(self,header):
+def emit_assign_large(self, header):
+    """
+    Generates and emits a large assignment statement in C++ code.
+
+    This method constructs a C++ assignment statement for a given expression,
+    handling cases where the expression involves variables and conditional logic.
+    It uses intermediate variables and constructs a conditional expression if necessary.
+
+    Args:
+        self: The instance of the class containing this method.
+        header (str): The header string to be used in the generated C++ code.
+
+    Returns:
+        None
+    """
     dom = self.args[0].rep.sort.dom
     vs = variables(dom)
     vs = [x if isinstance(x,il.Variable) else y for x,y in zip(self.args[0].args,vs)]
@@ -4650,7 +6038,27 @@ def emit_assign_large(self,header):
     code_line(header,varname(self.args[0].rep)+' = ' + make_thunk(thunks,vs,expr))
 
 
-def open_bounded_loops(variables,body,exists=True):
+def open_bounded_loops(variables, body, exists=True):
+    """
+    Generates C++ loop headers for iterating over bounded variables.
+
+    This function takes a list of variables and a body of code, and generates
+    C++ loop headers to iterate over these variables within the given bounds.
+    If the variable is of an integer type, it generates a standard for-loop.
+    If the variable is not of an integer type, it generates a loop to iterate
+    over extensional bounds.
+
+    Args:
+        variables (list): A list of variables to iterate over.
+        body (str): The body of code where the variables are used.
+        exists (bool, optional): A flag indicating if the variables exist. Defaults to True.
+
+    Returns:
+        list: A list of strings representing the C++ loop headers.
+
+    Raises:
+        BoundsError: If bounds cannot be determined for a variable.
+    """
     header = []
     while variables:
         v0 = variables[0]
@@ -4688,7 +6096,28 @@ def close_bounded_loops(header,loops):
             header.append('}\n')
 
 
-def emit_assign(self,header):
+def emit_assign(self, header):
+    """
+    Emits the C++ code for an assignment operation in the context of the Ivy language.
+
+    This function handles different cases of assignment based on the types and 
+    properties of the left-hand side (LHS) and right-hand side (RHS) expressions. 
+    It generates the appropriate C++ code and appends it to the provided header list.
+
+    Args:
+        header (list): A list of strings representing the lines of C++ code to be 
+                        generated. The generated code for the assignment will be 
+                        appended to this list.
+
+    Notes:
+        - If the LHS has no free variables, a simple assignment is emitted.
+        - If the RHS is a conditional expression (ite) and the LHS matches the 
+            false branch of the conditional, special handling is applied.
+        - If the assignment involves bounded loops, these loops are opened and 
+            closed appropriately in the generated code.
+        - Temporary symbols and variables are used to handle complex assignments 
+            involving multiple variables and types.
+    """
     global indent_level
     with ivy_ast.ASTContext(self):
 #        if is_large_type(self.args[0].rep.sort) and lu.free_variables(self.args[0]):
@@ -4754,13 +6183,28 @@ def emit_assign(self,header):
 ia.AssignAction.emit = emit_assign
 
 def emit_havoc(self,header):
-    print self
-    print self.lineno
+    print(self)
+    print(self.lineno)
     assert False
 
 ia.HavocAction.emit = emit_havoc
 
 def emit_sequence(self,header):
+    """
+    Emits a sequence of code into the provided header list.
+
+    This function appends a sequence of code to the `header` list, 
+    starting with an indented opening brace '{', followed by the 
+    emitted code for each argument in `self.args`, and ending with 
+    an indented closing brace '}'.
+
+    Args:
+        header (list): A list of strings representing the lines of code 
+                        to which the sequence will be appended.
+
+    Modifies:
+        The `header` list by appending the emitted sequence of code.
+    """
     global indent_level
     indent(header)
     header.append('{\n')
@@ -4774,22 +6218,51 @@ def emit_sequence(self,header):
 ia.Sequence.emit = emit_sequence
 
 def emit_assert(self,header):
+    """
+    Generates and appends an assertion statement to the provided header list.
+
+    This method constructs an assertion statement using the formula associated
+    with the current instance. It formats the assertion with the appropriate
+    line number and appends it to the header list.
+
+    Args:
+        self: The instance of the class containing the formula to be asserted.
+        header (list): The list to which the generated assertion code will be appended.
+
+    Returns:
+        None
+    """
     code = []
     indent(code)
     code.append('ivy_assert(')
     with ivy_ast.ASTContext(self):
-        il.close_formula(self.args[0]).emit(header,code)
+        il.close_formula(self.formula).emit(header,code)
     code.append(', "{}");\n'.format(iu.lineno_str(self).replace('\\','\\\\')))
     header.extend(code)
 
 ia.AssertAction.emit = emit_assert
 
-def emit_assume(self,header):
+def emit_assume(self, header):
+    """
+    Emits an assumption statement in C++ code.
+
+    This function generates a C++ assumption statement using the provided
+    formula and appends it to the given header list. The assumption is
+    formatted as `ivy_assume(formula, "line_number");`.
+
+    Args:
+        self: The instance of the class containing the formula to be emitted.
+        header (list): A list of strings representing the lines of the header
+                        where the assumption statement will be appended.
+
+    Returns:
+        None
+    """
     code = []
     indent(code)
     code.append('ivy_assume(')
     with ivy_ast.ASTContext(self):
-        il.close_formula(self.args[0]).emit(header,code)
+        il.close_formula(self.formula).emit(header,code)
     code.append(', "{}");\n'.format(iu.lineno_str(self).replace('\\','\\\\')))
     header.extend(code)
 
@@ -4871,7 +6344,34 @@ ia.AssumeAction.emit = emit_assume
 #             indent(header)
 #             header.append('___ivy_stack.pop_back();\n')
 
-def emit_call(self,header):
+def emit_call(self, header):
+    """
+    Emit the code for a function call, handling special cases where the call 
+    involves variables on the left-hand side (lhs) and generating appropriate 
+    temporary variables and assignments.
+
+    Args:
+        self: The instance of the class containing the function call information.
+        header (list): The list to which the generated code lines will be appended.
+
+    Special Cases:
+        - If the call has variables on the lhs, it lowers this to a call with 
+            temporary return actual followed by assignment.
+        - If the target is "gen" or "test", it manages the stack by pushing and 
+            popping the unique ID of the call.
+
+    Code Generation:
+        - Generates code for the function call, including handling of return 
+            values and parameter types.
+        - Manages temporary variables and assignments for return values.
+        - Emits the final function call code and appends it to the header.
+
+    Note:
+        - This function assumes the presence of several helper functions and 
+            classes such as `ilu.variables_ast`, `il.Symbol`, `ia.AssignAction`, 
+            `emit_assign`, `indent`, `get_param_types`, `ReturnRefType`, 
+            `may_alias`, `new_temp`, `varname`, `sort_to_cpptype`, and `code_eval`.
+    """
     # tricky: a call can have variables on the lhs. we lower this to
     # a call with temporary return actual followed by assignment 
     if len(self.args) == 2 and list(ilu.variables_ast(self.args[1])):
@@ -4944,7 +6444,21 @@ def emit_crash(self,header):
 
 ia.CrashAction.emit = emit_crash
 
-def local_start(header,params,nondet_id=None):
+def local_start(header, params, nondet_id=None):
+    """
+    Generates the initial part of a C++ function definition, including the function header and 
+    declarations for the parameters. Optionally, it can generate non-deterministic symbols for 
+    the parameters.
+
+    Args:
+        header (list): A list of strings representing the lines of the C++ function being generated.
+        params (list): A list of parameter objects, each containing a 'sort' and 'name' attribute.
+        nondet_id (optional): An identifier for generating non-deterministic symbols. If None, 
+                                non-deterministic symbols are not generated.
+
+    Returns:
+        None
+    """
     global indent_level
     indent(header)
     header.append('{\n')
@@ -4957,20 +6471,50 @@ def local_start(header,params,nondet_id=None):
             mk_nondet_sym(header,p,p.name,nondet_id)
 
 def local_end(header):
+    """
+    Decreases the global indentation level, appends the closing brace '}' 
+    followed by a newline to the given header, and adjusts the indentation 
+    accordingly.
+
+    Args:
+        header (list): A list of strings representing the lines of code 
+                       to which the closing brace and newline will be appended.
+    """
     global indent_level
     indent_level -= 1
     indent(header)
     header.append('}\n')
 
 
-def emit_local(self,header):
+def emit_local(self, header):
+    """
+    Emits local variables and statements to the provided header.
+
+    This function generates code for local variables and statements by calling
+    `local_start`, emitting the arguments, and then calling `local_end`.
+
+    Args:
+        header: The header to which the local variables and statements are emitted.
+    """
     local_start(header,self.args[0:-1],self.unique_id)
     self.args[-1].emit(header)
     local_end(header)
 
 ia.LocalAction.emit = emit_local
 
-def emit_if(self,header):
+def emit_if(self, header):
+    """
+    Generates C++ code for an if-else statement based on the provided AST nodes.
+
+    Args:
+        header (list): A list of strings representing the lines of code generated so far.
+
+    Notes:
+        - The method modifies the `header` list in place by appending the generated code.
+        - The `self.args` list is expected to contain the condition and the branches of the if-else statement.
+        - If `self.args[0]` is an instance of `ivy_ast.Some`, it handles local variable scoping.
+        - The global variable `indent_level` is used to manage code indentation.
+    """
     global indent_level
     code = []
     if isinstance(self.args[0],ivy_ast.Some):
@@ -4996,10 +6540,21 @@ def emit_if(self,header):
     if isinstance(self.args[0],ivy_ast.Some):
         local_end(header)
 
-
 ia.IfAction.emit = emit_if
 
-def emit_while(self,header):
+def emit_while(self, header):
+    """
+    Generates C++ code for a while loop based on the given condition and body.
+
+    Args:
+        header (list): A list of strings representing the lines of code generated so far.
+
+    Notes:
+        - If the condition is an instance of `ivy_ast.Some`, it initializes local variables.
+        - The condition is evaluated and if it results in an empty code list, a simple while loop is generated.
+        - If the condition results in a non-empty code list, a more complex while loop with an if-else structure is generated.
+        - The function manages the indentation and scope of the generated code.
+    """
     global indent_level
     code = []
     if isinstance(self.args[0],ivy_ast.Some):
@@ -5023,11 +6578,40 @@ def emit_while(self,header):
     if isinstance(self.args[0],ivy_ast.Some):
         local_end(header)
         
-
-
 ia.WhileAction.emit = emit_while
 
-def emit_choice(self,header):
+def emit_choice(self, header):
+    """
+    Emits C++ code for a choice construct based on the number of arguments.
+
+    This function generates C++ code that represents a choice among multiple
+    arguments. If there is only one argument, it directly emits the code for
+    that argument. If there are multiple arguments, it creates a temporary
+    variable to hold a non-deterministic choice among the arguments and emits
+    code for each argument within an if-else construct.
+
+    Args:
+        header (list): A list of strings representing the lines of C++ code
+                       being generated. The generated code will be appended
+                       to this list.
+
+    Global Variables:
+        indent_level (int): The current indentation level for the generated
+                            code. This is used to properly format the emitted
+                            code with the correct indentation.
+
+    Notes:
+        - The function uses a global variable `indent_level` to manage code
+          indentation.
+        - The function assumes the existence of helper functions `new_temp`,
+          `mk_nondet`, and `indent`, which are used to generate temporary
+          variables, create non-deterministic choices, and manage indentation,
+          respectively.
+        - The `self.args` attribute is expected to be a list of objects that
+          have an `emit` method, which generates code for each argument.
+        - The `self.unique_id` attribute is used to ensure unique naming for
+          the non-deterministic choice variable.
+    """
     global indent_level
     if len(self.args) == 1:
         self.args[0].emit(header)
@@ -5049,7 +6633,20 @@ def emit_choice(self,header):
 
 ia.ChoiceAction.emit = emit_choice
 
-def emit_print_expr(impl,expr):    
+def emit_print_expr(impl, expr):
+    """
+    Generates C++ code to print the evaluation of an expression with variable context.
+
+    Args:
+        impl: The implementation context where the generated code will be added.
+        expr: The expression to be evaluated and printed.
+
+    The function performs the following steps:
+    1. Extracts the variables from the expression and determines their sorts.
+    2. For each variable, generates code to print the variable's context.
+    3. Generates code to evaluate and print the expression.
+    4. Closes the variable context loops and finalizes the print statement.
+    """
     vs = list(ilu.variables_ast(expr))
     dom = [v.sort for v in vs]
     for d,v in zip(dom,vs):
@@ -5062,7 +6659,23 @@ def emit_print_expr(impl,expr):
         code_line(impl,'std::cout << "]"')
 
 
-def emit_debug(self,header): 
+def emit_debug(self, header): 
+    """
+    Emits debug information to the provided header.
+
+    This function generates C++ code that outputs a JSON-like structure
+    to the standard output. The first argument in `self.args` is treated
+    as an event and is quoted if necessary. Subsequent arguments are
+    treated as key-value pairs and are printed in the format:
+    "key : value".
+
+    Args:
+        self: The instance containing the arguments to be processed.
+        header: The header to which the generated C++ code lines are added.
+
+    Returns:
+        None
+    """
     def quote(event):
         if not event.startswith('"'):
             event = '"' + event + '"'
@@ -5079,11 +6692,22 @@ def emit_debug(self,header):
 
 ia.DebugAction.emit = emit_debug
 
-
 native_classname = None
 
-
 def native_reference(atom):
+    """
+    Generates a native reference string for a given atom.
+
+    This function converts an `ivy_ast.Atom` instance into a string that represents
+    a native reference in C++ code. The conversion depends on the type and properties
+    of the atom, including whether it is an action, a sort, or a variable.
+
+    Args:
+        atom (ivy_ast.Atom): The atom to be converted into a native reference string.
+
+    Returns:
+        str: A string representing the native reference of the atom in C++ code.
+    """
     if isinstance(atom,ivy_ast.Atom) and atom.rep in im.module.actions:
         res = thunk_name(atom.rep) + '(this'
         res += ''.join(', ' + varname(arg.rep) for arg in atom.args) + ')'
@@ -5110,6 +6734,23 @@ def native_reference(atom):
     return res
 
 def native_reference_in_type(arg):
+    """
+    Determines the native reference for a given argument based on its type.
+
+    If the argument is an instance of `ivy_ast.Atom` and its `rep` attribute
+    is found in the module's actions, it returns a thunk name for the `rep`.
+    Otherwise, it returns the native reference for the argument.
+
+    Args:
+        arg: The argument whose native reference is to be determined. It can
+             be of any type, but specific behavior is defined for instances
+             of `ivy_ast.Atom`.
+
+    Returns:
+        The native reference for the argument, which could be a thunk name
+        if the argument is an `ivy_ast.Atom` with a `rep` in the module's
+        actions, or a general native reference otherwise.
+    """
     if isinstance(arg,ivy_ast.Atom):
         if arg.rep in im.module.actions:
             return thunk_name(arg.rep)
@@ -5117,6 +6758,20 @@ def native_reference_in_type(arg):
 
 
 def emit_native_action(self,header):
+    """
+    Generates and emits native action code based on the provided header and arguments.
+
+    This function processes the `self.args` list to generate native action code. It splits the first argument's code
+    by the backtick character (`) and processes each field based on specific conditions:
+    - If a field ends with '%', it uses the `native_typeof` function.
+    - If a field ends with '"', it uses the `native_z3name` function.
+    - Otherwise, it uses the `native_reference` function.
+
+    The processed fields are then concatenated and passed to the `indent_code` function along with the header.
+
+    Args:
+        header (str): The header to be used in the generated code.
+    """
     fields = self.args[0].code.split('`')
     def nfun(idx):
         return native_typeof if fields[idx-1].endswith('%') else native_z3name if fields[idx-1].endswith('"') else native_reference
@@ -5130,7 +6785,22 @@ ia.NativeAction.emit = emit_native_action
 def emit_repl_imports(header,impl,classname):
     pass
 
-def emit_repl_boilerplate1(header,impl,classname):
+def emit_repl_boilerplate1(header, impl, classname):
+    """
+    Generates boilerplate code for a REPL (Read-Eval-Print Loop) in C++.
+
+    This function appends C++ code to the provided `impl` list, which includes:
+    - A function `ask_ret` that prompts the user for input within a specified range.
+    - A class `classname_repl` that inherits from `classname` and overrides the `ivy_assert` and `ivy_assume` methods to provide custom assertion and assumption handling.
+    - A function `isLineInFinalizeAction` to check if a line is within an action called `_finalize`.
+    - Signal handlers for generating signals.
+    - Utility functions for parsing commands and values.
+
+    Args:
+        header (list): A list to which the header code will be appended.
+        impl (list): A list to which the implementation code will be appended.
+        classname (str): The name of the class to be used in the generated code.
+    """
     impl.append("""
 
 int ask_ret(long long bound) {
@@ -5182,7 +6852,7 @@ int ask_ret(long long bound) {
             
             std::string command = "";
             if(path.find("test") != std::string::npos) 
-		    path = std::string("/app/panther-ivy/protocol-testing/") + current_protocol + std::string("/") + current_protocol + std::string("_tests/") + mode + std::string("_tests/") + path;
+		    path = std::string("/opt/panther_ivy/protocol-testing/") + current_protocol + std::string("/") + current_protocol + std::string("_tests/") + mode + std::string("_tests/") + path;
         
             command = std::string("/bin/sed \'") + lineNumber + std::string("!d\' ")  + path + std::string(".ivy > temps.txt");
             //std::cerr << command.c_str() << "\\n";
@@ -5289,7 +6959,7 @@ int ask_ret(long long bound) {
             
             std::string command = "";
             if(path.find("test") != std::string::npos) 
-		    path = std::string("/app/panther-ivy/protocol-testing/") + current_protocol + std::string("/") + current_protocol + std::string("_tests/") + mode + std::string("_tests/") + path;
+		    path = std::string("/opt/panther_ivy/protocol-testing/") + current_protocol + std::string("/") + current_protocol + std::string("_tests/") + mode + std::string("_tests/") + path;
         
             command = std::string("/bin/sed \'") + lineNumber + std::string("!d\' ")  + path + std::string(".ivy > temps.txt");
             //std::cerr << command.c_str() << "\\n";
@@ -5663,7 +7333,19 @@ void check_arity(std::vector<ivy_value> &args, unsigned num, std::string &action
 """.replace('classname',classname))
 
 
-def emit_repl_boilerplate1a(header,impl,classname):
+def emit_repl_boilerplate1a(header, impl, classname):
+    """
+    Generates and appends C++ boilerplate code for a REPL (Read-Eval-Print Loop) to the provided implementation list.
+
+    Args:
+        header (list): A list to which the header code can be appended.
+        impl (list): A list to which the implementation code will be appended.
+        classname (str): The name of the class to be used in the generated boilerplate code.
+
+    The generated boilerplate code includes:
+    - A `stdin_reader` class that reads from standard input and processes lines.
+    - A `cmd_reader` class that inherits from `stdin_reader` and processes commands specific to the provided classname.
+    """
     impl.append("""
 
 class stdin_reader: public reader {
@@ -5719,7 +7401,23 @@ public:
 """.replace('classname',classname))
 
 
-def emit_repl_boilerplate2(header,impl,classname):
+def emit_repl_boilerplate2(header, impl, classname):
+    """
+    Appends a boilerplate C++ code snippet to the implementation list.
+
+    This function adds a predefined C++ code snippet to the `impl` list, which
+    handles various exceptions and outputs error messages to the standard error
+    stream. The snippet also includes a prompt for user input if the file
+    descriptor is a terminal.
+
+    Args:
+        header (list): A list to which the header code can be appended (not used in this function).
+        impl (list): A list to which the implementation code is appended.
+        classname (str): The name of the class to be used in the boilerplate code.
+
+    Returns:
+        None
+    """
     impl.append("""
             {
                 std::cerr << "undefined action: " << action << std::endl;
@@ -5749,6 +7447,19 @@ def emit_repl_boilerplate2(header,impl,classname):
 """.replace('classname',classname))
 
 def emit_winsock_init(impl):
+    """
+    Appends a string containing the boilerplate code for initializing Winsock on Windows to the provided list.
+
+    This function adds a multi-line string to the `impl` list, which contains the necessary code to initialize
+    Winsock on a Windows platform. The code includes version checks and error handling as recommended by the 
+    Windows documentation.
+
+    Args:
+        impl (list): A list to which the Winsock initialization code will be appended.
+
+    Returns:
+        None
+    """
     impl.append("""
 #ifdef _WIN32
     // Boilerplate from windows docs
@@ -5787,7 +7498,18 @@ def emit_winsock_init(impl):
 """)
 
 
-def emit_repl_boilerplate3(header,impl,classname):
+def emit_repl_boilerplate3(header, impl, classname):
+    """
+    Appends a boilerplate code snippet to the implementation list for a REPL (Read-Eval-Print Loop) setup.
+
+    Args:
+        header (str): The header file content (not used in this function).
+        impl (list): The list to which the boilerplate code will be appended.
+        classname (str): The name of the class to be used in the boilerplate code.
+
+    Returns:
+        None
+    """
     impl.append("""
 
     ivy.__unlock();
@@ -5802,7 +7524,22 @@ def emit_repl_boilerplate3(header,impl,classname):
 
 """.replace('classname',classname))
 
-def emit_repl_boilerplate3server(header,impl,classname):
+def emit_repl_boilerplate3server(header, impl, classname):
+    """
+    Appends a boilerplate C++ code snippet to the implementation list for a server.
+
+    This function generates a C++ code snippet that includes unlocking a mutex,
+    waiting for all reader threads to terminate, and then returning 0. The generated
+    code is appended to the provided implementation list.
+
+    Args:
+        header (str): The header file content (not used in this function).
+        impl (list): The list to which the generated C++ code snippet will be appended.
+        classname (str): The name of the class to be used in the generated code snippet.
+
+    Returns:
+        None
+    """
     impl.append("""
 
     
@@ -5824,7 +7561,28 @@ def emit_repl_boilerplate3server(header,impl,classname):
 
 """.replace('classname',classname))
 
-def emit_repl_boilerplate3test(header,impl,classname):
+def emit_repl_boilerplate3test(header, impl, classname):
+    """
+    Generates and appends C++ boilerplate code for a REPL (Read-Eval-Print Loop) test to the provided implementation list.
+
+    Args:
+        header (list): A list to which the generated C++ header code will be appended.
+        impl (list): A list to which the generated C++ implementation code will be appended.
+        classname (str): The name of the class to be used in the generated code.
+
+    The function performs the following tasks:
+    - Initializes various components and binds readers.
+    - Sets up signal handling for SIGUSR3.
+    - Generates initialization code for actions and their weights.
+    - Appends the main loop for the REPL test, which includes:
+        - Randomly selecting actions based on their weights.
+        - Handling timeouts and reader events.
+        - Executing selected actions and handling their results.
+    - Finalizes the test and cleans up resources.
+
+    Note:
+        This function assumes the existence of certain global variables and structures such as `ivy`, `readers`, `timers`, `im`, and `iu`.
+    """
     impl.append("""
         ivy.__unlock();
         initializing = false;
@@ -6079,7 +7837,23 @@ def emit_repl_boilerplate3test(header,impl,classname):
     #     FINALIZE
     # }""")
 
-def emit_boilerplate1(header,impl,classname):
+def emit_boilerplate1(header, impl, classname):
+    """
+    Generates the boilerplate code for a C++ class that interfaces with the Z3 theorem prover.
+
+    Args:
+        header (list): A list to which the generated header code will be appended.
+        impl (list): A list to which the generated implementation code will be appended.
+        classname (str): The name of the class to be generated.
+
+    The generated class includes methods for:
+    - Creating and managing Z3 expressions and sorts.
+    - Evaluating Z3 expressions.
+    - Applying Z3 functions.
+    - Randomizing Z3 expressions.
+    - Adding assertions to the Z3 solver.
+    - Solving the Z3 constraints and retrieving the model.
+    """
     header.append("""
 #include <string>
 #include <vector>
@@ -6597,10 +8371,23 @@ opt_outdir = iu.Parameter("outdir","")
 emit_main = True
 
 def add_conjs_to_actions():
+    """
+    Adds conjunctions as assertions to the module's actions and initializers.
+
+    This function performs the following steps:
+    1. Creates a list of `AssertAction` objects from the labeled conjunctions in the module.
+    2. Constructs a sequence of these assertions.
+    3. Updates the module's actions by appending the sequence of assertions to each public action.
+    4. Adds the sequence of assertions to the module's initializers under the name "__check_invariants".
+    5. Adds the sequence of assertions to the module's initial actions.
+
+    Note:
+        - The function modifies the `im.module.actions`, `im.module.initializers`, and `im.module.initial_actions` in place.
+    """
     asserts = [ia.AssertAction(conj.formula).set_lineno(conj.lineno) for conj in im.module.labeled_conjs]
     seq = ia.Sequence(*asserts)
     im.module.actions = dict((actname,ia.append_to_action(action,seq)) if actname in im.module.public_actions else (actname,action)
-                             for actname,action in im.module.actions.iteritems())
+                             for actname,action in im.module.actions.items())
     im.module.initializers.append(("__check_invariants",seq))
     seq = ia.Sequence(*asserts)
     seq.formal_params = []
@@ -6615,6 +8402,31 @@ def ivyc():
     main_int(True)
 
 def main_int(is_ivyc):
+    """
+    Main function for initializing and compiling Ivy modules to C++.
+
+    Args:
+        is_ivyc (bool): Flag indicating if the function is called from ivyc.
+
+    This function sets various parameters and configurations for Ivy, reads
+    parameters, and processes isolates. It handles different targets such as
+    'repl', 'gen', 'test', and 'class'. Depending on the target and isolate,
+    it generates C++ code, compiles it, and optionally builds the resulting
+    binaries. The function also manages error printing and module copying
+    contexts to ensure proper handling of Ivy modules and isolates.
+
+    The function performs the following steps:
+    1. Sets determinization, native enums, and sort interpretation.
+    2. Configures Ivy parameters based on the target.
+    3. Reads Ivy parameters and sets additional parameters.
+    4. Processes isolates and generates C++ code for each isolate.
+    5. Compiles and optionally builds the generated C++ code.
+    6. Handles platform-specific compilation commands and library specifications.
+    7. Writes process descriptors for 'repl' and 'test' targets.
+
+    Raises:
+        iu.IvyError: If the target is not 'repl' and emit_main is True for version 2 compiler.
+    """
     ia.set_determinize(True)
     slv.set_use_native_enums(True)
     iso.set_interpret_all_sorts(True)
@@ -6644,7 +8456,7 @@ def main_int(is_ivyc):
                 raise iu.IvyError(None,'Version 2 compiler supports only target=repl')
             cdir = os.path.join(os.path.dirname(__file__), 'ivy2/s3')
             cmd = 'IVY_INCLUDE_PATH={} {} {}'.format(os.path.join(cdir,'include'),os.path.join(cdir,'ivyc_s3'),sys.argv[1])
-            print cmd
+            print(cmd)
             sys.stdout.flush()
             status = os.system(cmd)
             exit(status)
@@ -6685,7 +8497,7 @@ def main_int(is_ivyc):
             if isolate != None:
                 isolates = [isolate]
             else:
-                extracts = list((x,y) for x,y in im.module.isolates.iteritems()
+                extracts = list((x,y) for x,y in im.module.isolates.items()
                                 if isinstance(y,ivy_ast.ExtractDef))
                 if len(extracts) == 0:
                     isol = ivy_ast.ExtractDef(ivy_ast.Atom('extract'),ivy_ast.Atom('this'))
@@ -6694,8 +8506,8 @@ def main_int(is_ivyc):
                     isolates = ['extract']
                 elif len(extracts) == 1:
                     isolates = [extracts[0][0]]
-                print isolates
-                print extracts
+                print(isolates)
+                print(extracts)
         else:
             if isolate != None:
                 isolates = [isolate]
@@ -6722,14 +8534,14 @@ def main_int(is_ivyc):
                 with iu.ErrorPrinter():
 
                     def do_cmd(cmd):
-                        print cmd
+                        print(cmd)
                         status = os.system(cmd)
                         if status:
                             exit(1)
     
                     if isolate:
                         if len(isolates) > 1:
-                            print "Compiling isolate {}...".format(isolate)
+                            print("Compiling isolate {}...".format(isolate))
 
                     if (not iu.version_le(iu.get_string_version(),"1.6") and
                         target.get() == 'repl' and isolate in im.module.isolates):
@@ -6787,10 +8599,10 @@ def main_int(is_ivyc):
                             exit(1)
                     else:
                         libs = []    
-                    cpp11 = any((x == 'cppstd' or x.endswith('.cppstd')) and y.rep=='cpp11' for x,y in im.module.attributes.iteritems())
-                    gpp11_spec = ' -std=c++11 ' if cpp11 else '-std=c++11 ' #' ' # -std=c++11 ' 
+                    cpp11 = any((x == 'cppstd' or x.endswith('.cppstd')) and y.rep=='cpp11' for x,y in im.module.attributes.items())
+                    gpp11_spec = ' -std=c++11 ' if cpp11 else ' -std=c++11 ' 
                     libspec = ''
-                    for x,y in im.module.attributes.iteritems():
+                    for x,y in im.module.attributes.items():
                         p,c = iu.parent_child_name(x)
                         if c == 'libspec':
                             if platform.system() == 'Windows':
@@ -6810,8 +8622,8 @@ def main_int(is_ivyc):
                         incspec = '/I {}'.format(os.path.join(_dir,'include'))
                         libpspec = '/LIBPATH:{}'.format(os.path.join(_dir,'lib'))
                         if not os.path.exists('libz3.dll'):
-                            print 'Copying libz3.dll to current directory.'
-                            print 'If the binary {}.exe is moved to another directory, this file must also be moved.'.format(basename)
+                            print('Copying libz3.dll to current directory.')
+                            print('If the binary {}.exe is moved to another directory, this file must also be moved.'.format(basename))
                             do_cmd('copy {} libz3.dll'.format(os.path.join(_dir,'lib','libz3.dll')))
                         for lib in libs:
                             _incdir = lib[1] if len(lib) >= 2 else []
@@ -6856,7 +8668,7 @@ def main_int(is_ivyc):
                             
                         if environ.get('GPERF') is not None:
                             cmd += ' -lprofiler -ltcmalloc' # CPU profiler
-                    print cmd
+                    print(cmd)
                     # else:
                     #     if target.get() in ['gen','test']:
                     #         if 'Z3DIR' in os.environ:
@@ -7576,7 +9388,7 @@ unsigned string_hash(const char * str, unsigned length, unsigned init_value) {
         c += reinterpret_cast<const unsigned *>(str)[2];
         mix(a,b,c);
         str += 12; len -= 12;
-    }
+    } 
 
     /*------------------------------------- handle the last 11 bytes */
     c += length;

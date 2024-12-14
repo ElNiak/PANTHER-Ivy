@@ -1,17 +1,17 @@
 # coding: utf-8
-import ivy_init
-import ivy_logic as il
-import ivy_module as im
-import ivy_utils as iu
-import ivy_actions as ia
-import logic as lg
-import logic_util as lu
-import ivy_logic_utils as ilu
-import ivy_compiler as ic
-import ivy_isolate as iso
-import ivy_ast
+from . import ivy_init
+from . import ivy_logic as il
+from . import ivy_module as im
+from . import ivy_utils as iu
+from . import ivy_actions as ia
+from . import logic as lg
+from . import logic_util as lu
+from . import ivy_logic_utils as ilu
+from . import ivy_compiler as ic
+from . import ivy_isolate as iso
+from . import ivy_ast
 import itertools
-import ivy_theory as ith
+from . import ivy_theory as ith
 
 things = []
 
@@ -161,14 +161,14 @@ def main():
             emit_symbol_def(sym)
         emit('def P := (PL.prog.letrec')
         emit_eol()
-        for name,act in im.module.actions.iteritems():
+        for name,act in im.module.actions.items():
             emit('  (@bndng.cons PL.pterm ("'+name+'",\n')
             emit_action(act)
             emit_eol()
             emit('    ) ')
             emit_eol()
         emit('  (bndng.default PL.pterm.skip)')
-        for name,act in im.module.actions.iteritems():
+        for name,act in im.module.actions.items():
             emit(')')
         emit_eol()
         exports = sorted(list(im.module.public_actions))

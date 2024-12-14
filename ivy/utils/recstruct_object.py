@@ -124,7 +124,7 @@ _variadic_field_template = '''\
 '''
 
 def _preprocess_names(names):
-    if isinstance(names, basestring):
+    if isinstance(names, str):
         names = names.replace(',', ' ').split()
     return [str(x) for x in names]
 
@@ -191,7 +191,7 @@ def recstruct(typename, meta_field_names, sub_field_names, verbose=False):
     )
 
     if verbose:
-        print class_definition
+        print(class_definition)
 
     # Execute the template string in a temporary namespace and support
     # tracing utilities by setting a value for
@@ -205,7 +205,7 @@ def recstruct(typename, meta_field_names, sub_field_names, verbose=False):
         _init=_init,
     )
     try:
-        exec class_definition in namespace
+        exec(class_definition, namespace)
     except SyntaxError as e:
         raise SyntaxError(e.message + ':\n' + class_definition)
     result = namespace[typename]
@@ -236,93 +236,93 @@ if __name__ == '__main__':
     from itertools import chain, product
     from os.path import isfile
 
-    print "Testing recstruct:"
-    print
+    print("Testing recstruct:")
+    print()
 
     A = recstruct('A', ('x', 'y'), ('a', 'b', '*args'), verbose=True)
     class B(recstruct('B', ('x', 'y'), ('a', 'b', '*args'), verbose=False)):
         __slots__ = ()
         @classmethod
         def _preprocess_(cls, x, y, a, b, *args):
-            return range(10)
+            return list(range(10))
 
-    a = A(*range(10))
+    a = A(*list(range(10)))
     b = B(None, None, None, None)
     t = tuple(range(10))
 
-    print "a: ", a
-    print "b: ", b
-    print "t: ", t
-    print
-    print "a == b: ", a == b
-    print "a != b: ", a != b
-    print "hash(a) == hash(b): ", hash(a) == hash(b)
-    print "a <= b: ", a <= b
-    print "b <= a: ", b <= a
-    print
-    print "a == t: ", a == t
-    print "a != t: ", a != t
-    print "hash(a) == hash(t): ", hash(a) == hash(t)
-    print "a <= t: ", a <= t
-    print "t <= a: ", t <= a
-    print
+    print("a: ", a)
+    print("b: ", b)
+    print("t: ", t)
+    print()
+    print("a == b: ", a == b)
+    print("a != b: ", a != b)
+    print("hash(a) == hash(b): ", hash(a) == hash(b))
+    print("a <= b: ", a <= b)
+    print("b <= a: ", b <= a)
+    print()
+    print("a == t: ", a == t)
+    print("a != t: ", a != t)
+    print("hash(a) == hash(t): ", hash(a) == hash(t))
+    print("a <= t: ", a <= t)
+    print("t <= a: ", t <= a)
+    print()
     d = {}
     d[a] = 1
     d[b] = 2
     d[t] = 3
-    print "d: ", d
+    print("d: ", d)
     s = set()
     s.add(a)
     s.add(b)
     s.add(t)
-    print "s: ", s
-    print
-    print "tuple(x for x in a): ", tuple(x for x in a)
-    print "list(a): ", list(a)
-    print "tuple(a): ", tuple(a)
-    print "len(a): ", len(a)
-    print "0 in a: ", 0 in a
-    print "10 in a: ", 10 in a
-    print "5 in a: ", 5 in a
-    print "a[:]: ", a[:]
-    print "a[1:]: ", a[1:]
-    print "a[1:-1]: ", a[1:-1]
-    print "a.x: ", a.x
-    print "a.y: ", a.y
-    print "a.a: ", a.a
-    print "a.b: ", a.b
-    print "a.args: ", a.args
-    print
+    print("s: ", s)
+    print()
+    print("tuple(x for x in a): ", tuple(x for x in a))
+    print("list(a): ", list(a))
+    print("tuple(a): ", tuple(a))
+    print("len(a): ", len(a))
+    print("0 in a: ", 0 in a)
+    print("10 in a: ", 10 in a)
+    print("5 in a: ", 5 in a)
+    print("a[:]: ", a[:])
+    print("a[1:]: ", a[1:])
+    print("a[1:-1]: ", a[1:-1])
+    print("a.x: ", a.x)
+    print("a.y: ", a.y)
+    print("a.a: ", a.a)
+    print("a.b: ", a.b)
+    print("a.args: ", a.args)
+    print()
 
     a0 = pickle.loads(pickle.dumps(a, 0))
     a1 = pickle.loads(pickle.dumps(a, 1))
     a2 = pickle.loads(pickle.dumps(a, 2))
-    print "a0: ", a0
-    print "a1: ", a1
-    print "a2: ", a2
-    print "a0 == a, hash(a0) == hash(a): ", a0 == a, hash(a0) == hash(a)
-    print "a1 == a, hash(a1) == hash(a): ", a1 == a, hash(a1) == hash(a)
-    print "a2 == a, hash(a2) == hash(a): ", a2 == a, hash(a2) == hash(a)
+    print("a0: ", a0)
+    print("a1: ", a1)
+    print("a2: ", a2)
+    print("a0 == a, hash(a0) == hash(a): ", a0 == a, hash(a0) == hash(a))
+    print("a1 == a, hash(a1) == hash(a): ", a1 == a, hash(a1) == hash(a))
+    print("a2 == a, hash(a2) == hash(a): ", a2 == a, hash(a2) == hash(a))
 
     b0 = pickle.loads(pickle.dumps(b, 0))
     b1 = pickle.loads(pickle.dumps(b, 1))
     b2 = pickle.loads(pickle.dumps(b, 2))
     b3 = pickle.loads(pickle.dumps(b))
-    print "b0: ", b0, repr(b0), b0._tup
-    print "b1: ", b1, repr(b1), b1._tup
-    print "b2: ", b2, repr(b2), b2._tup
-    print "b3: ", b3, repr(b3), b3._tup
-    print "b0 == b, hash(b0) == hash(b): ", b0 == b, hash(b0) == hash(b)
-    print "b1 == b, hash(b1) == hash(b): ", b1 == b, hash(b1) == hash(b)
-    print "b2 == b, hash(b2) == hash(b): ", b2 == b, hash(b2) == hash(b)
-    print "b3 == b, hash(b3) == hash(b): ", b3 == b, hash(b3) == hash(b)
+    print("b0: ", b0, repr(b0), b0._tup)
+    print("b1: ", b1, repr(b1), b1._tup)
+    print("b2: ", b2, repr(b2), b2._tup)
+    print("b3: ", b3, repr(b3), b3._tup)
+    print("b0 == b, hash(b0) == hash(b): ", b0 == b, hash(b0) == hash(b))
+    print("b1 == b, hash(b1) == hash(b): ", b1 == b, hash(b1) == hash(b))
+    print("b2 == b, hash(b2) == hash(b): ", b2 == b, hash(b2) == hash(b))
+    print("b3 == b, hash(b3) == hash(b): ", b3 == b, hash(b3) == hash(b))
 
     fn = 'test_pickle.txt'
     if isfile(fn):
         f = open(fn)
         bf = pickle.load(f)
         f.close()
-        print "bf: ", bf, repr(bf), bf._tup
+        print("bf: ", bf, repr(bf), bf._tup)
 
     f = open(fn, 'w')
     pickle.dump(b, f)
@@ -336,6 +336,6 @@ if __name__ == '__main__':
     e0 = pickle.loads(pickle.dumps(e, 0))
     e1 = pickle.loads(pickle.dumps(e, 1))
     e2 = pickle.loads(pickle.dumps(e, 2))
-    print "e0: ", e0, repr(e0), e0._tup
-    print "e1: ", e1, repr(e1), e1._tup
-    print "e2: ", e2, repr(e2), e2._tup
+    print("e0: ", e0, repr(e0), e0._tup)
+    print("e1: ", e1, repr(e1), e1._tup)
+    print("e2: ", e2, repr(e2), e2._tup)

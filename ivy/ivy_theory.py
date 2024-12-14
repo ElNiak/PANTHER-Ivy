@@ -1,9 +1,9 @@
-import ivy_actions as ia
-import ivy_module as im
-import ivy_logic as il
-import ivy_utils as iu
-import logic_util as lu
-import ivy_logic_utils as ilu
+from . import ivy_actions as ia
+from . import ivy_module as im
+from . import ivy_logic as il
+from . import ivy_utils as iu
+from . import logic_util as lu
+from . import ivy_logic_utils as ilu
 from collections import defaultdict
 from tarjan import tarjan
 from itertools import chain

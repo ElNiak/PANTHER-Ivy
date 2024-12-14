@@ -100,7 +100,7 @@ def rectagtuple(typename,
     )
 
     if verbose:
-        print class_definition
+        print(class_definition)
 
     # Execute the template string in a temporary namespace and support
     # tracing utilities by setting a value for
@@ -113,7 +113,7 @@ def rectagtuple(typename,
                      _islice=islice,
                  )
     try:
-        exec class_definition in namespace
+        exec(class_definition, namespace)
     except SyntaxError as e:
         raise SyntaxError(e.message + ':\n' + class_definition)
     result = namespace[typename]
@@ -150,8 +150,8 @@ if __name__ == '__main__':
     import pickle
     from itertools import chain, product
 
-    print "Testing tagtuple:"
-    print
+    print("Testing tagtuple:")
+    print()
 
     class A(tagtuple):
         __slots__ = ()
@@ -163,37 +163,37 @@ if __name__ == '__main__':
     b = B(1, 2, 3)
     t = (1, 2, 3)
 
-    print "a: ", a
-    print "b: ", b
-    print "t: ", t
-    print
-    print "a == b: ", a == b
-    print "a != b: ", a != b
-    print "hash(a) == hash(b): ", hash(a) == hash(b)
-    print "a <= b: ", a <= b
-    print "b <= a: ", b <= a
-    print
-    print "a == t: ", a == t
-    print "a != t: ", a != t
-    print "hash(a) == hash(t): ", hash(a) == hash(t)
-    print "a <= t: ", a <= t
-    print "t <= a: ", t <= a
-    print
+    print("a: ", a)
+    print("b: ", b)
+    print("t: ", t)
+    print()
+    print("a == b: ", a == b)
+    print("a != b: ", a != b)
+    print("hash(a) == hash(b): ", hash(a) == hash(b))
+    print("a <= b: ", a <= b)
+    print("b <= a: ", b <= a)
+    print()
+    print("a == t: ", a == t)
+    print("a != t: ", a != t)
+    print("hash(a) == hash(t): ", hash(a) == hash(t))
+    print("a <= t: ", a <= t)
+    print("t <= a: ", t <= a)
+    print()
     d = {}
     d[a] = 1
     d[b] = 2
     d[t] = 3
-    print "d: ", d
+    print("d: ", d)
     s = set()
     s.add(a)
     s.add(b)
     s.add(t)
-    print "s: ", s
-    print
-    print "tuple(x for x in a): ", tuple(x for x in a)
-    print "list(a): ", list(a)
-    print "tuple(a): ", tuple(a)
-    print
+    print("s: ", s)
+    print()
+    print("tuple(x for x in a): ", tuple(x for x in a))
+    print("list(a): ", list(a))
+    print("tuple(a): ", tuple(a))
+    print()
     """
     a0 = pickle.loads(pickle.dumps(a, 0))
     a1 = pickle.loads(pickle.dumps(a, 1))
@@ -206,8 +206,8 @@ if __name__ == '__main__':
     print "a2 == a, hash(a2) == hash(a): ", a2 == a, hash(a2) == hash(a)
     print
     """
-    print "a[:]: ", a[:]
-    print "a[1:-1]: ", a[1:-1]
+    print("a[:]: ", a[:])
+    print("a[1:-1]: ", a[1:-1])
     """
     print "a + a: ", a + a
     print "a + b: ", a + b
@@ -217,13 +217,13 @@ if __name__ == '__main__':
     print "a * 2: ", a * 2
     print
     """
-    print "A(*chain((x**2 for x in range(10)), a)): ", A(*chain((x**2 for x in range(10)), a))
-    print "A(*product(range(3), repeat=2)): ", A(*product(range(3), repeat=2))
-    print
+    print("A(*chain((x**2 for x in range(10)), a)): ", A(*chain((x**2 for x in range(10)), a)))
+    print("A(*product(range(3), repeat=2)): ", A(*product(list(range(3)), repeat=2)))
+    print()
 
 
-    print "Testing rectuple:"
-    print
+    print("Testing rectuple:")
+    print()
 
     A = rectuple('A', ('x', 'y'), verbose=True)
     B = rectuple('B', ('x', 'y'), verbose=True)
@@ -232,37 +232,37 @@ if __name__ == '__main__':
     b = B(1,2)
     t = (1,2)
 
-    print "a: ", a
-    print "b: ", b
-    print "t: ", t
-    print
-    print "a == b: ", a == b
-    print "a != b: ", a != b
-    print "hash(a) == hash(b): ", hash(a) == hash(b)
-    print "a <= b: ", a <= b
-    print "b <= a: ", b <= a
-    print
-    print "a == t: ", a == t
-    print "a != t: ", a != t
-    print "hash(a) == hash(t): ", hash(a) == hash(t)
-    print "a <= t: ", a <= t
-    print "t <= a: ", t <= a
-    print
+    print("a: ", a)
+    print("b: ", b)
+    print("t: ", t)
+    print()
+    print("a == b: ", a == b)
+    print("a != b: ", a != b)
+    print("hash(a) == hash(b): ", hash(a) == hash(b))
+    print("a <= b: ", a <= b)
+    print("b <= a: ", b <= a)
+    print()
+    print("a == t: ", a == t)
+    print("a != t: ", a != t)
+    print("hash(a) == hash(t): ", hash(a) == hash(t))
+    print("a <= t: ", a <= t)
+    print("t <= a: ", t <= a)
+    print()
     d = {}
     d[a] = 1
     d[b] = 2
     d[t] = 3
-    print "d: ", d
+    print("d: ", d)
     s = set()
     s.add(a)
     s.add(b)
     s.add(t)
-    print "s: ", s
-    print
-    print "tuple(x for x in a): ", tuple(x for x in a)
-    print "list(a): ", list(a)
-    print "tuple(a): ", tuple(a)
-    print
+    print("s: ", s)
+    print()
+    print("tuple(x for x in a): ", tuple(x for x in a))
+    print("list(a): ", list(a))
+    print("tuple(a): ", tuple(a))
+    print()
     """
     a0 = pickle.loads(pickle.dumps(a, 0))
     a1 = pickle.loads(pickle.dumps(a, 1))
@@ -275,53 +275,53 @@ if __name__ == '__main__':
     print "a2 == a, hash(a2) == hash(a): ", a2 == a, hash(a2) == hash(a)
     """
 
-    print "Testing rectagtuple:"
-    print
+    print("Testing rectagtuple:")
+    print()
 
     A = rectagtuple('A', ('x', 'y'), ('a', 'b', '*args'), verbose=True)
     B = rectagtuple('B', ('x', 'y'), ('a', 'b', '*args'), verbose=True)
 
-    a = A(*range(10))
-    b = B(*range(10))
+    a = A(*list(range(10)))
+    b = B(*list(range(10)))
     t = tuple(range(10))
 
-    print "a: ", a
-    print "b: ", b
-    print "t: ", t
-    print
-    print "a == b: ", a == b
-    print "a != b: ", a != b
-    print "hash(a) == hash(b): ", hash(a) == hash(b)
-    print "a <= b: ", a <= b
-    print "b <= a: ", b <= a
-    print
-    print "a == t: ", a == t
-    print "a != t: ", a != t
-    print "hash(a) == hash(t): ", hash(a) == hash(t)
-    print "a <= t: ", a <= t
-    print "t <= a: ", t <= a
-    print
+    print("a: ", a)
+    print("b: ", b)
+    print("t: ", t)
+    print()
+    print("a == b: ", a == b)
+    print("a != b: ", a != b)
+    print("hash(a) == hash(b): ", hash(a) == hash(b))
+    print("a <= b: ", a <= b)
+    print("b <= a: ", b <= a)
+    print()
+    print("a == t: ", a == t)
+    print("a != t: ", a != t)
+    print("hash(a) == hash(t): ", hash(a) == hash(t))
+    print("a <= t: ", a <= t)
+    print("t <= a: ", t <= a)
+    print()
     d = {}
     d[a] = 1
     d[b] = 2
     d[t] = 3
-    print "d: ", d
+    print("d: ", d)
     s = set()
     s.add(a)
     s.add(b)
     s.add(t)
-    print "s: ", s
-    print
-    print "tuple(x for x in a): ", tuple(x for x in a)
-    print "list(a): ", list(a)
-    print "tuple(a): ", tuple(a)
-    print "0 in a: ", 0 in a
-    print "10 in a: ", 10 in a
-    print "5 in a: ", 5 in a
-    print "a[:]: ", a[:]
-    print "a[1:]: ", a[1:]
-    print "a[1:-1]: ", a[1:-1]
-    print
+    print("s: ", s)
+    print()
+    print("tuple(x for x in a): ", tuple(x for x in a))
+    print("list(a): ", list(a))
+    print("tuple(a): ", tuple(a))
+    print("0 in a: ", 0 in a)
+    print("10 in a: ", 10 in a)
+    print("5 in a: ", 5 in a)
+    print("a[:]: ", a[:])
+    print("a[1:]: ", a[1:])
+    print("a[1:-1]: ", a[1:-1])
+    print()
     """
     a0 = pickle.loads(pickle.dumps(a, 0))
     a1 = pickle.loads(pickle.dumps(a, 1))
