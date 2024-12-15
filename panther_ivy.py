@@ -150,10 +150,10 @@ class PantherIvyServiceManager(ITesterManager):
         Prepares the Ivy testers service manager.
         """
         self.logger.info("Preparing Ivy testers service manager...")
-        self.build_submodules()
+        # self.build_submodules()
 
         protocol_testing_dir = os.path.abspath(
-            "panther/plugins/services/testers/panther_ivy/protocol-testing/"
+            str(self._plugin_dir) + "/testers/panther_ivy/protocol-testing/"
         )
         for subdir in os.listdir(protocol_testing_dir):
             subdir_path = os.path.join(protocol_testing_dir, subdir)
@@ -169,10 +169,7 @@ class PantherIvyServiceManager(ITesterManager):
 
         # TODO load the configuration file: get the protocol name and the version + tests + versions
         plugin_loader.build_docker_image_from_path(Path(os.path.join(
-            os.getcwd(),
-            "panther",
-            "plugins",
-            "services",
+            self._plugin_dir,
             "Dockerfile",
         )), "panther_base", "service")
         plugin_loader.build_docker_image(self.get_implementation_name(),
@@ -209,11 +206,27 @@ class PantherIvyServiceManager(ITesterManager):
         Update Ivy tool and include paths.
         Note: ":" cannot be used in the command as it is used to separate commands.
         This script is compatible with /bin/sh syntax.
+        
+        This method constructs a series of shell commands to update the Ivy tool, 
+        copy necessary libraries and headers, and set up the Ivy model. The commands 
+        are logged to a specified log file for debugging purposes.
 
+        The update process includes:
+        - Installing the Ivy tool.
+        - Copying updated Ivy and Z3 files.
+        - Copying QUIC libraries if the protocol is "quic" or "apt".
+        - Removing and restoring debug events in Ivy files based on the log level.
+        - Setting up the Ivy model by copying Ivy files to the include path.
+
+        Returns:
+            List[str]: A list of shell commands to be executed for updating the Ivy tool.
+        
+        ----
+        
         update_ivy_tool() {
             echo "Updating Ivy tool..." >> /app/logs/ivy_setup.log;
             cd "/opt/panther_ivy" || exit 1;
-            sudo python3.10 setup.py install >> /app/logs/ivy_setup.log 2>&1 &&
+            python3.10 setup.py install >> /app/logs/ivy_setup.log 2>&1 &&
             cp lib/libz3.so submodules/z3/build/python/z3 >> /app/logs/ivy_setup.log 2>&1 &&
             echo "Copying updated Ivy files..." >> /app/logs/ivy_setup.log &&
             find /opt/panther_ivy/ivy/include/1.7/ -type f -name "*.ivy" -exec cp {} /usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/1.7/ \; >> /app/logs/ivy_setup.log 2>&1 &&
@@ -273,6 +286,7 @@ class PantherIvyServiceManager(ITesterManager):
             "update_ivy_tool() {",
             '\techo "Updating Ivy tool..." >> /app/logs/ivy_setup.log;',
             '\tcd "/opt/panther_ivy" || exit 1;',
+            "\tcat setup.py >> /app/logs/ivy_setup.log;", 
             "\tsudo python3.10 setup.py install >> /app/logs/ivy_setup.log 2>&1 &&",
             "\tcp lib/libz3.so submodules/z3/build/python/z3 >> /app/logs/ivy_setup.log 2>&1 &&",
             '\techo "Copying updated Ivy files..." >> /app/logs/ivy_setup.log;',
@@ -282,6 +296,7 @@ class PantherIvyServiceManager(ITesterManager):
             "}",
             " ",
             "update_ivy_tool &&",
+            ""
         ]
 
         update_for_quic_apt_cmd = [
@@ -355,6 +370,22 @@ class PantherIvyServiceManager(ITesterManager):
         return update_command + setup_ivy_model_cmd
 
     def generate_compilation_commands(self) -> list[str]:
+        """
+        Generates the compilation commands for the service being tested.
+
+        This method constructs the necessary environment variables and determines
+        the appropriate tests to compile based on the role (client or server) and
+        the service configuration. It logs detailed debug information about the
+        compilation process, including the test to compile, available tests, 
+        environments, protocol, and version. If the specified test to compile is 
+        not found in the available tests, it logs an error and exits the program.
+
+        Returns:
+            list[str]: A list of compilation commands.
+
+        Raises:
+            SystemExit: If the test to compile is not found in the available tests.
+        """
         self.logger.debug(
             f"Generating compilation commands for service: {self.service_name}"
         )
@@ -392,7 +423,15 @@ class PantherIvyServiceManager(ITesterManager):
         return self.update_ivy_tool() + self.build_tests()
 
     def build_tests(self) -> List[str]:
-        """Compile and prepare the tests."""
+        """
+        Builds the test commands for compiling and moving test files.
+        This method constructs the necessary shell commands to compile tests using the Ivy compiler
+        and move the compiled test files to the appropriate directory. It logs the process at various
+        stages for debugging and informational purposes.
+        Returns:
+            List[str]: A list of shell commands to be executed for compiling and moving the test files.
+        """
+        
         self.logger.info("Compiling tests...")
         self.logger.info(
             f"Mode: {self.role.name} for test: {self.test_to_compile} in {self.service_config_to_test.implementation.version.parameters['tests_dir']['value']}"
@@ -431,12 +470,22 @@ class PantherIvyServiceManager(ITesterManager):
 
     def generate_deployment_commands(self) -> str:
         """
-        Generates deployment commands and collects volume mappings based on service parameters.
-
-        :param service_params: Parameters specific to the service.
-        :param environment: The environment in which the services are being deployed.
-        :return: A dictionary with service name as key and a dictionary containing command and volumes.
+        Generates deployment commands for the service based on its configuration and role.
+        This method constructs a set of deployment commands by gathering parameters from the service configuration,
+        determining the appropriate network interface parameters, and rendering a command template.
+        Returns:
+            str: The rendered deployment command string.
+        Raises:
+            Exception: If there is an error in rendering the command template.
+        Logs:
+            - Debug: When generating deployment commands for the service.
+            - Debug: The role and version of the service.
+            - Error: If there is a failure in rendering the command template.
+        Notes:
+            - The method conditionally includes network interface parameters based on the environment.
+            - The method sets up volume mappings for protocol testing directories.
         """
+        
         self.logger.debug(
             f"Generating deployment commands for service: {self.service_name} with service parameters: {self.service_config_to_test}"
         )
@@ -489,10 +538,10 @@ class PantherIvyServiceManager(ITesterManager):
             params["network"].pop("interface", None)
 
         ivy_include_protocol_testing_dir = os.path.abspath(
-            "panther/plugins/services/testers/panther_ivy/ivy/include/1.7"
+            f"{str(self._plugin_dir)}/testers/panther_ivy/ivy/include/1.7"
         )
         local_protocol_testing_dir = os.path.abspath(
-            "panther/plugins/services/testers/panther_ivy/protocol-testing/"
+            f"{str(self._plugin_dir)}/testers/panther_ivy/protocol-testing/"
             + self.protocol.name
         )
         self.volumes = self.volumes + [

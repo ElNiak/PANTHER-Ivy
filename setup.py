@@ -1,7 +1,7 @@
 import codecs
 import os
 import platform
-
+from pathlib import Path
 from setuptools import setup, find_packages
 from setuptools.dist import Distribution
 
@@ -25,7 +25,7 @@ setup(name='ms_ivy',
       version='1.8.25',
       description='IVy verification tool',
       long_description=long_description,
-      url='https://github.com/microsoft/ivy',
+      url='https://github.com/ElNiak/Panther-IVy',
       author='IVy team',
       author_email='nomail@example.com',
       license='MIT',

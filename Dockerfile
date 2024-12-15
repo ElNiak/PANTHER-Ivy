@@ -2,7 +2,7 @@ FROM panther_base_service_panther:latest
 
 ENV DEBIAN_FRONTEND=noninteractive
 # Define build arguments for version-specific configurations
-ARG VERSION=development-scp-refactor
+ARG VERSION=production
 ARG DEPENDENCIES="[]"  # JSON-formatted list of dependencies
 ENV VERSION=${VERSION}
 ENV DEPENDENCIES=${DEPENDENCIES}
@@ -134,10 +134,10 @@ RUN python3.10 -m pip install pexpect \
     progressbar2
 
 # For Ivy
-ADD setup.py build_submodules.py .gitmodules /opt/panther_ivy/
+# .gitmodules 
+ADD setup.py build_submodules.py /opt/panther_ivy/
 ADD templates /opt/panther_ivy/templates/
 ADD submodules /opt/panther_ivy/submodules/
-ADD configs /opt/panther_ivy/configs/
 # TODO only python file for building
 ADD ivy /opt/panther_ivy/ivy/
 ADD lib /opt/panther_ivy/lib/
