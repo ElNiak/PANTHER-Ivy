@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 import logging
 import os
+from pathlib import Path
 from typing import Dict, List, Optional
 
 from omegaconf import OmegaConf
@@ -60,7 +61,6 @@ class PantherIvyConfig(ImplementationConfig):
     shadow_compatible: bool = field(default=True)
     gperf_compatible: bool = field(default=True)
     protocol: str = field(default="quic")  # Protocol tested by the implementation
-    # TODO: remove the path, make dynamic 
     version: PantherIvyVersion = field(
         default_factory=lambda: PantherIvyConfig.load_versions_from_files()
     )
@@ -69,7 +69,8 @@ class PantherIvyConfig(ImplementationConfig):
 
     @staticmethod
     def load_versions_from_files(
-            version_configs_dir: str = "panther/plugins/services/testers/panther_ivy/version_configs/quic/") -> PantherIvyVersion:
+            version_configs_dir: str = f"{Path(os.path.dirname(__file__))}/version_configs/quic/"
+    ) -> PantherIvyVersion:
         """Load version configurations dynamically from YAML files."""
         logging.debug(f"Loading PantherIvy versions from {version_configs_dir}")
         for version_file in os.listdir(version_configs_dir):
