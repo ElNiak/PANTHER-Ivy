@@ -3,7 +3,7 @@ import subprocess
 import os
 from typing import List, Optional
 import traceback
-from panther.plugins.services.testers.panther_ivy.config_schema import PantherIvyConfig
+from panther.plugins.services.testers.panther_ivy.config_schema import AvailableTests, PantherIvyConfig
 from panther.plugins.services.testers.tester_interface import ITesterManager
 from panther.plugins.plugin_loader import PluginLoader
 from panther.plugins.protocols.config_schema import ProtocolConfig, RoleEnum
@@ -31,7 +31,7 @@ class PantherIvyServiceManager(ITesterManager):
         protocol (ProtocolConfig): Protocol configuration.
         implementation_name (str): Name of the implementation.
         test_to_compile (str): Test to be compiled.
-        protocol_model_path (str): Path to the protocol model.
+        env_protocol_model_path (str): Path to the protocol model.
         ivy_log_level (str): Log level for Ivy.
 
     Methods:
@@ -61,15 +61,20 @@ class PantherIvyServiceManager(ITesterManager):
         # TODO
         service_config_to_test.directories_to_start = [
         ]
+        
+        
+        self.available_tests = None
         self.test_to_compile = self.service_config_to_test.implementation.test
+        self.test_to_compile_path = None
         self.protocol = protocol
-        self.protocol_model_path = os.path.join(
-            "/opt/panther_ivy/protocol-testing/", self.protocol.name
+        self.env_protocol_model_path = "/opt/panther_ivy/protocol-testing/apt/"
+        self.protocol_model_path = os.path.abspath(
+            f"{str(self._plugin_dir)}/testers/panther_ivy/protocol-testing/"
+            + "apt"
         )
         self.ivy_log_level = (
             self.service_config_to_test.implementation.parameters.log_level
         )
-        self.initialize_commands()
 
     def generate_pre_compile_commands(self):
         """
@@ -120,7 +125,7 @@ class PantherIvyServiceManager(ITesterManager):
         Generates post-compile commands.
         """
         return super().generate_post_compile_commands() + [
-            f"cd {self.protocol_model_path};"
+            f"cd {self.env_protocol_model_path};"
         ]
 
     def generate_run_command(self):
@@ -129,7 +134,7 @@ class PantherIvyServiceManager(ITesterManager):
         """
         cmd_args = self.generate_deployment_commands()
         return {
-            "working_dir": self.protocol_model_path,
+            "working_dir": self.env_protocol_model_path,
             "command_binary": os.path.join(
                 self.service_config_to_test.implementation.parameters.tests_build_dir.value + self.test_to_compile),
             "command_args": cmd_args,
@@ -142,7 +147,7 @@ class PantherIvyServiceManager(ITesterManager):
         Generates post-run commands.
         """
         return super().generate_post_run_commands() + [
-            f"cp {os.path.join(self.protocol_model_path, self.service_config_to_test.implementation.parameters.tests_build_dir.value, self.test_to_compile)} /app/logs/{self.test_to_compile};"
+            f"cp {os.path.join(self.env_protocol_model_path, self.service_config_to_test.implementation.parameters.tests_build_dir.value, self.test_to_compile)} /app/logs/{self.test_to_compile};"
         ]
 
     def prepare(self, plugin_loader: Optional[PluginLoader] = None):
@@ -151,21 +156,46 @@ class PantherIvyServiceManager(ITesterManager):
         """
         self.logger.info("Preparing Ivy testers service manager...")
         # self.build_submodules()
+        
+        tests = AvailableTests.load_tests_from_directory(self.protocol_model_path)
+        self.logger.debug(f"Available tests: {tests}")
+        
+        # update version config related file:
+        if self.role == RoleEnum.server:
+            available_tests = (
+                self.service_config_to_test.implementation.version.server.tests
+            )
+        else:
+            available_tests = (
+                self.service_config_to_test.implementation.version.client.tests
+            )
+        
+        self.available_tests = []
+        # TODO remove the file from the available tests in config yaml
+        for test in tests.tests:
+            if oppose_role(test["type"]) == self.role.name:
+                if  test["name"] in available_tests.keys():
+                    test["description"] = available_tests[test["name"]].description
+                else:
+                    test["description"] = "TODO" # TODO: For automatic description, put the description in the file
+                self.available_tests.append(test)
+            else:
+                self.logger.debug(f"Test {test} is not for the role {self.role.name}")
 
-        protocol_testing_dir = os.path.abspath(
-            str(self._plugin_dir) + "/testers/panther_ivy/protocol-testing/"
+        self.logger.debug(f"Updated tests: {self.available_tests}")
+
+        protocol_testing_dir = self.protocol_model_path
+        # for subdir in os.listdir(protocol_testing_dir):
+        #     subdir_path = os.path.join(protocol_testing_dir, subdir)
+            # if os.path.isdir(subdir_path):
+        build_dir = os.path.join(protocol_testing_dir, "build")
+        os.makedirs(build_dir, exist_ok=True)
+        self.logger.debug(f"Created build directory: {build_dir}")
+        temp_dir = os.path.join(build_dir, "test", "temp")
+        os.makedirs(temp_dir, exist_ok=True)
+        self.logger.debug(
+            f"Created temporary test results directory: {temp_dir}"
         )
-        for subdir in os.listdir(protocol_testing_dir):
-            subdir_path = os.path.join(protocol_testing_dir, subdir)
-            if os.path.isdir(subdir_path):
-                build_dir = os.path.join(subdir_path, "build")
-                os.makedirs(build_dir, exist_ok=True)
-                self.logger.debug(f"Created build directory: {build_dir}")
-                temp_dir = os.path.join(subdir_path, "test", "temp")
-                os.makedirs(temp_dir, exist_ok=True)
-                self.logger.debug(
-                    f"Created temporary test results directory: {temp_dir}"
-                )
 
         # TODO load the configuration file: get the protocol name and the version + tests + versions
         plugin_loader.build_docker_image_from_path(Path(os.path.join(
@@ -175,6 +205,8 @@ class PantherIvyServiceManager(ITesterManager):
         plugin_loader.build_docker_image(self.get_implementation_name(),
                                          self.service_config_to_test.implementation.version)
         self.logger.info("Ivy testers service manager prepared.")
+        
+        self.initialize_commands()
 
     def build_submodules(self):
         current_dir = os.getcwd()
@@ -241,7 +273,7 @@ class PantherIvyServiceManager(ITesterManager):
         cp -f /opt/picotls/include/picotls.h "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/picotls.h" &&
         cp -f /opt/picotls/include/picotls.h "/opt/panther_ivy/ivy/include/picotls.h" &&
         cp -r -f /opt/picotls/include/picotls/. "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/picotls" &&
-        cp -f "{protocol_model_path}/quic_utils/quic_ser_deser.h" "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/1.7/" &&
+        cp -f "{env_protocol_model_path}/apt_protocols/quic/quic_utils/quic_ser_deser.h" "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/1.7/" &&
 
         remove_debug_events() {{
             echo "Removing debug events..." >> /app/logs/ivy_setup.log;
@@ -265,9 +297,9 @@ class PantherIvyServiceManager(ITesterManager):
         }}
         setup_ivy_model() {{
             echo "Setting up Ivy model..." >> /app/logs/ivy_setup.log &&
-            echo "Updating include path of Python with updated version of the project from {protocol_model_path}" >> /app/logs/ivy_setup.log &&
+            echo "Updating include path of Python with updated version of the project from {env_protocol_model_path}" >> /app/logs/ivy_setup.log &&
             echo "Finding .ivy files..." >> /app/logs/ivy_setup.log &&
-            find "{protocol_model_path}" -type f -name "*.ivy" -exec sh -c "
+            find "{env_protocol_model_path}" -type f -name "*.ivy" -exec sh -c "
                 echo \\"Found Ivy file - \\$1\\" >> /app/logs/ivy_setup.log;
                 if [ {log_level_ivy} -gt 10 ]; then
                     echo \\"Removing debug events from \\$1\\" >> /app/logs/ivy_setup.log;
@@ -306,8 +338,8 @@ class PantherIvyServiceManager(ITesterManager):
             'cp -f /opt/picotls/include/picotls.h "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/picotls.h" &&',
             'cp -f /opt/picotls/include/picotls.h "/opt/panther_ivy/ivy/include/picotls.h" &&',
             'cp -r -f /opt/picotls/include/picotls/. "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/picotls" &&',
-            'cp -f "{protocol_model_path}/quic_utils/quic_ser_deser.h" "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/1.7/" &&'.format(
-                protocol_model_path=self.protocol_model_path,
+            'cp -f "{env_protocol_model_path}/apt_protocols/quic/quic_utils/quic_ser_deser.h" "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/1.7/" &&'.format(
+                env_protocol_model_path=self.env_protocol_model_path,
             ),
         ]
 
@@ -337,12 +369,12 @@ class PantherIvyServiceManager(ITesterManager):
             " ",
             "setup_ivy_model() {",
             '\techo "Setting up Ivy model..." >> /app/logs/ivy_setup.log &&',
-            '\techo "Updating include path of Python with updated version of the project from {protocol_model_path}" >> /app/logs/ivy_setup.log &&'.format(
-                protocol_model_path=self.protocol_model_path
+            '\techo "Updating include path of Python with updated version of the project from {env_protocol_model_path}" >> /app/logs/ivy_setup.log &&'.format(
+                env_protocol_model_path=self.env_protocol_model_path
             ),
             '\techo "Finding .ivy files..." >> /app/logs/ivy_setup.log &&',
-            '\tfind "{protocol_model_path}" -type f -name "*.ivy" -exec sh -c "'.format(
-                protocol_model_path=self.protocol_model_path
+            '\tfind "{env_protocol_model_path}" -type f -name "*.ivy" -exec sh -c "'.format(
+                env_protocol_model_path=self.env_protocol_model_path
             ),
             '\t\techo \\"Found Ivy file - \\$1\\" >> /app/logs/ivy_setup.log;',
             "\t\tif [ {log_level_ivy} -gt 10 ]; then".format(
@@ -393,33 +425,32 @@ class PantherIvyServiceManager(ITesterManager):
         self.logger.debug(f"Test to compile: {self.test_to_compile}")
 
         protocol_env = self.service_config_to_test.implementation.version.env
-        global_env = self.service_config_to_test.implementation.environment
+        global_env   = self.service_config_to_test.implementation.environment
         self.environments = {**global_env, **protocol_env, "TEST_TYPE": (
             "client" if self.role.name == "server" else "server"
         )}
 
         # TODO refine the config
         # self.environments["ZERORTT_TEST"]
-
-        if self.role == RoleEnum.server:
-            available_tests = (
-                self.service_config_to_test.implementation.version.server.tests
-            )
-        else:
-            available_tests = (
-                self.service_config_to_test.implementation.version.client.tests
-            )
-
+        
         self.logger.debug(f"Test to compile: {self.test_to_compile}")
-        self.logger.debug(f"Test information: {available_tests}")
+        self.logger.debug(f"Test information: {self.available_tests}")
         self.logger.debug(f"Environments: {self.environments}")
         self.logger.debug(f"Protocol: {self.protocol}")
         self.logger.debug(f"Version: {self.service_version.name}")
-        if self.test_to_compile not in available_tests.keys():
+        
+        found = False
+        for test in self.available_tests:
+            if self.test_to_compile in test["name"]:
+                found = True
+                self.test_to_compile_path = test["path"]
+                
+        if not found:
             self.logger.error(
                 f"Test '{self.test_to_compile}' not found in configuration."
             )
             exit(1)
+                
         return self.update_ivy_tool() + self.build_tests()
 
     def build_tests(self) -> List[str]:
@@ -437,12 +468,8 @@ class PantherIvyServiceManager(ITesterManager):
             f"Mode: {self.role.name} for test: {self.test_to_compile} in {self.service_config_to_test.implementation.version.parameters['tests_dir']['value']}"
         )
         file_path = os.path.join(
-            "/opt/panther_ivy/protocol-testing/",
-            self.protocol.name,
-            self.service_config_to_test.implementation.version.parameters["tests_dir"][
-                "value"
-            ],
-            oppose_role(self.role.name) + "_tests",
+            "/opt/panther_ivy/protocol-testing/apt/",
+            self.test_to_compile_path
         )
         self.logger.debug(f"Building file: {file_path}")
         cmd = [
@@ -451,7 +478,7 @@ class PantherIvyServiceManager(ITesterManager):
         ]
         self.logger.info(f"Tests compilation command: {cmd}")
         mv_command = [
-            f"cp {os.path.join(file_path, self.test_to_compile)}* {os.path.join('/opt/panther_ivy/protocol-testing/', self.protocol.name, self.service_config_to_test.implementation.parameters.tests_build_dir.value)}; "
+            f"cp {os.path.join(file_path, self.test_to_compile)}* {os.path.join('/opt/panther_ivy/protocol-testing/apt/', self.service_config_to_test.implementation.parameters.tests_build_dir.value)}; "
         ]
         self.logger.info(f"Moving built files: {mv_command}")
         return (
@@ -461,7 +488,7 @@ class PantherIvyServiceManager(ITesterManager):
                 + mv_command
                 + (
                     [
-                        f"ls {os.path.join('/opt/panther_ivy/protocol-testing/', self.protocol.name, self.service_config_to_test.implementation.parameters.tests_build_dir.value)} >> /app/logs/ivy_setup.log 2>&1 ;) "
+                        f"ls {os.path.join('/opt/panther_ivy/protocol-testing/apt/', self.service_config_to_test.implementation.parameters.tests_build_dir.value)} >> /app/logs/ivy_setup.log 2>&1 ;) "
                     ]
                     if True
                     else [")"]
@@ -531,7 +558,7 @@ class PantherIvyServiceManager(ITesterManager):
         params["is_client"] = oppose_role(self.role.name) == "client"
         params["test_name"] = self.test_to_compile
         params["timeout_cmd"] = f"timeout {self.service_config_to_test.timeout} "
-        self.working_dir = self.protocol_model_path
+        self.working_dir = self.env_protocol_model_path
 
         # Conditionally include network interface parameters
         if not include_interface:
@@ -540,10 +567,7 @@ class PantherIvyServiceManager(ITesterManager):
         ivy_include_protocol_testing_dir = os.path.abspath(
             f"{str(self._plugin_dir)}/testers/panther_ivy/ivy/include/1.7"
         )
-        local_protocol_testing_dir = os.path.abspath(
-            f"{str(self._plugin_dir)}/testers/panther_ivy/protocol-testing/"
-            + self.protocol.name
-        )
+        local_protocol_testing_dir = self.protocol_model_path
         self.volumes = self.volumes + [
             ivy_include_protocol_testing_dir + ":/opt/panther_ivy/ivy/include/1.7",
             local_protocol_testing_dir

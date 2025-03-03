@@ -28,7 +28,7 @@
 
 include order
 include file
-# include random_value
+# include quic_random_value
 
 include ivy_quic_mim
 include ivy_quic_target
@@ -103,8 +103,6 @@ after init {
     extns := extns.append(make_transport_parameters);
     call tls_api.upper.create(client.tls_id,false,extns);  # false means this instance of tls is not a server
 }
-
-import action show_cid_event(cid:cid)
 
 after init {
     token_saved := false;

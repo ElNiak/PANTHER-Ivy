@@ -15,6 +15,36 @@ from panther.plugins.services.iut.config_schema import ImplementationType
 
 
 @dataclass
+class AvailableTests:
+    tests: List[str] = field(default_factory=list)
+
+    @staticmethod
+    def load_tests_from_directory(tests_dir: str) -> 'AvailableTests':
+        """Load all Ivy files available from protocol-testing folders."""
+        logging.debug(f"Loading tests from {tests_dir}")
+        tests = []
+        for root, _, files in os.walk(tests_dir):
+            for file in files:
+                if file.endswith(".ivy") and "test" in file: # TODO
+                    test_path = os.path.relpath(root, tests_dir)
+                    test_type = os.path.basename(root)
+                    tests.append({
+                        "path": test_path,
+                        "type": test_type.replace("_tests", ""), # TODO
+                        "name": file,
+                        "enabled": False,
+                        "description": ""
+                    })
+                    logging.debug(f"Found test: {test_path}, type: {test_type.replace("_tests", "")}, name: {file}")
+        return AvailableTests(tests=tests)
+
+@dataclass
+class Test:
+    name: str
+    protocol: str
+    endpoint: str
+
+@dataclass
 class EnvironmentConfig:
     PROTOCOL_TESTED: str = ""
     RUST_LOG: str = "debug"
