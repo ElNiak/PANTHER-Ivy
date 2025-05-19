@@ -2,10 +2,6 @@
 
 include apt_endpoint
 
-include quic_locale
-include network_controler
-
-
 object endpoint = {
     ...
 
@@ -13,7 +9,7 @@ object endpoint = {
         ...
 
         module client_quic(address:ip.addr,port:ip.port) = { 
-            variant this of client_endpoint = struct { }
+            # variant this of client_endpoint = struct { }
             individual ep        : ip.endpoint
             individual tls_id    : tls_api.id
             individual enc_level : quic_packet_type
@@ -137,7 +133,7 @@ object endpoint = {
         ...
 
         module server_quic(address:ip.addr,port:ip.port) = { 
-            variant this of server_endpoint = struct { }
+            # variant this of server_endpoint = struct { }
             individual ep        : ip.endpoint
             individual tls_id    : tls_api.id
             individual enc_level : quic_packet_type

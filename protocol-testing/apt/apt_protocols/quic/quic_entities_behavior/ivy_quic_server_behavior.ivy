@@ -48,9 +48,9 @@ include quic_random_value
 
 # Map test endpoint ids to the ip endpoints
 
-var sock : quic_net.socket
-var sock_alt : quic_net.socket
-var sock_vn : quic_net.socket
+# var sock : quic_net.socket
+# var sock_alt : quic_net.socket
+# var sock_vn : quic_net.socket
 
 # instance tls_extensions : vector(tls.extension)
 # instance tls_hand_extensions : vector(tls.handshake)
@@ -147,6 +147,18 @@ action dst_is_generated_tls(dst:ip.endpoint) returns (res:bool) = {
         res := dst = server.ep;
     };
 }
+
+action endpoint_to_socket_mim(src:ip.endpoint) returns (socket:quic_net.socket) = {
+    socket := sock_mim_server if src = mim_agent.ep_server else sock_mim_client; #  & ~forged_packet_send
+}
+
+action socket_endpoint_mim(host:endpoint_id,s:quic_net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
+    dst := mim_agent.ep_client if src = mim_agent.ep_server else mim_agent.ep_server; # is_mim_standalone | 
+    call socket_endpoint_mim_event_debug_event(host,s,src,dst);
+}
+
+import action socket_endpoint_mim_event_debug_event(host:endpoint_id,s:quic_net.socket,src:ip.endpoint,dst:ip.endpoint)
+
 
 # Returns the TLS instance associated to a destination IP endppoint.
 # TODO: shouldn't be needed.

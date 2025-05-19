@@ -147,7 +147,8 @@ class PantherIvyServiceManager(ITesterManager):
         Generates post-run commands.
         """
         return super().generate_post_run_commands() + [
-            f"cp {os.path.join(self.env_protocol_model_path, self.service_config_to_test.implementation.parameters.tests_build_dir.value, self.test_to_compile)} /app/logs/{self.test_to_compile};"
+            f"cp {os.path.join(self.env_protocol_model_path, self.service_config_to_test.implementation.parameters.tests_build_dir.value, self.test_to_compile)} /app/logs/{self.test_to_compile};",
+            f"rm {os.path.join(self.env_protocol_model_path, self.service_config_to_test.implementation.parameters.tests_build_dir.value, self.test_to_compile)}*;",
         ]
 
     def prepare(self, plugin_loader: Optional[PluginLoader] = None):
@@ -261,19 +262,19 @@ class PantherIvyServiceManager(ITesterManager):
             python3.10 setup.py install >> /app/logs/ivy_setup.log 2>&1 &&
             cp lib/libz3.so submodules/z3/build/python/z3 >> /app/logs/ivy_setup.log 2>&1 &&
             echo "Copying updated Ivy files..." >> /app/logs/ivy_setup.log &&
-            find /opt/panther_ivy/ivy/include/1.7/ -type f -name "*.ivy" -exec cp {} /usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/1.7/ \; >> /app/logs/ivy_setup.log 2>&1 &&
+            find /opt/panther_ivy/ivy/include/1.7/ -type f -name "*.ivy" -exec cp {} /usr/local/lib/python3.10/dist-packages/ivy/include/1.7/ \; >> /app/logs/ivy_setup.log 2>&1 &&
             echo "Copying updated Z3 files..." >> /app/logs/ivy_setup.log &&
-            cp -f -a /opt/panther_ivy/ivy/lib/*.a "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/lib/" >> /app/logs/ivy_setup.log 2>&1;
+            cp -f -a /opt/panther_ivy/ivy/lib/*.a "/usr/local/lib/python3.10/dist-packages/ivy/lib/" >> /app/logs/ivy_setup.log 2>&1;
         }
         update_ivy_tool &&
 
         echo "Copying QUIC libraries..." >> /app/logs/ivy_setup.log &&
-        cp -f -a /opt/picotls/*.a "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/lib/" &&
+        cp -f -a /opt/picotls/*.a "/usr/local/lib/python3.10/dist-packages/ivy/lib/" &&
         cp -f -a /opt/picotls/*.a "/opt/panther_ivy/ivy/lib/" &&
-        cp -f /opt/picotls/include/picotls.h "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/picotls.h" &&
+        cp -f /opt/picotls/include/picotls.h "/usr/local/lib/python3.10/dist-packages/ivy/include/picotls.h" &&
         cp -f /opt/picotls/include/picotls.h "/opt/panther_ivy/ivy/include/picotls.h" &&
-        cp -r -f /opt/picotls/include/picotls/. "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/picotls" &&
-        cp -f "{env_protocol_model_path}/apt_protocols/quic/quic_utils/quic_ser_deser.h" "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/1.7/" &&
+        cp -r -f /opt/picotls/include/picotls/. "/usr/local/lib/python3.10/dist-packages/ivy/include/picotls" &&
+        cp -f "{env_protocol_model_path}/apt_protocols/quic/quic_utils/quic_ser_deser.h" "/usr/local/lib/python3.10/dist-packages/ivy/include/1.7/" &&
 
         remove_debug_events() {{
             echo "Removing debug events..." >> /app/logs/ivy_setup.log;
@@ -306,9 +307,9 @@ class PantherIvyServiceManager(ITesterManager):
                     remove_debug_events \\"\\$1\\";
                 fi;
                 echo \\"Copying Ivy file to include path...\\" >> /app/logs/ivy_setup.log;
-                cp -f \\"\\$1\\" \\"/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/1.7/\\";
+                cp -f \\"\\$1\\" \\"/usr/local/lib/python3.10/dist-packages/ivy/include/1.7/\\";
             " _ {{}} \;;
-            ls -l /usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/1.7/ >> /app/logs/ivy_setup.log;
+            ls -l /usr/local/lib/python3.10/dist-packages/ivy/include/1.7/ >> /app/logs/ivy_setup.log;
         }}
         setup_ivy_model &&
         """
@@ -322,9 +323,9 @@ class PantherIvyServiceManager(ITesterManager):
             "\tsudo python3.10 setup.py install >> /app/logs/ivy_setup.log 2>&1 &&",
             "\tcp lib/libz3.so submodules/z3/build/python/z3 >> /app/logs/ivy_setup.log 2>&1 &&",
             '\techo "Copying updated Ivy files..." >> /app/logs/ivy_setup.log;',
-            '\tfind /opt/panther_ivy/ivy/include/1.7/ -type f -name "*.ivy" -exec cp {} /usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/1.7/ \\; >> /app/logs/ivy_setup.log 2>&1;',
+            '\tfind /opt/panther_ivy/ivy/include/1.7/ -type f -name "*.ivy" -exec cp {} /usr/local/lib/python3.10/dist-packages/ivy/include/1.7/ \\; >> /app/logs/ivy_setup.log 2>&1;',
             '\techo "Copying updated Z3 files..." >> /app/logs/ivy_setup.log;',
-            '\tcp -f -a /opt/panther_ivy/ivy/lib/*.a "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/lib/" >> /app/logs/ivy_setup.log 2>&1;',
+            '\tcp -f -a /opt/panther_ivy/ivy/lib/*.a "/usr/local/lib/python3.10/dist-packages/ivy/lib/" >> /app/logs/ivy_setup.log 2>&1;',
             "}",
             " ",
             "update_ivy_tool &&",
@@ -333,12 +334,12 @@ class PantherIvyServiceManager(ITesterManager):
 
         update_for_quic_apt_cmd = [
             'echo "Copying QUIC libraries..." >> /app/logs/ivy_setup.log &&',
-            'cp -f -a /opt/picotls/*.a "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/lib/" &&',
+            'cp -f -a /opt/picotls/*.a "/usr/local/lib/python3.10/dist-packages/ivy/lib/" &&',
             'cp -f -a /opt/picotls/*.a "/opt/panther_ivy/ivy/lib/" &&',
-            'cp -f /opt/picotls/include/picotls.h "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/picotls.h" &&',
+            'cp -f /opt/picotls/include/picotls.h "/usr/local/lib/python3.10/dist-packages/ivy/include/picotls.h" &&',
             'cp -f /opt/picotls/include/picotls.h "/opt/panther_ivy/ivy/include/picotls.h" &&',
-            'cp -r -f /opt/picotls/include/picotls/. "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/picotls" &&',
-            'cp -f "{env_protocol_model_path}/apt_protocols/quic/quic_utils/quic_ser_deser.h" "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/1.7/" &&'.format(
+            'cp -r -f /opt/picotls/include/picotls/. "/usr/local/lib/python3.10/dist-packages/ivy/include/picotls" &&',
+            'cp -f "{env_protocol_model_path}/apt_protocols/quic/quic_utils/quic_ser_deser.h" "/usr/local/lib/python3.10/dist-packages/ivy/include/1.7/" &&'.format(
                 env_protocol_model_path=self.env_protocol_model_path,
             ),
         ]
@@ -384,9 +385,9 @@ class PantherIvyServiceManager(ITesterManager):
             '\t\t\tremove_debug_events \\"\\$1\\";',
             "\t\tfi;",
             '\t\techo \\"Copying Ivy file to include path...\\" >> /app/logs/ivy_setup.log;',
-            '\t\tcp -f \\"\\$1\\" \\"/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/1.7/\\";',
+            '\t\tcp -f \\"\\$1\\" \\"/usr/local/lib/python3.10/dist-packages/ivy/include/1.7/\\";',
             '\t" _ {} \\;;',
-            "\tls -l /usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/1.7/ >> /app/logs/ivy_setup.log;",
+            "\tls -l /usr/local/lib/python3.10/dist-packages/ivy/include/1.7/ >> /app/logs/ivy_setup.log;",
             "}",
             " ",
             "setup_ivy_model &&",
@@ -572,7 +573,7 @@ class PantherIvyServiceManager(ITesterManager):
             ivy_include_protocol_testing_dir + ":/opt/panther_ivy/ivy/include/1.7",
             local_protocol_testing_dir
             + ":/opt/panther_ivy/protocol-testing/"
-            + self.protocol.name,
+            + "apt",
             "shared_logs:/app/sync_logs",
         ]
 

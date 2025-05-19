@@ -602,14 +602,14 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
         if ~conn_seen(dcid)  {
             if ~zero_rtt_sent {
                 call show_initial_request_initial;
-                # cid_map_tls_id(scid) := client_current_connection_id;
-                # ep_map_tls_id(src)   := client_current_connection_id;
-                # ep_map_cid(src)      := scid;
-                # cid_map_ep(scid)     := src;
-                # cid_map_sock(scid)   := sock;
-                # tls_id_map_cid(client_current_connection_id) := scid;
-                # tls_id_map_ep(client_current_connection_id)  := src;
-                # other_tls_id_map_ep(client_current_connection_id) := dst;
+                cid_map_tls_id(scid) := client_current_connection_id;
+                ep_map_tls_id(src)   := client_current_connection_id;
+                ep_map_cid(src)      := scid;
+                cid_map_ep(scid)     := src;
+                cid_map_sock(scid)   := sock;
+                tls_id_map_cid(client_current_connection_id) := scid;
+                tls_id_map_ep(client_current_connection_id)  := src;
+                other_tls_id_map_ep(client_current_connection_id) := dst;
                 call tls_client_initial_request(src,dst,dcid,pkt.pversion,src_tls_id(src));
             };
             conn_requested(src,dst,scid) := true;

@@ -29,8 +29,7 @@ instance quic_random_padding_encrypted_packet_serdes : serdes(packet.random_padd
 instance quic_encrypted_short_packet_serdes_server   : serdes(packet.encrypted_short_quic_packet,         stream_data,quic_ser_short_enc_server,quic_deser_short_enc_server)
 instance quic_encrypted_short_packet_serdes_client   : serdes(packet.encrypted_short_quic_packet,         stream_data,quic_ser_short_enc_client,quic_deser_short_enc_client)
 
-include quic_attack_connection
-include minip_attack_connection
+include apt_attack_connection
 
 include quic_locale
 include apt_endpoint

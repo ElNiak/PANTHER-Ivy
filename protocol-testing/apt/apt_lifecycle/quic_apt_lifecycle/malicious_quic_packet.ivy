@@ -147,7 +147,7 @@ after init {
     
     # tls_id_map_cid(1)     := the_cid;
     
-    client_current_connection_id := 1;
+    client_current_connection_id := server.tls_id;
     server_current_connection_id := 100;
     # last_connection_id    := 1;
 }

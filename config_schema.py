@@ -52,10 +52,10 @@ class EnvironmentConfig:
     SOURCE_DIR: str = "/opt/"
     IVY_DIR: str = "$SOURCE_DIR/panther_ivy"
     PYTHON_IVY_DIR: str = (
-        "/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/"
+        "/usr/local/lib/python3.10/dist-packages/"
     )
     IVY_INCLUDE_PATH: str = (
-        "$IVY_INCLUDE_PATH:/usr/local/lib/python3.10/dist-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/ivy/include/1.7"
+        "$IVY_INCLUDE_PATH:/usr/local/lib/python3.10/dist-packages/ivy/include/1.7"
     )
     Z3_LIBRARY_DIRS: str = "$IVY_DIR/submodules/z3/build"
     Z3_LIBRARY_PATH: str = "$IVY_DIR/submodules/z3/build"

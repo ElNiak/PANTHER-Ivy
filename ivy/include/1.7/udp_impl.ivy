@@ -147,6 +147,8 @@ module udp_impl(host,pkt,ser,des) = {
 			socklen_t addrlen = sizeof(srcaddr);
 			if ((bytes = recvfrom(sock,&buf[0],len,0,(sockaddr *)&srcaddr,&addrlen)) < 0)
 			{ std::cerr << "recvfrom failed\n"; exit(1); }
+			std::cerr << "RECEIVING srcaddr: " << inet_ntoa(srcaddr.sin_addr) << std::endl;
+			std::cerr << "RECEIVING srcport: " << ntohs(srcaddr.sin_port) << std::endl;
 			if (bytes == 0) {
 				close(sock);
 				sock = -1;  // will cause this thread to exit and reader object to be deleted

@@ -39,9 +39,9 @@ after init {
 
 # Get cid associated to a TLS instance
 
-action tls_id_to_cid(tls_id:tls_api.id) returns (scid:cid) = {
-    scid := the_cid;
-}
+# action tls_id_to_cid(tls_id:tls_api.id) returns (scid:cid) = {
+#     scid := the_cid;
+# }
 
 
 #
@@ -380,7 +380,7 @@ around attacker_send_event {
     };
     var data := http_request.segment(stream_length(dcid,s),end);
 #    call app_send_event(src,dst,dcid,s,data,end = http_request.end);
-    call app_send_event(src,dst,dcid,s,data,stream_length(dcid,s),true);
+    call quic_app_send_event(src,dst,dcid,s,data,stream_length(dcid,s),true);
     current_stream := current_stream + 4;
 }
 
