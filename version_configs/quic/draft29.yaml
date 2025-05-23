@@ -25,10 +25,10 @@ parameters:
     value: "quic_tests/"
     description: "Directory where the Ivy QUIC tests are stored (default: quic_tests/)"
   seed: 
-    value: 0
+    value: "0"
     description: "Seed for the random generator (default: 0)"
   the_cid:
-    value: 0
+    value: "1"
     description: "Client Initial connection ID (default: 0)"
   server_port:
     value: 4443
@@ -40,7 +40,7 @@ parameters:
     value: 0x7F000001
     description: "Server address (default: 0x7F000001)"
   server_cid:
-    value: 0
+    value: "10"
     description: "Server connection ID (default: 0)"
   client_port:
     value: 4997
@@ -52,11 +52,11 @@ parameters:
     value: 0x7F000001
     description: "Client address (default: 0x7F000001)"
 server:
-  the_cid: "0"
+  the_cid: "1"
   iversion: "1"
   server_port: 4443
   server_addr: 0x7F000001
-  server_cid: "1"
+  server_cid: "10"
   client_port: 4997
   client_port_alt: 4444
   client_addr: 0x7F000001

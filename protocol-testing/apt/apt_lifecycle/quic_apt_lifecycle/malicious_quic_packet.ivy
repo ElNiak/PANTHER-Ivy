@@ -121,6 +121,31 @@ function server_current_connection_id : tls_api.id
 function threshold_number_of_open_connection(D:ip.endpoint) : stream_pos
 function number_of_open_connection(D:ip.endpoint)           : stream_pos 
 
+# -----------------------------------------------------------------------------
+# Function and Relation Declarations for QUIC APT Lifecycle Protocol Testing
+#
+# This section defines mappings and relations used in the QUIC protocol
+# lifecycle testing framework. The functions provide bidirectional mappings
+# between connection IDs (cid), TLS API identifiers (tls_api.id), endpoints
+# (ip.endpoint), and sockets (quic_net.socket). The relations track the usage
+# and presence of client ports and endpoints.
+#
+# Functions:
+# - cid_map_tls_id(C:cid): Maps a QUIC connection ID to a TLS API identifier.
+# - cid_map_ep(C:cid): Maps a QUIC connection ID to an IP endpoint.
+# - cid_map_sock(C:cid): Maps a QUIC connection ID to a QUIC network socket.
+# - tls_id_map_cid(T:tls_api.id): Maps a TLS API identifier to a QUIC connection ID.
+# - other_tls_id_map_cid(T:tls_api.id): Maps a TLS API identifier to another QUIC connection ID.
+# - tls_id_map_ep(T:tls_api.id): Maps a TLS API identifier to an IP endpoint.
+# - other_tls_id_map_ep(T:tls_api.id): Maps a TLS API identifier to another IP endpoint.
+# - ep_map_tls_id(E:ip.endpoint): Maps an IP endpoint to a TLS API identifier.
+# - ep_map_cid(E:ip.endpoint): Maps an IP endpoint to a QUIC connection ID.
+#
+# Relations:
+# - used_client_ports(P:ip.port): True if the client port P has been used.
+# - used_client_ports_in_packet_event(P:ip.port): True if the client port P has been used in a packet event.
+# - ep_present(E:ip.endpoint): True if the endpoint E is present in the system.
+# -----------------------------------------------------------------------------
 function cid_map_tls_id(C:cid)                       : tls_api.id
 function cid_map_ep(C:cid)                           : ip.endpoint
 function cid_map_sock(C:cid)                         : quic_net.socket
@@ -141,6 +166,7 @@ var the_cid_used : cids
 after init {
     threshold_number_of_open_connection(D) := 100;
     used_client_ports_in_packet_event(P) := false;
+    used_client_ports(P) := false;
     # the_cid_used(the_cid) := true;
     the_cid_used          := cids.empty;
     the_cid_used          := the_cid_used.append(the_cid);

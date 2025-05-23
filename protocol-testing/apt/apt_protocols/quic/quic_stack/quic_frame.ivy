@@ -159,6 +159,7 @@ object quic_frame = {
 	object new_token = {
         # New token frames are a variant of quic_frame.
         variant this of quic_frame = struct {
+            length : stream_pos,                  # length of the token
             data : stream_data                    # the token
         }
     }

@@ -344,7 +344,9 @@ CLASSNAME _arg<CLASSNAME>(std::vector<ivy_value> &args, unsigned idx, long long 
     s.unsetf(std::ios::hex);
     s.unsetf(std::ios::oct);
     s  >> res.val;
-//    unsigned long long res = atoll(args[idx].atom.c_str());
+//    unsigned long long res = atoll(args[idx].atom.c_str())
+    std::cerr << "Parsing: " << args[idx].atom.c_str() << std::endl;
+    std::cerr << res << "\\n";
     return res;
 }
 template <>
@@ -612,117 +614,117 @@ class LongBV(XBVI):
     def emit_templates(self):
         XBVI.emit_templates(self)
         add_impl(
-"""
-/*int128_t atoint128_t(std::string const & in)
-{
-    //https://stackoverflow.com/questions/45608424/atoi-for-int128-t-type
-    int128_t res = 0;
-    size_t i = 0;
-    bool sign = false;
-
-    if (in[i] == '-')
+    """
+    /*int128_t atoint128_t(std::string const & in)
     {
+        //https://stackoverflow.com/questions/45608424/atoi-for-int128-t-type
+        int128_t res = 0;
+        size_t i = 0;
+        bool sign = false;
+
+        if (in[i] == '-')
+        {
         ++i;
         sign = true;
-    }
+        }
 
-    if (in[i] == '+')
-    {
+        if (in[i] == '+')
+        {
         ++i;
-    }
+        }
 
-    for (; i < in.size(); ++i)
-    {
+        for (; i < in.size(); ++i)
+        {
         const char c = in[i];
         if (not std::isdigit(c)) 
             throw std::runtime_error(std::string("Non-numeric character: ") + c);
         res *= 10;
         res += c - '0';
-    }
+        }
 
-    if (sign)
-    {
+        if (sign)
+        {
         res *= -1;
+        }
+
+        return res;
+    }*/
+
+    std::ostream &operator <<(std::ostream &s, const CLASSNAME &t){
+        //s << t.val;
+        std::ostream::sentry ss( s ); 
+        if ( ss ) { 
+        __int128_t value = t.val; 
+        //https://stackoverflow.com/questions/25114597/how-to-print-int128-in-g 
+        __uint128_t tmp = value < 0 ? -value : value; 
+        char buffer[ 128 ]; 
+        char* d = std::end( buffer ); 
+        do 
+        { 
+          -- d; 
+          *d = "0123456789"[ tmp % 10 ]; 
+          tmp /= 10; 
+        } while ( tmp != 0 ); 
+          if ( value < 0 ) { 
+             -- d; 
+             *d = '-'; 
+        } 
+        int len = std::end( buffer ) - d; 
+        if ( s.rdbuf()->sputn( d, len ) != len ) { 
+            s.setstate( std::ios_base::badbit ); 
+        } 
+        } 
+        return s;
     }
 
-    return res;
-}*/
-
-std::ostream &operator <<(std::ostream &s, const CLASSNAME &t){
-    //s << t.val;
-    std::ostream::sentry ss( s ); 
-    if ( ss ) { 
-	__int128_t value = t.val; 
-	//https://stackoverflow.com/questions/25114597/how-to-print-int128-in-g 
-	__uint128_t tmp = value < 0 ? -value : value; 
-	char buffer[ 128 ]; 
-	char* d = std::end( buffer ); 
-	do 
-	{ 
-	  -- d; 
-	  *d = "0123456789"[ tmp % 10 ]; 
-	  tmp /= 10; 
-	} while ( tmp != 0 ); 
-	  if ( value < 0 ) { 
-	     -- d; 
-	     *d = '-'; 
-	} 
-	int len = std::end( buffer ) - d; 
-	if ( s.rdbuf()->sputn( d, len ) != len ) { 
-	    s.setstate( std::ios_base::badbit ); 
-	} 
-    } 
-    return s;
-}
-
-std::istream& operator>>(std::istream& is, CLASSNAME& x) {
-    x.val = 0;
-    std::string s;
-    is >> s;
-    int n = int(s.size());
-    int it = 0;
-    if (s[0] == '-') it++;
-    for (; it < n; it++) x.val = (x.val * 10 + s[it] - '0');
-    if (s[0] == '-') x.val = -x.val;
-    return is;
-}
-template <>
-CLASSNAME _arg<CLASSNAME>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
-    if (args[idx].fields.size())
+    std::istream& operator>>(std::istream& is, CLASSNAME& x) {
+        x.val = 0;
+        std::string s;
+        is >> s;
+        int n = int(s.size());
+        int it = 0;
+        if (s[0] == '-') it++;
+        for (; it < n; it++) x.val = (x.val * 10 + s[it] - '0');
+        if (s[0] == '-') x.val = -x.val;
+        return is;
+    }
+    template <>
+    CLASSNAME _arg<CLASSNAME>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
+        if (args[idx].fields.size())
         throw out_of_bounds(idx);
-    CLASSNAME res;
-   // res.val = int128_t(args[idx].atom.c_str());
-    std::istringstream s(args[idx].atom.c_str());
-    s.unsetf(std::ios::dec);
-    s.unsetf(std::ios::hex);
-    s.unsetf(std::ios::oct);
-    std::cerr << \"\\nARG__ \\n\" << args[idx].atom.c_str() << \"\\n\";
-    s  >> res; //TODO
-    std::cerr << res << \"\\n\";
-    return res;
-}
-template <>
-void __ser<CLASSNAME>(ivy_ser &res, const CLASSNAME &inp) {
-    res.set((long long)inp.val);
-}
-template <>
-void __deser<CLASSNAME>(ivy_deser &inp, CLASSNAME &res) {
-    long long temp;
-    inp.get(temp);
-    res = temp;
-}
-template <>
-void __ser<CLASSNAME>(ivy_ser_128 &res, const CLASSNAME &inp) {
-    res.set(inp.val);
-}
-template <>
-void __deser<CLASSNAME>(ivy_deser_128 &inp, CLASSNAME &res) {
-    inp.get(res.val);
-}
-BASECLASS CLASSNAME::random_x(){
-    return RAND;
-}
-""".replace('BITS',str(self.bits)).replace('CLASSNAME',self.short_name()).replace('BASECLASS',self.baseclass).replace('LOVAL',str(self.loval)).replace('HIVAL',str(self.hival)).replace('RAND',self.rand()))
+        CLASSNAME res;
+       // res.val = int128_t(args[idx].atom.c_str());
+        std::istringstream s(args[idx].atom.c_str());
+        s.unsetf(std::ios::dec);
+        s.unsetf(std::ios::hex);
+        s.unsetf(std::ios::oct);
+        std::cerr << "Parsing: " << args[idx].atom.c_str() << std::endl;
+        s  >> res; //TODO
+        std::cerr << res << "\\n";
+        return res;
+    }
+    template <>
+    void __ser<CLASSNAME>(ivy_ser &res, const CLASSNAME &inp) {
+        res.set((long long)inp.val);
+    }
+    template <>
+    void __deser<CLASSNAME>(ivy_deser &inp, CLASSNAME &res) {
+        long long temp;
+        inp.get(temp);
+        res = temp;
+    }
+    template <>
+    void __ser<CLASSNAME>(ivy_ser_128 &res, const CLASSNAME &inp) {
+        res.set(inp.val);
+    }
+    template <>
+    void __deser<CLASSNAME>(ivy_deser_128 &inp, CLASSNAME &res) {
+        inp.get(res.val);
+    }
+    BASECLASS CLASSNAME::random_x(){
+        return RAND;
+    }
+    """.replace('BITS',str(self.bits)).replace('CLASSNAME',self.short_name()).replace('BASECLASS',self.baseclass).replace('LOVAL',str(self.loval)).replace('HIVAL',str(self.hival)).replace('RAND',self.rand()))
 
     def card(self):
         return self.hival - self.loval + 1 # Note this is cardinality of the int type, not the bit vector type

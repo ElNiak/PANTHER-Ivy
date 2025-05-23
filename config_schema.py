@@ -19,30 +19,36 @@ class AvailableTests:
     tests: List[str] = field(default_factory=list)
 
     @staticmethod
-    def load_tests_from_directory(tests_dir: str) -> 'AvailableTests':
+    def load_tests_from_directory(tests_dir: str) -> "AvailableTests":
         """Load all Ivy files available from protocol-testing folders."""
         logging.debug(f"Loading tests from {tests_dir}")
         tests = []
         for root, _, files in os.walk(tests_dir):
             for file in files:
-                if file.endswith(".ivy") and "test" in file: # TODO
+                if file.endswith(".ivy") and "test" in file:  # TODO
                     test_path = os.path.relpath(root, tests_dir)
                     test_type = os.path.basename(root)
-                    tests.append({
-                        "path": test_path,
-                        "type": test_type.replace("_tests", ""), # TODO
-                        "name": file,
-                        "enabled": False,
-                        "description": ""
-                    })
-                    logging.debug(f"Found test: {test_path}, type: {test_type.replace("_tests", "")}, name: {file}")
+                    tests.append(
+                        {
+                            "path": test_path,
+                            "type": test_type.replace("_tests", ""),  # TODO
+                            "name": file,
+                            "enabled": False,
+                            "description": "",
+                        }
+                    )
+                    logging.debug(
+                        f"Found test: {test_path}, type: {test_type.replace('_tests', '')}, name: {file}"
+                    )
         return AvailableTests(tests=tests)
+
 
 @dataclass
 class Test:
     name: str
     protocol: str
     endpoint: str
+
 
 @dataclass
 class EnvironmentConfig:
@@ -51,9 +57,7 @@ class EnvironmentConfig:
     RUST_BACKTRACE: str = "1"
     SOURCE_DIR: str = "/opt/"
     IVY_DIR: str = "$SOURCE_DIR/panther_ivy"
-    PYTHON_IVY_DIR: str = (
-        "/usr/local/lib/python3.10/dist-packages/"
-    )
+    PYTHON_IVY_DIR: str = "/usr/local/lib/python3.10/dist-packages/"
     IVY_INCLUDE_PATH: str = (
         "$IVY_INCLUDE_PATH:/usr/local/lib/python3.10/dist-packages/ivy/include/1.7"
     )
@@ -86,7 +90,7 @@ class ParametersConfig:
     )
     internal_iterations_per_test: Parameter = field(
         default_factory=lambda: Parameter(
-            value="100", description="Number of internal iterations per test"
+            value="300", description="Number of internal iterations per test"
         )
     )
     timeout: Parameter = field(
@@ -134,6 +138,8 @@ class PantherIvyConfig(ImplementationConfig):
         ImplementationType.testers
     )  # Default type for panther_ivy
     test: str = field(default="")  # Test name for testers
+    use_system_models: bool = field(default=False)
+    # Use system models for the test
     shadow_compatible: bool = field(default=True)
     gperf_compatible: bool = field(default=True)
     protocol: str = field(default="quic")  # Protocol tested by the implementation

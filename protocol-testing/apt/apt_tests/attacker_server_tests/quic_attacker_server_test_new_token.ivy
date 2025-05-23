@@ -112,7 +112,8 @@ after init {
 # https://github.com/private-octopus/picoquic/issues/969
 before quic_frame.stream.handle(f:quic_frame.stream,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
-        require used_client_ports(src.port);
+        # require used_client_ports(src.port);
+require src.port = client.ep.port;
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
         require src.addr = client.ep.addr;
@@ -130,7 +131,8 @@ before quic_frame.stream.handle(f:quic_frame.stream,scid:cid,dcid:cid,e:quic_pac
 
 before quic_frame.new_token.handle_maliciously(f:quic_frame.new_token,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
-        require used_client_ports(src.port);
+        # require used_client_ports(src.port);
+require src.port = client.ep.port;
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
         require src.addr = client.ep.addr;

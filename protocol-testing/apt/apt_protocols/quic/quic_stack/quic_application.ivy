@@ -101,6 +101,7 @@ around app_server_open_event {
     require conn_requested(dst,src,dcid);  # [1] 
     require ~connected(dcid) & ~connected(scid);  # [2]
     ...
+    call show_quic_app_open_event(dcid,scid);
     call map_cids(scid,dcid);
     call map_cids(dcid,scid);
     ack_credit(scid) := ack_credit(scid) + 1;
@@ -169,3 +170,4 @@ after quic_app_send_event {
 }
 
 import action show_quic_app_send_event(d:stream_data)
+import action show_quic_app_open_event(dcid:cid,scid:cid)

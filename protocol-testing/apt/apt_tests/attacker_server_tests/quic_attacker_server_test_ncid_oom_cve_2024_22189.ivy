@@ -125,7 +125,8 @@ before quic_frame.ack.handle(f:quic_frame.ack,scid:cid,dcid:cid,e:quic_packet_ty
 before quic_frame.new_connection_id.handle_maliciously(f:quic_frame.new_connection_id,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         # require scid = the_cid;
-        require used_client_ports(src.port);
+        # require used_client_ports(src.port);
+require src.port = client.ep.port;
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
         require src.addr = client.ep.addr;

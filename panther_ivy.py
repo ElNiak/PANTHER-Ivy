@@ -16,7 +16,6 @@ def oppose_role(role):
     # TODO fix logic in ivy itself
     return "client" if role == "server" else "server"
 
-
 class PantherIvyServiceManager(ITesterManager):
     """
     Manages the Ivy testers service for the Panther project.
@@ -58,20 +57,28 @@ class PantherIvyServiceManager(ITesterManager):
         super().__init__(
             service_config_to_test, service_type, protocol, implementation_name
         )
+
         # TODO
         service_config_to_test.directories_to_start = [
+
         ]
-        
         
         self.available_tests = None
         self.test_to_compile = self.service_config_to_test.implementation.test
         self.test_to_compile_path = None
         self.protocol = protocol
-        self.env_protocol_model_path = "/opt/panther_ivy/protocol-testing/apt/"
-        self.protocol_model_path = os.path.abspath(
-            f"{str(self._plugin_dir)}/testers/panther_ivy/protocol-testing/"
-            + "apt"
-        )
+        if self.service_config_to_test.implementation.use_system_models:
+            self.env_protocol_model_path = "/opt/panther_ivy/protocol-testing/apt/"
+            self.protocol_model_path = os.path.abspath(
+                f"{str(self._plugin_dir)}/testers/panther_ivy/protocol-testing/"
+                + "apt"
+            )
+        else:
+            self.env_protocol_model_path = "/opt/panther_ivy/protocol-testing/" + self.protocol.name + "/"
+            self.protocol_model_path = os.path.abspath(
+                f"{str(self._plugin_dir)}/testers/panther_ivy/protocol-testing/"
+                + self.protocol.name
+            )
         self.ivy_log_level = (
             self.service_config_to_test.implementation.parameters.log_level
         )
@@ -109,6 +116,8 @@ class PantherIvyServiceManager(ITesterManager):
             'echo "Resolved '
             + self.service_name
             + ' IP in hex - $$IVY_IP_HEX" >> /app/logs/ivy_setup.log;',
+            " ",
+            "rm -rf /opt/panther_ivy/protocol-testing/apt/build/*;" if self.service_config_to_test.implementation.use_system_models else "rm -rf /opt/panther_ivy/protocol-testing/{}/build/*;".format(self.protocol.name),
         ]
 
     def generate_compile_commands(self):
@@ -147,7 +156,7 @@ class PantherIvyServiceManager(ITesterManager):
         Generates post-run commands.
         """
         return super().generate_post_run_commands() + [
-            f"cp {os.path.join(self.env_protocol_model_path, self.service_config_to_test.implementation.parameters.tests_build_dir.value, self.test_to_compile)} /app/logs/{self.test_to_compile};",
+            f"cp {os.path.join(self.env_protocol_model_path, self.service_config_to_test.implementation.parameters.tests_build_dir.value, self.test_to_compile)} /app/logs/{self.test_to_compile} && ",
             f"rm {os.path.join(self.env_protocol_model_path, self.service_config_to_test.implementation.parameters.tests_build_dir.value, self.test_to_compile)}*;",
         ]
 
@@ -324,7 +333,7 @@ class PantherIvyServiceManager(ITesterManager):
             "\tcp lib/libz3.so submodules/z3/build/python/z3 >> /app/logs/ivy_setup.log 2>&1 &&",
             '\techo "Copying updated Ivy files..." >> /app/logs/ivy_setup.log;',
             '\tfind /opt/panther_ivy/ivy/include/1.7/ -type f -name "*.ivy" -exec cp {} /usr/local/lib/python3.10/dist-packages/ivy/include/1.7/ \\; >> /app/logs/ivy_setup.log 2>&1;',
-            '\techo "Copying updated Z3 files..." >> /app/logs/ivy_setup.log;',
+            '\techo "Copying updated Z3 files..." >> /app/logs/ivy_setup.log 2>&1;',
             '\tcp -f -a /opt/panther_ivy/ivy/lib/*.a "/usr/local/lib/python3.10/dist-packages/ivy/lib/" >> /app/logs/ivy_setup.log 2>&1;',
             "}",
             " ",
@@ -341,7 +350,8 @@ class PantherIvyServiceManager(ITesterManager):
             'cp -r -f /opt/picotls/include/picotls/. "/usr/local/lib/python3.10/dist-packages/ivy/include/picotls" &&',
             'cp -f "{env_protocol_model_path}/apt_protocols/quic/quic_utils/quic_ser_deser.h" "/usr/local/lib/python3.10/dist-packages/ivy/include/1.7/" &&'.format(
                 env_protocol_model_path=self.env_protocol_model_path,
-            ),
+            ) if self.service_config_to_test.implementation.use_system_models else 'cp -f "{env_protocol_model_path}/quic_utils/quic_ser_deser.h" "/usr/local/lib/python3.10/dist-packages/ivy/include/1.7/" &&'.format(
+                env_protocol_model_path=self.env_protocol_model_path,)
         ]
 
         setup_ivy_model_cmd = [
@@ -390,7 +400,8 @@ class PantherIvyServiceManager(ITesterManager):
             "\tls -l /usr/local/lib/python3.10/dist-packages/ivy/include/1.7/ >> /app/logs/ivy_setup.log;",
             "}",
             " ",
-            "setup_ivy_model &&",
+            "setup_ivy_model && " ,
+            " ",
         ]
 
         self.logger.info("Updating Ivy tool...")
@@ -426,6 +437,11 @@ class PantherIvyServiceManager(ITesterManager):
         self.logger.debug(f"Test to compile: {self.test_to_compile}")
 
         protocol_env = self.service_config_to_test.implementation.version.env
+        if not self.service_config_to_test.implementation.use_system_models:
+            for key in protocol_env:
+                protocol_env[key] = self.service_config_to_test.implementation.version.env[key].replace("/apt/apt_protocols", "")
+
+        
         global_env   = self.service_config_to_test.implementation.environment
         self.environments = {**global_env, **protocol_env, "TEST_TYPE": (
             "client" if self.role.name == "server" else "server"
@@ -471,15 +487,23 @@ class PantherIvyServiceManager(ITesterManager):
         file_path = os.path.join(
             "/opt/panther_ivy/protocol-testing/apt/",
             self.test_to_compile_path
+        ) if self.service_config_to_test.implementation.use_system_models else os.path.join(
+            self.env_protocol_model_path,
+            self.test_to_compile_path
         )
         self.logger.debug(f"Building file: {file_path}")
         cmd = [
             f"cd {file_path};",
-            f"PYTHONPATH=$$PYTHON_IVY_DIR ivyc trace=false show_compiled=false target=test test_iters={self.service_config_to_test.implementation.parameters.internal_iterations_per_test.value} {self.test_to_compile}.ivy >> /app/logs/ivy_setup.log 2>&1; ",
+            # run ivyc and exit if it fails
+            (
+            f"PYTHONPATH=$$PYTHON_IVY_DIR ivyc trace=false show_compiled=false "
+            f"target=test test_iters={self.service_config_to_test.implementation.parameters.internal_iterations_per_test.value} "
+            f"{self.test_to_compile}.ivy >> /app/logs/ivy_setup.log 2>&1 || exit 1;"
+            ),
         ]
         self.logger.info(f"Tests compilation command: {cmd}")
         mv_command = [
-            f"cp {os.path.join(file_path, self.test_to_compile)}* {os.path.join('/opt/panther_ivy/protocol-testing/apt/', self.service_config_to_test.implementation.parameters.tests_build_dir.value)}; "
+            f"cp {os.path.join(file_path, self.test_to_compile)}* {os.path.join('/opt/panther_ivy/protocol-testing/apt/', self.service_config_to_test.implementation.parameters.tests_build_dir.value)}; " if self.service_config_to_test.implementation.use_system_models else f"cp {os.path.join(file_path, self.test_to_compile)}* {os.path.join(self.env_protocol_model_path, self.service_config_to_test.implementation.parameters.tests_build_dir.value)}; "
         ]
         self.logger.info(f"Moving built files: {mv_command}")
         return (
@@ -489,7 +513,7 @@ class PantherIvyServiceManager(ITesterManager):
                 + mv_command
                 + (
                     [
-                        f"ls {os.path.join('/opt/panther_ivy/protocol-testing/apt/', self.service_config_to_test.implementation.parameters.tests_build_dir.value)} >> /app/logs/ivy_setup.log 2>&1 ;) "
+                        f"ls {os.path.join('/opt/panther_ivy/protocol-testing/apt/', self.service_config_to_test.implementation.parameters.tests_build_dir.value)} >> /app/logs/ivy_setup.log 2>&1 ;) " if self.service_config_to_test.implementation.use_system_models else f"ls {os.path.join(self.env_protocol_model_path, self.service_config_to_test.implementation.parameters.tests_build_dir.value)} >> /app/logs/ivy_setup.log 2>&1 ;)"
                     ]
                     if True
                     else [")"]
@@ -537,6 +561,7 @@ class PantherIvyServiceManager(ITesterManager):
             params[param] = self.service_config_to_test.implementation.parameters[
                 param
             ].value
+            
 
         for param in self.service_config_to_test.implementation.version.parameters:
             params[param] = (
@@ -571,9 +596,11 @@ class PantherIvyServiceManager(ITesterManager):
         local_protocol_testing_dir = self.protocol_model_path
         self.volumes = self.volumes + [
             ivy_include_protocol_testing_dir + ":/opt/panther_ivy/ivy/include/1.7",
-            local_protocol_testing_dir
-            + ":/opt/panther_ivy/protocol-testing/"
-            + "apt",
+            local_protocol_testing_dir + (
+                ":/opt/panther_ivy/protocol-testing/apt"
+                if self.service_config_to_test.implementation.use_system_models
+                else f":/opt/panther_ivy/protocol-testing/{self.protocol.name}"
+            ),
             "shared_logs:/app/sync_logs",
         ]
 

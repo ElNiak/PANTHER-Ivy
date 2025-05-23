@@ -181,7 +181,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 
 			virtual void read()
 			{
-				std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+				//std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 				std::cerr << "RECEIVING start on socket " << sock << "\n";
 
 				int len = 0;
@@ -204,6 +204,8 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 					std::cerr << "recvfrom failed\n";
 					exit(1);
 				}
+				std::cerr << "RECEIVING srcaddr: " << inet_ntoa(srcaddr.sin_addr) << std::endl;
+				std::cerr << "RECEIVING srcport: " << ntohs(srcaddr.sin_port) << std::endl;
 				if (bytes == 0)
 				{
 					close(sock);
@@ -543,8 +545,8 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 					ivy->__unlock();
 					std::cerr << "RECEIVING finsh\n";
 				}
-				std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-				std::cerr << "Performance recv packet measurement: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " milliseconds" << std::endl; 
+				//std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+				//std::cerr << "Performance recv packet measurement: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " milliseconds" << std::endl; 
 			}
 		};
 
@@ -1374,7 +1376,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 			<<< impure 
 				s = make_udp_socket();
 				char *shadowTest = getenv("SHADOW_TEST");
-				if (addr.addr != 0x7f000001 && shadowTest == NULL && false)
+				if (addr.addr != 0x7f000001 && shadowTest == NULL)
 				{ 
 					// TODO
 					std::cerr << "open SOCKET " << s << std::endl;
@@ -1385,11 +1387,11 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 					char *dev = strdup("lo"); // TODO
 					if (addr.interface == `ip.ivy`)
 					{
-						dev = strdup("ivy");
+						dev = strdup("eth0");
 					}
 					if (addr.interface == `ip.veth_ivy`)
 					{
-						dev = strdup("veth_ivy");
+						dev = strdup("eth0");
 					}
 					if (addr.interface == `ip.ivy_client`)
 					{
@@ -1414,7 +1416,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 					}
 					// TODO comment for shadow
 					struct sockaddr_in myaddr;
-					myaddr.sin_addr.s_addr = htonl(0x00000000); // TODO reversorder
+					myaddr.sin_addr.s_addr = htonl(addr.addr); //htonl(0x00000000); // TODO reversorder
 					// inet_pton(AF_INET, htonl(addr.addr), &myaddr.sin_addr.s_addr);
 					myaddr.sin_port = htons(addr.port);
 					myaddr.sin_family = AF_INET;
@@ -1438,7 +1440,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 						exit(EXIT_FAILURE);
 					}*/
 					std::cerr << "binding client id: " << `me` << " addr: " << ntohl(myaddr.sin_addr.s_addr) << " port: " << ntohs(myaddr.sin_port) << std::endl;
-					if (::bind(s, (struct sockaddr *)&myaddr, sizeof(myaddr)) != 0)
+					if (bind(s, (struct sockaddr *)&myaddr, sizeof(myaddr)) != 0)
 					{
 						char s[100];
 						sprintf(s, "bind to addr %u", htonl(addr.addr));

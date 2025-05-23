@@ -5,10 +5,6 @@ include file
 
 include apt_events
 
-# include ivy_quic_mim
-# include ivy_quic_target
-include ivy_quic_client
-
 include apt_shim
 include ivy_quic_shim
 include ivy_quic_shim_client
@@ -30,15 +26,17 @@ include apt_time
 after init {
     call time_api.c_timer.start;
     #call time_api.chrono_timer.start;
+    # the_cid := 0x1;
 }
 
 after init {
     sock     := quic_net.open(endpoint_id.client,client.ep);
-    sock_alt := quic_net.open(endpoint_id.client_alt,client_alt);
-    sock_vn := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
+    # sock_alt := quic_net.open(endpoint_id.client_alt,client_alt);
+    # sock_vn := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
 
-    client.set_tls_id(1);
-    server.set_tls_id(0);
+    client.set_tls_id(0);
+    second_client.set_tls_id(0); 
+    server.set_tls_id(1);
 
     client_current_connection_id := 1;
     tls_id_map_ep(client.tls_id)       := client.ep;
@@ -66,7 +64,10 @@ after init {
     other_tls_id_map_ep(server.tls_id) := client.ep;
     ep_map_tls_id(server.ep)           := server.tls_id;
     # ep_map_cid(server.ep)              := the_cid;
-   
+
+    call show_client_debug_event(client.ep);
+    call show_server_debug_event(server.ep);
+
     var extns := tls_extensions.empty;
     extns := extns.append(make_transport_parameters);
     call tls_api.upper.create(client.tls_id,false,extns);  # false means this instance of tls is not a server

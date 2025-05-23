@@ -36,16 +36,26 @@ object endpoint = {
             }
 
             action behavior(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:net_prot.arr) = {
-                var dst := socket_endpoint(host,s);  # because quic_net API doesn't tell us the dst
                 var idx := pkts.begin;
                 var past_data : stream_data := stream_data.empty;
                 while idx < pkts.end {
                     var ppkt := pkts.value(idx);
-                    var tls_id := src_tls_id(dst); # todo multiple
+                    var h := net_prot.get_header_info(ppkt,false);
                     var header := ppkt.value(0);
                     var hdr_type : type_bits := bfe[0][6](ppkt.value(0));
                     var tt := bvand(hdr_type,0x30);
                     var is_long : bool := bvand(0x80,header) ~= 0;
+                    var dst    := socket_endpoint(host,s);#dst_tls_id(dst); # todo multiple
+
+                    var tls_id := src_tls_id(dst); #src_tls_id(dst); # todo multiple
+                    # if is_long & ~conn_seen(h.scid) & conn_requested(dst,src,h.dcid) { # & conn_requested(dst,src,h.scid)
+                    #     cid_map_tls_id(h.scid)      := server.tls_id;
+                    #     cid_map_ep(h.scid)          := src;
+                    #     cid_map_sock(h.scid)        := s;
+                    #     call show_update_(h.scid,server.tls_id,src);
+                    #     # cid_map_ep(dcid)          := dst;
+                    # };
+                
                     
                     var version := ppkt.segment(1,1+4);
                     var bversion := bytes_to_version(version);
@@ -125,6 +135,8 @@ object endpoint = {
             import action show_data_received(s:stream_pos)
             import action show_data_sent(s:stream_pos)
             import action show_rnum(s:pkt_num)
+            import action show_recv_debug_ev(src:ip.endpoint,dst:ip.endpoint,scid:cid,dcid:cid,tls_id:tls_api.id)
+            import action show_update_(cid:cid,tls_id:tls_api.id,ep:ip.endpoint)
         }
     }
     
@@ -162,11 +174,9 @@ object endpoint = {
             }
 
             action behavior(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:net_prot.arr) = {
-                var dst := socket_endpoint(host,s);  # because quic_net API doesn't tell us the dst
                 var idx := pkts.begin;
                 while idx < pkts.end {
                     var ppkt := pkts.value(idx);
-                    var tls_id := src_tls_id(dst); # todo multiple
                     var header := ppkt.value(0);
                     var hdr_type : type_bits := bfe[0][6](ppkt.value(0));
                     var tt := bvand(hdr_type,0x30);
@@ -174,6 +184,11 @@ object endpoint = {
                     var version := ppkt.segment(1,1+4);
                     var bversion := bytes_to_version(version);
                     var ptype : byte := bvand(0x30,header);
+
+                    var dst := server.ep; #dst_tls_id(dst); # todo multiple
+                  
+                    var tls_id := src_tls_id(dst); # todo multiple
+                    
                     if zrtt_pkt_set & ~zrtt_pkt_process {
                         zrtt_pkt_process := true;
                         var rnum := reference_pkt_num(last_zrtt_pkt,true);
@@ -295,6 +310,9 @@ object endpoint = {
             import action show_data_received(s:stream_pos)
             import action show_data_sent(s:stream_pos)
             import action show_rnum(s:pkt_num)
+            import action show_recv_debug_ev(src:ip.endpoint,dst:ip.endpoint,scid:cid,dcid:cid,tls_id:tls_api.id)
+            import action show_update_(cid:cid,tls_id:tls_api.id,ep:ip.endpoint)
+            import action show_last_datagram_size(s:stream_pos)
         }
     }
 }

@@ -566,7 +566,7 @@ object quic_deser = {}
                     return 5;
                 }
                 if (frame_type == 0x07) {  // new token quic_frame
-                    state = quic_s_new_token;  // new token equivalent to this
+                    state = quic_crypto_length;  // new token equivalent to this
                     return 6;
                 }
                 if (frame_type >= 0x08 && frame_type <= 0x0f) {
@@ -755,7 +755,7 @@ object quic_deser = {}
                 }
                 payload_length = len;
                 std::cerr << "payload_length = " << payload_length << "\n";
-                if(payload_length > 0)
+                if(true)
                     state = quic_s_pkt_num;
                 else {
                     // random padding case

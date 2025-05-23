@@ -62,7 +62,12 @@ include quic_random_value
 after init {
     sock := quic_net.open(endpoint_id.server,server.ep);
     server.set_tls_id(0);
-    client.set_tls_id(1);
+    
+    client.ep.addr := 0;
+    client.ep.port := 0;
+
+    call show_client_debug_event(client.ep);
+    call show_server_debug_event(server.ep);
 }
 
 # Here we have a bunch of conversions that map between cid's, IP
@@ -101,32 +106,24 @@ action endpoint_to_socket(src:ip.endpoint) returns (socket:quic_net.socket) = {
 # TODO: this shouldn't be needed.
 
 action tls_id_to_src(tls_id:tls_api.id) returns (src:ip.endpoint) = {
-    if is_mim {
-        src := server.ep if tls_id = client.tls_id else mim_agent.ep_client;
-    } else {
-        src := server.ep if tls_id = client.tls_id else client.ep;
-    };
+    src := tls_id_map_ep(tls_id);
 }
 
 # Get the destination IP endpoint associated to a TLS instance
 # TODO: this shouldn't be needed.
 
 action tls_id_to_dst(tls_id:tls_api.id) returns (dst:ip.endpoint) = {
-    if is_mim {
-        dst := mim_agent.ep_client if tls_id = client.tls_id else server.ep;
-    } else {
-        dst := client.ep if tls_id = client.tls_id else server.ep;
-    };
-}
-
-action other_tls_id_to_cid(tls_id:tls_api.id) returns (scid:cid) = {
-    scid := other_tls_id_map_cid(tls_id);
+    dst := other_tls_id_map_ep(tls_id);
 }
 
 # Get cid associated to a TLS instance
 
 action tls_id_to_cid(tls_id:tls_api.id) returns (scid:cid) = {
-    scid := the_cid;
+    scid := tls_id_map_cid(tls_id); #tls_id_map_cid(tls_id);
+}
+
+action other_tls_id_to_cid(tls_id:tls_api.id) returns (scid:cid) = {
+    scid := other_tls_id_map_cid(tls_id);
 }
 
 # Returns true if an IP endpoint is controlled by the generator.
@@ -162,16 +159,13 @@ import action socket_endpoint_mim_event_debug_event(host:endpoint_id,s:quic_net.
 
 # Returns the TLS instance associated to a destination IP endppoint.
 # TODO: shouldn't be needed.
-
 action dst_tls_id(dst:ip.endpoint) returns (tls_id:tls_api.id) = {
-    tls_id := server.tls_id
+    tls_id := ep_map_tls_id(dst);
 }
 
 action src_tls_id(src:ip.endpoint) returns (tls_id:tls_api.id) = {
-    tls_id := server.tls_id; #TODO
+    tls_id := ep_map_tls_id(src); #TODO can cause error server vn eg
 }
-
-
 #
 # Client HTTP response
 # ===================
@@ -242,7 +236,13 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     if _generating { # &
         #require  ~connection_timeout;
         require client.ep.addr ~= 0;  # must have a client address to send to
+        # require used_client_ports(src.port);
+        # require src.port = server.ep.port;
+        # require src.protocol = ip.udp;
+        # require src.interface = ip.ivy;
+        # require src.addr = server.ep.addr;
         require src = server.ep;
+        
         require dst = client.ep;
         require pkt.token.end = 0; # [1]
         require connected(pkt.src_cid);
@@ -463,7 +463,14 @@ around client_send_event {
     
     #};
     require stream_seen(dcid,s); # TODO: wait until client request is finished?
+    # require used_client_ports(src.port);
+    # require src.port = server.ep.port;
+    # require src.protocol = ip.udp;
+    # require src.interface = ip.ivy;
+    # require src.addr = server.ep.addr;
+
     require src = server.ep;
+    
     require dst = client.ep;
     #require cid_dst_to_src_set(the_cid) & dcid = cid_dst_to_src(the_cid);
     require connected(the_cid) & dcid = connected_to(the_cid);

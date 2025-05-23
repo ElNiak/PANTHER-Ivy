@@ -7121,9 +7121,9 @@ int ask_ret(long long bound) {
         int timer_min = 15;
 #else
         int timer_min = 5;
-        if(const char* env_p2 = std::getenv("TIMEOUT_IVY")) { 
-            timer_min = std::stoi(std::string(env_p2));
-        }
+        //if(const char* env_p2 = std::getenv("TIMEOUT_IVY")) { 
+        //    timer_min = std::stoi(std::string(env_p2));
+        //}
 #endif
 
         struct timeval timeout;
@@ -7141,11 +7141,11 @@ int ask_ret(long long bound) {
 #else
         int foo = select(maxfds+1,&rdfds,0,0,&timeout);
         //chris: self-pipe trick
-        while (foo == -1 & errno == EINTR) {
-            std::cerr << "select failed - restart with self pipe trick " << std::endl;
-            foo = select(maxfds+1,&rdfds,0,0,&timeout);
-            continue;
-        }
+        //while (foo == -1 & errno == EINTR) {
+         //   std::cerr << "select failed - restart with self pipe trick " << std::endl;
+         //   foo = select(maxfds+1,&rdfds,0,0,&timeout);
+        //    continue;
+        //}
             
 #endif
 
@@ -7642,10 +7642,11 @@ def emit_repl_boilerplate3test(header, impl, classname):
     
     impl.append("""
 
-#ifdef _WIN32
+#ifdef _WIN32$
     LARGE_INTEGER freq;
     QueryPerformanceFrequency(&freq);
 #endif
+    std::cerr << "Starting cycles = " << test_iters << std::endl;
     double frnd = 0.0;
     bool do_over = false;
     for(int cycle = 0; cycle < test_iters; cycle++) {
@@ -7676,6 +7677,7 @@ def emit_repl_boilerplate3test(header, impl, classname):
             //std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
             bool sat = false;
             if (call_generating) {
+                std::cerr << "call_generating = 1 -> NOT SLEEPING\\n";
                 ivy._generating = true;
                 sat = g.generate(ivy);
             }
@@ -7725,9 +7727,9 @@ def emit_repl_boilerplate3test(header, impl, classname):
         int timer_min = 15;
 #else
         int timer_min = 5;
-        if(const char* env_p2 = std::getenv("TIMEOUT_IVY")) { 
-            timer_min = std::stoi(std::string(env_p2));
-        }
+        //if(const char* env_p2 = std::getenv("TIMEOUT_IVY")) { 
+        //    timer_min = std::stoi(std::string(env_p2));
+        //}
 #endif
 
         struct timeval timeout;
@@ -7745,12 +7747,12 @@ def emit_repl_boilerplate3test(header, impl, classname):
 #else
         int foo = select(maxfds+1,&rdfds,0,0,&timeout);
         //chris: self-pipe trick
-        while (foo == -1 & errno == EINTR) {
-            std::cerr << "select failed - restart with self pipe trick " << std::endl;
-            foo = select(maxfds+1,&rdfds,0,0,&timeout);
-            continue;
-        }
-            
+        //while (foo == -1 & errno == EINTR) {
+        //    std::cerr << "select failed - restart with self pipe trick " << std::endl;
+        //    foo = select(maxfds+1,&rdfds,0,0,&timeout);
+        //    continue;
+        //}
+
 #endif
 
         if (foo < 0)

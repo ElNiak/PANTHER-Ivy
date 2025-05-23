@@ -136,7 +136,6 @@ RUN python3.10 -m pip install pexpect \
 # For Ivy
 # .gitmodules 
 ADD setup.py build_submodules.py /opt/panther_ivy/
-ADD templates /opt/panther_ivy/templates/
 ADD submodules /opt/panther_ivy/submodules/
 # TODO only python file for building
 ADD ivy /opt/panther_ivy/ivy/
@@ -156,4 +155,4 @@ RUN python3.10 -m pip install . ;\
 ADD protocol-testing /opt/panther_ivy/protocol-testing/
 
 # Set entrypoint (can be overridden)
-ENTRYPOINT [ "/bin/sh", "-l", "-c" ]
+ENTRYPOINT [ "/bin/bash", "-l", "-c" ]

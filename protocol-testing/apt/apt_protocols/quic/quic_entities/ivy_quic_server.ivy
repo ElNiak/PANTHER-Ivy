@@ -19,3 +19,5 @@ parameter server_cid : cid = 0xb
 
 instance server        : endpoint.server_endpoint.server_quic(server_addr,server_port)
 instance second_server : endpoint.server_endpoint.server_quic(server_addr,server_port_alt) # TODO 
+
+import action show_server_debug_event(server_addr:ip.endpoint)
