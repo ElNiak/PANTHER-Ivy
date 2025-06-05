@@ -4,7 +4,7 @@ Ivy is packaged as a python "wheel".
 
 ## Building and uploading a wheel
 
-1. Install Ivy as usual (see `doc/install.md`)
+1. Install Ivy as usual (see `doc/INSTALL.md`)
 
 2. Set the version nummber in `setup.py`
 
