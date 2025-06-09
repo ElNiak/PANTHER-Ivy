@@ -1,17 +1,11 @@
-#!/bin/bash
-# Structured command template for Panther Ivy server
-# Generated commands are properly escaped using quote_shell filter
-
 {% if env_vars %}
-# Environment variables
 {% for key, value in env_vars.items() %}
 {{ key }}={{ value|quote_shell }}
 {% endfor %}
 {% endif %}
 
-# Execute the command with properly quoted arguments
 {% if command_args %}
-{% if command_args[0] %}{{ command_args[0] }}{% endif %}{% for arg in command_args[1:] %}{{ arg|quote_shell }}{% endfor %}
+{% if command_args[0] %}{{ command_args[0] }}{% endif %}{% for arg in command_args[1:] %}{{ arg }}{% endfor %}
 {% endif %}
 
 {% if extra_fields %}

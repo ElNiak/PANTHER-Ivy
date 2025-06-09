@@ -254,7 +254,7 @@ class PantherIvyVersion(VersionBase):
 @dataclass
 class PantherIvyConfig(ImplementationConfig):
     name: str = "panther_ivy"  # Implementation name
-    type: ImplementationType = ImplementationType.testers  # Default type for panther_ivy
+    type: ImplementationType = ImplementationType.TESTERS  # Default type for panther_ivy
     test: str = field(default="")  # Test name for testers
     use_system_models: bool = field(default=False)
     # Use system models for the test

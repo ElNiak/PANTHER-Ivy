@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Dict, Any, Optional, Tuple
 from panther.core.exceptions.InvalidCommandFormatError import InvalidCommandFormatError
 from panther.core.exceptions.ServiceCommandGenerationException import (
     ServiceCommandGenerationException,
@@ -12,9 +12,19 @@ from panther.plugins.services.testers.tester_interface import ITesterManager
 from panther.plugins.plugin_loader import PluginLoader
 from panther.plugins.protocols.config_schema import ProtocolConfig, RoleEnum
 from panther.utils.command import ShellCommand
+# Add imports for event emission support
+from panther.plugins.services.service_event_methods import ServiceManagerEventMixin
+from panther.core.observer.events import (
+    ServiceStartedEvent,
+    ServiceStoppedEvent,
+    ServiceErrorEvent,
+    StepProgressEvent
+)
 import os
 import subprocess
 import traceback
+import re
+import time
 
 
 def is_func_def(command_entry: dict) -> bool:
@@ -40,10 +50,10 @@ def is_func_def(command_entry: dict) -> bool:
                 f"is_function_definition must be a bool, got {type(command_entry['is_function_definition']).__name__} for command: {command_entry}"
             )
         return bool(command_entry["is_function_definition"])
-    except KeyError:
+    except KeyError as exc:
         raise InvalidCommandFormatError(
             f"Missing is_function_definition flag in command: {command_entry}"
-        )
+        ) from exc
 
 
 # TODO add more attributes
@@ -57,7 +67,7 @@ def oppose_role(role):
     return "client" if role == "server" else "server"
 
 
-class PantherIvyServiceManager(ITesterManager):
+class PantherIvyServiceManager(ITesterManager, ServiceManagerEventMixin):
     """
     Manages the Ivy testers service for the Panther project.
 
@@ -73,6 +83,7 @@ class PantherIvyServiceManager(ITesterManager):
         test_to_compile (str): Test to be compiled.
         env_protocol_model_path (str): Path to the protocol model.
         ivy_log_level (str): Log level for Ivy.
+        event_emitter: Event emitter for sending standardized events.
 
     Methods:
         generate_pre_compile_commands(): Generates pre-compile commands.
@@ -94,8 +105,14 @@ class PantherIvyServiceManager(ITesterManager):
         service_type: str,
         protocol: ProtocolConfig,
         implementation_name: str,
+        event_manager=None,
     ):
-        super().__init__(service_config_to_test, service_type, protocol, implementation_name)
+        super().__init__(service_config_to_test, service_type, protocol, implementation_name, event_manager)
+        # Initialize event_emitter if event_manager is provided
+        self.event_emitter = None if event_manager is None else EventEmitter(event_manager)
+        
+        # Set service name for event identification
+        self.service_name = f"ivy_{implementation_name}"
 
         # Initialize structured_commands dictionary for command phases
         self.structured_commands = {
@@ -184,7 +201,7 @@ class PantherIvyServiceManager(ITesterManager):
         # Add ivy IP resolution command
         self.add_command(
             phase="pre_compile",
-            command='IVY_IP=$(hostname -I | awk "{print \$1}" | grep -v "^127" | head -n 1)',
+            command="IVY_IP=$(hostname -I | awk '{print $1}' | grep -v '^127' | head -n 1)",
             description="Resolve Ivy IP address",
             is_critical=True,
             is_variable_assignment=True,
@@ -259,6 +276,17 @@ class PantherIvyServiceManager(ITesterManager):
         base_commands = super().generate_compile_commands() 
         compilation_commands = self.generate_compilation_commands()
         
+        # Emit service started event to notify that compilation is beginning
+        if hasattr(self, "event_emitter") and self.event_emitter:
+            self.event_emitter.emit_service_started(
+                service_name=self.service_name, 
+                details={
+                    "action": "compilation_started",
+                    "protocol": self.protocol.name,
+                    "test": self.test_to_compile
+                }
+            )
+        
         # If we have compilation commands, add the ready file command properly
         if compilation_commands:
             # Append the touch command to the last compilation command
@@ -295,12 +323,20 @@ class PantherIvyServiceManager(ITesterManager):
         """
         cmd_args = self.generate_deployment_commands()
         
+        # Emit service event for test execution
+        if self.event_emitter:
+            self.notify_service_event("test_execution_started", {
+                "test_name": self.test_to_compile,
+                "protocol": self.protocol.name
+            })
+        
         # Check if test_to_compile exists before creating the command
         command_binary = ""
-        if hasattr(self, 'test_to_compile') and self.test_to_compile:
+        if hasattr(self, "test_to_compile") and self.test_to_compile:
             command_binary = os.path.join(
                 self.service_config_to_test.implementation.parameters.tests_build_dir.value,
                 self.test_to_compile)
+            command_binary = "./" + command_binary
         
         # Make sure command_args is not None and is a valid type (list or str)
         if cmd_args is None:
@@ -341,67 +377,75 @@ class PantherIvyServiceManager(ITesterManager):
 
     def prepare(self, plugin_loader: Optional[PluginLoader] = None):
         """
-        Prepares the Ivy testers service manager.
+        Prepares the Panther Ivy testers service manager, handling directories, git repositories, etc.
+
+        Args:
+            plugin_loader: Optional plugin loader to configure parameters.
         """
-        self.logger.info("Preparing Ivy testers service manager...")
-        # self.build_submodules()
-
-        tests = AvailableTests.load_tests_from_directory(self.protocol_model_path)
-        self.logger.debug("Available tests: %s", tests)
-
-        # update version config related file:
-        if self.role == RoleEnum.server:
-            available_tests = self.service_config_to_test.implementation.version.server.tests
-        else:
-            available_tests = self.service_config_to_test.implementation.version.client.tests
-
-        self.available_tests = []
-        # TODO remove the file from the available tests in config yaml
-        for test in tests.tests:
-            if oppose_role(test["type"]) == self.role.name:
-                if test["name"] in available_tests.keys():
-                    test["description"] = available_tests[test["name"]].description
+        self.logger.info("Preparing PantherIvy service manager for %s", self.service_name)
+        
+        # Notify service preparation started using both standard mixin method and more detailed event
+        self.notify_service_event("preparation_started", {
+            "service_name": self.service_name,
+            "service_type": self.service_type,
+            "implementation": self.implementation_name,
+            "test": self.test_to_compile
+        })
+        
+        try:
+            # Performing basic setup
+            super().prepare(plugin_loader)
+            
+            # Check if the Ivy path is set and exists
+            if self.env_protocol_model_path:
+                if os.path.exists(self.env_protocol_model_path):
+                    self.protocol_model_path = self.env_protocol_model_path
                 else:
-                    test["description"] = (
-                        "TODO"  # TODO: For automatic description, put the description in the file
-                    )
-                self.available_tests.append(test)
-            else:
-                self.logger.debug("Test %s is not for the role %s", test, self.role.name)
-
-        self.logger.debug("Updated tests: %s", self.available_tests)
-
-        protocol_testing_dir = self.protocol_model_path
-        # for subdir in os.listdir(protocol_testing_dir):
-        #     subdir_path = os.path.join(protocol_testing_dir, subdir)
-        # if os.path.isdir(subdir_path):
-        build_dir = os.path.join(protocol_testing_dir, "build")
-        os.makedirs(build_dir, exist_ok=True)
-        self.logger.debug("Created build directory: %s", build_dir)
-        temp_dir = os.path.join(build_dir, "test", "temp")
-        os.makedirs(temp_dir, exist_ok=True)
-        self.logger.debug("Created temporary test results directory: %s", temp_dir)
-
-        # TODO load the configuration file: get the protocol name and the version + tests + versions
-        plugin_loader.build_docker_image_from_path(
-            Path(
-                os.path.join(
-                    self._plugin_dir,
-                    "Dockerfile",
+                    self.logger.warning("Protocol model path %s does not exist", self.env_protocol_model_path)
+            
+            if not hasattr(self, "protocol_model_path") or not self.protocol_model_path:
+                # Get the plugin directory path
+                self._plugin_dir = plugin_loader.get_plugin_path(
+                    "services", "testers", "panther_ivy"
                 )
-            ),
-            "panther_base",
-            "service",
-        )
-        plugin_loader.build_docker_image(
-            self.get_implementation_name(),
-            self.service_config_to_test.implementation.version,
-        )
-        self.logger.info("Ivy testers service manager prepared.")
-
-        self.initialize_commands()
+                self.protocol_model_path = os.path.abspath(
+                    f"{str(self._plugin_dir)}/testers/panther_ivy/protocol-testing/"
+                    + self.protocol.name
+                )
+            
+            # Set logging level from configuration
+            self.ivy_log_level = self.service_config_to_test.implementation.parameters.log_level
+            
+            # Build git submodules if necessary
+            if hasattr(self.service_config_to_test, "build_submodules") and self.service_config_to_test.build_submodules:
+                self.build_submodules()
+            
+            # Notify service preparation completed successfully
+            self.notify_service_event("prepared", {
+                "service_name": self.service_name,
+                "protocol_model_path": self.protocol_model_path,
+                "log_level": self.ivy_log_level,
+            })
+            
+        except Exception as e:
+            # Notify service preparation failed
+            self.notify_service_error(
+                error_type="preparation_error",
+                error_message=str(e),
+                details={
+                    "traceback": traceback.format_exc(),
+                    "service_name": self.service_name
+                }
+            )
+            self.logger.error("Failed to prepare PantherIvy service manager: %s", e)
+            raise
 
     def build_submodules(self):
+        """
+        Initialize git submodules.
+
+        This method initializes and updates git submodules required by the Ivy service.
+        """
         current_dir = os.getcwd()
         os.chdir(os.path.dirname(__file__))
         try:
@@ -728,7 +772,7 @@ class PantherIvyServiceManager(ITesterManager):
             "Mode: %s for test: %s in %s",
             self.role.name,
             self.test_to_compile,
-            self.service_config_to_test.implementation.version.parameters['tests_dir']['value']
+            self.service_config_to_test.implementation.version.parameters["tests_dir"]["value"]
         )
         file_path = (
             os.path.join("/opt/panther_ivy/protocol-testing/apt/", self.test_to_compile_path)
@@ -759,8 +803,8 @@ class PantherIvyServiceManager(ITesterManager):
         return (
             cmd
             + ["ls >> /app/logs/ivy_setup.log 2>&1;"]
-            # + [" "]
-            # + mv_command
+            + [" "]
+            + mv_command
             + [
                 (
                     f"ls {os.path.join('/opt/panther_ivy/protocol-testing/apt/', self.service_config_to_test.implementation.parameters.tests_build_dir.value)} >> /app/logs/ivy_setup.log 2>&1;"
@@ -933,7 +977,11 @@ class PantherIvyServiceManager(ITesterManager):
                 raise TypeError("is_multiline must be a bool for command: %s" % command)
             if not isinstance(is_function_definition, bool):
                 raise TypeError("is_function_definition must be a bool for command: %s" % command)
-
+            if not isinstance(is_function_call, bool):
+                raise TypeError("is_function_call must be a bool for command: %s" % command)
+            if not isinstance(is_variable_assignment, bool):
+                raise TypeError("is_variable_assignment must be a bool for command: %s" % command)
+       
             # Create a ShellCommand object
             shell_cmd = ShellCommand(
                 command=command,
@@ -980,24 +1028,172 @@ class PantherIvyServiceManager(ITesterManager):
     
     def test_success(self):
         """
-        Register to the network environment to test success.
-        This method is called when the test is successful.
-        It is used to register the test success in the network environment.
+        Register test success to the network environment.
+        
+        This method is called when the test is successful and allows the network environment
+        to detect the success status. It:
+        1. Creates a success marker file in the shared logs directory
+        2. Verifies success by analyzing log content
+        3. Emits events to notify the system of test execution status
+        
+        Returns:
+            bool: True if success was detected and registered, False otherwise
         """
-        self.logger.info("Test %s succeeded", self.test_to_compile)
-        # Here you can add any additional logic needed when a test succeeds
-        # For example, updating a status file, notifying other components, etc.
-        # This is just a placeholder for now
-        pass
+        self.logger.info("Checking for test success in %s", self.test_to_compile)
+        
+        # Emit test execution started event
+        if hasattr(self, "event_emitter") and self.event_emitter:
+            self.event_emitter.emit_service_event("test_execution_started", {
+                "service_name": self.service_name,
+                "test_name": self.test_to_compile
+            })
+        
+        # Verify success by analyzing log content
+        success = self.check_ivy_logs_for_success()
+        
+        # Emit test execution completed event
+        if hasattr(self, "event_emitter") and self.event_emitter:
+            self.event_emitter.emit_service_event("test_execution_completed", {
+                "service_name": self.service_name,
+                "test_name": self.test_to_compile,
+                "success": success,
+                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+            })
+        
+        if success:
+            # Create a success marker file in the shared logs directory
+            timestamp = time.strftime("%Y%m%d-%H%M%S")
+            success_file = f"/app/logs/ivy_test_success_{timestamp}.marker"
+            
+            try:
+                with open(success_file, "w", encoding="utf-8") as f:
+                    f.write(f"Test {self.test_to_compile} successful at {timestamp}\n")
+                    f.write(f"Role: {self.role.name}\n")
+                    f.write(f"Protocol: {self.protocol.name}\n")
+                    f.write(f"Implementation: {self.implementation_name}\n")
+                    if hasattr(self, "service_version"):
+                        f.write(f"Version: {self.service_version.name}\n")
+                self.logger.info("Created success marker file: %s", success_file)
+                
+                # Emit success event
+                if hasattr(self, "event_emitter") and self.event_emitter:
+                    self.event_emitter.emit_service_event("test_success", {
+                        "service_name": self.service_name,
+                        "test_name": self.test_to_compile,
+                        "timestamp": timestamp,
+                        "marker_file": success_file
+                    })
+                
+                # Legacy notification support for backward compatibility
+                if hasattr(self, "notification_callback") and callable(self.notification_callback):
+                    self.notification_callback("test_success", {
+                        "service": self.service_name,
+                        "test": self.test_to_compile,
+                        "timestamp": timestamp,
+                        "marker_file": success_file
+                    })
+                    self.logger.debug("Triggered test_success notification")
+                
+                return True
+            except IOError as e:
+                self.logger.error("Failed to create success marker file: %s", e)
+                return False
+        else:
+            self.logger.warning("No success indicators found in logs for %s", self.test_to_compile)
+            return False
+
+    def check_ivy_logs_for_success(self):
+        """
+        Analyzes Ivy test logs for success indicators.
+        
+        Looks for patterns in the log output that indicate a successful test run,
+        such as "test passed", "verification successful", etc.
+        
+        Returns:
+            bool: True if success indicators were found, False otherwise
+        """
+        # Patterns that indicate success in Ivy test output
+        success_patterns = [
+            r"test\s+passed",
+            r"verification\s+successful", 
+            r"no\s+counterexample\s+found",
+            r"PASS",
+            r"Success",
+            r"test\s+completed\s+successfully"
+        ]
+        
+        # Check the current log file
+        log_file = f"/app/logs/{self.service_name}.log"
+        
+        try:
+            if not os.path.exists(log_file):
+                self.logger.warning("Log file %s does not exist", log_file)
+                return False
+                
+            with open(log_file, "r", encoding="utf-8") as f:
+                log_content = f.read()
+                for pattern in success_patterns:
+                    if re.search(pattern, log_content, re.IGNORECASE):
+                        self.logger.info("Found success pattern '%s' in logs", pattern)
+                        return True
+                        
+            # Check compilation log as a fallback
+            compilation_log = "/app/logs/ivy_compilation.log"
+            if os.path.exists(compilation_log):
+                with open(compilation_log, "r", encoding="utf-8") as f:
+                    comp_content = f.read()
+                    for pattern in success_patterns:
+                        if re.search(pattern, comp_content, re.IGNORECASE):
+                            self.logger.info("Found success pattern '%s' in compilation log", pattern)
+                            return True
+                            
+        except (IOError, OSError) as e:
+            self.logger.error("Error checking log files for success: %s", e)
+        
+        return False
         
     def stop(self):
         """
         Stops the PantherIvyServiceManager service.
         
         This method is called by the TestCase's teardown_services method to properly
-        stop the service if it's running.
+        stop the service if it's running. It uses the ServiceManagerEventMixin to emit
+        events about the service stopping process.
         """
         self.logger.info("Stopping PantherIvyServiceManager service")
-        # Implement stop logic here if needed
-        # If no specific resources need to be cleaned up, this empty implementation is sufficient
-        
+        try:
+            # Emit service stopping event
+            self.notify_service_event("stopping", {
+                "service_name": self.service_name,
+                "service_type": self.service_type,
+                "implementation": self.implementation_name
+            })
+            
+            # Actual stop logic would go here if needed
+            # For example: stopping running processes, cleaning up resources, etc.
+            
+            # Check for test success in logs before stopping
+            test_success = self.check_ivy_logs_for_success()
+            
+            # Emit service stopped event
+            self.notify_service_stopped(
+                success=True,
+                details={
+                    "test_success": test_success,
+                    "service_name": self.service_name
+                }
+            )
+            
+            return True
+        except Exception as e:
+            # Emit service error event
+            self.notify_service_error(
+                error_type="stop_error",
+                error_message=str(e),
+                details={
+                    "traceback": traceback.format_exc(),
+                    "service_name": self.service_name
+                }
+            )
+            self.logger.error("Error stopping PantherIvy service: %s", e)
+            return False
