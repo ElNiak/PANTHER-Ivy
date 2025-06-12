@@ -677,15 +677,6 @@ class PantherIvyServiceManager(ITesterManager):
                 is_multiline=True,
             )
             
-            # Add call to the quic_lib_setup function
-            self.add_command(
-                phase="pre_compile",
-                command="quic_lib_setup",
-                description="Call Function: quic_lib_setup",
-                is_function_definition=False,
-                is_function_call=True,
-                is_multiline=False,
-            )
             self.add_command(
                 phase="pre_compile",
                 command="quic_lib_setup &&",
@@ -738,31 +729,6 @@ class PantherIvyServiceManager(ITesterManager):
         
         self.add_command(
             phase="pre_compile",
-            command="setup_ivy_model",
-            description="Call Function: setup_ivy_model",
-            is_function_definition=False,
-            is_function_call=True,
-            is_multiline=False,
-        )
-
-        self.add_command(
-            phase="pre_compile",
-            command=restore_debug_events_function,
-            description="Function: restore_debug_events",
-            is_function_definition=True,
-            is_multiline=True,
-        )
-
-        self.add_command(
-            phase="pre_compile",
-            command=setup_ivy_model_function,
-            description="Function: setup_ivy_model",
-            is_function_definition=True,
-            is_multiline=True,
-        )
-        
-        self.add_command(
-            phase="pre_compile",
             command="setup_ivy_model &&",
             description="Call Function: setup_ivy_model",
             is_function_definition=False,
@@ -773,7 +739,7 @@ class PantherIvyServiceManager(ITesterManager):
         self.logger.info("Updating Ivy tool...")
         self.logger.debug("Added structured commands for updating the Ivy tool")
 
-        # For backward compatibility, return a list of commands that would be used in legacy mode
+        # # For backward compatibility, return a list of commands that would be used in legacy mode
         legacy_commands = []
         for cmd_phase in ["pre_compile", "compile"]:
             for cmd in self.structured_commands.get(cmd_phase, []):
@@ -859,24 +825,18 @@ class PantherIvyServiceManager(ITesterManager):
             self.service_config_to_test.implementation.version.parameters["tests_dir"]["value"]
         )
         file_path = (
-            os.path.join("/opt/panther_ivy/protocol-testing/apt/", self.test_to_compile_path)
-            if self.service_config_to_test.implementation.use_system_models
-            else os.path.join(
-                self.env_protocol_model_path,
-                self.test_to_compile_path if not test_name else test_name,
-            )
+            "/opt/panther_ivy/protocol-testing/apt/" if self.service_config_to_test.implementation.use_system_models
+            else self.env_protocol_model_path
         )
         self.logger.debug("Building file: %s", file_path)
         cmd = [
-            f"cd {file_path};",
+            f"cd {self};",
             # run ivyc and capture both stdout and stderr - don't redirect to hide errors
             # we'll tee to the log file so we can both capture the output and check exit code
             (
                 f"PYTHONPATH=$PYTHON_IVY_DIR ivyc trace=false show_compiled=false "
                 f"target=test test_iters={self.service_config_to_test.implementation.parameters.internal_iterations_per_test.value} "
-                f"{self.test_to_compile if not test_name else test_name}.ivy 2>&1 | tee -a /app/logs/ivy_setup.log /app/logs/ivy_compilation.log;"
-                f'exit_code=${{PIPESTATUS[0]}}; if [ $exit_code -ne 0 ]; then echo "Ivy compilation failed with code $exit_code" | '
-                f"tee -a /app/logs/ivy_compilation_error.log; exit $exit_code; fi"
+                f"{self.test_to_compile if not test_name else test_name}.ivy >> /app/logs/ivy_setup.log 2>&1 || exit 1"
             ),
         ]
         self.logger.info("Tests compilation command: %s", cmd)
@@ -884,6 +844,7 @@ class PantherIvyServiceManager(ITesterManager):
             f"cp {os.path.join(file_path, self.test_to_compile)}* {os.path.join('/opt/panther_ivy/protocol-testing/apt/', self.service_config_to_test.implementation.parameters.tests_build_dir.value)}; " if self.service_config_to_test.implementation.use_system_models else f"cp {os.path.join(file_path, self.test_to_compile)}* {os.path.join(self.env_protocol_model_path, self.service_config_to_test.implementation.parameters.tests_build_dir.value)}; "
         ]
         self.logger.info("Moving built files: %s", mv_command)
+        
         return (
             cmd
             + ["ls >> /app/logs/ivy_setup.log 2>&1;"]
