@@ -107,15 +107,18 @@ class PantherIvyServiceManager(
         
         # Initialize template renderer
         plugin_dir = Path(__file__).parent
-        self.template_renderer = ServiceTemplateRenderer(plugin_dir)
-        
+        self.template_renderer = ServiceTemplateRenderer(plugin_dir, protocol.name)
+
         # Set Docker attributes for ServiceManagerDockerMixin
         self.docker_image_name = f"panther_ivy:latest"
         self.docker_file_path = plugin_dir / "Dockerfile"
         
         # Initialize Ivy-specific attributes
         self._initialize_ivy_attributes(service_config_to_test, protocol)
-        
+
+        # Ivy-specific setup after Docker builds are complete
+        self._setup_volumes()
+
     def _initialize_ivy_attributes(self, service_config_to_test: PantherIvyConfig, protocol: ProtocolConfig):
         """Initialize Ivy-specific attributes."""
         # Set test configuration
@@ -154,76 +157,64 @@ class PantherIvyServiceManager(
         service_config_to_test.directories_to_start = []
 
     def generate_pre_compile_commands(self):
-        """Generates pre-compile commands using enhanced ServiceCommandBuilder."""
+        """Generates pre-compile commands using the new chain architecture."""
         # Get base commands from parent
         base_commands = super().generate_pre_compile_commands()
         
-        # Build commands using enhanced ServiceCommandBuilder
+        # Use the new chain architecture: CommandBuilder -> CommandProcessor
         builder = ServiceCommandBuilder(self.role)
         
-        # Add IP resolution commands
-        builder.add_command(
-            f"TARGET_IP=$(getent hosts {self.service_targets} | awk '{{print $1}}' | grep -v '^127' | head -n 1)",
-            "Resolve target IP address"
-        )
-        builder.add_command(
-            f'echo "Resolved {self.service_targets} TARGET_IP IP - $TARGET_IP" >> /app/logs/ivy_setup.log',
-            "Log resolved target IP"
-        )
-        builder.add_command(
-            "IVY_IP=$(hostname -I | awk '{print $1}' | grep -v '^127' | head -n 1)",
-            "Resolve Ivy service IP address"
-        )
-        builder.add_command(
-            f'echo "Resolved {self.service_name} IVY_IP IP - $IVY_IP" >> /app/logs/ivy_setup.log',
-            "Log resolved Ivy IP"
-        )
+        # Simple string commands (CommandProcessor will analyze and categorize)
+        # Use the enhanced resolve_hostname function from entrypoint template
+        commands = []
         
-        # Add IP conversion commands
-        builder.add_command("TARGET_IP_HEX=$(ip_to_decimal $TARGET_IP)", "Convert target IP to decimal")
-        builder.add_command("IVY_IP_HEX=$(ip_to_decimal $IVY_IP)", "Convert Ivy IP to decimal")
-        builder.add_command(
-            f'echo "Resolved {self.service_targets} IP in hex - $TARGET_IP_HEX" >> /app/logs/ivy_setup.log',
-            "Log target IP in hex format"
-        )
-        builder.add_command(
-            f'echo "Resolved {self.service_name} IP in hex - $IVY_IP_HEX" >> /app/logs/ivy_setup.log',
-            "Log Ivy IP in hex format"
-        )
-        
-        # Clean build directory
-        if self.service_config_to_test.implementation.use_system_models:
-            clean_cmd = "rm -rf /opt/panther_ivy/protocol-testing/apt/build/*"
+        # Only resolve target if we have one (clients have targets, servers don't)
+        if self.service_targets:
+            commands.extend([
+                # Resolve target hostname to IP, decimal and hex formats
+                f"TARGET_IP=$(resolve_hostname {self.service_targets})",
+                f"TARGET_IP_DEC=$(resolve_hostname {self.service_targets} decimal)",
+                f"TARGET_IP_HEX=$(resolve_hostname {self.service_targets} hex)",
+                f'echo "Resolved {self.service_targets} to IP: $TARGET_IP (decimal: $TARGET_IP_DEC, hex: $TARGET_IP_HEX)" >> /app/logs/ivy_setup.log',
+            ])
         else:
-            clean_cmd = f"rm -rf /opt/panther_ivy/protocol-testing/{self._get_protocol_name()}/build/*"
+            # For servers, we'll use a placeholder that will be resolved later
+            commands.extend([
+                "TARGET_IP=null",
+                "TARGET_IP_DEC=null",
+                "TARGET_IP_HEX=null",
+                'echo "Server mode: target IP will be determined at runtime" >> /app/logs/ivy_setup.log',
+            ])
         
-        builder.add_command(clean_cmd, "Clean build directory")
+        # Always get local IVY IP
+        # First try to get non-loopback IP, if none found, use loopback
+        commands.extend([
+            "IVY_IP=$(hostname -i | grep -v '^127' | head -n 1)",
+            # Use resolve_hostname function which handles decimal and hex conversion properly
+            'IVY_IP_DEC=$(resolve_hostname "$IVY_IP" decimal)',
+            'IVY_IP_HEX=$(resolve_hostname "$IVY_IP" hex)',
+            f'echo "Local {self.service_name} IP: $IVY_IP (decimal: $IVY_IP_DEC, hex: $IVY_IP_HEX)" >> /app/logs/ivy_setup.log',
+        ])
         
-        # Add function definitions using ShellCommand objects
-        self._add_utility_functions_to_builder(builder)
+        # Add clean build directory command
+        if self.service_config_to_test.implementation.use_system_models:
+            commands.append("rm -rf /opt/panther_ivy/protocol-testing/apt/build/*")
+        else:
+            commands.append(f"rm -rf /opt/panther_ivy/protocol-testing/{self._get_protocol_name()}/build/*")
         
-        return base_commands + builder.build_commands()
+        # Add simple commands to builder
+        for cmd in commands:
+            builder.add_command(cmd)
+        
+        # Use the chain: builder -> process -> return processed commands
+        processed_commands = builder.process_commands("panther_ivy")
+        
+        return base_commands + processed_commands
 
-    def _add_utility_functions_to_builder(self, builder: ServiceCommandBuilder):
-        """Add utility function definitions to ServiceCommandBuilder."""
-        # IP conversion functions
-        builder.add_command(
-            command="""ip_to_hex() {
-    echo "$1" | awk -F. '{printf("%02X%02X%02X%02X", $1, $2, $3, $4)}';
-}""",
-            description="Function: ip_to_hex",
-            is_function_definition=True,
-            is_multiline=True
-        )
-        
-        builder.add_command(
-            command="""ip_to_decimal() {
-    echo "$1" | awk -F. '{printf("%.0f", ($1 * 256 * 256 * 256) + ($2 * 256 * 256) + ($3 * 256) + $4)}';
-}""",
-            description="Function: ip_to_decimal",
-            is_function_definition=True,
-            is_multiline=True
-        )
+    # Note: _add_utility_functions_to_builder is no longer needed
+    # Function definitions are now handled directly in generate_pre_compile_commands
+    # using the CommandBuilder -> CommandProcessor chain which automatically
+    # detects function definitions, multiline commands, etc.
 
     def generate_compile_commands(self):
         """Generates compile commands."""
@@ -251,8 +242,16 @@ class PantherIvyServiceManager(
         return base_commands + compilation_commands
 
     def generate_post_compile_commands(self):
-        """Generates post-compile commands."""
-        return super().generate_post_compile_commands() + [f"cd {self.env_protocol_model_path};"]
+        """Generates post-compile commands using the new chain architecture."""
+        base_commands = super().generate_post_compile_commands()
+        
+        # Use simple string commands - CommandProcessor will handle the rest
+        additional_commands = [
+            f"cd {self.env_protocol_model_path}",  # Removed semicolon - CommandProcessor handles this
+            "pwd >> /app/logs/ivy_post_compile.log",  # Add some logging for debugging
+        ]
+        
+        return base_commands + additional_commands
 
     def generate_run_command(self):
         """Generates the run command using structured command building."""
@@ -287,6 +286,9 @@ class PantherIvyServiceManager(
             "timeout": self.service_config_to_test.timeout,
             "environment": {},
         }
+        
+        # Debug logging
+        self.logger.info("Run command structure: binary='%s', args='%s'", command_binary, cmd_args)
         
         # Emit command generated
         self.emit_command_generated("run", str(run_command))
@@ -329,9 +331,6 @@ class PantherIvyServiceManager(
             # This is now properly delegated to ServiceManagerDockerMixin
             if hasattr(super(), 'prepare'):
                 super().prepare(plugin_manager)
-            
-            # Ivy-specific setup after Docker builds are complete
-            self._setup_volumes()
             
             return True
         except Exception as e:
@@ -474,7 +473,7 @@ class PantherIvyServiceManager(
         # Build compilation command
         test_to_compile = test_name or self.test_to_compile
         compile_cmd = (
-            f"cd {file_path} && "
+            f"cd {file_path} ; "
             f"PYTHONPATH=$PYTHON_IVY_DIR ivyc trace=false show_compiled=false "
             f"target=test test_iters={self.service_config_to_test.implementation.parameters.internal_iterations_per_test.value} "
             f"{test_to_compile}.ivy >> /app/logs/ivy_setup.log 2>&1 || exit 1"
@@ -494,7 +493,7 @@ class PantherIvyServiceManager(
         return commands
 
     def generate_deployment_commands(self) -> str:
-        """Generates deployment commands using ServiceCommandBuilder."""
+        """Generates deployment command arguments for Ivy test execution."""
         self.logger.debug("Generating deployment commands for service: %s", self.service_name)
         
         # Get role-specific parameters
@@ -510,10 +509,10 @@ class PantherIvyServiceManager(
         for param in self.service_config_to_test.implementation.version.parameters:
             params[param] = self.service_config_to_test.implementation.version.parameters[param].value
         
-        # Set network parameters
+        # Set network parameters (Ivy uses decimal IP representation)
         params["target"] = self.service_config_to_test.protocol.target
-        params["server_addr"] = "$TARGET_IP_HEX" if oppose_role(self.role.name) == "server" else "$IVY_IP_HEX"
-        params["client_addr"] = "$TARGET_IP_HEX" if oppose_role(self.role.name) == "client" else "$IVY_IP_HEX"
+        params["server_addr"] = "$TARGET_IP_DEC" if oppose_role(self.role.name) == "server" else "$IVY_IP_DEC"
+        params["client_addr"] = "$TARGET_IP_DEC" if oppose_role(self.role.name) == "client" else "$IVY_IP_DEC"
         params["is_client"] = oppose_role(self.role.name) == "client"
         params["test_name"] = self.test_to_compile
         params["timeout_cmd"] = f"timeout {self.service_config_to_test.timeout} "
@@ -523,20 +522,36 @@ class PantherIvyServiceManager(
         # Remove network interface if not needed
         params.get("network", {}).pop("interface", None)
         
-        # Use template renderer
+        # Log params for debugging
+        self.logger.debug("Template params: %s", params)
+        
+        # Use the original command template to generate arguments
         try:
-            cmd = self.template_renderer.render_structured_command(
-                oppose_role(self.role.name),
-                params,
-                [],  # Command args will be built from template
-                {}   # Environment vars
-            )
-            return cmd.command
+            # Use the same template as the old version
+            template_name = f"{oppose_role(self.role.name)}_command.jinja"
+            cmd_args = self.template_renderer.render_template(template_name, params)
+            
+            # The template returns the command arguments string
+            # For Ivy, this is parameters like "seed=X the_cid=Y server_port=Z ..."
+            if cmd_args:
+                self.logger.debug("Generated command args from template: %s", cmd_args.strip())
+                return cmd_args.strip()
+            else:
+                self.logger.warning("No command arguments generated from template")
+                return ""
         except Exception as e:
-            self.logger.warning("Failed to render structured template: %s", e)
-            # Fallback to original template
-            template_name = f"{self.protocol.name}/{oppose_role(self.role.name)}_command.jinja"
-            return self.render_commands(params, template_name)
+            self.logger.warning("Failed to render command template: %s", e)
+            # Fall back to constructing basic arguments
+            args = []
+            if "seed" in params:
+                args.append(f"seed={params['seed']}")
+            if "server_addr" in params:
+                args.append(f"server_addr={params['server_addr']}")
+            if "client_addr" in params:
+                args.append(f"client_addr={params['client_addr']}")
+            if "server_port" in params:
+                args.append(f"server_port={params.get('server_port', 4443)}")
+            return " ".join(args)
 
     def test_success(self) -> bool:
         """Register test success using standardized event notification."""
@@ -609,7 +624,7 @@ class PantherIvyServiceManager(
                             return True
             
             # Check compilation log as fallback
-            compilation_log = "/app/logs/ivy_compilation.log"
+            compilation_log = "/app/logs/ivy_compilation.log" # TODO: For now we are not sure that the compilation log is like that -> make more flexible and resilient
             if os.path.exists(compilation_log):
                 with open(compilation_log, "r", encoding="utf-8") as f:
                     comp_content = f.read()
