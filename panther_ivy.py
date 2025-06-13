@@ -469,13 +469,7 @@ class PantherIvyServiceManager(ITesterManager):
                     # Emit Docker build completed event with failure
                     self.emit_docker_build_completed(self.implementation_name, False, str(e))
                     raise
-            
-            # Check if the Ivy path is set and exists
-            if self.env_protocol_model_path:
-                if os.path.exists(self.env_protocol_model_path):
-                    self.protocol_model_path = self.env_protocol_model_path
-                else:
-                    self.logger.warning("Protocol model path %s does not exist", self.env_protocol_model_path)
+    
             
             if not hasattr(self, "protocol_model_path") or not self.protocol_model_path:
                 # Protocol model path should already be set in __init__, but just in case
@@ -825,12 +819,18 @@ class PantherIvyServiceManager(ITesterManager):
             self.service_config_to_test.implementation.version.parameters["tests_dir"]["value"]
         )
         file_path = (
-            "/opt/panther_ivy/protocol-testing/apt/" if self.service_config_to_test.implementation.use_system_models
-            else self.env_protocol_model_path
+            # TODO: put that in the config
+            os.path.join("/opt/panther_ivy/protocol-testing/apt/", self.service_config_to_test.implementation.version.parameters["tests_dir"]["value"], oppose_role(self.role.name) + "_tests")
+            if self.service_config_to_test.implementation.use_system_models
+            else os.path.join(
+                self.env_protocol_model_path,
+                self.service_config_to_test.implementation.version.parameters["tests_dir"]["value"],
+                oppose_role(self.role.name) + "_tests",
+            )
         )
         self.logger.debug("Building file: %s", file_path)
         cmd = [
-            f"cd {self};",
+            f"cd {file_path};",
             # run ivyc and capture both stdout and stderr - don't redirect to hide errors
             # we'll tee to the log file so we can both capture the output and check exit code
             (
@@ -841,6 +841,7 @@ class PantherIvyServiceManager(ITesterManager):
         ]
         self.logger.info("Tests compilation command: %s", cmd)
         mv_command = [
+            f"mkdir -p {os.path.join('/opt/panther_ivy/protocol-testing/apt/', self.service_config_to_test.implementation.parameters.tests_build_dir.value)};" if self.service_config_to_test.implementation.use_system_models else f"mkdir -p {os.path.join(self.env_protocol_model_path, self.service_config_to_test.implementation.parameters.tests_build_dir.value)};",
             f"cp {os.path.join(file_path, self.test_to_compile)}* {os.path.join('/opt/panther_ivy/protocol-testing/apt/', self.service_config_to_test.implementation.parameters.tests_build_dir.value)}; " if self.service_config_to_test.implementation.use_system_models else f"cp {os.path.join(file_path, self.test_to_compile)}* {os.path.join(self.env_protocol_model_path, self.service_config_to_test.implementation.parameters.tests_build_dir.value)}; "
         ]
         self.logger.info("Moving built files: %s", mv_command)
@@ -910,10 +911,10 @@ class PantherIvyServiceManager(ITesterManager):
 
         params["target"] = self.service_config_to_test.protocol.target
         params["server_addr"] = (
-            "$TARGET_IP_HEX" if oppose_role(self.role.name) == "client" else "$IVY_IP_HEX"
+            "$TARGET_IP_HEX" if oppose_role(self.role.name) == "server" else "$IVY_IP_HEX"
         )
         params["client_addr"] = (
-            "$TARGET_IP_HEX" if oppose_role(self.role.name) == "server" else "$IVY_IP_HEX"
+            "$TARGET_IP_HEX" if oppose_role(self.role.name) == "client" else "$IVY_IP_HEX"
         )
         params["is_client"] = oppose_role(self.role.name) == "client"
         params["test_name"] = self.test_to_compile
@@ -1602,51 +1603,30 @@ class PantherIvyServiceManager(ITesterManager):
         
         return ivy_analysis
         
-    def stop(self):
+    def _do_stop(self):
         """
-        Stops the PantherIvyServiceManager service.
+        Perform the actual service stop work for PantherIvyServiceManager.
         
-        This method is called by the TestCase's teardown_services method to properly
-        stop the service if it's running. It uses the ServiceManagerEventMixin to emit
-        events about the service stopping process.
+        This method is called by the base class stop() method which handles
+        the event notifications. We only need to implement the actual stop logic here.
         """
         self.logger.info("Stopping PantherIvyServiceManager service")
         try:
-            # Emit service stopping event
-            self.notify_service_event("stopping", {
-                "service_name": self.service_name,
-                "service_type": self.service_type,
-                "implementation": self.implementation_name
-            })
-            
             # Actual stop logic would go here if needed
             # For example: stopping running processes, cleaning up resources, etc.
             
             # Check for test success in logs before stopping
             test_success = self.check_ivy_logs_for_success()
             
-            # Emit service stopped event
-            self.notify_service_stopped(
-                success=True,
-                details={
-                    "test_success": test_success,
-                    "service_name": self.service_name
-                }
-            )
+            # Store test success status for later retrieval
+            self.test_success = test_success
             
+            # Return success - the base class will handle the event notification
             return True
         except Exception as e:
-            # Emit service error event
-            self.notify_service_error(
-                error_type="stop_error",
-                error_message=str(e),
-                details={
-                    "traceback": traceback.format_exc(),
-                    "service_name": self.service_name
-                }
-            )
             self.logger.error("Error stopping PantherIvy service: %s", e)
-            return False
+            # Re-raise the exception - the base class will handle error notification
+            raise
     
     def _get_protocol_name(self):
         """
