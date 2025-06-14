@@ -4,15 +4,11 @@ from panther.core.exceptions.InvalidCommandFormatError import InvalidCommandForm
 from panther.plugins.services.testers.panther_ivy.config_schema import PantherIvyConfig
 from panther.plugins.services.testers.tester_interface import ITesterManager
 from panther.plugins.protocols.config_schema import ProtocolConfig, RoleEnum
-from panther.core.events import BaseEvent
+from panther.core.events.base.event_base import BaseEvent
 from panther.plugins.plugin_decorators import register_plugin
-from panther.core.utils.service_manager_utils import TesterServiceManagerMixin
-from panther.core.utils import (
-    ServiceCommandBuilder,
-    ServiceTemplateRenderer,
-    ServiceManagerDockerMixin,
-    ErrorHandlerMixin
-)
+from panther.plugins.services.service_manager_utils import TesterServiceManagerMixin
+from panther.core.utils import ServiceTemplateRenderer, ServiceManagerDockerMixin, ErrorHandlerMixin
+from panther.core.command_processor.command_builder import ServiceCommandBuilder
 import os
 import subprocess
 import traceback
@@ -21,7 +17,6 @@ import time
 
 if TYPE_CHECKING:
     from panther.plugins.plugin_manager import PluginManager
-
 
 def is_func_def(command_entry: dict) -> bool:
     """
@@ -51,14 +46,12 @@ def is_func_def(command_entry: dict) -> bool:
             f"Missing is_function_definition flag in command: {command_entry}"
         ) from exc
 
-
 def oppose_role(role):
     """
     quic_server_test -> We test the server, so we need the client implementation (ivy_client)
     quic_client_test -> We test the client, so we need the server implementation (ivy_server)
     """
     return "client" if role == "server" else "server"
-
 
 @register_plugin(
     plugin_type="tester",
@@ -68,14 +61,16 @@ def oppose_role(role):
     author="PANTHER Team",
     dependencies=["ivy_compiler"],
     supported_protocols=["quic"],
-    capabilities=["formal_verification", "protocol_compliance", "symbolic_execution", "invariant_checking"],
-    external_dependencies=["z3>=4.8", "python>=3.7"]
+    capabilities=[
+        "formal_verification",
+        "protocol_compliance",
+        "symbolic_execution",
+        "invariant_checking",
+    ],
+    external_dependencies=["z3>=4.8", "python>=3.7"],
 )
 class PantherIvyServiceManager(
-    TesterServiceManagerMixin,
-    ServiceManagerDockerMixin,
-    ErrorHandlerMixin,
-    ITesterManager
+    TesterServiceManagerMixin, ServiceManagerDockerMixin, ErrorHandlerMixin, ITesterManager
 ):
     """
     Manages the Ivy testers service for the Panther project.
@@ -84,7 +79,7 @@ class PantherIvyServiceManager(
     for a given protocol implementation. It interacts with Docker, manages environment
     variables, and handles the setup of necessary directories and files.
     """
-    
+
     def __init__(
         self,
         service_config_to_test: PantherIvyConfig,
@@ -96,48 +91,43 @@ class PantherIvyServiceManager(
         super().__init__(
             service_config_to_test, service_type, protocol, implementation_name, event_manager
         )
-        
-        # Use standardized initialization from mixin
-        self.standardized_initialization(
-            service_config_to_test, service_type, protocol, implementation_name, event_manager
+        # Use the new template method for standard initialization (with protocol support)
+        self.standard_tester_initialization(
+            service_config_to_test, service_type, protocol, implementation_name, event_manager,
+            include_protocol_in_template=True, plugin_dir=Path(__file__).parent
         )
-        
-        # Set up tester-specific attributes
-        self.setup_tester_specific_attributes(service_config_to_test)
-        
-        # Initialize template renderer
-        plugin_dir = Path(__file__).parent
-        self.template_renderer = ServiceTemplateRenderer(plugin_dir, protocol.name)
 
-        # Set Docker attributes for ServiceManagerDockerMixin
-        self.docker_image_name = f"panther_ivy:latest"
-        self.docker_file_path = plugin_dir / "Dockerfile"
-        
         # Initialize Ivy-specific attributes
         self._initialize_ivy_attributes(service_config_to_test, protocol)
 
         # Ivy-specific setup after Docker builds are complete
         self._setup_volumes()
 
-    def _initialize_ivy_attributes(self, service_config_to_test: PantherIvyConfig, protocol: ProtocolConfig):
+    def _initialize_ivy_attributes(
+        self, service_config_to_test: PantherIvyConfig, protocol: ProtocolConfig
+    ):
         """Initialize Ivy-specific attributes."""
         # Set test configuration
         self.test_to_compile = service_config_to_test.implementation.test
         self.test_to_compile_path = None
-        
+
         # Initialize available_tests based on role
         if hasattr(self, "role") and self.role == RoleEnum.server:
-            self.available_tests = service_config_to_test.implementation.version.server.get("tests", {})
+            self.available_tests = service_config_to_test.implementation.version.server.get(
+                "tests", {}
+            )
         else:
-            self.available_tests = service_config_to_test.implementation.version.client.get("tests", {})
-        
+            self.available_tests = service_config_to_test.implementation.version.client.get(
+                "tests", {}
+            )
+
         if self.available_tests is None:
             self.available_tests = {}
-        
+
         # Set protocol model paths
         self.protocol = protocol
         self._protocol_name_cache = None
-        
+
         if service_config_to_test.implementation.use_system_models:
             self.env_protocol_model_path = "/opt/panther_ivy/protocol-testing/apt/"
             self.protocol_model_path = os.path.abspath(
@@ -148,11 +138,13 @@ class PantherIvyServiceManager(
                 "/opt/panther_ivy/protocol-testing/" + self._get_protocol_name() + "/"
             )
             self.protocol_model_path = os.path.abspath(
-                os.path.join(os.path.dirname(__file__), "protocol-testing", self._get_protocol_name())
+                os.path.join(
+                    os.path.dirname(__file__), "protocol-testing", self._get_protocol_name()
+                )
             )
-        
+
         self.ivy_log_level = service_config_to_test.implementation.parameters.log_level
-        
+
         # Ensure directories_to_start is empty list
         service_config_to_test.directories_to_start = []
 
@@ -160,55 +152,71 @@ class PantherIvyServiceManager(
         """Generates pre-compile commands using the new chain architecture."""
         # Get base commands from parent
         base_commands = super().generate_pre_compile_commands()
-        
+
         # Use the new chain architecture: CommandBuilder -> CommandProcessor
         builder = ServiceCommandBuilder(self.role)
-        
+
         # Simple string commands (CommandProcessor will analyze and categorize)
         # Use the enhanced resolve_hostname function from entrypoint template
         commands = []
-        
+
+        # Initialize environment file
+        commands.append("echo '# Ivy environment variables' > /app/logs/ivy_env.sh")
+
         # Only resolve target if we have one (clients have targets, servers don't)
         if self.service_targets:
-            commands.extend([
-                # Resolve target hostname to IP, decimal and hex formats
-                f"TARGET_IP=$(resolve_hostname {self.service_targets})",
-                f"TARGET_IP_DEC=$(resolve_hostname {self.service_targets} decimal)",
-                f"TARGET_IP_HEX=$(resolve_hostname {self.service_targets} hex)",
-                f'echo "Resolved {self.service_targets} to IP: $TARGET_IP (decimal: $TARGET_IP_DEC, hex: $TARGET_IP_HEX)" >> /app/logs/ivy_setup.log',
-            ])
+            # Combine target IP resolution into single command to preserve variables
+            # Write variables to file so they persist across command phases
+            target_ip_setup = f"""TARGET_IP=$(resolve_hostname {self.service_targets}) && \\
+TARGET_IP_DEC=$(resolve_hostname {self.service_targets} decimal) && \\
+TARGET_IP_HEX=$(resolve_hostname {self.service_targets} hex) && \\
+echo "export TARGET_IP='$TARGET_IP'" >> /app/logs/ivy_env.sh && \\
+echo "export TARGET_IP_DEC='$TARGET_IP_DEC'" >> /app/logs/ivy_env.sh && \\
+echo "export TARGET_IP_HEX='$TARGET_IP_HEX'" >> /app/logs/ivy_env.sh && \\
+export TARGET_IP TARGET_IP_DEC TARGET_IP_HEX && \\
+echo "Resolved {self.service_targets} to IP: $TARGET_IP (decimal: $TARGET_IP_DEC, hex: $TARGET_IP_HEX)" >> /app/logs/ivy_setup.log"""
+            commands.append(target_ip_setup)
         else:
             # For servers, we'll use a placeholder that will be resolved later
-            commands.extend([
-                "TARGET_IP=null",
-                "TARGET_IP_DEC=null",
-                "TARGET_IP_HEX=null",
-                'echo "Server mode: target IP will be determined at runtime" >> /app/logs/ivy_setup.log',
-            ])
-        
-        # Always get local IVY IP
+            # Write variables to file so they persist across command phases
+            server_setup = """TARGET_IP=null && \\
+TARGET_IP_DEC=null && \\
+TARGET_IP_HEX=null && \\
+echo "export TARGET_IP='$TARGET_IP'" >> /app/logs/ivy_env.sh && \\
+echo "export TARGET_IP_DEC='$TARGET_IP_DEC'" >> /app/logs/ivy_env.sh && \\
+echo "export TARGET_IP_HEX='$TARGET_IP_HEX'" >> /app/logs/ivy_env.sh && \\
+export TARGET_IP TARGET_IP_DEC TARGET_IP_HEX && \\
+echo "Server mode: target IP will be determined at runtime" >> /app/logs/ivy_setup.log"""
+            commands.append(server_setup)
+
+        # Always get local IVY IP - combine into single command to preserve variables
         # First try to get non-loopback IP, if none found, use loopback
-        commands.extend([
-            "IVY_IP=$(hostname -i | grep -v '^127' | head -n 1)",
-            # Use resolve_hostname function which handles decimal and hex conversion properly
-            'IVY_IP_DEC=$(resolve_hostname "$IVY_IP" decimal)',
-            'IVY_IP_HEX=$(resolve_hostname "$IVY_IP" hex)',
-            f'echo "Local {self.service_name} IP: $IVY_IP (decimal: $IVY_IP_DEC, hex: $IVY_IP_HEX)" >> /app/logs/ivy_setup.log',
-        ])
-        
+        # Write variables to file so they persist across command phases
+        ivy_ip_setup = f"""IVY_IP=$(resolve_hostname {self.service_name}) && \\
+IVY_IP_DEC=$(resolve_hostname {self.service_name} decimal) && \\
+IVY_IP_HEX=$(resolve_hostname {self.service_name} hex) && \\
+echo "export IVY_IP='$IVY_IP'" >> /app/logs/ivy_env.sh && \\
+echo "export IVY_IP_DEC='$IVY_IP_DEC'" >> /app/logs/ivy_env.sh && \\
+echo "export IVY_IP_HEX='$IVY_IP_HEX'" >> /app/logs/ivy_env.sh && \\
+export IVY_IP IVY_IP_DEC IVY_IP_HEX && \\
+echo "Local {self.service_name} IP: $IVY_IP (decimal: $IVY_IP_DEC, hex: $IVY_IP_HEX)" >> /app/logs/ivy_setup.log"""
+        commands.append(ivy_ip_setup)
+
         # Add clean build directory command
         if self.service_config_to_test.implementation.use_system_models:
             commands.append("rm -rf /opt/panther_ivy/protocol-testing/apt/build/*")
         else:
-            commands.append(f"rm -rf /opt/panther_ivy/protocol-testing/{self._get_protocol_name()}/build/*")
-        
+            commands.append(
+                f"rm -rf /opt/panther_ivy/protocol-testing/{self._get_protocol_name()}/build/*"
+            )
+
         # Add simple commands to builder
         for cmd in commands:
             builder.add_command(cmd)
-        
+
         # Use the chain: builder -> process -> return processed commands
         processed_commands = builder.process_commands("panther_ivy")
-        
+
         return base_commands + processed_commands
 
     # Note: _add_utility_functions_to_builder is no longer needed
@@ -220,105 +228,119 @@ class PantherIvyServiceManager(
         """Generates compile commands."""
         # Emit command generation started event
         self.emit_command_generation_started("compile")
-        
+
         base_commands = super().generate_compile_commands()
         compilation_commands = self.generate_compilation_commands()
-        
+
         # Notify compilation started
-        self.notify_service_event("compilation_started", {
-            "protocol": self.protocol.name if hasattr(self.protocol, 'name') else str(self.protocol),
-            "test": self.test_to_compile
-        })
-        
+        self.notify_service_event(
+            "compilation_started",
+            {
+                "protocol": (
+                    self.protocol.name if hasattr(self.protocol, "name") else str(self.protocol)
+                ),
+                "test": self.test_to_compile,
+            },
+        )
+
         # Add ready file creation
         if compilation_commands:
             compilation_commands.append("touch /app/sync_logs/ivy_ready.log")
         else:
             compilation_commands = ["touch /app/sync_logs/ivy_ready.log"]
-        
+
         # Emit command generated event
         self.emit_command_generated("compile", str(compilation_commands))
-        
+
         return base_commands + compilation_commands
 
     def generate_post_compile_commands(self):
         """Generates post-compile commands using the new chain architecture."""
         base_commands = super().generate_post_compile_commands()
-        
+
         # Use simple string commands - CommandProcessor will handle the rest
         additional_commands = [
             f"cd {self.env_protocol_model_path}",  # Removed semicolon - CommandProcessor handles this
             "pwd >> /app/logs/ivy_post_compile.log",  # Add some logging for debugging
         ]
-        
+
         return base_commands + additional_commands
 
     def generate_run_command(self):
         """Generates the run command using structured command building."""
         # Emit command generation started
         self.emit_command_generation_started("run")
-        
+
         # Get deployment commands
         cmd_args = self.generate_deployment_commands()
-        
+
         # Notify test execution started
-        self.notify_service_event("test_execution_started", {
-            "test_name": self.test_to_compile,
-            "protocol": self._get_protocol_name()
-        })
-        
+        self.notify_service_event(
+            "test_execution_started",
+            {"test_name": self.test_to_compile, "protocol": self._get_protocol_name()},
+        )
+
         # Build command binary path
         command_binary = ""
         if self.test_to_compile:
             command_binary = os.path.join(
                 self.service_config_to_test.implementation.parameters.tests_build_dir.value,
-                self.test_to_compile
+                self.test_to_compile,
             )
             command_binary = "./" + command_binary
-        
+
         # Ensure working directory is set
-        working_dir = self.env_protocol_model_path or f"/opt/panther_ivy/protocol-testing/{self._get_protocol_name()}/"
-        
+        working_dir = (
+            self.env_protocol_model_path
+            or f"/opt/panther_ivy/protocol-testing/{self._get_protocol_name()}/"
+        )
+
         run_command = {
             "working_dir": working_dir,
             "command_binary": command_binary,
             "command_args": cmd_args if cmd_args else [],
             "timeout": self.service_config_to_test.timeout,
-            "environment": {},
+            "command_env": {},
         }
-        
+
         # Debug logging
         self.logger.info("Run command structure: binary='%s', args='%s'", command_binary, cmd_args)
-        
+
         # Emit command generated
         self.emit_command_generated("run", str(run_command))
-        
+
         return run_command
+
+    def generate_pre_run_commands(self):
+        """Generates pre-run commands using the new chain architecture."""
+        commands = super().generate_pre_run_commands()
+
+        # Add Ivy-specific pre-run commands
+        commands.append("source /app/logs/ivy_env.sh || true")
+
+        return commands
 
     def generate_post_run_commands(self):
         """Generates post-run commands."""
         commands = super().generate_post_run_commands()
-        
+
         # Add Ivy-specific post-run commands
         test_path = os.path.join(
             self.env_protocol_model_path,
             self.service_config_to_test.implementation.parameters.tests_build_dir.value,
-            self.test_to_compile
+            self.test_to_compile,
         )
-        
-        commands.extend([
-            f"cp {test_path} /app/logs/{self.test_to_compile}",
-            f"rm {test_path}*"
-        ])
-        
+
+        commands.extend([f"cp {test_path} /app/logs/{self.test_to_compile}", f"rm {test_path}*"])
+
         return commands
 
     def _do_prepare(self, plugin_manager: Optional["PluginManager"] = None):
         """
         Implementation of abstract _do_prepare method from IServiceManager.
-        
+
         Performs Ivy-specific preparation steps that work with the mixins.
-        
+
         Args:
             plugin_manager: Optional plugin manager for Docker operations
         """
@@ -326,12 +348,12 @@ class PantherIvyServiceManager(
             # Build submodules if needed
             if getattr(self.service_config_to_test, "build_submodules", False):
                 self.build_submodules()
-            
+
             # Use enhanced mixin for Docker builds and command initialization
             # This is now properly delegated to ServiceManagerDockerMixin
-            if hasattr(super(), 'prepare'):
+            if hasattr(super(), "prepare"):
                 super().prepare(plugin_manager)
-            
+
             return True
         except Exception as e:
             self.handle_error(e, "prepare PantherIvy service manager")
@@ -343,13 +365,13 @@ class PantherIvyServiceManager(
             os.path.join(os.path.dirname(__file__), "ivy", "include", "1.7")
         )
         local_protocol_dir = self.protocol_model_path
-        
+
         volumes = [
             f"{ivy_include_dir}:/opt/panther_ivy/ivy/include/1.7",
             f"{local_protocol_dir}:{self.env_protocol_model_path}",
-            "shared_logs:/app/sync_logs"
+            "shared_logs:/app/sync_logs",
         ]
-        
+
         if hasattr(self, "volumes"):
             self.volumes.extend(volumes)
         else:
@@ -370,57 +392,61 @@ class PantherIvyServiceManager(
     def generate_compilation_commands(self) -> List[str]:
         """Generates compilation commands using structured approach."""
         self.logger.debug("Generating compilation commands for service: %s", self.service_name)
-        
+
         # Set up environments
         protocol_env = self.service_config_to_test.implementation.version.env
         if not self.service_config_to_test.implementation.use_system_models:
             for key in protocol_env:
                 protocol_env[key] = protocol_env[key].replace("/apt/apt_protocols", "")
-        
+
         global_env = self.service_config_to_test.implementation.environment
         self.environments = {
             **global_env,
             **protocol_env,
             "TEST_TYPE": ("client" if self.role.name == "server" else "server"),
         }
-        
+
         # Set test path
         self.test_to_compile_path = self.test_to_compile
         self.logger.info("Setting test path to: %s", self.test_to_compile_path)
-        
+
         # Build Ivy tool update commands
         update_commands = self._build_ivy_update_commands()
-        
+
         # Build test compilation commands
         test_commands = self.build_tests()
-        
+
         return update_commands + test_commands
 
     def _build_ivy_update_commands(self) -> List[str]:
         """Build Ivy tool update commands using structured approach."""
         commands = []
-        
+
         # Update Ivy tool
-        commands.extend([
-            "echo 'Updating Ivy tool...' >> /app/logs/ivy_setup.log",
-            "cd /opt/panther_ivy",
-            "sudo python3.10 setup.py install >> /app/logs/ivy_setup.log 2>&1",
-            "cp lib/libz3.so submodules/z3/build/python/z3 >> /app/logs/ivy_setup.log 2>&1"
-        ])
-        
+        commands.extend(
+            [
+                "echo 'Updating Ivy tool...' >> /app/logs/ivy_setup.log",
+                "cd /opt/panther_ivy",
+                "sudo python3.10 setup.py install >> /app/logs/ivy_setup.log 2>&1",
+                "cp lib/libz3.so submodules/z3/build/python/z3 >> /app/logs/ivy_setup.log 2>&1",
+            ]
+        )
+
         # Copy Ivy files
-        commands.extend([
-            "echo 'Copying updated Ivy files...' >> /app/logs/ivy_setup.log",
-            "find /opt/panther_ivy/ivy/include/1.7/ -type f -name '*.ivy' -exec cp {} /usr/local/lib/python3.10/dist-packages/ivy/include/1.7/ \\; >> /app/logs/ivy_setup.log 2>&1"
-        ])
-        
+        commands.extend(
+            [
+                "echo 'Copying updated Ivy files...' >> /app/logs/ivy_setup.log",
+                "find /opt/panther_ivy/ivy/include/1.7/ -type f -name '*.ivy' -exec cp {} /usr/local/lib/python3.10/dist-packages/ivy/include/1.7/ \\; >> /app/logs/ivy_setup.log 2>&1",
+            ]
+        )
+
         # Protocol-specific setup
         if self.protocol.name in ["quic", "apt"]:
             commands.extend(self._build_quic_setup_commands())
-        
+
         # Set up Ivy model
         commands.extend(self._build_ivy_model_setup_commands())
-        
+
         return commands
 
     def _build_quic_setup_commands(self) -> List[str]:
@@ -431,19 +457,21 @@ class PantherIvyServiceManager(
             "cp -f -a /opt/picotls/*.a /opt/panther_ivy/ivy/lib/",
             "cp -f /opt/picotls/include/picotls.h /usr/local/lib/python3.10/dist-packages/ivy/include/picotls.h",
             "cp -f /opt/picotls/include/picotls.h /opt/panther_ivy/ivy/include/picotls.h",
-            "cp -r -f /opt/picotls/include/picotls/. /usr/local/lib/python3.10/dist-packages/ivy/include/picotls"
+            "cp -r -f /opt/picotls/include/picotls/. /usr/local/lib/python3.10/dist-packages/ivy/include/picotls",
         ]
-        
+
         # Add quic_ser_deser.h copy
         if self.service_config_to_test.implementation.use_system_models:
-            quic_ser_deser_path = f"{self.env_protocol_model_path}/apt_protocols/quic/quic_utils/quic_ser_deser.h"
+            quic_ser_deser_path = (
+                f"{self.env_protocol_model_path}/apt_protocols/quic/quic_utils/quic_ser_deser.h"
+            )
         else:
             quic_ser_deser_path = f"{self.env_protocol_model_path}/quic_utils/quic_ser_deser.h"
-        
+
         commands.append(
             f"cp -f {quic_ser_deser_path} /usr/local/lib/python3.10/dist-packages/ivy/include/1.7/"
         )
-        
+
         return commands
 
     def _build_ivy_model_setup_commands(self) -> List[str]:
@@ -452,24 +480,26 @@ class PantherIvyServiceManager(
             "echo 'Setting up Ivy model...' >> /app/logs/ivy_setup.log",
             f"echo 'Updating include path from {self.env_protocol_model_path}' >> /app/logs/ivy_setup.log",
             f"find {self.env_protocol_model_path} -type f -name '*.ivy' -exec cp -f {{}} /usr/local/lib/python3.10/dist-packages/ivy/include/1.7/ \\;",
-            "ls -l /usr/local/lib/python3.10/dist-packages/ivy/include/1.7/ >> /app/logs/ivy_setup.log"
+            "ls -l /usr/local/lib/python3.10/dist-packages/ivy/include/1.7/ >> /app/logs/ivy_setup.log",
         ]
-        
+
         return commands
 
     def build_tests(self, test_name=None) -> List[str]:
         """Builds test compilation commands."""
         self.logger.info("Compiling tests...")
-        
+
         # Determine file path
         if self.service_config_to_test.implementation.use_system_models:
             base_path = "/opt/panther_ivy/protocol-testing/apt/"
         else:
             base_path = self.env_protocol_model_path
-        
-        tests_dir = self.service_config_to_test.implementation.version.parameters["tests_dir"]["value"]
+
+        tests_dir = self.service_config_to_test.implementation.version.parameters["tests_dir"][
+            "value"
+        ]
         file_path = os.path.join(base_path, tests_dir, f"{oppose_role(self.role.name)}_tests")
-        
+
         # Build compilation command
         test_to_compile = test_name or self.test_to_compile
         compile_cmd = (
@@ -478,59 +508,67 @@ class PantherIvyServiceManager(
             f"target=test test_iters={self.service_config_to_test.implementation.parameters.internal_iterations_per_test.value} "
             f"{test_to_compile}.ivy >> /app/logs/ivy_setup.log 2>&1 || exit 1"
         )
-        
+
         # Build directory and copy commands
-        build_dir = os.path.join(base_path, self.service_config_to_test.implementation.parameters.tests_build_dir.value)
-        
+        build_dir = os.path.join(
+            base_path, self.service_config_to_test.implementation.parameters.tests_build_dir.value
+        )
+
         commands = [
             compile_cmd,
             "ls >> /app/logs/ivy_setup.log 2>&1",
             f"mkdir -p {build_dir}",
             f"cp {os.path.join(file_path, test_to_compile)}* {build_dir}",
-            f"ls {build_dir} >> /app/logs/ivy_setup.log 2>&1"
+            f"ls {build_dir} >> /app/logs/ivy_setup.log 2>&1",
         ]
-        
+
         return commands
 
     def generate_deployment_commands(self) -> str:
         """Generates deployment command arguments for Ivy test execution."""
         self.logger.debug("Generating deployment commands for service: %s", self.service_name)
-        
+
         # Get role-specific parameters
         if self.role == RoleEnum.server:
             params = self.service_config_to_test.implementation.version.server
         else:
             params = self.service_config_to_test.implementation.version.client
-        
+
         # Add additional parameters
         for param in self.service_config_to_test.implementation.parameters:
             params[param] = self.service_config_to_test.implementation.parameters[param].value
-        
+
         for param in self.service_config_to_test.implementation.version.parameters:
-            params[param] = self.service_config_to_test.implementation.version.parameters[param].value
-        
+            params[param] = self.service_config_to_test.implementation.version.parameters[
+                param
+            ].value
+
         # Set network parameters (Ivy uses decimal IP representation)
         params["target"] = self.service_config_to_test.protocol.target
-        params["server_addr"] = "$TARGET_IP_DEC" if oppose_role(self.role.name) == "server" else "$IVY_IP_DEC"
-        params["client_addr"] = "$TARGET_IP_DEC" if oppose_role(self.role.name) == "client" else "$IVY_IP_DEC"
+        params["server_addr"] = (
+            "$TARGET_IP_DEC" if oppose_role(self.role.name) == "server" else "$IVY_IP_DEC"
+        )
+        params["client_addr"] = (
+            "$TARGET_IP_DEC" if oppose_role(self.role.name) == "client" else "$IVY_IP_DEC"
+        )
         params["is_client"] = oppose_role(self.role.name) == "client"
         params["test_name"] = self.test_to_compile
         params["timeout_cmd"] = f"timeout {self.service_config_to_test.timeout} "
-        
+
         self.working_dir = self.env_protocol_model_path
-        
+
         # Remove network interface if not needed
         params.get("network", {}).pop("interface", None)
-        
+
         # Log params for debugging
         self.logger.debug("Template params: %s", params)
-        
+
         # Use the original command template to generate arguments
         try:
             # Use the same template as the old version
             template_name = f"{oppose_role(self.role.name)}_command.jinja"
             cmd_args = self.template_renderer.render_template(template_name, params)
-            
+
             # The template returns the command arguments string
             # For Ivy, this is parameters like "seed=X the_cid=Y server_port=Z ..."
             if cmd_args:
@@ -556,43 +594,47 @@ class PantherIvyServiceManager(
     def test_success(self) -> bool:
         """Register test success using standardized event notification."""
         self.logger.info("Checking for test success in %s", self.test_to_compile)
-        
+
         # Notify test execution
-        self.notify_service_event("test_execution_started", {
-            "test_name": self.test_to_compile
-        })
-        
+        self.notify_service_event("test_execution_started", {"test_name": self.test_to_compile})
+
         # Check for success
         success = self.check_ivy_logs_for_success()
-        
+
         # Notify completion
-        self.notify_service_event("test_execution_completed", {
-            "test_name": self.test_to_compile,
-            "success": success,
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-        })
-        
+        self.notify_service_event(
+            "test_execution_completed",
+            {
+                "test_name": self.test_to_compile,
+                "success": success,
+                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+            },
+        )
+
         if success:
             # Create success marker
             timestamp = time.strftime("%Y%m%d-%H%M%S")
             success_file = f"/app/logs/ivy_test_success_{timestamp}.marker"
-            
+
             try:
                 with open(success_file, "w", encoding="utf-8") as f:
                     f.write(f"Test {self.test_to_compile} successful at {timestamp}\n")
                     f.write(f"Role: {self.role.name if hasattr(self, 'role') else 'unknown'}\n")
                     f.write(f"Protocol: {self._get_protocol_name()}\n")
                     f.write(f"Implementation: {self.implementation_name}\n")
-                
+
                 self.logger.info("Created success marker file: %s", success_file)
-                
+
                 # Notify success
-                self.notify_service_event("test_success", {
-                    "test_name": self.test_to_compile,
-                    "timestamp": timestamp,
-                    "marker_file": success_file
-                })
-                
+                self.notify_service_event(
+                    "test_success",
+                    {
+                        "test_name": self.test_to_compile,
+                        "timestamp": timestamp,
+                        "marker_file": success_file,
+                    },
+                )
+
                 return True
             except IOError as e:
                 self.logger.error("Failed to create success marker file: %s", e)
@@ -604,16 +646,14 @@ class PantherIvyServiceManager(
     def check_ivy_logs_for_success(self) -> bool:
         """Analyzes Ivy test logs for success indicators."""
         success_patterns = [
-            r"test\s+passed",
-            r"verification\s+successful",
-            r"no\s+counterexample\s+found",
+            r"test_complete",
             r"PASS",
             r"Success",
-            r"test\s+completed\s+successfully"
+            r"test\s+completed\s+successfully",
         ]
-        
+
         log_file = f"/app/logs/{self.service_name}.log"
-        
+
         try:
             if os.path.exists(log_file):
                 with open(log_file, "r", encoding="utf-8") as f:
@@ -622,143 +662,446 @@ class PantherIvyServiceManager(
                         if re.search(pattern, log_content, re.IGNORECASE):
                             self.logger.info("Found success pattern '%s' in logs", pattern)
                             return True
-            
+
             # Check compilation log as fallback
-            compilation_log = "/app/logs/ivy_compilation.log" # TODO: For now we are not sure that the compilation log is like that -> make more flexible and resilient
+            compilation_log = "/app/logs/ivy_compilation.log"  # TODO: For now we are not sure that the compilation log is like that -> make more flexible and resilient
             if os.path.exists(compilation_log):
                 with open(compilation_log, "r", encoding="utf-8") as f:
                     comp_content = f.read()
                     for pattern in success_patterns:
                         if re.search(pattern, comp_content, re.IGNORECASE):
-                            self.logger.info("Found success pattern '%s' in compilation log", pattern)
+                            self.logger.info(
+                                "Found success pattern '%s' in compilation log", pattern
+                            )
                             return True
-        
+
         except (IOError, OSError) as e:
             self.logger.error("Error checking log files for success: %s", e)
-        
+
         return False
 
     def set_collected_outputs(self, outputs: Dict[str, Dict[str, str]]) -> None:
         """Set collected outputs for analysis."""
         self.collected_outputs = outputs
-        self.logger.info(f"Received {len(outputs)} output types for analysis: {list(outputs.keys())}")
-        
+        self.logger.info(
+            f"Received {len(outputs)} output types for analysis: {list(outputs.keys())}"
+        )
+
+        # Log details about each output type
+        for output_type, files in outputs.items():
+            self.logger.debug(f"Output type '{output_type}': {len(files)} files")
+            for env_name, file_path in files.items():
+                file_exists = os.path.exists(file_path) if file_path else False
+                self.logger.debug(f"  {env_name}: {file_path} (exists: {file_exists})")
+
         # Notify outputs received
-        self.notify_service_event("outputs_received", {
-            "output_types": list(outputs.keys()),
-            "total_files": sum(len(env_files) for env_files in outputs.values())
-        })
+        self.notify_service_event(
+            "outputs_received",
+            {
+                "output_types": list(outputs.keys()),
+                "total_files": sum(len(env_files) for env_files in outputs.values()),
+                "detailed_counts": {
+                    output_type: len(files) for output_type, files in outputs.items()
+                },
+            },
+        )
 
     def analyze_outputs(self) -> Dict[str, Any]:
         """Analyze collected outputs."""
         self.logger.info(f"Starting output analysis for {self.service_name}")
-        
+
         # Notify analysis started
-        self.notify_service_event("analysis_started", {
-            "test_name": self.test_to_compile
-        })
-        
+        self.notify_service_event("analysis_started", {"test_name": self.test_to_compile})
+
         analysis_results = {
             "passed": False,
             "failed_checks": [],
             "warnings": [],
             "detailed_results": {},
-            "analysis_summary": ""
+            "analysis_summary": "",
+            "protocol_violations": [],
+            "ivy_assumptions_failed": [],
+            "error_frames": [],
+            "protocol_phase_completed": {"handshake": False, "data_exchange": False},
         }
-        
+
         try:
             # Analyze trace files
             if "trace" in self.collected_outputs:
                 trace_analysis = self._analyze_trace_files(self.collected_outputs["trace"])
                 analysis_results["detailed_results"]["trace_analysis"] = trace_analysis
                 if not trace_analysis.get("valid", True):
-                    analysis_results["failed_checks"].append("Invalid system call patterns in trace")
-            
+                    analysis_results["failed_checks"].append(
+                        "Invalid system call patterns in trace"
+                    )
+                    analysis_results["warnings"].extend(
+                        [
+                            f"Suspicious pattern: {pattern}"
+                            for pattern in trace_analysis.get("suspicious_calls", [])
+                        ]
+                    )
+
             # Analyze CPU profiles
             if "cpu_profile" in self.collected_outputs:
                 cpu_analysis = self._analyze_cpu_profiles(self.collected_outputs["cpu_profile"])
                 analysis_results["detailed_results"]["cpu_analysis"] = cpu_analysis
                 if cpu_analysis.get("excessive_cpu_usage", False):
                     analysis_results["warnings"].append("High CPU usage detected during test")
-            
-            # Analyze Ivy logs
+
+            # Analyze Ivy logs with enhanced analysis
             ivy_log_analysis = self._analyze_ivy_logs()
             analysis_results["detailed_results"]["ivy_analysis"] = ivy_log_analysis
-            
-            # Check success
+
+            # Extract enhanced Ivy analysis results
             ivy_success = ivy_log_analysis.get("test_passed", False)
             compilation_success = ivy_log_analysis.get("compilation_success", False)
-            
+            ivy_assumptions_failed = ivy_log_analysis.get("ivy_assumptions_failed", [])
+            protocol_violations = ivy_log_analysis.get("protocol_violations", [])
+            error_frames = ivy_log_analysis.get("error_frames", [])
+
+            # Copy detailed information to top level
+            analysis_results["ivy_assumptions_failed"] = ivy_assumptions_failed
+            analysis_results["protocol_violations"] = protocol_violations
+            analysis_results["error_frames"] = error_frames
+
+            # Extract protocol phase information if available
+            if "protocol_events" in ivy_log_analysis:
+                analysis_results["protocol_phase_completed"]["handshake"] = ivy_log_analysis.get(
+                    "handshake_completed", False
+                )
+                analysis_results["protocol_phase_completed"]["data_exchange"] = (
+                    ivy_log_analysis.get("data_exchanged", False)
+                )
+
+            # Check for specific failure conditions
             if not compilation_success:
                 analysis_results["failed_checks"].append("Ivy compilation failed")
-            
-            if not ivy_success:
-                analysis_results["failed_checks"].append("Ivy test execution failed or no success pattern found")
-            
+
+            if ivy_assumptions_failed:
+                for assumption in ivy_assumptions_failed:
+                    failed_check = f"Ivy assumption failed: {assumption.get('message', 'Unknown')}"
+                    if assumption.get("line"):
+                        failed_check += f" (line {assumption['line']})"
+                    analysis_results["failed_checks"].append(failed_check)
+
+            if protocol_violations:
+                for violation in protocol_violations:
+                    analysis_results["failed_checks"].append(
+                        f"Protocol violation: {violation.get('type', 'Unknown')} - {violation.get('details', '')}"
+                    )
+
+            if error_frames:
+                for error_frame in error_frames:
+                    error_desc = error_frame.get("description", "Unknown error")
+                    error_code = error_frame.get("error_code", "Unknown")
+                    analysis_results["failed_checks"].append(
+                        f"Error frame received: {error_desc} (code: {error_code})"
+                    )
+
+            if (
+                not ivy_success
+                and not ivy_assumptions_failed
+                and not protocol_violations
+                and not error_frames
+            ):
+                analysis_results["failed_checks"].append(
+                    "Ivy test execution failed or no success pattern found"
+                )
+
             # Determine overall result
             analysis_results["passed"] = (
-                compilation_success and
-                ivy_success and
-                len(analysis_results["failed_checks"]) == 0
+                compilation_success
+                and ivy_success
+                and len(ivy_assumptions_failed) == 0
+                and len(protocol_violations) == 0
+                and len(error_frames) == 0
+                and len(analysis_results["failed_checks"]) == 0
             )
-            
-            # Create summary
+
+            # Create detailed summary
             if analysis_results["passed"]:
+                phases_completed = []
+                if analysis_results["protocol_phase_completed"]["handshake"]:
+                    phases_completed.append("handshake")
+                if analysis_results["protocol_phase_completed"]["data_exchange"]:
+                    phases_completed.append("data exchange")
+
+                phase_info = (
+                    f" (phases completed: {', '.join(phases_completed)})"
+                    if phases_completed
+                    else ""
+                )
                 analysis_results["analysis_summary"] = (
                     f"Ivy test '{self.test_to_compile}' passed successfully. "
-                    f"Compilation and execution completed without errors."
+                    f"Compilation and execution completed without errors{phase_info}."
                 )
             else:
-                failed_reasons = "; ".join(analysis_results["failed_checks"])
+                failure_details = []
+
+                if not compilation_success:
+                    failure_details.append("compilation failed")
+
+                if ivy_assumptions_failed:
+                    failure_details.append(f"{len(ivy_assumptions_failed)} assumption(s) failed")
+
+                if protocol_violations:
+                    failure_details.append(f"{len(protocol_violations)} protocol violation(s)")
+
+                if error_frames:
+                    error_codes = [frame.get("error_code", "Unknown") for frame in error_frames]
+                    failure_details.append(f"error frame(s) received: {', '.join(error_codes)}")
+
+                if not failure_details:
+                    failure_details = analysis_results["failed_checks"]
+
                 analysis_results["analysis_summary"] = (
-                    f"Ivy test '{self.test_to_compile}' failed. Reasons: {failed_reasons}"
+                    f"Ivy test '{self.test_to_compile}' failed. "
+                    f"Issues found: {'; '.join(failure_details)}"
                 )
-            
+
+            # Add failure point information if available
+            if "failure_point" in ivy_log_analysis and ivy_log_analysis["failure_point"]:
+                failure_point = ivy_log_analysis["failure_point"]
+                analysis_results["failure_point"] = failure_point
+                analysis_results[
+                    "analysis_summary"
+                ] += f" Failure occurred at event #{failure_point.get('event_number', 'unknown')}: {failure_point.get('message', 'Unknown failure')}"
+
             # Notify analysis completed
-            self.notify_service_event("analysis_completed", {
-                "test_name": self.test_to_compile,
-                "passed": analysis_results["passed"],
-                "failed_checks": analysis_results["failed_checks"],
-                "warnings": analysis_results["warnings"]
-            })
-            
+            self.notify_service_event(
+                "analysis_completed",
+                {
+                    "test_name": self.test_to_compile,
+                    "passed": analysis_results["passed"],
+                    "failed_checks": analysis_results["failed_checks"],
+                    "warnings": analysis_results["warnings"],
+                    "ivy_assumptions_failed": len(ivy_assumptions_failed),
+                    "protocol_violations": len(protocol_violations),
+                    "error_frames": len(error_frames),
+                },
+            )
+
             self.logger.info(f"Analysis completed: {analysis_results['analysis_summary']}")
             return analysis_results
-            
+
         except Exception as e:
             error_msg = f"Error during output analysis: {str(e)}"
             self.logger.error(error_msg)
-            
+
             # Notify error
             self.notify_service_error(
                 error_type="analysis_error",
                 error_message=error_msg,
-                details={"traceback": traceback.format_exc()}
+                details={"traceback": traceback.format_exc()},
             )
-            
+
             return {
                 "passed": False,
                 "failed_checks": [error_msg],
                 "warnings": [],
                 "detailed_results": {"error": str(e)},
-                "analysis_summary": f"Analysis failed due to error: {str(e)}"
+                "analysis_summary": f"Analysis failed due to error: {str(e)}",
+                "protocol_violations": [],
+                "ivy_assumptions_failed": [],
+                "error_frames": [],
+                "protocol_phase_completed": {"handshake": False, "data_exchange": False},
+            }
+
+    def analyze_outputs_direct(self) -> Dict[str, Any]:
+        """Analyze outputs directly from log files when collected outputs aren't available."""
+        self.logger.info(f"Starting direct output analysis for {self.service_name}")
+
+        # Notify analysis started
+        self.notify_service_event(
+            "analysis_started", {"test_name": self.test_to_compile, "analysis_type": "direct"}
+        )
+
+        analysis_results = {
+            "passed": False,
+            "failed_checks": [],
+            "warnings": [],
+            "detailed_results": {},
+            "analysis_summary": "",
+            "protocol_violations": [],
+            "ivy_assumptions_failed": [],
+            "error_frames": [],
+            "protocol_phase_completed": {"handshake": False, "data_exchange": False},
+        }
+
+        try:
+            # Analyze Ivy logs directly (this method already reads from known file paths)
+            ivy_log_analysis = self._analyze_ivy_logs()
+            analysis_results["detailed_results"]["ivy_analysis"] = ivy_log_analysis
+
+            # Extract enhanced Ivy analysis results
+            ivy_success = ivy_log_analysis.get("test_passed", False)
+            compilation_success = ivy_log_analysis.get("compilation_success", False)
+            ivy_assumptions_failed = ivy_log_analysis.get("ivy_assumptions_failed", [])
+            protocol_violations = ivy_log_analysis.get("protocol_violations", [])
+            error_frames = ivy_log_analysis.get("error_frames", [])
+
+            # Copy detailed information to top level
+            analysis_results["ivy_assumptions_failed"] = ivy_assumptions_failed
+            analysis_results["protocol_violations"] = protocol_violations
+            analysis_results["error_frames"] = error_frames
+
+            # Extract protocol phase information if available
+            if "protocol_events" in ivy_log_analysis:
+                analysis_results["protocol_phase_completed"]["handshake"] = ivy_log_analysis.get(
+                    "handshake_completed", False
+                )
+                analysis_results["protocol_phase_completed"]["data_exchange"] = (
+                    ivy_log_analysis.get("data_exchanged", False)
+                )
+
+            # Check for specific failure conditions
+            if not compilation_success:
+                analysis_results["failed_checks"].append("Ivy compilation failed")
+
+            if ivy_assumptions_failed:
+                for assumption in ivy_assumptions_failed:
+                    failed_check = f"Ivy assumption failed: {assumption.get('message', 'Unknown')}"
+                    if assumption.get("line"):
+                        failed_check += f" (line {assumption['line']})"
+                    analysis_results["failed_checks"].append(failed_check)
+
+            if protocol_violations:
+                for violation in protocol_violations:
+                    analysis_results["failed_checks"].append(
+                        f"Protocol violation: {violation.get('type', 'Unknown')} - {violation.get('details', '')}"
+                    )
+
+            if error_frames:
+                for error_frame in error_frames:
+                    error_desc = error_frame.get("description", "Unknown error")
+                    error_code = error_frame.get("error_code", "Unknown")
+                    analysis_results["failed_checks"].append(
+                        f"Error frame received: {error_desc} (code: {error_code})"
+                    )
+
+            if (
+                not ivy_success
+                and not ivy_assumptions_failed
+                and not protocol_violations
+                and not error_frames
+            ):
+                analysis_results["failed_checks"].append(
+                    "Ivy test execution failed or no success pattern found"
+                )
+
+            # Determine overall result
+            analysis_results["passed"] = (
+                compilation_success
+                and ivy_success
+                and len(ivy_assumptions_failed) == 0
+                and len(protocol_violations) == 0
+                and len(error_frames) == 0
+                and len(analysis_results["failed_checks"]) == 0
+            )
+
+            # Create detailed summary
+            if analysis_results["passed"]:
+                phases_completed = []
+                if analysis_results["protocol_phase_completed"]["handshake"]:
+                    phases_completed.append("handshake")
+                if analysis_results["protocol_phase_completed"]["data_exchange"]:
+                    phases_completed.append("data exchange")
+
+                phase_info = (
+                    f" (phases completed: {', '.join(phases_completed)})"
+                    if phases_completed
+                    else ""
+                )
+                analysis_results["analysis_summary"] = (
+                    f"Ivy test '{self.test_to_compile}' passed successfully. "
+                    f"Direct log analysis completed without errors{phase_info}."
+                )
+            else:
+                failure_details = []
+
+                if not compilation_success:
+                    failure_details.append("compilation failed")
+
+                if ivy_assumptions_failed:
+                    failure_details.append(f"{len(ivy_assumptions_failed)} assumption(s) failed")
+
+                if protocol_violations:
+                    failure_details.append(f"{len(protocol_violations)} protocol violation(s)")
+
+                if error_frames:
+                    error_codes = [frame.get("error_code", "Unknown") for frame in error_frames]
+                    failure_details.append(f"error frame(s) received: {', '.join(error_codes)}")
+
+                if not failure_details:
+                    failure_details = analysis_results["failed_checks"]
+
+                analysis_results["analysis_summary"] = (
+                    f"Ivy test '{self.test_to_compile}' failed. "
+                    f"Issues found: {'; '.join(failure_details)}"
+                )
+
+            # Add failure point information if available
+            if "failure_point" in ivy_log_analysis and ivy_log_analysis["failure_point"]:
+                failure_point = ivy_log_analysis["failure_point"]
+                analysis_results["failure_point"] = failure_point
+                analysis_results[
+                    "analysis_summary"
+                ] += f" Failure occurred at event #{failure_point.get('event_number', 'unknown')}: {failure_point.get('message', 'Unknown failure')}"
+
+            # Notify analysis completed
+            self.notify_service_event(
+                "analysis_completed",
+                {
+                    "test_name": self.test_to_compile,
+                    "passed": analysis_results["passed"],
+                    "failed_checks": analysis_results["failed_checks"],
+                    "warnings": analysis_results["warnings"],
+                    "ivy_assumptions_failed": len(ivy_assumptions_failed),
+                    "protocol_violations": len(protocol_violations),
+                    "error_frames": len(error_frames),
+                    "analysis_type": "direct",
+                },
+            )
+
+            self.logger.info(f"Direct analysis completed: {analysis_results['analysis_summary']}")
+            return analysis_results
+
+        except Exception as e:
+            error_msg = f"Error during direct output analysis: {str(e)}"
+            self.logger.error(error_msg)
+
+            # Notify error
+            self.notify_service_error(
+                error_type="direct_analysis_error",
+                error_message=error_msg,
+                details={"traceback": traceback.format_exc()},
+            )
+
+            return {
+                "passed": False,
+                "failed_checks": [error_msg],
+                "warnings": [],
+                "detailed_results": {"error": str(e)},
+                "analysis_summary": f"Direct analysis failed due to error: {str(e)}",
+                "protocol_violations": [],
+                "ivy_assumptions_failed": [],
+                "error_frames": [],
+                "protocol_phase_completed": {"handshake": False, "data_exchange": False},
             }
 
     def get_test_results(self) -> Dict[str, Any]:
         """Get final test results."""
-        # Check if we have analysis results
-        if not hasattr(self, 'collected_outputs') or not self.collected_outputs:
-            self.logger.warning("No collected outputs available for analysis")
-            analysis_results = {
-                "passed": False,
-                "failed_checks": ["No outputs collected for analysis"],
-                "warnings": [],
-                "detailed_results": {},
-                "analysis_summary": "No outputs were collected for analysis"
-            }
+        # Check if we have analysis results, but also try direct analysis if not
+        if not hasattr(self, "collected_outputs") or not self.collected_outputs:
+            self.logger.info(
+                "No collected outputs available via event system, falling back to direct log analysis"
+            )
+            # For Ivy, we can analyze logs directly since they're in known locations
+            analysis_results = self.analyze_outputs_direct()
         else:
+            self.logger.info("Using collected outputs for analysis")
             analysis_results = self.analyze_outputs()
-        
+
         # Get execution results
         execution_results = {
             "test_compiled": True,
@@ -766,52 +1109,115 @@ class PantherIvyServiceManager(
             "log_success_detected": self.check_ivy_logs_for_success(),
             "test_name": self.test_to_compile,
             "protocol": self._get_protocol_name(),
-            "implementation": self.implementation_name
+            "implementation": self.implementation_name,
         }
-        
+
         # Overall pass determination
-        overall_passed = (
-            execution_results["log_success_detected"] and
-            analysis_results["passed"]
-        )
-        
-        # Create summary
+        overall_passed = execution_results["log_success_detected"] and analysis_results["passed"]
+
+        # Create detailed summary
         if overall_passed:
+            phases_info = ""
+            if analysis_results.get("protocol_phase_completed"):
+                phases = []
+                if analysis_results["protocol_phase_completed"]["handshake"]:
+                    phases.append("handshake")
+                if analysis_results["protocol_phase_completed"]["data_exchange"]:
+                    phases.append("data exchange")
+                if phases:
+                    phases_info = f" Protocol phases completed: {', '.join(phases)}."
+
             summary = (
                 f"Ivy test '{self.test_to_compile}' completed successfully. "
-                f"Both execution and output analysis passed."
+                f"Both execution and output analysis passed.{phases_info}"
             )
         else:
             failure_reasons = []
+
             if not execution_results["log_success_detected"]:
                 failure_reasons.append("No success pattern found in execution logs")
-            if not analysis_results["passed"]:
-                failure_reasons.extend(analysis_results["failed_checks"])
-            
+
+            # Add specific failure details from enhanced analysis
+            if analysis_results.get("ivy_assumptions_failed"):
+                assumptions_count = len(analysis_results["ivy_assumptions_failed"])
+                failure_reasons.append(f"{assumptions_count} Ivy assumption(s) failed")
+
+            if analysis_results.get("protocol_violations"):
+                violations_count = len(analysis_results["protocol_violations"])
+                failure_reasons.append(f"{violations_count} protocol violation(s)")
+
+            if analysis_results.get("error_frames"):
+                error_frames_count = len(analysis_results["error_frames"])
+                error_codes = [
+                    frame.get("error_code", "Unknown") for frame in analysis_results["error_frames"]
+                ]
+                failure_reasons.append(
+                    f"{error_frames_count} error frame(s) received ({', '.join(error_codes)})"
+                )
+
+            # Add other failure reasons if no specific ones found
+            if (
+                not any(
+                    [
+                        analysis_results.get("ivy_assumptions_failed"),
+                        analysis_results.get("protocol_violations"),
+                        analysis_results.get("error_frames"),
+                    ]
+                )
+                and not analysis_results["passed"]
+            ):
+                failure_reasons.extend(analysis_results.get("failed_checks", []))
+
+            # Add failure point information if available
+            failure_point_info = ""
+            if analysis_results.get("failure_point"):
+                fp = analysis_results["failure_point"]
+                failure_point_info = f" Failure at event #{fp.get('event_number', 'unknown')}: {fp.get('message', 'Unknown')}"
+
             summary = (
                 f"Ivy test '{self.test_to_compile}' failed. "
-                f"Reasons: {'; '.join(failure_reasons)}"
+                f"Issues: {'; '.join(failure_reasons)}{failure_point_info}"
             )
-        
+
+        # Enhanced test results with additional metadata
         test_results = {
             "passed": overall_passed,
             "execution_results": execution_results,
             "analysis_results": analysis_results,
             "summary": summary,
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "service_name": self.service_name
+            "service_name": self.service_name,
+            "enhanced_analysis": {
+                "ivy_assumptions_failed": analysis_results.get("ivy_assumptions_failed", []),
+                "protocol_violations": analysis_results.get("protocol_violations", []),
+                "error_frames": analysis_results.get("error_frames", []),
+                "protocol_phases": analysis_results.get("protocol_phase_completed", {}),
+                "failure_point": analysis_results.get("failure_point"),
+            },
         }
-        
+
         # Store results
         self.test_results = test_results
-        
-        # Notify results ready
-        self.notify_service_event("test_results_ready", {
+
+        # Enhanced notification with detailed information
+        notification_data = {
             "test_name": self.test_to_compile,
             "overall_passed": overall_passed,
-            "summary": summary
-        })
-        
+            "summary": summary,
+            "ivy_assumptions_failed": len(analysis_results.get("ivy_assumptions_failed", [])),
+            "protocol_violations": len(analysis_results.get("protocol_violations", [])),
+            "error_frames": len(analysis_results.get("error_frames", [])),
+        }
+
+        if analysis_results.get("error_frames"):
+            # Include the specific error codes for easier debugging
+            notification_data["error_codes"] = [
+                frame.get("error_code", "Unknown") for frame in analysis_results["error_frames"]
+            ]
+
+        # Notify results ready
+        self.notify_service_event("test_results_ready", notification_data)
+
         self.logger.info(f"Final test results: {summary}")
         return test_results
 
@@ -821,49 +1227,45 @@ class PantherIvyServiceManager(
             "valid": True,
             "suspicious_calls": [],
             "file_count": len(trace_outputs),
-            "details": {}
+            "details": {},
         }
-        
+
         suspicious_patterns = [
             r"SIGSEGV",
             r"SIGABRT",
             r"failed.*ENOENT",
             r"failed.*ECONNREFUSED",
-            r"failed.*ETIMEDOUT"
+            r"failed.*ETIMEDOUT",
         ]
-        
+
         for env_name, trace_file in trace_outputs.items():
             try:
                 if os.path.exists(trace_file):
                     with open(trace_file, "r", encoding="utf-8") as f:
                         trace_content = f.read()
-                    
-                    env_analysis = {
-                        "file_size": len(trace_content),
-                        "suspicious_patterns": []
-                    }
-                    
+
+                    env_analysis = {"file_size": len(trace_content), "suspicious_patterns": []}
+
                     for pattern in suspicious_patterns:
                         matches = re.findall(pattern, trace_content, re.IGNORECASE)
                         if matches:
-                            env_analysis["suspicious_patterns"].append({
-                                "pattern": pattern,
-                                "matches": len(matches)
-                            })
+                            env_analysis["suspicious_patterns"].append(
+                                {"pattern": pattern, "matches": len(matches)}
+                            )
                             trace_analysis["suspicious_calls"].extend(matches)
-                    
+
                     if env_analysis["suspicious_patterns"]:
                         trace_analysis["valid"] = False
-                    
+
                     trace_analysis["details"][env_name] = env_analysis
                 else:
                     self.logger.warning(f"Trace file not found: {trace_file}")
                     trace_analysis["details"][env_name] = {"error": "File not found"}
-            
+
             except Exception as e:
                 self.logger.error(f"Error analyzing trace file {trace_file}: {e}")
                 trace_analysis["details"][env_name] = {"error": str(e)}
-        
+
         return trace_analysis
 
     def _analyze_cpu_profiles(self, cpu_outputs: Dict[str, str]) -> Dict[str, Any]:
@@ -871,33 +1273,30 @@ class PantherIvyServiceManager(
         cpu_analysis = {
             "excessive_cpu_usage": False,
             "profile_count": len(cpu_outputs),
-            "details": {}
+            "details": {},
         }
-        
+
         for env_name, profile_file in cpu_outputs.items():
             try:
                 if os.path.exists(profile_file):
                     stat_info = os.stat(profile_file)
                     file_size = stat_info.st_size
-                    
-                    env_analysis = {
-                        "file_size": file_size,
-                        "analysis": "basic"
-                    }
-                    
+
+                    env_analysis = {"file_size": file_size, "analysis": "basic"}
+
                     if file_size > 10 * 1024 * 1024:  # 10MB threshold
                         cpu_analysis["excessive_cpu_usage"] = True
                         env_analysis["warning"] = "Large profile file detected"
-                    
+
                     cpu_analysis["details"][env_name] = env_analysis
                 else:
                     self.logger.warning(f"CPU profile file not found: {profile_file}")
                     cpu_analysis["details"][env_name] = {"error": "File not found"}
-            
+
             except Exception as e:
                 self.logger.error(f"Error analyzing CPU profile {profile_file}: {e}")
                 cpu_analysis["details"][env_name] = {"error": str(e)}
-        
+
         return cpu_analysis
 
     def _analyze_ivy_logs(self) -> Dict[str, Any]:
@@ -906,17 +1305,22 @@ class PantherIvyServiceManager(
             "compilation_success": False,
             "test_passed": False,
             "errors_found": [],
-            "warnings_found": []
+            "warnings_found": [],
+            "ivy_assumptions_failed": [],
+            "protocol_violations": [],
+            "error_frames": [],
         }
-        
+
         log_files_to_check = [
             "/app/logs/ivy_setup.log",
             "/app/logs/ivy_compilation.log",
             f"/app/logs/{self.service_name}.log",
+            f"/app/logs/{self.service_name}_run_cmd.log",
+            f"/app/logs/{self.service_name}_run_cmd_error.log",
             "/app/logs/stdout.log",
-            "/app/logs/stderr.log"
+            "/app/logs/stderr.log",
         ]
-        
+
         error_patterns = [
             r"error:",
             r"Error:",
@@ -926,61 +1330,297 @@ class PantherIvyServiceManager(
             r"ivy compilation failed",
             r"exit_code.*[^0]",
             r"Traceback",
-            r"Exception:"
+            r"Exception:",
         ]
-        
+
+        # Ivy-specific error patterns
+        ivy_error_patterns = [
+            (r"assumption failed", "assumption_failure"),
+            (r"require.*failed", "require_failure"),
+            (r"is_no_error.*failed", "no_error_violation"),
+            (r"assertion failed", "assertion_failure"),
+            (r"invariant.*violated", "invariant_violation"),
+        ]
+
+        # QUIC-specific patterns
+        quic_error_patterns = [
+            (r"frame\.connection_close.*err_code:0x([0-9a-fA-F]+)", "connection_close_error"),
+            (r"protocol.*violation", "protocol_violation"),
+            (r"unexpected.*frame", "unexpected_frame"),
+        ]
+
         compilation_success_patterns = [
             r"compilation.*success",
             r"successfully.*compiled",
-            r"ivy.*compilation.*complete"
+            r"ivy.*compilation.*complete",
+            r"ivyc.*exit.*0",
         ]
-        
+
         test_success_patterns = [
             r"test.*passed",
             r"verification.*successful",
             r"no.*counterexample.*found",
             r"PASS",
             r"Success",
-            r"test.*completed.*successfully"
+            r"test.*completed.*successfully",
+            r"test_complete",
         ]
-        
+
         for log_file in log_files_to_check:
             try:
                 if os.path.exists(log_file):
                     with open(log_file, "r", encoding="utf-8") as f:
                         log_content = f.read()
-                    
-                    # Check for errors
+
+                    # Check for generic errors
                     for pattern in error_patterns:
                         matches = re.findall(pattern, log_content, re.IGNORECASE)
                         if matches:
                             ivy_analysis["errors_found"].extend(matches)
-                    
+
+                    # Check for Ivy-specific errors
+                    for pattern, error_type in ivy_error_patterns:
+                        matches = re.findall(pattern, log_content, re.IGNORECASE | re.MULTILINE)
+                        if matches:
+                            # Extract line numbers if available
+                            line_pattern = r"line\s+(\d+).*?" + pattern
+                            line_matches = re.findall(
+                                line_pattern, log_content, re.IGNORECASE | re.MULTILINE
+                            )
+                            for i, match in enumerate(matches):
+                                error_info = {
+                                    "type": error_type,
+                                    "message": match if isinstance(match, str) else str(match),
+                                    "file": log_file,
+                                }
+                                if i < len(line_matches):
+                                    error_info["line"] = int(line_matches[i])
+                                ivy_analysis["ivy_assumptions_failed"].append(error_info)
+
+                    # Check for QUIC-specific errors
+                    for pattern, error_type in quic_error_patterns:
+                        matches = re.findall(pattern, log_content, re.IGNORECASE)
+                        for match in matches:
+                            if error_type == "connection_close_error" and isinstance(match, str):
+                                # Parse the error code
+                                error_code = int(match, 16)
+                                error_desc = self._get_quic_error_description(error_code)
+                                ivy_analysis["error_frames"].append(
+                                    {
+                                        "type": "connection_close",
+                                        "error_code": f"0x{match}",
+                                        "error_code_decimal": error_code,
+                                        "description": error_desc,
+                                    }
+                                )
+                            else:
+                                ivy_analysis["protocol_violations"].append(
+                                    {"type": error_type, "details": match}
+                                )
+
+                    # Parse structured Ivy output
+                    if log_file.endswith("_run_cmd.log") or log_file.endswith("_run_cmd_error.log"):
+                        trace_analysis = self._parse_ivy_trace_output(log_content)
+                        if trace_analysis:
+                            ivy_analysis.update(trace_analysis)
+
                     # Check for compilation success
                     for pattern in compilation_success_patterns:
                         if re.search(pattern, log_content, re.IGNORECASE):
                             ivy_analysis["compilation_success"] = True
                             break
-                    
+
                     # Check for test success
                     for pattern in test_success_patterns:
                         if re.search(pattern, log_content, re.IGNORECASE):
                             ivy_analysis["test_passed"] = True
                             break
-            
+
             except Exception as e:
                 self.logger.error(f"Error analyzing log file {log_file}: {e}")
                 ivy_analysis["warnings_found"].append(f"Could not read {log_file}: {str(e)}")
-        
+
+        # If we found assumption failures or protocol violations, test did not pass
+        if (
+            ivy_analysis["ivy_assumptions_failed"]
+            or ivy_analysis["protocol_violations"]
+            or ivy_analysis["error_frames"]
+        ):
+            ivy_analysis["test_passed"] = False
+
         # If no explicit compilation success found but no compilation errors, assume success
-        if not ivy_analysis["compilation_success"] and not any("compilation" in error.lower() for error in ivy_analysis["errors_found"]):
+        if not ivy_analysis["compilation_success"] and not any(
+            "compilation" in error.lower() for error in ivy_analysis["errors_found"]
+        ):
             ivy_analysis["compilation_success"] = True
-        
+
         # Use existing check method as fallback
-        if not ivy_analysis["test_passed"]:
+        if not ivy_analysis["test_passed"] and not ivy_analysis["ivy_assumptions_failed"]:
             ivy_analysis["test_passed"] = self.check_ivy_logs_for_success()
-        
+
         return ivy_analysis
+
+    def _get_quic_error_description(self, error_code: int) -> str:
+        """Get human-readable description for QUIC error codes."""
+        # RFC 9000 Transport Error Codes
+        quic_error_codes = {
+            0x00: "NO_ERROR",
+            0x01: "INTERNAL_ERROR",
+            0x02: "CONNECTION_REFUSED",
+            0x03: "FLOW_CONTROL_ERROR",
+            0x04: "STREAM_LIMIT_ERROR",
+            0x05: "STREAM_STATE_ERROR",
+            0x06: "FINAL_SIZE_ERROR",
+            0x07: "FRAME_ENCODING_ERROR",
+            0x08: "TRANSPORT_PARAMETER_ERROR",
+            0x09: "CONNECTION_ID_LIMIT_ERROR",
+            0x0A: "PROTOCOL_VIOLATION",
+            0x0B: "INVALID_TOKEN",
+            0x0C: "APPLICATION_ERROR",
+            0x0D: "CRYPTO_BUFFER_EXCEEDED",
+            0x0E: "KEY_UPDATE_ERROR",
+            0x0F: "AEAD_LIMIT_REACHED",
+            0x10: "NO_VIABLE_PATH",
+            0x11: "VERSION_NEGOTIATION_ERROR",
+            # Crypto errors (0x100-0x1FF)
+            0x100: "CRYPTO_ERROR",
+            0x101: "CRYPTO_ERROR_UNEXPECTED_MESSAGE",
+            0x109: "CRYPTO_ERROR_BAD_RECORD_MAC",
+            0x10A: "CRYPTO_ERROR_RECORD_OVERFLOW",
+            0x10F: "CRYPTO_ERROR_DECOMPRESSION_FAILURE",
+            0x114: "CRYPTO_ERROR_HANDSHAKE_FAILURE",
+            0x116: "CRYPTO_ERROR_BAD_CERTIFICATE",
+            0x11A: "CRYPTO_ERROR_UNSUPPORTED_CERTIFICATE",
+            0x11B: "CRYPTO_ERROR_CERTIFICATE_REVOKED",
+            0x11C: "CRYPTO_ERROR_CERTIFICATE_EXPIRED",
+            0x11D: "CRYPTO_ERROR_CERTIFICATE_UNKNOWN",
+            0x11E: "CRYPTO_ERROR_ILLEGAL_PARAMETER",
+            0x120: "CRYPTO_ERROR_UNKNOWN_CA",
+            0x121: "CRYPTO_ERROR_ACCESS_DENIED",
+            0x122: "CRYPTO_ERROR_DECODE_ERROR",
+            0x123: "CRYPTO_ERROR_DECRYPT_ERROR",
+            0x12F: "CRYPTO_ERROR_PROTOCOL_VERSION",  # This is the error we saw!
+            0x155: "CRYPTO_ERROR_INTERNAL_ERROR",
+            0x156: "CRYPTO_ERROR_USER_CANCELLED",
+        }
+
+        if error_code in quic_error_codes:
+            return quic_error_codes[error_code]
+        elif 0x100 <= error_code <= 0x1FF:
+            return f"CRYPTO_ERROR_UNKNOWN_{error_code:02X}"
+        else:
+            return f"UNKNOWN_ERROR_{error_code:02X}"
+
+    def _parse_ivy_trace_output(self, log_content: str) -> Dict[str, Any]:
+        """Parse structured Ivy trace output to extract detailed information."""
+        trace_analysis = {
+            "protocol_events": [],
+            "event_count": 0,
+            "last_successful_event": None,
+            "failure_point": None,
+            "handshake_completed": False,
+            "data_exchanged": False,
+        }
+
+        try:
+            lines = log_content.split("\n")
+            event_count = 0
+
+            for line in lines:
+                line = line.strip()
+
+                # Parse input events (>)
+                if line.startswith(">"):
+                    event_match = re.match(r">\s*(\w+)\((.*)\)", line)
+                    if event_match:
+                        event_name = event_match.group(1)
+                        event_params = event_match.group(2)
+
+                        event_info = {
+                            "type": "input",
+                            "name": event_name,
+                            "parameters": event_params,
+                            "line_number": event_count + 1,
+                        }
+                        trace_analysis["protocol_events"].append(event_info)
+                        trace_analysis["last_successful_event"] = event_info
+                        event_count += 1
+
+                        # Check for handshake completion indicators
+                        if "handshake" in event_name.lower() or "crypto" in event_name.lower():
+                            if "finished" in event_params or "complete" in event_params:
+                                trace_analysis["handshake_completed"] = True
+
+                        # Check for data exchange
+                        if "stream" in event_name.lower() or "data" in event_name.lower():
+                            trace_analysis["data_exchanged"] = True
+
+                # Parse output events (<)
+                elif line.startswith("<"):
+                    event_match = re.match(r"<\s*(\w+)\((.*)\)", line)
+                    if event_match:
+                        event_name = event_match.group(1)
+                        event_params = event_match.group(2)
+
+                        event_info = {
+                            "type": "output",
+                            "name": event_name,
+                            "parameters": event_params,
+                            "line_number": event_count + 1,
+                        }
+                        trace_analysis["protocol_events"].append(event_info)
+                        event_count += 1
+
+                # Check for assumption failure point
+                elif "assumption_failed" in line:
+                    assumption_match = re.search(r'assumption_failed\("([^"]+)"\)', line)
+                    if assumption_match:
+                        trace_analysis["failure_point"] = {
+                            "type": "assumption_failure",
+                            "message": assumption_match.group(1),
+                            "event_number": event_count,
+                        }
+
+                # Check for specific error patterns
+                elif "require is_no_error" in line:
+                    trace_analysis["failure_point"] = {
+                        "type": "protocol_error_violation",
+                        "message": "Protocol violation: Error frame received when no error was expected",
+                        "event_number": event_count,
+                    }
+
+            trace_analysis["event_count"] = event_count
+
+            # Extract connection close details if present
+            connection_close_events = [
+                event
+                for event in trace_analysis["protocol_events"]
+                if "connection_close" in event.get("name", "").lower()
+                or "connection_close" in event.get("parameters", "").lower()
+            ]
+
+            if connection_close_events:
+                last_close = connection_close_events[-1]
+                # Try to extract error code from parameters
+                error_code_match = re.search(
+                    r"err_code:0x([0-9a-fA-F]+)", last_close.get("parameters", "")
+                )
+                if error_code_match:
+                    error_code = int(error_code_match.group(1), 16)
+                    if not trace_analysis["failure_point"]:
+                        trace_analysis["failure_point"] = {
+                            "type": "connection_close",
+                            "error_code": f"0x{error_code_match.group(1)}",
+                            "error_code_decimal": error_code,
+                            "description": self._get_quic_error_description(error_code),
+                            "event_number": last_close.get("line_number", event_count),
+                        }
+
+        except Exception as e:
+            self.logger.error(f"Error parsing Ivy trace output: {e}")
+            trace_analysis["parse_error"] = str(e)
+
+        return trace_analysis
 
     def _do_stop(self):
         """Stop the service."""
@@ -988,10 +1628,10 @@ class PantherIvyServiceManager(
         try:
             # Check for test success before stopping
             test_success = self.check_ivy_logs_for_success()
-            
+
             # Store status (use attribute name that doesn't conflict with method)
             self._test_success_status = test_success
-            
+
             return True
         except Exception as e:
             self.logger.error("Error stopping PantherIvy service: %s", e)
@@ -1000,11 +1640,11 @@ class PantherIvyServiceManager(
     def _do_run_tests(self):
         """Run tests implementation."""
         self.logger.info("Running Ivy tests for %s", self.test_to_compile)
-        
+
         try:
             # Check test success
             success = self.test_success()
-            
+
             # Prepare results
             test_results = {
                 "success": success,
@@ -1012,20 +1652,22 @@ class PantherIvyServiceManager(
                 "service_name": self.service_name,
                 "protocol": self._get_protocol_name(),
                 "role": self.role.name if hasattr(self, "role") else "unknown",
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
             }
-            
+
             # Analyze outputs if available
             if hasattr(self, "collected_outputs") and self.collected_outputs:
                 analysis_results = self.analyze_outputs()
                 test_results["analysis"] = analysis_results
-                test_results["success"] = test_results["success"] and analysis_results.get("passed", False)
-            
+                test_results["success"] = test_results["success"] and analysis_results.get(
+                    "passed", False
+                )
+
             # Store results
             self.test_results = test_results
-            
+
             return test_results
-            
+
         except Exception as e:
             self.logger.error("Error running Ivy tests: %s", e)
             return {
@@ -1034,14 +1676,14 @@ class PantherIvyServiceManager(
                 "error_type": type(e).__name__,
                 "test_name": self.test_to_compile,
                 "service_name": self.service_name,
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
             }
 
     def handle_event(self, event: BaseEvent) -> None:
         """Handle events sent to this plugin."""
         event_type = type(event).__name__
         self.logger.debug("Received event: %s", event_type)
-        
+
         try:
             if event_type == "ServiceStartedEvent":
                 self.logger.info("Service started event received")
@@ -1050,32 +1692,40 @@ class PantherIvyServiceManager(
             elif event_type == "OutputCollectedEvent":
                 self.logger.info("Output collected event received")
                 if hasattr(event, "outputs"):
+                    self.logger.info(
+                        f"Event has outputs attribute with {len(event.outputs)} output types"
+                    )
                     self.set_collected_outputs(event.outputs)
+                else:
+                    self.logger.warning(
+                        "OutputCollectedEvent received but event has no 'outputs' attribute"
+                    )
+                    self.logger.debug(f"Event attributes: {dir(event)}")
             elif event_type == "TestRunRequestedEvent":
                 self.logger.info("Test run requested event received")
             else:
                 self.logger.debug("Unhandled event type: %s", event_type)
-        
+
         except Exception as e:
             self.logger.error("Error handling event %s: %s", event_type, e)
             self.notify_service_error(
                 error_type="event_handling_error",
                 error_message=str(e),
-                details={"event_type": event_type, "traceback": traceback.format_exc()}
+                details={"event_type": event_type, "traceback": traceback.format_exc()},
             )
 
     def _get_protocol_name(self):
         """Helper method to safely get protocol name."""
         if hasattr(self, "_protocol_name_cache") and self._protocol_name_cache:
             return self._protocol_name_cache
-        
+
         protocol_name = getattr(self.protocol, "name", None)
         if protocol_name is None and isinstance(self.protocol, str):
             protocol_name = self.protocol
         elif protocol_name is None:
             protocol_name = "unknown"
             self.logger.error("Unexpected protocol type: %s", type(self.protocol).__name__)
-        
+
         self._protocol_name_cache = protocol_name
         return protocol_name
 

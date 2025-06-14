@@ -13,7 +13,6 @@ from panther.plugins.services.iut.config_schema import (
 )
 from panther.plugins.services.iut.config_schema import ImplementationType
 
-
 @dataclass
 class AvailableTests:
     tests: List[str] = field(default_factory=list)
@@ -40,20 +39,18 @@ class AvailableTests:
                     logging.debug(
                         "Found test: %s, type: %s, name: %s",
                         test_path,
-                        test_type.replace('_tests', ''),
-                        file
+                        test_type.replace("_tests", ""),
+                        file,
                     )
         # Sort tests by name to ensure deterministic order
         tests.sort(key=lambda x: x["name"])
         return AvailableTests(tests=tests)
-
 
 @dataclass
 class Test:
     name: str
     protocol: str
     endpoint: str
-
 
 @dataclass
 class EnvironmentConfig:
@@ -74,7 +71,6 @@ class EnvironmentConfig:
         "/app/implementations/quic-implementations/aioquic/src/:$IVY_DIR/submodules/z3/build/python:$PYTHON_IVY_DIR"
     )
     ADDITIONAL_PATH: str = "/go/bin:$IVY_DIR/submodules/z3/build"
-
 
 @dataclass
 class ParametersConfig:
@@ -119,7 +115,6 @@ class ParametersConfig:
     log_level: Parameter = field(
         default_factory=lambda: Parameter(value="DEBUG", description="Log level for Ivy")
     )
-
 
 @dataclass
 class PantherIvyVersion(VersionBase):
@@ -228,14 +223,12 @@ class PantherIvyVersion(VersionBase):
                                 for line in reversed(lines[-10:]):  # Check last 10 lines
                                     if line.strip() == "PASS":
                                         logger.info(
-                                            "Test %s PASSED (found in last lines)",
-                                            test_name
+                                            "Test %s PASSED (found in last lines)", test_name
                                         )
                                         return True
                                     elif line.strip() == "FAIL":
                                         logger.info(
-                                            "Test %s FAILED (found in last lines)",
-                                            test_name
+                                            "Test %s FAILED (found in last lines)", test_name
                                         )
                                         return False
 
@@ -249,7 +242,6 @@ class PantherIvyVersion(VersionBase):
         except Exception as e:
             logger.error("Error checking test success: %s", e)
             return False
-
 
 @dataclass
 class PantherIvyConfig(ImplementationConfig):
@@ -269,8 +261,7 @@ class PantherIvyConfig(ImplementationConfig):
 
     @staticmethod
     def load_versions_from_files(
-        version_configs_dir: str = f"{Path(os.path.dirname(__file__))}/version_configs/quic/",
-    ) -> PantherIvyVersion:
+        version_configs_dir: str = f"{Path(os.path.dirname(__file__))}/version_configs/quic/") -> PantherIvyVersion:
         """Load version configurations dynamically from YAML files."""
         logging.debug("Loading PantherIvy versions from %s", version_configs_dir)
         for version_file in os.listdir(version_configs_dir):
