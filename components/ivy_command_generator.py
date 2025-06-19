@@ -367,37 +367,11 @@ class IvyCommandGenerator(ErrorHandlerMixin):
                 self.logger.warning(f"Failed to render command template: {e}")
                 # Fall through to fallback logic
             
-            # Fallback to constructing basic arguments manually
-            # Return structured command data for template safety
-            args = []
-            if "seed" in params:
-                args.append(f"seed={params['seed']}")
-            else:
-                args.append("seed=1")  # Default seed
-                
-            if "server_addr" in params:
-                args.append(f"server_addr={params['server_addr']}")
-            if "client_addr" in params:
-                args.append(f"client_addr={params['client_addr']}")
-            if "server_port" in params:
-                args.append(f"server_port={params.get('server_port', 4443)}")
-            else:
-                args.append("server_port=4443")  # Default port
-                
-            # Add default QUIC parameters if not present
-            if "the_cid" not in params:
-                args.append("the_cid=1")
-            if "iversion" not in params:
-                args.append("iversion=1")
-            
-            # Return space-separated string but ensure it's template-safe
-            command_args = " ".join(args)
-            self.logger.debug(f"Generated fallback command args: {command_args}")
-            return command_args
+            raise ValueError("No template renderer available or failed to render template")
             
         except Exception as e:
             self.logger.error(f"Failed to generate deployment commands: {e}")
-            return "seed=1 server_port=4443"  # Minimal fallback
+            raise
     
     def generate_post_run_commands(self) -> Dict[str, List[ShellCommand]]:
         """Generate post-run cleanup commands (restored from original).
@@ -575,72 +549,104 @@ class IvyCommandGenerator(ErrorHandlerMixin):
         if service_config and hasattr(service_config, 'implementation'):
             use_system_models = getattr(service_config.implementation, 'use_system_models', False)
         
+        # Get container base path
         if use_system_models:
-            base_path = "/opt/panther_ivy/protocol-testing/apt/"
+            container_base_path = "/opt/panther_ivy/protocol-testing/apt/"
         else:
             env_protocol_model_path = getattr(self.service_manager, 'env_protocol_model_path', None)
             if env_protocol_model_path:
-                base_path = env_protocol_model_path
+                container_base_path = env_protocol_model_path
             else:
-                base_path = f"/opt/panther_ivy/protocol-testing/{self._get_protocol_name()}/"
+                container_base_path = f"/opt/panther_ivy/protocol-testing/{self._get_protocol_name()}/"
+        
+        # Get host base path for checking - convert container path to host path
+        # The plugin is located at the service manager's module location
+        import inspect
+        try:
+            plugin_module_file = inspect.getfile(self.service_manager.__class__)
+            # Go up to find protocol-testing directory
+            plugin_path = Path(plugin_module_file).parent
+            while plugin_path.name != "panther_ivy" and plugin_path.parent != plugin_path:
+                plugin_path = plugin_path.parent
+            
+            # Now we have the panther_ivy directory, build the host path
+            if use_system_models:
+                host_base_path = plugin_path / "protocol-testing" / "apt"
+            else:
+                host_base_path = plugin_path / "protocol-testing" / self._get_protocol_name()
+        except Exception as e:
+            self.logger.warning(f"Could not determine host path, skipping directory checks: {e}")
+            host_base_path = None
         
         # Get role information
         role = getattr(self.service_manager, 'role', None)
         role_name = role.name if hasattr(role, 'name') else str(role) if role else 'unknown'
         
-        # Construct test directory path based on whether using system models
+        # Construct test directory paths
         protocol_name = self._get_protocol_name()
         
         if use_system_models:
             # For apt (system models), tests are in apt_tests/attacker_<opposite_role>_tests/
-            # e.g., /opt/panther_ivy/protocol-testing/apt/apt_tests/attacker_server_tests/
-            file_path = os.path.join(base_path, "apt_tests", f"attacker_{oppose_role(role_name)}_tests")
+            container_file_path = os.path.join(container_base_path, "apt_tests", f"attacker_{oppose_role(role_name)}_tests")
+            if host_base_path:
+                host_file_path = host_base_path / "apt_tests" / f"attacker_{oppose_role(role_name)}_tests"
+            else:
+                host_file_path = None
         else:
             # For individual protocols: /opt/panther_ivy/protocol-testing/<protocol>/<protocol>_tests/<opposite_role>_tests/
-            # e.g., /opt/panther_ivy/protocol-testing/quic/quic_tests/server_tests/
-            file_path = os.path.join(base_path, f"{protocol_name}_tests", f"{oppose_role(role_name)}_tests")
+            container_file_path = os.path.join(container_base_path, f"{protocol_name}_tests", f"{oppose_role(role_name)}_tests")
+            if host_base_path:
+                host_file_path = host_base_path / f"{protocol_name}_tests" / f"{oppose_role(role_name)}_tests"
+            else:
+                host_file_path = None
         
-        # Log the path we're trying to use for debugging
-        self.logger.info(f"Attempting to compile test in directory: {file_path}")
+        # Log the paths we're using
+        self.logger.info(f"Container path for test compilation: {container_file_path}")
+        if host_base_path:
+            self.logger.info(f"Host path for existence check: {host_file_path}")
         self.logger.info(f"Role: {role_name}, Oppose role: {oppose_role(role_name)}, Test: {test_name}")
         
-        # Safety check - if the oppose_role directory doesn't exist, try the same role directory
-        if not os.path.exists(file_path):
+        # Check host path if available and try alternatives if needed
+        final_container_path = container_file_path
+        if host_base_path and host_file_path and not host_file_path.exists():
             if use_system_models:
                 # For system models, try alternative apt test directory names
-                alternative_path = os.path.join(base_path, "apt_tests", f"attacker_{role_name}_tests")
-                # Also check without "attacker_" prefix as a fallback
-                alternative_path2 = os.path.join(base_path, "apt_tests", f"{oppose_role(role_name)}_tests")
+                alt_host_path = host_base_path / "apt_tests" / f"attacker_{role_name}_tests"
+                alt_host_path2 = host_base_path / "apt_tests" / f"{oppose_role(role_name)}_tests"
+                alt_container_path = os.path.join(container_base_path, "apt_tests", f"attacker_{role_name}_tests")
+                alt_container_path2 = os.path.join(container_base_path, "apt_tests", f"{oppose_role(role_name)}_tests")
             else:
-                alternative_path = os.path.join(base_path, f"{protocol_name}_tests", f"{role_name}_tests")
-                alternative_path2 = None
+                alt_host_path = host_base_path / f"{protocol_name}_tests" / f"{role_name}_tests"
+                alt_host_path2 = None
+                alt_container_path = os.path.join(container_base_path, f"{protocol_name}_tests", f"{role_name}_tests")
+                alt_container_path2 = None
             
-            self.logger.warning(f"Directory {file_path} doesn't exist, trying {alternative_path}")
-            if os.path.exists(alternative_path):
-                file_path = alternative_path
-                self.logger.info(f"Using alternative path: {file_path}")
-            elif alternative_path2 and os.path.exists(alternative_path2):
-                file_path = alternative_path2
-                self.logger.info(f"Using alternative path: {file_path}")
+            self.logger.warning(f"Host directory {host_file_path} doesn't exist, trying {alt_host_path}")
+            if alt_host_path.exists():
+                final_container_path = alt_container_path
+                self.logger.info(f"Using alternative container path: {final_container_path}")
+            elif alt_host_path2 and alt_host_path2.exists():
+                final_container_path = alt_container_path2
+                self.logger.info(f"Using alternative container path: {final_container_path}")
             else:
-                self.logger.error(f"Neither {file_path} nor {alternative_path} exist")
+                self.logger.warning(f"No suitable test directory found on host, using default: {container_file_path}")
                 # List available directories for debugging
                 try:
                     if use_system_models:
-                        tests_dir = os.path.join(base_path, "apt_tests")
+                        tests_dir = host_base_path / "apt_tests"
                     else:
-                        tests_dir = os.path.join(base_path, f"{protocol_name}_tests")
+                        tests_dir = host_base_path / f"{protocol_name}_tests"
                     
-                    if os.path.exists(tests_dir):
-                        available_dirs = [d for d in os.listdir(tests_dir) if os.path.isdir(os.path.join(tests_dir, d))]
+                    if tests_dir.exists():
+                        available_dirs = [d.name for d in tests_dir.iterdir() if d.is_dir()]
                         self.logger.info(f"Available directories in {tests_dir}: {available_dirs}")
                     else:
-                        self.logger.error(f"Tests directory {tests_dir} doesn't exist")
-                        if os.path.exists(base_path):
-                            available_dirs = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
-                            self.logger.info(f"Available directories in {base_path}: {available_dirs}")
+                        self.logger.error(f"Tests directory {tests_dir} doesn't exist on host")
+                        if host_base_path.exists():
+                            available_dirs = [d.name for d in host_base_path.iterdir() if d.is_dir()]
+                            self.logger.info(f"Available directories in {host_base_path}: {available_dirs}")
                 except Exception as e:
-                    self.logger.error(f"Failed to list directories: {e}")
+                    self.logger.error(f"Failed to list host directories: {e}")
         
         # Get internal iterations parameter
         internal_iterations = 1  # Default
@@ -654,7 +660,7 @@ class IvyCommandGenerator(ErrorHandlerMixin):
         
         # Build compilation command
         compile_cmd = (
-            f"cd '{file_path}' ; "
+            f"cd '{final_container_path}' ; "
             f"PYTHONPATH=$PYTHON_IVY_DIR ivyc trace=false show_compiled=false "
             f"target=test test_iters={internal_iterations} "
             f"{test_name}.ivy >> /app/logs/ivy_setup.log 2>&1 || exit 1"
@@ -670,13 +676,13 @@ class IvyCommandGenerator(ErrorHandlerMixin):
                 else:
                     tests_build_dir = str(impl_params.tests_build_dir)
         
-        build_dir = os.path.join(base_path, tests_build_dir)
+        build_dir = os.path.join(container_base_path, tests_build_dir)
         
         commands = [
             compile_cmd,
             "ls >> /app/logs/ivy_setup.log 2>&1",
             f"mkdir -p '{build_dir}'",
-            f"cp '{os.path.join(file_path, test_name)}'* '{build_dir}'",
+            f"cp '{os.path.join(final_container_path, test_name)}'* '{build_dir}'",
             f"ls '{build_dir}' >> /app/logs/ivy_setup.log 2>&1",
         ]
         

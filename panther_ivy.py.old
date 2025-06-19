@@ -193,7 +193,7 @@ echo "Server mode: target IP will be determined at runtime" >> /app/logs/ivy_set
         # First try to get non-loopback IP, if none found, use loopback
         # Write variables to file so they persist across command phases
         ivy_ip_setup = f"""IVY_IP=$(resolve_hostname {self.service_name}) && \\
-IVY_IP_DEC=$(    {self.service_name} decimal) && \\
+IVY_IP_DEC=$(resolve_hostname {self.service_name} decimal) && \\
 IVY_IP_HEX=$(resolve_hostname {self.service_name} hex) && \\
 echo "export IVY_IP='$IVY_IP'" >> /app/logs/ivy_env.sh && \\
 echo "export IVY_IP_DEC='$IVY_IP_DEC'" >> /app/logs/ivy_env.sh && \\
