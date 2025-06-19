@@ -588,8 +588,9 @@ class IvyCommandGenerator(ErrorHandlerMixin):
         role = getattr(self.service_manager, 'role', None)
         role_name = role.name if hasattr(role, 'name') else str(role) if role else 'unknown'
         
-        # The test directory is directly under the protocol path: /opt/panther_ivy/protocol-testing/<protocol>/<opposite_role>_tests/
-        file_path = os.path.join(base_path, f"{oppose_role(role_name)}_tests")
+        # The test directory is under quic_tests: /opt/panther_ivy/protocol-testing/<protocol>/quic_tests/<opposite_role>_tests/
+        protocol_name = self._get_protocol_name()
+        file_path = os.path.join(base_path, f"{protocol_name}_tests", f"{oppose_role(role_name)}_tests")
         
         # Log the path we're trying to use for debugging
         self.logger.info(f"Attempting to compile test in directory: {file_path}")
@@ -597,7 +598,7 @@ class IvyCommandGenerator(ErrorHandlerMixin):
         
         # Safety check - if the oppose_role directory doesn't exist, try the same role directory
         if not os.path.exists(file_path):
-            alternative_path = os.path.join(base_path, f"{role_name}_tests")
+            alternative_path = os.path.join(base_path, f"{protocol_name}_tests", f"{role_name}_tests")
             self.logger.warning(f"Directory {file_path} doesn't exist, trying {alternative_path}")
             if os.path.exists(alternative_path):
                 file_path = alternative_path
@@ -606,11 +607,15 @@ class IvyCommandGenerator(ErrorHandlerMixin):
                 self.logger.error(f"Neither {file_path} nor {alternative_path} exist")
                 # List available directories for debugging
                 try:
-                    if os.path.exists(base_path):
-                        available_dirs = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
-                        self.logger.info(f"Available directories in {base_path}: {available_dirs}")
+                    tests_dir = os.path.join(base_path, f"{protocol_name}_tests")
+                    if os.path.exists(tests_dir):
+                        available_dirs = [d for d in os.listdir(tests_dir) if os.path.isdir(os.path.join(tests_dir, d))]
+                        self.logger.info(f"Available directories in {tests_dir}: {available_dirs}")
                     else:
-                        self.logger.error(f"Base directory {base_path} doesn't exist")
+                        self.logger.error(f"Tests directory {tests_dir} doesn't exist")
+                        if os.path.exists(base_path):
+                            available_dirs = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
+                            self.logger.info(f"Available directories in {base_path}: {available_dirs}")
                 except Exception as e:
                     self.logger.error(f"Failed to list directories: {e}")
         
