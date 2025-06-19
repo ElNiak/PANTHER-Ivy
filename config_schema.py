@@ -1,21 +1,16 @@
-from dataclasses import dataclass, field
 import logging
 import os
 from pathlib import Path
 from typing import Dict, List, Optional
 
 from omegaconf import OmegaConf
+from pydantic import BaseModel, Field
 
-from panther.plugins.services.iut.config_schema import (
-    ImplementationConfig,
-    Parameter,
-    VersionBase,
-)
-from panther.plugins.services.iut.config_schema import ImplementationType
+from panther.config.core.models.plugin import ServicePluginConfig
+from panther.config.core.models.service import ImplementationType
 
-@dataclass
-class AvailableTests:
-    tests: List[str] = field(default_factory=list)
+class AvailableTests(BaseModel):
+    tests: List[Dict[str, str]] = Field(default_factory=list, description="List of available tests")
 
     @staticmethod
     def load_tests_from_directory(tests_dir: str) -> "AvailableTests":
@@ -46,218 +41,158 @@ class AvailableTests:
         tests.sort(key=lambda x: x["name"])
         return AvailableTests(tests=tests)
 
-@dataclass
-class Test:
-    name: str
-    protocol: str
-    endpoint: str
+class Test(BaseModel):
+    name: str = Field(..., description="Test name")
+    protocol: str = Field(..., description="Protocol name")
+    endpoint: str = Field(..., description="Test endpoint")
 
-@dataclass
-class EnvironmentConfig:
-    PROTOCOL_TESTED: str = ""
-    RUST_LOG: str = "debug"
-    RUST_BACKTRACE: str = "1"
-    SOURCE_DIR: str = "/opt/"
-    IVY_DIR: str = "$SOURCE_DIR/panther_ivy"
-    PYTHON_IVY_DIR: str = "/usr/local/lib/python3.10/dist-packages/"
-    IVY_INCLUDE_PATH: str = (
-        "$IVY_INCLUDE_PATH:/usr/local/lib/python3.10/dist-packages/ivy/include/1.7"
+class EnvironmentVarConfig(BaseModel):
+    PROTOCOL_TESTED: str = Field(default="", description="Protocol being tested")
+    RUST_LOG: str = Field(default="debug", description="Rust log level")
+    RUST_BACKTRACE: str = Field(default="1", description="Enable Rust backtrace")
+    SOURCE_DIR: str = Field(default="/opt/", description="Source directory")
+    IVY_DIR: str = Field(default="$SOURCE_DIR/panther_ivy", description="Ivy directory")
+    PYTHON_IVY_DIR: str = Field(
+        default="/usr/local/lib/python3.10/dist-packages/",
+        description="Python Ivy directory"
     )
-    Z3_LIBRARY_DIRS: str = "$IVY_DIR/submodules/z3/build"
-    Z3_LIBRARY_PATH: str = "$IVY_DIR/submodules/z3/build"
-    LD_LIBRARY_PATH: str = "$LD_LIBRARY_PATH:$IVY_DIR/submodules/z3/build"
-    PROOTPATH: str = "$SOURCE_DIR"
-    ADDITIONAL_PYTHONPATH: str = (
-        "/app/implementations/quic-implementations/aioquic/src/:$IVY_DIR/submodules/z3/build/python:$PYTHON_IVY_DIR"
+    IVY_INCLUDE_PATH: str = Field(
+        default="$IVY_INCLUDE_PATH:/usr/local/lib/python3.10/dist-packages/ivy/include/1.7",
+        description="Ivy include path"
     )
-    ADDITIONAL_PATH: str = "/go/bin:$IVY_DIR/submodules/z3/build"
+    Z3_LIBRARY_DIRS: str = Field(
+        default="$IVY_DIR/submodules/z3/build",
+        description="Z3 library directories"
+    )
+    Z3_LIBRARY_PATH: str = Field(
+        default="$IVY_DIR/submodules/z3/build",
+        description="Z3 library path"
+    )
+    LD_LIBRARY_PATH: str = Field(
+        default="$LD_LIBRARY_PATH:$IVY_DIR/submodules/z3/build",
+        description="LD library path"
+    )
+    PROOTPATH: str = Field(default="$SOURCE_DIR", description="Proot path")
+    ADDITIONAL_PYTHONPATH: str = Field(
+        default="/app/implementations/quic-implementations/aioquic/src/:$IVY_DIR/submodules/z3/build/python:$PYTHON_IVY_DIR",
+        description="Additional Python path"
+    )
+    ADDITIONAL_PATH: str = Field(
+        default="/go/bin:$IVY_DIR/submodules/z3/build",
+        description="Additional PATH"
+    )
 
-@dataclass
-class ParametersConfig:
-    tests_output_dir: Parameter = field(
+class Parameter(BaseModel):
+    """Parameter configuration."""
+    value: str = Field(..., description="Parameter value")
+    description: str = Field(..., description="Parameter description")
+
+
+class ParametersConfig(BaseModel):
+    tests_output_dir: Parameter = Field(
         default_factory=lambda: Parameter(
             value="temp/", description="Directory where the tests output will be stored"
-        )
+        ),
+        description="Tests output directory" # TODO redirect directly to the network environment shared volume (/app/logs ?)
     )
-    tests_build_dir: Parameter = field(
+    tests_build_dir: Parameter = Field(
         default_factory=lambda: Parameter(
             value="build/", description="Directory where the tests will be built"
-        )
+        ),
+        description="Tests build directory"
     )
-    iterations_per_test: Parameter = field(
-        default_factory=lambda: Parameter(value="1", description="Number of iterations per test")
-    )
-    internal_iterations_per_test: Parameter = field(
+    iterations_per_test: Parameter = Field(
         default_factory=lambda: Parameter(
-            value="300", description="Number of internal iterations per test"
-        )
+            value="1", description="Number of iterations per test"
+        ),
+        description="Iterations per test"
     )
-    timeout: Parameter = field(
+    internal_iterations_per_test: Parameter = Field(
+        default_factory=lambda: Parameter(
+            value="300", description="Number of internal iterations per test when running the solver loop"
+        ),
+        description="Internal iterations per test"
+    )
+    timeout: Parameter = Field(
         default_factory=lambda: Parameter(
             value="120", description="Timeout for each test (in seconds)"
-        )
+        ),
+        description="Test timeout"
     )
-    keep_alive: Parameter = field(
+    keep_alive: Parameter = Field(
         default_factory=lambda: Parameter(
             value="False", description="Keep the Ivy process alive after the tests"
-        )
+        ),
+        description="Keep alive flag"
     )
-    run_in_docker: Parameter = field(
+    run_in_docker: Parameter = Field(
         default_factory=lambda: Parameter(
             value="True", description="Run the tests in a Docker container"
-        )
+        ),
+        description="Run in Docker flag"
     )
-    get_tests_stats: Parameter = field(
+    get_tests_stats: Parameter = Field(
         default_factory=lambda: Parameter(
             value="True", description="Get the statistics of the tests"
-        )
+        ),
+        description="Get test statistics flag"
     )
-    log_level: Parameter = field(
-        default_factory=lambda: Parameter(value="DEBUG", description="Log level for Ivy")
+    log_level: Parameter = Field(
+        default_factory=lambda: Parameter(
+            value="DEBUG", description="Log level for Ivy"
+        ),
+        description="Log level"
     )
 
-@dataclass
-class PantherIvyVersion(VersionBase):
-    version: str = ""
-    commit: str = ""
-    dependencies: List[Dict[str, str]] = field(default_factory=list)
-    env: Optional[Dict] = field(default_factory=dict)
-    parameters: Optional[Dict] = field(default_factory=dict)
-    client: Optional[Dict] = field(default_factory=dict)
-    server: Optional[Dict] = field(default_factory=dict)
-
-    def is_test_successful(self, role, test_name: str) -> bool:
-        """
-        Checks if a test was successful based on the output files.
-
-        Args:
-            role: The role (client/server) for which the test was run
-            test_name (str): The name of the test to check
-
-        Returns:
-            bool: True if the test was successful (PASS found), False otherwise (FAIL found or neither found)
-        """
-        import logging
-        import os
-        import glob
-
-        logger = logging.getLogger(__name__)
-        logger.info("Checking test success for %s with role %s", test_name, role)
-
-        try:
-            # Get the protocol name from the test path
-            protocol_dir = os.environ.get("PROTOCOL_TESTED", "apt")
-            logger.debug("Protocol directory: %s", protocol_dir)
-
-            # Base path for test outputs - check both with the current directory and absolute path
-            base_paths = [
-                # Path relative to this file
-                os.path.join(os.path.dirname(__file__), "protocol-testing", protocol_dir, "test"),
-                # Absolute path in container
-                f"/opt/panther_ivy/protocol-testing/{protocol_dir}/test",
-                # Path in test environment
-                f"/app/panther-ivy/protocol-testing/{protocol_dir}/test",
-            ]
-
-            # Extract the base name of the test (without extension)
-            test_base_name = test_name
-            if test_base_name.endswith(".ivy"):
-                test_base_name = test_base_name[:-4]
-
-            logger.debug("Looking for test results for %s", test_base_name)
-
-            for base_path in base_paths:
-                if not os.path.exists(base_path):
-                    logger.debug("Path does not exist: %s", base_path)
-                    continue
-
-                logger.debug("Searching for ivy_stdout.txt files in %s", base_path)
-
-                # Look for ivy_stdout.txt files that might contain the test results
-                # The pattern searches recursively for any test output file in the test directory
-                search_pattern = os.path.join(base_path, "**", "ivy_stdout.txt")
-                output_files = glob.glob(search_pattern, recursive=True)
-                logger.debug("Found %s output files", len(output_files))
-
-                if not output_files:
-                    continue
-
-                # Sort by modification time (most recent first)
-                output_files.sort(key=os.path.getmtime, reverse=True)
-
-                # Try to find a relevant file for this test
-                relevant_output_files = []
-
-                for file_path in output_files:
-                    try:
-                        with open(file_path, "r") as f:
-                            content = f.read()
-                            # Check if this file contains the test name
-                            if test_base_name in content:
-                                logger.debug("Found relevant file: %s", file_path)
-                                relevant_output_files.append(file_path)
-                    except Exception as e:
-                        logger.warning("Error reading file %s: %s", file_path, e)
-
-                if relevant_output_files:
-                    logger.info("Found %s relevant output files", len(relevant_output_files))
-
-                    # Check the most recent relevant file
-                    latest_file = relevant_output_files[0]
-                    logger.info("Using most recent file: %s", latest_file)
-
-                    try:
-                        with open(latest_file, "r") as file:
-                            content = file.read()
-
-                            # Check if PASS or FAIL is at the end of the file
-                            if content.strip().endswith("PASS"):
-                                logger.info("Test %s PASSED", test_name)
-                                return True
-                            elif content.strip().endswith("FAIL"):
-                                logger.info("Test %s FAILED", test_name)
-                                return False
-                            else:
-                                # If no PASS/FAIL at the end, check if it's in the last few lines
-                                lines = content.strip().split("\n")
-                                for line in reversed(lines[-10:]):  # Check last 10 lines
-                                    if line.strip() == "PASS":
-                                        logger.info(
-                                            "Test %s PASSED (found in last lines)", test_name
-                                        )
-                                        return True
-                                    elif line.strip() == "FAIL":
-                                        logger.info(
-                                            "Test %s FAILED (found in last lines)", test_name
-                                        )
-                                        return False
-
-                                logger.warning("No PASS/FAIL indicator found in %s", latest_file)
-                    except Exception as e:
-                        logger.error("Error reading test output file: %s", e)
-
-            logger.warning("No suitable output file found for test %s", test_name)
-            return False
-
-        except Exception as e:
-            logger.error("Error checking test success: %s", e)
-            return False
-
-@dataclass
-class PantherIvyConfig(ImplementationConfig):
-    name: str = "panther_ivy"  # Implementation name
-    type: ImplementationType = ImplementationType.TESTERS  # Default type for panther_ivy
-    test: str = field(default="")  # Test name for testers
-    use_system_models: bool = field(default=False)
-    # Use system models for the test
-    shadow_compatible: bool = field(default=True)
-    gperf_compatible: bool = field(default=True)
-    protocol: str = field(default="quic")  # Protocol tested by the implementation
-    version: PantherIvyVersion = field(
-        default_factory=lambda: PantherIvyConfig.load_versions_from_files()
+class PantherIvyVersion(BaseModel):
+    version: str = Field(default="", description="Version string")
+    commit: str = Field(default="", description="Git commit hash")
+    dependencies: List[Dict[str, str]] = Field(
+        default_factory=list,
+        description="List of dependencies"
     )
-    environment: EnvironmentConfig = field(default_factory=lambda: EnvironmentConfig())
-    parameters: ParametersConfig = field(default_factory=lambda: ParametersConfig())
+    env: Optional[Dict] = Field(default_factory=dict, description="Environment variables")
+    parameters: Optional[Dict] = Field(default_factory=dict, description="Parameters")
+    client: Optional[Dict] = Field(default_factory=dict, description="Client configuration")
+    server: Optional[Dict] = Field(default_factory=dict, description="Server configuration")
+    
+class PantherIvyConfig(ServicePluginConfig):
+    """Configuration for Panther Ivy tester service."""
+    
+    name: str = Field(default="panther_ivy", description="Implementation name")
+    type: ImplementationType = Field(
+        default=ImplementationType.TESTERS,
+        description="Implementation type"
+    )
+    test: str = Field(default="", description="Test name for testers")
+    use_system_models: bool = Field(
+        default=False,
+        description="Use system models for the test"
+    )
+    shadow_compatible: bool = Field(
+        default=True,
+        description="Whether compatible with Shadow network simulator"
+    )
+    gperf_compatible: bool = Field(
+        default=True,
+        description="Whether compatible with gperf profiling"
+    )
+    protocol: str = Field(
+        default="quic",
+        description="Protocol tested by the implementation"
+    )
+    version: PantherIvyVersion = Field(
+        default_factory=lambda: PantherIvyConfig.load_versions_from_files(),
+        description="Version configuration"
+    )
+    environment: EnvironmentVarConfig = Field(
+        default_factory=EnvironmentVarConfig,
+        description="Environment variable configuration"
+    )
+    parameters: ParametersConfig = Field(
+        default_factory=ParametersConfig,
+        description="Parameters configuration"
+    )
 
     @staticmethod
     def load_versions_from_files(
@@ -269,8 +204,23 @@ class PantherIvyConfig(ImplementationConfig):
                 version_path = os.path.join(version_configs_dir, version_file)
                 raw_version_config = OmegaConf.load(version_path)
                 logging.debug("Loaded raw PantherIvy version config: %s", raw_version_config)
-                version_config = OmegaConf.to_object(
-                    OmegaConf.merge(PantherIvyVersion, raw_version_config)
-                )
+                # Create default instance and convert to dict for merging
+                default_version = PantherIvyVersion()
+                try:
+                    # Try Pydantic v2 method first
+                    default_dict = default_version.model_dump()
+                except AttributeError:
+                    # Fall back to Pydantic v1 method
+                    default_dict = default_version.dict()
+                merged_config = OmegaConf.merge(default_dict, raw_version_config)
+                
+                # Ensure client and server are in the config before conversion
+                if 'client' not in merged_config or merged_config.client is None:
+                    merged_config.client = {}
+                if 'server' not in merged_config or merged_config.server is None:
+                    merged_config.server = {}
+                    
+                version_config = OmegaConf.to_object(merged_config)
+                    
                 logging.debug("Loaded PantherIvy version %s", version_config)
                 return version_config

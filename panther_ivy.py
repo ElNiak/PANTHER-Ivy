@@ -245,10 +245,9 @@ class PantherIvyServiceManager(
         )
         local_protocol_dir = self.protocol_model_path
 
-        volumes = [
+        volumes = [ # TODO: remove quotes around paths
             f"{ivy_include_dir}:/opt/panther_ivy/ivy/include/1.7",
             f"{local_protocol_dir}:{self.env_protocol_model_path}",
-            "shared_logs:/app/sync_logs",
         ]
 
         if hasattr(self, "volumes"):

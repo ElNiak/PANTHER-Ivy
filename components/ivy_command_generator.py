@@ -499,7 +499,7 @@ class IvyCommandGenerator(ErrorHandlerMixin):
         # Copy Ivy files with proper path quoting for template safety
         commands.extend([
             "echo 'Copying updated Ivy files...' >> /app/logs/ivy_setup.log",
-            "find '/opt/panther_ivy/ivy/include/1.7/' -type f -name '*.ivy' -exec cp {{}} '/usr/local/lib/python3.10/dist-packages/ivy/include/1.7/' \\; >> /app/logs/ivy_setup.log 2>&1",
+            "find '/opt/panther_ivy/ivy/include/1.7/' -type f -name '*.ivy' -exec cp {} '/usr/local/lib/python3.10/dist-packages/ivy/include/1.7/' \\; >> /app/logs/ivy_setup.log 2>&1",
         ])
         
         # Protocol-specific setup
@@ -551,7 +551,8 @@ class IvyCommandGenerator(ErrorHandlerMixin):
         commands = [
             "echo 'Setting up Ivy model...' >> /app/logs/ivy_setup.log",
             f"echo 'Updating include path from {env_protocol_model_path}' >> /app/logs/ivy_setup.log",
-            f"find '{env_protocol_model_path}' -type f -name '*.ivy' -exec cp -f {{}} '/usr/local/lib/python3.10/dist-packages/ivy/include/1.7/' \\;",
+            # Use string concatenation to avoid f-string issues with {}
+            "find '" + env_protocol_model_path + "' -type f -name '*.ivy' -exec cp -f {} '/usr/local/lib/python3.10/dist-packages/ivy/include/1.7/' \\;",
             "ls -l '/usr/local/lib/python3.10/dist-packages/ivy/include/1.7/' >> /app/logs/ivy_setup.log",
         ]
         

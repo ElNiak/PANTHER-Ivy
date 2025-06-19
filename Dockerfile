@@ -4,8 +4,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Define build arguments for version-specific configurations
 ARG VERSION=production
 ARG DEPENDENCIES="[]"  # JSON-formatted list of dependencies
-ENV VERSION=${VERSION}
 ENV DEPENDENCIES=${DEPENDENCIES}
+ENV VERSION=${VERSION}
 
 RUN apt update; \
     add-apt-repository --yes ppa:deadsnakes/ppa; \
@@ -82,7 +82,7 @@ RUN apt update; \
     dsniff \
     sudo
 
-    
+
 # picotls
 RUN apt-get install -y jq
 # Function to parse and build dependencies
