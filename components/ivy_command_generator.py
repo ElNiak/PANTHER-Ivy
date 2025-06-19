@@ -588,9 +588,17 @@ class IvyCommandGenerator(ErrorHandlerMixin):
         role = getattr(self.service_manager, 'role', None)
         role_name = role.name if hasattr(role, 'name') else str(role) if role else 'unknown'
         
-        # The test directory is under quic_tests: /opt/panther_ivy/protocol-testing/<protocol>/quic_tests/<opposite_role>_tests/
+        # Construct test directory path based on whether using system models
         protocol_name = self._get_protocol_name()
-        file_path = os.path.join(base_path, f"{protocol_name}_tests", f"{oppose_role(role_name)}_tests")
+        
+        if use_system_models:
+            # For apt (system models), tests are in apt_tests/attacker_<opposite_role>_tests/
+            # e.g., /opt/panther_ivy/protocol-testing/apt/apt_tests/attacker_server_tests/
+            file_path = os.path.join(base_path, "apt_tests", f"attacker_{oppose_role(role_name)}_tests")
+        else:
+            # For individual protocols: /opt/panther_ivy/protocol-testing/<protocol>/<protocol>_tests/<opposite_role>_tests/
+            # e.g., /opt/panther_ivy/protocol-testing/quic/quic_tests/server_tests/
+            file_path = os.path.join(base_path, f"{protocol_name}_tests", f"{oppose_role(role_name)}_tests")
         
         # Log the path we're trying to use for debugging
         self.logger.info(f"Attempting to compile test in directory: {file_path}")
@@ -598,16 +606,31 @@ class IvyCommandGenerator(ErrorHandlerMixin):
         
         # Safety check - if the oppose_role directory doesn't exist, try the same role directory
         if not os.path.exists(file_path):
-            alternative_path = os.path.join(base_path, f"{protocol_name}_tests", f"{role_name}_tests")
+            if use_system_models:
+                # For system models, try alternative apt test directory names
+                alternative_path = os.path.join(base_path, "apt_tests", f"attacker_{role_name}_tests")
+                # Also check without "attacker_" prefix as a fallback
+                alternative_path2 = os.path.join(base_path, "apt_tests", f"{oppose_role(role_name)}_tests")
+            else:
+                alternative_path = os.path.join(base_path, f"{protocol_name}_tests", f"{role_name}_tests")
+                alternative_path2 = None
+            
             self.logger.warning(f"Directory {file_path} doesn't exist, trying {alternative_path}")
             if os.path.exists(alternative_path):
                 file_path = alternative_path
+                self.logger.info(f"Using alternative path: {file_path}")
+            elif alternative_path2 and os.path.exists(alternative_path2):
+                file_path = alternative_path2
                 self.logger.info(f"Using alternative path: {file_path}")
             else:
                 self.logger.error(f"Neither {file_path} nor {alternative_path} exist")
                 # List available directories for debugging
                 try:
-                    tests_dir = os.path.join(base_path, f"{protocol_name}_tests")
+                    if use_system_models:
+                        tests_dir = os.path.join(base_path, "apt_tests")
+                    else:
+                        tests_dir = os.path.join(base_path, f"{protocol_name}_tests")
+                    
                     if os.path.exists(tests_dir):
                         available_dirs = [d for d in os.listdir(tests_dir) if os.path.isdir(os.path.join(tests_dir, d))]
                         self.logger.info(f"Available directories in {tests_dir}: {available_dirs}")
