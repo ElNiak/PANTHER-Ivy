@@ -584,22 +584,12 @@ class IvyCommandGenerator(ErrorHandlerMixin):
             else:
                 base_path = f"/opt/panther_ivy/protocol-testing/{self._get_protocol_name()}/"
         
-        # Get tests directory
-        tests_dir = "tests"  # Default
-        if service_config and hasattr(service_config, 'implementation'):
-            version = getattr(service_config.implementation, 'version', None)
-            if version and hasattr(version, 'parameters'):
-                version_params = version.parameters
-                if isinstance(version_params, dict) and "tests_dir" in version_params:
-                    tests_dir_info = version_params["tests_dir"]
-                    if isinstance(tests_dir_info, dict) and "value" in tests_dir_info:
-                        tests_dir = tests_dir_info["value"]
-        
         # Get role information
         role = getattr(self.service_manager, 'role', None)
         role_name = role.name if hasattr(role, 'name') else str(role) if role else 'unknown'
         
-        file_path = os.path.join(base_path, tests_dir, f"{oppose_role(role_name)}_tests")
+        # The test directory is directly under the protocol path: /opt/panther_ivy/protocol-testing/<protocol>/<opposite_role>_tests/
+        file_path = os.path.join(base_path, f"{oppose_role(role_name)}_tests")
         
         # Log the path we're trying to use for debugging
         self.logger.info(f"Attempting to compile test in directory: {file_path}")
@@ -607,7 +597,7 @@ class IvyCommandGenerator(ErrorHandlerMixin):
         
         # Safety check - if the oppose_role directory doesn't exist, try the same role directory
         if not os.path.exists(file_path):
-            alternative_path = os.path.join(base_path, tests_dir, f"{role_name}_tests")
+            alternative_path = os.path.join(base_path, f"{role_name}_tests")
             self.logger.warning(f"Directory {file_path} doesn't exist, trying {alternative_path}")
             if os.path.exists(alternative_path):
                 file_path = alternative_path
@@ -616,12 +606,11 @@ class IvyCommandGenerator(ErrorHandlerMixin):
                 self.logger.error(f"Neither {file_path} nor {alternative_path} exist")
                 # List available directories for debugging
                 try:
-                    tests_base = os.path.join(base_path, tests_dir)
-                    if os.path.exists(tests_base):
-                        available_dirs = [d for d in os.listdir(tests_base) if os.path.isdir(os.path.join(tests_base, d))]
-                        self.logger.info(f"Available directories in {tests_base}: {available_dirs}")
+                    if os.path.exists(base_path):
+                        available_dirs = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
+                        self.logger.info(f"Available directories in {base_path}: {available_dirs}")
                     else:
-                        self.logger.error(f"Tests base directory {tests_base} doesn't exist")
+                        self.logger.error(f"Base directory {base_path} doesn't exist")
                 except Exception as e:
                     self.logger.error(f"Failed to list directories: {e}")
         
