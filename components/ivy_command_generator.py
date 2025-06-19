@@ -559,21 +559,27 @@ class IvyCommandGenerator(ErrorHandlerMixin):
             else:
                 container_base_path = f"/opt/panther_ivy/protocol-testing/{self._get_protocol_name()}/"
         
-        # Get host base path for checking - convert container path to host path
-        # The plugin is located at the service manager's module location
-        import inspect
+        # Get host base path for checking - build from PANTHER root
         try:
-            plugin_module_file = inspect.getfile(self.service_manager.__class__)
-            # Go up to find protocol-testing directory
-            plugin_path = Path(plugin_module_file).parent
-            while plugin_path.name != "panther_ivy" and plugin_path.parent != plugin_path:
-                plugin_path = plugin_path.parent
+            # Find PANTHER root by going up from current file location
+            current_file = Path(__file__).resolve()
+            panther_root = current_file
             
-            # Now we have the panther_ivy directory, build the host path
+            # Go up until we find the PANTHER root (contains panther directory)
+            while panther_root.parent != panther_root:
+                if (panther_root / "panther").exists() and (panther_root / "pyproject.toml").exists():
+                    break
+                panther_root = panther_root.parent
+            
+            # Build the path to panther_ivy protocol-testing
+            panther_ivy_path = panther_root / "panther" / "plugins" / "services" / "testers" / "panther_ivy" / "protocol-testing"
+            
             if use_system_models:
-                host_base_path = plugin_path / "protocol-testing" / "apt"
+                host_base_path = panther_ivy_path / "apt"
             else:
-                host_base_path = plugin_path / "protocol-testing" / self._get_protocol_name()
+                host_base_path = panther_ivy_path / self._get_protocol_name()
+                
+            self.logger.debug(f"Using host base path: {host_base_path}")
         except Exception as e:
             self.logger.warning(f"Could not determine host path, skipping directory checks: {e}")
             host_base_path = None
