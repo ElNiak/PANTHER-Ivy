@@ -7,7 +7,7 @@ from omegaconf import OmegaConf
 from pydantic import BaseModel, Field
 
 from panther.config.core.models.plugin import ServicePluginConfig
-from panther.config.core.models.service import ImplementationType
+from panther.config.core.models.service import ImplementationType, VersionBase
 
 class AvailableTests(BaseModel):
     tests: List[Dict[str, str]] = Field(default_factory=list, description="List of available tests")
@@ -46,111 +46,41 @@ class Test(BaseModel):
     protocol: str = Field(..., description="Protocol name")
     endpoint: str = Field(..., description="Test endpoint")
 
-class EnvironmentVarConfig(BaseModel):
-    PROTOCOL_TESTED: str = Field(default="", description="Protocol being tested")
-    RUST_LOG: str = Field(default="debug", description="Rust log level")
-    RUST_BACKTRACE: str = Field(default="1", description="Enable Rust backtrace")
-    SOURCE_DIR: str = Field(default="/opt/", description="Source directory")
-    IVY_DIR: str = Field(default="$SOURCE_DIR/panther_ivy", description="Ivy directory")
-    PYTHON_IVY_DIR: str = Field(
-        default="/usr/local/lib/python3.10/dist-packages/",
-        description="Python Ivy directory"
-    )
-    IVY_INCLUDE_PATH: str = Field(
-        default="$IVY_INCLUDE_PATH:/usr/local/lib/python3.10/dist-packages/ivy/include/1.7",
-        description="Ivy include path"
-    )
-    Z3_LIBRARY_DIRS: str = Field(
-        default="$IVY_DIR/submodules/z3/build",
-        description="Z3 library directories"
-    )
-    Z3_LIBRARY_PATH: str = Field(
-        default="$IVY_DIR/submodules/z3/build",
-        description="Z3 library path"
-    )
-    LD_LIBRARY_PATH: str = Field(
-        default="$LD_LIBRARY_PATH:$IVY_DIR/submodules/z3/build",
-        description="LD library path"
-    )
-    PROOTPATH: str = Field(default="$SOURCE_DIR", description="Proot path")
-    ADDITIONAL_PYTHONPATH: str = Field(
-        default="/app/implementations/quic-implementations/aioquic/src/:$IVY_DIR/submodules/z3/build/python:$PYTHON_IVY_DIR",
-        description="Additional Python path"
-    )
-    ADDITIONAL_PATH: str = Field(
-        default="/go/bin:$IVY_DIR/submodules/z3/build",
-        description="Additional PATH"
-    )
+# Standard environment variables following PANTHER patterns
+DEFAULT_ENVIRONMENT_VARIABLES = {
+    "PROTOCOL_TESTED": "",
+    "RUST_LOG": "debug", 
+    "RUST_BACKTRACE": "1",
+    "SOURCE_DIR": "/opt/",
+    "IVY_DIR": "$SOURCE_DIR/panther_ivy",
+    "PYTHON_IVY_DIR": "/usr/local/lib/python3.10/dist-packages/",
+    "IVY_INCLUDE_PATH": "$IVY_INCLUDE_PATH:/usr/local/lib/python3.10/dist-packages/ivy/include/1.7",
+    "Z3_LIBRARY_DIRS": "$IVY_DIR/submodules/z3/build",
+    "Z3_LIBRARY_PATH": "$IVY_DIR/submodules/z3/build", 
+    "LD_LIBRARY_PATH": "$LD_LIBRARY_PATH:$IVY_DIR/submodules/z3/build",
+    "PROOTPATH": "$SOURCE_DIR",
+    "ADDITIONAL_PYTHONPATH": "/app/implementations/quic-implementations/aioquic/src/:$IVY_DIR/submodules/z3/build/python:$PYTHON_IVY_DIR",
+    "ADDITIONAL_PATH": "/go/bin:$IVY_DIR/submodules/z3/build",
+    # Protocol path configuration
+    "PANTHER_IVY_BASE_PATH": "/opt/panther_ivy/protocol-testing",
+    "PANTHER_IVY_APT_SUBPATH": "apt/apt_protocols",
+    "PANTHER_IVY_STANDARD_SUBPATH": ""
+}
 
-class Parameter(BaseModel):
-    """Parameter configuration."""
-    value: str = Field(..., description="Parameter value")
-    description: str = Field(..., description="Parameter description")
+# Direct parameter fields following PANTHER patterns
 
-
-class ParametersConfig(BaseModel):
-    tests_output_dir: Parameter = Field(
-        default_factory=lambda: Parameter(
-            value="temp/", description="Directory where the tests output will be stored"
-        ),
-        description="Tests output directory" # TODO redirect directly to the network environment shared volume (/app/logs ?)
-    )
-    tests_build_dir: Parameter = Field(
-        default_factory=lambda: Parameter(
-            value="build/", description="Directory where the tests will be built"
-        ),
-        description="Tests build directory"
-    )
-    iterations_per_test: Parameter = Field(
-        default_factory=lambda: Parameter(
-            value="1", description="Number of iterations per test"
-        ),
-        description="Iterations per test"
-    )
-    internal_iterations_per_test: Parameter = Field(
-        default_factory=lambda: Parameter(
-            value="300", description="Number of internal iterations per test when running the solver loop"
-        ),
-        description="Internal iterations per test"
-    )
-    timeout: Parameter = Field(
-        default_factory=lambda: Parameter(
-            value="120", description="Timeout for each test (in seconds)"
-        ),
-        description="Test timeout"
-    )
-    keep_alive: Parameter = Field(
-        default_factory=lambda: Parameter(
-            value="False", description="Keep the Ivy process alive after the tests"
-        ),
-        description="Keep alive flag"
-    )
-    run_in_docker: Parameter = Field(
-        default_factory=lambda: Parameter(
-            value="True", description="Run the tests in a Docker container"
-        ),
-        description="Run in Docker flag"
-    )
-    get_tests_stats: Parameter = Field(
-        default_factory=lambda: Parameter(
-            value="True", description="Get the statistics of the tests"
-        ),
-        description="Get test statistics flag"
-    )
-    log_level: Parameter = Field(
-        default_factory=lambda: Parameter(
-            value="DEBUG", description="Log level for Ivy"
-        ),
-        description="Log level"
-    )
-
-class PantherIvyVersion(BaseModel):
+class PantherIvyVersion(VersionBase):
+    """Version information for PantherIvy following PANTHER standards."""
+    
+    # Provide defaults for required base fields
     version: str = Field(default="", description="Version string")
     commit: str = Field(default="", description="Git commit hash")
     dependencies: List[Dict[str, str]] = Field(
         default_factory=list,
         description="List of dependencies"
     )
+    
+    # Additional fields beyond VersionBase
     env: Optional[Dict] = Field(default_factory=dict, description="Environment variables")
     parameters: Optional[Dict] = Field(default_factory=dict, description="Parameters")
     client: Optional[Dict] = Field(default_factory=dict, description="Client configuration")
@@ -158,7 +88,7 @@ class PantherIvyVersion(BaseModel):
     
 class PantherIvyConfig(ServicePluginConfig):
     """Configuration for Panther Ivy tester service."""
-    
+
     name: str = Field(default="panther_ivy", description="Implementation name")
     type: ImplementationType = Field(
         default=ImplementationType.TESTERS,
@@ -177,50 +107,160 @@ class PantherIvyConfig(ServicePluginConfig):
         default=True,
         description="Whether compatible with gperf profiling"
     )
-    protocol: str = Field(
-        default="quic",
-        description="Protocol tested by the implementation"
-    )
+    # protocol: str = Field(
+    #     default="quic",
+    #     description="Protocol tested by the implementation"
+    # )
     version: PantherIvyVersion = Field(
         default_factory=lambda: PantherIvyConfig.load_versions_from_files(),
         description="Version configuration"
     )
-    environment: EnvironmentVarConfig = Field(
-        default_factory=EnvironmentVarConfig,
-        description="Environment variable configuration"
+    environment: Dict[str, str] = Field(
+        default_factory=lambda: DEFAULT_ENVIRONMENT_VARIABLES.copy(),
+        description="Environment variables"
     )
-    parameters: ParametersConfig = Field(
-        default_factory=ParametersConfig,
-        description="Parameters configuration"
+    # Direct parameter fields following PANTHER patterns
+    tests_output_dir: str = Field(
+        default="temp/",
+        description="Directory where the tests output will be stored"
+    )
+    tests_build_dir: str = Field(
+        default="build/",
+        description="Directory where the tests will be built"
+    )
+    iterations_per_test: int = Field(
+        default=1,
+        description="Number of iterations per test"
+    )
+    internal_iterations_per_test: int = Field(
+        default=300,
+        description="Number of internal iterations per test when running the solver loop"
+    )
+    timeout: int = Field(
+        default=120,
+        description="Timeout for each test (in seconds)"
+    )
+    keep_alive: bool = Field(
+        default=False,
+        description="Keep the Ivy process alive after the tests"
+    )
+    run_in_docker: bool = Field(
+        default=True,
+        description="Run the tests in a Docker container"
+    )
+    get_tests_stats: bool = Field(
+        default=True,
+        description="Get the statistics of the tests"
+    )
+    log_level: str = Field(
+        default="DEBUG",
+        description="Log level for Ivy"
     )
 
     @staticmethod
     def load_versions_from_files(
-        version_configs_dir: str = f"{Path(os.path.dirname(__file__))}/version_configs/quic/") -> PantherIvyVersion:
-        """Load version configurations dynamically from YAML files."""
+        version_configs_dir: str = f"{Path(os.path.dirname(__file__))}/version_configs/",
+        protocol: str = "quic",
+        version: Optional[str] = None,
+        protocol_version_override: str = None) -> PantherIvyVersion:
+        """Load version configurations dynamically from YAML files.
+        
+        Args:
+            version_configs_dir: Directory containing version configs (auto-detected if None)
+            protocol: Protocol name for version directory (default: quic)
+            version: Specific version to load (loads first found if None)
+        
+        Returns:
+            PantherIvyVersion configuration
+        """
+        import logging
+        logging.debug("Loading PantherIvy versions with protocol: %s, version: %s", protocol, version)
+        version = version if not protocol_version_override else protocol_version_override
+        if version_configs_dir is None:
+            # Auto-detect based on protocol
+            base_dir = Path(os.path.dirname(__file__)) / "version_configs"
+            version_configs_dir = str(base_dir / protocol)
+            logging.debug("Using version configs directory: %s", version_configs_dir)
+        # Fallback to base directory if protocol-specific directory doesn't exist
+        if not os.path.exists(version_configs_dir):
+            logging.warning(f"Protocol-specific directory {version_configs_dir} not found, trying base directory")
+            version_configs_dir = str(Path(os.path.dirname(__file__)) / "version_configs")
+        
+        if not os.path.exists(version_configs_dir):
+            logging.warning(f"Version configs directory {version_configs_dir} not found, using defaults")
+            return PantherIvyVersion()
+        
         logging.debug("Loading PantherIvy versions from %s", version_configs_dir)
-        for version_file in os.listdir(version_configs_dir):
-            if version_file.endswith(".yaml"):
-                version_path = os.path.join(version_configs_dir, version_file)
-                raw_version_config = OmegaConf.load(version_path)
-                logging.debug("Loaded raw PantherIvy version config: %s", raw_version_config)
-                # Create default instance and convert to dict for merging
-                default_version = PantherIvyVersion()
-                try:
-                    # Try Pydantic v2 method first
-                    default_dict = default_version.model_dump()
-                except AttributeError:
-                    # Fall back to Pydantic v1 method
-                    default_dict = default_version.dict()
-                merged_config = OmegaConf.merge(default_dict, raw_version_config)
-                
-                # Ensure client and server are in the config before conversion
-                if 'client' not in merged_config or merged_config.client is None:
-                    merged_config.client = {}
-                if 'server' not in merged_config or merged_config.server is None:
-                    merged_config.server = {}
-                    
-                version_config = OmegaConf.to_object(merged_config)
-                    
-                logging.debug("Loaded PantherIvy version %s", version_config)
-                return version_config
+        
+        # Find version files
+        version_files = [f for f in os.listdir(version_configs_dir) if f.endswith(".yaml")]
+        if not version_files:
+            logging.warning(f"No version files found in {version_configs_dir}, using defaults")
+            return PantherIvyVersion()
+        
+        # Select specific version or first available
+        target_file = None
+        if version:
+            target_file = f"{version}.yaml"
+            if target_file not in version_files:
+                logging.warning(f"Requested version {version} not found, using first available")
+                target_file = None
+        
+        if target_file is None:
+            target_file = sorted(version_files)[0]  # Use first available, sorted for determinism
+        
+        version_path = os.path.join(version_configs_dir, target_file)
+        raw_version_config = OmegaConf.load(version_path)
+        logging.debug("Loaded raw PantherIvy version config: %s", raw_version_config)
+        
+        # Create default instance and convert to dict for merging
+        default_version = PantherIvyVersion()
+        try:
+            # Try Pydantic v2 method first
+            default_dict = default_version.model_dump()
+        except AttributeError:
+            # Fall back to Pydantic v1 method
+            default_dict = default_version.dict()
+        
+        merged_config = OmegaConf.merge(default_dict, raw_version_config)
+        
+        # Ensure client and server are in the config before conversion
+        if 'client' not in merged_config or merged_config.client is None:
+            merged_config.client = {}
+        if 'server' not in merged_config or merged_config.server is None:
+            merged_config.server = {}
+        
+        # Convert OmegaConf to dict and create proper Pydantic model
+        version_dict = OmegaConf.to_container(merged_config, resolve=True)
+        version_config = PantherIvyVersion(**version_dict)
+        
+        logging.debug("Loaded PantherIvy version %s from %s", version_config.version if hasattr(version_config, 'version') else 'unknown', target_file)
+        return version_config
+
+    @classmethod
+    def create_with_protocol_context(cls, protocol=None):
+        """Create PantherIvyConfig instance with optional protocol context.
+        
+        # TODO refactor duplicated code
+        
+        If protocol version is provided, loads version-specific configuration.
+        Otherwise creates standard instance.
+        
+        Args:
+            protocol: Optional protocol configuration containing version info
+            
+        Returns:
+            PantherIvyConfig instance with appropriate version configuration
+        """
+        if protocol and hasattr(protocol, 'version') and protocol.version:
+            try:
+                version_config = cls.load_versions_from_files(
+                    protocol_version_override=protocol.version
+                )
+                return cls(version=version_config)
+            except (FileNotFoundError, ValueError) as e:
+                import logging
+                logging.warning(f"Could not load protocol version {protocol.version}: {e}")
+                # Fallback to default instance
+                return cls()
+        return cls()
