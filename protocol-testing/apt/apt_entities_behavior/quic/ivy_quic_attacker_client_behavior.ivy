@@ -88,8 +88,12 @@ before malicious_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_pa
                 require src.addr = client.ep.addr;
             }
         };
+<<<<<<< HEAD
         # require used_client_ports(src.port);
 require src.port = client.ep.port;
+=======
+        require used_client_ports(src.port);
+>>>>>>> origin/production
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
         require (ep_present(src) & pkt.long)-> pkt.src_cid = ep_map_cid(src);
@@ -123,13 +127,21 @@ before open_connection(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
                     require src.addr = client.ep.addr; #client.ep | src = client_alt;
                 } else {
                     require src.addr  = client_alt.addr;
+<<<<<<< HEAD
                 }Ò
+=======
+                }
+>>>>>>> origin/production
             } else {
                 require src.addr = client.ep.addr;
             }
         };
         require src.port = client.ep.port;
+<<<<<<< HEAD
         # # require used_client_ports(src.port);
+=======
+        # require used_client_ports(src.port);  #  & ~used_client_ports_in_packet_event(src.port)
+>>>>>>> origin/production
         require src.protocol = ip.udp; 
         require src.interface = ip.veth_ivy;
         require (ep_present(src) & pkt.long)-> pkt.src_cid = ep_map_cid(src);
@@ -175,7 +187,11 @@ around attacker_send_event {
         
     # };
     require s = current_stream;
+<<<<<<< HEAD
     var tp := trans_params(ep_map_cid(src));
+=======
+    var tp := trans_params( ep_map_cid(src));
+>>>>>>> origin/production
 
     # if version_negociated {
     #     require src = client_vn;
@@ -205,8 +221,12 @@ around attacker_send_event {
             require src.addr = client.ep.addr;
         }
     };
+<<<<<<< HEAD
     # require used_client_ports(src.port);
 require src.port = client.ep.port;
+=======
+    require used_client_ports(src.port);
+>>>>>>> origin/production
     require src.protocol = ip.udp;
     require src.interface = ip.veth_ivy;
 
@@ -244,7 +264,11 @@ require src.port = client.ep.port;
 # Notably, the `intbv` type can be used to represent large numbers with
 # small bit vector enodings.
 
+<<<<<<< HEAD
 interpret cid -> longbv[1][1000][20]
+=======
+interpret cid -> longbv[1][13][20]
+>>>>>>> origin/production
 interpret version -> bv[32]
 interpret pkt_num -> bv[32]
 interpret error_code -> bv[16]

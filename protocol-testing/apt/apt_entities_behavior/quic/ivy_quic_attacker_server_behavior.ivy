@@ -4,7 +4,11 @@ include order
 include quic_infer
 include file
 # include quic_locale
+<<<<<<< HEAD
 include quic_random_value
+=======
+include random_value
+>>>>>>> origin/production
 
 
 # Network setup
@@ -39,9 +43,15 @@ after init {
 
 # Get cid associated to a TLS instance
 
+<<<<<<< HEAD
 # action tls_id_to_cid(tls_id:tls_api.id) returns (scid:cid) = {
 #     scid := the_cid;
 # }
+=======
+action tls_id_to_cid(tls_id:tls_api.id) returns (scid:cid) = {
+    scid := the_cid;
+}
+>>>>>>> origin/production
 
 
 #
@@ -380,7 +390,11 @@ around attacker_send_event {
     };
     var data := http_request.segment(stream_length(dcid,s),end);
 #    call app_send_event(src,dst,dcid,s,data,end = http_request.end);
+<<<<<<< HEAD
     call quic_app_send_event(src,dst,dcid,s,data,stream_length(dcid,s),true);
+=======
+    call app_send_event(src,dst,dcid,s,data,stream_length(dcid,s),true);
+>>>>>>> origin/production
     current_stream := current_stream + 4;
 }
 
@@ -392,7 +406,11 @@ around attacker_send_event {
 # Notably, the `intbv` type can be used to represent large numbers with
 # small bit vector enodings.
 
+<<<<<<< HEAD
 interpret cid -> longbv[1][1000][20]
+=======
+interpret cid -> longbv[1][13][20]
+>>>>>>> origin/production
 interpret version -> bv[32]
 interpret pkt_num -> bv[32]
 interpret error_code -> bv[16]

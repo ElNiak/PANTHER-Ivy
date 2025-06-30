@@ -6,6 +6,7 @@ include file
 include apt_types
 # include quic_locale
 include quic_random_value
+<<<<<<< HEAD
 include ip
 include apt_endpoint
 include apt_quic_endpoint
@@ -13,6 +14,8 @@ include quic_endpoint
 include ivy_quic_shim
 
 include ivy_client
+=======
+>>>>>>> origin/production
 
 parameter the_cid : cid = 0xd
 parameter n_clients : stream_pos = 0x1
@@ -39,7 +42,11 @@ after init {
 
 # instance second_client : endpoint(endpoint_id.client_alt)
 
+<<<<<<< HEAD
 instance second_client : endpoint.client_endpoint.client_quic(client_addr,client_port_alt) # second_client_ep
+=======
+instance second_client : endpoint.client_endpoint.client_quic(client_addr,client_port) # second_client_ep
+>>>>>>> origin/production
 
 # after init {
 #     call second_client.initialization(client_addr,client_port);

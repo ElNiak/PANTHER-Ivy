@@ -51,6 +51,7 @@ module binary_input_file(data,cont) = {
         if(session_file != NULL) {
             std::cerr << "PROOTPATH 5b " << session_file<< "\n";
             pathname2 += session_file;
+<<<<<<< HEAD
             const char* base_dir = getenv("PANTHER_IVY_BASE_DIR");
             const char* apt_path = getenv("IS_APT_PATH");
             if (base_dir) {
@@ -65,6 +66,9 @@ module binary_input_file(data,cont) = {
             } else {
                 pathname2 += "/opt/panther_ivy/apt/apt_protocols/quic/quic_utils/";
             }
+=======
+            pathname2 += "/panther_ivy/protocol-testing/apt/apt_protocols/quic/quic_utils/";
+>>>>>>> origin/production
             pathname = pathname2 + pathname;
         } else {
             char * session_file2 = getenv("IVY_INCLUDE_PATH");

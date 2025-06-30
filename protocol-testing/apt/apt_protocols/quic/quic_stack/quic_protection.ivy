@@ -3,7 +3,11 @@
 # Here, we define functions for QUIC packet packet protection.
 
 include tls_msg
+<<<<<<< HEAD
 # include apt_byte_stream
+=======
+# include byte_stream
+>>>>>>> origin/production
 include quic_types
 include quic_transport_error_code
 include collections
@@ -804,7 +808,11 @@ object quic_prot_deser = {}
             }
             bool res = true;
             if (level == 1) {
+<<<<<<< HEAD
                 res = data_remaining-->  0;
+=======
+                res = data_remaining-- > 0;
+>>>>>>> origin/production
             }
             if (res)
                 level++;

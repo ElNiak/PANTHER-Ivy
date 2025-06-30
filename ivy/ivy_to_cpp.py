@@ -2917,9 +2917,12 @@ def module_to_cpp_class(classname,basename):
     header.append("typedef __uint128_t uint128_t;\n")
     header.append("#include <signal.h>\n")
     header.append("#include <chrono> \n")
+<<<<<<< HEAD
     header.append("#include <regex>\n")
     header.append("#include <vector>\n")
     header.append("#include <algorithm>\n")
+=======
+>>>>>>> origin/production
     # header.append("#include <execinfo.h>\n") # For backtrace
     header.append("int call_generating = 1;\n")
 
@@ -6937,7 +6940,11 @@ int ask_ret(long long bound) {
             
             std::string command = "";
             if(path.find("test") != std::string::npos) 
+<<<<<<< HEAD
 		    path = constructIvyPath(path);
+=======
+		    path = std::string("/opt/panther_ivy/protocol-testing/") + current_protocol + std::string("/") + current_protocol + std::string("_tests/") + mode + std::string("_tests/") + path;
+>>>>>>> origin/production
         
             // Use safe file reading instead of system() calls
             int lineNum = extractLineNumber(std::string(msg));
@@ -6965,6 +6972,19 @@ int ask_ret(long long bound) {
             return false;
         }
 
+<<<<<<< HEAD
+=======
+    #include <string>
+    
+    // Function to check if a line is within an action called _finalize
+    bool isLineInFinalizeAction(const std::string &path, const std::string &lineToCheck, int lineNumber) {
+        std::ifstream file(path);
+        if (!file.is_open()) {
+            std::cerr << "Error opening file: " << path << "\\n";
+            return false;
+        }
+
+>>>>>>> origin/production
         std::string line;
         bool inFinalize = false;
         int currentLineNumber = 0;
@@ -7035,7 +7055,11 @@ int ask_ret(long long bound) {
             
             std::string command = "";
             if(path.find("test") != std::string::npos) 
+<<<<<<< HEAD
 		    path = constructIvyPath(path);
+=======
+		    path = std::string("/opt/panther_ivy/protocol-testing/") + current_protocol + std::string("/") + current_protocol + std::string("_tests/") + mode + std::string("_tests/") + path;
+>>>>>>> origin/production
         
             // Use safe file reading instead of system() calls
             int lineNum = extractLineNumber(std::string(msg));
@@ -7052,7 +7076,11 @@ int ask_ret(long long bound) {
             __ivy_out << "assumption_failed(" << str << ")\\n";
             CLOSE_TRACE
             
+<<<<<<< HEAD
             bool is_LineInFinalizeAction = isLineInFinalizeAction(path, str, lineNum);
+=======
+            bool is_LineInFinalizeAction = isLineInFinalizeAction(path + std::string(".ivy"), str, num);
+>>>>>>> origin/production
             std::cerr << "is_LineInFinalizeAction: " << is_LineInFinalizeAction << "\\n";
             if (!is_LineInFinalizeAction) __ivy_exit(1);
         }
@@ -8709,7 +8737,11 @@ def main_int(is_ivyc):
                     else:
                         libs = []    
                     cpp11 = any((x == 'cppstd' or x.endswith('.cppstd')) and y.rep=='cpp11' for x,y in im.module.attributes.items())
+<<<<<<< HEAD
                     gpp11_spec =  ' -std=c++20 ' # ' -std=c++11 ' if cpp11 else ' -std=c++11 ' 
+=======
+                    gpp11_spec = ' -std=c++11 ' if cpp11 else ' -std=c++11 ' 
+>>>>>>> origin/production
                     libspec = ''
                     for x,y in im.module.attributes.items():
                         p,c = iu.parent_child_name(x)

@@ -15,10 +15,18 @@ object quic_deser_enc_client = {}
 
     #define QUIC_DESER_FAKE_CHECKSUM_LENGTH 0
     //TODO
+<<<<<<< HEAD
      #define QUOTEME(x) QUOTEME_1(x)
     #define QUOTEME_1(x) #x
     #define QUIC_SER_DESER_HEADER_PATH PANTHER_IVY_BASE_DIR/quic_utils/quic_ser_deser.h
     #include QUOTEME(QUIC_SER_DESER_HEADER_PATH)
+=======
+    #if defined(IS_NOT_DOCKER) 
+        #include "/home/user/Documents/QUIC-RFC9000/panther_ivy/protocol-testing/quic/quic_utils/quic_ser_deser.h"
+    #else 
+         #include "/opt/panther_ivy/protocol-testing/apt/apt_protocols/quic/quic_utils/quic_ser_deser.h"
+    #endif
+>>>>>>> origin/production
 
     class `quic_deser_enc_client` : public ivy_binary_deser_128 {
     //class `quic_deser_enc_client` : public ivy_binary_deser {
@@ -389,11 +397,19 @@ object quic_deser_enc_client = {}
                 // packet cannot be empty
                //while ((fence == 0 || pos < fence) && more(1) && inp[pos] == 0)
                //    pos++;  // skip padding frames
+<<<<<<< HEAD
                return data_remaining-->  0; //(fence == 0 || pos < fence) && more(1);
             }
             if (state == quic_s_retry_token) {
                 //data_remaining--;
                 return data_remaining-->  0;
+=======
+               return data_remaining-- > 0; //(fence == 0 || pos < fence) && more(1);
+            }
+            if (state == quic_s_retry_token) {
+                //data_remaining--;
+                return data_remaining-- > 0;
+>>>>>>> origin/production
             }
             std::cerr << "quic_deser_enc_client 1\n";  
             throw deser_err();

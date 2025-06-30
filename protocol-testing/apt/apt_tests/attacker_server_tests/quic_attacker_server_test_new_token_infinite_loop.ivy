@@ -3,7 +3,11 @@
 
 include order
 include file
+<<<<<<< HEAD
 # include quic_random_value
+=======
+# include random_value
+>>>>>>> origin/production
 
 include ivy_quic_mim
 include ivy_quic_target
@@ -111,8 +115,12 @@ after init {
 # https://github.com/private-octopus/picoquic/issues/969
 before quic_frame.stream.handle(f:quic_frame.stream,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
+<<<<<<< HEAD
         # require used_client_ports(src.port);
 require src.port = client.ep.port;
+=======
+        require used_client_ports(src.port);
+>>>>>>> origin/production
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
         require src.addr = client.ep.addr;
@@ -138,8 +146,12 @@ after init {
 
 before quic_frame.malicious_frame.handle_maliciously(f:quic_frame.malicious_frame,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
+<<<<<<< HEAD
         # require used_client_ports(src.port);
 require src.port = client.ep.port;
+=======
+        require used_client_ports(src.port);
+>>>>>>> origin/production
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
         require src.addr = client.ep.addr;

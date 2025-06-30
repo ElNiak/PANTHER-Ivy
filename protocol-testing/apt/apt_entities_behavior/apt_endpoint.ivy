@@ -24,7 +24,11 @@ action endpoint_id_addr(ep_id : endpoint_id) returns (ep:ip.endpoint) = {
     ep.protocol := ip.udp; # TODO 
 
     ep.addr := target_addr_server if ep_id = endpoint_id.target | ep_id = endpoint_id.target_alt  
+<<<<<<< HEAD
                 else (client_addr if ep_id = endpoint_id.client | ep_id = endpoint_id.client_alt
+=======
+                else (client_addr if ep_id = endpoint_id.client
+>>>>>>> origin/production
                 else (server_addr if ep_id = endpoint_id.server
                 # else (client_vn_addr if ep_id = endpoint_id.client_vn
                 else (mim_addr if ep_id = endpoint_id.man_in_the_middle

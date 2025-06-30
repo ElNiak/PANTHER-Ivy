@@ -60,8 +60,13 @@ include quic_locale
 include quic_loss_recovery
 include quic_congestion_control
 
+<<<<<<< HEAD
 include ivy_quic_server
 include ivy_quic_client 
+=======
+# include ivy_quic_server
+# include ivy_quic_client 
+>>>>>>> origin/production
 # include ivy_quic_client_server
 # include ivy_quic_attacker_client
 # include ivy_quic_target
@@ -326,7 +331,10 @@ implement tls_api.lower.send(tls_id:tls_api.id, bytes:stream_data, lev:tls_api.l
 
         var scid := tls_id_to_cid(tls_id);
         var dcid := other_tls_id_to_cid(tls_id);
+<<<<<<< HEAD
         call show_tls_lower_send_debug_event(bytes);
+=======
+>>>>>>> origin/production
         call tls_send_event(tls_id_to_src(tls_id), tls_id_to_dst(tls_id), scid,
                             dcid, bytes,crypto_data_end(scid,e),e, tls_id);
 
@@ -472,7 +480,7 @@ implement tls_api.upper.keys_established(tls_id:tls_api.id,lev:tls_api.upper.lev
 
 after tls.handshake_data_event(src : ip.endpoint, dst : ip.endpoint, data:stream_data,dcid:cid) {
     if dst_is_generated_tls(dst) {
-        call tls_api.lower.recv(src_tls_id(dst),data,0); # TODO: fill in the encryption level
+        call tls_api.lower.recv(src_tls_id(dst),data,1); # TODO: fill in the encryption level
     }
 }
 
@@ -1241,7 +1249,11 @@ import action show_tls_lower_send_debug_event(bytes:stream_data)
 
 import action show_l(ver:stream_pos)
 
+<<<<<<< HEAD
 import action show_set_initial_keys(ik: stream_data, id: tls_api.id, dcid:cid)
+=======
+import action show_set_initial_keys(ik: stream_data, id: tls_api.id)
+>>>>>>> origin/production
 
 import action show_version(ver:version)
 

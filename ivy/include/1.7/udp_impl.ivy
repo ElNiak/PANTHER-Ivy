@@ -40,10 +40,14 @@ module udp_impl(host,pkt,ser,des) = {
 	#include <netinet/ip.h>
 	#include <netinet/tcp.h>
 	#include <iomanip>
+<<<<<<< HEAD
 	#include <iostream>
 	#include <thread>
 	#include <errno.h>
 	#include <algorithm>
+=======
+#include <iostream>
+>>>>>>> origin/production
 
     #endif
 
@@ -171,6 +175,7 @@ module udp_impl(host,pkt,ser,des) = {
 			}
 
 			if(eavesdrop) {
+<<<<<<< HEAD
 				std::cerr << "DEBUG: Eavesdrop mode enabled, processing packet of " << bytes << " bytes" << std::endl;
 				
 				// Validate packet size before processing headers
@@ -186,6 +191,11 @@ module udp_impl(host,pkt,ser,des) = {
 				
 				std::cerr << "DEBUG: Processing IP packet, protocol=" << (int)ip_hdr->protocol 
 				          << ", ihl=" << (int)ip_hdr->ihl << std::endl;
+=======
+				// Process the packet
+				struct ethhdr *eth_hdr = (struct ethhdr *)(&buf[0]);
+				struct iphdr *ip_hdr = (struct iphdr *)(&buf[0] + sizeof(struct ethhdr));
+>>>>>>> origin/production
 
 				// Check if the packet is TCP or UDP
 				// TODO merge with old version
@@ -340,6 +350,7 @@ module udp_impl(host,pkt,ser,des) = {
 					std::cerr << "RECEIVING NOT UDP NOR TCP\n";
 				}
 			} else {
+<<<<<<< HEAD
 				std::cerr << "DEBUG: Standard UDP processing mode, bytes=" << bytes << std::endl;
 				
 				// Validate bytes before resizing
@@ -380,6 +391,24 @@ module udp_impl(host,pkt,ser,des) = {
 					return;
 				} catch (...) {
 					std::cerr << "ERROR: Unknown exception during deserialization" << std::endl;
+=======
+				buf.resize(bytes);
+				`pkt` pkt;
+				std::cerr << "RECEIVING __deser\n";
+				try {
+					`des` ds(buf);
+					__deser(ds,pkt);
+					if (ds.pos < buf.size()) {
+						//std::cerr << pkt << std::endl; 
+						//std::cerr << ds << std::endl; 
+						std::cerr << buf.size() << std::endl; 
+						std::cerr << ds.pos << std::endl; 
+						std::cerr << "udp impl" << std::endl; 
+						throw deser_err();
+					}
+				} catch (deser_err &){
+					std::cerr << "BAD PACKET RECEIVED\n";
+>>>>>>> origin/production
 					return;
 				}
 				`ip.endpoint` src;
@@ -391,6 +420,7 @@ module udp_impl(host,pkt,ser,des) = {
 					src.interface = `ip.lo`; //TODO
 				}
 				src.port = ntohs(srcaddr.sin_port);
+<<<<<<< HEAD
 				
 				std::cerr << "DEBUG: About to acquire ivy lock and call callback" << std::endl;
 				std::cerr << "DEBUG: Callback data - sock=" << sock << ", src.addr=" << src.addr 
@@ -411,6 +441,12 @@ module udp_impl(host,pkt,ser,des) = {
 				ivy->__unlock();
 				std::cerr << "DEBUG: Ivy lock released" << std::endl;
 				std::cerr << "RECEIVING finish\n";
+=======
+				ivy->__lock();
+				cb.rcb(sock,src,pkt);
+				ivy->__unlock();
+				std::cerr << "RECEIVING finsh\n";
+>>>>>>> origin/production
 			}
 		}
 
@@ -467,6 +503,7 @@ object impl(me:host) = {
 			<<< impure
 			s = make_udp_socket();
 			char* shadowTest = getenv("SHADOW_TEST");
+<<<<<<< HEAD
 			std::cerr << "open SOCKET " << s << std::endl;
 			std::cerr << "open SOCKET addr: " << addr.addr << " port: " << addr.port << std::endl;
 			std::cerr << "open SOCKET interface: " << addr.interface << std::endl;
@@ -475,6 +512,8 @@ object impl(me:host) = {
 			std::cerr << "open SOCKET is_vnet: " << is_vnet << std::endl;
 			std::cerr << "addr != 0x7f000001:" << (addr.addr != 0x7f000001) << std::endl;
 			std::cerr << "shadowTest == NULL" << (shadowTest == NULL) << std::endl;
+=======
+>>>>>>> origin/production
 			if(addr.addr != 0x7f000001 && shadowTest == NULL) { //TODO
 				std::cerr << "open SOCKET " << s << std::endl;
 				is_vnet = true;

@@ -48,10 +48,18 @@ object quic_deser = {}
 
     #define QUIC_DESER_FAKE_CHECKSUM_LENGTH 0
     //TODO
+<<<<<<< HEAD
      #define QUOTEME(x) QUOTEME_1(x)
     #define QUOTEME_1(x) #x
     #define QUIC_SER_DESER_HEADER_PATH PANTHER_IVY_BASE_DIR/quic_utils/quic_ser_deser.h
     #include QUOTEME(QUIC_SER_DESER_HEADER_PATH)
+=======
+    #if defined(IS_NOT_DOCKER) 
+        #include "/home/user/Documents/QUIC-RFC9000/panther_ivy/protocol-testing/quic/quic_utils/quic_ser_deser.h"
+    #else 
+         #include "/opt/panther_ivy/protocol-testing/quic/quic_utils/quic_ser_deser.h"
+    #endif
+>>>>>>> origin/production
     int scid_h = 8;
     int dcid_h = 8;
 

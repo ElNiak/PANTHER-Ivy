@@ -2,7 +2,11 @@
 
 include order
 include file
+<<<<<<< HEAD
 # include quic_random_value
+=======
+# include random_value
+>>>>>>> origin/production
 
 include ivy_quic_mim
 include ivy_quic_target
@@ -87,8 +91,12 @@ after init {
 
 before quic_frame.retire_connection_id.handle(f:quic_frame.retire_connection_id,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
+<<<<<<< HEAD
         # require used_client_ports(src.port);
 require src.port = client.ep.port;
+=======
+        require used_client_ports(src.port);
+>>>>>>> origin/production
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
         require src.addr = client.ep.addr;
@@ -108,8 +116,12 @@ require src.port = client.ep.port;
 
 before quic_frame.new_connection_id.handle_maliciously(f:quic_frame.new_connection_id,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
+<<<<<<< HEAD
         # require used_client_ports(src.port);
 require src.port = client.ep.port;
+=======
+        require used_client_ports(src.port);
+>>>>>>> origin/production
         require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
         require src.addr = client.ep.addr;

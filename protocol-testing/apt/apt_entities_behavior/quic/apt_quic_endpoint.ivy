@@ -530,7 +530,11 @@ object endpoint = {
                         salt := salt.append(0x0a);
                     };
                     call tls_api.upper.eavesdrop_client(tls_id);  
+<<<<<<< HEAD
                     call show_set_initial_keys(ikm, tls_id, dcid);
+=======
+                    call show_set_initial_keys(ikm, tls_id);
+>>>>>>> origin/production
                     call tls_api.upper.set_initial_keys(tls_id,salt,ikm);  
                     initial_keys_set(scid) := true;
                 }
@@ -669,10 +673,17 @@ object endpoint = {
                     salt := salt.append(0x0a);
                 };
                 if server_initial_response {
+<<<<<<< HEAD
                     call show_set_initial_keys(ikm, other_tls_id,dcid);
                     call tls_api.upper.set_initial_keys(other_tls_id,salt,ikm); ## WTF TODO error id tls_api.upper.set_initial_keys(id,salt,ikm);
                 } else {
                     call show_set_initial_keys(ikm, 3, dcid);
+=======
+                    call show_set_initial_keys(ikm, other_tls_id);
+                    call tls_api.upper.set_initial_keys(other_tls_id,salt,ikm); ## WTF TODO error id tls_api.upper.set_initial_keys(id,salt,ikm);
+                } else {
+                    call show_set_initial_keys(ikm, 3);
+>>>>>>> origin/production
                     call tls_api.upper.set_initial_keys(3,salt,ikm);
                 }
                

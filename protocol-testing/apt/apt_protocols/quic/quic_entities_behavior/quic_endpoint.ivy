@@ -2,6 +2,13 @@
 
 include apt_endpoint
 
+<<<<<<< HEAD
+=======
+include quic_locale
+include network_controler
+
+
+>>>>>>> origin/production
 object endpoint = {
     ...
 
@@ -9,7 +16,11 @@ object endpoint = {
         ...
 
         module client_quic(address:ip.addr,port:ip.port) = { 
+<<<<<<< HEAD
             # variant this of client_endpoint = struct { }
+=======
+            variant this of client_endpoint = struct { }
+>>>>>>> origin/production
             individual ep        : ip.endpoint
             individual tls_id    : tls_api.id
             individual enc_level : quic_packet_type
@@ -36,15 +47,24 @@ object endpoint = {
             }
 
             action behavior(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:net_prot.arr) = {
+<<<<<<< HEAD
+=======
+                var dst := socket_endpoint(host,s);  # because quic_net API doesn't tell us the dst
+>>>>>>> origin/production
                 var idx := pkts.begin;
                 var past_data : stream_data := stream_data.empty;
                 while idx < pkts.end {
                     var ppkt := pkts.value(idx);
+<<<<<<< HEAD
                     var h := net_prot.get_header_info(ppkt,false);
+=======
+                    var tls_id := src_tls_id(dst); # todo multiple
+>>>>>>> origin/production
                     var header := ppkt.value(0);
                     var hdr_type : type_bits := bfe[0][6](ppkt.value(0));
                     var tt := bvand(hdr_type,0x30);
                     var is_long : bool := bvand(0x80,header) ~= 0;
+<<<<<<< HEAD
                     var dst    := socket_endpoint(host,s);#dst_tls_id(dst); # todo multiple
 
                     var tls_id := src_tls_id(dst); #src_tls_id(dst); # todo multiple
@@ -56,6 +76,8 @@ object endpoint = {
                     #     # cid_map_ep(dcid)          := dst;
                     # };
                 
+=======
+>>>>>>> origin/production
                     
                     var version := ppkt.segment(1,1+4);
                     var bversion := bytes_to_version(version);
@@ -135,8 +157,11 @@ object endpoint = {
             import action show_data_received(s:stream_pos)
             import action show_data_sent(s:stream_pos)
             import action show_rnum(s:pkt_num)
+<<<<<<< HEAD
             import action show_recv_debug_ev(src:ip.endpoint,dst:ip.endpoint,scid:cid,dcid:cid,tls_id:tls_api.id)
             import action show_update_(cid:cid,tls_id:tls_api.id,ep:ip.endpoint)
+=======
+>>>>>>> origin/production
         }
     }
     
@@ -145,7 +170,11 @@ object endpoint = {
         ...
 
         module server_quic(address:ip.addr,port:ip.port) = { 
+<<<<<<< HEAD
             # variant this of server_endpoint = struct { }
+=======
+            variant this of server_endpoint = struct { }
+>>>>>>> origin/production
             individual ep        : ip.endpoint
             individual tls_id    : tls_api.id
             individual enc_level : quic_packet_type
@@ -174,9 +203,17 @@ object endpoint = {
             }
 
             action behavior(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:net_prot.arr) = {
+<<<<<<< HEAD
                 var idx := pkts.begin;
                 while idx < pkts.end {
                     var ppkt := pkts.value(idx);
+=======
+                var dst := socket_endpoint(host,s);  # because quic_net API doesn't tell us the dst
+                var idx := pkts.begin;
+                while idx < pkts.end {
+                    var ppkt := pkts.value(idx);
+                    var tls_id := src_tls_id(dst); # todo multiple
+>>>>>>> origin/production
                     var header := ppkt.value(0);
                     var hdr_type : type_bits := bfe[0][6](ppkt.value(0));
                     var tt := bvand(hdr_type,0x30);
@@ -184,11 +221,14 @@ object endpoint = {
                     var version := ppkt.segment(1,1+4);
                     var bversion := bytes_to_version(version);
                     var ptype : byte := bvand(0x30,header);
+<<<<<<< HEAD
 
                     var dst := server.ep; #dst_tls_id(dst); # todo multiple
                   
                     var tls_id := src_tls_id(dst); # todo multiple
                     
+=======
+>>>>>>> origin/production
                     if zrtt_pkt_set & ~zrtt_pkt_process {
                         zrtt_pkt_process := true;
                         var rnum := reference_pkt_num(last_zrtt_pkt,true);
@@ -310,9 +350,12 @@ object endpoint = {
             import action show_data_received(s:stream_pos)
             import action show_data_sent(s:stream_pos)
             import action show_rnum(s:pkt_num)
+<<<<<<< HEAD
             import action show_recv_debug_ev(src:ip.endpoint,dst:ip.endpoint,scid:cid,dcid:cid,tls_id:tls_api.id)
             import action show_update_(cid:cid,tls_id:tls_api.id,ep:ip.endpoint)
             import action show_last_datagram_size(s:stream_pos)
+=======
+>>>>>>> origin/production
         }
     }
 }
