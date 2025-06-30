@@ -17,7 +17,6 @@ correctness.
 
 ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white) ![C++](https://img.shields.io/badge/c++-%2300599C.svg?style=for-the-badge&logo=c%2B%2B&logoColor=white) ![Debian](https://img.shields.io/badge/Debian-D70A53?style=for-the-badge&logo=debian&logoColor=white)
 
-<<<<<<< HEAD
 
 
 ## Requirements and Dependencies
@@ -287,9 +286,6 @@ This configuration creates a test where:
 
 
 # Installation (*old*)
-=======
-# Installation
->>>>>>> origin/production
 ## Linux
 On Debian-based Linux ditributions such as Ubuntu, download and install the file `ms-ivy_X.X_YYYY.deb` where `X.X` is the IVy version and `YYYY` is the machine architecture. Use your system’s package manager to install this package, or the following commands:
 ```

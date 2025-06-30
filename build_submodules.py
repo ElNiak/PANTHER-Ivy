@@ -53,7 +53,6 @@ if Z3_BUILD_MODE not in MODES:
 
 def do_cmd(cmd):
     print(cmd)
-<<<<<<< HEAD
     if status := os.system(cmd):
         exit(status)
 
@@ -65,21 +64,11 @@ def run_cmd(cmd, cwd=None):
 
 def ensure_dir(p: Path): p.mkdir(parents=True, exist_ok=True)
       
-=======
-    status = os.system(cmd)
-    if status:
-        exit(1)
-    
->>>>>>> origin/production
 def make_dir_exist(dir):
     if not os.path.exists(dir):
         os.mkdir(dir)
     elif not os.path.isdir(dir):
-<<<<<<< HEAD
         print(f"cannot create directory {dir}")
-=======
-        print("cannot create directory {}".format(dir))
->>>>>>> origin/production
         exit(1)
         
 
@@ -115,28 +104,12 @@ def build_z3():
     if not z3.exists():
         sys.exit("submodules/z3 missing (git submodule update --init)")
 
-<<<<<<< HEAD
     if BUILD_MODE in MODES and BUILD_MODE != "" and False:
         print(f"Using CMake for Z3 build with BUILD_MODE={BUILD_MODE}")
         optimized_build_for_ivy_test_target(z3)
     else:
         legacy_build(z3)
     
-=======
-    if not os.path.exists('submodules/z3'):
-        print("submodules/z3 not found. try 'git submodule update; git submodule update'")
-        exit(1)
-
-    os.chdir('submodules/z3')
-
-    ivydir = os.path.join(cwd,'ivy')
-
-
-    if platform.system() != 'Windows':
-        cmd = 'python3.10 scripts/mk_make.py --python --prefix {} --pypkgdir {}/'.format(cwd,ivydir)
-    else:
-        cmd = 'python3.10 scripts/mk_make.py -x --python --pypkgdir {}/'.format(ivydir)
->>>>>>> origin/production
 
 def legacy_build(z3):
     # Use legacy mk_make.py method for original/Shadow compatibility

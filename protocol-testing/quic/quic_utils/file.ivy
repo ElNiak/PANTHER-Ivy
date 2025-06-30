@@ -51,7 +51,6 @@ module binary_input_file(data,cont) = {
         if(session_file != NULL) {
             std::cerr << "PROOTPATH 5b " << session_file<< "\n";
             pathname2 += session_file;
-<<<<<<< HEAD
             pathname2 += "/";
             
             // Use simplified PANTHER_IVY_BASE_DIR approach
@@ -65,9 +64,6 @@ module binary_input_file(data,cont) = {
                 pathname2 += "panther_ivy/protocol-testing/quic";
             }
             pathname2 += "/quic_utils/";
-=======
-            pathname2 += "/panther_ivy/protocol-testing/quic/quic_utils/";
->>>>>>> origin/production
             pathname = pathname2 + pathname;
             std::cerr << pathname << std::endl;
         } else {

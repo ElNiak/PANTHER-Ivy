@@ -7,38 +7,16 @@ dependencies:
 env:
   TEST_ALPN: "hq-29"
   PROTOCOL_TESTED: "quic"
-<<<<<<< HEAD
-=======
-  ZRTT_SSLKEYLOGFILE: "$SOURCE_DIR/panther_ivy/protocol-testing/quic/last_tls_key.txt"
-  RETRY_TOKEN_FILE: "$SOURCE_DIR/panther_ivy/protocol-testing/quic/last_retry_token.txt"
-  NEW_TOKEN_FILE: "$SOURCE_DIR/panther_ivy/protocol-testing/quic/last_new_token.txt"
-  ENCRYPT_TICKET_FILE: "$SOURCE_DIR/panther_ivy/protocol-testing/quic/last_encrypt_session_ticket.txt"
-  SESSION_TICKET_FILE: "$SOURCE_DIR/panther_ivy/protocol-testing/quic/last_session_ticket_cb.txt"
-  SAVED_PACKET: "$SOURCE_DIR/panther_ivy/protocol-testing/quic/saved_packet.txt"
-  initial_max_stream_id_bidi: "$SOURCE_DIR/panther_ivy/protocol-testing/quic/initial_max_stream_id_bidi.txt"
-  active_connection_id_limit: "$SOURCE_DIR/panther_ivy/protocol-testing/quic/active_connection_id_limit.txt"
-  initial_max_stream_data_bidi_local: "$SOURCE_DIR/panther_ivy/protocol-testing/quic/initial_max_stream_data_bidi_local.txt"
-  initial_max_stream_data_bidi_remote: "$SOURCE_DIR/panther_ivy/protocol-testing/quic/initial_max_stream_data_bidi_remote.txt"
-  initial_max_stream_data_uni: "$SOURCE_DIR/panther_ivy/protocol-testing/quic/initial_max_stream_data_uni.txt"
-  initial_max_data: "$SOURCE_DIR/panther_ivy/protocol-testing/quic/initial_max_data.txt"
->>>>>>> origin/production
   INITIAL_VERSION: "29"
 parameters:
   tests_dir: 
     value: "quic_tests/"
     description: "Directory where the Ivy QUIC tests are stored (default: quic_tests/)"
   seed: 
-<<<<<<< HEAD
     value: "0"
     description: "Seed for the random generator (default: 0)"
   the_cid:
     value: "1"
-=======
-    value: 0
-    description: "Seed for the random generator (default: 0)"
-  the_cid:
-    value: 0
->>>>>>> origin/production
     description: "Client Initial connection ID (default: 0)"
   server_port:
     value: 4443
@@ -50,11 +28,7 @@ parameters:
     value: 0x7F000001
     description: "Server address (default: 0x7F000001)"
   server_cid:
-<<<<<<< HEAD
     value: "10"
-=======
-    value: 0
->>>>>>> origin/production
     description: "Server connection ID (default: 0)"
   client_port:
     value: 4997
@@ -66,19 +40,11 @@ parameters:
     value: 0x7F000001
     description: "Client address (default: 0x7F000001)"
 server:
-<<<<<<< HEAD
   the_cid: "1"
   iversion: "1"
   server_port: 4443
   server_addr: 0x7F000001
   server_cid: "10"
-=======
-  the_cid: "0"
-  iversion: "1"
-  server_port: 4443
-  server_addr: 0x7F000001
-  server_cid: "1"
->>>>>>> origin/production
   client_port: 4997
   client_port_alt: 4444
   client_addr: 0x7F000001
@@ -89,11 +55,7 @@ server:
       value: "hq-interop"
     additional_parameters: "-l - -n servername -D -L"
   binary:
-<<<<<<< HEAD
     dir: "PANTHER_IVY_INSTALL_DIR/protocol-testing/"
-=======
-    dir: "/opt/panther_ivy/protocol-testing/"
->>>>>>> origin/production
     name: ""
   network:
     interface:
@@ -142,11 +104,7 @@ client:
       value: "hq-interop"
     additional_parameters: "-l - -D -L"
   binary:
-<<<<<<< HEAD
     dir: "PANTHER_IVY_INSTALL_DIR/protocol-testing/"
-=======
-    dir: "/opt/panther_ivy/protocol-testing/"
->>>>>>> origin/production
     name: ""
   network:
     interface:

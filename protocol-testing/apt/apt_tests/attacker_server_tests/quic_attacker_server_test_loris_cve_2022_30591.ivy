@@ -28,11 +28,7 @@
 
 include order
 include file
-<<<<<<< HEAD
 # include quic_random_value
-=======
-# include random_value
->>>>>>> origin/production
 
 include ivy_quic_mim
 include ivy_quic_target
@@ -108,11 +104,6 @@ after init {
     call tls_api.upper.create(client.tls_id,false,extns);  # false means this instance of tls is not a server
 }
 
-<<<<<<< HEAD
-=======
-import action show_cid_event(cid:cid)
-
->>>>>>> origin/production
 after init {
     token_saved := false;
 }

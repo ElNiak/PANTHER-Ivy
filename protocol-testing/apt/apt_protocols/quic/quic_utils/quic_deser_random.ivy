@@ -133,11 +133,7 @@ object quic_deser_random = {}
 
         virtual bool open_list_elem() {
             if (state == quic_s_payload) {
-<<<<<<< HEAD
                return data_remaining-->  0; 
-=======
-               return data_remaining-- > 0; 
->>>>>>> origin/production
             }
             std::cerr << "quic_deser_random 1\n";  
             throw deser_err();
