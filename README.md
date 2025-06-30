@@ -100,6 +100,61 @@ services:
 | `config.test_depth` | integer | No | 5 | Search depth for test generation |
 | `config.timeout` | integer | No | 300 | Verification timeout in seconds |
 | `config.properties` | array | No | [] | Specific properties to verify |
+| `config.build_mode` | string | No | "" | Build mode for compilation (see Build Modes section) |
+
+## Build Modes
+
+PANTHER-Ivy supports multiple build modes for different optimization and debugging needs while preserving backward compatibility with Shadow Network Simulator.
+
+### Available Build Modes
+
+| Build Mode | Description | Use Case | C++ Flags | Z3 Build |
+|------------|-------------|----------|-----------|----------|
+| `""` (empty) | **Original method** (default) | Shadow Network Simulator compatibility | None (default C++11, shared libz3) | Legacy mk_make.py |
+| `debug-asan` | Debug with AddressSanitizer | Memory debugging, development | `-O1 -g -fsanitize=address -fno-omit-frame-pointer -D_GLIBCXX_DEBUG` | CMake Debug + AddressSanitizer |
+| `rel-lto` | Release with Link Time Optimization | Performance testing | `-O3 -flto -fuse-linker-plugin -g` | CMake Release + LTO |
+| `release-static-pgo` | Release with PGO and static linking | Maximum performance | `-O3 -flto -fuse-linker-plugin -fprofile-use -march=native -static -s` | CMake Release + PGO + static |
+
+### Configuration Examples
+
+**Original Method (Shadow Compatible):**
+```yaml
+services:
+  panther_ivy:
+    config:
+      build_mode: ""  # or omit entirely
+```
+
+**Debug Mode:**
+```yaml
+services:
+  panther_ivy:
+    config:
+      build_mode: "debug-asan"
+```
+
+**High Performance Mode:**
+```yaml
+services:
+  panther_ivy:
+    config:
+      build_mode: "release-static-pgo"
+```
+
+### Environment Variable Override
+
+You can also set the build mode via environment variable:
+```bash
+export BUILD_MODE="rel-lto"
+```
+
+### Shadow Network Simulator Compatibility
+
+The original method (empty `build_mode`) is preserved exactly as before to ensure Shadow Network Simulator continues to work without changes. This uses:
+- Plain `make` with default C++11 standard
+- Shared `libz3.so` library
+- Legacy `mk_make.py` build system
+- No additional compilation flags
 
 ## Supported Protocols
 

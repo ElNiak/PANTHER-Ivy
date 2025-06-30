@@ -1,10 +1,7 @@
-from panther.core.exceptions.error_handler_mixin import ErrorHandlerMixin
-
-
 from typing import Any, Dict, List, Optional, Tuple
 
 
-class IvyAnalysisMixin(ErrorHandlerMixin):
+class IvyAnalysisMixin:
     """
     Mixin for Ivy test output analysis with refactored methods.
 
@@ -115,7 +112,7 @@ class IvyAnalysisMixin(ErrorHandlerMixin):
         patterns = [
             ("_stderr_", "stderr"),
             ("_stdout_", "stdout"),
-            ("_compilation_status_", "compilation_status"),
+            ("_compile_status_", "compile_status"),  # Changed from compilation_status
             ("_test_results_", "test_results"),
             ("_ivy_log_", "ivy_log"),
         ]
@@ -127,7 +124,7 @@ class IvyAnalysisMixin(ErrorHandlerMixin):
                     return parts[1], output_type
 
         # Fallback patterns
-        for prefix in ["stderr_", "stdout_", "compilation_status_", "test_results_"]:
+        for prefix in ["stderr_", "stdout_", "compile_status_", "test_results_"]:
             if output_key.startswith(prefix):
                 return output_key[len(prefix):], prefix[:-1]
 
@@ -159,14 +156,14 @@ class IvyAnalysisMixin(ErrorHandlerMixin):
 
     def _analyze_service_outputs(self, service_name: str, outputs: Dict[str, str]) -> Dict[str, Any]:
         """
-        Analyze outputs for a single service.
+        Analyze outputs for a single service with enhanced details.
 
         Args:
             service_name: Name of the service
             outputs: Service outputs by type
 
         Returns:
-            Analysis result for the service
+            Enhanced analysis result for the service
         """
         result = {
             "has_stderr": False,
@@ -174,16 +171,41 @@ class IvyAnalysisMixin(ErrorHandlerMixin):
             "execution_successful": False,
             "compilation_succeeded": False,
             "test_executed": False,
-            "error_messages": []
+            "error_messages": [],
+            # Enhanced details
+            "service_status": "unknown",
+            "return_code": None,
+            "exit_status": None,
+            "runtime_duration": None,
+            "connection_events": [],
+            "performance_metrics": {},
+            "detailed_errors": [],
+            "process_lifecycle": {
+                "started": False,
+                "running": False,
+                "completed": False,
+                "terminated": False
+            }
         }
 
-        # Check for errors
+        # Check for errors and extract detailed information
         if "stderr" in outputs and outputs["stderr"]:
             result["has_stderr"] = True
+            
+            # Extract basic errors
             errors = self._check_error_patterns(outputs["stderr"])
             if errors:
                 result["has_errors"] = True
                 result["error_messages"].extend(errors)
+            
+            # Enhanced stderr analysis
+            stderr_analysis = self._analyze_stderr_details(outputs["stderr"], service_name)
+            result.update(stderr_analysis)
+
+        # Analyze stdout for additional details
+        if "stdout" in outputs and outputs["stdout"]:
+            stdout_analysis = self._analyze_stdout_details(outputs["stdout"], service_name)
+            result.update(stdout_analysis)
 
         # Check compilation status
         if not result["has_errors"]:
@@ -193,13 +215,172 @@ class IvyAnalysisMixin(ErrorHandlerMixin):
             # Determine overall success
             if result["compilation_succeeded"] and result["test_executed"]:
                 result["execution_successful"] = True
+                result["service_status"] = "completed_successfully"
             else:
                 if not result["compilation_succeeded"]:
                     result["error_messages"].append("No confirmation of successful compilation")
+                    result["service_status"] = "compilation_failed"
                 if not result["test_executed"]:
                     result["error_messages"].append("No confirmation of test execution")
+                    if result["service_status"] == "unknown":
+                        result["service_status"] = "execution_failed"
+        else:
+            result["service_status"] = "error_detected"
 
         return result
+
+    def _analyze_stderr_details(self, stderr_content: str, service_name: str) -> Dict[str, Any]:
+        """
+        Extract detailed information from stderr content.
+
+        Args:
+            stderr_content: Content of stderr
+            service_name: Name of the service
+
+        Returns:
+            Dictionary with detailed stderr analysis
+        """
+        details = {
+            "connection_events": [],
+            "detailed_errors": [],
+            "performance_metrics": {},
+            "process_lifecycle": {
+                "started": False,
+                "running": False,
+                "completed": False,
+                "terminated": False
+            }
+        }
+
+        lines = stderr_content.split('\n')
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+
+            # Extract connection events
+            if "binding client id" in line.lower():
+                details["connection_events"].append({
+                    "type": "client_binding",
+                    "details": line,
+                    "timestamp": self._extract_timestamp(line)
+                })
+            elif "socket" in line.lower():
+                details["connection_events"].append({
+                    "type": "socket_event",
+                    "details": line,
+                    "timestamp": self._extract_timestamp(line)
+                })
+
+            # Extract process lifecycle events
+            if "starting runtime phase" in line.lower():
+                details["process_lifecycle"]["started"] = True
+            elif "call_generating" in line.lower():
+                details["process_lifecycle"]["running"] = True
+            elif "cycles =" in line.lower():
+                # Extract cycle count for performance metrics
+                try:
+                    cycles = line.split("cycles =")[1].strip().split()[0]
+                    details["performance_metrics"]["total_cycles"] = int(cycles)
+                except:
+                    pass
+
+            # Extract detailed error information
+            if any(error_word in line.lower() for error_word in ["error", "failed", "timeout"]):
+                details["detailed_errors"].append({
+                    "message": line,
+                    "timestamp": self._extract_timestamp(line),
+                    "severity": self._determine_error_severity(line)
+                })
+
+        return details
+
+    def _analyze_stdout_details(self, stdout_content: str, service_name: str) -> Dict[str, Any]:
+        """
+        Extract detailed information from stdout content.
+
+        Args:
+            stdout_content: Content of stdout
+            service_name: Name of the service
+
+        Returns:
+            Dictionary with detailed stdout analysis
+        """
+        details = {
+            "return_code": None,
+            "exit_status": None,
+            "runtime_duration": None
+        }
+
+        lines = stdout_content.split('\n')
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+
+            # Extract return codes and exit status
+            if "exit code" in line.lower() or "return code" in line.lower():
+                try:
+                    # Try to extract numeric exit code
+                    import re
+                    code_match = re.search(r'(?:exit|return)\s+code[:\s]+(\d+)', line, re.IGNORECASE)
+                    if code_match:
+                        details["return_code"] = int(code_match.group(1))
+                        details["exit_status"] = "success" if details["return_code"] == 0 else "failure"
+                except:
+                    pass
+
+            # Extract timing information
+            if "duration" in line.lower() or "elapsed" in line.lower():
+                try:
+                    import re
+                    time_match = re.search(r'(\d+(?:\.\d+)?)\s*(?:s|sec|seconds?|ms|milliseconds?)', line, re.IGNORECASE)
+                    if time_match:
+                        details["runtime_duration"] = time_match.group(1)
+                except:
+                    pass
+
+        return details
+
+    def _extract_timestamp(self, line: str) -> Optional[str]:
+        """
+        Extract timestamp from log line if present.
+
+        Args:
+            line: Log line
+
+        Returns:
+            Timestamp string or None
+        """
+        import re
+        # Look for timestamp patterns like [2025-06-24 03:53:47]
+        timestamp_match = re.search(r'\[(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\]', line)
+        if timestamp_match:
+            return timestamp_match.group(1)
+        return None
+
+    def _determine_error_severity(self, error_line: str) -> str:
+        """
+        Determine error severity based on keywords.
+
+        Args:
+            error_line: Error message line
+
+        Returns:
+            Severity level: critical, high, medium, low
+        """
+        error_line_lower = error_line.lower()
+        
+        if any(word in error_line_lower for word in ["critical", "fatal", "abort", "crash"]):
+            return "critical"
+        elif any(word in error_line_lower for word in ["error", "failed", "timeout"]):
+            return "high"
+        elif any(word in error_line_lower for word in ["warning", "warn"]):
+            return "medium"
+        else:
+            return "low"
 
     def _check_error_patterns(self, stderr_content: str) -> List[str]:
         """
@@ -244,8 +425,8 @@ class IvyAnalysisMixin(ErrorHandlerMixin):
             True if compilation succeeded
         """
         # Check compilation_status.txt first
-        if "compilation_status" in outputs and outputs["compilation_status"]:
-            status = outputs["compilation_status"].strip().lower()
+        if "compile_status" in outputs and outputs["compile_status"]:
+            status = outputs["compile_status"].strip().lower()
             if "compilation succeeded" in status:
                 return True
             elif "compilation failed" in status:

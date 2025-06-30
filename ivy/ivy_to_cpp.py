@@ -2917,6 +2917,9 @@ def module_to_cpp_class(classname,basename):
     header.append("typedef __uint128_t uint128_t;\n")
     header.append("#include <signal.h>\n")
     header.append("#include <chrono> \n")
+    header.append("#include <regex>\n")
+    header.append("#include <vector>\n")
+    header.append("#include <algorithm>\n")
     # header.append("#include <execinfo.h>\n") # For backtrace
     header.append("int call_generating = 1;\n")
 
@@ -6821,6 +6824,94 @@ int ask_ret(long long bound) {
     class classname_repl : public classname {
 
     public:
+    
+    // Helper function to get environment variable with default value
+    std::string getEnvVar(const char* name, const std::string& defaultValue = "") {
+        const char* value = std::getenv(name);
+        return value ? std::string(value) : defaultValue;
+    }
+    
+    // Helper function to check if file exists
+    bool fileExists(const std::string& filepath) {
+        std::ifstream file(filepath);
+        return file.good();
+    }
+    
+    // Helper function to safely extract line number from message
+    int extractLineNumber(const std::string& msg) {
+        std::string::size_type pos_n = msg.find("line");
+        if (pos_n == std::string::npos) {
+            return 1;
+        }
+        
+        std::string lineStr = msg.substr(pos_n);
+        std::regex numberRegex("\\\\d+");
+        std::smatch match;
+        
+        if (std::regex_search(lineStr, match, numberRegex)) {
+            try {
+                return std::stoi(match.str());
+            } catch (const std::exception& e) {
+                std::cerr << "Warning: Failed to parse line number, defaulting to 1\\n";
+                return 1;
+            }
+        }
+        return 1;
+    }
+    
+    // Construct proper Ivy file path using environment variables
+    std::string constructIvyPath(const std::string& filename) {
+        std::string protocolPath = getEnvVar("PROTOCOL_PATH", "/opt/panther_ivy/protocol-testing");
+        std::string testType = getEnvVar("TEST_TYPE", "client");
+        std::string protocol = getEnvVar("PROTOCOL_TESTED", "quic");
+        
+        // Try different path combinations to find the file
+        std::vector<std::string> pathCandidates = {
+            protocolPath + "/" + filename + ".ivy",
+            protocolPath + "/" + protocol + "_tests/" + testType + "_tests/" + filename + ".ivy",
+            protocolPath + "/" + filename,
+            "/opt/panther_ivy/protocol-testing/" + protocol + "/" + filename + ".ivy"
+        };
+        
+        for (const auto& candidate : pathCandidates) {
+            if (fileExists(candidate)) {
+                return candidate;
+            }
+        }
+        
+        // Return first candidate as fallback
+        return pathCandidates[0];
+    }
+    
+    // Safe function to read specific line from file
+    std::string readLineFromFile(const std::string& filepath, int lineNumber) {
+        std::ifstream file(filepath);
+        if (!file.is_open()) {
+            return "Error: Could not open file " + filepath;
+        }
+        
+        std::string line;
+        int currentLine = 0;
+        
+        while (std::getline(file, line) && currentLine < lineNumber) {
+            currentLine++;
+            if (currentLine == lineNumber) {
+                // Clean up the line - remove leading/trailing whitespace and tabs
+                line.erase(std::remove(line.begin(), line.end(), \'\\t\'), line.end());
+                std::size_t pos = line.find_first_not_of(" \\t");
+                if (pos != std::string::npos) {
+                    line = line.substr(pos);
+                }
+                pos = line.find_last_not_of(" \\t");
+                if (pos != std::string::npos) {
+                    line = line.substr(0, pos + 1);
+                }
+                return line;
+            }
+        }
+        
+        return "Error: Line " + std::to_string(lineNumber) + " not found in file";
+    }
 
     virtual void ivy_assert(bool truth,const char *msg){
         if (!truth) {
@@ -6832,13 +6923,7 @@ int ask_ret(long long bound) {
             if (pos != std::string::npos)
                 path = std::string(msg+0,msg+pos);
 
-            std::string lineNumber = "1";
-            std::string::size_type pos_n = std::string(msg).find("line");
-            if (pos_n != std::string::npos)
-                    lineNumber = std::string(msg+pos_n,msg+std::string(msg).length());
-            int num;
-            sscanf(lineNumber.c_str(),"%*[^0-9]%d", &num);
-            lineNumber = std::to_string(num);
+            // Line number extracted safely via helper function
 
             std::string mode = "";
             if(const char* env_p2 = std::getenv("TEST_TYPE")) { 
@@ -6852,34 +6937,25 @@ int ask_ret(long long bound) {
             
             std::string command = "";
             if(path.find("test") != std::string::npos) 
-		    path = std::string("/opt/panther_ivy/protocol-testing/") + current_protocol + std::string("/") + current_protocol + std::string("_tests/") + mode + std::string("_tests/") + path;
+		    path = constructIvyPath(path);
         
-            command = std::string("/bin/sed \'") + lineNumber + std::string("!d\' ")  + path + std::string(".ivy > temps.txt");
-            //std::cerr << command.c_str() << "\\n";
-
-            if (system(NULL)) i=system(command.c_str());
-            else exit (EXIT_FAILURE);
-
-	        std::ifstream ifs("temps.txt"); //.rdbuf()
-	        std::stringstream strStream;
-	        strStream << ifs.rdbuf();
-	        std::string str = strStream.str();
-            str.erase(std::remove(str.begin(), str.end(), \'\\n\'), str.end());
-            str.erase(std::remove(str.begin(), str.end(), \'\\t\'), str.end());
-            const std::size_t pos_str = str.find_first_not_of(' ');
-            if (pos_str != std::string::npos)
-                str.erase(0, pos_str);
+            // Use safe file reading instead of system() calls
+            int lineNum = extractLineNumber(std::string(msg));
+            std::string str = readLineFromFile(path, lineNum);
+            
+            // Debug output (controlled by environment variable)
+            if (getEnvVar("IVY_DEBUG", "0") == "1") {
+                std::cerr << "DEBUG: Reading line " << lineNum << " from file: " << path << "\\n";
+                std::cerr << "DEBUG: File exists: " << (fileExists(path) ? "yes" : "no") << "\\n";
+            }
+            
             std::cerr << str << "\\n";
-	        if(std::remove("temps.txt") != 0) 
-		        std::cerr << "error: remove(temps.txt) failed\\n";
 	        std::cerr << msg << ": error: assertion failed\\n";
             __ivy_out << "assertion_failed(" << str << ")\\n";
             CLOSE_TRACE
             __ivy_exit(1);
         }
     }
-
-    #include <string>
     
     // Function to check if a line is within an action called _finalize
     bool isLineInFinalizeAction(const std::string &path, const std::string &lineToCheck, int lineNumber) {
@@ -6959,31 +7035,24 @@ int ask_ret(long long bound) {
             
             std::string command = "";
             if(path.find("test") != std::string::npos) 
-		    path = std::string("/opt/panther_ivy/protocol-testing/") + current_protocol + std::string("/") + current_protocol + std::string("_tests/") + mode + std::string("_tests/") + path;
+		    path = constructIvyPath(path);
         
-            command = std::string("/bin/sed \'") + lineNumber + std::string("!d\' ")  + path + std::string(".ivy > temps.txt");
-            //std::cerr << command.c_str() << "\\n";
-
-            if (system(NULL)) i=system(command.c_str());
-            else exit (EXIT_FAILURE);
-
-	        std::ifstream ifs("temps.txt"); //.rdbuf()
-	        std::stringstream strStream;
-	        strStream << ifs.rdbuf();
-	        std::string str = strStream.str();
-            str.erase(std::remove(str.begin(), str.end(), \'\\n\'), str.end());
-            str.erase(std::remove(str.begin(), str.end(), \'\\t\'), str.end());
-            const std::size_t pos_str = str.find_first_not_of(' ');
-            if (pos_str != std::string::npos)
-                str.erase(0, pos_str);
+            // Use safe file reading instead of system() calls
+            int lineNum = extractLineNumber(std::string(msg));
+            std::string str = readLineFromFile(path, lineNum);
+            
+            // Debug output (controlled by environment variable)
+            if (getEnvVar("IVY_DEBUG", "0") == "1") {
+                std::cerr << "DEBUG: Reading line " << lineNum << " from file: " << path << "\\n";
+                std::cerr << "DEBUG: File exists: " << (fileExists(path) ? "yes" : "no") << "\\n";
+            }
+            
             std::cerr << str << "\\n";
-	        if(std::remove("temps.txt") != 0) 
-		        std::cerr << "error: remove(temps.txt) failed\\n";
 	        std::cerr << msg << ": error: assumption failed\\n";
             __ivy_out << "assumption_failed(" << str << ")\\n";
             CLOSE_TRACE
             
-            bool is_LineInFinalizeAction = isLineInFinalizeAction(path + std::string(".ivy"), str, num);
+            bool is_LineInFinalizeAction = isLineInFinalizeAction(path, str, lineNum);
             std::cerr << "is_LineInFinalizeAction: " << is_LineInFinalizeAction << "\\n";
             if (!is_LineInFinalizeAction) __ivy_exit(1);
         }
@@ -7053,7 +7122,8 @@ int ask_ret(long long bound) {
         double totalweight = 1.0;
         bool do_over = false;
         double frnd = 0.0;
-        int num_gens = 1; //chris maybe 2 ?
+        int actual_num_gens = static_cast<int>((data_recvd->generators_ref)->size());
+        std::cerr << "DEBUG: Signal handler weighted selection with actual_num_gens=" << actual_num_gens << std::endl;
         double choices = totalweight + 5.0;
         if (do_over) {
            do_over = false;
@@ -7064,13 +7134,35 @@ int ask_ret(long long bound) {
         if (frnd < totalweight) {
             int idx = 0;
             double sum = 0.0;
-            while (idx < num_gens-1) {
+            while (idx < actual_num_gens - 1) {
                 sum += (data_recvd->weights_ref)->at(idx);
                 if (frnd < sum)
                     break;
                 idx++;
             }
-            gen &g = *(data_recvd->generators_ref)->at(idx);
+            
+            // Comprehensive bounds and null pointer checking for signal handler
+            if (idx >= actual_num_gens || idx < 0) {
+                std::cerr << "ERROR: Signal handler idx=" << idx << " out of bounds [0," << actual_num_gens-1 << "]" << std::endl;
+                data_recvd->ivy_ptr->__unlock();
+                return;
+            }
+            
+            if (idx >= (data_recvd->generators_ref)->size()) {
+                std::cerr << "ERROR: Signal handler generators_ref idx=" << idx << " >= size=" << (data_recvd->generators_ref)->size() << std::endl;
+                data_recvd->ivy_ptr->__unlock();
+                return;
+            }
+            
+            gen* gen_ptr = (data_recvd->generators_ref)->at(idx);
+            if (gen_ptr == nullptr) {
+                std::cerr << "ERROR: Signal handler generators_ref[" << idx << "] is null pointer!" << std::endl;
+                data_recvd->ivy_ptr->__unlock();
+                return;
+            }
+            
+            std::cerr << "DEBUG: Signal handler about to access generators_ref[" << idx << "]" << std::endl;
+            gen &g = *gen_ptr;
             data_recvd->ivy_ptr->__lock();
 #ifdef _WIN32
             LARGE_INTEGER before;
@@ -7662,12 +7754,27 @@ def emit_repl_boilerplate3test(header, impl, classname):
         if (frnd < totalweight) {
             int idx = 0;
             double sum = 0.0;
-            while (idx < num_gens-1) {
+            int actual_num_gens = static_cast<int>(generators.size());
+            std::cerr << "DEBUG: Weighted selection with actual_num_gens=" << actual_num_gens << ", frnd=" << frnd << ", totalweight=" << totalweight << std::endl;
+            
+            while (idx < actual_num_gens - 1) {
                 sum += weights[idx]; // should not be execute with num_gen=1
                 if (frnd < sum)
                     break;
                 idx++;
             }
+            
+            // Comprehensive bounds and null pointer checking
+            if (idx >= actual_num_gens || idx < 0) {
+                std::cerr << "ERROR: idx=" << idx << " out of bounds [0," << actual_num_gens-1 << "]" << std::endl;
+                continue;
+            }
+            if (generators[idx] == nullptr) {
+                std::cerr << "ERROR: generators[" << idx << "] is null pointer!" << std::endl;
+                continue;
+            }
+            
+            std::cerr << "DEBUG: About to access generators[" << idx << "] with actual_num_gens=" << actual_num_gens << std::endl;
             gen &g = *generators[idx];
             ivy.__lock();
 #ifdef _WIN32
@@ -7747,11 +7854,11 @@ def emit_repl_boilerplate3test(header, impl, classname):
 #else
         int foo = select(maxfds+1,&rdfds,0,0,&timeout);
         //chris: self-pipe trick
-        //while (foo == -1 & errno == EINTR) {
-        //    std::cerr << "select failed - restart with self pipe trick " << std::endl;
-        //    foo = select(maxfds+1,&rdfds,0,0,&timeout);
-        //    continue;
-        //}
+        while (foo == -1 & errno == EINTR) {
+            std::cerr << "select failed - restart with self pipe trick " << std::endl;
+            foo = select(maxfds+1,&rdfds,0,0,&timeout);
+            continue;
+        }
 
 #endif
 
@@ -8602,7 +8709,7 @@ def main_int(is_ivyc):
                     else:
                         libs = []    
                     cpp11 = any((x == 'cppstd' or x.endswith('.cppstd')) and y.rep=='cpp11' for x,y in im.module.attributes.items())
-                    gpp11_spec = ' -std=c++11 ' if cpp11 else ' -std=c++11 ' 
+                    gpp11_spec =  ' -std=c++20 ' # ' -std=c++11 ' if cpp11 else ' -std=c++11 ' 
                     libspec = ''
                     for x,y in im.module.attributes.items():
                         p,c = iu.parent_child_name(x)
@@ -8647,6 +8754,7 @@ def main_int(is_ivyc):
                         if opt_outdir.get():
                             cmd = 'cd {} & '.format(opt_outdir.get()) + cmd
                     else:
+                        # Christophe: What intereted us
                         if target.get() in ['gen','test']: # -Wl,
                             paths = ' '.join('-I {} -L {} -Xlinker -rpath -Xlinker {}'.format(os.path.join(_dir,'include'),os.path.join(_dir,'lib'),os.path.join(_dir,'lib')) for _dir in get_lib_dirs())
                         else:
@@ -8656,19 +8764,43 @@ def main_int(is_ivyc):
                             _libdir = lib[2] if len(lib) >= 3 else (_dir  + '/lib')
                             paths += ' -I {}/include -L {} -Xlinker -rpath -Xlinker {}'.format(_dir,_libdir, _libdir)
                         if emit_main: #  -Wno-return-type
-                            cmd = "g++ -Wno-parentheses-equality {} {} -g -o {} {}.cpp".format(gpp11_spec,paths,basename,basename)
+                            cmd = "g++ -Wno-parentheses-equality {} {}  -o {} {}.cpp".format(gpp11_spec,paths,basename,basename)
                         else:
-                            cmd = "g++ -Wno-parentheses-equality {} {} -g -c {}.cpp".format(gpp11_spec,paths,basename)
+                            cmd = "g++ -Wno-parentheses-equality {} {}  -c {}.cpp".format(gpp11_spec,paths,basename)
                         if target.get() in ['gen','test']:
                             cmd = cmd + ' -lz3'
+                        
+                        MODE = os.getenv('BUILD_MODE', '')  # default to empty (original behavior)
+                        EXTRA = {
+                            '': '',  # Original method - no extra flags (preserves Shadow compatibility)
+                            'debug-asan': '-O1 -g -fsanitize=address -fno-omit-frame-pointer -D_GLIBCXX_DEBUG',
+                            'rel-lto': '-O3 -flto -fuse-linker-plugin -g',
+                            'release-static-pgo':
+                                            '-O3 -flto -fuse-linker-plugin -fprofile-use '
+                                            '-march=native -static -s'
+                        }
+                        if MODE not in EXTRA:
+                            raise ValueError(f'unknown BUILD_MODE={MODE}. Valid modes: {list(EXTRA.keys())}')
+                        
+                        if MODE:  # Only add extra flags if mode is specified
+                            cmd += ' ' + EXTRA[MODE]
+                        
                         cmd += libspec
+                        
                         cmd += ' -pthread'
                         #cmd = cmd.replace("-ldl","-lrt -ldl")
                         from os import environ
                         if environ.get('IS_NOT_DOCKER') is not None:
                             cmd += ' -D IS_NOT_DOCKER'
-                            
-                        if environ.get('GPERF') is not None:
+                        
+                        # We loop over all environment variables, that start with 'IVY_'
+                        # and add them to the command line.
+                        for k,v in environ.items():
+                            if k.startswith('PANTHER_'):
+                                # We replace the variable name with its value in the command line.
+                                cmd += ' -D{}="{}"'.format(k,v.replace('"','\\"'))
+
+                        if environ.get('GPERF') == "1":
                             cmd += ' -lprofiler -ltcmalloc' # CPU profiler
                     print(cmd)
                     # else:

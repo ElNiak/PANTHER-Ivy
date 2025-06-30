@@ -51,10 +51,11 @@ module binary_input_file(data,cont) = {
         if(session_file != NULL) {
             std::cerr << "PROOTPATH 5b " << session_file<< "\n";
             pathname2 += session_file;
-            pathname2 += "/panther_ivy/protocol-testing/minip/";
+            pathname2 += "/PANTHER_IVY_BASE_DIR/protocol-testing/minip/";
             pathname = pathname2 + pathname;
         } else {
-            pathname = "/usr/local/lib/python2.7/dist-packages/ms_ivy-1.8.24-py2.7.egg/ivy/include/1.7/" + pathname; //TODO fix, for namespace, else bug
+            char * session_file2 = getenv("IVY_INCLUDE_PATH");
+            pathname = session_file2 + pathname; //TODO fix, for namespace, else bug
         }
         std::cerr << pathname << std::endl;
 		int f = ::open(pathname.c_str(),O_RDWR,0666);

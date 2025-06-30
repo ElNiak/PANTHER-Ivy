@@ -12,7 +12,10 @@ object quic_deser_forged = {}
 
 <<< impl
     //TODO
-#include "/opt/panther_ivy/protocol-testing/apt/apt_protocols/quic/quic_utils/quic_ser_deser.h"
+ #define QUOTEME(x) QUOTEME_1(x)
+    #define QUOTEME_1(x) #x
+    #define QUIC_SER_DESER_HEADER_PATH PANTHER_IVY_BASE_DIR/quic_utils/quic_ser_deser.h
+    #include QUOTEME(QUIC_SER_DESER_HEADER_PATH)
     int scid_mim = 8;
     int dcid_mim = 8;
 
@@ -226,10 +229,10 @@ object quic_deser_forged = {}
 
         virtual bool open_list_elem() {
             if (state == quic_s_payload)
-                return payload_length-- > 0;
+                return payload_length-->  0;
             
             if (state == quic_s_retry_token)
-                return data_remaining-- > 0;
+                return data_remaining-->  0;
         
             if (state == quic_s_init)
                 return more(1);

@@ -105,7 +105,7 @@ object ping_deser = {}
             if (state == ping_s_payload) {
                 std::cerr << "ping_s_payload ping_deser 2\n";  
                 //state = ping_s_time;
-                return payload_length-- > 0;
+                return payload_length-->  0;
             }
                 //return more(1);
             if ( state == ping_s_frame || state == ping_s_init) {

@@ -40,7 +40,10 @@ module udp_impl(host,pkt,ser,des) = {
 	#include <netinet/ip.h>
 	#include <netinet/tcp.h>
 	#include <iomanip>
-#include <iostream>
+	#include <iostream>
+	#include <thread>
+	#include <errno.h>
+	#include <algorithm>
 
     #endif
 
@@ -133,6 +136,9 @@ module udp_impl(host,pkt,ser,des) = {
         virtual void read() {
             std::cerr << "RECEIVING start\n";
 
+			// Enhanced safety logging for crash debugging
+			std::cerr << "DEBUG: UDP recv - sock=" << sock << ", thread_id=" << std::this_thread::get_id() << std::endl;
+
 			int len=0;
 			socklen_t lenlen=4;
 #ifdef _WIN32
@@ -145,8 +151,17 @@ module udp_impl(host,pkt,ser,des) = {
 			int bytes;
 			sockaddr_in srcaddr;
 			socklen_t addrlen = sizeof(srcaddr);
+			
+			std::cerr << "DEBUG: About to call recvfrom on sock=" << sock << ", buf_size=" << len << std::endl;
+			
 			if ((bytes = recvfrom(sock,&buf[0],len,0,(sockaddr *)&srcaddr,&addrlen)) < 0)
-			{ std::cerr << "recvfrom failed\n"; exit(1); }
+			{ 
+				std::cerr << "ERROR: recvfrom failed for sock=" << sock << ", errno=" << errno << std::endl;
+				perror("recvfrom failed"); 
+				exit(1); 
+			}
+			
+			std::cerr << "DEBUG: recvfrom success, received " << bytes << " bytes" << std::endl;
 			std::cerr << "RECEIVING srcaddr: " << inet_ntoa(srcaddr.sin_addr) << std::endl;
 			std::cerr << "RECEIVING srcport: " << ntohs(srcaddr.sin_port) << std::endl;
 			if (bytes == 0) {
@@ -156,9 +171,21 @@ module udp_impl(host,pkt,ser,des) = {
 			}
 
 			if(eavesdrop) {
+				std::cerr << "DEBUG: Eavesdrop mode enabled, processing packet of " << bytes << " bytes" << std::endl;
+				
+				// Validate packet size before processing headers
+				if (bytes < (int)(sizeof(struct ethhdr) + sizeof(struct iphdr))) {
+					std::cerr << "ERROR: Packet too small for headers, bytes=" << bytes 
+					          << ", min_required=" << (sizeof(struct ethhdr) + sizeof(struct iphdr)) << std::endl;
+					return;
+				}
+				
 				// Process the packet
 				struct ethhdr *eth_hdr = (struct ethhdr *)(&buf[0]);
 				struct iphdr *ip_hdr = (struct iphdr *)(&buf[0] + sizeof(struct ethhdr));
+				
+				std::cerr << "DEBUG: Processing IP packet, protocol=" << (int)ip_hdr->protocol 
+				          << ", ihl=" << (int)ip_hdr->ihl << std::endl;
 
 				// Check if the packet is TCP or UDP
 				// TODO merge with old version
@@ -313,22 +340,46 @@ module udp_impl(host,pkt,ser,des) = {
 					std::cerr << "RECEIVING NOT UDP NOR TCP\n";
 				}
 			} else {
+				std::cerr << "DEBUG: Standard UDP processing mode, bytes=" << bytes << std::endl;
+				
+				// Validate bytes before resizing
+				if (bytes < 0) {
+					std::cerr << "ERROR: Invalid byte count: " << bytes << std::endl;
+					return;
+				}
+				
 				buf.resize(bytes);
 				`pkt` pkt;
 				std::cerr << "RECEIVING __deser\n";
+				std::cerr << "DEBUG: About to deserialize packet, buf.size()=" << buf.size() << std::endl;
+				
 				try {
 					`des` ds(buf);
+					std::cerr << "DEBUG: Created deserializer, about to call __deser" << std::endl;
 					__deser(ds,pkt);
+					std::cerr << "DEBUG: Deserialization complete, ds.pos=" << ds.pos << ", buf.size()=" << buf.size() << std::endl;
+					
 					if (ds.pos < buf.size()) {
 						//std::cerr << pkt << std::endl; 
 						//std::cerr << ds << std::endl; 
-						std::cerr << buf.size() << std::endl; 
-						std::cerr << ds.pos << std::endl; 
+						std::cerr << "ERROR: Incomplete deserialization - buf.size()=" << buf.size() 
+						          << ", ds.pos=" << ds.pos << std::endl; 
 						std::cerr << "udp impl" << std::endl; 
 						throw deser_err();
 					}
-				} catch (deser_err &){
-					std::cerr << "BAD PACKET RECEIVED\n";
+				} catch (deser_err &e){
+					std::cerr << "ERROR: BAD PACKET RECEIVED - deserialization failed" << std::endl;
+					std::cerr << "DEBUG: Buffer contents (first 32 bytes): ";
+					for (int i = 0; i < std::min(32, (int)buf.size()); i++) {
+						std::cerr << std::hex << (unsigned char)buf[i] << " ";
+					}
+					std::cerr << std::dec << std::endl;
+					return;
+				} catch (const std::exception& e) {
+					std::cerr << "ERROR: Exception during deserialization: " << e.what() << std::endl;
+					return;
+				} catch (...) {
+					std::cerr << "ERROR: Unknown exception during deserialization" << std::endl;
 					return;
 				}
 				`ip.endpoint` src;
@@ -340,10 +391,26 @@ module udp_impl(host,pkt,ser,des) = {
 					src.interface = `ip.lo`; //TODO
 				}
 				src.port = ntohs(srcaddr.sin_port);
+				
+				std::cerr << "DEBUG: About to acquire ivy lock and call callback" << std::endl;
+				std::cerr << "DEBUG: Callback data - sock=" << sock << ", src.addr=" << src.addr 
+				          << ", src.port=" << src.port << std::endl;
+				          
 				ivy->__lock();
-				cb.rcb(sock,src,pkt);
+				std::cerr << "DEBUG: Ivy lock acquired, calling cb.rcb" << std::endl;
+				
+				try {
+					cb.rcb(sock,src,pkt);
+					std::cerr << "DEBUG: cb.rcb completed successfully" << std::endl;
+				} catch (const std::exception& e) {
+					std::cerr << "ERROR: Exception in cb.rcb: " << e.what() << std::endl;
+				} catch (...) {
+					std::cerr << "ERROR: Unknown exception in cb.rcb" << std::endl;
+				}
+				
 				ivy->__unlock();
-				std::cerr << "RECEIVING finsh\n";
+				std::cerr << "DEBUG: Ivy lock released" << std::endl;
+				std::cerr << "RECEIVING finish\n";
 			}
 		}
 
@@ -400,6 +467,14 @@ object impl(me:host) = {
 			<<< impure
 			s = make_udp_socket();
 			char* shadowTest = getenv("SHADOW_TEST");
+			std::cerr << "open SOCKET " << s << std::endl;
+			std::cerr << "open SOCKET addr: " << addr.addr << " port: " << addr.port << std::endl;
+			std::cerr << "open SOCKET interface: " << addr.interface << std::endl;
+			std::cerr << "open SOCKET shadowTest: " << (shadowTest ? shadowTest : "DSWAG") << std::endl;
+			std::cerr << "open SOCKET me: " << `me` << std::endl;
+			std::cerr << "open SOCKET is_vnet: " << is_vnet << std::endl;
+			std::cerr << "addr != 0x7f000001:" << (addr.addr != 0x7f000001) << std::endl;
+			std::cerr << "shadowTest == NULL" << (shadowTest == NULL) << std::endl;
 			if(addr.addr != 0x7f000001 && shadowTest == NULL) { //TODO
 				std::cerr << "open SOCKET " << s << std::endl;
 				is_vnet = true;

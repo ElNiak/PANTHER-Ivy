@@ -7,18 +7,6 @@ dependencies:
 env:
   TEST_ALPN: "hq-interop"
   PROTOCOL_TESTED: "quic"
-  ZRTT_SSLKEYLOGFILE: "$SOURCE_DIR/panther_ivy/protocol-testing/apt/apt_protocols/quic/last_tls_key.txt"
-  RETRY_TOKEN_FILE: "$SOURCE_DIR/panther_ivy/protocol-testing/apt/apt_protocols/quic/last_retry_token.txt"
-  NEW_TOKEN_FILE: "$SOURCE_DIR/panther_ivy/protocol-testing/apt/apt_protocols/quic/last_new_token.txt"
-  ENCRYPT_TICKET_FILE: "$SOURCE_DIR/panther_ivy/protocol-testing/apt/apt_protocols/quic/last_encrypt_session_ticket.txt"
-  SESSION_TICKET_FILE: "$SOURCE_DIR/panther_ivy/protocol-testing/apt/apt_protocols/quic/last_session_ticket_cb.txt"
-  SAVED_PACKET: "$SOURCE_DIR/panther_ivy/protocol-testing/apt/apt_protocols/quic/saved_packet.txt"
-  initial_max_stream_id_bidi: "$SOURCE_DIR/panther_ivy/protocol-testing/apt/apt_protocols/quic/initial_max_stream_id_bidi.txt"
-  active_connection_id_limit: "$SOURCE_DIR/panther_ivy/protocol-testing/apt/apt_protocols/quic/active_connection_id_limit.txt"
-  initial_max_stream_data_bidi_local: "$SOURCE_DIR/panther_ivy/protocol-testing/apt/apt_protocols/quic/initial_max_stream_data_bidi_local.txt"
-  initial_max_stream_data_bidi_remote: "$SOURCE_DIR/panther_ivy/protocol-testing/apt/apt_protocols/quic/initial_max_stream_data_bidi_remote.txt"
-  initial_max_stream_data_uni: "$SOURCE_DIR/panther_ivy/protocol-testing/apt/apt_protocols/quic/initial_max_stream_data_uni.txt"
-  initial_max_data: "$SOURCE_DIR/panther_ivy/protocol-testing/apt/apt_protocols/quic/initial_max_data.txt"
   INITIAL_VERSION: "1"
 parameters:
   tests_dir: 
@@ -37,8 +25,8 @@ parameters:
     value: 1
     description: "Initial version (default: 1)"
   server_addr:
-    value: 0x7F000001
-    description: "Server address (default: 0x7F000001)"
+    value: "@{server_service:ip:decimal}"
+    description: "Server address (dynamically resolved based on network environment)"
   server_cid:
     value: "10"
     description: "Server connection ID (default: 0)"
@@ -49,17 +37,17 @@ parameters:
     value: 4444
     description: "Client port alternative (default: 4444)"
   client_addr:
-    value: 0x7F000001
-    description: "Client address (default: 0x7F000001)"
+    value: "@{client_service:ip:decimal}"
+    description: "Client address (dynamically resolved based on network environment)"
 server:
   the_cid: "1"
   iversion: "1"
   server_port: 4443
-  server_addr: 0x7F000001
+  server_addr: "@{server_service:ip:decimal}"
   server_cid: "10"
   client_port: 4997
   client_port_alt: 4444
-  client_addr: 0x7F000001
+  client_addr: "@{client_service:ip:decimal}"
   initial_version: "00000001"
   protocol:
     alpn:
@@ -67,7 +55,7 @@ server:
       value: "hq-interop"
     additional_parameters: "-l - -n servername -D -L"
   binary:
-    dir: "/opt/panther_ivy/protocol-testing/"
+    dir: "PANTHER_IVY_INSTALL_DIR/protocol-testing/"
     name: ""
   network:
     interface:
@@ -78,15 +66,15 @@ server:
   certificates:
     cert:
       param: "-c"
-      file: "/opt/certs/cert.pem"
+      file: "PANTHER_IVY_CERT_PATH"
       local_file: "config/certs/cert.pem"
     key:
       param: "-k"
-      file: "/opt/certs/key.pem"
+      file: "PANTHER_IVY_KEY_PATH"
       local_file: "config/certs/key.pem"
   ticket_file:
     param: "-T"
-    file: "/opt/ticket/ticket.key"
+    file: "PANTHER_IVY_TICKET_PATH"
     local_file: "config/tls_keys/"
   logging:
     log_path: "/app/logs/server.log"
@@ -116,7 +104,7 @@ client:
       value: "hq-interop"
     additional_parameters: "-l - -D -L"
   binary:
-    dir: "/opt/panther_ivy/protocol-testing/"
+    dir: "PANTHER_IVY_INSTALL_DIR/protocol-testing/"
     name: ""
   network:
     interface:
@@ -127,15 +115,15 @@ client:
   certificates:
     cert:
       param: "-c"
-      file: "/opt/certs/cert.pem"
+      file: "PANTHER_IVY_CERT_PATH"
       local_file: "config/certs/cert.pem"
     key:
       param: "-k"
-      file: "/opt/certs/key.pem"
+      file: "PANTHER_IVY_KEY_PATH"
       local_file: "config/certs/key.pem"
   ticket_file:
     param: "-T"
-    file: "/opt/ticket/ticket.key"
+    file: "PANTHER_IVY_TICKET_PATH"
     local_file: "config/tls_keys/"
   logging:
     log_path: "/app/logs/client.log"

@@ -14,11 +14,10 @@ object quic_ser_enc_client = {}
 
     //TODO
     //TODO
-    #if defined(IS_NOT_DOCKER) 
-        #include "/home/user/Documents/QUIC-RFC9000/panther_ivy/protocol-testing/apt/apt_protocols/quic/quic_utils/quic_ser_deser.h"
-    #else 
-         #include "/opt/panther_ivy/protocol-testing/apt/apt_protocols/quic/quic_utils/quic_ser_deser.h"
-    #endif
+     #define QUOTEME(x) QUOTEME_1(x)
+    #define QUOTEME_1(x) #x
+    #define QUIC_SER_DESER_HEADER_PATH PANTHER_IVY_BASE_DIR/quic_utils/quic_ser_deser.h
+    #include QUOTEME(QUIC_SER_DESER_HEADER_PATH)
     
     class `quic_ser_enc_client` : public ivy_binary_ser_128 {
     //class `quic_ser_enc_client` : public ivy_binary_ser {

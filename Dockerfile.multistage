@@ -1,0 +1,260 @@
+# syntax=docker/dockerfile:1
+
+# Multi-stage build for panther_ivy service isolation and optimization  
+# Uses 3-stage base service architecture: minimal/debug/profile runtime modes
+# Build stage: Complete build environment with Python, Z3, and dependencies
+# Runtime stage: Selected runtime environment (minimal/debug/profile)
+
+# Runtime mode selection for execution environment
+ARG RUNTIME_MODE=minimal
+
+# ============================================================================
+# BUILD STAGE: Complete build environment with Python, Z3, and dependencies
+# ============================================================================
+
+FROM --platform=linux/amd64 panther_base_service:latest AS builder
+
+# Build arguments and environment
+ARG DEPENDENCIES="[]"
+ARG BUILD_MODE=""
+ARG VERSION=master
+ENV DEPENDENCIES=${DEPENDENCIES}
+ENV VERSION=${VERSION}
+ENV BUILD_MODE=${BUILD_MODE}
+
+# System configuration for build environment
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Build dependencies with cache optimization
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt update && \
+    add-apt-repository --yes ppa:deadsnakes/ppa && \
+    apt update && \
+    apt --fix-missing -y install \
+        python3.10 \
+        python3.10-dev \
+        python3.10-tk \
+        build-essential \
+        python3-ply \
+        alien \
+        iptables \
+        iproute2 \
+        iputils-ping \
+        tzdata \
+        curl \
+        tar \
+        g++ \
+        cmake \
+        tix \
+        pkg-config \
+        libssl-dev \
+        lsof \
+        graphviz \
+        graphviz-dev \
+        doxygen \
+        faketime \
+        libscope-guard-perl \
+        libtest-tcp-perl \
+        libbrotli-dev \
+        libev-dev \
+        libhttp-parser-dev \
+        libbsd-dev \
+        snapd \
+        rand \
+        binutils \
+        binutils-dev \
+        autoconf \
+        automake \
+        autotools-dev \
+        libtool \
+        libjemalloc-dev \
+        libboost-all-dev \
+        libboost-dev \
+        ca-certificates \
+        mime-support \
+        libevent-dev \
+        libdouble-conversion-dev \
+        libgflags-dev \
+        libgoogle-glog-dev \
+        libiberty-dev \
+        liblz4-dev \
+        liblzma-dev \
+        libsnappy-dev \
+        zlib1g-dev \
+        libsodium-dev \
+        libffi-dev \
+        cargo \
+        libunwind-dev \
+        radare2 \
+        strace \
+        bridge-utils \
+        libreadline-dev \
+        tk \
+        libgv-tcl \
+        libgraphviz-dev \
+        libdevil1c2 \
+        libgts-0.7-5 \
+        liblasi0 \
+        tcl-dev \
+        tcl \
+        libgmp-dev \
+        dsniff \
+        sudo \
+        jq \
+        ninja-build \
+        && rm -rf /var/lib/apt/lists/*
+
+# picotls dependencies with build cache optimization
+RUN --mount=type=cache,target=/tmp/git-cache \
+    --mount=type=cache,target=/tmp/build-cache \
+    cd /opt && \
+    echo "Starting dependency installation..." && \
+    echo $DEPENDENCIES | jq -c '.[]' | while read -r dep; do \
+    DEP_NAME=$(echo $dep | jq -r '.name'); \
+    DEP_URL=$(echo $dep | jq -r '.url'); \
+    DEP_COMMIT=$(echo $dep | jq -r '.commit'); \
+    if [ -n "$DEP_NAME" ] && [ -n "$DEP_URL" ] && [ -n "$DEP_COMMIT" ]; then \
+    echo "Cloning dependency '$DEP_NAME' from '$DEP_URL' at commit '$DEP_COMMIT'" && \
+    git clone "$DEP_URL" "$DEP_NAME" && \
+    cd "$DEP_NAME" && \
+    git checkout "$DEP_COMMIT" && \
+    git submodule update --init --recursive && \
+    OPENSSL_INCLUDE_DIR="/usr/include/openssl" cmake . && \
+    make && \
+    make check && \
+    echo "Successfully built dependency '$DEP_NAME'"; \
+    else \
+    echo "Invalid dependency configuration: $dep"; \
+    exit 1; \
+    fi; \
+    done
+
+# Install Python and dependencies with pip cache optimization
+RUN --mount=type=cache,target=/root/.cache/pip \
+    curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10 && \
+    python3.10 -m pip install \
+        pexpect \
+        chardet \
+        pandas \
+        scandir \
+        ply \
+        pygraphviz \
+        pydot \
+        progressbar2
+
+# Copy and build Panther-Ivy components
+ADD setup.py build_submodules.py /opt/panther_ivy/
+ADD submodules /opt/panther_ivy/submodules/
+ADD ivy /opt/panther_ivy/ivy/
+ADD lib /opt/panther_ivy/lib/
+ADD patches /opt/panther_ivy/patches/
+
+# Set up Python path and build environment
+ENV PYTHONPATH="$$PYTHONPATH:/opt/panther_ivy/"
+ENV BUILD_MODE=${BUILD_MODE}
+WORKDIR /opt/panther_ivy/
+
+# Apply patch to make Z3 git dependency optional for Docker builds
+RUN cd /opt/panther_ivy && \
+    patch -p1 < patches/z3-cmake-git-optional.patch
+
+# Build Panther-Ivy with cache optimization
+RUN --mount=type=cache,target=/root/.cache/pip \
+    --mount=type=cache,target=/tmp/build-cache \
+    python3.10 -m pip install . && \
+    python3.10 build_submodules.py && \
+    sudo python3.10 setup.py install && \
+    cp lib/libz3.so submodules/z3/build/python/z3 && \
+    cp lib/libz3.so submodules/z3/build/
+
+# Add protocol testing components
+ADD protocol-testing /opt/panther_ivy/protocol-testing/
+
+# ============================================================================
+# RUNTIME STAGE: Selected runtime environment (minimal/debug/profile)
+# ============================================================================
+
+# Use base service with runtime mode selection
+# Base service provides: minimal (core+network) / debug (+gdb,valgrind,strace) / profile (+perf,gperftools,radare2)
+ARG RUNTIME_MODE
+FROM --platform=linux/amd64 panther_base_service:latest
+
+# Runtime arguments (inherited ARG RUNTIME_MODE from global scope)
+ARG DEPENDENCIES="[]"
+ARG BUILD_MODE=""
+ARG VERSION=master
+ENV DEPENDENCIES=${DEPENDENCIES}
+ENV VERSION=${VERSION}
+ENV BUILD_MODE=${BUILD_MODE}
+
+# Runtime dependencies only (no build tools)
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt update && \
+    add-apt-repository --yes ppa:deadsnakes/ppa && \
+    apt update && \
+    apt --fix-missing -y install \
+        python3.10 \
+        python3.10-tk \
+        python3-ply \
+        iptables \
+        iproute2 \
+        iputils-ping \
+        tzdata \
+        curl \
+        jq \
+        tix \
+        libssl1.1 \
+        lsof \
+        graphviz \
+        faketime \
+        libscope-guard-perl \
+        libtest-tcp-perl \
+        bridge-utils \
+        libreadline6 \
+        tk \
+        libgv-tcl \
+        libgraphviz4 \
+        libdevil1c2 \
+        libgts-0.7-5 \
+        liblasi0 \
+        tcl \
+        dsniff \
+        sudo \
+        && rm -rf /var/lib/apt/lists/*
+
+# Copy built Python environment and artifacts from build stage
+COPY --from=builder /opt/panther_ivy/ /opt/panther_ivy/
+COPY --from=builder /usr/local/lib/python3.10/ /usr/local/lib/python3.10/
+COPY --from=builder /usr/local/bin/ /usr/local/bin/
+
+# Set up runtime environment
+ENV PYTHONPATH="$$PYTHONPATH:/opt/panther_ivy/"
+ENV BUILD_MODE=${BUILD_MODE}
+WORKDIR /opt/panther_ivy/
+
+# Runtime mode labels for identification
+ARG RUNTIME_MODE
+LABEL panther.runtime.mode="${RUNTIME_MODE}"
+LABEL panther.service.name="panther_ivy"
+LABEL panther.service.type="tester"
+LABEL panther.runtime.capabilities.minimal="python3.10,wireshark,tshark,tcpdump,iperf3"
+LABEL panther.runtime.capabilities.debug="minimal+gdb,valgrind,strace"
+LABEL panther.runtime.capabilities.profile="debug+perf,gperftools,radare2"
+
+# Set entrypoint  
+ENTRYPOINT [ "/bin/bash", "-l", "-c" ]
+
+# =============================================================================
+# Usage Examples:
+# 
+# Minimal runtime (default - core + network analysis):
+# docker build --build-arg RUNTIME_MODE=minimal -t panther_ivy:minimal .
+# 
+# Debug runtime (minimal + debugging tools):
+# docker build --build-arg RUNTIME_MODE=debug -t panther_ivy:debug .
+# 
+# Profile runtime (debug + performance profiling tools):
+# docker build --build-arg RUNTIME_MODE=profile -t panther_ivy:profile .
+# =============================================================================

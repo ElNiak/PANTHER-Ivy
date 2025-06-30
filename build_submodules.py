@@ -1,18 +1,74 @@
+from pathlib import Path
+from pdb import run
+import subprocess
 import sys
 import os
 import platform
 
+
+ROOT = Path.cwd() # Current working directory
+SUBMOD, IVY = ROOT / "submodules", ROOT / "ivy"
+
+# ─────────── Build-mode table ───────────
+MODES: dict[str, dict[str, object]] = {
+    "": { "cmake": [], "static": False },           # shadow/original
+    "debug-asan": {
+        "cmake": ["-DCMAKE_BUILD_TYPE=Debug",
+                  "-DSANITIZE_ADDRESS=TRUE",
+                  "-DINCLUDE_GIT_HASH=FALSE",
+                  "-DINCLUDE_GIT_DESCRIBE=FALSE",
+                  "-DBUILD_LIBZ3_SHARED=FALSE",
+                  "-DBUILD_PYTHON_BINDINGS=FALSE"],
+        "static": False,
+    },
+    "rel-lto": {
+        "cmake": ["-DCMAKE_BUILD_TYPE=Release",
+                  "-DINCLUDE_GIT_HASH=FALSE",
+                  "-DINCLUDE_GIT_DESCRIBE=FALSE",
+                  "-DLINK_TIME_OPTIMIZATION=TRUE",
+                  "-DBUILD_LIBZ3_SHARED=FALSE",
+                  "-DUSE_LIB_GMP=TRUE",
+                  "-DDUSE_OPENMP=TRUE",
+                  "-DBUILD_PYTHON_BINDINGS=FALSE"],
+        "static": False,
+    },
+    "release-static-pgo": {
+        "cmake": ["-DCMAKE_BUILD_TYPE=Release",
+                  "-DLINK_TIME_OPTIMIZATION=TRUE",
+                  "-DINCLUDE_GIT_HASH=FALSE",
+                  "-DINCLUDE_GIT_DESCRIBE=FALSE",
+                  "-DBUILD_LIBZ3_SHARED=FALSE",
+                  "-DBUILD_PYTHON_BINDINGS=FALSE",
+                  "-DCMAKE_C_FLAGS=-fprofile-use",
+                  "-DCMAKE_CXX_FLAGS=-fprofile-use",
+                  "-DCMAKE_POSITION_INDEPENDENT_CODE=FALSE"],
+        "static": True,
+    },
+}
+
+BUILD_MODE      = os.getenv("BUILD_MODE", "")
+Z3_BUILD_MODE   = os.getenv("Z3_BUILD_MODE", BUILD_MODE)
+if Z3_BUILD_MODE not in MODES:
+    sys.exit(f"Unknown Z3_BUILD_MODE='{Z3_BUILD_MODE}'; choose one of {list(MODES)}")
+
 def do_cmd(cmd):
     print(cmd)
-    status = os.system(cmd)
-    if status:
-        exit(1)
-    
+    if status := os.system(cmd):
+        exit(status)
+
+def run_cmd(cmd, cwd=None):
+    print(cmd if isinstance(cmd, str) else " ".join(cmd))
+    print(f"Running in directory: {cwd if cwd else 'current directory'}")
+    if subprocess.call(cmd, shell=isinstance(cmd, str), cwd=cwd) != 0:
+        sys.exit(1)
+
+def ensure_dir(p: Path): p.mkdir(parents=True, exist_ok=True)
+      
 def make_dir_exist(dir):
     if not os.path.exists(dir):
         os.mkdir(dir)
     elif not os.path.isdir(dir):
-        print("cannot create directory {}".format(dir))
+        print(f"cannot create directory {dir}")
         exit(1)
         
 
@@ -21,11 +77,11 @@ def find_vs():
     try:
         windir = os.getenv('WINDIR')
         drive = windir[0]
-    except:
+    except Exception:
         drive = 'C'
     for v in ["2019","2017"]:
         for w in ['',' (x86)']:
-            dir = '{}:\\Program Files{}\\Microsoft Visual Studio\{}'.format(drive,w,v)
+            dir = f'{drive}:\\Program Files{w}\\Microsoft Visual Studio\{v}'
             if os.path.exists(dir):
                 for vers in ['Enterprise','Professional','Community']:
                     vers_dir = dir + '\\' + vers
@@ -35,44 +91,97 @@ def find_vs():
                             return vcvars
     for v in range(15,9,-1):
         for w in ['',' (x86)']:
-            dir = '{}:\\Program Files{}\\Microsoft Visual Studio {}.0'.format(drive,w,v)
+            dir = f'{drive}:\\Program Files{w}\\Microsoft Visual Studio {v}.0'
             vcvars = dir + '\\VC\\vcvars64.bat'
             if os.path.exists(vcvars):
                 return vcvars
     print('Cannot find a suitable version of Visual Studio (require 10.0-15.0 or 2017 or 2019)')
 
 def build_z3():
+    print("--- Building Z3 ---")
 
-    cwd = os.getcwd()
+    z3 = SUBMOD / "z3"
+    if not z3.exists():
+        sys.exit("submodules/z3 missing (git submodule update --init)")
 
-    if not os.path.exists('submodules/z3'):
-        print("submodules/z3 not found. try 'git submodule update; git submodule update'")
-        exit(1)
-
-    os.chdir('submodules/z3')
-
-    ivydir = os.path.join(cwd,'ivy')
-
-
-    if platform.system() != 'Windows':
-        cmd = 'python3.10 scripts/mk_make.py --python --prefix {} --pypkgdir {}/'.format(cwd,ivydir)
+    if BUILD_MODE in MODES and BUILD_MODE != "" and False:
+        print(f"Using CMake for Z3 build with BUILD_MODE={BUILD_MODE}")
+        optimized_build_for_ivy_test_target(z3)
     else:
-        cmd = 'python3.10 scripts/mk_make.py -x --python --pypkgdir {}/'.format(ivydir)
+        legacy_build(z3)
+    
 
-    do_cmd(cmd)
+def legacy_build(z3):
+    # Use legacy mk_make.py method for original/Shadow compatibility
+    print("Using legacy mk_make.py method for Z3 build")
+    cmd = (
+        #f'python3 scripts/mk_make.py --python --prefix {str(ROOT)} --pypkgdir {str(IVY)}'
+        f'python3 scripts/mk_make.py --staticlib --prefix {str(ROOT)}'
+        if platform.system() != 'Windows'
+        else f'python3 scripts/mk_make.py -x --python --pypkgdir {str(IVY)}'
+    )
+    run_cmd(cmd, cwd=str(z3))
 
-    os.chdir('build')
+    build_dir = str(z3 / "build") 
 
     if platform.system() == 'Windows':
-        do_cmd('"{}" & nmake'.format(find_vs()))
+        run_cmd(f'"{find_vs()}" & nmake', cwd=build_dir)
     else:
-        do_cmd('make -j 4')
-        do_cmd('make install')
+        run_cmd('make -j 4', cwd=build_dir)
+        run_cmd('make install', cwd=build_dir)
 
-    os.chdir(cwd)
+
+def optimized_build_for_ivy_test_target(z3):
+    cfg = MODES[BUILD_MODE]
+    build_dir = z3 / "build" 
+    print(f"Using CMake for Z3 build with BUILD_MODE={BUILD_MODE} and configuration: {cfg}")
+    print(f"Build directory: {build_dir}")
+    # Use CMake for new build modes
+    if build_dir.exists():
+        print("Removing old  build")
+        import shutil
+        shutil.rmtree(build_dir)
+        
+    ensure_dir(build_dir)
+
+    cmake_cmd = "CC=gcc CXX=g++ "
+    cmake_cmd += "cmake "
+    cmake_cmd += "-G \"Unix Makefiles\" "
+    cmake_cmd += f"-DCMAKE_INSTALL_PREFIX={ROOT}"
+    # "-DCMAKE_AR=/usr/bin/gcc-ar",
+    # "-DCMAKE_RANLIB=/usr/bin/gcc-ranlib",
+    # "-DCMAKE_NM=/usr/bin/gcc-nm",
+
+    for opt in cfg["cmake"]:
+        cmake_cmd += f" {opt}"
+        
+    cmake_cmd += " ../"
+
+    build_dir = str(build_dir)
+    
+    print(f"Running CMake command: {cmake_cmd} in {build_dir}")
+
+    run_cmd(cmake_cmd, cwd=build_dir)
+    # run_cmd("cmake --build . -j 4", cwd=build_dir)
+    # run_cmd("cmake --install .", cwd=build_dir)
+    run_cmd("CC=gcc CXX=g++ make -j 1", cwd=build_dir) # job-server FD problem. (emulation ?)
+
+    # stage artefacts into ivy/
+    ensure_dir(IVY / "lib")
+    ensure_dir(IVY / "include")
+    for hdr in (ROOT / "include").glob("z3*.h"):
+        shutil.copy2(hdr, IVY / "include" / hdr.name)
+
+    if cfg["static"]:
+        shutil.copy2(ROOT / "lib/libz3.a", IVY / "lib/libz3.a")
+    else:
+        for so in (ROOT / "lib").glob("libz3.*"):
+            shutil.copy2(so, IVY / "lib" / so.name)
 
 def install_z3():
-
+    if BUILD_MODE in MODES and BUILD_MODE != "":
+        return
+    
     make_dir_exist('ivy/lib')
     make_dir_exist('ivy/z3')
 
@@ -93,7 +202,6 @@ def install_z3():
         do_cmd('cp lib/*.so ivy/z3')
 
 def build_picotls():
-        
     if not os.path.exists('submodules/picotls'):
         print("submodules/picotls not found. try 'git submodule update; git submodule update'")
         exit(1)
@@ -101,11 +209,10 @@ def build_picotls():
     cwd = os.getcwd()
 
     os.chdir('submodules/picotls')
-
-    # do_cmd('git submodule init')
-    # do_cmd('git submodule update')
-
     
+    # TODO: extract commit from version_config
+    do_cmd('git checkout 047c5fe20bb9ea91c1caded8977134f19681ec76')
+
     if platform.system() == 'Windows':
         do_cmd('"{}" & msbuild /p:OPENSSL64DIR=c:\\OpenSSL-Win64 picotlsvs\\picotls\\picotls.vcxproj'.format(find_vs()))
     else:
@@ -198,6 +305,7 @@ def install_abc():
     os.chdir(cwd)
     
 if __name__ == "__main__":
+    print("--- Running build_submodules.py ---")
     build_z3()
     install_z3()
     build_picotls()

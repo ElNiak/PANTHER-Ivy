@@ -804,7 +804,7 @@ object quic_prot_deser = {}
             }
             bool res = true;
             if (level == 1) {
-                res = data_remaining-- > 0;
+                res = data_remaining-->  0;
             }
             if (res)
                 level++;

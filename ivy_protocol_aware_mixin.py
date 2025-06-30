@@ -23,29 +23,50 @@ class IvyProtocolAwareMixin:
     _protocol_name_cache: Optional[str] = None
     
     def get_protocol_name(self) -> str:
-        """
-        Centralized protocol name resolution with caching.
-        
-        Returns:
-            str: Protocol name or 'unknown' if not determinable
-        """
-        if self._protocol_name_cache:
-            return self._protocol_name_cache
+            """
+            Centralized protocol name resolution with caching.
             
-        protocol_name = None
-        if hasattr(self, 'protocol'):
-            if hasattr(self.protocol, 'name'):
-                protocol_name = getattr(self.protocol, 'name', None)
-            elif isinstance(self.protocol, str):
-                protocol_name = self.protocol
-        
-        if protocol_name is None:
-            protocol_name = "unknown"
-            if hasattr(self, 'logger'):
-                self.logger.warning("Could not determine protocol name")
+            Returns:
+                str: Protocol name or 'unknown' if not determinable
+            """
+            if self._protocol_name_cache:
+                return self._protocol_name_cache
+                
+            protocol_name = None
             
-        self._protocol_name_cache = protocol_name
-        return protocol_name
+            # Method 1: Check self.protocol object
+            if hasattr(self, 'protocol') and self.protocol:
+                if hasattr(self.protocol, 'name'):
+                    protocol_name = getattr(self.protocol, 'name', None)
+                    if hasattr(self, 'logger'):
+                        self.logger.debug(f"Found protocol name from self.protocol.name: {protocol_name}")
+                elif isinstance(self.protocol, str):
+                    protocol_name = self.protocol
+                    if hasattr(self, 'logger'):
+                        self.logger.debug(f"Found protocol name from self.protocol string: {protocol_name}")
+            
+            # Method 2: Check service config protocol
+            if protocol_name is None and hasattr(self, 'service_config_to_test'):
+                if hasattr(self.service_config_to_test, 'protocol') and hasattr(self.service_config_to_test.protocol, 'name'):
+                    protocol_name = getattr(self.service_config_to_test.protocol, 'name', None)
+                    if hasattr(self, 'logger'):
+                        self.logger.debug(f"Found protocol name from service config: {protocol_name}")
+            
+            # Method 3: Check _original_service_config if available (fallback)
+            if protocol_name is None and hasattr(self, '_original_service_config'):
+                if hasattr(self._original_service_config, 'protocol') and hasattr(self._original_service_config.protocol, 'name'):
+                    protocol_name = getattr(self._original_service_config.protocol, 'name', None)
+                    if hasattr(self, 'logger'):
+                        self.logger.debug(f"Found protocol name from original service config: {protocol_name}")
+            
+            if protocol_name is None:
+                protocol_name = "unknown"
+                if hasattr(self, 'logger'):
+                    self.logger.warning("Could not determine protocol name from any source")
+                
+            self._protocol_name_cache = protocol_name
+            return protocol_name
+
     
     def get_protocol_model_path(self, use_system_models: bool = False) -> str:
         """
@@ -114,63 +135,60 @@ class IvyProtocolAwareMixin:
             return str(base_path / protocol_name)
 
     def adapt_environment_paths(self, env_vars: dict, use_system_models: bool) -> int:
-        """
-        Adapt environment variable paths based on architecture choice.
-        
-        This method transforms paths in environment variables to match the selected
-        architecture (APT vs standard) using environment variable configuration.
-        
-        Args:
-            env_vars: Dictionary of environment variables to modify
-            use_system_models: Whether using APT system models architecture
+            """
+            Adapt environment variable paths using simplified single-variable approach.
             
-        Returns:
-            int: Number of environment variables that were adapted
-        """
-        protocol_name = self.get_protocol_name()
-        
-        # Get path configurations from environment variables (with defaults)
-        base_path = os.getenv('PANTHER_IVY_BASE_PATH', '$SOURCE_DIR/panther_ivy/protocol-testing')
-        
-        if use_system_models:
-            # APT architecture
-            apt_subpath = os.getenv('PANTHER_IVY_APT_SUBPATH', 'apt/apt_protocols')
-            target_path = f"{base_path}/{apt_subpath}/{protocol_name}"
-        else:
-            # Standard architecture  
-            standard_subpath = os.getenv('PANTHER_IVY_STANDARD_SUBPATH', '')
-            if standard_subpath:
-                target_path = f"{base_path}/{standard_subpath}/{protocol_name}"
+            Instead of complex path building, sets PANTHER_IVY_BASE_DIR to complete path:
+            - APT: $PROJECT_ROOT/protocol-testing/apt/apt_protocols/$PROTOCOL  
+            - Standard: $PROJECT_ROOT/protocol-testing/$PROTOCOL
+            
+            Args:
+                env_vars: Dictionary of environment variables to modify
+                use_system_models: Whether using APT system models architecture
+                
+            Returns:
+                int: Number of environment variables that were set
+            """
+            protocol_name = self.get_protocol_name()
+            
+            # Get project root from environment or use default
+            project_root = os.getenv('PROJECT_ROOT', '/opt/panther_ivy')
+            
+            if use_system_models:
+                # APT Architecture: centralized protocols under apt_protocols
+                base_dir = f"{project_root}/protocol-testing/apt/apt_protocols/{protocol_name}"
+                apt_path = "protocol-testing/apt/apt_protocols"
             else:
-                target_path = f"{base_path}/{protocol_name}"
-        
-        # Define path patterns to replace
-        apt_pattern = f"$SOURCE_DIR/panther_ivy/protocol-testing/apt/apt_protocols/{protocol_name}"
-        standard_pattern = f"$SOURCE_DIR/panther_ivy/protocol-testing/{protocol_name}"
-        
-        # Replace paths in environment variables
-        adapted_count = 0
-        for env_name, env_value in env_vars.items():
-            if isinstance(env_value, str):
-                original_value = env_value
-                adapted_value = env_value
-                
-                # Replace known patterns with target path
-                if apt_pattern in adapted_value:
-                    adapted_value = adapted_value.replace(apt_pattern, target_path)
-                elif standard_pattern in adapted_value:
-                    adapted_value = adapted_value.replace(standard_pattern, target_path)
-                
-                # Update if changed
-                if adapted_value != original_value:
-                    env_vars[env_name] = adapted_value
-                    adapted_count += 1
-                    if hasattr(self, 'logger'):
-                        self.logger.debug(f"Adapted path for {env_name}: {original_value} -> {adapted_value}")
-        
-        if hasattr(self, 'logger'):
-            self.logger.info(f"Adapted {adapted_count} environment variable paths for {'APT' if use_system_models else 'standard'} architecture")
-        
-        return adapted_count
+                # Standard Architecture: protocol in its own directory
+                base_dir = f"{project_root}/protocol-testing/{protocol_name}"
+                apt_path = ""
+            
+            # Set the simplified environment variables
+            simplified_env_vars = {
+                'PANTHER_IVY_BASE_DIR': base_dir,
+                'USE_APT_PROTOCOLS': '1' if use_system_models else '0',
+                'IS_APT_PATH': apt_path,  # Keep for backward compatibility
+                'PROJECT_ROOT': project_root,
+                'PROTOCOL': protocol_name,
+                'IVY_INCLUDE_PATH': '/usr/local/lib/python3.10/dist-packages/ivy/include/1.7',
+                'PANTHER_IVY_ARCHITECTURE': 'apt' if use_system_models else 'standard',
+            }
+            
+            # Apply the environment variables
+            adapted_count = 0
+            for var_name, var_value in simplified_env_vars.items():
+                env_vars[var_name] = var_value
+                adapted_count += 1
+                if hasattr(self, 'logger'):
+                    self.logger.debug(f"Set simplified environment variable {var_name}={var_value}")
+            
+            if hasattr(self, 'logger'):
+                architecture = 'APT' if use_system_models else 'standard'
+                self.logger.info(f"Set {adapted_count} simplified environment variables for {architecture} architecture")
+                self.logger.info(f"PANTHER_IVY_BASE_DIR={base_dir}")
+            
+            return adapted_count
+
+
 
 

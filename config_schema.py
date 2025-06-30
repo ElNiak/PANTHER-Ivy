@@ -46,9 +46,11 @@ class Test(BaseModel):
     protocol: str = Field(..., description="Protocol name")
     endpoint: str = Field(..., description="Test endpoint")
 
-# Standard environment variables following PANTHER patterns
+# Standard environment variables following PANTHER patterns with simplified path resolution
 DEFAULT_ENVIRONMENT_VARIABLES = {
     "PROTOCOL_TESTED": "",
+    "TEST_IMPL":"",
+    "IVY_DEBUG": "1",
     "RUST_LOG": "debug", 
     "RUST_BACKTRACE": "1",
     "SOURCE_DIR": "/opt/",
@@ -59,22 +61,38 @@ DEFAULT_ENVIRONMENT_VARIABLES = {
     "Z3_LIBRARY_PATH": "$IVY_DIR/submodules/z3/build", 
     "LD_LIBRARY_PATH": "$LD_LIBRARY_PATH:$IVY_DIR/submodules/z3/build",
     "PROOTPATH": "$SOURCE_DIR",
-    "ADDITIONAL_PYTHONPATH": "/app/implementations/quic-implementations/aioquic/src/:$IVY_DIR/submodules/z3/build/python:$PYTHON_IVY_DIR",
+    "PYTHONPATH": "$PYTHONPATH:/opt/aioquic/src/:$IVY_DIR/submodules/z3/build/python:$PYTHON_IVY_DIR",
     "ADDITIONAL_PATH": "/go/bin:$IVY_DIR/submodules/z3/build",
     # Protocol path configuration
-    "PANTHER_IVY_BASE_PATH": "/opt/panther_ivy/protocol-testing",
+    "PANTHER_IVY_BASE_PATH": "$IVY_DIR/protocol-testing",
     "PANTHER_IVY_APT_SUBPATH": "apt/apt_protocols",
-    "PANTHER_IVY_STANDARD_SUBPATH": ""
+    "PANTHER_IVY_STANDARD_SUBPATH": "",
+    "PROTOCOL_PATH": "$PANTHER_IVY_BASE_PATH/$PROTOCOL_TESTED",
+    "ZRTT_SSLKEYLOGFILE": "$PROTOCOL_PATH/last_tls_key.txt",
+    "RETRY_TOKEN_FILE": "$PROTOCOL_PATH/last_retry_token.txt",   
+    "NEW_TOKEN_FILE": "$PROTOCOL_PATH/last_new_token.txt",
+    "ENCRYPT_TICKET_FILE": "$PROTOCOL_PATH/last_encrypt_session_ticket.txt",
+    "SESSION_TICKET_FILE": "$PROTOCOL_PATH/last_session_ticket_cb.txt",
+    "SAVED_PACKET": "$PROTOCOL_PATH/saved_packet.txt",
+    "initial_max_stream_id_bidi": "$PROTOCOL_PATH/initial_max_stream_id_bidi.txt",
+    "active_connection_id_limit": "$PROTOCOL_PATH/active_connection_id_limit.txt",
+    "initial_max_stream_data_bidi_local": "$PROTOCOL_PATH/initial_max_stream_data_bidi_local.txt",
+    "initial_max_stream_data_bidi_remote": "$PROTOCOL_PATH/initial_max_stream_data_bidi_remote.txt",
+    "initial_max_stream_data_uni": "$PROTOCOL_PATH/initial_max_stream_data_uni.txt",
+    "initial_max_data": "$PROTOCOL_PATH/initial_max_data.txt",
+    # Protocol-specific certificate and key paths
+    "PANTHER_IVY_CERT_PATH": "$PANTHER_IVY_BASE_PATH/$PROTOCOL_TESTED/leaf_cert.pem",
+    "PANTHER_IVY_KEY_PATH": "$PANTHER_IVY_BASE_PATH/$PROTOCOL_TESTED/leaf_cert.key",
+    "PANTHER_IVY_TICKET_PATH": "$PANTHER_IVY_BASE_PATH/$PROTOCOL_TESTED/last_session_ticket.txt"
 }
 
 # Direct parameter fields following PANTHER patterns
 
 class PantherIvyVersion(VersionBase):
-    """Version information for PantherIvy following PANTHER standards."""
-    
+    """Version information for PantherIvy following PANTHER standards. (TODO not used)"""
     # Provide defaults for required base fields
     version: str = Field(default="", description="Version string")
-    commit: str = Field(default="", description="Git commit hash")
+    commit: str  = Field(default="", description="Git commit hash")
     dependencies: List[Dict[str, str]] = Field(
         default_factory=list,
         description="List of dependencies"
@@ -111,10 +129,10 @@ class PantherIvyConfig(ServicePluginConfig):
     #     default="quic",
     #     description="Protocol tested by the implementation"
     # )
-    version: PantherIvyVersion = Field(
-        default_factory=lambda: PantherIvyConfig.load_versions_from_files(),
-        description="Version configuration"
-    )
+    # version: PantherIvyVersion = Field(
+    #     default_factory=lambda: PantherIvyConfig.load_versions_from_files(),
+    #     description="Version configuration"
+    # )
     environment: Dict[str, str] = Field(
         default_factory=lambda: DEFAULT_ENVIRONMENT_VARIABLES.copy(),
         description="Environment variables"
@@ -152,10 +170,24 @@ class PantherIvyConfig(ServicePluginConfig):
         default=True,
         description="Get the statistics of the tests"
     )
-    log_level: str = Field(
-        default="DEBUG",
-        description="Log level for Ivy"
+    build_mode: Optional[str] = Field(
+        default=None,
+        description="Build mode for compilation: '' (original/Shadow compatible), 'debug-asan', 'rel-lto', or 'release-static-pgo'",
+        pattern=r"^(|debug-asan|rel-lto|release-static-pgo)$"
     )
+    log_level_events: str = Field(
+        default="DEBUG",
+        description="Log level for Ivy events [Present (DEBUG) or Not Present (INFO)]"
+    )
+    log_level_binary: str = Field(
+        default="DEBUG",
+        description="Log level for Ivy binary (-g, -fsanitize=address) [Present (DEBUG) or Not Present (INFO)]"
+    )
+    optimization_level: str = Field(
+        default=None,
+        description="Optimization level for the Ivy binary (O0, O1, O2, O3) - O0 recommended for debugging"
+    )
+    
 
     @staticmethod
     def load_versions_from_files(
@@ -252,6 +284,7 @@ class PantherIvyConfig(ServicePluginConfig):
         Returns:
             PantherIvyConfig instance with appropriate version configuration
         """
+        logging.debug("Creating PantherIvyConfig with protocol context")
         if protocol and hasattr(protocol, 'version') and protocol.version:
             try:
                 version_config = cls.load_versions_from_files(
@@ -259,8 +292,7 @@ class PantherIvyConfig(ServicePluginConfig):
                 )
                 return cls(version=version_config)
             except (FileNotFoundError, ValueError) as e:
-                import logging
-                logging.warning(f"Could not load protocol version {protocol.version}: {e}")
-                # Fallback to default instance
-                return cls()
+                raise ValueError(
+                    f"Could not load protocol version {protocol.version}: {e}"
+                ) from e
         return cls()

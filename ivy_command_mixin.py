@@ -8,11 +8,11 @@ to follow standard PANTHER architecture patterns.
 import os
 import re
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Union
 
-from panther.core.exceptions.error_handler_mixin import ErrorHandlerMixin
-from panther.core.command_processor.command_utils import CommandUtils
-from panther.core.command_processor.command_builder import ServiceCommandBuilder
+from panther.core.command_processor.utils import CommandUtils
+from panther.core.command_processor.builders import ServiceCommandBuilder
+from panther.core.command_processor.models.shell_command import ShellCommand
 
 
 def oppose_role(role):
@@ -23,7 +23,7 @@ def oppose_role(role):
     return "client" if role == "server" else "server"
 
 
-class IvyCommandMixin(ErrorHandlerMixin):
+class IvyCommandMixin:
     """
     Mixin for Ivy-specific command generation.
     
@@ -35,76 +35,100 @@ class IvyCommandMixin(ErrorHandlerMixin):
         """Initialize IvyCommandMixin with ServiceCommandBuilder integration."""
         super().__init__(*args, **kwargs)
         self.command_builder = None
-        self._initialize_command_builder()       
+        self._initialize_command_builder()      
         
     def _initialize_command_builder(self):
         """Initialize ServiceCommandBuilder if role is available."""
         if not self.command_builder and hasattr(self, 'role'):
-            if role := getattr(self, 'role', None):
+            role = getattr(self, 'role', None)
+            if role:
                 self.command_builder = ServiceCommandBuilder(role)
             else:
                 self.logger.warning("No role available for ServiceCommandBuilder initialization") if hasattr(self, 'logger') else None
     
-    def generate_ivy_pre_compile_commands(self) -> List[str]:
+    def generate_ivy_pre_compile_commands(self) -> List[Union[str, ShellCommand]]:
         """
         Generate pre-compilation commands with IP resolution and environment setup.
         
         Returns:
             List of command strings
         """
+        commands = []
+
+        # Initialize environment file for logging -> use phase-based structure
+        commands.append("echo '# Ivy setup log' >>  /app/logs/pre-compile/ivy_setup.log")
+
         # Network resolution is handled by placeholders
         target_info = ""
         if hasattr(self, 'service_targets') and self.service_targets:
             target_info = f" (target: {self.service_targets})"
 
-        commands = [
-            "echo '# Ivy setup log' > /app/logs/pre-compile/ivy_setup.log",
-            f'echo \"Ivy service {self.service_name} using network-aware placeholder resolution{target_info}\" >> /app/logs/pre-compile/ivy_setup.log',
-        ]
+        commands.append(
+            f"echo \"Ivy service {self.service_name} using network-aware placeholder resolution{target_info}\" >> /app/logs/pre-compile/ivy_setup.log"
+        )
+
         # Clean build directory
         use_system_models = getattr(self.service_config_to_test.implementation, 'use_system_models', False)
         env_protocol_path = self.get_protocol_model_path(use_system_models)
-        commands.append(f"find '{env_protocol_path}/build/' -maxdepth 1 -type f -delete 2>/dev/null || true")
+        commands.append(f"find '{env_protocol_path}/build/' -maxdepth 1 -type f -delete 2>/dev/null")
 
-        return self.generate_ivy_commands(
+        return self.phase_command_processed(
             commands, "pre-compile"
         )
+    
+    def generate_ivy_compile_commands(self) -> List[Union[str, ShellCommand]]:
+        """
+        Generate compilation commands including Ivy tool updates and test compilation.
+        
+        Returns:
+            List of command strings
+        """
+        commands = []
 
+        try:
+            # Emit command generation started event (if available)
+            if hasattr(self, 'emit_command_generation_started'):
+                self.emit_command_generation_started("compile")
 
-    def generate_ivy_compile_commands(self, commands):
-        # Emit command generation started event (if available)
-        if hasattr(self, 'emit_command_generation_started'):
-            self.emit_command_generation_started("compile")
+            # Build comprehensive compilation commands
+            compilation_commands = self._generate_comprehensive_compilation_commands()
+            commands.extend(compilation_commands)
 
-        # Build comprehensive compilation commands
-        compilation_commands = self._generate_comprehensive_compilation_commands()
-        commands.extend(compilation_commands)
+            # Notify compilation started (if available)
+            if hasattr(self, 'notify_service_event'):
+                protocol_name = self.get_protocol_name()
+                test_to_compile = getattr(self, 'test_to_compile', 'unknown_test')
+                self.notify_service_event(
+                    "compilation_started",
+                    {
+                        "protocol": protocol_name,
+                        "test": test_to_compile,
+                    },
+                )
 
-        # Notify compilation started (if available)
-        if hasattr(self, 'notify_service_event'):
-            protocol_name = self.get_protocol_name()
-            test_to_compile = getattr(self, 'test_to_compile', 'unknown_test')
-            self.notify_service_event(
-                "compilation_started",
-                {
-                    "protocol": protocol_name,
-                    "test": test_to_compile,
-                },
+            # Signal ivy compilation completion to coordination system
+            service_name = getattr(self, 'service_name', 'ivy')
+            ready_commands = [
+                f'echo "Ivy compilation completed for {service_name}" >> /app/logs/coordination.log',
+                f"touch /app/coordination/{service_name}_ivy_ready",
+                f'echo "ready_$(date +%s)" > /app/coordination/{service_name}_ivy_ready'
+            ]
+            
+            if compilation_commands:
+                commands.extend(ready_commands)
+            else:
+                commands = ready_commands
+
+            # Emit command generated event (if available)
+            if hasattr(self, 'emit_command_generated'):
+                self.emit_command_generated("compile", str(commands))
+
+            return self.phase_command_processed(
+                commands, "compile"
             )
-
-        # Add ready file creation
-        if compilation_commands:
-            commands.append("touch /app/sync_logs/ivy_ready.log")
-        else:
-            commands = ["touch /app/sync_logs/ivy_ready.log"]
-
-        # Emit command generated event (if available)
-        if hasattr(self, 'emit_command_generated'):
-            self.emit_command_generated("compile", str(commands))
-
-        return self.generate_ivy_commands(
-            commands, "compile"
-        )
+        except Exception as e:
+            self.logger.error(f"Failed to generate compile commands: {e}")
+            raise
     
     def generate_ivy_deployment_commands(self) -> str:
         """
@@ -120,13 +144,13 @@ class IvyCommandMixin(ErrorHandlerMixin):
             role = getattr(self, 'role', None)
             if not role:
                 self.logger.warning("No role found in service manager")
-                return ""
+                raise ValueError("Role is required for deployment command generation")
 
             # Get service configuration
             service_config = getattr(self, 'service_config_to_test', None)
             if not service_config:
                 self.logger.warning("No service configuration found")
-                return ""
+                raise ValueError("Service configuration is required for deployment command generation")
 
             # Get role-specific parameters
             params = {}
@@ -136,28 +160,17 @@ class IvyCommandMixin(ErrorHandlerMixin):
             # First, get parameters from the version config 'parameters' section
             if hasattr(service_config, 'implementation') and service_config.implementation.version_config:
                 version_config = service_config.implementation.version_config
-                self.logger.info(f"Found version_config: {type(version_config)}")
+                self.logger.debug(f"Found version_config: {type(version_config)} - {version_config}")
 
                 # version_config is now a dictionary, extract parameters
                 if isinstance(version_config, dict) and 'parameters' in version_config:
                     version_params = version_config['parameters']
-                    self.logger.info(f"Extracting version parameters: {version_params}")
+                    self.logger.debug(f"Extracting version parameters: {version_params}")
                 else:
                     self.logger.warning(f"No 'parameters' found in version_config: {version_config}")
                     version_params = {}
 
-                if hasattr(version_params, '__dict__'):
-                    # If it's an object with attributes
-                    self.logger.debug("Processing version_params as object with __dict__")
-                    for param_name, param_obj in version_params.__dict__.items():
-                        self.logger.debug(f"Processing param {param_name}: {param_obj} (type: {type(param_obj)})")
-                        if hasattr(param_obj, 'value'):
-                            params[param_name] = param_obj.value
-                            self.logger.debug(f"  -> Set {param_name} = {param_obj.value}")
-                        else:
-                            params[param_name] = param_obj
-                            self.logger.debug(f"  -> Set {param_name} = {param_obj}")
-                elif isinstance(version_params, dict):
+                if isinstance(version_params, dict):
                     # If it's a dictionary
                     self.logger.debug("Processing version_params as dictionary")
                     for param_name, param_data in version_params.items():
@@ -169,43 +182,68 @@ class IvyCommandMixin(ErrorHandlerMixin):
                             params[param_name] = param_data
                             self.logger.debug(f"  -> Set {param_name} = {param_data}")
                 else:
-                    self.logger.debug(f"version_params is neither dict nor object with __dict__: {type(version_params)}")
+                    self.logger.warning(f"version_params is neither dict nor object with __dict__: {type(version_params)}")
             else:
-                self.logger.info("service_config.implementation.version_config not available for parameter extraction")
+                self.logger.warning("service_config.implementation.version_config not available for parameter extraction")
 
-            # Get server parameters if available
-            if hasattr(service_config, 'implementation') and hasattr(service_config.implementation, 'version'):
+
+            if hasattr(service_config, 'implementation') and hasattr(service_config.implementation, "version"):
+                implem_version = service_config.implementation.version
+                self.logger.debug(f"Version is: {implem_version}")
+
+            # Get role-specific parameters from version_config
+            if hasattr(service_config, 'implementation') and hasattr(service_config.implementation, 'version_config'):
+                version_config = service_config.implementation.version_config
+                
                 if role_name == "server":
-                    if hasattr(service_config.implementation.version, 'server'):
+                    # Check for server parameters in dict or object
+                    server_params = None
+                    if isinstance(version_config, dict) and 'server' in version_config:
+                        server_params = version_config['server']
+                    elif hasattr(version_config, 'server'):
+                        server_params = version_config.server
+                    
+                    if server_params:
                         self.logger.debug("Using server parameters from implementation version")
-                        server_params = service_config.implementation.version.server or {}
+                        self.logger.debug(f"Server parameters: {server_params}")
                         if isinstance(server_params, dict):
                             params |= server_params
                         elif hasattr(server_params, '__dict__'):
-                            params.update(server_params.__dict__)
+                            params |= server_params.__dict__
                     else:
-                        self.logger.debug("No server parameters found in implementation version")
-                elif hasattr(service_config.implementation.version, 'client'):
-                    self.logger.debug("Using client parameters from implementation version")
-                    client_params = service_config.implementation.version.client or {}
-                    if isinstance(client_params, dict):
-                        params.update(client_params)
-                    elif hasattr(client_params, '__dict__'):
-                        params.update(client_params.__dict__)
-                else:
-                    self.logger.debug("No client parameters found in implementation version")
+                        self.logger.warning("No server parameters found in implementation version")
+                        raise ValueError("No server parameters found")
+                        
+                elif role_name == "client":
+                    # Check for client parameters in dict or object
+                    client_params = None
+                    if isinstance(version_config, dict) and 'client' in version_config:
+                        client_params = version_config['client']
+                    elif hasattr(version_config, 'client'):
+                        client_params = version_config.client
+                    
+                    if client_params:
+                        self.logger.debug("Using client parameters from implementation version")
+                        self.logger.debug(f"Client parameters: {client_params}")
+                        if isinstance(client_params, dict):
+                            params |= client_params
+                        elif hasattr(client_params, '__dict__'):
+                            params |= client_params.__dict__
+                    else:
+                        self.logger.warning("No client parameters found in implementation version")
+                        raise ValueError("No client parameters found")
 
-            # Add additional parameters directly from service_config (no nested structure needed)
-            # Parameters are now direct fields on PantherIvyConfig
-            param_fields = ['tests_output_dir', 'tests_build_dir', 'iterations_per_test', 
-                          'internal_iterations_per_test', 'timeout', 'keep_alive', 
-                          'run_in_docker', 'get_tests_stats', 'log_level']
+            # Add additional parameters from implementation
+            if hasattr(service_config, 'implementation') and hasattr(service_config.implementation, 'parameters'):
+                impl_params = service_config.implementation.parameters
+                if hasattr(impl_params, '__dict__'):
+                    for param_name, param_obj in impl_params.__dict__.items():
+                        if hasattr(param_obj, 'value'):
+                            params[param_name] = param_obj.value
+                        else:
+                            params[param_name] = param_obj
 
-            for param_name in param_fields:
-                if hasattr(service_config, param_name):
-                    params[param_name] = getattr(service_config, param_name)
-
-            # Get service name - this is critical and must not be None
+            # Get service name -> this is critical and must not be None
             service_name = getattr(self, 'service_name', None)
             if not service_name:
                 self.logger.error("Service name is not set in service manager")
@@ -217,7 +255,7 @@ class IvyCommandMixin(ErrorHandlerMixin):
                 or service_name == ""
                 or not str(service_name).strip()
             ):
-                self.logger.error(f"Invalid service name: '{service_name}' - must be a valid service identifier")
+                self.logger.error(f"Invalid service name: '{service_name}' -> must be a valid service identifier")
                 raise ValueError(f"Service name '{service_name}' is invalid for network placeholder resolution")
 
             params["service_name"] = service_name
@@ -238,7 +276,7 @@ class IvyCommandMixin(ErrorHandlerMixin):
                 if target:
                     self.logger.info(f"Using target from service_targets: {target}")
 
-            # Validate target - for ivy services, we need a target
+            # Validate target -> for ivy services, we need a target
             if not target:
                 if role_name == "client":
                     self.logger.warning("No target service specified for network resolution")
@@ -255,12 +293,6 @@ class IvyCommandMixin(ErrorHandlerMixin):
             params["test_name"] = self.test_to_compile
             params["timeout_cmd"] = f"timeout {service_config.timeout} "
 
-            # DEBUG: Log what target we're using
-            self.logger.info(f"Template parameter 'target' set to: '{target}' for role '{role_name}'")
-
-            # Log params for debugging
-            self.logger.debug(f"Template params count: {len(params)}")
-            self.logger.debug(f"Template params keys: {list(params.keys())}")
 
             # Validate critical parameters before template rendering
             critical_params = ['service_name', 'target']
@@ -283,24 +315,34 @@ class IvyCommandMixin(ErrorHandlerMixin):
             template_name = f"{oppose_role(role_name)}_command.jinja"
 
             if template_renderer := getattr(self, 'template_renderer', None):
+                # Preprocess template context to resolve network placeholders
+                if hasattr(self, 'preprocess_template_context_with_network_resolution'):
+                    params = self.preprocess_template_context_with_network_resolution(params)
+                    self.logger.debug("Preprocessed template context with network resolution")
+
                 cmd_args = template_renderer.render_template(template_name, params)
 
-                # Validate rendered command
-                if cmd_args and self._validate_deployment_command(cmd_args):
-                    self.logger.debug(f"Generated command args from template: {cmd_args.strip()}")
-                    return cmd_args.strip()
+                # Validate and decode rendered command
+                if cmd_args:
+                    is_valid, corrected_cmd_args = self._validate_deployment_command(cmd_args)
+                    if is_valid:
+                        self.logger.debug(f"Generated command args from template: {corrected_cmd_args.strip()}")
+                        return corrected_cmd_args.strip()
+                    else:
+                        self.logger.warning("Command arguments validation failed")
+                        raise ValueError("Generated command arguments are invalid")
                 else:
                     self.logger.warning("No command arguments generated from template")
-                    return ""
+                    raise ValueError("Generated command arguments are empty")
             else:
                 self.logger.warning("No template renderer available")
-                return ""
+                raise ValueError("No template renderer available")
 
         except Exception as e:
             self.logger.error(f"Failed to generate deployment commands: {e}")
-            return ""
-    
-    def generate_ivy_post_run_commands(self) -> List[str]:
+            raise
+
+    def generate_ivy_post_run_commands(self) -> List[Union[str, ShellCommand]]:
         """
         Generate post-run cleanup commands.
         
@@ -320,14 +362,27 @@ class IvyCommandMixin(ErrorHandlerMixin):
                 f"find '{os.path.dirname(test_path)}' -name '{os.path.basename(test_path)}*' -type f -delete 2>/dev/null || true"
             ])
 
-        return self.generate_ivy_commands(
+        return self.phase_command_processed(
             commands, "post-run"
         )
 
-    def generate_ivy_commands(self, commands, arg1):
-        processed_commands = self._process_commands(commands)
+    def phase_command_processed(self, commands, phase) -> List[str]:
+        """
+        Process commands for the phase command and log the processed commands.
+
+        This method takes a list of commands and processes them, then logs the
+        structured command generation with the provided argument.
+
+        Args:
+            commands (list): List of commands to be processed.
+            phase: Argument to be passed to the structured command generation logger.
+
+        Returns:
+            list: The processed commands.
+        """
+        processed_commands = self._process_commands(commands, phase)
         CommandUtils.log_structured_command_generation(
-            self.logger, arg1, processed_commands
+            self.logger, phase, processed_commands
         )
         return processed_commands
     
@@ -336,7 +391,7 @@ class IvyCommandMixin(ErrorHandlerMixin):
         commands = [
             "echo 'Updating Ivy tool...' >> /app/logs/compile/ivy_setup.log",
             "cd /opt/panther_ivy && sudo python3.10 setup.py install >> /app/logs/compile/ivy_setup.log 2>&1",
-            "cd /opt/panther_ivy && cp lib/libz3.so submodules/z3/build/python/z3 >> /app/logs/compile/ivy_setup.log 2>&1 || true",
+            "cd /opt/panther_ivy && cp lib/libz3.so /opt/panther_ivy/submodules/z3/build/python/z3 >> /app/logs/compile/ivy_setup.log 2>&1",
             "echo 'Copying updated Ivy files...' >> /app/logs/compile/ivy_setup.log",
             "find '/opt/panther_ivy/ivy/include/1.7/' -type f -name '*.ivy' -exec cp {} '/usr/local/lib/python3.10/dist-packages/ivy/include/1.7/' ';' >> /app/logs/compile/ivy_setup.log 2>&1",
         ]
@@ -354,11 +409,11 @@ class IvyCommandMixin(ErrorHandlerMixin):
         """Build QUIC-specific setup commands."""
         commands = [
             "echo 'Copying QUIC libraries...' >> /app/logs/compile/ivy_setup.log",
-            "cp -f -a '/opt/picotls/'*.a '/usr/local/lib/python3.10/dist-packages/ivy/lib/'",
-            "cp -f -a '/opt/picotls/'*.a '/opt/panther_ivy/ivy/lib/'",
-            "cp -f '/opt/picotls/include/picotls.h' '/usr/local/lib/python3.10/dist-packages/ivy/include/picotls.h'",
-            "cp -f '/opt/picotls/include/picotls.h' '/opt/panther_ivy/ivy/include/picotls.h'",
-            "cp -r -f '/opt/picotls/include/picotls/.' '/usr/local/lib/python3.10/dist-packages/ivy/include/picotls'",
+            "cp -f -a '/opt/picotls/'*.a '/usr/local/lib/python3.10/dist-packages/ivy/lib/' >> /app/logs/compile/ivy_setup.log 2>&1",
+            "cp -f -a '/opt/picotls/'*.a '/opt/panther_ivy/ivy/lib/'  >> /app/logs/compile/ivy_setup.log 2>&1",
+            "cp -f '/opt/picotls/include/picotls.h' '/usr/local/lib/python3.10/dist-packages/ivy/include/picotls.h' >> /app/logs/compile/ivy_setup.log 2>&1",
+            "cp -f '/opt/picotls/include/picotls.h' '/opt/panther_ivy/ivy/include/picotls.h' >> /app/logs/compile/ivy_setup.log 2>&1",
+            "cp -r -f '/opt/picotls/include/picotls/.' '/usr/local/lib/python3.10/dist-packages/ivy/include/picotls' >> /app/logs/compile/ivy_setup.log 2>&1",
         ]
 
         if hasattr(self, 'env_protocol_model_path'):
@@ -370,7 +425,7 @@ class IvyCommandMixin(ErrorHandlerMixin):
                 quic_ser_deser_path = f"{self.env_protocol_model_path}/quic_utils/quic_ser_deser.h"
 
             commands.append(
-                f"cp -f '{quic_ser_deser_path}' '/usr/local/lib/python3.10/dist-packages/ivy/include/1.7/'"
+                f"cp -f '{quic_ser_deser_path}' '/usr/local/lib/python3.10/dist-packages/ivy/include/1.7/' >> /app/logs/compile/ivy_setup.log 2>&1"
             )
 
         return commands
@@ -379,29 +434,111 @@ class IvyCommandMixin(ErrorHandlerMixin):
         """Build Ivy model setup commands."""
         if not hasattr(self, 'env_protocol_model_path'):
             return []
-
-        return [
+            
+        commands = [
             "echo 'Setting up Ivy model...' >> /app/logs/compile/ivy_setup.log",
             f"echo 'Updating include path from {self.env_protocol_model_path}' >> /app/logs/compile/ivy_setup.log",
-            f"find '{self.env_protocol_model_path}' -type f -name '*.ivy' -exec cp -f {{}} '/usr/local/lib/python3.10/dist-packages/ivy/include/1.7/' ';'",
+            "find '" + self.env_protocol_model_path + "' -type f -name '*.ivy' -exec cp -f {} '/usr/local/lib/python3.10/dist-packages/ivy/include/1.7/' ';' >> /app/logs/compile/ivy_setup.log 2>&1",
             "ls -l '/usr/local/lib/python3.10/dist-packages/ivy/include/1.7/' >> /app/logs/compile/ivy_setup.log",
         ]
+
+        return commands
     
-    def _build_test_compilation_commands(self) -> List[str]:
-        """Build test compilation commands."""
-        if not hasattr(self, 'test_to_compile') or not self.test_to_compile:
-            self.logger.warning("No test name specified for compilation")
-            return []
-
-        self.logger.info(f"Compiling test: {self.test_to_compile}")
-
-        # Determine paths
+    def _build_test_compilation_commands(self):
+        """
+            Build commands for test compilation using ivy_check.
+            
+            Returns:
+                List[str]: Command sequence for test compilation
+            """
+        # Store current config for role-based commands
         use_system_models = getattr(self.service_config_to_test.implementation, 'use_system_models', False)
 
         if use_system_models:
-            container_base_path = f"{self.env_protocol_model_path}/apt/"
+            return []
+
+        commands = []
+        container_base_path = self.env_protocol_model_path
+
+        # Get role information
+        role = self.role
+        role_name = role.name if hasattr(role, 'name') else str(role)
+        protocol_name = self.get_protocol_name()
+
+        # Get internal iterations parameter with robust extraction
+        internal_iterations = 100  # Default
+        service_config = getattr(self, 'service_config_to_test', None)
+
+        # Debug the service config structure
+        self.logger.debug(f"Service config for test compilation: {type(service_config)}")
+        if service_config:
+            self.logger.debug(f"Service config attributes: {dir(service_config)}")
+            if hasattr(service_config, 'implementation'):
+                self.logger.debug(f"Implementation attributes: {dir(service_config.implementation)}")
+                if hasattr(service_config.implementation, 'parameters'):
+                    params = service_config.implementation.parameters
+                    self.logger.debug(f"Implementation parameters: {params}")
+                    self.logger.debug(f"Parameters type: {type(params)}")
+                    if params:
+                        self.logger.debug(f"Parameters attributes: {dir(params)}")
+
+        # Attempt multiple extraction paths for internal_iterations
+        if service_config and hasattr(service_config, 'implementation'):
+            impl = service_config.implementation
+
+            # Path 1: Direct access to implementation parameters
+            if hasattr(impl, 'parameters') and impl.parameters:
+                params = impl.parameters
+                if hasattr(params, 'internal_iterations_per_test'):
+                    param_value = params.internal_iterations_per_test
+                    if hasattr(param_value, 'value'):
+                        internal_iterations = param_value.value
+                    else:
+                        internal_iterations = param_value
+                    self.logger.debug(f"Found internal_iterations via implementation.parameters: {internal_iterations}")
+
+                # Also check for alternative parameter names
+                elif hasattr(params, 'internal_iterations'):
+                    param_value = params.internal_iterations
+                    if hasattr(param_value, 'value'):
+                        internal_iterations = param_value.value
+                    else:
+                        internal_iterations = param_value
+                    self.logger.debug(f"Found internal_iterations via alternative name: {internal_iterations}")
+
+            # Path 2: Check version parameters (as seen in tests)
+            if hasattr(impl, 'version') and hasattr(impl.version, 'parameters'):
+                version_params = impl.version.parameters
+                if hasattr(version_params, 'internal_iterations_per_test'):
+                    param_value = version_params.internal_iterations_per_test
+                    if hasattr(param_value, 'value'):
+                        internal_iterations = param_value.value
+                    else:
+                        internal_iterations = param_value
+                    self.logger.debug(f"Found internal_iterations via version.parameters: {internal_iterations}")
+
+            # Path 3: Direct attribute check on implementation
+            if hasattr(impl, 'internal_iterations_per_test'):
+                param_value = impl.internal_iterations_per_test
+                if hasattr(param_value, 'value'):
+                    internal_iterations = param_value.value
+                else:
+                    internal_iterations = param_value
+                self.logger.debug(f"Found internal_iterations via direct implementation attribute: {internal_iterations}")
+
+        self.logger.info(f"Using internal_iterations value: {internal_iterations}")
+
+        # Construct test directory paths
+        if use_system_models:
+            container_file_path = os.path.join(container_base_path, "apt_tests", f"attacker_{oppose_role(role_name)}_tests")
         else:
-            container_base_path = self.env_protocol_model_path
+            test_dir = self._extract_test_directory_from_name(self.test_to_compile, role_name)
+            container_file_path = os.path.join(container_base_path, f"{protocol_name}_tests", test_dir)
+
+        self.logger.info(f"Container path for test compilation: {container_file_path}")
+
+        # Get build directory
+        tests_build_dir = self._get_build_dir()
 
         # Get role information
         role = self.role
@@ -410,8 +547,7 @@ class IvyCommandMixin(ErrorHandlerMixin):
 
         # Get internal iterations parameter
         internal_iterations = 100  # Default
-        service_config = getattr(self, 'service_config_to_test', None)
-        if service_config:
+        if service_config := getattr(self, 'service_config_to_test', None):
             # Access internal_iterations_per_test directly from PantherIvyConfig
             internal_iterations = getattr(service_config, 'internal_iterations_per_test', 300)
 
@@ -438,7 +574,6 @@ class IvyCommandMixin(ErrorHandlerMixin):
             f"ls -la '{container_base_path}/{tests_build_dir}/' >> /app/logs/compile/ivy_compile.log",
         ]
 
-    
     def _extract_test_directory_from_name(self, test_name: str, role_name: str) -> str:
         """Extract test directory from test name."""
         if "client" in test_name.lower():
@@ -450,8 +585,38 @@ class IvyCommandMixin(ErrorHandlerMixin):
             return f"{oppose_role(role_name)}_tests"
     
     def _get_build_dir(self) -> str:
-            """Get build directory from configuration."""
-            return getattr(self.service_config_to_test, 'tests_build_dir', 'build')
+            """Get build directory from configuration with robust extraction."""
+            service_config = getattr(self, 'service_config_to_test', None)
+            
+            if service_config and hasattr(service_config, 'implementation'):
+                impl = service_config.implementation
+                
+                # Path 1: Direct access to implementation parameters
+                if hasattr(impl, 'parameters') and impl.parameters:
+                    params = impl.parameters
+                    if hasattr(params, 'tests_build_dir'):
+                        param_value = params.tests_build_dir
+                        if hasattr(param_value, 'value'):
+                            return str(param_value.value)
+                        return str(param_value)
+                
+                # Path 2: Check version parameters
+                if hasattr(impl, 'version') and hasattr(impl.version, 'parameters'):
+                    version_params = impl.version.parameters
+                    if hasattr(version_params, 'tests_build_dir'):
+                        param_value = version_params.tests_build_dir
+                        if hasattr(param_value, 'value'):
+                            return str(param_value.value)
+                        return str(param_value)
+                
+                # Path 3: Direct attribute check on implementation
+                if hasattr(impl, 'tests_build_dir'):
+                    param_value = impl.tests_build_dir
+                    if hasattr(param_value, 'value'):
+                        return str(param_value.value)
+                    return str(param_value)
+            
+            return "build"
 
     
     def _generate_comprehensive_compilation_commands(self) -> List[str]:
@@ -488,7 +653,7 @@ class IvyCommandMixin(ErrorHandlerMixin):
         
         return update_commands + test_commands
     
-    def _process_commands(self, commands: List[str]) -> List[str]:
+    def _process_commands(self, commands: List[Union[str, ShellCommand]], phase: str) -> List[Union[str, ShellCommand]]:
         """Process commands through ServiceCommandBuilder."""
         # Ensure command builder is initialized
         if not self.command_builder:
@@ -500,25 +665,57 @@ class IvyCommandMixin(ErrorHandlerMixin):
 
             # Add commands to builder
             for cmd in commands:
-                if cmd and cmd.strip():
-                    self.command_builder.add_command(cmd.strip())
+                if cmd and isinstance(cmd, str):
+                    # Determine if this is a non-critical command like ls or echo
+                    is_non_critical_command = cmd.strip().startswith(('ls', 'echo'))
+                    
+                    # A command is critical if we're in compile/pre-compile phase AND it's not a simple echo/ls command
+                    is_critical = ("compile" in phase or "pre-compile" in phase) and not is_non_critical_command
+                    
+                    self.command_builder.add_command(
+                        cmd.strip(),
+                        is_critical=is_critical,
+                    )
+                elif isinstance(cmd, ShellCommand):
+                     # Determine if this is a non-critical command like ls or echo
+                    is_non_critical_command = cmd.command.strip().startswith(('ls', 'echo'))
+
+                    # A command is critical if we're in compile/pre-compile phase AND it's not a simple echo/ls command
+                    is_critical = ("compile" in phase or "pre-compile" in phase) and not is_non_critical_command
+                    
+                    cmd.metadata['is_critical'] = is_critical
+                    
+                    self.command_builder.add_command(cmd.command.strip(), cmd.metadata)
 
             # Process and return commands
             processed = self.command_builder.process_commands("panther_ivy")
 
             # Extract command strings from processed format
             # The process_commands returns a list of dicts with command info
-            return [item.get('command', '') for item in processed if item.get('command')]
-
+            return processed 
+        
         except Exception as e:
             if hasattr(self, 'logger'):
                 self.logger.warning(f"Command processing failed: {e}")
             # Fallback to original commands if processing fails
             return [cmd.strip() for cmd in commands if cmd and cmd.strip()]
     
-    def _validate_deployment_command(self, cmd_args: str) -> bool:
-        """Validate deployment command for common issues."""
+    def _validate_deployment_command(self, cmd_args: str) -> tuple[bool, str]:
+        """Validate deployment command for common issues.
+        
+        Returns:
+            Tuple of (is_valid, corrected_command)
+        """
         validation_errors = []
+        
+        self.logger.debug(f"Validating command arguments: {cmd_args}")
+
+        # Decode HTML entities first
+        import html
+        decoded_cmd_args = html.unescape(cmd_args)
+        if decoded_cmd_args != cmd_args:
+            self.logger.debug(f"Decoded HTML entities in command: {decoded_cmd_args}")
+            cmd_args = decoded_cmd_args
 
         # Check for @None placeholders
         if "@None" in cmd_args:
@@ -528,10 +725,12 @@ class IvyCommandMixin(ErrorHandlerMixin):
         if cmd_args.count('{') != cmd_args.count('}'):
             validation_errors.append("Contains unbalanced braces")
 
-        if empty_params := re.findall(r'(\w+)=\s*(?=\s|\}|$)', cmd_args):
+        # Check for empty parameter values
+        empty_params = re.findall(r'(\w+)=\s*(?=\s|\}|$)', cmd_args)
+        if empty_params:
             validation_errors.append(f"Contains empty parameters: {empty_params}")
 
-        # Check for malformed placeholders
+        # Check for malformed placeholders - updated to handle service names with valid characters
         valid_placeholder_pattern = r'@\{[a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*\}'
         all_placeholders = re.findall(r'@\{[^}]+\}', cmd_args)
         if malformed := [
@@ -541,9 +740,45 @@ class IvyCommandMixin(ErrorHandlerMixin):
         ]:
             validation_errors.append(f"Contains malformed placeholders: {malformed}")
 
+
         if validation_errors:
             self.logger.error(f"Command validation failed: {', '.join(validation_errors)}")
             self.logger.error(f"Generated command: {cmd_args}")
-            return False
+            return False, cmd_args
 
-        return True
+        return True, cmd_args
+    
+    def _validate_shell_syntax(self, cmd_args: str) -> List[str]:
+        """Validate shell syntax for common errors."""
+        errors = []
+        
+        # Check for malformed redirections
+        malformed_redirections = re.findall(r'>\d+/', cmd_args)
+        if malformed_redirections:
+            errors.append(f"Malformed redirections: {malformed_redirections} (should be '2>/dev/null' or '> /dev/null 2>&1')")
+        
+        # Check for unmatched quotes
+        single_quotes = cmd_args.count("'")
+        double_quotes = cmd_args.count('"')
+        if single_quotes % 2 != 0:
+            errors.append("Unmatched single quotes")
+        if double_quotes % 2 != 0:
+            errors.append("Unmatched double quotes")
+        
+        # Check for missing spaces in command chains
+        if re.search(r'[^;]\s*;\s*[^;]', cmd_args):
+            # This is actually correct, so let's check for missing spaces around operators
+            pass
+        
+        # Check for invalid path patterns
+        invalid_paths = re.findall(r'/[^/\s]*[^/\s\w.-][^/\s]*', cmd_args)
+        # Filter out valid special characters in paths
+        actual_invalid = [p for p in invalid_paths if not re.match(r'^/[\w./-]*$', p)]
+        if actual_invalid:
+            errors.append(f"Potentially invalid paths: {actual_invalid}")
+        
+        # Check for command substitution issues
+        if '`' in cmd_args and cmd_args.count('`') % 2 != 0:
+            errors.append("Unmatched backticks in command substitution")
+            
+        return errors

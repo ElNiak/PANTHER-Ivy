@@ -1,5 +1,5 @@
 """
-PantherIvy service manager - mixin-based architecture implementation.
+PantherIvy service manager -> mixin-based architecture implementation.
 
 This implementation uses specialized mixins for better maintainability and follows
 PANTHER's standard architecture patterns with proper separation of concerns.
@@ -8,12 +8,12 @@ PANTHER's standard architecture patterns with proper separation of concerns.
 import os
 import subprocess
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple, TYPE_CHECKING
+from typing import List, Dict, Any, Optional, Tuple, TYPE_CHECKING, Union
 from panther.core.exceptions.error_handler_mixin import ErrorHandlerMixin
-from panther.core.docker_builder.service_manager_docker_mixin import ServiceManagerDockerMixin
-from panther.plugins.services.testers.panther_ivy.config_schema import AvailableTests, PantherIvyConfig
+from panther.core.docker_builder.plugin_mixin.service_manager_docker_mixin import ServiceManagerDockerMixin
+from panther.plugins.services.testers.panther_ivy.config_schema import AvailableTests
 from panther.plugins.services.testers.tester_interface import ITesterManager
-from panther.config.core.models import ProtocolConfig, ProtocolRole
+from panther.config.core.models import ProtocolConfig
 from panther.plugins.services.testers.tester_service_manager_mixin import TesterServiceManagerMixin
 from panther.plugins.core.plugin_decorators import register_plugin
 from panther.plugins.services.testers.tester_event_mixin import TesterManagerEventMixin
@@ -22,8 +22,11 @@ from panther.plugins.services.testers.panther_ivy.ivy_command_mixin import IvyCo
 from panther.plugins.services.testers.panther_ivy.ivy_analysis_mixin import IvyAnalysisMixin
 from panther.plugins.services.testers.panther_ivy.ivy_output_pattern_mixin import IvyOutputPatternMixin
 from panther.plugins.services.testers.panther_ivy.ivy_protocol_aware_mixin import IvyProtocolAwareMixin
+from panther.plugins.services.testers.panther_ivy.ivy_network_resolution_mixin import IvyNetworkResolutionMixin
+from panther.plugins.services.testers.panther_ivy.ivy_build_mode_mixin import IvyBuildModeMixin
+from panther.plugins.services.testers.panther_ivy.path_template_resolver import get_global_resolver
 from panther.config.core.models.service import ServiceConfig
-
+from panther.core.command_processor.models.shell_command import ShellCommand
 if TYPE_CHECKING:
     from panther.plugins.plugin_manager import PluginManager
 
@@ -41,28 +44,29 @@ def oppose_role(role):
     version="3.1.0",  # Version 3.1 reflects mixin-based refactored architecture
     description="Ivy formal verification tester using mixin-based architecture",
     supported_protocols=["quic"],
-    external_dependencies=["z3>=4.8", "python>=3.7"],
+    external_dependencies=["z3=4.8", "python=3.7"],
     homepage=""
 )
 class PantherIvyServiceManager(
+    TesterServiceManagerMixin, 
+    ServiceManagerDockerMixin, 
+    TesterManagerEventMixin,
     IvyCommandMixin,
     IvyAnalysisMixin, 
     IvyOutputPatternMixin,
     IvyProtocolAwareMixin,
-    TesterServiceManagerMixin, 
-    ServiceManagerDockerMixin, 
-    TesterManagerEventMixin,
-    ITesterManager,
+    IvyNetworkResolutionMixin,
+    IvyBuildModeMixin,  # Add build mode management
     ErrorHandlerMixin
 ):
     """
     Mixin-based PantherIvy service manager with specialized functionality.
     
     This class uses specialized mixins for different concerns:
-    - IvyCommandMixin: Command generation and parameter handling
-    - IvyAnalysisMixin: Output analysis and pattern matching
-    - IvyOutputPatternMixin: Output file organization and collection
-    - IvyProtocolAwareMixin: Protocol-specific configuration handling
+    -> IvyCommandMixin: Command generation and parameter handling
+    -> IvyAnalysisMixin: Output analysis and pattern matching
+    -> IvyOutputPatternMixin: Output file organization and collection
+    -> IvyProtocolAwareMixin: Protocol-specific configuration handling
     """
 
     def __init__(self, 
@@ -90,32 +94,21 @@ class PantherIvyServiceManager(
         self._original_service_config = service_config_to_test
         # Pre-determine role before any mixin initialization to avoid timing issues
         self._role = self._determine_role_from_config(service_config_to_test, protocol)
-        # Initialize parent classes - this will call TesterServiceManagerMixin.__init__
-        # which sets up basic attributes but does NOT call standardized_initialization
-        # Debug: Check global_config parameter
-        print(f"DEBUG [PantherIvyServiceManager]: global_config parameter: {global_config}")
-        print(f"DEBUG [PantherIvyServiceManager]: global_config type: {type(global_config)}")
-        if global_config and hasattr(global_config, 'docker'):
-            print(f"DEBUG [PantherIvyServiceManager]: docker config: {global_config.docker}")
-            print(f"DEBUG [PantherIvyServiceManager]: force_build_docker_image: {getattr(global_config.docker, 'force_build_docker_image', 'NOT_FOUND')}")
-        
         super().__init__(
             service_config_to_test, service_type, protocol, implementation_name, event_manager,
             global_config=global_config, **kwargs
         )
-        # Use the template method for complete initialization
-        # This handles all setup including standardized_initialization, role setup,
-        # template renderer, and Docker attributes in the correct order
-        try:
-            self.standard_tester_initialization(
-                service_config_to_test, service_type, protocol, implementation_name, event_manager,
-                include_protocol_in_template=True, plugin_dir=Path(__file__).parent
-            )
-        except Exception as e:
-            self.logger.error(f"Error in standard_tester_initialization: {e}")
-            import traceback
-            self.logger.error(f"Traceback: {traceback.format_exc()}")
-            raise
+        self.standard_tester_initialization(
+            service_config_to_test, service_type, protocol, implementation_name, event_manager,
+            include_protocol_in_template=True, plugin_dir=Path(__file__).parent
+        )
+        
+        self.protocol = protocol
+        
+        
+        self.targets_implementaions = []
+        for targets in getattr(service_config_to_test, 'targets', []):
+            pass
 
         # Initialize Ivy-specific attributes (after role and protocol are properly set)
         self._initialize_ivy_attributes(service_config_to_test, protocol)
@@ -145,14 +138,14 @@ class PantherIvyServiceManager(
                     service_config_to_test: PantherIvy plugin configuration object
                     protocol: Protocol configuration object
                 """
-            # Set test configuration - use comprehensive multi-level checking
+            # Set test configuration -> use comprehensive multi-level checking
             test_name = ''
             
-            # Priority order: test_parameters > plugin_config > implementation > direct attribute
+            # Priority order: test_parameters  plugin_config  implementation  direct attribute
             if hasattr(service_config_to_test, "test_parameters") and service_config_to_test.test_parameters:
                 test_name = service_config_to_test.test_parameters.get('test', '')
             elif hasattr(service_config_to_test, "plugin_config") and service_config_to_test.plugin_config:
-                # Check plugin_config dict for test - this is where it actually is!
+                # Check plugin_config dict for test -> this is where it actually is!
                 test_name = service_config_to_test.plugin_config.get('test', '')
             elif hasattr(service_config_to_test, "implementation"):
                 # Check if the implementation is a dict with 'test' key
@@ -171,13 +164,17 @@ class PantherIvyServiceManager(
             self.test_to_compile = test_name
             self.test_to_compile_path = None
     
-            # Initialize available_tests - for now we'll use empty dict since
+            # Initialize available_tests -> for now we'll use empty dict since
             # version information is loaded separately in PantherIvyConfig
             self.available_tests = {}
     
             # Set protocol model paths
             self.protocol = protocol
             self._protocol_name_cache = None
+            
+            # Initialize protocol-specific data directory for flexible template system
+            protocol_name = self._get_protocol_name_from_service_config()
+            self.ivy_protocol_data_dir = protocol_name  # e.g., "quic" for QUIC protocol
     
             self.env_protocol_model_path = self.get_protocol_model_path(
                 use_system_models=getattr(service_config_to_test, 'use_system_models', False)
@@ -199,10 +196,65 @@ class PantherIvyServiceManager(
     
             self.final_analysis_res = None
     
-            # Fix service_name access - use the correct attribute name from the service manager
+            # Fix service_name access -> use the correct attribute name from the service manager
             service_name = getattr(self, 'service_name', None) or getattr(service_config_to_test, 'name', 'unknown_service')
             self.logger.info(f"Initialized PantherIvy service manager for {service_name} with role {self.role} and test: {self.test_to_compile}")
 
+    def adapt_environment_paths(self, env_vars: Dict[str, str], use_system_models: bool) -> None:
+            """
+            Adapt environment variable paths using flexible template resolution.
+            
+            This method processes environment variables that contain path templates
+            and resolves them based on the current architecture configuration.
+            
+            Args:
+                env_vars: Dictionary of environment variables to process
+                use_system_models: Whether using system models (APT architecture)
+            """
+            path_resolver = get_global_resolver()
+            protocol_name = self._get_protocol_name_from_service_config()
+            
+            # Create context for path resolution
+            context = path_resolver.create_architecture_context(
+                use_apt_protocols=use_system_models,
+                protocol_name=protocol_name
+            )
+            
+            # # Add additional context variables
+            # context.update({
+            #     'homepath': os.path.expanduser('~'),
+            #     'service_name': getattr(self, 'service_name', 'unknown'),
+            #     'role': str(getattr(self, 'role', 'client')),
+            #     'test_name': getattr(self, 'test_to_compile', 'unknown_test'),
+            #     'IVY_PROTOCOL_DATA_DIR': getattr(self, 'ivy_protocol_data_dir', self.env_protocol_model_path),
+            # })
+            
+            # CRITICAL FIX: Add template variables to environment variables
+            # This ensures the Docker Compose template has access to these variables
+            template_vars_to_add = [
+                'PROTOCOL_PATH', 
+                'USE_APT_PROTOCOLS',
+                'PANTHER_IVY_BASE_DIR',
+                'PANTHER_IVY_INSTALL_DIR',
+                'IVY_PROTOCOL_BASE',
+                'IVY_QUIC_DATA_DIR'
+            ]
+            
+            for var_name in template_vars_to_add:
+                if var_name in context and var_name not in env_vars:
+                    env_vars[var_name] = context[var_name]
+                    self.logger.debug(f"Added template variable to environment: {var_name}={context[var_name]}")
+
+
+            env_vars["TEST_TYPE"] = oppose_role(self.role)  # Set test type based on role
+
+            # # Process environment variables with template resolution
+            # for key, value in env_vars.items():
+            #     if isinstance(value, str) and '' in value:
+            #         # This is a template, resolve it
+            #         resolved_value = path_resolver.resolve_template(value, context)
+            #         env_vars[key] = resolved_value
+            #         self.logger.debug(f"Resolved template {key}: '{value}' -> '{resolved_value}'")
 
 
     def _get_ivy_output_patterns(self) -> List[Tuple[str, str]]:
@@ -242,11 +294,34 @@ class PantherIvyServiceManager(
         return protocol_name
 
     def _get_protocol_name_from_service_config(self):
-        """Helper method to get protocol name from service config during initialization."""
-        if hasattr(self.service_config_to_test, 'protocol') and hasattr(self.service_config_to_test.protocol, 'name'):
-            return getattr(self.service_config_to_test.protocol, 'name', 'unknown')
-        self.logger.warning("Could not determine protocol name from service config, using 'unknown'")
-        return 'unknown'
+            """Helper method to get protocol name from service config during initialization."""
+            # Try multiple sources for protocol name to improve robustness
+            
+            # First, try the mixin's protocol detection (which checks self.protocol)
+            if hasattr(self, 'get_protocol_name'):
+                protocol_name = self.get_protocol_name()
+                if protocol_name and protocol_name != "unknown":
+                    self.logger.debug(f"Got protocol name from mixin: {protocol_name}")
+                    return protocol_name
+            
+            # Second, try service config protocol
+            if hasattr(self.service_config_to_test, 'protocol') and hasattr(self.service_config_to_test.protocol, 'name'):
+                protocol_name = getattr(self.service_config_to_test.protocol, 'name', 'unknown')
+                if protocol_name and protocol_name != "unknown":
+                    self.logger.debug(f"Got protocol name from service config: {protocol_name}")
+                    return protocol_name
+            
+            # Third, try the protocol parameter passed to constructor
+            if hasattr(self, 'protocol') and self.protocol:
+                if hasattr(self.protocol, 'name'):
+                    protocol_name = getattr(self.protocol, 'name', 'unknown')
+                    if protocol_name and protocol_name != "unknown":
+                        self.logger.debug(f"Got protocol name from constructor protocol: {protocol_name}")
+                        return protocol_name
+            
+            self.logger.warning("Could not determine protocol name from any source, using 'unknown'")
+            return 'unknown'
+
 
     def _setup_volumes(self):
         """
@@ -271,61 +346,140 @@ class PantherIvyServiceManager(
         else:
             self.volumes = volumes
 
-
-    def _load_version_environment_variables(self):
-            """
-            Load environment variables including Ivy-specific ones.
-            Maintains environment-specific path flexibility by preserving variable references.
-            """
-            # Call parent implementation first to get version-specific env vars
-            super()._load_version_environment_variables()
-            
+    def _get_ivy_environment_variables(self):
+            """Get base Ivy environment variables from defaults and config."""
             # Import the default environment variables
             from panther.plugins.services.testers.panther_ivy.config_schema import DEFAULT_ENVIRONMENT_VARIABLES
-            
-            # Get environment variables from service config - start with defaults and merge in config
+    
+            # Start with defaults and merge in config environment variables
             ivy_env_vars = DEFAULT_ENVIRONMENT_VARIABLES.copy()
-            
-            # Merge in any environment variables from service config
-            config_env_vars = getattr(self.service_config_to_test, 'environment', {})
-            if config_env_vars:
+    
+            if config_env_vars := getattr(self.service_config_to_test, 'environment', {}):
                 ivy_env_vars.update(config_env_vars)
-                self.logger.debug(f"Merged {len(config_env_vars)} environment variables from service config")
-            
-            # Set PROTOCOL_MODEL_PATH based on architecture choice
-            use_system_models = getattr(self.service_config_to_test, 'use_system_models', False)
-            protocol_name = self._get_protocol_name_from_service_config()
-            
-            if use_system_models:
-                # APT architecture: centralized models in apt_protocols/{protocol}
-                protocol_model_path = f"$SOURCE_DIR/panther_ivy/protocol-testing/apt/apt_protocols/{protocol_name}"
-                use_apt_protocols = "1"  # Enable APT protocols flag
+    
+            return ivy_env_vars
+
+    def _load_version_environment_variables(self):
+        """
+            Load version-specific environment variables for Ivy with robust parameter extraction.
+            Handles cases where implementation parameters might not be available.
+            """
+        protocol_name = self.get_protocol_name()
+
+        # Determine whether to use system models (APT) or protocol models (manual architecture)
+        use_system_models = getattr(self.service_config_to_test.implementation, 'use_system_models', False)
+        use_apt_protocols = "1" if use_system_models else "0"
+
+        # Ensure protocol model paths are available
+        if not hasattr(self, 'env_protocol_model_path'):
+            self.env_protocol_model_path = self.get_protocol_model_path(
+                use_system_models=use_system_models
+            )
+
+        if not hasattr(self, 'system_protocol_model_path'):
+            # Default system protocol model path
+            self.system_protocol_model_path = "/opt/panther_ivy/protocol-testing/apt/"
+
+        protocol_model_path = self.system_protocol_model_path if use_system_models else self.env_protocol_model_path
+
+        # Load base Ivy environment variables
+        ivy_env_vars = self._get_ivy_environment_variables()
+
+            # Robust parameter extraction helper function with enhanced debugging
+        def get_implementation_parameter(param_name: str, default_value=None):
+            """Robustly extract parameter from service config implementation."""
+            service_config = getattr(self, 'service_config_to_test', None)
+            self.logger.debug(f"Looking for parameter '{param_name}', service_config exists: {service_config is not None}")
+
+            if service_config and hasattr(service_config, 'implementation'):
+                impl = service_config.implementation
+                self.logger.debug(f"Implementation object exists for '{param_name}': {impl is not None}")
+
+                # Path 1: Direct attribute access
+                if hasattr(impl, param_name):
+                    value = getattr(impl, param_name)
+                    self.logger.debug(f"Found '{param_name}' via direct attribute access: {value}")
+                    return value
+
+                # Path 2: Check parameters object
+                if hasattr(impl, 'parameters') and impl.parameters:
+                    params = impl.parameters
+                    self.logger.debug(f"Implementation has parameters object for '{param_name}': {params is not None}")
+                    if hasattr(params, param_name):
+                        param_value = getattr(params, param_name)
+                        value = param_value.value if hasattr(param_value, 'value') else param_value
+                        self.logger.debug(f"Found '{param_name}' via parameters object: {value}")
+                        return value
+                    else:
+                        self.logger.debug(f"Parameter '{param_name}' not found in parameters object")
+                else:
+                    self.logger.debug(f"No parameters object found for '{param_name}'")
+                    
+                # Path 3: Check version parameters
+                if hasattr(impl, 'version') and hasattr(impl.version, 'parameters'):
+                    version_params = impl.version.parameters
+                    self.logger.debug(f"Implementation has version.parameters for '{param_name}': {version_params is not None}")
+                    if hasattr(version_params, param_name):
+                        param_value = getattr(version_params, param_name)
+                        value = param_value.value if hasattr(param_value, 'value') else param_value
+                        self.logger.debug(f"Found '{param_name}' via version parameters: {value}")
+                        return value
+                    else:
+                        self.logger.debug(f"Parameter '{param_name}' not found in version parameters")
+                else:
+                    self.logger.debug(f"No version.parameters found for '{param_name}'")
             else:
-                # Individual protocol architecture: protocol root directory
-                protocol_model_path = f"$SOURCE_DIR/panther_ivy/protocol-testing/{protocol_name}"
-                use_apt_protocols = "0"  # Disable APT protocols flag
-            
-            # Use environment variables from configuration (already a dict)
-            # Preserving variable references (e.g., $SOURCE_DIR) for environment-specific resolution
-            env_vars_to_add = ivy_env_vars.copy()
-            
-            # Add architecture-specific variables
-            env_vars_to_add.update({
-                'PROTOCOL_MODEL_PATH': protocol_model_path,  # Architecture-aware path
-                'USE_APT_PROTOCOLS': use_apt_protocols,  # Flag for compile-time path selection
-            })
-            
-            # Adapt environment variable paths based on use_system_models parameter
-            # This transforms paths in version configs to match architecture choice
-            self.adapt_environment_paths(env_vars_to_add, use_system_models)
-            
-            # Add each environment variable
-            for env_name, env_value in env_vars_to_add.items():
-                self.environments[env_name] = env_value
-                self.logger.debug(f"Added Ivy environment variable {env_name}={env_value}")
-            
-            # Log total environment variables loaded
-            self.logger.info(f"Loaded {len(self.environments)} environment variables for Ivy service {self.service_name}")
+                self.logger.debug(f"No service_config.implementation found for '{param_name}'")
+                
+            self.logger.debug(f"Parameter '{param_name}' not found in any location, using default: {default_value}")
+            return default_value
+
+        # Extract parameters with robust handling
+        log_level_binary = get_implementation_parameter('log_level_binary', 'DEBUG')
+        optimization_level = get_implementation_parameter('optimization_level', 'O0')
+
+        self.logger.debug(f"Extracted log_level_binary: {log_level_binary}")
+        self.logger.debug(f"Extracted optimization_level: {optimization_level}")
+
+        env_vars_to_add = ivy_env_vars.copy()
+
+        # Extract build_mode from implementation config (where it's actually stored)
+        build_mode = getattr(self.service_config_to_test.implementation, 'build_mode', '')
+
+        # Add architecture-specific variables
+        env_vars_to_add.update({
+            'PROTOCOL_MODEL_PATH': protocol_model_path,  # Architecture-aware path
+            'USE_APT_PROTOCOLS': use_apt_protocols,  # Flag for compile-time path selection
+            "PROTOCOL_TESTED": protocol_name,  # Protocol name for testing
+            "IVY_DEBUG": "1" if log_level_binary == "DEBUG" else "0",
+            "IVY_OPTI": optimization_level or "O0",  # Fallback to O0 if None
+            "BUILD_MODE": build_mode  # Build mode for Ivy compilation
+        })
+
+        # Only add protocol-specific PYTHONPATH if protocol name is valid
+        if protocol_name and protocol_name != "unknown":
+            env_vars_to_add["PYTHONPATH"] = f"$PYTHONPATH:$SOURCE_DIR/panther_ivy/protocol-testing/{protocol_name}"
+            self.logger.debug(f"Added protocol-specific PYTHONPATH for {protocol_name}")
+        else:
+            self.logger.warning(f"Skipping protocol-specific PYTHONPATH due to unknown protocol name: {protocol_name}")
+            # Use base PYTHONPATH without protocol-specific directory
+            env_vars_to_add["PYTHONPATH"] = "$PYTHONPATH:$SOURCE_DIR/panther_ivy/protocol-testing"
+
+        # Adapt environment variable paths based on use_system_models parameter
+        # This transforms paths in version configs to match architecture choice
+        self.adapt_environment_paths(env_vars_to_add, use_system_models)
+
+        # Batch add all environment variables
+        for env_name, env_value in env_vars_to_add.items():
+            self.environments[env_name] = env_value
+            self.logger.debug(f"Added Ivy environment variable {env_name}={env_value}")
+
+        self.environments["ROLE"] = self.role  # Set role for Ivy service manager
+
+        # Log total environment variables loaded
+        self.logger.info(f"Loaded {len(self.environments)} environment variables for Ivy service {self.service_name}")
+
+
 
     def _determine_role_from_config(self, service_config_to_test, protocol) -> str:
         """
@@ -445,6 +599,9 @@ class PantherIvyServiceManager(
         """Implementation of abstract _do_prepare method from IServiceManager."""
         try:
             # Build submodules if needed
+            # git submodule foreach --recursive git reset --hard HEAD && \
+            # git submodule foreach --recursive git clean -fdx && \
+            # git submodule update --recursive
             if getattr(self.service_config_to_test, "build_submodules", False):
                 self.build_submodules()
 
@@ -463,13 +620,14 @@ class PantherIvyServiceManager(
         os.chdir(os.path.dirname(__file__))
         try:
             self.logger.info("Initializing submodules (from %s)", os.getcwd())
+            # TODO enable choice of git submodule update --recursive
             subprocess.run(["git", "submodule", "update", "--init", "--recursive"], check=True)
         except subprocess.CalledProcessError as e:
             self.logger.error("Failed to initialize submodules: %s", e)
         finally:
             os.chdir(current_dir)
 
-    def generate_pre_compile_commands(self):
+    def generate_pre_compile_commands(self) -> List[Union[str, ShellCommand]]:
         """Generate pre-compile commands using mixin integration."""
         try:
             # Use mixin method directly instead of command generator delegation
@@ -484,11 +642,11 @@ class PantherIvyServiceManager(
             return base_commands + commands
             
         except Exception as e:
-            self.logger.error(f"Failed to generate pre-compile commands: {e}")
+            self.logger.error(f"Failed to generate pre-compile commands: {e}", exc_info=True)
             return []
 
 
-    def generate_compile_commands(self):
+    def generate_compile_commands(self) -> List[Union[str, ShellCommand]]:
         """Generate compile commands using mixin integration."""
         try:
             # Get base commands from parent
@@ -497,18 +655,16 @@ class PantherIvyServiceManager(
                 base_commands = super().generate_compile_commands()
             
             # Use mixin method directly
-            commands = []
-            ivy_commands = self.generate_ivy_compile_commands(commands)
+            ivy_commands = self.generate_ivy_compile_commands()
             
             # Combine base and Ivy-specific commands
             return base_commands + ivy_commands
-            
         except Exception as e:
             self.logger.error(f"Failed to generate compile commands: {e}")
             return base_commands if 'base_commands' in locals() else []
 
 
-    def generate_run_command(self):
+    def generate_run_command(self) -> Dict[str, Any]:
         """Generate run command with delegated deployment args."""
         # Build command structure
         cmd_args = self.generate_ivy_deployment_commands()
@@ -521,6 +677,7 @@ class PantherIvyServiceManager(
         working_dir = self.env_protocol_model_path or \
                       f"/opt/panther_ivy/protocol-testing/{self._get_protocol_name()}/"
         
+        self.logger.debug(f"Generated run command for {self.service_name}: {command_binary} with args {cmd_args}")
         return {
             "working_dir": working_dir,
             "command_binary": command_binary,
@@ -529,7 +686,7 @@ class PantherIvyServiceManager(
             "command_env": {},
         }
 
-    def generate_pre_run_commands(self):
+    def generate_pre_run_commands(self) -> List[Union[str, ShellCommand]]:
         """Generate pre-run commands with fallback."""
         commands = []
         if hasattr(super(), 'generate_pre_run_commands'):
@@ -540,7 +697,7 @@ class PantherIvyServiceManager(
         
         return commands
 
-    def generate_post_compile_commands(self):
+    def generate_post_compile_commands(self) -> List[Union[str, ShellCommand]]:
         """Generate post-compile commands with fallback."""
         commands = []
         if hasattr(super(), 'generate_post_compile_commands'):
@@ -549,21 +706,12 @@ class PantherIvyServiceManager(
         # IvyCommandGenerator doesn't have this method, so add Ivy-specific commands
         commands.extend([
             f"cd {self.env_protocol_model_path}",  
-            "pwd >> /app/logs/ivy_post_compile.log",  
+            "pwd  /app/logs/ivy_post_compile.log",  
         ])
         
         return commands
     
-    def generate_compilation_commands(self) -> List[str]:
-        """Generate compilation commands using mixin integration."""
-        try:
-            # Use mixin method directly to get comprehensive compilation commands
-            return self._generate_comprehensive_compilation_commands()
-            
-        except Exception as e:
-            self.logger.error(f"Failed to generate compilation commands: {e}")
-            return []
-
+        
     def build_tests(self, test_name=None) -> List[str]:
         """Generate test building commands using mixin integration."""
         try:
@@ -586,7 +734,7 @@ class PantherIvyServiceManager(
             return ""
 
 
-    def generate_post_run_commands(self):
+    def generate_post_run_commands(self) -> List[Union[str, ShellCommand]]:
         """Generate post-run commands using mixin integration."""
         try:
             # Get base commands from parent
@@ -611,60 +759,69 @@ class PantherIvyServiceManager(
 
     
     def _do_run_tests(self) -> Dict[str, Any]:
-        """
-        Execute Ivy tests and return results.
-        
-        Implementation of abstract method from ITesterManager.
-        This method handles the actual test execution using Ivy formal verification.
-        
-        Returns:
-            Dict[str, Any]: Test execution results including success status and outputs
-        """
-        try:
-            self.logger.info(f"Running Ivy tests for {self.service_name}")
+            """
+            Execute Ivy tests and return results.
             
-            # Initialize results structure
-            results = {
-                "success": False,
-                "test_name": getattr(self, 'test_to_compile', 'unknown'),
-                "role": getattr(self, 'role', 'unknown'),
-                "outputs": {},
-                "analysis": {},
-                "errors": []
-            }
+            Implementation of abstract method from ITesterManager.
+            This method handles the actual test execution using Ivy formal verification.
             
-            # Collect outputs from test execution
-            outputs = self.collect_outputs()
-            results["outputs"] = outputs
-            
-            # Analyze the collected outputs
-            analysis = self.analyze_outputs()
-            results["analysis"] = analysis
-            
-            # Determine success based on analysis
-            if analysis.get("success", False):
-                results["success"] = True
-                self.logger.info(f"Ivy tests completed successfully for {self.service_name}")
-            else:
-                results["errors"].append(analysis.get("error", "Test execution failed"))
-                self.logger.warning(f"Ivy tests failed for {self.service_name}")
-            
-            # Store results for later retrieval
-            self.final_analysis_res = results
-            
-            return results
-            
-        except Exception as e:
-            error_msg = f"Error running Ivy tests: {e}"
-            self.logger.error(error_msg)
-            return {
-                "success": False,
-                "test_name": getattr(self, 'test_to_compile', 'unknown'),
-                "role": getattr(self, 'role', 'unknown'),
-                "outputs": {},
-                "analysis": {},
-                "errors": [error_msg]
-            }
+            Returns:
+                Dict[str, Any]: Test execution results including success status and outputs
+            """
+            try:
+                self.logger.info(f"Running Ivy tests for {self.service_name}")
+                
+                # Initialize results structure
+                results = {
+                    "success": False,
+                    "test_name": getattr(self, 'test_to_compile', 'unknown'),
+                    "role": getattr(self, 'role', 'unknown'),
+                    "outputs": {},
+                    "analysis": {},
+                    "errors": []
+                }
+                
+                # Use externally collected outputs if available (from centralized output collection)
+                # This is set via set_collected_outputs() by the OutputAggregator
+                if hasattr(self, '_collected_outputs') and self._collected_outputs:
+                    outputs = self._collected_outputs
+                    self.logger.debug(f"Using externally collected outputs: {len(outputs)} items")
+                else:
+                    # Fallback to direct collection (should not happen in normal flow)
+                    self.logger.warning("No externally collected outputs available, attempting direct collection")
+                    outputs = self.collect_outputs()
+                    
+                results["outputs"] = outputs
+                
+                # Analyze the collected outputs
+                analysis = self.analyze_outputs()
+                results["analysis"] = analysis
+                
+                # Determine success based on analysis
+                if analysis.get("success", False):
+                    results["success"] = True
+                    self.logger.info(f"Ivy tests completed successfully for {self.service_name}")
+                else:
+                    results["errors"].append(analysis.get("error", "Test execution failed"))
+                    self.logger.warning(f"Ivy tests failed for {self.service_name}")
+                
+                # Store results for later retrieval
+                self.final_analysis_res = results
+                
+                return results
+                
+            except Exception as e:
+                error_msg = f"Error running Ivy tests: {e}"
+                self.logger.error(error_msg)
+                return {
+                    "success": False,
+                    "test_name": getattr(self, 'test_to_compile', 'unknown'),
+                    "role": getattr(self, 'role', 'unknown'),
+                    "outputs": {},
+                    "analysis": {},
+                    "errors": [error_msg]
+                }
+
 
     def get_test_results(self) -> Dict[str, Any]:
         """
@@ -678,7 +835,7 @@ class PantherIvyServiceManager(
         if hasattr(self, 'final_analysis_res') and self.final_analysis_res:
             return self.final_analysis_res
         else:
-            self.logger.warning("No test results available - tests may not have been run yet")
+            self.logger.warning("No test results available -> tests may not have been run yet")
             return {
                 "success": False,
                 "test_name": getattr(self, 'test_to_compile', 'unknown'),
@@ -788,5 +945,30 @@ class PantherIvyServiceManager(
         """Detailed representation of the service manager."""
         return (f"PantherIvyServiceManager(service_name='{self.service_name}', "
                 f"role='{self.role}', protocol='{self.get_protocol_name()}')")
-
+    
+    def handle_event(self, event) -> None:
+        """
+        Handle events sent to this PantherIvy service manager.
+        
+        This implementation provides basic event handling for Ivy formal verification tests.
+        It delegates to parent mixins for common event processing while allowing for
+        Ivy-specific event handling extensions.
+        
+        Args:
+            event: The event to handle
+        """
+        try:
+            # Log the event for debugging
+            self.logger.debug(f"PantherIvy handling event: {getattr(event, 'name', 'unknown')} (type: {type(event).__name__})")
+            
+            # Delegate to parent mixin chain for standard event handling
+            # This ensures that event mixins in the inheritance chain can process events
+            if hasattr(super(), 'handle_event'):
+                super().handle_event(event)
+            
+            # Add any Ivy-specific event handling here if needed in the future
+            # For now, the basic delegation to parent mixins is sufficient
+            
+        except Exception as e:
+            self.logger.error(f"Error handling event in PantherIvy service manager: {e}")
         
