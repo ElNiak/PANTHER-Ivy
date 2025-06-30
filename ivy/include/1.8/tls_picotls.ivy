@@ -163,7 +163,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
     static uint64_t public_random_seed[16] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
     static int public_random_index = 0;
     static const uint64_t public_random_multiplier = 1181783497276652981ull;
-    static uint64_t public_random_obfuscator = 0x5555555555555555ull;
+    static uint64_t public_random_obfuscator       = 0x5555555555555555ull;
 
     static uint64_t quic_public_random_step(void)
     {

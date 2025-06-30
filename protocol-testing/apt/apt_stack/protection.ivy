@@ -642,7 +642,11 @@ object stream_prot_deser = {}
         }
 
         bool open_list_elem() {
+<<<<<<< HEAD
+            bool res = data_remaining--> = 0;
+=======
             bool res = data_remaining-- >= 0;
+>>>>>>> origin/production
             return res;
         }
         void close_list_elem() {

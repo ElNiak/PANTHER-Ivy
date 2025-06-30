@@ -1,3 +1,14 @@
+<<<<<<< HEAD
+FROM --platform=linux/amd64 panther_base_service:latest
+
+ENV DEBIAN_FRONTEND=noninteractive
+# Define build arguments for version-specific configurations
+ARG DEPENDENCIES="[]"  # JSON-formatted list of dependencies
+ARG BUILD_MODE=""  # Build mode for Z3 compilation: '', 'debug-asan', 'rel-lto', or 'release-static-pgo'
+ENV DEPENDENCIES=${DEPENDENCIES}
+ENV VERSION=${VERSION}
+ENV BUILD_MODE=${BUILD_MODE}
+=======
 FROM panther_base_service_panther:latest
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -6,6 +17,7 @@ ARG VERSION=production
 ARG DEPENDENCIES="[]"  # JSON-formatted list of dependencies
 ENV VERSION=${VERSION}
 ENV DEPENDENCIES=${DEPENDENCIES}
+>>>>>>> origin/production
 
 RUN apt update; \
     add-apt-repository --yes ppa:deadsnakes/ppa; \
@@ -80,9 +92,16 @@ RUN apt update; \
     libgmp-dev \
     libreadline-dev \
     dsniff \
+<<<<<<< HEAD
+    sudo \
+    ninja-build 
+
+
+=======
     sudo
 
     
+>>>>>>> origin/production
 # picotls
 RUN apt-get install -y jq
 # Function to parse and build dependencies
@@ -90,6 +109,25 @@ RUN apt-get install -y jq
 RUN cd /opt && \ 
     echo "Starting dependency installation..." && \
     echo $DEPENDENCIES | jq -c '.[]' | while read -r dep; do \
+<<<<<<< HEAD
+    DEP_NAME=$(echo $dep | jq -r '.name'); \
+    DEP_URL=$(echo $dep | jq -r '.url'); \
+    DEP_COMMIT=$(echo $dep | jq -r '.commit'); \
+    if [ -n "$DEP_NAME" ] && [ -n "$DEP_URL" ] && [ -n "$DEP_COMMIT" ]; then \
+    echo "Cloning dependency '$DEP_NAME' from '$DEP_URL' at commit '$DEP_COMMIT'" && \
+    git clone "$DEP_URL" "$DEP_NAME" && \
+    cd "$DEP_NAME" && \
+    git checkout "$DEP_COMMIT" && \
+    git submodule update --init --recursive && \
+    OPENSSL_INCLUDE_DIR="/usr/include/openssl" cmake . && \
+    make && \
+    make check && \
+    echo "Successfully built dependency '$DEP_NAME'"; \
+    else \
+    echo "Invalid dependency configuration: $dep"; \
+    exit 1; \
+    fi; \
+=======
         DEP_NAME=$(echo $dep | jq -r '.name'); \
         DEP_URL=$(echo $dep | jq -r '.url'); \
         DEP_COMMIT=$(echo $dep | jq -r '.commit'); \
@@ -107,6 +145,7 @@ RUN cd /opt && \
             echo "Invalid dependency configuration: $dep"; \
             exit 1; \
         fi; \
+>>>>>>> origin/production
     done
 
 
@@ -136,24 +175,49 @@ RUN python3.10 -m pip install pexpect \
 # For Ivy
 # .gitmodules 
 ADD setup.py build_submodules.py /opt/panther_ivy/
+<<<<<<< HEAD
+=======
 ADD templates /opt/panther_ivy/templates/
+>>>>>>> origin/production
 ADD submodules /opt/panther_ivy/submodules/
 # TODO only python file for building
 ADD ivy /opt/panther_ivy/ivy/
 ADD lib /opt/panther_ivy/lib/
+<<<<<<< HEAD
+ADD patches /opt/panther_ivy/patches/
+=======
 ADD scripts /opt/panther_ivy/scripts/
+>>>>>>> origin/production
 
 ENV PYTHONPATH="$$PYTHONPATH:/opt/panther_ivy/"
 
 WORKDIR /opt/panther_ivy/
 
+<<<<<<< HEAD
+ENV BUILD_MODE=${BUILD_MODE}
+
+# Apply patch to make Z3 git dependency optional for Docker builds
+RUN cd /opt/panther_ivy && \
+    patch -p1 < patches/z3-cmake-git-optional.patch
+
+RUN python3.10 build_submodules.py; \
+    python3.10 -m pip install . ;\
+    sudo python3.10 setup.py install; \
+    cp lib/libz3.so submodules/z3/build/python/z3; \
+    cp lib/libz3.so submodules/z3/build/;
+=======
 RUN python3.10 -m pip install . ;\
     python3.10 build_submodules.py; \
     sudo python3.10 setup.py install; \
     cp lib/libz3.so submodules/z3/build/python/z3;
+>>>>>>> origin/production
 
 
 ADD protocol-testing /opt/panther_ivy/protocol-testing/
 
 # Set entrypoint (can be overridden)
+<<<<<<< HEAD
+# ENTRYPOINT [ "/bin/bash", "-l", "-c" ]
+=======
 ENTRYPOINT [ "/bin/sh", "-l", "-c" ]
+>>>>>>> origin/production

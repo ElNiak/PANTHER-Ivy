@@ -5,7 +5,11 @@ include quic_infer
 include file
 # include quic_locale
 include ivy_quic_shim_attacker
+<<<<<<< HEAD
+include quic_random_value
+=======
 include random_value
+>>>>>>> origin/production
 include ivy_attacker_stream_data_behavior
 
 
@@ -382,7 +386,11 @@ attribute radix=16
 # Notably, the `intbv` type can be used to represent large numbers with
 # small bit vector enodings.
 
+<<<<<<< HEAD
+interpret cid -> longbv[1][1000][20]
+=======
 interpret cid -> longbv[1][13][20]
+>>>>>>> origin/production
 interpret version -> bv[32]
 interpret pkt_num -> bv[32]
 interpret error_code -> bv[16]

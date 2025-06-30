@@ -1,0 +1,13 @@
+{% if env_vars %}
+{% for key, value in env_vars.items() %}
+{{ key }}={{ value|quote_shell }}
+{% endfor %}
+{% endif %}
+
+{% if command_args %}
+{% if command_args[0] %}{{ command_args[0] }}{% endif %}{% for arg in command_args[1:] %}{{ arg }}{% endfor %}
+{% endif %}
+
+{% if extra_fields %}
+{{ extra_fields }}
+{% endif %}

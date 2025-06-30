@@ -1,0 +1,22 @@
+--- a/submodules/z3/cmake/git_utils.cmake
++++ b/submodules/z3/cmake/git_utils.cmake
+@@ -34,7 +34,9 @@
+       # Figure out where real git directory lives
+       set(GIT_COMMON_DIR_FILE "${GIT_WORKTREE_DIR}/commondir")
+       if (NOT EXISTS "${GIT_COMMON_DIR_FILE}")
+-        message(FATAL_ERROR "Found git worktree dir but could not find \"${GIT_COMMON_DIR_FILE}\"")
++        message(WARNING "Found git worktree dir but could not find \"${GIT_COMMON_DIR_FILE}\" - continuing without git dependency")
++        set(${SUCCESS_VAR} FALSE PARENT_SCOPE)
++        return()
+       endif()
+       file(READ "${GIT_COMMON_DIR_FILE}" GIT_COMMON_DIR_FILE_DATA LIMIT 512)
+       string(STRIP "${GIT_COMMON_DIR_FILE_DATA}" GIT_COMMON_DIR_FILE_DATA_STRIPPED)
+@@ -54,7 +56,7 @@
+   message(STATUS "Found git directory \"${GIT_DIR}\"")
+ 
+   if (NOT EXISTS "${GIT_HEAD_FILE}")
+-    message(AUTHOR_WARNING "Git head file \"${GIT_HEAD_FILE}\" cannot be found")
++    message(WARNING "Git head file \"${GIT_HEAD_FILE}\" cannot be found - continuing without git dependency")
+     set(${SUCCESS_VAR} FALSE PARENT_SCOPE)
+     return()
+   endif()

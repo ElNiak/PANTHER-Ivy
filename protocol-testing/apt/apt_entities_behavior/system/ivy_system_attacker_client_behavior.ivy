@@ -468,7 +468,7 @@ around client_send_event {
 # Notably, the `intbv` type can be used to represent large numbers with
 # small bit vector enodings.
 
-interpret cid -> longbv[1][13][20]
+interpret cid -> longbv[1][1000][20]
 interpret version -> bv[32]
 interpret pkt_num -> bv[32]
 interpret error_code -> bv[16]

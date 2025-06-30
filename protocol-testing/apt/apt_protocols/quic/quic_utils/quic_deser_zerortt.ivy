@@ -13,7 +13,15 @@ object quic_deser_zerortt = {}
 <<< impl
     #define QUIC_DESER_FAKE_CHECKSUM_LENGTH 0
     //TODO
+<<<<<<< HEAD
+    
+     #define QUOTEME(x) QUOTEME_1(x)
+    #define QUOTEME_1(x) #x
+    #define QUIC_SER_DESER_HEADER_PATH PANTHER_IVY_BASE_DIR/quic_utils/quic_ser_deser.h
+    #include QUOTEME(QUIC_SER_DESER_HEADER_PATH)
+=======
 #include "/opt/panther_ivy/protocol-testing/apt/apt_protocols/quic/quic_utils/quic_ser_deser.h"
+>>>>>>> origin/production
 
     class `quic_deser_zerortt` : public ivy_binary_deser_128 {
     //class `quic_deser_zerortt` : public ivy_binary_deser {
@@ -557,26 +565,26 @@ object quic_deser_zerortt = {}
                 return ack_block_count < ack_blocks_expected;
             }
             if (state == quic_stream_data)
-                return data_remaining-- > 0;
+                return data_remaining-->  0;
             if (state == quic_connection_close_reason)
-                return data_remaining-- > 0;
+                return data_remaining-->  0;
             if (state == quic_path_challenge_data)
-                return data_remaining-- > 0;
+                return data_remaining-->  0;
             if (state == quic_s_init)
                 return more(1);
 
             //TODO
             if (state == quic_ack_frequency_ignore_order)
-                    return data_remaining-- > 0;
+                    return data_remaining-->  0;
             if (state == quic_ack_frequency)
-                    return data_remaining-- > 0;
+                    return data_remaining-->  0;
             if (state == quic_ack_frequency_update_max_ack_delay)
-                    return data_remaining-- > 0;
+                    return data_remaining-->  0;
             if (state == quic_ack_frequency_packet_tolerence)
-                    return data_remaining-- > 0;
+                    return data_remaining-->  0;
             
             if (state == quic_ack_frequency_packet_tolerence || state == quic_ack_largest) //todo not normal
-                    return data_remaining-- > 0;
+                    return data_remaining-->  0;
             std::cerr << "quic_deser_zerortt 1 state 2 " << state << "\n";  
             std::cerr << "quic_deser_zerortt 1 data_remaining " << data_remaining << "\n";  
             throw deser_err();

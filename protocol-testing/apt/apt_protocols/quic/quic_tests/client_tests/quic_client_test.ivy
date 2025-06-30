@@ -1,22 +1,23 @@
 #lang ivy1.7
 
 include order
-include quic_infer
 include file
+
+include apt_events
+
+
+include apt_shim
+include ivy_quic_shim
 include ivy_quic_shim_server
+
 include quic_locale
 include ivy_quic_server_behavior
 
-#
-# We fix the initial transport parameters here. TODO: In principle these
-# parameters should be selected randomly by some event.
-#
-
 include ivy_quic_server_standard_tp
-include quic_time
+
+include apt_time
 
 after init {
-    call time_api.c_timer.start;
     call time_api.c_timer.start;
 }
 # Note, we don't need a tester precondition for packet protocol

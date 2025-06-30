@@ -3,15 +3,21 @@
 include order
 include quic_infer
 include file
-include quic_shim
+include apt_types
 # include quic_locale
 include quic_random_value
+<<<<<<< HEAD
+include ip
+include apt_endpoint
+include apt_quic_endpoint
+include quic_endpoint
+include ivy_quic_shim
+
+include ivy_client
+=======
+>>>>>>> origin/production
 
 parameter the_cid : cid = 0xd
-parameter client_addr : ip.addr = 0x0a000001 # 0x7f000001
-parameter client_port : ip.port = 4987
-parameter client_port_alt : ip.port = 4988
-parameter client_port_vn : ip.port = 4987 #4986 # bind failed: Address already in use
 parameter n_clients : stream_pos = 0x1
 
 parameter max_stream_data : stream_pos = 0x2000
@@ -36,7 +42,11 @@ after init {
 
 # instance second_client : endpoint(endpoint_id.client_alt)
 
+<<<<<<< HEAD
+instance second_client : endpoint.client_endpoint.client_quic(client_addr,client_port_alt) # second_client_ep
+=======
 instance second_client : endpoint.client_endpoint.client_quic(client_addr,client_port) # second_client_ep
+>>>>>>> origin/production
 
 # after init {
 #     call second_client.initialization(client_addr,client_port);
@@ -50,3 +60,4 @@ var sock : quic_net.socket
 var sock_alt : quic_net.socket
 var sock_vn : quic_net.socket
 
+import action show_client_debug_event(client_addr:ip.endpoint) 

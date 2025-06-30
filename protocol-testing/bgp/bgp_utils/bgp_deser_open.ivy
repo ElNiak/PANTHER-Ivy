@@ -141,7 +141,7 @@ object bgp_deser_open = {}
             if (state == bgp_s_opt) {
                 std::cerr << "bgp_s_opt bgp_deser_open 2\n";  
                 //state = bgp_s_time;
-                return payload_length-- > 0;
+                return payload_length-->  0;
             }
                 //return more(1);
             if ( state == bgp_s_opt_val) {

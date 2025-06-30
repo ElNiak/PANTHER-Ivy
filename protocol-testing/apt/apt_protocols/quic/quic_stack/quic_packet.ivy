@@ -490,8 +490,10 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     # The packet type must match the encryption level of the queued
     # frames at the source. 
 
-    require pkt.ptype = queued_level(scid);
-
+    # TODO puicoquic ping in application data
+    # if _generating  {
+        require pkt.ptype = queued_level(scid);
+    # }
    
     # TEMPORARY: prevent big packet number jumps (work around minquic bug)
     # Removed for MVFST that start with big PKT_NUM -> OK now

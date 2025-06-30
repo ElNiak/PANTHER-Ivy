@@ -72,7 +72,7 @@ object bgp_ser = {}
         virtual void open_list_elem() {
             if (state == bgp_s_payload) {
                 std::cerr << "bgp_s_payload bgp_deser 2\n";  
-                payload_length-- > 0;
+                payload_length-->  0;
             }
         }
 

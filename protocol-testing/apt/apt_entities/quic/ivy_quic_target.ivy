@@ -27,6 +27,21 @@ after init {
     mim_agent.ep_target_client.interface := ip.veth_ivy;
 }
 
+<<<<<<< HEAD
+# parameter the_cid : cid = 0x1
+# parameter n_clients : stream_pos = 0x1
+# parameter max_stream_data : stream_pos = 0x2000
+# parameter initial_max_streams_bidi : stream_id = 200
+
+# var the_cid_vn  : cid
+# var client_alt : ip.endpoint
+# var client_vn  : ip.endpoint
+
+# after init {
+#     client_alt := endpoint_id_addr(endpoint_id.client_alt);
+#     client_vn  := endpoint_id_addr(endpoint_id.client_vn);
+# }
+=======
 parameter the_cid : cid = 0x1
 parameter n_clients : stream_pos = 0x1
 parameter max_stream_data : stream_pos = 0x2000
@@ -41,6 +56,7 @@ after init {
     client_alt := endpoint_id_addr(endpoint_id.client_alt);
     client_vn  := endpoint_id_addr(endpoint_id.client_vn);
 }
+>>>>>>> origin/production
 
 # instance server : endpoint.server_endpoint.server_quic_ep(server_addr,server_port)
 # instance client : endpoint.client_endpoint.client_quic_ep(client_addr,client_port)

@@ -60,8 +60,13 @@ include quic_locale
 include quic_loss_recovery
 include quic_congestion_control
 
+<<<<<<< HEAD
+include ivy_quic_server
+include ivy_quic_client 
+=======
 # include ivy_quic_server
 # include ivy_quic_client 
+>>>>>>> origin/production
 # include ivy_quic_client_server
 # include ivy_quic_attacker_client
 # include ivy_quic_target
@@ -302,7 +307,7 @@ import action on_purpose_lost_packet_event(host:endpoint_id,src:ip.endpoint,pkt:
 
 # TODO mvfst no helloretry
 # mvfst  &ptls_openssl_x25519,&ptls_openssl_secp256r1
-# other   &ptls_openssl_secp256r1, &ptls_openssl_x25519 TODO
+# other  &ptls_openssl_secp256r1, &ptls_openssl_x25519 TODO
 
 #TODO merge shim for client
 
@@ -326,6 +331,10 @@ implement tls_api.lower.send(tls_id:tls_api.id, bytes:stream_data, lev:tls_api.l
 
         var scid := tls_id_to_cid(tls_id);
         var dcid := other_tls_id_to_cid(tls_id);
+<<<<<<< HEAD
+        call show_tls_lower_send_debug_event(bytes);
+=======
+>>>>>>> origin/production
         call tls_send_event(tls_id_to_src(tls_id), tls_id_to_dst(tls_id), scid,
                             dcid, bytes,crypto_data_end(scid,e),e, tls_id);
 
@@ -491,7 +500,7 @@ after tls.handshake_data_event(src : ip.endpoint, dst : ip.endpoint, data:stream
 after tls_client_initial_request(src:ip.endpoint,dst:ip.endpoint,nonce:cid, pversion:version, id:tls_api.id) {
     client_initial_scil := scid_size_pos(false);
     var ikm := cid_to_bytes(nonce,dcid_size_cl(retry_response(the_cid))); 
-    call show_set_initial_keys(ikm, id);
+    call show_set_initial_keys(ikm, id, nonce);
     # call show_version(pversion);
     var salt : stream_data := stream_data.empty;
 
@@ -597,7 +606,7 @@ after tls_client_initial_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_d
         # client.set_ep(src); # TODO: migration?
         #if ~endpoint_to_pid(src) = endpoint_id.man_in_the_middle {
         call client.set_ep(src);
-        #client.ep.interface := ip.lo;
+        #
         #}
     }
 
@@ -632,6 +641,37 @@ after tls_client_initial_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_d
     #    length
 
     require dcil >= 8;
+
+    # Set up the relations and mappings for the new connection
+    client_current_connection_id := 1;
+    tls_id_map_ep(server.tls_id)       := server.ep;
+    other_tls_id_map_ep(server.tls_id) := client.ep;
+    cid_map_tls_id(the_cid)            := server.tls_id;
+    ep_map_tls_id(client.ep)           := server.tls_id;
+    ep_map_cid(client.ep)              := the_cid;
+    ep_present(client.ep)              := true;
+    used_client_ports(client.ep.port)  := true;
+    cid_map_ep(the_cid)                := server.ep;
+
+    tls_id_map_cid(server.tls_id)       := the_cid;
+    other_tls_id_map_cid(server.tls_id) := 0;
+
+    tp_client_set := false;
+    client_non_zero_scil := false;
+    zero_rtt_allowed := false;
+    zero_rtt_sent := false;
+    send_connection_close := false;
+    version_negociated := false;
+    negocation_of_version(client.ep) := false;
+    negocation_of_version(server.ep) := false;
+    negocation_of_version_initiated(client.ep) := false;
+    negocation_of_version_initiated(server.ep) := false;
+    first_datagram_received := false;
+    last_datagram_received_size := 0;
+
+    call show_cid_event(the_cid);
+    call show_cid_event(server_cid);
+
 
     if ~retry_sent(dcid) {
         client_initial_dcid := dcid;
@@ -734,7 +774,7 @@ after tls_client_initial_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_d
             salt := salt.append(0x0a);
         };
 
-        call show_set_initial_keys(ikm, 0);
+        call show_set_initial_keys(ikm, 0,dcid);
         call tls_api.upper.set_initial_keys(0,salt,ikm);
         
         initial_keys_set(dcid) := true;
@@ -1209,7 +1249,11 @@ import action show_tls_lower_send_debug_event(bytes:stream_data)
 
 import action show_l(ver:stream_pos)
 
+<<<<<<< HEAD
+import action show_set_initial_keys(ik: stream_data, id: tls_api.id, dcid:cid)
+=======
 import action show_set_initial_keys(ik: stream_data, id: tls_api.id)
+>>>>>>> origin/production
 
 import action show_version(ver:version)
 

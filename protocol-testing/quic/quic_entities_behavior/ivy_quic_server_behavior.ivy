@@ -390,8 +390,8 @@ before frame.stream_data_blocked.handle(f:frame.stream_data_blocked,scid:cid,dci
 }
 
 before frame.ping.handle(f:frame.ping,scid:cid,dcid:cid) {
-    call show_generating(_generating);
     if _generating {
+        call show_generating(_generating);
         require client.ep.addr ~= 0;
         require scid = the_cid;
     }
@@ -401,6 +401,9 @@ import action show_connected(c1:bool, c2:cid)
 
 before frame.handshake_done.handle(f:frame.handshake_done,scid:cid,dcid:cid) {
     if _generating {
+        call show_connected(connected(the_cid),the_cid);
+        call show_connected(connected(scid),scid);
+        call show_connected(connected(dcid),dcid);
         require client.ep.addr ~= 0;
         require scid = the_cid;
 	    require ~handshake_done_send;

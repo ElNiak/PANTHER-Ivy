@@ -2,7 +2,11 @@
 
 include order
 include file
+<<<<<<< HEAD
+# include quic_random_value
+=======
 # include random_value
+>>>>>>> origin/production
 
 include ivy_quic_mim
 include ivy_quic_target
@@ -48,7 +52,11 @@ after init {
     tls_id_map_ep(client.tls_id)       := client.ep;
     other_tls_id_map_ep(client.tls_id) := server.ep;
     cid_map_tls_id(server_cid)         := client.tls_id;
+<<<<<<< HEAD
+    cid_map_tls_id(the_cid)            := client.tls_id;
+=======
     cid_map_tls_id(the_cid)         := client.tls_id;
+>>>>>>> origin/production
     ep_map_tls_id(client.ep)           := client.tls_id;
     ep_map_cid(client.ep)              := the_cid;
     ep_present(client.ep)              := true;

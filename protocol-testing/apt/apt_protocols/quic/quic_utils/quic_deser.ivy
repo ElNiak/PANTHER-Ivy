@@ -48,11 +48,18 @@ object quic_deser = {}
 
     #define QUIC_DESER_FAKE_CHECKSUM_LENGTH 0
     //TODO
+<<<<<<< HEAD
+     #define QUOTEME(x) QUOTEME_1(x)
+    #define QUOTEME_1(x) #x
+    #define QUIC_SER_DESER_HEADER_PATH PANTHER_IVY_BASE_DIR/quic_utils/quic_ser_deser.h
+    #include QUOTEME(QUIC_SER_DESER_HEADER_PATH)
+=======
     #if defined(IS_NOT_DOCKER) 
         #include "/home/user/Documents/QUIC-RFC9000/panther_ivy/protocol-testing/quic/quic_utils/quic_ser_deser.h"
     #else 
          #include "/opt/panther_ivy/protocol-testing/apt/apt_protocols/quic/quic_utils/quic_ser_deser.h"
     #endif
+>>>>>>> origin/production
     int scid_h = 8;
     int dcid_h = 8;
 
@@ -566,7 +573,11 @@ object quic_deser = {}
                     return 5;
                 }
                 if (frame_type == 0x07) {  // new token quic_frame
+<<<<<<< HEAD
+                    state = quic_crypto_length;  // new token equivalent to this
+=======
                     state = quic_s_new_token;  // new token equivalent to this
+>>>>>>> origin/production
                     return 6;
                 }
                 if (frame_type >= 0x08 && frame_type <= 0x0f) {
@@ -694,11 +705,11 @@ object quic_deser = {}
                 return ack_block_count < ack_blocks_expected;
             }
             if (state == quic_stream_data)
-                return data_remaining-- > 0;
+                return data_remaining-->  0;
             if (state == quic_connection_close_reason)
-                return data_remaining-- > 0;
+                return data_remaining-->  0;
             if (state == quic_s_retry_token)
-                return data_remaining-- > 0;
+                return data_remaining-->  0;
             //if (state == quic_s_retry_token) {
                 // We must use/take in count the padding quic_frame since Picoquic client sometimes send packet
                 // only with 1 padding quic_frame which make fails the requirement saying that a 
@@ -709,23 +720,29 @@ object quic_deser = {}
                //return token_count < token_len; //(fence == 0 || pos < fence) && more(1);
             //}
             if (state == quic_crypto_data)
-                return data_remaining-- > 0;
+                return data_remaining-->  0;
             if (state == quic_path_challenge_data)
-                return data_remaining-- > 0;
+                return data_remaining-->  0;
             if (state == quic_s_init)
                 return more(1);
 
             //TODO
             if (state == quic_ack_frequency_reordering_threshold)
-                    return data_remaining-- > 0;
+                    return data_remaining-->  0;
             if (state == quic_ack_frequency)
-                    return data_remaining-- > 0;
+                    return data_remaining-->  0;
             if (state == quic_ack_frequency_request_max_ack_delay)
-                    return data_remaining-- > 0;
+                    return data_remaining-->  0;
             if (state == quic_ack_frequency_ack_eliciting_threshold)
+<<<<<<< HEAD
+                    return data_remaining-->  0;
+            if (state == quic_s_new_token)
+                return data_remaining-->  0;
+=======
                     return data_remaining-- > 0;
             if (state == quic_s_new_token)
                 return data_remaining-- > 0;
+>>>>>>> origin/production
 
 
             std::cerr << "quic_deser 1\n";  
@@ -755,7 +772,11 @@ object quic_deser = {}
                 }
                 payload_length = len;
                 std::cerr << "payload_length = " << payload_length << "\n";
+<<<<<<< HEAD
+                if(true)
+=======
                 if(payload_length > 0)
+>>>>>>> origin/production
                     state = quic_s_pkt_num;
                 else {
                     // random padding case

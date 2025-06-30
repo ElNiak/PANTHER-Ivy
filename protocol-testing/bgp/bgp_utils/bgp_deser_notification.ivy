@@ -116,7 +116,7 @@ object bgp_deser_notification = {}
             if (state == bgp_s_payload) {
                 std::cerr << "bgp_s_payload bgp_deser_notification 2\n";  
                 //state = bgp_s_time;
-                return payload_length-- > 0;
+                return payload_length-->  0;
             }
                 //return more(1);
            /* if ( state == bgp_s_error_subcode || state == bgp_s_error_code) {
