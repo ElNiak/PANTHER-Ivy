@@ -61,7 +61,7 @@ DEFAULT_ENVIRONMENT_VARIABLES = {
     "Z3_LIBRARY_PATH": "$IVY_DIR/submodules/z3/build", 
     "LD_LIBRARY_PATH": "$LD_LIBRARY_PATH:$IVY_DIR/submodules/z3/build",
     "PROOTPATH": "$SOURCE_DIR",
-    "PYTHONPATH": "$PYTHONPATH:/opt/aioquic/src/:$IVY_DIR/submodules/z3/build/python:$PYTHON_IVY_DIR",
+    "PYTHONPATH": "$PYTHONPATH:/opt/aioquic/src/:$PYTHON_IVY_DIR:$IVY_DIR/submodules/z3/build/python:$PYTHON_IVY_DIR",
     "ADDITIONAL_PATH": "/go/bin:$IVY_DIR/submodules/z3/build",
     # Protocol path configuration
     "PANTHER_IVY_BASE_PATH": "$IVY_DIR/protocol-testing",

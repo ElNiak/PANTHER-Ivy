@@ -59,7 +59,32 @@ def do_cmd(cmd):
 def run_cmd(cmd, cwd=None):
     print(cmd if isinstance(cmd, str) else " ".join(cmd))
     print(f"Running in directory: {cwd if cwd else 'current directory'}")
-    if subprocess.call(cmd, shell=isinstance(cmd, str), cwd=cwd) != 0:
+    try:
+        result = subprocess.run(
+            cmd, 
+            shell=isinstance(cmd, str), 
+            cwd=cwd, 
+            capture_output=True, 
+            text=True,
+            timeout=300  # 5 minute timeout
+        )
+        
+        # Always print stdout for visibility
+        if result.stdout:
+            print(f"STDOUT:\n{result.stdout}")
+        
+        # Print stderr and exit on failure
+        if result.returncode != 0:
+            print(f"ERROR: Command failed with return code {result.returncode}")
+            if result.stderr:
+                print(f"STDERR:\n{result.stderr}")
+            sys.exit(result.returncode)
+            
+    except subprocess.TimeoutExpired:
+        print(f"ERROR: Command timed out after 300 seconds")
+        sys.exit(1)
+    except Exception as e:
+        print(f"ERROR: Command execution failed: {e}")
         sys.exit(1)
 
 def ensure_dir(p: Path): p.mkdir(parents=True, exist_ok=True)
@@ -104,10 +129,11 @@ def build_z3():
     if not z3.exists():
         sys.exit("submodules/z3 missing (git submodule update --init)")
 
-    if BUILD_MODE in MODES and BUILD_MODE != "" and False:
+    if BUILD_MODE in MODES and BUILD_MODE != "":
         print(f"Using CMake for Z3 build with BUILD_MODE={BUILD_MODE}")
         optimized_build_for_ivy_test_target(z3)
     else:
+        print(f"Using legacy build for BUILD_MODE='{BUILD_MODE}'")
         legacy_build(z3)
     
 
@@ -115,8 +141,8 @@ def legacy_build(z3):
     # Use legacy mk_make.py method for original/Shadow compatibility
     print("Using legacy mk_make.py method for Z3 build")
     cmd = (
-        #f'python3 scripts/mk_make.py --python --prefix {str(ROOT)} --pypkgdir {str(IVY)}'
-        f'python3 scripts/mk_make.py --staticlib --prefix {str(ROOT)}'
+        f'python3 scripts/mk_make.py --python --prefix {str(ROOT)} --pypkgdir {str(IVY)}'
+        #f'python3 scripts/mk_make.py --prefix {str(ROOT)}'
         if platform.system() != 'Windows'
         else f'python3 scripts/mk_make.py -x --python --pypkgdir {str(IVY)}'
     )
@@ -179,9 +205,9 @@ def optimized_build_for_ivy_test_target(z3):
             shutil.copy2(so, IVY / "lib" / so.name)
 
 def install_z3():
-    if BUILD_MODE in MODES and BUILD_MODE != "":
+    if BUILD_MODE in MODES and BUILD_MODE != "" or False:
         return
-    
+    print("--- Installing Z3 ---")
     make_dir_exist('ivy/lib')
     make_dir_exist('ivy/z3')
 
@@ -211,7 +237,8 @@ def build_picotls():
     os.chdir('submodules/picotls')
     
     # TODO: extract commit from version_config
-    do_cmd('git checkout 047c5fe20bb9ea91c1caded8977134f19681ec76')
+    # TODO: Building Docker image 'panther_ivy_rfc9000_rel-lto:latest':[91mfatal: not a git repository: /opt/panther_ivy/submodules/picotls/../../../../../../../.git/modules/panther/plugins/services/testers/panther_ivy/modules/submodules/picotls
+    # do_cmd('git checkout 047c5fe20bb9ea91c1caded8977134f19681ec76')
 
     if platform.system() == 'Windows':
         do_cmd('"{}" & msbuild /p:OPENSSL64DIR=c:\\OpenSSL-Win64 picotlsvs\\picotls\\picotls.vcxproj'.format(find_vs()))

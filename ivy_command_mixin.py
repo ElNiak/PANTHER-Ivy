@@ -566,9 +566,9 @@ class IvyCommandMixin:
         return [
             f"echo 'Compiling test {self.test_to_compile}...' >> /app/logs/compile/ivy_compile.log",
             f"mkdir -p '{container_base_path}/{tests_build_dir}'",
-            f"cd $PYTHON_IVY_DIR/ivy/include/1.7 && pwd >> /app/logs/compile/ivy_compile.log 2>&1 && ls -la >> /app/logs/compile/ivy_compile.log 2>&1 && PYTHONPATH=$PYTHON_IVY_DIR ivyc show_compiled=false trace=false target=test test_iters={internal_iterations} {self.test_to_compile}.ivy >> /app/logs/compile/ivy_compile.log 2>&1",
+            f"cd $PYTHON_IVY_DIR/ivy/include/1.7 && pwd >> /app/logs/compile/ivy_compile.log 2>&1 && ls -la >> /app/logs/compile/ivy_compile.log 2>&1 && ivyc show_compiled=false trace=false target=test test_iters={internal_iterations} {self.test_to_compile}.ivy >> /app/logs/compile/ivy_compile.log 2>&1",
             "COMPILE_RESULT=$?",
-            "(if [ $COMPILE_RESULT -eq 0 ]; then echo 'Compilation succeeded'; else echo 'Compilation failed with code $COMPILE_RESULT'; fi) > /app/logs/compile/compilation_status.txt",
+            '(if [ "$' + '{COMPILE_RESULT:-0}" -eq 0 ] 2>/dev/null; then echo "Compilation succeeded"; else echo "Compilation failed with code $' + '{COMPILE_RESULT:-unknown}"; fi) > /app/logs/compile/compilation_status.txt',
             "echo 'Copying executable from ivy include to build directory...' >> /app/logs/compile/ivy_compile.log",
             f"cp '/usr/local/lib/python3.10/dist-packages/ivy/include/1.7/{self.test_to_compile}' '{container_base_path}/{tests_build_dir}/' >> /app/logs/compile/ivy_compile.log 2>&1",
             f"ls -la '{container_base_path}/{tests_build_dir}/' >> /app/logs/compile/ivy_compile.log",

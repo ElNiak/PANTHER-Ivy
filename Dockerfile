@@ -1,12 +1,17 @@
-FROM panther_base_service:latest
+ARG BASE_IMAGE=panther_base_service:latest
+FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive
+ARG VERSION=master  # Default version, can be overridden
 # Define build arguments for version-specific configurations
 ARG DEPENDENCIES="[]"  # JSON-formatted list of dependencies
 ARG BUILD_MODE=""  # Build mode for Z3 compilation: '', 'debug-asan', 'rel-lto', or 'release-static-pgo'
 ENV DEPENDENCIES=${DEPENDENCIES}
 ENV VERSION=${VERSION}
 ENV BUILD_MODE=${BUILD_MODE}
+
+
+
 
 RUN apt update; \
     add-apt-repository --yes ppa:deadsnakes/ppa; \
@@ -67,7 +72,6 @@ RUN apt update; \
     cargo \
     libunwind-dev \
     radare2 \
-    strace \
     bridge-utils \
     libreadline-dev \
     tk \
@@ -82,7 +86,7 @@ RUN apt update; \
     libreadline-dev \
     dsniff \
     sudo \
-    ninja-build 
+    ninja-build  
 
 
 # picotls
@@ -151,11 +155,10 @@ WORKDIR /opt/panther_ivy/
 ENV BUILD_MODE=${BUILD_MODE}
 
 # Apply patch to make Z3 git dependency optional for Docker builds
-RUN cd /opt/panther_ivy && \
-    patch -p1 < patches/z3-cmake-git-optional.patch
+RUN patch -p1 < patches/z3-cmake-git-optional.patch
 
-RUN python3.10 build_submodules.py; \
-    python3.10 -m pip install . ;\
+RUN python3.10 -m pip install . ;\
+    python3.10 build_submodules.py; \
     sudo python3.10 setup.py install; \
     cp lib/libz3.so submodules/z3/build/python/z3; \
     cp lib/libz3.so submodules/z3/build/;

@@ -75,6 +75,7 @@ class PantherIvyServiceManager(
                 implementation_name: str,
                 event_manager=None,
                 global_config=None,
+                test_case=None,  # Reference to parent test case for execution environment access
                 **kwargs):
         """
         Initialize PantherIvy service manager with mixin-based architecture.
@@ -89,13 +90,14 @@ class PantherIvyServiceManager(
             implementation_name: Name of the implementation
             event_manager: Event manager instance (optional)
             global_config: Global configuration dictionary (optional)
+            test_case: Reference to parent test case for execution environment access
         """
         self._original_service_config = service_config_to_test
         # Pre-determine role before any mixin initialization to avoid timing issues
         self._role = self._determine_role_from_config(service_config_to_test, protocol)
         super().__init__(
             service_config_to_test, service_type, protocol, implementation_name, event_manager,
-            global_config=global_config, **kwargs
+            global_config=global_config, test_case=test_case, **kwargs
         )
         self.standard_tester_initialization(
             service_config_to_test, service_type, protocol, implementation_name, event_manager,
@@ -363,6 +365,9 @@ class PantherIvyServiceManager(
             Load version-specific environment variables for Ivy with robust parameter extraction.
             Handles cases where implementation parameters might not be available.
             """
+            
+        super()._load_version_environment_variables()
+            
         protocol_name = self.get_protocol_name()
 
         # Determine whether to use system models (APT) or protocol models (manual architecture)
@@ -455,14 +460,6 @@ class PantherIvyServiceManager(
             "BUILD_MODE": build_mode  # Build mode for Ivy compilation
         })
 
-        # Only add protocol-specific PYTHONPATH if protocol name is valid
-        if protocol_name and protocol_name != "unknown":
-            env_vars_to_add["PYTHONPATH"] = f"$PYTHONPATH:$SOURCE_DIR/panther_ivy/protocol-testing/{protocol_name}"
-            self.logger.debug(f"Added protocol-specific PYTHONPATH for {protocol_name}")
-        else:
-            self.logger.warning(f"Skipping protocol-specific PYTHONPATH due to unknown protocol name: {protocol_name}")
-            # Use base PYTHONPATH without protocol-specific directory
-            env_vars_to_add["PYTHONPATH"] = "$PYTHONPATH:$SOURCE_DIR/panther_ivy/protocol-testing"
 
         # Adapt environment variable paths based on use_system_models parameter
         # This transforms paths in version configs to match architecture choice

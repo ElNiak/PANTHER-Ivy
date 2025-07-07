@@ -8709,7 +8709,7 @@ def main_int(is_ivyc):
                     else:
                         libs = []    
                     cpp11 = any((x == 'cppstd' or x.endswith('.cppstd')) and y.rep=='cpp11' for x,y in im.module.attributes.items())
-                    gpp11_spec =  ' -std=c++20 ' # ' -std=c++11 ' if cpp11 else ' -std=c++11 ' 
+                    gpp11_spec =  ' -std=c++11 ' # ' -std=c++11 ' if cpp11 else ' -std=c++20 ' 
                     libspec = ''
                     for x,y in im.module.attributes.items():
                         p,c = iu.parent_child_name(x)
