@@ -67,10 +67,10 @@ class IvyCommandMixin:
             f"echo \"Ivy service {self.service_name} using network-aware placeholder resolution{target_info}\" >> /app/logs/pre-compile/ivy_setup.log"
         )
 
-        # Clean build directory
+        # Clean build directory (safe operation - create directory if missing and clean)
         use_system_models = getattr(self.service_config_to_test.implementation, 'use_system_models', False)
         env_protocol_path = self.get_protocol_model_path(use_system_models)
-        commands.append(f"find '{env_protocol_path}/build/' -maxdepth 1 -type f -delete 2>/dev/null")
+        commands.append(f"mkdir -p '{env_protocol_path}/build/' && find '{env_protocol_path}/build/' -maxdepth 1 -type f -delete 2>/dev/null || true")
 
         return self.phase_command_processed(
             commands, "pre-compile"
