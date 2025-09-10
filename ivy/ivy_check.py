@@ -8,7 +8,7 @@ from . import ivy_utils as utl
 from . import ivy_logic_utils as lut
 from . import ivy_logic as lg
 from . import ivy_utils as iu
-from . import ivy_ui
+#from . import ivy_ui
 from . import ivy_module as im
 from . import ivy_alpha
 from . import ivy_art
@@ -44,23 +44,23 @@ opt_separate = iu.BooleanParameter("separate",None)
 opt_method = iu.Parameter("method","")
 
 def display_cex(msg,ag):
-    if diagnose.get():
-        from . import tk_ui as ui
-        iu.set_parameters({'mode':'induction'})
-        ui.ui_main_loop(ag)
-        exit(1)
+#    if diagnose.get():
+#        from . import tk_ui as ui
+#        iu.set_parameters({'mode':'induction'})
+#        ui.ui_main_loop(ag)
+#        exit(1)
     raise iu.IvyError(None,msg)
     
 def check_properties():
     if itp.false_properties():
         if diagnose.get():
             print("Some properties failed.")
-            from . import tk_ui as ui
-            iu.set_parameters({'mode':'induction'})
-            gui = ui.new_ui()
-            gui.tk.update_idletasks() # so that dialog is on top of main window
-            gui.try_property()
-            gui.mainloop()
+#           from . import tk_ui as ui
+#            iu.set_parameters({'mode':'induction'})
+#            gui = ui.new_ui()
+#            gui.tk.update_idletasks() # so that dialog is on top of main window
+#            gui.try_property()
+#            gui.mainloop()
             exit(1)
         raise iu.IvyError(None,"Some properties failed.")
     im.module.labeled_axioms.extend(im.module.labeled_props)
@@ -76,21 +76,21 @@ def show_counterexample(ag,state,bmc_res):
     gui_art(other_art)
 
 def gui_art(other_art):
-    from . import tk_ui as ui
+#    from . import tk_ui as ui
 #    iu.set_parameters({'mode':'induction'})
 #    iu.set_parameters({'ui':'cti'})
-    gui = ui.new_ui()
-    if ivy_ui.default_ui.get() == "art":
-        print ("initializers: {}".format(im.module.initializers))
-        other_art = ivy_art.AnalysisGraph()
-        other_art.add_initial_state()
-        if 'initialize' in im.module.actions:
-            init_action = im.module.actions['initialize']
-            print ("initialize: {}".format(init_action))
-            ag.execute(init_action, None, None, 'initialize')
-    agui = gui.add(other_art)
-    gui.tk.update_idletasks() # so that dialog is on top of main window
-    gui.tk.mainloop()
+#    gui = ui.new_ui()
+#    if ivy_ui.default_ui.get() == "art":
+#        print ("initializers: {}".format(im.module.initializers))
+#        other_art = ivy_art.AnalysisGraph()
+#        other_art.add_initial_state()
+#        if 'initialize' in im.module.actions:
+#            init_action = im.module.actions['initialize']
+#            print ("initialize: {}".format(init_action))
+#            ag.execute(init_action, None, None, 'initialize')
+#    agui = gui.add(other_art)
+#    gui.tk.update_idletasks() # so that dialog is on top of main window
+#    gui.tk.mainloop()
     exit(1)
 
     
