@@ -1,7 +1,11 @@
-# syntax=docker/dockerfile:1
+# syntax=docker.io/docker/dockerfile:1
+
 ARG TARGETPLATFORM=linux/amd64
 ARG RUNTIME_MODE=minimal
-FROM panther_base_service:latest AS base
+
+ARG BASE_IMAGE=panther_base_service:latest
+
+FROM ${BASE_IMAGE} as base
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -14,22 +18,22 @@ ENV DEPENDENCIES=${DEPENDENCIES}
 ENV VERSION=${VERSION}
 ENV BUILD_MODE=${BUILD_MODE}
 
+ARG TARGETPLATFORM
+ENV TARGETPLATFORM=${TARGETPLATFORM}
+
 RUN bash -c '\
   cat /etc/os-release; \
   echo "---- sources.list ----"; cat /etc/apt/sources.list; \
   ls /etc/apt/sources.list.d || true'
 
-RUN exit 0
-
 # APT package installation with cache mounts for Ubuntu 20.04 + Deadsnakes PPA
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt-${TARGETPLATFORM},sharing=locked \
+    --mount=type=cache,target=/var/lib/apt-${TARGETPLATFORM},sharing=locked \
     apt update && \
     apt install -y software-properties-common && \
     add-apt-repository --yes ppa:deadsnakes/ppa && \
     apt update && \
     apt --fix-missing -y install \
-    python3.10 python3.10-dev python3.10-tk \
     build-essential python3-ply alien iptables iproute2 iputils-ping \
     tzdata curl tar gcc g++ cmake tix pkg-config libssl-dev lsof \
     graphviz graphviz-dev doxygen faketime libscope-guard-perl \
@@ -43,12 +47,45 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     libdevil1c2 libgts-0.7-5 liblasi0 tcl-dev tcl libgmp-dev dsniff sudo jq ninja-build \
     libomp-dev git clang clang-tidy clang-format
 
+
+# 0) System toolchain + CPython feature headers (bz2, sqlite, zlib, ssl, tk, etc.)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential make gcc g++ curl ca-certificates git \
+    zlib1g-dev libbz2-dev liblzma-dev \
+    libsqlite3-dev libssl-dev libffi-dev libreadline-dev \
+    tk-dev tcl-dev libncursesw5-dev libgdbm-dev libnss3-dev libedit-dev \
+    uuid-dev 
+
+# Install pyenv
+RUN curl https://pyenv.run | bash && \
+    echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc && \
+    echo 'export PATH="/root/.pyenv/bin:$PATH"' >> ~/.bashrc && \
+    echo 'eval "$(pyenv init -)"' >> ~/.bashrc && \
+    echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc && \
+    export PATH="$HOME/.pyenv/bin:$PATH" && \
+    eval "$(pyenv init -)" && \
+    eval "$(pyenv virtualenv-init -)" && \
+    # Install Python 3.10 via pyenv
+    pyenv install 3.10.12 && \
+    pyenv global 3.10.12 && \
+    pyenv rehash && \
+    # && \
+    # # Install additional packages after pyenv setup
+    # apt --fix-missing -y install \  
+    # python3.10-dev \
+    # python3.10-tk \
+    # build-essential \
+    # python3-ply
+    ln -sf "$(pyenv which python3.10)" /usr/local/bin/python3.10 && \
+    ln -sf "$(pyenv which python)"     /usr/local/bin/python  && \
+    python3.10 -V && which python3.10 && python -V && which python
+
 # Install pip with Python cache mount
-RUN --mount=type=cache,target=/root/.cache/pip \
+RUN --mount=type=cache,target=/root/.cache-${TARGETPLATFORM}/pip \
     curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
 
 # Python packages with pip cache
-RUN --mount=type=cache,target=/root/.cache/pip \
+RUN --mount=type=cache,target=/root/.cache-${TARGETPLATFORM}/pip \
     python3.10 -m pip install \
     pexpect chardet pandas scandir ply pygraphviz pydot progressbar2
 
@@ -60,8 +97,8 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 
 # Dependency building with git and build cache
-RUN --mount=type=cache,target=/tmp/git-cache \
-    --mount=type=cache,target=/tmp/build-cache \
+RUN --mount=type=cache,target=/tmp/git-cache-${TARGETPLATFORM} \
+    --mount=type=cache,target=/tmp/build-cache-${TARGETPLATFORM} \
     cd /opt && \
     echo "Starting dependency installation..." && \
     echo $DEPENDENCIES | jq -c '.[]' | while read -r dep; do \
@@ -71,29 +108,29 @@ RUN --mount=type=cache,target=/tmp/git-cache \
         if [ -n "$DEP_NAME" ] && [ -n "$DEP_URL" ] && [ -n "$DEP_COMMIT" ]; then \
             echo "Processing dependency '$DEP_NAME' from '$DEP_URL' at commit '$DEP_COMMIT'"; \
             # Use cached git repo if available
-            if [ -d "/tmp/git-cache/$DEP_NAME" ]; then \
+            if [ -d "/tmp/git-cache-${TARGETPLATFORM}/$DEP_NAME" ]; then \
                 echo "Using cached repository for $DEP_NAME"; \
-                cp -r "/tmp/git-cache/$DEP_NAME" "$DEP_NAME"; \
+                cp -r "/tmp/git-cache-${TARGETPLATFORM}/$DEP_NAME" "$DEP_NAME"; \
                 cd "$DEP_NAME" && git fetch && git checkout "$DEP_COMMIT"; \
             else \
                 echo "Cloning fresh repository for $DEP_NAME"; \
                 git clone "$DEP_URL" "$DEP_NAME"; \
                 cd "$DEP_NAME" && git checkout "$DEP_COMMIT"; \
                 # Cache the repository
-                cp -r "/opt/$DEP_NAME" "/tmp/git-cache/$DEP_NAME"; \
+                cp -r "/opt/$DEP_NAME" "/tmp/git-cache-${TARGETPLATFORM}/$DEP_NAME"; \
             fi; \
             git submodule update --init --recursive; \
             # Use build cache for compilation
-            if [ -d "/tmp/build-cache/$DEP_NAME" ]; then \
+            if [ -d "/tmp/build-cache-${TARGETPLATFORM}/$DEP_NAME" ]; then \
                 echo "Restoring build cache for $DEP_NAME"; \
-                cp -r "/tmp/build-cache/$DEP_NAME"/* . 2>/dev/null || true; \
+                cp -r "/tmp/build-cache-${TARGETPLATFORM}/$DEP_NAME"/* . 2>/dev/null || true; \
             fi; \
             OPENSSL_INCLUDE_DIR="/usr/include/openssl" cmake .; \
             make; \
             make check; \
             # Save build artifacts to cache
-            mkdir -p "/tmp/build-cache/$DEP_NAME"; \
-            cp -r . "/tmp/build-cache/$DEP_NAME/" 2>/dev/null || true; \
+            mkdir -p "/tmp/build-cache-${TARGETPLATFORM}/$DEP_NAME"; \
+            cp -r . "/tmp/build-cache-${TARGETPLATFORM} /$DEP_NAME/" 2>/dev/null || true; \
             echo "Successfully built dependency '$DEP_NAME'"; \
             cd /opt; \
         else \
@@ -105,7 +142,8 @@ RUN --mount=type=cache,target=/tmp/git-cache \
 # Copy application files (order optimized for caching)
 COPY setup.py build_submodules.py /opt/panther_ivy/
 COPY submodules /opt/panther_ivy/submodules/
-COPY ivy /opt/panther_ivy/ivy/
+# TODO change arch to avoid rebuilding everything on small changes -> volume mount? Is it possible during build? 
+COPY ivy /opt/panther_ivy/ivy/ 
 COPY lib /opt/panther_ivy/lib/
 COPY patches /opt/panther_ivy/patches/
 
@@ -131,9 +169,11 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     --mount=type=cache,target=/opt/panther_ivy/build \
     # python3.10 -m pip install . && \
     python3.10 build_submodules.py && \
-    export PYTHONPATH="/opt/panther_ivy/ivy/:\${PYTHONPATH}" && \
+    # export PYTHONPATH="/opt/panther_ivy/ivy/:$PYTHONPATH" && \
     #sudo python3.10 setup.py install && \
-    python3.10 setup.py develop --prefix=/opt/panther_ivy/ivy/ 
+    # python3.10 setup.py develop --prefix=/opt/panther_ivy/ivy/ 
+    sudo python3.10 setup.py install 
+    # python3.10 -m pip install -e .
     # cp lib/libz3.so submodules/z3/build/python/z3/ && \
     # cp lib/libz3.so submodules/z3/build/
 

@@ -55,14 +55,15 @@ DEFAULT_ENVIRONMENT_VARIABLES = {
     "RUST_BACKTRACE": "1",
     "SOURCE_DIR": "/opt/",
     "IVY_DIR": "$SOURCE_DIR/panther_ivy",
-    "PYTHON_IVY_DIR": "/usr/local/lib/python3.10/dist-packages/",
-    "IVY_INCLUDE_PATH": "$IVY_INCLUDE_PATH:/usr/local/lib/python3.10/dist-packages/ivy/include/1.7",
+    "PYTHON_IVY_DIR": "/root/.pyenv/versions/3.10.12/lib/python3.10/site-packages/ms_ivy-1.8.25-py3.10-linux-x86_64.egg/",
+    "IVY_INCLUDE_PATH": "/opt/panther_ivy/ivy/include/1.7",
     "Z3_LIBRARY_DIRS": "$IVY_DIR/submodules/z3/build",
     "Z3_LIBRARY_PATH": "$IVY_DIR/submodules/z3/build", 
     "LD_LIBRARY_PATH": "$LD_LIBRARY_PATH:$IVY_DIR/submodules/z3/build",
     "PROOTPATH": "$SOURCE_DIR",
-    "PYTHONPATH": "$PYTHONPATH:/opt/aioquic/src/:$PYTHON_IVY_DIR:$IVY_DIR/submodules/z3/build/python:$PYTHON_IVY_DIR",
-    "ADDITIONAL_PATH": "/go/bin:$IVY_DIR/submodules/z3/build",
+    "PYTHONPATH": "$PYTHONPATH:/opt/aioquic/src/:$IVY_DIR/submodules/z3/build/python",
+    "ADDITIONAL_PATH": "/root/.pyenv/versions/3.10.12/bin:/go/bin:$IVY_DIR/submodules/z3/build:/root/.pyenv/plugins/pyenv-virtualenv/shims:/root/.pyenv/shims:/root/.pyenv/bin:/root/.pyenv/bin:/snap/bin",
+    "ADDITIONAL_PYTHONPATH": "/app/implementations/quic-implementations/aioquic/src/:$IVY_DIR/submodules/z3/build/python:$PYTHON_IVY_DIR",
     # Protocol path configuration
     "PANTHER_IVY_BASE_PATH": "$IVY_DIR/protocol-testing",
     "PANTHER_IVY_APT_SUBPATH": "apt/apt_protocols",
@@ -125,6 +126,7 @@ class PantherIvyConfig(ServicePluginConfig):
         default=True,
         description="Whether compatible with gperf profiling"
     )
+    
     # protocol: str = Field(
     #     default="quic",
     #     description="Protocol tested by the implementation"
@@ -133,6 +135,7 @@ class PantherIvyConfig(ServicePluginConfig):
     #     default_factory=lambda: PantherIvyConfig.load_versions_from_files(),
     #     description="Version configuration"
     # )
+    
     environment: Dict[str, str] = Field(
         default_factory=lambda: DEFAULT_ENVIRONMENT_VARIABLES.copy(),
         description="Environment variables"

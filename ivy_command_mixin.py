@@ -8,7 +8,7 @@ to follow standard PANTHER architecture patterns.
 import os
 import re
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Optional, Any, Union, Protocol
 
 from panther.core.command_processor.utils import CommandUtils
 from panther.core.command_processor.builders import ServiceCommandBuilder
@@ -70,7 +70,7 @@ class IvyCommandMixin:
         # Clean build directory
         use_system_models = getattr(self.service_config_to_test.implementation, 'use_system_models', False)
         env_protocol_path = self.get_protocol_model_path(use_system_models)
-        commands.append(f"find '{env_protocol_path}/build/' -maxdepth 1 -type f -delete 2>/dev/null")
+        commands.append(f"mkdir -p '{env_protocol_path}/build/' && find '{env_protocol_path}/build/' -maxdepth 1 -type f -delete 2>/dev/null || true")
 
         return self.phase_command_processed(
             commands, "pre-compile"
@@ -390,11 +390,20 @@ class IvyCommandMixin:
         """Build Ivy tool update commands."""
         commands = [
             "echo 'Updating Ivy tool...' >> /app/logs/compile/ivy_setup.log",
+            #"cd /opt/panther_ivy && sudo python3.10 setup.py develop >> /app/logs/compile/ivy_setup.log 2>&1",
             "cd /opt/panther_ivy && sudo python3.10 setup.py install >> /app/logs/compile/ivy_setup.log 2>&1",
             "cd /opt/panther_ivy && cp lib/libz3.so /opt/panther_ivy/submodules/z3/build/python/z3 >> /app/logs/compile/ivy_setup.log 2>&1",
-            "echo 'Copying updated Ivy files...' >> /app/logs/compile/ivy_setup.log",
-            "find '/opt/panther_ivy/ivy/include/1.7/' -type f -name '*.ivy' -exec cp {} '/usr/local/lib/python3.10/dist-packages/ivy/include/1.7/' ';' >> /app/logs/compile/ivy_setup.log 2>&1",
-        ]
+            "echo \"Copying updated Ivy files (from $PYTHON_IVY_DIR/ivy/include/1.7/) into /opt/panther_ivy/ivy/include/1.7/.\" >> /app/logs/compile/ivy_setup.log",
+            # Initialize copied files list for cleanup tracking
+            "echo '' > /app/logs/compile/copied_ivy_files.list",
+                        
+           "find '/opt/panther_ivy/ivy/include/1.7/' -type f -name '*.ivy' -exec echo {} ';' >> '/app/logs/compile/copied_ivy_files.list' 2>> /app/logs/compile/ivy_setup.log",
+
+            "find '/opt/panther_ivy/ivy/include/1.7/' -type f -name '*.ivy' -exec cp {} \"$PYTHON_IVY_DIR/ivy/include/1.7/\" ';' >> /app/logs/compile/ivy_setup.log 2>&1",
+
+            # Find and copy files while saving their destinations to the list
+            "echo 'Copied files saved to /app/logs/compile/copied_ivy_files.list for future cleanup' >> /app/logs/compile/ivy_setup.log",
+            ]
 
         # Protocol-specific setup
         if self.get_protocol_name() in ["quic", "apt"]:
@@ -409,11 +418,11 @@ class IvyCommandMixin:
         """Build QUIC-specific setup commands."""
         commands = [
             "echo 'Copying QUIC libraries...' >> /app/logs/compile/ivy_setup.log",
-            "cp -f -a '/opt/picotls/'*.a '/usr/local/lib/python3.10/dist-packages/ivy/lib/' >> /app/logs/compile/ivy_setup.log 2>&1",
+            "cp -f -a '/opt/picotls/'*.a $PYTHON_IVY_DIR/ivy/lib/ >> /app/logs/compile/ivy_setup.log 2>&1",
             "cp -f -a '/opt/picotls/'*.a '/opt/panther_ivy/ivy/lib/'  >> /app/logs/compile/ivy_setup.log 2>&1",
-            "cp -f '/opt/picotls/include/picotls.h' '/usr/local/lib/python3.10/dist-packages/ivy/include/picotls.h' >> /app/logs/compile/ivy_setup.log 2>&1",
+            "cp -f '/opt/picotls/include/picotls.h' $PYTHON_IVY_DIR/ivy/include/picotls.h >> /app/logs/compile/ivy_setup.log 2>&1",
             "cp -f '/opt/picotls/include/picotls.h' '/opt/panther_ivy/ivy/include/picotls.h' >> /app/logs/compile/ivy_setup.log 2>&1",
-            "cp -r -f '/opt/picotls/include/picotls/.' '/usr/local/lib/python3.10/dist-packages/ivy/include/picotls' >> /app/logs/compile/ivy_setup.log 2>&1",
+            "cp -r -f '/opt/picotls/include/picotls/.' $PYTHON_IVY_DIR/ivy/include/picotls >> /app/logs/compile/ivy_setup.log 2>&1",
         ]
 
         if hasattr(self, 'env_protocol_model_path'):
@@ -425,7 +434,7 @@ class IvyCommandMixin:
                 quic_ser_deser_path = f"{self.env_protocol_model_path}/quic_utils/quic_ser_deser.h"
 
             commands.append(
-                f"cp -f '{quic_ser_deser_path}' '/usr/local/lib/python3.10/dist-packages/ivy/include/1.7/' >> /app/logs/compile/ivy_setup.log 2>&1"
+                f"cp -f '{quic_ser_deser_path}' $PYTHON_IVY_DIR/ivy/include/1.7/ >> /app/logs/compile/ivy_setup.log 2>&1"
             )
 
         return commands
@@ -438,8 +447,10 @@ class IvyCommandMixin:
         commands = [
             "echo 'Setting up Ivy model...' >> /app/logs/compile/ivy_setup.log",
             f"echo 'Updating include path from {self.env_protocol_model_path}' >> /app/logs/compile/ivy_setup.log",
-            "find '" + self.env_protocol_model_path + "' -type f -name '*.ivy' -exec cp -f {} '/usr/local/lib/python3.10/dist-packages/ivy/include/1.7/' ';' >> /app/logs/compile/ivy_setup.log 2>&1",
-            "ls -l '/usr/local/lib/python3.10/dist-packages/ivy/include/1.7/' >> /app/logs/compile/ivy_setup.log",
+            "find '" + self.env_protocol_model_path + "' -type f -name '*.ivy' -exec echo {} ';' >> '/app/logs/compile/copied_ivy_files.list' 2>> /app/logs/compile/ivy_setup.log",
+
+            "find '" + self.env_protocol_model_path + "' -type f -name '*.ivy' -exec cp -f {} $PYTHON_IVY_DIR/ivy/include/1.7/ ';' >> /app/logs/compile/ivy_setup.log 2>&1",
+            "ls -l $PYTHON_IVY_DIR/ivy/include/1.7/ >> /app/logs/compile/ivy_setup.log",
         ]
 
         return commands
@@ -564,14 +575,14 @@ class IvyCommandMixin:
         tests_build_dir = self._get_build_dir()
 
         return [
-            f"echo 'Compiling test {self.test_to_compile}...' >> /app/logs/compile/ivy_compile.log",
+            f"echo 'Compiling test {self.test_to_compile} into {container_file_path}/{tests_build_dir}' >> /app/logs/compile/ivy_compile.log",
             f"mkdir -p '{container_base_path}/{tests_build_dir}'",
-            f"cd $PYTHON_IVY_DIR/ivy/include/1.7 && pwd >> /app/logs/compile/ivy_compile.log 2>&1 && ls -la >> /app/logs/compile/ivy_compile.log 2>&1 && ivyc show_compiled=false trace=false target=test test_iters={internal_iterations} {self.test_to_compile}.ivy >> /app/logs/compile/ivy_compile.log 2>&1",
+            f"cd $PYTHON_IVY_DIR/ivy/include/1.7 && pwd >> /app/logs/compile/ivy_compile.log 2>&1 && ls -la >> /app/logs/compile/ivy_compile.log 2>&1 && echo $PATH && ivyc show_compiled=false trace=false target=test test_iters={internal_iterations} {self.test_to_compile}.ivy >> /app/logs/compile/ivy_compile.log 2>&1",
             "COMPILE_RESULT=$?",
             '(if [ "$' + '{COMPILE_RESULT:-0}" -eq 0 ] 2>/dev/null; then echo "Compilation succeeded"; else echo "Compilation failed with code $' + '{COMPILE_RESULT:-unknown}"; fi) > /app/logs/compile/compilation_status.txt',
             "echo 'Copying executable from ivy include to build directory...' >> /app/logs/compile/ivy_compile.log",
-            f"cp '/usr/local/lib/python3.10/dist-packages/ivy/include/1.7/{self.test_to_compile}' '{container_base_path}/{tests_build_dir}/' >> /app/logs/compile/ivy_compile.log 2>&1",
-            f"ls -la '{container_base_path}/{tests_build_dir}/' >> /app/logs/compile/ivy_compile.log",
+            f"cp $PYTHON_IVY_DIR/ivy/include/1.7/{self.test_to_compile} {container_base_path}/{tests_build_dir}/ >> /app/logs/compile/ivy_compile.log 2>&1",
+            f"ls -la {container_base_path}/{tests_build_dir}/ >> /app/logs/compile/ivy_compile.log",
         ]
 
     def _extract_test_directory_from_name(self, test_name: str, role_name: str) -> str:
@@ -620,7 +631,7 @@ class IvyCommandMixin:
 
     
     def _generate_comprehensive_compilation_commands(self) -> List[str]:
-        """Generate comprehensive compilation commands (restored from original)."""
+        """Generate comprehensive compilation commands."""
         self.logger.debug(f"Generating compilation commands for service: {getattr(self, 'service_name', 'unknown')}")
         
         # Set up environments
@@ -668,9 +679,10 @@ class IvyCommandMixin:
                 if cmd and isinstance(cmd, str):
                     # Determine if this is a non-critical command like ls or echo
                     is_non_critical_command = cmd.strip().startswith(('ls', 'echo'))
-                    
-                    # A command is critical if we're in compile/pre-compile phase AND it's not a simple echo/ls command
-                    is_critical = ("compile" in phase or "pre-compile" in phase) and not is_non_critical_command
+
+                    # TODO: or "pre-compile" in phase ?
+                    # A command is critical if we're in compile phase AND it's not a simple echo/ls command
+                    is_critical = ("compile" in phase) and not is_non_critical_command
                     
                     self.command_builder.add_command(
                         cmd.strip(),
@@ -681,7 +693,7 @@ class IvyCommandMixin:
                     is_non_critical_command = cmd.command.strip().startswith(('ls', 'echo'))
 
                     # A command is critical if we're in compile/pre-compile phase AND it's not a simple echo/ls command
-                    is_critical = ("compile" in phase or "pre-compile" in phase) and not is_non_critical_command
+                    is_critical = ("compile" in phase) and not is_non_critical_command
                     
                     cmd.metadata['is_critical'] = is_critical
                     

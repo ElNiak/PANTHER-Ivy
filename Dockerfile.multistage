@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker.io/docker/dockerfile:1
 
 # Multi-stage build for panther_ivy service isolation and optimization  
 # Uses 3-stage base service architecture: minimal/debug/profile runtime modes
@@ -226,7 +226,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 # Copy built Python environment and artifacts from build stage
 COPY --from=builder /opt/panther_ivy/ /opt/panther_ivy/
-COPY --from=builder /usr/local/lib/python3.10/ /usr/local/lib/python3.10/
+COPY --from=builder /root/.pyenv/versions/3.10.12/lib/python3.10/ /root/.pyenv/versions/3.10.12/lib/python3.10/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
 # Set up runtime environment

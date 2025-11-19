@@ -8,7 +8,7 @@ PANTHER's standard architecture patterns with proper separation of concerns.
 import os
 import subprocess
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple, TYPE_CHECKING, Union
+from typing import List, Dict, Any, Optional, Tuple, TYPE_CHECKING, Union, Protocol
 from panther.core.exceptions.error_handler_mixin import ErrorHandlerMixin
 from panther.core.docker_builder.plugin_mixin.service_manager_docker_mixin import ServiceManagerDockerMixin
 from panther.plugins.services.testers.panther_ivy.config_schema import AvailableTests
@@ -22,7 +22,6 @@ from panther.plugins.services.testers.panther_ivy.ivy_analysis_mixin import IvyA
 from panther.plugins.services.testers.panther_ivy.ivy_output_pattern_mixin import IvyOutputPatternMixin
 from panther.plugins.services.testers.panther_ivy.ivy_protocol_aware_mixin import IvyProtocolAwareMixin
 from panther.plugins.services.testers.panther_ivy.ivy_network_resolution_mixin import IvyNetworkResolutionMixin
-from panther.plugins.services.testers.panther_ivy.ivy_build_mode_mixin import IvyBuildModeMixin
 from panther.plugins.services.testers.panther_ivy.ivy_path_template_resolver import get_global_resolver
 from panther.config.core.models.service import ServiceConfig
 from panther.core.command_processor.models.shell_command import ShellCommand
@@ -55,7 +54,6 @@ class PantherIvyServiceManager(
     IvyOutputPatternMixin,
     IvyProtocolAwareMixin,
     IvyNetworkResolutionMixin,
-    IvyBuildModeMixin,  # Add build mode management
     ErrorHandlerMixin
 ):
     """
@@ -689,7 +687,7 @@ class PantherIvyServiceManager(
             commands = super().generate_pre_run_commands()
         
         # IvyCommandGenerator doesn't have this method, so add Ivy-specific commands
-        commands.append("source /app/logs/ivy_env.sh || true")
+        commands.append("source /app/logs/ivy_env.sh || true") # Set up Ivy environment
         
         return commands
 
