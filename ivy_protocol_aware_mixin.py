@@ -170,7 +170,7 @@ class IvyProtocolAwareMixin:
                 'IS_APT_PATH': apt_path,  # Keep for backward compatibility
                 'PROJECT_ROOT': project_root,
                 'PROTOCOL': protocol_name,
-                'IVY_INCLUDE_PATH': '/usr/local/lib/python3.10/dist-packages/ivy/include/1.7',
+                'IVY_INCLUDE_PATH': '/opt/panther_ivy/ivy/include/1.7',
                 'PANTHER_IVY_ARCHITECTURE': 'apt' if use_system_models else 'standard',
             }
             

@@ -1,4 +1,11 @@
-# syntax=docker/dockerfile:1
+# syntax=docker.io/docker/dockerfile:1
+
+ARG TARGETPLATFORM=linux/amd64
+ARG RUNTIME_MODE=minimal
+
+ARG BASE_IMAGE=panther_base_service:latest
+
+FROM ${BASE_IMAGE} as base
 
 # =============================================================================
 # PANTHER IVY Tester - Modern Multi-Platform BuildKit Dockerfile
@@ -31,162 +38,74 @@ ENV DEPENDENCIES=${DEPENDENCIES}
 ENV VERSION=${VERSION}
 ENV BUILD_MODE=${BUILD_MODE}
 
-# Install cross-compilation tools for ARM64 support
-RUN --mount=type=cache,target=/var/cache/apt,id=ivy-crossbuild-$BUILDPLATFORM,sharing=locked \
-    --mount=type=tmpfs,target=/tmp \
-    case "$TARGETARCH" in \
-        arm64) \
-            apt-get update && \
-            apt-get install --no-install-recommends -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu && \
-            rm -rf /var/lib/apt/lists/* ;; \
-        arm) \
-            apt-get update && \
-            apt-get install --no-install-recommends -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf && \
-            rm -rf /var/lib/apt/lists/* ;; \
-        amd64) \
-            echo "Native compilation for amd64" ;; \
-        *) \
-            echo "Unsupported target architecture: $TARGETARCH" && exit 1 ;; \
-    esac
+ARG TARGETPLATFORM
+ENV TARGETPLATFORM=${TARGETPLATFORM}
 
-# Core system packages with platform-aware caching
-RUN --mount=type=cache,target=/var/cache/apt,id=ivy-apt-$TARGETPLATFORM,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,id=ivy-aptlib-$TARGETPLATFORM,sharing=locked \
-    --mount=type=tmpfs,target=/tmp \
-    apt-get update && \
-    apt-get install --fix-missing --no-install-recommends -y software-properties-common && \
+RUN bash -c '\
+  cat /etc/os-release; \
+  echo "---- sources.list ----"; cat /etc/apt/sources.list; \
+  ls /etc/apt/sources.list.d || true'
+
+# APT package installation with cache mounts for Ubuntu 20.04 + Deadsnakes PPA
+RUN --mount=type=cache,target=/var/cache/apt-${TARGETPLATFORM},sharing=locked \
+    --mount=type=cache,target=/var/lib/apt-${TARGETPLATFORM},sharing=locked \
+    apt update && \
+    apt install -y software-properties-common && \
     add-apt-repository --yes ppa:deadsnakes/ppa && \
-    apt-get update && \
-    rm -rf /var/lib/apt/lists/*
+    apt update && \
+    apt --fix-missing -y install \
+    build-essential python3-ply alien iptables iproute2 iputils-ping \
+    tzdata curl tar gcc g++ cmake tix pkg-config libssl-dev lsof \
+    graphviz graphviz-dev doxygen faketime libscope-guard-perl \
+    libtest-tcp-perl libbrotli-dev libev-dev libhttp-parser-dev \
+    libbsd-dev snapd rand binutils binutils-dev autoconf automake \
+    autotools-dev libtool libjemalloc-dev libboost-all-dev libboost-dev \
+    ca-certificates mime-support libevent-dev libdouble-conversion-dev \
+    libgflags-dev libgoogle-glog-dev libiberty-dev liblz4-dev liblzma-dev \
+    libsnappy-dev zlib1g-dev libsodium-dev libffi-dev cargo libunwind-dev \
+    radare2 strace bridge-utils libreadline-dev tk libgv-tcl libgraphviz-dev \
+    libdevil1c2 libgts-0.7-5 liblasi0 tcl-dev tcl libgmp-dev dsniff sudo jq ninja-build \
+    libomp-dev git clang clang-tidy clang-format
 
-# Python and development tools
-RUN --mount=type=cache,target=/var/cache/apt,id=ivy-python-$TARGETPLATFORM,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,id=ivy-pythonlib-$TARGETPLATFORM,sharing=locked \
-    --mount=type=tmpfs,target=/tmp \
-    apt-get update && \
-    apt-get install --fix-missing --no-install-recommends -y \
-    python3.10 \
-    python3.10-dev \
-    python3.10-tk \
-    build-essential \
-    python3-ply \
-    g++ \
-    cmake \
-    pkg-config \
-    libssl-dev \
-    autoconf \
-    automake \
-    autotools-dev \
-    libtool \
-    ninja-build && \
-    rm -rf /var/lib/apt/lists/*
 
-# Network and system utilities
-RUN --mount=type=cache,target=/var/cache/apt,id=ivy-utils-$TARGETPLATFORM,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,id=ivy-utilslib-$TARGETPLATFORM,sharing=locked \
-    --mount=type=tmpfs,target=/tmp \
-    apt-get update && \
-    apt-get install --fix-missing --no-install-recommends -y \
-    iptables \
-    iproute2 \
-    iputils-ping \
-    tzdata \
-    curl \
-    tar \
-    lsof \
-    faketime \
-    bridge-utils \
-    dsniff \
-    sudo && \
-    rm -rf /var/lib/apt/lists/*
+# 0) System toolchain + CPython feature headers (bz2, sqlite, zlib, ssl, tk, etc.)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential make gcc g++ curl ca-certificates git \
+    zlib1g-dev libbz2-dev liblzma-dev \
+    libsqlite3-dev libssl-dev libffi-dev libreadline-dev \
+    tk-dev tcl-dev libncursesw5-dev libgdbm-dev libnss3-dev libedit-dev \
+    uuid-dev 
 
-# Development libraries (architecture-specific filtering)
-RUN --mount=type=cache,target=/var/cache/apt,id=ivy-libs-$TARGETPLATFORM,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,id=ivy-libslib-$TARGETPLATFORM,sharing=locked \
-    --mount=type=tmpfs,target=/tmp \
-    apt-get update && \
-    case "$TARGETARCH" in \
-        arm64|amd64) \
-            apt-get install --fix-missing --no-install-recommends -y \
-            graphviz \
-            graphviz-dev \
-            doxygen \
-            libscope-guard-perl \
-            libtest-tcp-perl \
-            libbrotli-dev \
-            libev-dev \
-            libhttp-parser-dev \
-            libbsd-dev \
-            binutils \
-            binutils-dev \
-            libjemalloc-dev \
-            libboost-all-dev \
-            libboost-dev \
-            ca-certificates \
-            mime-support \
-            libevent-dev \
-            libdouble-conversion-dev \
-            libgflags-dev \
-            libgoogle-glog-dev \
-            libiberty-dev \
-            liblz4-dev \
-            liblzma-dev \
-            libsnappy-dev \
-            zlib1g-dev \
-            libsodium-dev \
-            libffi-dev \
-            libunwind-dev \
-            libreadline-dev \
-            tk \
-            libgv-tcl \
-            libgraphviz-dev \
-            tcl-dev \
-            tcl \
-            libgmp-dev ;; \
-        arm) \
-            echo "Installing ARM-compatible subset of libraries"; \
-            apt-get install --fix-missing --no-install-recommends -y \
-            libssl-dev \
-            libffi-dev \
-            libreadline-dev \
-            libgmp-dev \
-            ca-certificates ;; \
-        *) \
-            echo "Minimal library set for unsupported architecture" ;; \
-    esac && \
-    rm -rf /var/lib/apt/lists/*
+# Install pyenv
+RUN curl https://pyenv.run | bash && \
+    echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc && \
+    echo 'export PATH="/root/.pyenv/bin:$PATH"' >> ~/.bashrc && \
+    echo 'eval "$(pyenv init -)"' >> ~/.bashrc && \
+    echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc && \
+    export PATH="$HOME/.pyenv/bin:$PATH" && \
+    eval "$(pyenv init -)" && \
+    eval "$(pyenv virtualenv-init -)" && \
+    # Install Python 3.10 via pyenv
+    pyenv install 3.10.12 && \
+    pyenv global 3.10.12 && \
+    pyenv rehash && \
+    # && \
+    # # Install additional packages after pyenv setup
+    # apt --fix-missing -y install \  
+    # python3.10-dev \
+    # python3.10-tk \
+    # build-essential \
+    # python3-ply
+    ln -sf "$(pyenv which python3.10)" /usr/local/bin/python3.10 && \
+    ln -sf "$(pyenv which python)"     /usr/local/bin/python  && \
+    python3.10 -V && which python3.10 && python -V && which python
 
-# Architecture-specific package handling (skip problematic packages on ARM)
-RUN --mount=type=cache,target=/var/cache/apt,id=ivy-optional-$TARGETPLATFORM,sharing=locked \
-    --mount=type=tmpfs,target=/tmp \
-    case "$TARGETARCH" in \
-        amd64) \
-            apt-get update && \
-            apt-get install --fix-missing --no-install-recommends -y \
-            alien \
-            tix \
-            rand \
-            cargo \
-            radare2 \
-            libdevil1c2 \
-            libgts-0.7-5 \
-            liblasi0 2>/dev/null || echo "Some optional packages unavailable, continuing..." && \
-            rm -rf /var/lib/apt/lists/* ;; \
-        arm64) \
-            apt-get update && \
-            apt-get install --fix-missing --no-install-recommends -y \
-            cargo 2>/dev/null || echo "Some ARM64 packages unavailable, continuing..." && \
-            rm -rf /var/lib/apt/lists/* ;; \
-        *) \
-            echo "Skipping optional packages for $TARGETARCH" ;; \
-    esac
-
-# Install pip with platform-specific Python cache mount
-RUN --mount=type=cache,target=/root/.cache/pip-$TARGETPLATFORM,sharing=locked \
+# Install pip with Python cache mount
+RUN --mount=type=cache,target=/root/.cache-${TARGETPLATFORM}/pip \
     curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
 
-# Python packages with platform-specific pip cache
-RUN --mount=type=cache,target=/root/.cache/pip-$TARGETPLATFORM,sharing=locked \
+# Python packages with pip cache
+RUN --mount=type=cache,target=/root/.cache-${TARGETPLATFORM}/pip \
     python3.10 -m pip install \
     pexpect chardet pandas scandir ply pygraphviz pydot progressbar2
 
@@ -197,78 +116,53 @@ RUN --mount=type=cache,target=/root/.cache/pip-$TARGETPLATFORM,sharing=locked \
 #     CMAKE_RANLIB=/usr/bin/gcc-ranlib
 
 
-# Dependency building with platform-specific git and build cache
-RUN --mount=type=cache,target=/tmp/git-cache-$TARGETPLATFORM,sharing=locked \
-    --mount=type=cache,target=/tmp/build-cache-$TARGETPLATFORM,sharing=locked \
-    echo "Starting dependency installation for platform $TARGETPLATFORM..." && \
-    echo "Dependencies argument: $DEPENDENCIES" && \
-    # Platform-specific CMake configuration
-    case "$TARGETARCH" in \
-        amd64) \
-            CMAKE_ARGS="-DCMAKE_SYSTEM_PROCESSOR=x86_64 -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++" \
-            ;; \
-        arm64) \
-            CMAKE_ARGS="-DCMAKE_SYSTEM_PROCESSOR=aarch64 -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++" \
-            ;; \
-        arm) \
-            CMAKE_ARGS="-DCMAKE_SYSTEM_PROCESSOR=arm -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc -DCMAKE_CXX_COMPILER=arm-linux-gnueabihf-g++" \
-            ;; \
-        *) \
-            CMAKE_ARGS="-DCMAKE_SYSTEM_PROCESSOR=x86_64" \
-            ;; \
-    esac && \
-    echo "CMake configuration for $TARGETARCH: $CMAKE_ARGS" && \
+# Dependency building with git and build cache
+RUN --mount=type=cache,target=/tmp/git-cache-${TARGETPLATFORM} \
+    --mount=type=cache,target=/tmp/build-cache-${TARGETPLATFORM} \
     cd /opt && \
     echo $DEPENDENCIES | jq -c '.[]' | while read -r dep; do \
-    DEP_NAME=$(echo $dep | jq -r '.name'); \
-    DEP_URL=$(echo $dep | jq -r '.url'); \
-    DEP_COMMIT=$(echo $dep | jq -r '.commit'); \
-    if [ -n "$DEP_NAME" ] && [ -n "$DEP_URL" ] && [ -n "$DEP_COMMIT" ]; then \
-    echo "Processing dependency '$DEP_NAME' from '$DEP_URL' at commit '$DEP_COMMIT'"; \
-    # Use cached git repo if available
-    if [ -d "/tmp/git-cache-$TARGETPLATFORM/$DEP_NAME" ]; then \
-    echo "Using cached repository for $DEP_NAME"; \
-    cp -r "/tmp/git-cache-$TARGETPLATFORM/$DEP_NAME" "$DEP_NAME"; \
-    cd "$DEP_NAME" && git fetch && git checkout "$DEP_COMMIT"; \
-    else \
-    echo "Cloning fresh repository for $DEP_NAME"; \
-    git clone "$DEP_URL" "$DEP_NAME"; \
-    cd "$DEP_NAME" && git checkout "$DEP_COMMIT"; \
-    # Cache the repository
-    cp -r "/opt/$DEP_NAME" "/tmp/git-cache-$TARGETPLATFORM/$DEP_NAME"; \
-    fi; \
-    git submodule update --init --recursive; \
-    # Use build cache for compilation
-    if [ -d "/tmp/build-cache-$TARGETPLATFORM/$DEP_NAME" ]; then \
-    echo "Restoring build cache for $DEP_NAME"; \
-    cp -r "/tmp/build-cache-$TARGETPLATFORM/$DEP_NAME"/* . 2>/dev/null || true; \
-    fi; \
-    OPENSSL_INCLUDE_DIR="/usr/include/openssl" cmake $CMAKE_ARGS .; \
-    make; \
-    make check; \
-    # Save build artifacts to cache
-    mkdir -p "/tmp/build-cache-$TARGETPLATFORM/$DEP_NAME"; \
-    cp -r . "/tmp/build-cache-$TARGETPLATFORM/$DEP_NAME/" 2>/dev/null || true; \
-    echo "Successfully built dependency '$DEP_NAME'"; \
-    cd /opt; \
-    else \
-    echo "Invalid dependency configuration: $dep"; \
-    exit 1; \
-    fi; \
-    done || echo "No dependencies to process for $TARGETPLATFORM - proceeding with empty dependency list"
-
-# Install jq with platform-aware cache mount
-RUN --mount=type=cache,target=/var/cache/apt,id=jq-$TARGETPLATFORM,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,id=jqlib-$TARGETPLATFORM,sharing=locked \
-    --mount=type=tmpfs,target=/tmp \
-    apt-get update && \
-    apt-get install --fix-missing --no-install-recommends -y jq && \
-    rm -rf /var/lib/apt/lists/*
+        DEP_NAME=$(echo $dep | jq -r '.name'); \
+        DEP_URL=$(echo $dep | jq -r '.url'); \
+        DEP_COMMIT=$(echo $dep | jq -r '.commit'); \
+        if [ -n "$DEP_NAME" ] && [ -n "$DEP_URL" ] && [ -n "$DEP_COMMIT" ]; then \
+            echo "Processing dependency '$DEP_NAME' from '$DEP_URL' at commit '$DEP_COMMIT'"; \
+            # Use cached git repo if available
+            if [ -d "/tmp/git-cache-${TARGETPLATFORM}/$DEP_NAME" ]; then \
+                echo "Using cached repository for $DEP_NAME"; \
+                cp -r "/tmp/git-cache-${TARGETPLATFORM}/$DEP_NAME" "$DEP_NAME"; \
+                cd "$DEP_NAME" && git fetch && git checkout "$DEP_COMMIT"; \
+            else \
+                echo "Cloning fresh repository for $DEP_NAME"; \
+                git clone "$DEP_URL" "$DEP_NAME"; \
+                cd "$DEP_NAME" && git checkout "$DEP_COMMIT"; \
+                # Cache the repository
+                cp -r "/opt/$DEP_NAME" "/tmp/git-cache-${TARGETPLATFORM}/$DEP_NAME"; \
+            fi; \
+            git submodule update --init --recursive; \
+            # Use build cache for compilation
+            if [ -d "/tmp/build-cache-${TARGETPLATFORM}/$DEP_NAME" ]; then \
+                echo "Restoring build cache for $DEP_NAME"; \
+                cp -r "/tmp/build-cache-${TARGETPLATFORM}/$DEP_NAME"/* . 2>/dev/null || true; \
+            fi; \
+            OPENSSL_INCLUDE_DIR="/usr/include/openssl" cmake .; \
+            make; \
+            make check; \
+            # Save build artifacts to cache
+            mkdir -p "/tmp/build-cache-${TARGETPLATFORM}/$DEP_NAME"; \
+            cp -r . "/tmp/build-cache-${TARGETPLATFORM} /$DEP_NAME/" 2>/dev/null || true; \
+            echo "Successfully built dependency '$DEP_NAME'"; \
+            cd /opt; \
+        else \
+            echo "Invalid dependency configuration: $dep"; \
+            exit 1; \
+        fi; \
+    done
 
 # Copy application files (order optimized for caching)
 COPY setup.py build_submodules.py /opt/panther_ivy/
 COPY submodules /opt/panther_ivy/submodules/
-COPY ivy /opt/panther_ivy/ivy/
+# TODO change arch to avoid rebuilding everything on small changes -> volume mount? Is it possible during build? 
+COPY ivy /opt/panther_ivy/ivy/ 
 COPY lib /opt/panther_ivy/lib/
 COPY patches /opt/panther_ivy/patches/
 
@@ -293,10 +187,13 @@ RUN --mount=type=cache,target=/root/.cache/pip-$TARGETPLATFORM,sharing=locked \
     --mount=type=cache,target=/opt/panther_ivy/build-$TARGETPLATFORM,sharing=locked \
     # python3.10 -m pip install . && \
     python3.10 build_submodules.py && \
-    export PYTHONPATH="/opt/panther_ivy/ivy/:\${PYTHONPATH}" && \
-    python3.10 setup.py develop --prefix=/opt/panther_ivy/ivy/ 
-# cp lib/libz3.so submodules/z3/build/python/z3/ && \
-# cp lib/libz3.so submodules/z3/build/
+    # export PYTHONPATH="/opt/panther_ivy/ivy/:$PYTHONPATH" && \
+    #sudo python3.10 setup.py install && \
+    # python3.10 setup.py develop --prefix=/opt/panther_ivy/ivy/ 
+    sudo python3.10 setup.py install 
+    # python3.10 -m pip install -e .
+    # cp lib/libz3.so submodules/z3/build/python/z3/ && \
+    # cp lib/libz3.so submodules/z3/build/
 
 # Add protocol testing files (last to optimize layer caching)
 COPY protocol-testing /opt/panther_ivy/protocol-testing/

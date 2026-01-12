@@ -28,6 +28,8 @@ The plugin requires:
 - **Protocol Model**: Formal specification of the protocol in Ivy language
 - **Build Tools**: C++ compiler and related development tools
 
+See the [Installation Website](https://kenmcmil.github.io/ivy/install.html) for detailed setup instructions.
+
 Docker-based deployment installs all necessary dependencies automatically.
 
 

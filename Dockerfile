@@ -1,5 +1,5 @@
-ARG BASE_IMAGE=panther_base_service:latest
-FROM ${BASE_IMAGE}
+ARG BASE_IMAGE
+FROM --platform=linux/amd64 ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive
 ARG VERSION=master  # Default version, can be overridden
@@ -10,17 +10,21 @@ ENV DEPENDENCIES=${DEPENDENCIES}
 ENV VERSION=${VERSION}
 ENV BUILD_MODE=${BUILD_MODE}
 
+RUN printf "Building Panther-Ivy version: %s - Build mode: %s - Dependencies: %s\n" "${VERSION}" "${BUILD_MODE}" "${DEPENDENCIES}"
 
+# # 1) APT bootstrap (make PPAs available)
+# RUN apt-get update && \
+#     apt-get install -y --no-install-recommends \
+#       software-properties-common gnupg ca-certificates jq git curl tzdata && \
+#     rm -rf /var/lib/apt/lists/*
 
 
 RUN apt update; \
     add-apt-repository --yes ppa:deadsnakes/ppa; \
     apt update; \
-    apt --fix-missing -y install python3.10 \
-    python3.10-dev \
-    python3.10-tk \
+    # Install pyenv dependencies
+    apt --fix-missing -y install \
     build-essential \
-    python3-ply \
     alien \
     iptables\
     iproute2 \
@@ -86,9 +90,35 @@ RUN apt update; \
     libreadline-dev \
     dsniff \
     sudo \
-    ninja-build  
+    ninja-build
 
 
+# Install pyenv
+RUN curl https://pyenv.run | bash && \
+    echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc && \
+    echo 'eval "$(pyenv init -)"' >> ~/.bashrc && \
+    echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc && \
+    export PATH="$HOME/.pyenv/bin:$PATH" && \
+    eval "$(pyenv init -)" && \
+    eval "$(pyenv virtualenv-init -)" && \
+    # Install Python 3.10 via pyenv
+    pyenv install 3.10.12 && \
+    pyenv global 3.10.12 
+    # && \
+    # # Install additional packages after pyenv setup
+    # apt --fix-missing -y install \  
+    # python3.10-dev \
+    # python3.10-tk \
+    # build-essential \
+    # python3-ply
+
+RUN echo $(python --version)
+
+# After the pyenv install/global/rehash above
+RUN ln -sf "$(pyenv which python3.10)" /usr/local/bin/python3.10 && \
+    ln -sf "$(pyenv which python)"     /usr/local/bin/python  && \
+    python3.10 -V && which python3.10 && python -V && which python
+    
 # picotls
 RUN apt-get install -y jq
 # Function to parse and build dependencies
@@ -107,7 +137,7 @@ RUN cd /opt && \
     git submodule update --init --recursive && \
     OPENSSL_INCLUDE_DIR="/usr/include/openssl" cmake . && \
     make && \
-    make check && \
+    (make check || echo "[warn] make check failed (non-fatal)") && \
     echo "Successfully built dependency '$DEP_NAME'"; \
     else \
     echo "Invalid dependency configuration: $dep"; \

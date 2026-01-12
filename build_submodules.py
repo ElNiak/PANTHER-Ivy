@@ -66,7 +66,7 @@ def run_cmd(cmd, cwd=None):
             cwd=cwd, 
             capture_output=True, 
             text=True,
-            timeout=300  # 5 minute timeout
+            timeout=1800  # 30 minute timeout (TODO: make configurable)
         )
         
         # Always print stdout for visibility
@@ -81,7 +81,7 @@ def run_cmd(cmd, cwd=None):
             sys.exit(result.returncode)
             
     except subprocess.TimeoutExpired:
-        print(f"ERROR: Command timed out after 300 seconds")
+        print(f"ERROR: Command timed out after 30 minutes")
         sys.exit(1)
     except Exception as e:
         print(f"ERROR: Command execution failed: {e}")

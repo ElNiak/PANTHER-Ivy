@@ -6861,19 +6861,28 @@ int ask_ret(long long bound) {
     
     // Construct proper Ivy file path using environment variables
     std::string constructIvyPath(const std::string& filename) {
+        std::string modelPath = getEnvVar("PYTHON_IVY_DIR", "");
         std::string protocolPath = getEnvVar("PROTOCOL_PATH", "/opt/panther_ivy/protocol-testing");
         std::string testType = getEnvVar("TEST_TYPE", "client");
         std::string protocol = getEnvVar("PROTOCOL_TESTED", "quic");
+
+        if (modelPath.empty()) {
+            modelPath = getEnvVar("IVY_MODEL_PATH", "");
+        }
+    
         
         // Try different path combinations to find the file
         std::vector<std::string> pathCandidates = {
-            protocolPath + "/" + filename + ".ivy",
-            protocolPath + "/" + protocol + "_tests/" + testType + "_tests/" + filename + ".ivy",
-            protocolPath + "/" + filename,
+            modelPath + "/ivy/include/1.7/" + filename + ".ivy",
+            modelPath + "/" + protocol + "_tests/" + testType + "_tests/" + filename + ".ivy",
+            modelPath + "/" + filename,
             "/opt/panther_ivy/protocol-testing/" + protocol + "/" + filename + ".ivy"
         };
         
+        std::cerr << "DEBUG: Constructing Ivy file path for: " << filename << "\\n";
+        
         for (const auto& candidate : pathCandidates) {
+            std::cerr << "DEBUG: Checking file path: " << candidate << "\\n";
             if (fileExists(candidate)) {
                 return candidate;
             }
@@ -6936,7 +6945,6 @@ int ask_ret(long long bound) {
             }
             
             std::string command = "";
-            if(path.find("test") != std::string::npos) 
 		    path = constructIvyPath(path);
         
             // Use safe file reading instead of system() calls
@@ -7034,8 +7042,7 @@ int ask_ret(long long bound) {
             }
             
             std::string command = "";
-            if(path.find("test") != std::string::npos) 
-		    path = constructIvyPath(path);
+            path = constructIvyPath(path);
         
             // Use safe file reading instead of system() calls
             int lineNum = extractLineNumber(std::string(msg));
