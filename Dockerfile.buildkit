@@ -7,13 +7,33 @@ ARG BASE_IMAGE=panther_base_service:latest
 
 FROM ${BASE_IMAGE} as base
 
-ENV DEBIAN_FRONTEND=noninteractive
+# =============================================================================
+# PANTHER IVY Tester - Modern Multi-Platform BuildKit Dockerfile
+# Cross-platform formal verification with automatic platform detection
+# =============================================================================
 
-# Define build arguments for version-specific configurations
-ARG VERSION=master  # Add missing VERSION argument
+# BuildKit automatic platform arguments
+ARG BUILDPLATFORM
+ARG TARGETPLATFORM
+ARG TARGETOS=linux
+ARG TARGETARCH
+ARG BUILDVARIANT
+
+# Base image configuration
+ARG BASE_IMAGE=panther_base_service:latest
+
+# Build configuration
+ARG VERSION=master  # Default version, can be overridden
 ARG DEPENDENCIES="[]"  # JSON-formatted list of dependencies
-ARG BUILD_MODE=""  # Build mode for Z3 compilation
-ARG USER_N=root  # Define USER_N with default value
+ARG BUILD_MODE=""  # Build mode for Z3 compilation: '', 'debug-asan', 'rel-lto', or 'release-static-pgo'
+
+# =============================================================================
+# STAGE 1: BUILD - Cross-platform build environment for IVY
+# =============================================================================
+
+FROM --platform=$BUILDPLATFORM ${BASE_IMAGE} AS base
+
+ENV DEBIAN_FRONTEND=noninteractive
 ENV DEPENDENCIES=${DEPENDENCIES}
 ENV VERSION=${VERSION}
 ENV BUILD_MODE=${BUILD_MODE}
@@ -100,7 +120,6 @@ RUN --mount=type=cache,target=/root/.cache-${TARGETPLATFORM}/pip \
 RUN --mount=type=cache,target=/tmp/git-cache-${TARGETPLATFORM} \
     --mount=type=cache,target=/tmp/build-cache-${TARGETPLATFORM} \
     cd /opt && \
-    echo "Starting dependency installation..." && \
     echo $DEPENDENCIES | jq -c '.[]' | while read -r dep; do \
         DEP_NAME=$(echo $dep | jq -r '.name'); \
         DEP_URL=$(echo $dep | jq -r '.url'); \
@@ -155,18 +174,17 @@ RUN cd /opt/panther_ivy && \
     patch -p1 < patches/z3-cmake-git-optional.patch
 
 # ---- tool-chain & wrappers --------------------------------------------------
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt,id=toolchain-$TARGETPLATFORM,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,id=toolchainlib-$TARGETPLATFORM,sharing=locked \
     apt-get update && \
-    apt-get install -y \
-        build-essential git ninja-build binutils gcc g++ && \
+    apt-get install --no-install-recommends -y \
+    build-essential git ninja-build binutils gcc g++ && \
     rm -rf /var/lib/apt/lists/*
 
-
-# Build and install with pip and build caches
-RUN --mount=type=cache,target=/root/.cache/pip \
-    --mount=type=cache,target=/tmp/python-build \
-    --mount=type=cache,target=/opt/panther_ivy/build \
+# Build and install with platform-specific pip and build caches
+RUN --mount=type=cache,target=/root/.cache/pip-$TARGETPLATFORM,sharing=locked \
+    --mount=type=cache,target=/tmp/python-build-$TARGETPLATFORM,sharing=locked \
+    --mount=type=cache,target=/opt/panther_ivy/build-$TARGETPLATFORM,sharing=locked \
     # python3.10 -m pip install . && \
     python3.10 build_submodules.py && \
     # export PYTHONPATH="/opt/panther_ivy/ivy/:$PYTHONPATH" && \
@@ -181,16 +199,37 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 COPY protocol-testing /opt/panther_ivy/protocol-testing/
 
 # =============================================================================
-# FINAL STAGE: Runtime mode selection for Panther Ivy
+# FINAL STAGE: Runtime configuration with platform metadata
 # =============================================================================
-FROM base AS final
 
-# Labels for service identification
-ARG RUNTIME_MODE=minimal
-LABEL service.name="panther_ivy"
+# Target platform runtime stage  
+FROM --platform=$TARGETPLATFORM base AS final
+
+# Platform and build metadata for debugging and compliance
+ARG BUILDPLATFORM
+ARG TARGETPLATFORM
+ARG TARGETOS
+ARG TARGETARCH
+ARG VERSION
+ARG BUILD_MODE
+
+LABEL platform.build="${BUILDPLATFORM}"
+LABEL platform.target="${TARGETPLATFORM}"
+LABEL platform.os="${TARGETOS}"
+LABEL platform.arch="${TARGETARCH}"
 LABEL service.type="tester"
-LABEL runtime.mode="${RUNTIME_MODE}"
-LABEL runtime.description="PANTHER Ivy protocol tester with Z3 and Python 3.10"
+LABEL service.name="panther_ivy"
+LABEL version="${VERSION}"
+LABEL build.mode="${BUILD_MODE}"
+LABEL runtime.description="PANTHER IVY formal verification tester environment"
+LABEL build.syntax="docker/dockerfile:1"
 
-# Set entrypoint (can be overridden)
-ENTRYPOINT [ "/bin/bash", "-l", "-c" ]
+# Health check for runtime validation
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python3.10 --version && echo "IVY tester runtime healthy" || exit 1
+
+# Set working directory
+WORKDIR /opt/panther_ivy
+
+# Default command
+CMD ["/bin/bash"]
