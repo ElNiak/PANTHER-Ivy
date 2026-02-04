@@ -3,10 +3,6 @@
 ARG TARGETPLATFORM=linux/amd64
 ARG RUNTIME_MODE=minimal
 
-ARG BASE_IMAGE=panther_base_service:latest
-
-FROM ${BASE_IMAGE} as base
-
 # =============================================================================
 # PANTHER IVY Tester - Modern Multi-Platform BuildKit Dockerfile
 # Cross-platform formal verification with automatic platform detection
@@ -31,7 +27,7 @@ ARG BUILD_MODE=""  # Build mode for Z3 compilation: '', 'debug-asan', 'rel-lto',
 # STAGE 1: BUILD - Cross-platform build environment for IVY
 # =============================================================================
 
-FROM --platform=$BUILDPLATFORM ${BASE_IMAGE} AS base
+FROM --platform=$TARGETPLATFORM ${BASE_IMAGE} AS base
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DEPENDENCIES=${DEPENDENCIES}
@@ -202,8 +198,8 @@ COPY protocol-testing /opt/panther_ivy/protocol-testing/
 # FINAL STAGE: Runtime configuration with platform metadata
 # =============================================================================
 
-# Target platform runtime stage  
-FROM --platform=$TARGETPLATFORM base AS final
+# Target platform runtime stage (inherits platform from base)
+FROM base AS final
 
 # Platform and build metadata for debugging and compliance
 ARG BUILDPLATFORM
