@@ -1,6 +1,5 @@
 ARG BASE_IMAGE
-ARG TARGETPLATFORM=linux/amd64
-FROM --platform=${TARGETPLATFORM} ${BASE_IMAGE}
+FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive
 ARG VERSION=master  # Default version, can be overridden
