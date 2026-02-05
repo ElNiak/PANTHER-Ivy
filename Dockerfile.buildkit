@@ -78,26 +78,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tk-dev tcl-dev libncursesw5-dev libgdbm-dev libnss3-dev libedit-dev \
     uuid-dev 
 
-# Install pyenv
-RUN curl https://pyenv.run | bash && \
-    echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc && \
-    echo 'export PATH="/root/.pyenv/bin:$PATH"' >> ~/.bashrc && \
-    echo 'eval "$(pyenv init -)"' >> ~/.bashrc && \
-    echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc && \
+# Install pyenv (skip if already present from base image)
+RUN if [ ! -d "$HOME/.pyenv" ]; then \
+        curl https://pyenv.run | bash && \
+        echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc && \
+        echo 'export PATH="/root/.pyenv/bin:$PATH"' >> ~/.bashrc && \
+        echo 'eval "$(pyenv init -)"' >> ~/.bashrc && \
+        echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc; \
+    fi && \
     export PATH="$HOME/.pyenv/bin:$PATH" && \
     eval "$(pyenv init -)" && \
     eval "$(pyenv virtualenv-init -)" && \
-    # Install Python 3.10 via pyenv
-    pyenv install 3.10.12 && \
+    # Install Python 3.10 via pyenv (skip if already installed)
+    if ! pyenv versions | grep -q "3.10.12"; then \
+        pyenv install 3.10.12; \
+    fi && \
     pyenv global 3.10.12 && \
     pyenv rehash && \
-    # && \
-    # # Install additional packages after pyenv setup
-    # apt --fix-missing -y install \  
-    # python3.10-dev \
-    # python3.10-tk \
-    # build-essential \
-    # python3-ply
     ln -sf "$(pyenv which python3.10)" /usr/local/bin/python3.10 && \
     ln -sf "$(pyenv which python)"     /usr/local/bin/python  && \
     python3.10 -V && which python3.10 && python -V && which python
