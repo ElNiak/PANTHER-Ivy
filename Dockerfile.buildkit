@@ -190,9 +190,15 @@ RUN --mount=type=cache,target=/root/.cache/pip-$TARGETPLATFORM,sharing=locked \
     # This is required for optimized BUILD_MODE where install_z3() is skipped
     mkdir -p submodules/z3/build/python/z3 && \
     mkdir -p ivy/z3 && \
-    cp lib/libz3.so submodules/z3/build/python/z3/ 2>/dev/null || true && \
-    cp lib/libz3.so submodules/z3/build/ 2>/dev/null || true && \
-    cp lib/libz3.so ivy/z3/ 2>/dev/null || true
+    # Verify libz3.so exists before copying (fail-fast if Z3 build failed)
+    if [ ! -f lib/libz3.so ]; then \
+        echo "ERROR: lib/libz3.so not found - Z3 build may have failed"; \
+        exit 1; \
+    fi && \
+    cp lib/libz3.so submodules/z3/build/python/z3/ && \
+    cp lib/libz3.so submodules/z3/build/ && \
+    cp lib/libz3.so ivy/z3/ && \
+    echo "Successfully copied libz3.so to all required locations"
 
 # Add protocol testing files (last to optimize layer caching)
 COPY protocol-testing /opt/panther_ivy/protocol-testing/

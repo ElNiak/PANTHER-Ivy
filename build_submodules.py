@@ -174,9 +174,12 @@ def optimized_build_for_ivy_test_target(z3):
     cmake_cmd += "cmake "
     cmake_cmd += "-G \"Unix Makefiles\" "
     cmake_cmd += f"-DCMAKE_INSTALL_PREFIX={ROOT}"
-    # "-DCMAKE_AR=/usr/bin/gcc-ar",
-    # "-DCMAKE_RANLIB=/usr/bin/gcc-ranlib",
-    # "-DCMAKE_NM=/usr/bin/gcc-nm",
+
+    # For LTO builds, use gcc-ar/gcc-ranlib/gcc-nm which understand LTO bitcode
+    if BUILD_MODE in ("rel-lto", "release-static-pgo"):
+        cmake_cmd += " -DCMAKE_AR=/usr/bin/gcc-ar"
+        cmake_cmd += " -DCMAKE_RANLIB=/usr/bin/gcc-ranlib"
+        cmake_cmd += " -DCMAKE_NM=/usr/bin/gcc-nm"
 
     for opt in cfg["cmake"]:
         cmake_cmd += f" {opt}"
