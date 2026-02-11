@@ -1,5 +1,5 @@
 ARG BASE_IMAGE
-FROM --platform=linux/amd64 ${BASE_IMAGE}
+FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive
 ARG VERSION=master  # Default version, can be overridden
@@ -93,24 +93,27 @@ RUN apt update; \
     ninja-build
 
 
-# Install pyenv
-RUN curl https://pyenv.run | bash && \
+# Install pyenv (skip if already exists from base image)
+RUN if [ -d "$HOME/.pyenv" ]; then \
+        echo "pyenv already installed, configuring environment..."; \
+    else \
+        echo "Installing pyenv..." && \
+        curl https://pyenv.run | bash; \
+    fi && \
     echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc && \
     echo 'eval "$(pyenv init -)"' >> ~/.bashrc && \
     echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc && \
     export PATH="$HOME/.pyenv/bin:$PATH" && \
     eval "$(pyenv init -)" && \
     eval "$(pyenv virtualenv-init -)" && \
-    # Install Python 3.10 via pyenv
-    pyenv install 3.10.12 && \
-    pyenv global 3.10.12 
-    # && \
-    # # Install additional packages after pyenv setup
-    # apt --fix-missing -y install \  
-    # python3.10-dev \
-    # python3.10-tk \
-    # build-essential \
-    # python3-ply
+    # Install Python 3.10.12 if not already installed
+    if ! pyenv versions | grep -q "3.10.12"; then \
+        echo "Installing Python 3.10.12..." && \
+        pyenv install 3.10.12; \
+    else \
+        echo "Python 3.10.12 already installed"; \
+    fi && \
+    pyenv global 3.10.12
 
 RUN echo $(python --version)
 

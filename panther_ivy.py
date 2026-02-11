@@ -46,11 +46,11 @@ def oppose_role(role):
     homepage=""
 )
 class PantherIvyServiceManager(
-    TesterServiceManagerMixin, 
-    ServiceManagerDockerMixin, 
+    TesterServiceManagerMixin,
+    ServiceManagerDockerMixin,
     TesterManagerEventMixin,
     IvyCommandMixin,
-    IvyAnalysisMixin, 
+    IvyAnalysisMixin,
     IvyOutputPatternMixin,
     IvyProtocolAwareMixin,
     IvyNetworkResolutionMixin,
@@ -119,11 +119,38 @@ class PantherIvyServiceManager(
         self._setup_volumes()
         
         self.outputs = {}
-        
+
         # Cache plugin config for easy access
         self._plugin_config = None
 
-        
+    def get_build_mode(self) -> str:
+        """
+        Get the build mode from config for Docker image building.
+
+        This method is called by ServiceManagerDockerMixin to determine
+        which build mode to pass to the Docker builder. The build mode
+        controls Z3 compilation flags in build_submodules.py.
+
+        Returns:
+            Build mode string: '', 'debug-asan', 'rel-lto', or 'release-static-pgo'
+        """
+        # Check plugin_config first (primary location)
+        if (hasattr(self, 'service_config_to_test') and
+            hasattr(self.service_config_to_test, 'plugin_config') and
+            isinstance(self.service_config_to_test.plugin_config, dict)):
+            build_mode = self.service_config_to_test.plugin_config.get('build_mode', '')
+            if build_mode:
+                return build_mode
+
+        # Fallback to implementation config
+        if (hasattr(self, 'service_config_to_test') and
+            hasattr(self.service_config_to_test, 'implementation')):
+            build_mode = getattr(self.service_config_to_test.implementation, 'build_mode', '')
+            if build_mode:
+                return build_mode
+
+        return ''
+
     def _initialize_ivy_attributes(
                 self, service_config_to_test, protocol: ProtocolConfig
             ):
@@ -336,7 +363,7 @@ class PantherIvyServiceManager(
         local_protocol_dir = self.protocol_model_path
 
         volumes = [ 
-            f"{ivy_include_dir}:/opt/panther_ivy/ivy/include/1.7",
+            f"{ivy_include_dir}:/opt/panther_ivy/ivy/include/1.7:ro",
             f"{local_protocol_dir}:{self.env_protocol_model_path}",
         ]
 
@@ -445,8 +472,8 @@ class PantherIvyServiceManager(
 
         env_vars_to_add = ivy_env_vars.copy()
 
-        # Extract build_mode from implementation config (where it's actually stored)
-        build_mode = getattr(self.service_config_to_test.implementation, 'build_mode', '')
+        # Extract build_mode using the get_build_mode method (checks plugin_config first)
+        build_mode = self.get_build_mode()
 
         # Add architecture-specific variables
         env_vars_to_add.update({

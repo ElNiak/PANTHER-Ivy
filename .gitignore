@@ -40,3 +40,27 @@ specs
 
 # These are library directories
 gnutls
+
+# Generated QUIC protocol Ivy files (copied during Docker test builds)
+ivy/include/1.7/ivy_quic_*.ivy
+ivy/include/1.7/quic_*.ivy
+ivy/include/1.7/attack_connection.ivy
+ivy/include/1.7/byte_stream.ivy
+ivy/include/1.7/file.ivy
+ivy/include/1.7/forged_*.ivy
+ivy/include/1.7/ping_*.ivy
+ivy/include/1.7/random_value.ivy
+ivy/include/1.7/replayed_*.ivy
+ivy/include/1.7/tls_*.ivy
+ivy/include/1.7/quic_ser_deser.h
+
+# Generated protocol test data
+protocol-testing/quic/initial_max_data.txt
+protocol-testing/quic/initial_max_stream_*.txt
+protocol-testing/quic/initial_max_stream_id_*.txt
+protocol-testing/quic/last_new_token.txt
+protocol-testing/quic/leaf_cert.pem
+
+# macOS metadata
+.DS_Store
+**/.DS_Store

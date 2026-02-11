@@ -3,10 +3,6 @@
 ARG TARGETPLATFORM=linux/amd64
 ARG RUNTIME_MODE=minimal
 
-ARG BASE_IMAGE=panther_base_service:latest
-
-FROM ${BASE_IMAGE} as base
-
 # =============================================================================
 # PANTHER IVY Tester - Modern Multi-Platform BuildKit Dockerfile
 # Cross-platform formal verification with automatic platform detection
@@ -31,14 +27,20 @@ ARG BUILD_MODE=""  # Build mode for Z3 compilation: '', 'debug-asan', 'rel-lto',
 # STAGE 1: BUILD - Cross-platform build environment for IVY
 # =============================================================================
 
-FROM --platform=$BUILDPLATFORM ${BASE_IMAGE} AS base
+FROM --platform=$TARGETPLATFORM ${BASE_IMAGE} AS base
+
+# Re-declare ARGs after FROM to make them available in this stage
+ARG VERSION
+ARG DEPENDENCIES
+ARG BUILD_MODE
+ARG TARGETARCH
+ARG BUILDPLATFORM
+ARG TARGETPLATFORM
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DEPENDENCIES=${DEPENDENCIES}
 ENV VERSION=${VERSION}
 ENV BUILD_MODE=${BUILD_MODE}
-
-ARG TARGETPLATFORM
 ENV TARGETPLATFORM=${TARGETPLATFORM}
 
 RUN bash -c '\
@@ -76,26 +78,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tk-dev tcl-dev libncursesw5-dev libgdbm-dev libnss3-dev libedit-dev \
     uuid-dev 
 
-# Install pyenv
-RUN curl https://pyenv.run | bash && \
-    echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc && \
-    echo 'export PATH="/root/.pyenv/bin:$PATH"' >> ~/.bashrc && \
-    echo 'eval "$(pyenv init -)"' >> ~/.bashrc && \
-    echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc && \
+# Install pyenv (skip if already present from base image)
+RUN if [ ! -d "$HOME/.pyenv" ]; then \
+        curl https://pyenv.run | bash && \
+        echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc && \
+        echo 'export PATH="/root/.pyenv/bin:$PATH"' >> ~/.bashrc && \
+        echo 'eval "$(pyenv init -)"' >> ~/.bashrc && \
+        echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc; \
+    fi && \
     export PATH="$HOME/.pyenv/bin:$PATH" && \
     eval "$(pyenv init -)" && \
     eval "$(pyenv virtualenv-init -)" && \
-    # Install Python 3.10 via pyenv
-    pyenv install 3.10.12 && \
+    # Install Python 3.10 via pyenv (skip if already installed)
+    if ! pyenv versions | grep -q "3.10.12"; then \
+        pyenv install 3.10.12; \
+    fi && \
     pyenv global 3.10.12 && \
     pyenv rehash && \
-    # && \
-    # # Install additional packages after pyenv setup
-    # apt --fix-missing -y install \  
-    # python3.10-dev \
-    # python3.10-tk \
-    # build-essential \
-    # python3-ply
     ln -sf "$(pyenv which python3.10)" /usr/local/bin/python3.10 && \
     ln -sf "$(pyenv which python)"     /usr/local/bin/python  && \
     python3.10 -V && which python3.10 && python -V && which python
@@ -149,7 +148,7 @@ RUN --mount=type=cache,target=/tmp/git-cache-${TARGETPLATFORM} \
             make check; \
             # Save build artifacts to cache
             mkdir -p "/tmp/build-cache-${TARGETPLATFORM}/$DEP_NAME"; \
-            cp -r . "/tmp/build-cache-${TARGETPLATFORM} /$DEP_NAME/" 2>/dev/null || true; \
+            cp -r . "/tmp/build-cache-${TARGETPLATFORM}/$DEP_NAME/" 2>/dev/null || true; \
             echo "Successfully built dependency '$DEP_NAME'"; \
             cd /opt; \
         else \
@@ -185,15 +184,21 @@ RUN --mount=type=cache,target=/var/cache/apt,id=toolchain-$TARGETPLATFORM,sharin
 RUN --mount=type=cache,target=/root/.cache/pip-$TARGETPLATFORM,sharing=locked \
     --mount=type=cache,target=/tmp/python-build-$TARGETPLATFORM,sharing=locked \
     --mount=type=cache,target=/opt/panther_ivy/build-$TARGETPLATFORM,sharing=locked \
-    # python3.10 -m pip install . && \
     python3.10 build_submodules.py && \
-    # export PYTHONPATH="/opt/panther_ivy/ivy/:$PYTHONPATH" && \
-    #sudo python3.10 setup.py install && \
-    # python3.10 setup.py develop --prefix=/opt/panther_ivy/ivy/ 
-    sudo python3.10 setup.py install 
-    # python3.10 -m pip install -e .
-    # cp lib/libz3.so submodules/z3/build/python/z3/ && \
-    # cp lib/libz3.so submodules/z3/build/
+    sudo python3.10 setup.py install && \
+    # Copy libz3.so to locations expected by Z3 Python bindings
+    # This is required for optimized BUILD_MODE where install_z3() is skipped
+    mkdir -p submodules/z3/build/python/z3 && \
+    mkdir -p ivy/z3 && \
+    # Verify libz3.so exists before copying (fail-fast if Z3 build failed)
+    if [ ! -f lib/libz3.so ]; then \
+        echo "ERROR: lib/libz3.so not found - Z3 build may have failed"; \
+        exit 1; \
+    fi && \
+    cp lib/libz3.so submodules/z3/build/python/z3/ && \
+    cp lib/libz3.so submodules/z3/build/ && \
+    cp lib/libz3.so ivy/z3/ && \
+    echo "Successfully copied libz3.so to all required locations"
 
 # Add protocol testing files (last to optimize layer caching)
 COPY protocol-testing /opt/panther_ivy/protocol-testing/
@@ -202,8 +207,8 @@ COPY protocol-testing /opt/panther_ivy/protocol-testing/
 # FINAL STAGE: Runtime configuration with platform metadata
 # =============================================================================
 
-# Target platform runtime stage  
-FROM --platform=$TARGETPLATFORM base AS final
+# Target platform runtime stage (inherits platform from base)
+FROM base AS final
 
 # Platform and build metadata for debugging and compliance
 ARG BUILDPLATFORM
