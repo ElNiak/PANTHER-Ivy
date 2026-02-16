@@ -11,7 +11,7 @@ from collections import defaultdict
 import re
 import functools
 
-import ivy.z3 as z3
+import z3
 from . import ivy_logic
 from .ivy_logic_utils import used_variables_clause, used_variables_ast, variables_ast,\
    to_clauses, constants_clauses, used_relations_clauses, rel_inst, fun_eq_inst, \
@@ -22,13 +22,15 @@ from . import ivy_utils as iu
 from . import ivy_unitres as ur
 from . import logic as lg
 from . import ivy_ast
+from . import ivy_z3_utils
 
 import sys
 
 # Following accounts for Z3 API symbols that are hidden as of Z3-4.5.0
 
-z3_to_ast_array = z3._to_ast_array if '_to_ast_array' in z3.__dict__ else z3.z3._to_ast_array
-z3_to_expr_ref = z3._to_expr_ref if '_to_expr_ref' in z3.__dict__ else z3.z3._to_expr_ref
+
+z3_to_ast_array = z3._to_ast_array if '_to_ast_array' in z3.__dict__ else z3.z3._to_ast_array if '_to_ast_array' in z3.__dict__ else ivy_z3_utils._to_ast_array
+z3_to_expr_ref = z3._to_expr_ref if '_to_expr_ref' in z3.__dict__ else z3.z3._to_expr_ref if '_to_expr_ref' in z3.__dict__ else ivy_z3_utils._to_expr_ref
 
 use_z3_enums = True
 
@@ -456,6 +458,11 @@ def term_to_z3(term):
         if not hasattr(term,'rep'):
             print(term)
             print(term.lineno)
+        if term.rep.name == 'cast':
+            assert len(term.rep.sort.dom) == 1
+            res = term_to_z3(term.args[0])
+            assert term.rep.sort.rng.to_z3() == res.sort()
+            return res
         fun = z3_functions.get(term.rep)
         if fun is None:
             fun = lookup_native(term.rep,functions,"function")
@@ -500,7 +507,12 @@ def atom_to_z3(atom):
 #        *[term_to_z3(t) for t in atom.args])
     pred = z3_predicates[atom.relname]
     tup = [term_to_z3(t) for t in atom.args]
-    return apply_z3_func(pred,tup)
+    try:
+        return apply_z3_func(pred,tup)
+    except Exception as e:
+        print ('atom: {}'.format(atom))
+        print ('atom.relname: {}'.format(atom.relname))
+        raise e
 
 def literal_to_z3(lit):
     z3_atom = formula_to_z3_int(lit.atom)
@@ -1286,11 +1298,19 @@ def get_small_model(clauses, sorts_to_minimize, relations_to_minimize, final_con
                 else:
                     s.pop()
         print("done")
-    m = get_model(s)
-    # print ("model = {}".format(m))
-    # f = open("ivy.smt2","w")
-    # f.write(s.to_smt2())
-    # f.close()
+    try:
+        m = get_model(s)
+    except:
+        print ('get_model failed')
+        f = open("ivy.smt2","w")
+        f.write(s.to_smt2())
+        f.close()
+        exit(1)
+
+    print ("model = {}".format(m.sexpr()))
+    f = open("ivy.smt2","w")
+    f.write(s.to_smt2())
+    f.close()
     h = HerbrandModel(s,m,used_symbols_clauses(clauses))
     return h
 

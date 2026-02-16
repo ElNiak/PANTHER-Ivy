@@ -186,6 +186,59 @@ class NamedUpdate(object):
     def __str__(self):
         return str(self.sym)
 
+
+constructor_args_counter = 0
+
+def sort_destructors(sort):
+    return ivy_module.module.sort_destructors[sort.name]
+
+def fresh_constructor_args(sort):
+    global constructor_args_counter
+    n = constructor_args_counter
+    constructor_args_counter += 1
+    return [Symbol(sort.name + '$' + destr.name + '$' + str(n), destr.sort.rng).skolem() for destr in sort_destructors(sort)]
+    
+def is_first_order_struct(sort):
+    return all(len(destr.sort.dom) == 1 for destr in sort_destructors(sort))
+
+def sort_constructor(sort):
+#    arg_sorts = [destr.rng for destr in sort_destructors(sort.name)]
+#    return Symbol(sort.name + '.cons',ivy_logic.FunctionSort(arg_sorts + [sort]))
+    cs = ivy_module.module.sort_constructors.get(sort.name,[])
+    return cs[0] if cs else None
+        
+
+    
+def elim_destructors(cl):
+    cnstrs = []
+    memo = {}
+    def recur(fmla):
+        if is_app(fmla) and fmla.rep.name in ivy_module.module.destructor_sorts:
+            sort = ivy_module.module.destructor_sorts[fmla.rep.name]
+            sortc = sort_constructor(sort)
+            if is_first_order_struct(sort) and sortc is not None:
+                # print ('trying: {} = {}'.format(fmla,hash(fmla)))
+                # for x,y in memo.items():
+                #     print ('memo: {} = {} = {}: {}'.format(x,y,hash(x),x == fmla))
+                if fmla in memo:
+                    return memo[fmla]
+                args = [recur(arg) for arg in fmla.args]
+                cargs = fresh_constructor_args(sort)
+                term = sortc(*cargs)
+                eq = Equals(args[0],term)
+                cnstrs.append(eq)
+                thing = fmla.args[0]
+                for destr,carg in zip(sort_destructors(sort),cargs):
+                    memo[destr(thing)] = carg
+                    # print('adding: {} = {} = {}'.format(destr(thing),carg,hash(destr(thing))))
+                return memo[fmla]
+        args = [recur(arg) for arg in fmla.args]
+        return fmla.clone(args)
+    fmlas = [recur(x) for x in cl.fmlas]
+    defs = [recur(x) for x in cl.defs]
+    fmlas = fmlas + cnstrs
+    return Clauses(fmlas, defs, cl.annot)
+    
 class Action(AST):
     def __init__(self,*args):
         self.args = list(args)
@@ -216,7 +269,13 @@ class Action(AST):
         res = (updated,clauses,pre)
         return res
     def update(self,domain,in_scope):
-        return self.hide_formals(bind_olds_action(self.int_update(domain,in_scope)))
+        res = self.hide_formals(bind_olds_action(self.int_update(domain,in_scope)))
+        if use_constructors():
+            (updated,clauses,pre) = res
+            # print(res[1])
+            res = (updated,elim_destructors(clauses),elim_destructors(pre))
+            # print(res[1])
+        return res
     def hide_formals(self,update):
         to_hide = []
         if hasattr(self,'formal_params'):
@@ -444,7 +503,7 @@ def destr_asgn_val(lhs,fmlas):
     eqs = [eq_atom(v,a) for (v,a) in list(zip(vs,lhs.args))[1:] if not isinstance(a,Variable)]
     if eqs:
         fmlas.append(Or(And(*eqs),equiv_ast(dlhs,drhs)))
-    for destr in ivy_module.module.sort_destructors[mut.sort.name]:
+    for destr in sort_destructors(mut.sort):
         if destr != n:
             phs = sym_placeholders(destr)
             a1 = [lval] + phs[1:]
@@ -465,6 +524,9 @@ def assign_refs(self,refs):
             for a in n.args:
                 refs.update(symbols_ast(a))
     recur(self.args[0])
+
+def use_constructors():
+    return 'constructors' in ivy_module.module.attributes
 
 class AssignAction(Action):
     def __init__(self,*args):
@@ -1211,6 +1273,45 @@ class CallAction(Action):
 ##                print "called state: {}".format(v)
 
         return v
+    def inline(self,domain,v,nolocs = False):
+        assert hasattr(v,'formal_params'), v
+        actual_params = self.args[0].args
+        actual_returns = self.args[1:]
+#        formal_params = [s.prefix('_') for s in v.formal_params] # rename to prevent capture
+#        formal_returns = [s.prefix('_') for s in v.formal_returns] # rename to prevent capture
+#        subst = dict(zip(v.formal_params+v.formal_returns, formal_params+formal_returns))
+        vocab = list(symbols_asts(actual_params+actual_returns))
+        subst = distinct_obj_renaming(v.formal_params+v.formal_returns,vocab)
+        for s,t in list(subst.items()):
+            subst[old(s)] = old(t)
+#        print "apply_actuals: subst: {}".format(subst)
+        formal_params = [subst[s] for s in  v.formal_params] # rename to prevent capture
+        formal_returns = [subst[s] for s in v.formal_returns] # rename to prevent capture
+        v = substitute_constants_ast(v,subst)
+#        print "formal_params: {}".format(formal_params)
+#        print "formal_returns: {}".format(formal_returns)
+#        print "substituted called action: {}".format(v)
+        if len(formal_params) != len(actual_params):
+            raise IvyError(self,"wrong number of input parameters");
+        if len(formal_returns) != len(actual_returns):
+            print(self)
+            raise IvyError(self,"wrong number of output parameters");
+        for x,y in zip(formal_params,actual_params):
+            if x.sort != y.sort and not domain.is_variant(x.sort,y.sort):
+                raise IvyError(self,"value for input parameter {} has wrong sort".format(x))
+        for x,y in zip(formal_returns,actual_returns):
+            if x.sort != y.sort and not domain.is_variant(y.sort,x.sort):
+                print(y)
+                print(y.sort)
+                print(x.sort)
+                print(self)
+                raise IvyError(self,"value for output parameter {} has wrong sort".format(x))
+        input_asgns = [AssignAction(x,y) for x,y in zip(formal_params,actual_params)]
+        output_asgns = [AssignAction(y,x) for x,y in zip(formal_returns,actual_returns)]
+        res = Sequence(Sequence(*input_asgns),BindOldsAction(v),Sequence(*output_asgns))
+        if not nolocs:
+            res = LocalAction(*(formal_params+formal_returns+[res]))
+        return res
     def apply_actuals(self,domain,pvars,v):
         assert hasattr(v,'formal_params'), v
         actual_params = self.args[0].args
