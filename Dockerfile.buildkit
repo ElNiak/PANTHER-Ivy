@@ -194,7 +194,7 @@ ARG VERSION
 ARG TARGETPLATFORM
 
 ENV VERSION=${VERSION}
-ENV PYTHONPATH="/opt/panther_ivy/:\${PYTHONPATH}"
+ENV PYTHONPATH="/opt/panther_ivy/:${PYTHONPATH}"
 WORKDIR /opt/panther_ivy/
 
 # Copy application files (order: stable first, volatile last)
