@@ -4,6 +4,7 @@ import subprocess
 import sys
 import os
 import platform
+import argparse
 
 
 ROOT = Path.cwd() # Current working directory
@@ -158,16 +159,17 @@ def legacy_build(z3):
 
 
 def optimized_build_for_ivy_test_target(z3):
+    import shutil
     cfg = MODES[BUILD_MODE]
-    build_dir = z3 / "build" 
+    build_dir = z3 / "build"
     print(f"Using CMake for Z3 build with BUILD_MODE={BUILD_MODE} and configuration: {cfg}")
     print(f"Build directory: {build_dir}")
-    # Use CMake for new build modes
-    if build_dir.exists():
-        print("Removing old  build")
-        import shutil
+    # Allow incremental builds by default (critical for Docker cache mounts).
+    # Set Z3_CLEAN_BUILD=1 to force a clean build when needed locally.
+    if os.getenv("Z3_CLEAN_BUILD", "0") == "1" and build_dir.exists():
+        print("Z3_CLEAN_BUILD=1: removing old build directory")
         shutil.rmtree(build_dir)
-        
+
     ensure_dir(build_dir)
 
     cmake_cmd = "CC=gcc CXX=g++ "
@@ -335,20 +337,44 @@ def install_abc():
     os.chdir(cwd)
     
 if __name__ == "__main__":
-    print("--- Running build_submodules.py ---")
-    build_z3()
-    install_z3()
-    build_picotls()
-    install_picotls()
+    parser = argparse.ArgumentParser(description="Build panther_ivy submodules")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--z3-only", action="store_true",
+        help="Build only Z3 (for Docker multi-stage z3-builder stage)")
+    group.add_argument(
+        "--skip-z3", action="store_true",
+        help="Skip Z3, build everything else (for Docker multi-stage main stage)")
+    args = parser.parse_args()
 
-    if platform.system() == 'Windows':
-        print("*******************************************")
-        print("Model checking not supported on Windows")
-        print("*******************************************")
+    print("--- Running build_submodules.py ---")
+
+    if args.z3_only:
+        print("[z3-only mode] Building Z3 only")
+        build_z3()
+        install_z3()
+    elif args.skip_z3:
+        print("[skip-z3 mode] Skipping Z3, building picotls/aiger/abc")
+        build_picotls()
+        install_picotls()
+        if platform.system() == 'Windows':
+            print("Model checking not supported on Windows")
+        else:
+            build_aiger()
+            install_aiger()
+            build_abc()
+            install_abc()
     else:
-        build_aiger()
-        install_aiger()
-        build_abc()
-        install_abc()
-        
+        build_z3()
+        install_z3()
+        build_picotls()
+        install_picotls()
+        if platform.system() == 'Windows':
+            print("Model checking not supported on Windows")
+        else:
+            build_aiger()
+            install_aiger()
+            build_abc()
+            install_abc()
+
 

@@ -1,28 +1,23 @@
 ARG BASE_IMAGE
-FROM ${BASE_IMAGE}
+
+# =============================================================================
+# STAGE 1: DEPS - Shared toolchain
+# =============================================================================
+
+FROM ${BASE_IMAGE} AS deps
 
 ENV DEBIAN_FRONTEND=noninteractive
-ARG VERSION=master  # Default version, can be overridden
-# Define build arguments for version-specific configurations
-ARG DEPENDENCIES="[]"  # JSON-formatted list of dependencies
-ARG BUILD_MODE=""  # Build mode for Z3 compilation: '', 'debug-asan', 'rel-lto', or 'release-static-pgo'
+ARG VERSION=master
+ARG DEPENDENCIES="[]"
+
 ENV DEPENDENCIES=${DEPENDENCIES}
 ENV VERSION=${VERSION}
-ENV BUILD_MODE=${BUILD_MODE}
 
-RUN printf "Building Panther-Ivy version: %s - Build mode: %s - Dependencies: %s\n" "${VERSION}" "${BUILD_MODE}" "${DEPENDENCIES}"
-
-# # 1) APT bootstrap (make PPAs available)
-# RUN apt-get update && \
-#     apt-get install -y --no-install-recommends \
-#       software-properties-common gnupg ca-certificates jq git curl tzdata && \
-#     rm -rf /var/lib/apt/lists/*
-
+RUN printf "Building Panther-Ivy version: %s - Dependencies: %s\n" "${VERSION}" "${DEPENDENCIES}"
 
 RUN apt update; \
     add-apt-repository --yes ppa:deadsnakes/ppa; \
     apt update; \
-    # Install pyenv dependencies
     apt --fix-missing -y install \
     build-essential \
     alien \
@@ -121,12 +116,10 @@ RUN echo $(python --version)
 RUN ln -sf "$(pyenv which python3.10)" /usr/local/bin/python3.10 && \
     ln -sf "$(pyenv which python)"     /usr/local/bin/python  && \
     python3.10 -V && which python3.10 && python -V && which python
-    
-# picotls
+
 RUN apt-get install -y jq
-# Function to parse and build dependencies
-# TODO make more modular
-RUN cd /opt && \ 
+# Build external dependencies
+RUN cd /opt && \
     echo "Starting dependency installation..." && \
     echo $DEPENDENCIES | jq -c '.[]' | while read -r dep; do \
     DEP_NAME=$(echo $dep | jq -r '.name'); \
@@ -148,56 +141,77 @@ RUN cd /opt && \
     fi; \
     done
 
-
-
-# Tester-specific dependencies + installation
-# ARG USE_LOCAL=1  # 1: Use local files, 0: Clone from repo
-# RUN if [ "$USE_LOCAL" = "0" ]; then \
-#         cd /opt && \
-#         git clone https://github.com/ElNiak/PANTHER-Ivy.git panther_ivy && \
-#         cd /opt/panther_ivy && \
-#         git checkout ${VERSION} && \
-#         git submodule update --init --recursive \
-#     fi
-
-
 RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
-# For Panther-Ivy
+
 RUN python3.10 -m pip install pexpect \
     chardet \
     pandas \
     scandir \
     ply  \
-    pygraphviz \ 
+    pygraphviz \
     pydot \
     progressbar2
 
-# For Ivy
-# .gitmodules 
-ADD setup.py build_submodules.py /opt/panther_ivy/
-ADD submodules /opt/panther_ivy/submodules/
-# TODO only python file for building
-ADD ivy /opt/panther_ivy/ivy/
-ADD lib /opt/panther_ivy/lib/
-ADD patches /opt/panther_ivy/patches/
+# =============================================================================
+# STAGE 2: Z3-BUILDER - Isolated Z3 compilation
+# Only rebuilds when submodules/z3/, patches/, or build_submodules.py change.
+# Changes to ivy/ or lib/ do NOT trigger Z3 rebuild (~30 min savings).
+# =============================================================================
 
-ENV PYTHONPATH="$$PYTHONPATH:/opt/panther_ivy/"
+FROM deps AS z3-builder
+
+ARG BUILD_MODE=""
 
 WORKDIR /opt/panther_ivy/
 
-ENV BUILD_MODE=${BUILD_MODE}
+# Copy ONLY what Z3 needs (ordered by change frequency)
+ADD build_submodules.py setup.py /opt/panther_ivy/
+ADD patches /opt/panther_ivy/patches/
+ADD submodules/z3 /opt/panther_ivy/submodules/z3/
 
 # Apply patch to make Z3 git dependency optional for Docker builds
 RUN patch -p1 < patches/z3-cmake-git-optional.patch
 
-RUN python3.10 -m pip install . ;\
-    python3.10 build_submodules.py; \
-    sudo python3.10 setup.py install; \
-    cp lib/libz3.so submodules/z3/build/python/z3; \
-    cp lib/libz3.so submodules/z3/build/;
+# Ensure output directories exist for COPY --from in later stages
+RUN mkdir -p lib include ivy/lib ivy/z3 ivy/include
 
+# Build Z3 only
+ENV BUILD_MODE=${BUILD_MODE}
+RUN python3.10 build_submodules.py --z3-only
+
+# =============================================================================
+# STAGE 3: BASE - Main build (picotls, aiger, abc) + install
+# =============================================================================
+
+FROM deps AS base
+
+ARG BUILD_MODE=""
+
+ENV PYTHONPATH="$$PYTHONPATH:/opt/panther_ivy/"
+WORKDIR /opt/panther_ivy/
+
+# Copy application files
+ADD setup.py build_submodules.py /opt/panther_ivy/
+ADD submodules /opt/panther_ivy/submodules/
+ADD ivy /opt/panther_ivy/ivy/
+ADD lib /opt/panther_ivy/lib/
+ADD patches /opt/panther_ivy/patches/
+
+# Overlay Z3 build artifacts from z3-builder stage
+COPY --from=z3-builder /opt/panther_ivy/lib/ /opt/panther_ivy/lib/
+COPY --from=z3-builder /opt/panther_ivy/include/ /opt/panther_ivy/include/
+
+# BUILD_MODE set after COPY/ADD to avoid invalidating those layers on mode change
+ENV BUILD_MODE=${BUILD_MODE}
+
+# Build remaining submodules (skip Z3) + install
+RUN python3.10 -m pip install . ;\
+    python3.10 build_submodules.py --skip-z3; \
+    sudo python3.10 setup.py install; \
+    mkdir -p submodules/z3/build/python/z3; \
+    mkdir -p ivy/z3; \
+    cp lib/libz3.so submodules/z3/build/python/z3; \
+    cp lib/libz3.so submodules/z3/build/; \
+    cp lib/libz3.so ivy/z3/;
 
 ADD protocol-testing /opt/panther_ivy/protocol-testing/
-
-# Set entrypoint (can be overridden)
-# ENTRYPOINT [ "/bin/bash", "-l", "-c" ]
