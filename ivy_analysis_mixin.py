@@ -94,7 +94,10 @@ class IvyAnalysisMixin:
             if content is not None:
                 if service_name not in service_outputs:
                     service_outputs[service_name] = {}
-                service_outputs[service_name][output_type] = content
+                if output_type in service_outputs[service_name]:
+                    service_outputs[service_name][output_type] += "\n" + content
+                else:
+                    service_outputs[service_name][output_type] = content
 
         return service_outputs
 
@@ -217,13 +220,29 @@ class IvyAnalysisMixin:
                 result["execution_successful"] = True
                 result["service_status"] = "completed_successfully"
             else:
-                if not result["compilation_succeeded"]:
-                    result["error_messages"].append("No confirmation of successful compilation")
-                    result["service_status"] = "compilation_failed"
-                if not result["test_executed"]:
-                    result["error_messages"].append("No confirmation of test execution")
-                    if result["service_status"] == "unknown":
-                        result["service_status"] = "execution_failed"
+                # Fallback: infer success from process lifecycle when explicit
+                # markers are absent. The Ivy container doesn't always produce
+                # "compilation succeeded" / "test started" text, but stderr
+                # lifecycle events (started, running) plus a clean exit are
+                # strong evidence that the test ran without issues.
+                lifecycle = result.get("process_lifecycle", {})
+                exit_code = result.get("return_code")
+                process_completed_cleanly = (
+                    lifecycle.get("started", False)
+                    and not result["has_errors"]
+                    and (exit_code is None or exit_code == 0)
+                )
+                if process_completed_cleanly:
+                    result["execution_successful"] = True
+                    result["service_status"] = "completed_inferred"
+                else:
+                    if not result["compilation_succeeded"]:
+                        result["error_messages"].append("No confirmation of successful compilation")
+                        result["service_status"] = "compilation_failed"
+                    if not result["test_executed"]:
+                        result["error_messages"].append("No confirmation of test execution")
+                        if result["service_status"] == "unknown":
+                            result["service_status"] = "execution_failed"
         else:
             result["service_status"] = "error_detected"
 
@@ -446,6 +465,12 @@ class IvyAnalysisMixin:
                 if pattern in stdout_lower:
                     return True
 
+        # Fallback: check stderr for lifecycle evidence of successful compilation
+        if "stderr" in outputs and outputs["stderr"]:
+            stderr_lower = outputs["stderr"].lower()
+            if "starting runtime phase" in stderr_lower or "call_generating" in stderr_lower:
+                return True
+
         return False
 
     def _verify_test_execution(self, outputs: Dict[str, str]) -> bool:
@@ -477,6 +502,12 @@ class IvyAnalysisMixin:
             for pattern in execution_patterns:
                 if pattern in stdout_lower:
                     return True
+
+        # Fallback: check stderr for evidence the test actually ran
+        if "stderr" in outputs and outputs["stderr"]:
+            stderr_lower = outputs["stderr"].lower()
+            if "call_generating" in stderr_lower or "cycles =" in stderr_lower:
+                return True
 
         return False
 

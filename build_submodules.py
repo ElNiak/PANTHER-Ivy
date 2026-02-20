@@ -17,8 +17,7 @@ MODES: dict[str, dict[str, object]] = {
                   "-DSANITIZE_ADDRESS=TRUE",
                   "-DINCLUDE_GIT_HASH=FALSE",
                   "-DINCLUDE_GIT_DESCRIBE=FALSE",
-                  "-DBUILD_LIBZ3_SHARED=FALSE",
-                  "-DBUILD_PYTHON_BINDINGS=FALSE"],
+                  "-DBUILD_LIBZ3_SHARED=FALSE"],
         "static": False,
     },
     "rel-lto": {
@@ -28,8 +27,7 @@ MODES: dict[str, dict[str, object]] = {
                   "-DLINK_TIME_OPTIMIZATION=TRUE",
                   "-DBUILD_LIBZ3_SHARED=FALSE",
                   "-DUSE_LIB_GMP=TRUE",
-                  "-DDUSE_OPENMP=TRUE",
-                  "-DBUILD_PYTHON_BINDINGS=FALSE"],
+                  "-DDUSE_OPENMP=TRUE"],
         "static": False,
     },
     "release-static-pgo": {
@@ -38,7 +36,6 @@ MODES: dict[str, dict[str, object]] = {
                   "-DINCLUDE_GIT_HASH=FALSE",
                   "-DINCLUDE_GIT_DESCRIBE=FALSE",
                   "-DBUILD_LIBZ3_SHARED=FALSE",
-                  "-DBUILD_PYTHON_BINDINGS=FALSE",
                   "-DCMAKE_C_FLAGS=-fprofile-use",
                   "-DCMAKE_CXX_FLAGS=-fprofile-use",
                   "-DCMAKE_POSITION_INDEPENDENT_CODE=FALSE"],
@@ -158,16 +155,16 @@ def legacy_build(z3):
 
 
 def optimized_build_for_ivy_test_target(z3):
+    import shutil
     cfg = MODES[BUILD_MODE]
-    build_dir = z3 / "build" 
+    build_dir = z3 / "build"
     print(f"Using CMake for Z3 build with BUILD_MODE={BUILD_MODE} and configuration: {cfg}")
     print(f"Build directory: {build_dir}")
     # Use CMake for new build modes
     if build_dir.exists():
         print("Removing old  build")
-        import shutil
         shutil.rmtree(build_dir)
-        
+
     ensure_dir(build_dir)
 
     cmake_cmd = "CC=gcc CXX=g++ "
@@ -195,6 +192,9 @@ def optimized_build_for_ivy_test_target(z3):
     # run_cmd("cmake --install .", cwd=build_dir)
     run_cmd("CC=gcc CXX=g++ make -j 1", cwd=build_dir) # job-server FD problem. (emulation ?)
 
+    # Install Z3 (installs libs, headers, and Python bindings)
+    run_cmd("make install", cwd=build_dir)
+
     # stage artefacts into ivy/
     ensure_dir(IVY / "lib")
     ensure_dir(IVY / "include")
@@ -208,8 +208,17 @@ def optimized_build_for_ivy_test_target(z3):
             shutil.copy2(so, IVY / "lib" / so.name)
 
 def install_z3():
-    if BUILD_MODE in MODES and BUILD_MODE != "" or False:
-        return
+    """Install Z3 Python bindings and libraries into ivy/ directory.
+
+    For legacy builds (BUILD_MODE=""), make install with --pypkgdir already
+    placed Python files in ivy/z3/. We still copy .so/.h files.
+
+    For CMake builds (non-empty BUILD_MODE), we must also copy the
+    generated Python binding files (z3core.py, z3consts.py) from the
+    build directory, plus the source .py files.
+    """
+    import shutil
+
     print("--- Installing Z3 ---")
     make_dir_exist('ivy/lib')
     make_dir_exist('ivy/z3')
@@ -227,8 +236,45 @@ def install_z3():
         do_cmd('cp lib/*.dylib ivy/z3')
     else:
         do_cmd('cp include/*.h ivy/include')
-        do_cmd('cp lib/*.so ivy/lib')
-        do_cmd('cp lib/*.so ivy/z3')
+        if list((ROOT / "lib").glob("*.so")):
+            do_cmd('cp lib/*.so ivy/lib')
+            do_cmd('cp lib/*.so ivy/z3')
+        elif list((ROOT / "lib").glob("*.a")):
+            do_cmd('cp lib/*.a ivy/lib')
+
+    # For CMake-based builds (non-empty BUILD_MODE), make install doesn't
+    # use --pypkgdir, so Python bindings aren't placed in ivy/z3/ automatically.
+    # Copy them explicitly from the build output and source tree.
+    if BUILD_MODE in MODES and BUILD_MODE != "":
+        z3_py_src = SUBMOD / "z3" / "src" / "api" / "python" / "z3"
+        z3_build_py = SUBMOD / "z3" / "build" / "python" / "z3"
+
+        # Copy source Python files (z3.py, __init__.py, z3num.py, etc.)
+        if z3_py_src.exists():
+            print(f"Copying Z3 Python source files from {z3_py_src}")
+            for py_file in z3_py_src.glob("*.py"):
+                shutil.copy2(py_file, IVY / "z3" / py_file.name)
+
+        # Copy generated files (z3core.py, z3consts.py) from build output
+        if z3_build_py.exists():
+            print(f"Copying Z3 generated Python files from {z3_build_py}")
+            for py_file in z3_build_py.glob("*.py"):
+                shutil.copy2(py_file, IVY / "z3" / py_file.name)
+        else:
+            print(f"WARNING: Z3 build Python directory not found: {z3_build_py}")
+            print("z3core.py and z3consts.py may be missing")
+
+    # Verify Z3 Python bindings are complete
+    required_files = ["__init__.py", "z3.py"]
+    missing = [f for f in required_files if not (IVY / "z3" / f).exists()]
+    if missing:
+        print(f"WARNING: Z3 Python binding files missing from ivy/z3/: {missing}")
+        # Fallback: copy from source tree
+        z3_py_src = SUBMOD / "z3" / "src" / "api" / "python" / "z3"
+        if z3_py_src.exists():
+            print(f"Fallback: copying from {z3_py_src}")
+            for py_file in z3_py_src.glob("*.py"):
+                shutil.copy2(py_file, IVY / "z3" / py_file.name)
 
 def build_picotls():
     if not os.path.exists('submodules/picotls'):

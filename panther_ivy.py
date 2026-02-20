@@ -290,17 +290,17 @@ class PantherIvyServiceManager(
             ("ivy_stdout", "stdout.log"),
             ("ivy_stderr", "stderr.log"),
             ("test_results", "test_results.json"),
-            ("compilation_status", "compilation_status.txt"),  # Add compilation status file
+            ("compilation_status", "compile/compilation_status.txt"),  # Matches actual write path
             ("pcap", "{service_name}.pcap"),
             ("sslkeylog", "sslkeylogfile.txt"),
         ]
-        
+
         if self._get_protocol_name() == "quic":
             patterns.extend([
                 ("qlog", "*.qlog"),
                 ("keys", "*keys.log"),
             ])
-        
+
         return patterns
 
     def _get_protocol_name(self):

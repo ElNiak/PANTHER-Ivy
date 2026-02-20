@@ -42,6 +42,7 @@ setup(
                 "lib/*.dll",
                 "lib/*.lib",
                 "z3/*.dll",
+                "z3/*.py",
             ]
         }
         if platform.system() == "Windows"
@@ -54,6 +55,7 @@ setup(
                     "lib/*.dylib",
                     "lib/*.a",
                     "z3/*.dylib",
+                    "z3/*.py",
                     "bin/*",
                 ]
             }
@@ -66,6 +68,7 @@ setup(
                     "lib/*.so",
                     "lib/*.a",
                     "z3/*.so",
+                    "z3/*.py",
                     "ivy2/s3/ivyc_s3",
                     "bin/*",
                 ]
