@@ -289,9 +289,9 @@ This configuration creates a test where:
 
 # Installation (*old*)
 ## Linux
-On Debian-based Linux ditributions such as Ubuntu, download and install the file `ms-ivy_X.X_YYYY.deb` where `X.X` is the IVy version and `YYYY` is the machine architecture. Use your system’s package manager to install this package, or the following commands:
+On Debian-based Linux ditributions such as Ubuntu, download and install the file `panther-ms-ivy_X.X_YYYY.deb` where `X.X` is the IVy version and `YYYY` is the machine architecture. Use your system’s package manager to install this package, or the following commands:
 ```
-$ sudo dpkg -i ms-ivy_X.X_YYYY.deb
+$ sudo dpkg -i panther-ms-ivy_X.X_YYYY.deb
 $ sudo apt-get install -f
 ```
 The first command will report missing dependencies, which will be installed by the second command.

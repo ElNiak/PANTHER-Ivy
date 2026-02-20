@@ -39,7 +39,7 @@ Ivy is packaged as a python "wheel".
 It is also possible to build a debian package, though this is
 obsolete. 
 
-1. Rename this directory to ms-ivy-X.Y where X.Y is the version number
+1. Rename this directory to panther-ms-ivy-X.Y where X.Y is the version number
 2. Edit the files in debian/ to reflect the current version number
 3. Run 'make builddeb'
 4. The .deb file appears in the parent directory
