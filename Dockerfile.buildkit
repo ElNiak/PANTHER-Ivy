@@ -6,6 +6,12 @@ ARG RUNTIME_MODE=minimal
 # =============================================================================
 # PANTHER IVY Tester - Modern Multi-Platform BuildKit Dockerfile
 # Cross-platform formal verification with automatic platform detection
+#
+# Multi-stage architecture for optimal layer caching:
+#   deps        -> shared toolchain (apt, pyenv, pip, external deps)
+#   z3-builder  -> Z3 compilation (only rebuilds when submodules/z3 changes)
+#   base        -> remaining builds (picotls, aiger, abc) + setup.py install
+#   final       -> runtime metadata and healthcheck
 # =============================================================================
 
 # BuildKit automatic platform arguments
@@ -24,23 +30,19 @@ ARG DEPENDENCIES="[]"  # JSON-formatted list of dependencies
 ARG BUILD_MODE=""  # Build mode for Z3 compilation: '', 'debug-asan', 'rel-lto', or 'release-static-pgo'
 
 # =============================================================================
-# STAGE 1: BUILD - Cross-platform build environment for IVY
+# STAGE 1: DEPS - Shared toolchain for all build stages
 # =============================================================================
 
-FROM --platform=$TARGETPLATFORM ${BASE_IMAGE} AS base
+FROM --platform=$TARGETPLATFORM ${BASE_IMAGE} AS deps
 
 # Re-declare ARGs after FROM to make them available in this stage
-ARG VERSION
 ARG DEPENDENCIES
-ARG BUILD_MODE
 ARG TARGETARCH
 ARG BUILDPLATFORM
 ARG TARGETPLATFORM
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DEPENDENCIES=${DEPENDENCIES}
-ENV VERSION=${VERSION}
-ENV BUILD_MODE=${BUILD_MODE}
 ENV TARGETPLATFORM=${TARGETPLATFORM}
 
 RUN bash -c '\
@@ -76,7 +78,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zlib1g-dev libbz2-dev liblzma-dev \
     libsqlite3-dev libssl-dev libffi-dev libreadline-dev \
     tk-dev tcl-dev libncursesw5-dev libgdbm-dev libnss3-dev libedit-dev \
-    uuid-dev 
+    uuid-dev
 
 # Install pyenv (skip if already present from base image)
 RUN if [ ! -d "$HOME/.pyenv" ]; then \
@@ -107,13 +109,6 @@ RUN --mount=type=cache,target=/root/.cache-${TARGETPLATFORM}/pip \
 RUN --mount=type=cache,target=/root/.cache-${TARGETPLATFORM}/pip \
     python3.10 -m pip install \
     pexpect chardet pandas scandir ply pygraphviz pydot progressbar2
-
-# # Ensure LTO-aware archivers are locked in before CMake runs
-# ENV AR=/usr/bin/gcc-ar \
-#     RANLIB=/usr/bin/gcc-ranlib \
-#     CMAKE_AR=/usr/bin/gcc-ar \
-#     CMAKE_RANLIB=/usr/bin/gcc-ranlib
-
 
 # Dependency building with git and build cache
 RUN --mount=type=cache,target=/tmp/git-cache-${TARGETPLATFORM} \
@@ -157,37 +152,85 @@ RUN --mount=type=cache,target=/tmp/git-cache-${TARGETPLATFORM} \
         fi; \
     done
 
-# Copy application files (order optimized for caching)
-COPY setup.py build_submodules.py /opt/panther_ivy/
-COPY submodules /opt/panther_ivy/submodules/
-# TODO change arch to avoid rebuilding everything on small changes -> volume mount? Is it possible during build? 
-COPY ivy /opt/panther_ivy/ivy/ 
-COPY lib /opt/panther_ivy/lib/
-COPY patches /opt/panther_ivy/patches/
+# =============================================================================
+# STAGE 2: Z3-BUILDER - Isolated Z3 compilation
+# Only rebuilds when submodules/z3/, patches/, or build_submodules.py change.
+# Changes to ivy/ or lib/ do NOT trigger Z3 rebuild (~30 min savings).
+# =============================================================================
 
-ENV PYTHONPATH="/opt/panther_ivy/:\${PYTHONPATH}"
-WORKDIR /opt/panther_ivy/
+FROM deps AS z3-builder
+
+ARG BUILD_MODE
+ARG VERSION
+ARG TARGETPLATFORM
+
+WORKDIR /opt/panther_ivy
+
+# Copy ONLY what Z3 needs (ordered by change frequency)
+COPY build_submodules.py setup.py /opt/panther_ivy/
+COPY patches /opt/panther_ivy/patches/
+COPY submodules/z3 /opt/panther_ivy/submodules/z3/
 
 # Apply patch to make Z3 git dependency optional for Docker builds
-RUN cd /opt/panther_ivy && \
-    patch -p1 < patches/z3-cmake-git-optional.patch
+RUN patch -p1 < patches/z3-cmake-git-optional.patch
+
+# Ensure output directories exist for COPY --from in later stages
+RUN mkdir -p lib include ivy/lib ivy/z3 ivy/include
+
+# Build Z3. This entire stage is cached at the Docker layer level when inputs
+# (submodules/z3/, patches/, build_submodules.py) don't change.
+# No cache mount needed here since the multi-stage isolation already prevents
+# unnecessary rebuilds from ivy/ or lib/ changes.
+RUN BUILD_MODE=${BUILD_MODE} python3.10 build_submodules.py --z3-only
+
+# =============================================================================
+# STAGE 3: BASE - Main build (picotls, aiger, abc) + install
+# =============================================================================
+
+FROM deps AS base
+
+ARG BUILD_MODE
+ARG VERSION
+ARG TARGETPLATFORM
+
+ENV VERSION=${VERSION}
+ENV PYTHONPATH="/opt/panther_ivy${PYTHONPATH:+:${PYTHONPATH}}"
+WORKDIR /opt/panther_ivy/
+
+# Copy application files (order: stable first, volatile last)
+COPY setup.py build_submodules.py /opt/panther_ivy/
+COPY patches /opt/panther_ivy/patches/
+COPY submodules /opt/panther_ivy/submodules/
+COPY ivy /opt/panther_ivy/ivy/
+COPY lib /opt/panther_ivy/lib/
+
+# Overlay Z3 build artifacts from z3-builder stage.
+# These COPY --from layers are only re-executed if the z3-builder stage changed,
+# even though previous COPY layers may have invalidated.
+# The z3-builder stage is cached independently of ivy/ and lib/ changes.
+COPY --from=z3-builder /opt/panther_ivy/lib/ /opt/panther_ivy/lib/
+COPY --from=z3-builder /opt/panther_ivy/include/ /opt/panther_ivy/include/
+# Z3 Python bindings + ivy-internal copies (from mk_make.py --pypkgdir + install_z3)
+COPY --from=z3-builder /opt/panther_ivy/ivy/z3/ /opt/panther_ivy/ivy/z3/
+COPY --from=z3-builder /opt/panther_ivy/ivy/lib/ /opt/panther_ivy/ivy/lib/
+COPY --from=z3-builder /opt/panther_ivy/ivy/include/ /opt/panther_ivy/ivy/include/
 
 # ---- tool-chain & wrappers --------------------------------------------------
 RUN --mount=type=cache,target=/var/cache/apt,id=toolchain-$TARGETPLATFORM,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,id=toolchainlib-$TARGETPLATFORM,sharing=locked \
     apt-get update && \
     apt-get install --no-install-recommends -y \
-    build-essential git ninja-build binutils gcc g++ && \
+    build-essential git ninja-build binutils gcc g++ gdb && \
     rm -rf /var/lib/apt/lists/*
 
-# Build and install with platform-specific pip and build caches
+# Build remaining submodules (picotls, aiger, abc) and install.
+# Z3 is already built - use --skip-z3 to skip it.
+# BUILD_MODE passed as env var (not as layer ENV) to avoid invalidating COPY layers.
 RUN --mount=type=cache,target=/root/.cache/pip-$TARGETPLATFORM,sharing=locked \
     --mount=type=cache,target=/tmp/python-build-$TARGETPLATFORM,sharing=locked \
-    --mount=type=cache,target=/opt/panther_ivy/build-$TARGETPLATFORM,sharing=locked \
-    python3.10 build_submodules.py && \
+    BUILD_MODE=${BUILD_MODE} python3.10 build_submodules.py --skip-z3 && \
     sudo python3.10 setup.py install && \
     # Copy libz3.so to locations expected by Z3 Python bindings
-    # This is required for optimized BUILD_MODE where install_z3() is skipped
     mkdir -p submodules/z3/build/python/z3 && \
     mkdir -p ivy/z3 && \
     # Verify libz3.so exists before copying (fail-fast if Z3 build failed)

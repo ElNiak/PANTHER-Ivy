@@ -1,3 +1,4 @@
+import re
 from typing import Any, Dict, List, Optional, Tuple
 
 
@@ -28,16 +29,45 @@ class IvyAnalysisMixin:
         # Analyze each service
         detailed_results = {}
         all_failures = []
-        passed = False
+        seen_failures = set()
 
         for service_name, outputs in service_outputs.items():
             service_result = self._analyze_service_outputs(service_name, outputs)
             detailed_results[service_name] = service_result
 
-            if service_result["execution_successful"]:
-                passed = True
-            else:
-                all_failures.extend(service_result["error_messages"])
+            verdict = service_result.get("verdict", "UNKNOWN")
+            if verdict != "UNKNOWN":
+                # Decisive IVY verdict — only NO_VIOLATION_FOUND is a pass
+                if verdict != "NO_VIOLATION_FOUND":
+                    for msg in service_result["error_messages"]:
+                        if msg not in seen_failures:
+                            seen_failures.add(msg)
+                            all_failures.append(msg)
+            elif not service_result["execution_successful"]:
+                for msg in service_result["error_messages"]:
+                    if msg not in seen_failures:
+                        seen_failures.add(msg)
+                        all_failures.append(msg)
+
+        # Test passes only if at least one decisive verdict is NO_VIOLATION_FOUND,
+        # no decisive verdict is negative, and all compilations succeeded
+        decisive = {
+            name: r.get("verdict", "UNKNOWN")
+            for name, r in detailed_results.items()
+            if r.get("verdict", "UNKNOWN") != "UNKNOWN"
+        }
+        all_compilations_succeeded = all(
+            r.get("compilation_succeeded", False)
+            for r in detailed_results.values()
+        )
+        if decisive:
+            passed = (
+                all(v == "NO_VIOLATION_FOUND" for v in decisive.values())
+                and all_compilations_succeeded
+            )
+        else:
+            # No IVY-specific verdict — cannot positively confirm success
+            passed = False
 
         # Generate summary
         analysis_summary = self._generate_analysis_summary(passed, all_failures)
@@ -46,7 +76,7 @@ class IvyAnalysisMixin:
             "passed": passed,
             "analysis_summary": analysis_summary,
             "detailed_results": detailed_results,
-            "failures": all_failures if not passed else []
+            "failures": all_failures
         }
 
     def analyze_ivy_outputs(self) -> Dict[str, Any]:
@@ -105,31 +135,51 @@ class IvyAnalysisMixin:
         """
         Parse output key to extract service name and output type.
 
+        Keys from Docker Compose output collector follow the format
+        ``{phase}_{type}_{service_name}`` – for example:
+        - ``runtime_stdout_ivy_server``
+        - ``compilation_status_ivy_server``
+        - ``compile_stderr_ivy_server``
+
         Args:
-            output_key: Key like "ivy_stderr_ivy_server" or "stderr_picoquic_client"
+            output_key: Key like "runtime_stderr_ivy_server" or "compilation_status_ivy_server"
 
         Returns:
             Tuple of (service_name, output_type) or (None, None)
         """
-        # Common patterns to parse
-        patterns = [
-            ("_stderr_", "stderr"),
-            ("_stdout_", "stdout"),
-            ("_compile_status_", "compile_status"),  # Changed from compilation_status
+        # Infix patterns – matched as substrings inside the key.
+        # Order matters: more specific patterns first to avoid partial matches.
+        infix_patterns = [
+            ("_compilation_status_", "compile_status"),
+            ("_compile_status_", "compile_status"),
             ("_test_results_", "test_results"),
             ("_ivy_log_", "ivy_log"),
+            ("_stderr_", "stderr"),
+            ("_stdout_", "stdout"),
         ]
 
-        for pattern, output_type in patterns:
+        for pattern, output_type in infix_patterns:
             if pattern in output_key:
                 parts = output_key.split(pattern)
                 if len(parts) > 1:
                     return parts[1], output_type
 
-        # Fallback patterns
-        for prefix in ["stderr_", "stdout_", "compile_status_", "test_results_"]:
+        # Prefix patterns – keys that start with the type directly.
+        prefix_patterns = [
+            ("compilation_status_", "compile_status"),
+            ("compile_status_", "compile_status"),
+            ("runtime_stdout_", "stdout"),
+            ("runtime_stderr_", "stderr"),
+            ("compile_stdout_", "stdout"),
+            ("compile_stderr_", "stderr"),
+            ("stderr_", "stderr"),
+            ("stdout_", "stdout"),
+            ("test_results_", "test_results"),
+        ]
+
+        for prefix, output_type in prefix_patterns:
             if output_key.startswith(prefix):
-                return output_key[len(prefix):], prefix[:-1]
+                return output_key[len(prefix):], output_type
 
         return None, None
 
@@ -210,13 +260,40 @@ class IvyAnalysisMixin:
             stdout_analysis = self._analyze_stdout_details(outputs["stdout"], service_name)
             result.update(stdout_analysis)
 
-        # Check compilation status
-        if not result["has_errors"]:
-            result["compilation_succeeded"] = self._check_compilation_status(outputs)
-            result["test_executed"] = self._verify_test_execution(outputs)
+        # Check compilation and test execution markers
+        result["compilation_succeeded"] = self._check_compilation_status(outputs)
+        result["test_executed"] = self._verify_test_execution(outputs)
 
-            # Determine overall success
-            if result["compilation_succeeded"] and result["test_executed"]:
+        # --- IVY verdict determination (primary decision logic) ---
+        stdout_content = outputs.get("stdout", "")
+        stderr_content = outputs.get("stderr", "")
+        verdict_info = self._determine_ivy_verdict(stdout_content, stderr_content)
+        result["verdict"] = verdict_info["verdict"]
+        result["assumption_failures"] = verdict_info["assumption_failures"]
+
+        verdict = verdict_info["verdict"]
+
+        if verdict == "NO_VIOLATION_FOUND":
+            result["execution_successful"] = True
+            result["service_status"] = "no_violation_found"
+        elif verdict == "NON_COMPLIANT":
+            result["execution_successful"] = False
+            result["service_status"] = "non_compliant"
+            for af in verdict_info["assumption_failures"]:
+                result["error_messages"].append(af)
+        elif verdict == "TESTER_CRASH":
+            result["execution_successful"] = False
+            result["service_status"] = "tester_crash"
+            result["error_messages"].extend(verdict_info["details"])
+        elif verdict == "IUT_CRASH":
+            result["execution_successful"] = False
+            result["service_status"] = "iut_crash"
+            result["error_messages"].extend(verdict_info["details"])
+        else:
+            # UNKNOWN – fall back to compilation + lifecycle heuristics
+            if result["has_errors"]:
+                result["service_status"] = "error_detected"
+            elif result["compilation_succeeded"] and result["test_executed"]:
                 result["execution_successful"] = True
                 result["service_status"] = "completed_successfully"
             else:
@@ -237,14 +314,16 @@ class IvyAnalysisMixin:
                     result["service_status"] = "completed_inferred"
                 else:
                     if not result["compilation_succeeded"]:
-                        result["error_messages"].append("No confirmation of successful compilation")
+                        result["error_messages"].append(
+                            "No confirmation of successful compilation"
+                        )
                         result["service_status"] = "compilation_failed"
                     if not result["test_executed"]:
-                        result["error_messages"].append("No confirmation of test execution")
+                        result["error_messages"].append(
+                            "No confirmation of test execution"
+                        )
                         if result["service_status"] == "unknown":
                             result["service_status"] = "execution_failed"
-        else:
-            result["service_status"] = "error_detected"
 
         return result
 
@@ -343,7 +422,6 @@ class IvyAnalysisMixin:
             if "exit code" in line.lower() or "return code" in line.lower():
                 try:
                     # Try to extract numeric exit code
-                    import re
                     code_match = re.search(r'(?:exit|return)\s+code[:\s]+(\d+)', line, re.IGNORECASE)
                     if code_match:
                         details["return_code"] = int(code_match.group(1))
@@ -354,7 +432,6 @@ class IvyAnalysisMixin:
             # Extract timing information
             if "duration" in line.lower() or "elapsed" in line.lower():
                 try:
-                    import re
                     time_match = re.search(r'(\d+(?:\.\d+)?)\s*(?:s|sec|seconds?|ms|milliseconds?)', line, re.IGNORECASE)
                     if time_match:
                         details["runtime_duration"] = time_match.group(1)
@@ -362,6 +439,100 @@ class IvyAnalysisMixin:
                     pass
 
         return details
+
+    # ------------------------------------------------------------------
+    # IVY verdict determination
+    # ------------------------------------------------------------------
+
+    def _determine_ivy_verdict(
+        self, stdout_content: str, stderr_content: str
+    ) -> Dict[str, Any]:
+        """Determine IVY test verdict from stdout/stderr markers.
+
+        Verdict semantics
+        -----------------
+        * ``assumption_failed(...)`` in stdout  -> NON_COMPLIANT
+        * ``test_completed`` in stdout (no assumption_failed) -> NO_VIOLATION_FOUND
+        * Protocol activity (``<``/``>`` lines, no assumption_failed) -> NO_VIOLATION_FOUND
+        * Tester crash (segfault / SIGSEGV, no markers) -> TESTER_CRASH
+        * IUT crash (connection reset / timeout after partial) -> IUT_CRASH
+        * No stdout/stderr at all -> UNKNOWN
+
+        Returns:
+            Dict with keys: verdict, details, assumption_failures
+        """
+        verdict = "UNKNOWN"
+        details: List[str] = []
+        assumption_failures: List[str] = []
+
+        has_stdout = bool(stdout_content and stdout_content.strip())
+        has_stderr = bool(stderr_content and stderr_content.strip())
+
+        if not has_stdout and not has_stderr:
+            return {
+                "verdict": "UNKNOWN",
+                "details": ["No stdout/stderr output available"],
+                "assumption_failures": [],
+            }
+
+        # --- Check stdout for IVY-specific markers ---
+        if has_stdout:
+            # Collect all assumption_failed occurrences
+            af_pattern = re.compile(r'assumption_failed\(([^)]*)\)')
+            for match in af_pattern.finditer(stdout_content):
+                assumption_failures.append(match.group(0))
+
+            has_test_completed = "test_completed" in stdout_content
+
+            if assumption_failures:
+                verdict = "NON_COMPLIANT"
+                details.append(
+                    f"Found {len(assumption_failures)} assumption failure(s)"
+                )
+            elif has_test_completed:
+                verdict = "NO_VIOLATION_FOUND"
+                details.append("test_completed marker found, no assumption failures")
+            elif re.search(r'^[<>]\s', stdout_content, re.MULTILINE):
+                # Protocol activity with no assumption failures -> NO_VIOLATION_FOUND
+                # IVY emits lines starting with < or > for protocol events.
+                verdict = "NO_VIOLATION_FOUND"
+                details.append(
+                    "Protocol activity detected without assumption failures"
+                )
+
+        # --- Check for crash indicators (only if not already decided) ---
+        if verdict == "UNKNOWN":
+            crash_indicators_tester = [
+                "segmentation fault", "sigsegv", "sigabrt", "core dumped",
+                "aborted", "std::bad_alloc",
+            ]
+            crash_indicators_iut = [
+                "connection reset", "connection refused",
+                "broken pipe", "timed out",
+            ]
+
+            combined = (
+                (stdout_content or "") + "\n" + (stderr_content or "")
+            ).lower()
+
+            for indicator in crash_indicators_tester:
+                if indicator in combined:
+                    verdict = "TESTER_CRASH"
+                    details.append(f"Crash indicator: {indicator}")
+                    break
+
+            if verdict == "UNKNOWN":
+                for indicator in crash_indicators_iut:
+                    if indicator in combined:
+                        verdict = "IUT_CRASH"
+                        details.append(f"IUT crash indicator: {indicator}")
+                        break
+
+        return {
+            "verdict": verdict,
+            "details": details,
+            "assumption_failures": assumption_failures,
+        }
 
     def _extract_timestamp(self, line: str) -> Optional[str]:
         """
@@ -373,7 +544,6 @@ class IvyAnalysisMixin:
         Returns:
             Timestamp string or None
         """
-        import re
         # Look for timestamp patterns like [2025-06-24 03:53:47]
         timestamp_match = re.search(r'\[(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\]', line)
         if timestamp_match:
@@ -443,13 +613,26 @@ class IvyAnalysisMixin:
         Returns:
             True if compilation succeeded
         """
-        # Check compilation_status.txt first
-        if "compile_status" in outputs and outputs["compile_status"]:
-            status = outputs["compile_status"].strip().lower()
-            if "compilation succeeded" in status:
-                return True
-            elif "compilation failed" in status:
-                return False
+        # Check compilation_status / compile_status key (both variants)
+        for key in ("compile_status", "compilation_status"):
+            if key in outputs and outputs[key]:
+                status = outputs[key].strip().lower()
+                success_patterns = [
+                    "compilation succeeded",
+                    "compilation success",
+                    "succeeded",
+                    "success",
+                    "ok",
+                ]
+                failure_patterns = [
+                    "compilation failed",
+                    "failed",
+                    "error",
+                ]
+                if any(p in status for p in success_patterns):
+                    return True
+                elif any(p in status for p in failure_patterns):
+                    return False
 
         # Check stdout for compilation success patterns
         if "stdout" in outputs and outputs["stdout"]:
@@ -457,7 +640,7 @@ class IvyAnalysisMixin:
                 "compilation succeeded",
                 "compilation complete",
                 "successfully built",
-                "test executable created"
+                "test executable created",
             ]
 
             stdout_lower = outputs["stdout"].lower()
@@ -475,7 +658,14 @@ class IvyAnalysisMixin:
 
     def _verify_test_execution(self, outputs: Dict[str, str]) -> bool:
         """
-        Verify if test was executed.
+        Verify if test was actually executed.
+
+        IVY tests don't emit generic "test started" / "running test" messages.
+        Instead we look for IVY-specific evidence:
+        - Protocol event markers (``<`` or ``>``) in stdout
+        - ``assumption_failed`` in stdout (proves the test ran)
+        - ``test_completed`` in stdout
+        - ``call_generating`` / ``cycles =`` in stderr
 
         Args:
             outputs: Service outputs
@@ -487,21 +677,16 @@ class IvyAnalysisMixin:
         if "test_results" in outputs:
             return True
 
-        # Check stdout for test execution patterns
+        # Check stdout for IVY-specific execution evidence
         if "stdout" in outputs and outputs["stdout"]:
-            execution_patterns = [
-                "test started",
-                "running test",
-                "test complete",
-                "test finished",
-                "test passed",
-                "all tests passed"
-            ]
-
-            stdout_lower = outputs["stdout"].lower()
-            for pattern in execution_patterns:
-                if pattern in stdout_lower:
-                    return True
+            stdout = outputs["stdout"]
+            # Protocol event markers (e.g. "> quic_connected" or "< quic_packet")
+            if re.search(r'^[<>]\s', stdout, re.MULTILINE):
+                return True
+            if "assumption_failed" in stdout:
+                return True
+            if "test_completed" in stdout:
+                return True
 
         # Fallback: check stderr for evidence the test actually ran
         if "stderr" in outputs and outputs["stderr"]:

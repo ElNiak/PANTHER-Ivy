@@ -284,13 +284,28 @@ class PantherIvyServiceManager(
 
 
     def _get_ivy_output_patterns(self) -> List[Tuple[str, str]]:
-        """Get Ivy-specific output patterns."""
+        """Get Ivy-specific output patterns using phase-based directory structure.
+
+        Returns patterns matching the Docker container directory layout created
+        by entrypoint.sh.jinja, where each execution phase writes to its own
+        subdirectory (pre-compile/, compile/, runtime/, test/).
+        """
         patterns = [
+            # Ivy-specific root-level log
             ("ivy_log", "ivy_{service_name}.log"),
-            ("ivy_stdout", "stdout.log"),
-            ("ivy_stderr", "stderr.log"),
-            ("test_results", "test_results.json"),
-            ("compilation_status", "compile/compilation_status.txt"),  # Matches actual write path
+            # Phase-based stdout/stderr
+            ("pre_compile_stdout", "pre-compile/stdout.log"),
+            ("pre_compile_stderr", "pre-compile/stderr.log"),
+            ("compile_stdout", "compile/stdout.log"),
+            ("compile_stderr", "compile/stderr.log"),
+            ("compile_log", "compile/ivy_compile.log"),
+            ("compile_status", "compile/compilation_status.txt"),
+            ("runtime_stdout", "runtime/stdout.log"),
+            ("runtime_stderr", "runtime/stderr.log"),
+            ("test_stdout", "test/stdout.log"),
+            ("test_stderr", "test/stderr.log"),
+            ("test_results", "test/test_results.json"),
+            # Artifacts
             ("pcap", "{service_name}.pcap"),
             ("sslkeylog", "sslkeylogfile.txt"),
         ]
@@ -302,6 +317,15 @@ class PantherIvyServiceManager(
             ])
 
         return patterns
+
+    def get_output_patterns(self) -> List[Tuple[str, str]]:
+        """Override to ensure Ivy phase-based patterns are used.
+
+        Prevents MRO shadowing where IServiceManager.get_output_patterns()
+        (returning self._output_patterns) would be resolved before
+        IvyOutputPatternMixin.get_output_patterns().
+        """
+        return self._output_patterns
 
     def _get_protocol_name(self):
         """Helper method to safely get protocol name."""
@@ -953,9 +977,10 @@ class PantherIvyServiceManager(
         except Exception as e:
             self.logger.error(f"Error analyzing outputs: {e}")
             return {
-                "success": False,
-                "error": str(e),
-                "analysis": "Analysis failed due to error"
+                "passed": False,
+                "analysis_summary": f"Analysis failed due to error: {e}",
+                "detailed_results": {},
+                "failures": [str(e)],
             }
 
     def __str__(self) -> str:

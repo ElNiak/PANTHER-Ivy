@@ -7,7 +7,25 @@ version_configs
 bin
 doc
 examples
+
 # Ignore generated files
 **/*.pyc
+**/__pycache__
 ivy/ivy2
 ivy/js
+
+# Git metadata (submodule refs change on checkout/fetch, busting Docker cache)
+.git
+**/.git
+
+# OS files
+**/.DS_Store
+
+# Build artifacts (prevent local builds from entering Docker context)
+**/*.o
+**/*.so
+**/*.a
+submodules/z3/build
+submodules/picotls/build
+submodules/abc/build
+submodules/aiger/build
