@@ -24,9 +24,9 @@ except:
     long_description = None
 
 setup(
-    name="ms_ivy",
+    name="panther_ms_ivy",
     python_requires=">=3.10",
-    version="1.8.25",
+    version="1.8.26",
     description="IVy verification tool",
     long_description=long_description,
     url="https://github.com/ElNiak/Panther-IVy",

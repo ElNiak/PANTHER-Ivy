@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Panther-Ivy is a **PANTHER framework plugin** (`PluginType.TESTER`) that integrates Microsoft's IVy formal verification tool for specification-based protocol testing. It generates test traffic from formal Ivy protocol models and verifies implementation compliance against those models. The primary supported protocol is QUIC (RFC 9000).
 
-This repository is a **git submodule** of the main PANTHER project, located at `panther/plugins/services/testers/panther_ivy/`. It is also a standalone Python package (`ms_ivy`, version 1.8.25).
+This repository is a **git submodule** of the main PANTHER project, located at `panther/plugins/services/testers/panther_ivy/`. It is also a standalone Python package (`panther_ms_ivy`, version 1.8.26).
 
 ## Essential Commands
 
