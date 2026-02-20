@@ -8,7 +8,7 @@ from . import ivy_utils as utl
 from . import ivy_logic_utils as lut
 from . import ivy_logic as lg
 from . import ivy_utils as iu
-from . import ivy_ui
+#from . import ivy_ui
 from . import ivy_module as im
 from . import ivy_alpha
 from . import ivy_art
@@ -25,10 +25,15 @@ from . import ivy_trace
 from . import ivy_temporal as itmp
 from . import ivy_printer
 from . import ivy_l2s
+from . import ivy_ranking
 from . import ivy_mc
 from . import ivy_vmt
+from . import ivy_duoai
 from . import ivy_bmc
 from . import ivy_tactics
+from . import ivy_mypyvy
+
+print ('starting ivy_check...')
 
 import sys
 from collections import defaultdict
@@ -40,25 +45,26 @@ opt_trusted = iu.BooleanParameter("trusted",False)
 opt_mc = iu.BooleanParameter("mc",False)
 opt_trace = iu.BooleanParameter("trace",False)
 opt_separate = iu.BooleanParameter("separate",None)
+opt_method = iu.Parameter("method","")
 
 def display_cex(msg,ag):
-    if diagnose.get():
-        from . import tk_ui as ui
-        iu.set_parameters({'mode':'induction'})
-        ui.ui_main_loop(ag)
-        exit(1)
+#    if diagnose.get():
+#        from . import tk_ui as ui
+#        iu.set_parameters({'mode':'induction'})
+#        ui.ui_main_loop(ag)
+#        exit(1)
     raise iu.IvyError(None,msg)
     
 def check_properties():
     if itp.false_properties():
         if diagnose.get():
             print("Some properties failed.")
-            from . import tk_ui as ui
-            iu.set_parameters({'mode':'induction'})
-            gui = ui.new_ui()
-            gui.tk.update_idletasks() # so that dialog is on top of main window
-            gui.try_property()
-            gui.mainloop()
+#           from . import tk_ui as ui
+#            iu.set_parameters({'mode':'induction'})
+#            gui = ui.new_ui()
+#            gui.tk.update_idletasks() # so that dialog is on top of main window
+#            gui.try_property()
+#            gui.mainloop()
             exit(1)
         raise iu.IvyError(None,"Some properties failed.")
     im.module.labeled_axioms.extend(im.module.labeled_props)
@@ -74,21 +80,21 @@ def show_counterexample(ag,state,bmc_res):
     gui_art(other_art)
 
 def gui_art(other_art):
-    from . import tk_ui as ui
+#    from . import tk_ui as ui
 #    iu.set_parameters({'mode':'induction'})
 #    iu.set_parameters({'ui':'cti'})
-    gui = ui.new_ui()
-    if ivy_ui.default_ui.get() == "art":
-        print ("initializers: {}".format(im.module.initializers))
-        other_art = ivy_art.AnalysisGraph()
-        other_art.add_initial_state()
-        if 'initialize' in im.module.actions:
-            init_action = im.module.actions['initialize']
-            print ("initialize: {}".format(init_action))
-            ag.execute(init_action, None, None, 'initialize')
-    agui = gui.add(other_art)
-    gui.tk.update_idletasks() # so that dialog is on top of main window
-    gui.tk.mainloop()
+#    gui = ui.new_ui()
+#    if ivy_ui.default_ui.get() == "art":
+#        print ("initializers: {}".format(im.module.initializers))
+#        other_art = ivy_art.AnalysisGraph()
+#        other_art.add_initial_state()
+#        if 'initialize' in im.module.actions:
+#            init_action = im.module.actions['initialize']
+#            print ("initialize: {}".format(init_action))
+#            ag.execute(init_action, None, None, 'initialize')
+#    agui = gui.add(other_art)
+#    gui.tk.update_idletasks() # so that dialog is on top of main window
+#    gui.tk.mainloop()
     exit(1)
 
     
@@ -187,8 +193,11 @@ def is_unprovable_assert(asrt):
 def is_guarantee_mod_unprovable(asrt):
     return is_unprovable_assert(asrt) == act.check_unprovable.get()
 
+def is_unprovable(lf):
+    return hasattr(lf,'unprovable') and lf.unprovable
+
 def is_check_mod_unprovable(lf):
-    return lf.unprovable == act.check_unprovable.get()
+    return is_unprovable(lf) == act.check_unprovable.get()
 
 class Checker(object):
     def __init__(self,conj,report_pass=True,invert=True):
@@ -379,7 +388,7 @@ def check_fcs_in_state(mod,ag,post,fcs):
             act.match_annotation(action,annot,handler)
             handler.end()
             if hasattr(mod,"trace_hook"):
-                handler = mod.trace_hook(handler)
+                handler = mod.trace_hook(handler,ffcs)
             ff = failed[0]
             handler.is_cti = (lut.formula_to_clauses(ff.lf.formula) if isinstance(ff,ConjChecker)
                               else None)
@@ -394,9 +403,20 @@ def check_fcs_in_state(mod,ag,post,fcs):
             show_counterexample(ag,post,res)
     return not any(fc.failed for fc in fcs)
 
-def check_conjs_in_state(mod,ag,post,indent=8):
+def convert_postconds(state,postconds):
+    updated,postcond,pre = state.update if state.update is not None else ([],None,None)
+    renaming = dict((s,itr.old_of(s))
+                    for s in lut.used_symbols_asts(x.formula for x in postconds)
+                    if itr.is_old(s))
+    for s in updated:
+        renaming[itr.old(s)] = s.prefix('__')
+    return [x.clone([x.args[0],lut.rename_ast(x.formula,renaming)])
+            for x in postconds]
+
+def check_conjs_in_state(mod,ag,post,indent=8,pcs=[]):
     conjs = mod.conj_subgoals if mod.conj_subgoals is not None else mod.labeled_conjs
     conjs = [x for x in conjs if is_check_mod_unprovable(x)]
+    conjs += convert_postconds(post,pcs)
     check_lineno = act.checked_assert.get()
     if check_lineno == "":
         check_lineno = None
@@ -439,15 +459,23 @@ def apply_conj_proofs(mod):
 def check_isolate(trace_hook = None):
     mod = im.module
     if mod.isolate_proof is not None:
-        pc = ivy_proof.ProofChecker(mod.labeled_axioms+mod.assumed_invariants,mod.definitions,mod.schemata)
+        axioms = mod.labeled_axioms + mod.assumed_invariants + [x for x in mod.labeled_props if x.assumed]
+        defns = [ivy_proof.definition_to_goal(x) for x in mod.definitions]
+        pc = ivy_proof.ProofChecker([],[],mod.schemata)
         model = itmp.normal_program_from_module(im.module)
-        prop = ivy_ast.LabeledFormula(ivy_ast.Atom('safety'),lg.And())
-        subgoal = ivy_ast.LabeledFormula(ivy_ast.Atom('safety'),ivy_ast.TemporalModels(model,lg.And()))
-        subgoal.lineno = mod.isolate_proof.lineno 
+        prop = ivy_proof.make_goal(mod.isolate_proof.lineno, 'safety', [], lg.And())
+        subgoal = ivy_proof.make_goal(mod.isolate_proof.lineno,'safety',
+                                      defns + axioms, ivy_ast.TemporalModels(model,lg.And()))
         #        print 'subgoal = {}'.format(subgoal)
         subgoals = [subgoal]
         subgoals = pc.admit_proposition(prop,mod.isolate_proof,subgoals)
-        check_subgoals(subgoals)
+        # TRICKY: when checking the isolate proof, we don't the axioms
+        # and definitions in the module context by default. This allows the
+        # tactics to drop axioms and definitions.  For historical
+        # reasons, when checking temporal properties we *do* use the
+        # context. This should probably be changed, but it requires some
+        # substantial chages to the liveness tactics. 
+        check_subgoals(subgoals,use_context=False)
         return
  
     ifc.check_fragment()
@@ -472,7 +500,7 @@ def check_isolate(trace_hook = None):
             for lf in mod.definitions:
                 print(pretty_lf(lf))
 
-        if (mod.labeled_props or schema_instances) and not checked_action.get() and not unprovable :
+        if (mod.labeled_props or schema_instances) and not checked_action.get():
             print("\n    The following properties are to be checked:")
             if check:
                 for lf in schema_instances:
@@ -482,6 +510,7 @@ def check_isolate(trace_hook = None):
                 pre = itp.State(value = clauses1)
                 props = [x for x in im.module.labeled_props if not x.temporal]
                 props = [p for p in props if not(p.id in subgoalmap and p.explicit)]
+                props = [p for p in props if is_check_mod_unprovable(p)]
                 fcs = ([(ConjAssumer if prop.assumed or prop.id in subgoalmap else ConjChecker)(prop) for prop in props])
                 check_fcs_in_state(mod,ag,pre,fcs)
             else:
@@ -489,7 +518,7 @@ def check_isolate(trace_hook = None):
                     print(pretty_lf(lf))
 
         # after checking properties, make them axioms, except temporals
-        im.module.labeled_axioms.extend(p for p in im.module.labeled_props if not p.temporal)
+        im.module.labeled_axioms.extend(p for p in im.module.labeled_props if not p.temporal and not is_unprovable(p))
         im.module.update_theory()
 
 
@@ -563,7 +592,7 @@ def check_isolate(trace_hook = None):
                     with itp.EvalContext(check=False): # don't check safety
     #                    post = ag.execute(action, pre, None, actname)
                         post = ag.execute(action, pre)
-                    check_conjs_in_state(mod,ag,post,indent=12)
+                    check_conjs_in_state(mod,ag,post,indent=12,pcs=mod.postconds.get(actname,[]))
                 else:
                     print('')
 
@@ -647,7 +676,7 @@ def check_isolate(trace_hook = None):
 # This is a little bit backward. When faced with a subgoal from the prover,
 # we check it by constructing fake isolate.
                 
-def check_subgoals(goals,method=None):
+def check_subgoals(goals,method=None,use_context=True):
     mod = im.module
     for goal in goals:
         # print 'goal: {}'.format(goal)
@@ -665,6 +694,7 @@ def check_subgoals(goals,method=None):
             mod.labeled_props = []
             mod.concept_spaces = []
             mod.labeled_conjs = model.invars
+            mod.postconds = model.postconds if hasattr(model,'postconds') else {}
             mod.public_actions = set(model.calls)
             mod.actions = model.binding_map
             mod.initializers = [('init',model.init)]
@@ -672,6 +702,9 @@ def check_subgoals(goals,method=None):
             mod.assumed_invariants = model.asms
             mod.params = list(mod.params)
             mod.updates = list(mod.updates)
+            if not use_context: 
+                mod.labeled_axioms = []
+                mod.definitions = []
             for prem in ivy_proof.goal_prems(goal):
                 # if hasattr(prem,'temporal') and prem.temporal:
                 if ivy_proof.goal_is_property(prem):
@@ -753,6 +786,34 @@ def vmt_tactic(prover,goals,proof):
 
 ivy_proof.register_tactic('vmt',vmt_tactic)
                     
+def mypyvy_tactic(prover,goals,proof):
+    goal = goals[0]
+    conc = ivy_proof.goal_conc(goal)
+    if isinstance(conc,ivy_ast.TemporalModels):
+        if not lg.is_true(conc.fmla):
+            goals = ivy_tactics.tempind(prover,goals,proof)
+            goals = ivy_tactics.skolemizenp(prover,goals,proof)
+            l2s_pf = proof.clone([proof.args[0],ivy_ast.TacticLets()]+list(proof.args[2:]))
+            goals = ivy_l2s.l2s_tactic_full(prover,goals,l2s_pf)
+    check_subgoals(goals[0:1],method=ivy_mypyvy.check_isolate)
+    return goals[1:]
+
+ivy_proof.register_tactic('mypyvy',mypyvy_tactic)
+
+def duoai_tactic(prover,goals,proof):
+    goal = goals[0]
+    conc = ivy_proof.goal_conc(goal)
+    if isinstance(conc,ivy_ast.TemporalModels):
+        if not lg.is_true(conc.fmla):
+            goals = ivy_tactics.tempind(prover,goals,proof)
+            goals = ivy_tactics.skolemizenp(prover,goals,proof)
+            l2s_pf = proof.clone([proof.args[0],ivy_ast.TacticLets()]+list(proof.args[2:]))
+            goals = ivy_l2s.l2s_tactic_full(prover,goals,l2s_pf)
+    check_subgoals(goals[0:1],method=ivy_duoai.check_isolate)
+    return goals[1:]
+
+ivy_proof.register_tactic('duoai',duoai_tactic)
+                    
 def all_assert_linenos():
     mod = im.module
     all = []
@@ -819,6 +880,8 @@ def mc_isolate(isolate,meth=ivy_mc.check_isolate):
 def get_isolate_method(isolate):
     if opt_mc.get():
         return 'mc'
+    if opt_method.get():
+        return opt_method.get()
     return get_isolate_attr(isolate,'method','ic')
 
 
@@ -858,7 +921,9 @@ def check_module():
             if opt_trusted.get():
                 continue
             method_name = get_isolate_method(isolate)
-            if method_name == 'mc':
+            if method_name == 'convert_to_mypyvy':
+                ivy_mypyvy.check_isolate()
+            elif method_name == 'mc':
                 mc_isolate(isolate)
             elif method_name == 'vmt':
                 mc_isolate(isolate,meth=ivy_vmt.check_isolate)

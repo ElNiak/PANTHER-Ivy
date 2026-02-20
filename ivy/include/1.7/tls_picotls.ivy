@@ -130,7 +130,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
     static int tls_collect_extensions_cb(ptls_t* tls, struct st_ptls_handshake_properties_t* properties, uint16_t type)
     {
         std::cerr << "tls_collect_extensions_cb " << type << "\n";
-        return type & 0xff00 == 0xff00;
+        return (type & 0xff00) == 0xff00;
     }
 
     /*

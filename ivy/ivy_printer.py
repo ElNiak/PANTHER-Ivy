@@ -6,6 +6,8 @@ from . import ivy_ast
 def labeled_fmlas_to_str(kwd,lfmlas):
     res = ''
     for f in lfmlas:
+        if f.unprovable:
+            res += 'unprovable '
         res += kwd + ' '
         if f.label:
             res += '[{}] '.format(f.label)
@@ -20,7 +22,7 @@ def print_module(mod):
     for kwd,lst in [('axiom',mod.labeled_axioms),
                     ('property',mod.labeled_props),
                     ('init',mod.labeled_inits),
-                    ('conjecture',mod.labeled_conjs),
+                    ('invariant',mod.labeled_conjs),
                     ('definition',mod.definitions),
                     ('definition',mod.native_definitions),]:
         

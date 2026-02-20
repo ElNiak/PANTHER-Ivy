@@ -72,8 +72,8 @@ op_pairs = [
     (ivy_ast.And,ivy_logic.And),
     (ivy_ast.Or,ivy_logic.Or),
     (ivy_ast.Not,ivy_logic.Not),
-    (ivy_ast.Globally,lambda x: ivy_logic.Globally(None,x)),
-    (ivy_ast.Eventually,lambda x: ivy_logic.Eventually(None,x)),
+    (ivy_ast.Globally,lambda x: ivy_logic.Globally("",x)),
+    (ivy_ast.Eventually,lambda x: ivy_logic.Eventually("",x)),
     (ivy_ast.And,ivy_logic.And),
     (ivy_ast.Definition,ivy_logic.Definition),
     (ivy_ast.Implies,ivy_logic.Implies),
@@ -1020,7 +1020,7 @@ def resolve_alias(name):
     res = resolve_alias_int(name)
     return res
 
-defined_attributes = set(["weight","test","check","mc","bmc","method","separate","iterable","cardinality","radix","override","cppstd","libspec","macro_finder","global_parameter","complete"])
+defined_attributes = set(["weight","test","check","mc","bmc","method","separate","iterable","cardinality","radix","override","cppstd","libspec","macro_finder","global_parameter","complete","constructors"])
 
 class IvyDomainSetup(IvyDeclInterp):
     def __init__(self,domain):
@@ -1416,6 +1416,7 @@ class IvyARGSetup(IvyDeclInterp):
         global thunk_counter
         thunk_counter = 0
         name = a.args[0].relname
+        # print ('action: {}'.format(a))
         self.mod.actions[name] = compile_action_def(a,self.mod.sig)
         self.mod.public_actions.add(name)
     def state(self,a):
@@ -1688,7 +1689,7 @@ def attach_proofs(mod):
             used.add(lab)
             if lab in m:
                 mod.proofs.append((m[lab],pf[1]))
-            elif lab in mod.isolates:
+            elif lab in mod.isolates or lab == 'this':
                 mod.isolate_proofs[lab] = pf[1]
             else:
                 raise IvyError

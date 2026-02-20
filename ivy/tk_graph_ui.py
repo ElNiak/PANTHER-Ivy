@@ -257,7 +257,7 @@ class TkGraphWidget(TkCyCanvas,uu.WithMenuBar):
             tk = self.tk
             import json
             json_object = json.dumps(self.g.cy_elements.elements, indent=4)
- 
+
             # Writing to sample.json
             import os
             os.system("chown root:root /tmp/cytoscape_config.json")

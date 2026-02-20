@@ -1053,23 +1053,9 @@ def emit_sorts(header):
     Args:
         header (list): The list representing the header file.
 
-    Returns:
-        None
-
-    Raises:
-        None
-
     Notes:
-        - This function iterates over the sorts in the il.sig.sorts dictionary.
-        - It skips the "bool" sort.
-        - If the sort has an interpretation in il.sig.interp, it uses that interpretation.
-        - If the interpretation is an EnumeratedSort or a RangeSort, it uses that as the sort.
-        - If the sort is not an EnumeratedSort, it checks if it has an interpretation in il.sig.interp.
-        - If the interpretation is 'int', 'nat', or a RangeSort, it adds code to the header to create an integer sort.
-        - If the interpretation is in the form 'bv[n]', where n is an integer, it adds code to the header to create a bitvector sort of width n.
-        - If the interpretation is 'strlit', it adds code to the header to create a string sort.
-        - If the sort has an interpretation in sort_to_cpptype and is not in im.module.variants, it adds code to the header to create an enum sort.
-        - If the sort is an EnumeratedSort, it adds code to the header to create an enum sort with the given values.
+        - Iterates over sorts in il.sig.sorts dictionary, skipping 'bool'.
+        - Handles EnumeratedSort, RangeSort, int, nat, bv[n], and strlit interpretations.
     """
     for name,sort in il.sig.sorts.items():
         if name == "bool":
@@ -8613,17 +8599,18 @@ def main_int(is_ivyc):
             if isolate != None:
                 isolates = [isolate]
             else:
-                extracts = list((x,y) for x,y in im.module.isolates.items()
-                                if isinstance(y,ivy_ast.ExtractDef))
-                if len(extracts) == 0:
-                    isol = ivy_ast.ExtractDef(ivy_ast.Atom('extract'),ivy_ast.Atom('this'))
-                    isol.with_args = 1
-                    im.module.isolates['extract'] = isol
-                    isolates = ['extract']
-                elif len(extracts) == 1:
-                    isolates = [extracts[0][0]]
-                print(isolates)
-                print(extracts)
+                if target.get() == 'test':
+                    isolates = ['this']
+                else:
+                    extracts = list((x,y) for x,y in im.module.isolates.items()
+                                    if isinstance(y,ivy_ast.ExtractDef))
+                    if len(extracts) == 0:
+                        isol = ivy_ast.ExtractDef(ivy_ast.Atom('extract'),ivy_ast.Atom('this'))
+                        isol.with_args = 1
+                        im.module.isolates['extract'] = isol
+                        isolates = ['extract']
+                    else:
+                        isolates = [ex[0] for ex in extracts]
         else:
             if isolate != None:
                 isolates = [isolate]
@@ -8716,7 +8703,7 @@ def main_int(is_ivyc):
                     else:
                         libs = []    
                     cpp11 = any((x == 'cppstd' or x.endswith('.cppstd')) and y.rep=='cpp11' for x,y in im.module.attributes.items())
-                    gpp11_spec =  ' -std=c++11 ' # ' -std=c++11 ' if cpp11 else ' -std=c++20 ' 
+                    gpp11_spec =  ' -std=c++11 ' # ' -std=c++11 ' if cpp11 else ' -std=c++20 '
                     libspec = ''
                     for x,y in im.module.attributes.items():
                         p,c = iu.parent_child_name(x)
@@ -8799,7 +8786,7 @@ def main_int(is_ivyc):
                         from os import environ
                         if environ.get('IS_NOT_DOCKER') is not None:
                             cmd += ' -D IS_NOT_DOCKER'
-                        
+
                         # We loop over all environment variables, that start with 'IVY_'
                         # and add them to the command line.
                         for k,v in environ.items():
@@ -8813,7 +8800,7 @@ def main_int(is_ivyc):
                     # else:
                     #     if target.get() in ['gen','test']:
                     #         if 'Z3DIR' in os.environ:
-                    #             paths = '-I $Z3DIR/include -L $Z3DIR/lib -Wl,-rpath=$Z3DIR/lib' 
+                    #             paths = '-I $Z3DIR/include -L $Z3DIR/lib -Wl,-rpath=$Z3DIR/lib'
                     #         else:
                     #             _dir = os.path.dirname(os.path.abspath(__file__))
                     #             paths = ' -I {} -L {} -Wl,-rpath={}'.format(os.path.join(_dir,'include'),os.path.join(_dir,'lib'),os.path.join(_dir,'lib')) # -static
@@ -8826,7 +8813,7 @@ def main_int(is_ivyc):
                     #     if emit_main:
                     #         cmd = "g++ {} {} -g -o {} {}.cpp".format(gpp11_spec,paths,basename,basename)
                     #     else:
-                    #         cmd = "g++ {} {} -g -c {}.cpp".format(gpp11_spec,paths,basename) # -static -lrt 
+                    #         cmd = "g++ {} {} -g -c {}.cpp".format(gpp11_spec,paths,basename) # -static -lrt
                     #     if target.get() in ['gen','test']:
                     #         cmd = cmd + ' -lz3'
                     #     cmd += libspec
@@ -8835,7 +8822,7 @@ def main_int(is_ivyc):
                     #     from os import environ
                     #     if environ.get('IS_NOT_DOCKER') is not None:
                     #         cmd += ' -D IS_NOT_DOCKER'
-                            
+
                     #     if environ.get('GPERF') is not None:
                     #         cmd += ' -lprofiler -ltcmalloc' # CPU profiler
                     # print cmd

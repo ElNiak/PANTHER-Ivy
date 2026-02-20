@@ -13,6 +13,7 @@ class BinaryDistribution(Distribution):
     def has_ext_modules(foo):
         return True
 
+
 # Get the long description from the README file
 here = os.path.abspath(os.path.dirname(__file__))
 try:
@@ -80,6 +81,7 @@ setup(
         "ply",
         "tarjan",
         "pydot",
+        "ordered-set",
     ]
     + (["applescript"] if platform.system() == "Darwin" else []),
     entry_points={
