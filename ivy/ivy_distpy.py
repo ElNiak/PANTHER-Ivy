@@ -246,7 +246,8 @@ def preprocess_assumed_ignored_properties():
 class DistributedCheckingInstance(object):
 
 
-    def __init__(self, mod)
+    def __init__(self, mod):
+        self.mod = mod
 
 def check_isolate(trace_hook = None):
     mod = im.module
