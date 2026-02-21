@@ -239,11 +239,12 @@ def is_solver_op(name):
 
 
 def clear():
-    global z3_sorts, z3_predicates, z3_constants, z3_functions
+    global z3_sorts, z3_predicates, z3_constants, z3_functions, z3_enum_sorts
     z3_sorts = dict()
     z3_predicates = {ivy_logic.equals : my_eq}
     z3_constants = dict()
     z3_functions = dict()
+    z3_enum_sorts = dict()  #chris: cache for Z3 EnumSort to avoid "already declared" with modern Z3
 
 clear()    
 
@@ -267,10 +268,15 @@ def functionsort(fs):
     return [s.to_z3() for s in fs.dom] + [fs.rng.to_z3()]
 
 def enumeratedsort(es):
-    res,consts = z3.EnumSort(es.name,es.extension)
+    #chris: cache enumerated sorts like uninterpretedsort() does, to avoid
+    # Z3Exception "enumeration sort name is already declared" with modern Z3 (4.12+)
+    s = z3_enum_sorts.get(es.name, None)
+    if s is not None:
+        return s
+    res, consts = z3.EnumSort(es.name, es.extension)
     for c in consts:
         z3_constants[str(c)] = c
-#    print "enum {} : {}".format(res,type(res))
+    z3_enum_sorts[es.name] = res  #chris: store in cache
     return res
 
 def symbol_to_z3(s):

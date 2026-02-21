@@ -218,6 +218,7 @@ RUN apt-get update && \
 # Build remaining submodules (skip Z3) + install
 # BUILD_MODE passed inline to avoid invalidating COPY layers on mode change
 RUN BUILD_MODE=${BUILD_MODE} python3.10 build_submodules.py --skip-z3 && \
+    sudo python3.10 -m pip install z3-solver==4.13.4.0 && \
     sudo python3.10 setup.py install && \
     mkdir -p submodules/z3/build/python/z3 && \
     mkdir -p ivy/z3 && \
@@ -247,9 +248,6 @@ LABEL version="${VERSION}"
 LABEL build.mode="${BUILD_MODE}"
 LABEL runtime.description="PANTHER IVY formal verification tester environment"
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python3.10 --version && echo "IVY tester runtime healthy" || exit 1
-
-WORKDIR /opt/panther_ivy
+WORKDIR /opt/panther_ivy/
 
 CMD ["/bin/bash"]

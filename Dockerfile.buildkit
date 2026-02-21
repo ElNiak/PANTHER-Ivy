@@ -229,6 +229,7 @@ RUN --mount=type=cache,target=/var/cache/apt,id=toolchain-$TARGETPLATFORM,sharin
 RUN --mount=type=cache,target=/root/.cache/pip-$TARGETPLATFORM,sharing=locked \
     --mount=type=cache,target=/tmp/python-build-$TARGETPLATFORM,sharing=locked \
     BUILD_MODE=${BUILD_MODE} python3.10 build_submodules.py --skip-z3 && \
+    sudo python3.10 -m pip install z3-solver==4.13.4.0 && \
     sudo python3.10 setup.py install && \
     # Copy libz3.so to locations expected by Z3 Python bindings
     mkdir -p submodules/z3/build/python/z3 && \
