@@ -214,6 +214,10 @@ ADD submodules /opt/panther_ivy/submodules/
 ADD ivy /opt/panther_ivy/ivy/
 ADD lib /opt/panther_ivy/lib/
 
+# Verify z3_shim fix is deployed (catches stale build context)
+RUN head -1 ivy/ivy_z3_utils.py | grep -q "z3_shim" || \
+    (echo "ERROR: ivy_z3_utils.py does not import z3_shim — build context has stale files" && exit 1)
+
 # Overlay Z3 build artifacts from z3-builder stage
 COPY --from=z3-builder /opt/panther_ivy/lib/ /opt/panther_ivy/lib/
 COPY --from=z3-builder /opt/panther_ivy/include/ /opt/panther_ivy/include/
@@ -297,6 +301,26 @@ RUN BUILD_MODE=${BUILD_MODE} python3.10 build_submodules.py --skip-z3 && \
             echo "Z3_SOURCE=pip: Python=4.13.4.0 (pip z3-solver, no C++ artifacts copied)"; \
         fi; \
     fi
+
+# Verify egg has the z3_shim fix (catches pyenv egg caching stale code)
+RUN python3.10 -c "\
+import importlib, pathlib; \
+spec = importlib.util.find_spec('ivy.ivy_z3_utils'); \
+assert spec and spec.origin, 'Could not locate ivy.ivy_z3_utils module'; \
+first_line = pathlib.Path(spec.origin).read_text().split('\n')[0]; \
+assert 'z3_shim' in first_line, f'Egg has stale ivy_z3_utils.py: {first_line}'; \
+print(f'OK: egg ivy_z3_utils.py imports z3_shim (from {spec.origin})')"
+
+# Verify Ast types are consistent (catches the specific ctypes mismatch)
+RUN python3.10 -c "\
+from ivy import z3_shim, ivy_z3_utils; \
+shim_ast = getattr(z3_shim, 'Ast', None); \
+utils_ast = getattr(ivy_z3_utils, 'Ast', None); \
+if shim_ast and utils_ast: \
+    assert shim_ast is utils_ast, f'Ast mismatch: z3_shim.Ast={shim_ast} vs ivy_z3_utils.Ast={utils_ast}'; \
+    print(f'OK: Ast type consistent ({shim_ast})'); \
+else: \
+    print(f'WARN: could not verify Ast types (shim={shim_ast}, utils={utils_ast})')"
 
 ADD protocol-testing /opt/panther_ivy/protocol-testing/
 

@@ -28,6 +28,7 @@ ARG BASE_IMAGE=panther_base_service:latest
 ARG VERSION=master  # Default version, can be overridden
 ARG DEPENDENCIES="[]"  # JSON-formatted list of dependencies
 ARG BUILD_MODE=""  # Build mode for Z3 compilation: '', 'debug-asan', 'rel-lto', or 'release-static-pgo'
+ARG Z3_SOURCE="local"  # Z3 source: 'local' builds from submodule, 'pip' uses pip z3-solver only
 
 # =============================================================================
 # STAGE 1: DEPS - Shared toolchain for all build stages
@@ -161,6 +162,7 @@ RUN --mount=type=cache,target=/tmp/git-cache-${TARGETPLATFORM} \
 FROM deps AS z3-builder
 
 ARG BUILD_MODE
+ARG Z3_SOURCE
 ARG VERSION
 ARG TARGETPLATFORM
 
@@ -171,17 +173,22 @@ COPY build_submodules.py setup.py /opt/panther_ivy/
 COPY patches /opt/panther_ivy/patches/
 COPY submodules/z3 /opt/panther_ivy/submodules/z3/
 
-# Apply patch to make Z3 git dependency optional for Docker builds
-RUN patch -p1 < patches/z3-cmake-git-optional.patch
+# Apply patch only when building Z3 from submodule
+RUN if [ "$Z3_SOURCE" = "local" ]; then \
+        patch -p1 < patches/z3-cmake-git-optional.patch; \
+    fi
 
 # Ensure output directories exist for COPY --from in later stages
 RUN mkdir -p lib include ivy/lib ivy/z3 ivy/include
 
-# Build Z3. This entire stage is cached at the Docker layer level when inputs
-# (submodules/z3/, patches/, build_submodules.py) don't change.
-# No cache mount needed here since the multi-stage isolation already prevents
-# unnecessary rebuilds from ivy/ or lib/ changes.
-RUN BUILD_MODE=${BUILD_MODE} python3.10 build_submodules.py --z3-only
+# Build Z3 only when Z3_SOURCE=local. This entire stage is cached at the
+# Docker layer level when inputs don't change.
+RUN if [ "$Z3_SOURCE" = "local" ]; then \
+        BUILD_MODE=${BUILD_MODE} python3.10 build_submodules.py --z3-only; \
+    else \
+        echo "Z3_SOURCE=pip: skipping local Z3 build (will use pip z3-solver)"; \
+    fi
+    
 
 # =============================================================================
 # STAGE 3: BASE - Main build (picotls, aiger, abc) + install
@@ -190,6 +197,7 @@ RUN BUILD_MODE=${BUILD_MODE} python3.10 build_submodules.py --z3-only
 FROM deps AS base
 
 ARG BUILD_MODE
+ARG Z3_SOURCE
 ARG VERSION
 ARG TARGETPLATFORM
 
@@ -203,6 +211,10 @@ COPY patches /opt/panther_ivy/patches/
 COPY submodules /opt/panther_ivy/submodules/
 COPY ivy /opt/panther_ivy/ivy/
 COPY lib /opt/panther_ivy/lib/
+
+# Verify z3_shim fix is deployed (catches stale build context)
+RUN head -1 ivy/ivy_z3_utils.py | grep -q "z3_shim" || \
+    (echo "ERROR: ivy_z3_utils.py does not import z3_shim — build context has stale files" && exit 1)
 
 # Overlay Z3 build artifacts from z3-builder stage.
 # These COPY --from layers are only re-executed if the z3-builder stage changed,
@@ -226,23 +238,57 @@ RUN --mount=type=cache,target=/var/cache/apt,id=toolchain-$TARGETPLATFORM,sharin
 # Build remaining submodules (picotls, aiger, abc) and install.
 # Z3 is already built - use --skip-z3 to skip it.
 # BUILD_MODE passed as env var (not as layer ENV) to avoid invalidating COPY layers.
+# NOTE: When Z3_SOURCE=local, both Python bindings and C++ test binaries
+#   use Z3 4.7.1 from the submodule. When Z3_SOURCE=pip, Python uses 4.13.4.0.
 RUN --mount=type=cache,target=/root/.cache/pip-$TARGETPLATFORM,sharing=locked \
     --mount=type=cache,target=/tmp/python-build-$TARGETPLATFORM,sharing=locked \
     BUILD_MODE=${BUILD_MODE} python3.10 build_submodules.py --skip-z3 && \
-    sudo python3.10 -m pip install z3-solver==4.13.4.0 && \
-    sudo python3.10 setup.py install && \
-    # Copy libz3.so to locations expected by Z3 Python bindings
-    mkdir -p submodules/z3/build/python/z3 && \
-    mkdir -p ivy/z3 && \
-    # Verify libz3.so exists before copying (fail-fast if Z3 build failed)
-    if [ ! -f lib/libz3.so ]; then \
-        echo "ERROR: lib/libz3.so not found - Z3 build may have failed"; \
-        exit 1; \
+    if [ "$Z3_SOURCE" = "local" ]; then \
+        # Install locally-built Z3 Python bindings as the system 'z3' package. \
+        # This ensures 'import z3' uses v4.7.1, matching the C++ libz3.so. \
+        mkdir -p /tmp/z3-pkg/z3 && \
+        cp ivy/z3/*.py /tmp/z3-pkg/z3/ && \
+        cp lib/libz3.so /tmp/z3-pkg/z3/ && \
+        printf 'from setuptools import setup, find_packages\nsetup(name="z3-local", version="4.7.1", packages=find_packages(), package_data={"z3": ["*.so", "*.dylib"]})\n' > /tmp/z3-pkg/setup.py && \
+        sudo python3.10 -m pip install /tmp/z3-pkg/ && \
+        rm -rf /tmp/z3-pkg ; \
+    else \
+        sudo python3.10 -m pip install z3-solver==4.13.4.0 ; \
     fi && \
-    cp lib/libz3.so submodules/z3/build/python/z3/ && \
-    cp lib/libz3.so submodules/z3/build/ && \
-    cp lib/libz3.so ivy/z3/ && \
-    echo "Successfully copied libz3.so to all required locations"
+    sudo python3.10 setup.py install && \
+    python3.10 -c "import z3; print('Python Z3 version:', z3.get_version_string())" && \
+    if [ "$Z3_SOURCE" = "local" ]; then \
+        # C++ linking: make libz3.so discoverable by the dynamic linker \
+        if [ ! -f lib/libz3.so ]; then \
+            echo "ERROR: lib/libz3.so not found - Z3 build may have failed"; \
+            exit 1; \
+        fi && \
+        echo "/opt/panther_ivy/lib" | sudo tee /etc/ld.so.conf.d/panther-z3.conf && \
+        sudo ldconfig && \
+        echo "Z3_SOURCE=local: Python=4.7.1 (local pkg), C++=4.7.1 (ldconfig)"; \
+    else \
+        echo "Z3_SOURCE=pip: Python=4.13.4.0 (pip z3-solver, bundles own libz3.so)"; \
+    fi
+
+# Verify egg has the z3_shim fix (catches pyenv egg caching stale code)
+RUN python3.10 -c "\
+import importlib, pathlib; \
+spec = importlib.util.find_spec('ivy.ivy_z3_utils'); \
+assert spec and spec.origin, 'Could not locate ivy.ivy_z3_utils module'; \
+first_line = pathlib.Path(spec.origin).read_text().split('\n')[0]; \
+assert 'z3_shim' in first_line, f'Egg has stale ivy_z3_utils.py: {first_line}'; \
+print(f'OK: egg ivy_z3_utils.py imports z3_shim (from {spec.origin})')"
+
+# Verify Ast types are consistent (catches the specific ctypes mismatch)
+RUN python3.10 -c "\
+from ivy import z3_shim, ivy_z3_utils; \
+shim_ast = getattr(z3_shim, 'Ast', None); \
+utils_ast = getattr(ivy_z3_utils, 'Ast', None); \
+if shim_ast and utils_ast: \
+    assert shim_ast is utils_ast, f'Ast mismatch: z3_shim.Ast={shim_ast} vs ivy_z3_utils.Ast={utils_ast}'; \
+    print(f'OK: Ast type consistent ({shim_ast})'); \
+else: \
+    print(f'WARN: could not verify Ast types (shim={shim_ast}, utils={utils_ast})')"
 
 # Add protocol testing files (last to optimize layer caching)
 COPY protocol-testing /opt/panther_ivy/protocol-testing/
@@ -261,6 +307,7 @@ ARG TARGETOS
 ARG TARGETARCH
 ARG VERSION
 ARG BUILD_MODE
+ARG Z3_SOURCE
 
 LABEL platform.build="${BUILDPLATFORM}"
 LABEL platform.target="${TARGETPLATFORM}"
@@ -270,6 +317,7 @@ LABEL service.type="tester"
 LABEL service.name="panther_ivy"
 LABEL version="${VERSION}"
 LABEL build.mode="${BUILD_MODE}"
+LABEL z3.source="${Z3_SOURCE}"
 LABEL runtime.description="PANTHER IVY formal verification tester environment"
 LABEL build.syntax="docker/dockerfile:1"
 

@@ -56,7 +56,14 @@ def _to_expr_ref(a, ctx):
 
 def _to_ast_array(args):
     sz = len(args)
-    _args = (Ast * sz)()
+    if sz > 0:
+        # Derive Ast type from actual Z3 objects to avoid ctypes type mismatch
+        # when multiple Z3 module paths define different Ast classes.
+        # Both classes are ctypes.c_void_p subclasses, so the C API sees identical pointers.
+        _AstType = type(args[0].as_ast())
+    else:
+        _AstType = Ast
+    _args = (_AstType * sz)()
     for i in range(sz):
         _args[i] = args[i].as_ast()
     return _args, sz
