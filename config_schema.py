@@ -57,13 +57,13 @@ DEFAULT_ENVIRONMENT_VARIABLES = {
     "IVY_DIR": "$SOURCE_DIR/panther_ivy",
     "PYTHON_IVY_DIR": "/root/.pyenv/versions/3.10.12/lib/python3.10/site-packages/panther_ms_ivy-1.8.26-py3.10-linux-x86_64.egg/",
     "IVY_INCLUDE_PATH": "/opt/panther_ivy/ivy/include/1.7",
-    "Z3_LIBRARY_DIRS": "$IVY_DIR/submodules/z3/build",
-    "Z3_LIBRARY_PATH": "$IVY_DIR/submodules/z3/build", 
-    "LD_LIBRARY_PATH": "$LD_LIBRARY_PATH:$IVY_DIR/submodules/z3/build",
+    # Z3_LIBRARY_DIRS, Z3_LIBRARY_PATH, and LD_LIBRARY_PATH are intentionally
+    # omitted here. They are only needed when z3_source=local and are added
+    # conditionally by PantherIvyServiceManager._get_ivy_environment_variables().
     "PROOTPATH": "$SOURCE_DIR",
-    "PYTHONPATH": "$PYTHONPATH:/opt/aioquic/src/:$IVY_DIR/submodules/z3/build/python",
-    "ADDITIONAL_PATH": "/root/.pyenv/versions/3.10.12/bin:/go/bin:$IVY_DIR/submodules/z3/build:/root/.pyenv/plugins/pyenv-virtualenv/shims:/root/.pyenv/shims:/root/.pyenv/bin:/root/.pyenv/bin:/snap/bin",
-    "ADDITIONAL_PYTHONPATH": "/app/implementations/quic-implementations/aioquic/src/:$IVY_DIR/submodules/z3/build/python:$PYTHON_IVY_DIR",
+    "PYTHONPATH": "$PYTHONPATH:/opt/aioquic/src/",
+    "ADDITIONAL_PATH": "/root/.pyenv/versions/3.10.12/bin:/go/bin:/root/.pyenv/plugins/pyenv-virtualenv/shims:/root/.pyenv/shims:/root/.pyenv/bin:/root/.pyenv/bin:/snap/bin",
+    "ADDITIONAL_PYTHONPATH": "/app/implementations/quic-implementations/aioquic/src/:$PYTHON_IVY_DIR",
     # Protocol path configuration
     "PANTHER_IVY_BASE_PATH": "$IVY_DIR/protocol-testing",
     "PANTHER_IVY_APT_SUBPATH": "apt/apt_protocols",
@@ -177,6 +177,11 @@ class PantherIvyConfig(ServicePluginConfig):
         default=None,
         description="Build mode for compilation: '' (original/Shadow compatible), 'debug-asan', 'rel-lto', or 'release-static-pgo'",
         pattern=r"^(|debug-asan|rel-lto|release-static-pgo)$"
+    )
+    z3_source: Optional[str] = Field(
+        default="local",
+        description="Z3 source: 'local' builds from submodule (~30 min), 'pip' uses pip z3-solver only (faster)",
+        pattern=r"^(local|pip)$"
     )
     log_level_events: str = Field(
         default="DEBUG",

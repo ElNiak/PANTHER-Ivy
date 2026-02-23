@@ -1,4 +1,5 @@
-from z3 import *
+from . import z3_shim as _z3
+from .z3_shim import *
 
 def _is_algebraic(ctx, a):
     return Z3_is_algebraic_number(ctx.ref(), a)

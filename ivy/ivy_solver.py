@@ -11,7 +11,10 @@ from collections import defaultdict
 import re
 import functools
 
-import z3
+from . import z3_shim as z3
+# TODO - Chris: Add z3.get_version_string() check to warn if Z3 < 4.12.
+#   Modern Z3 (4.12+) enforces EnumSort uniqueness — the z3_enum_sorts cache
+#   (line ~270) masks this, but a version warning would help debug unexpected behavior.
 from . import ivy_logic
 from .ivy_logic_utils import used_variables_clause, used_variables_ast, variables_ast,\
    to_clauses, constants_clauses, used_relations_clauses, rel_inst, fun_eq_inst, \
@@ -27,10 +30,11 @@ from . import ivy_z3_utils
 import sys
 
 # Following accounts for Z3 API symbols that are hidden as of Z3-4.5.0
+# TODO - Chris: The _to_ast_array / _to_expr_ref 3-tier fallback handles Z3 4.5+ API hiding.
+#   If upgrading past Z3 5.x, verify ivy_z3_utils fallback still matches new ctypes bindings.
 
-
-z3_to_ast_array = z3._to_ast_array if '_to_ast_array' in z3.__dict__ else z3.z3._to_ast_array if '_to_ast_array' in z3.__dict__ else ivy_z3_utils._to_ast_array
-z3_to_expr_ref = z3._to_expr_ref if '_to_expr_ref' in z3.__dict__ else z3.z3._to_expr_ref if '_to_expr_ref' in z3.__dict__ else ivy_z3_utils._to_expr_ref
+z3_to_ast_array = z3._to_ast_array if hasattr(z3, '_to_ast_array') else ivy_z3_utils._to_ast_array
+z3_to_expr_ref = z3._to_expr_ref if hasattr(z3, '_to_expr_ref') else ivy_z3_utils._to_expr_ref
 
 use_z3_enums = True
 

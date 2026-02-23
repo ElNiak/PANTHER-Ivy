@@ -151,6 +151,27 @@ class PantherIvyServiceManager(
 
         return ''
 
+    def get_z3_source(self) -> str:
+        """Get the Z3 source from config for Docker image building.
+
+        Controls whether Z3 is built from the local submodule ('local')
+        or installed only via pip z3-solver ('pip').
+        """
+        if (hasattr(self, 'service_config_to_test') and
+            hasattr(self.service_config_to_test, 'plugin_config') and
+            isinstance(self.service_config_to_test.plugin_config, dict)):
+            z3_source = self.service_config_to_test.plugin_config.get('z3_source', 'local')
+            if z3_source:
+                return z3_source
+
+        if (hasattr(self, 'service_config_to_test') and
+            hasattr(self.service_config_to_test, 'implementation')):
+            z3_source = getattr(self.service_config_to_test.implementation, 'z3_source', 'local')
+            if z3_source:
+                return z3_source
+
+        return 'local'
+
     def _initialize_ivy_attributes(
                 self, service_config_to_test, protocol: ProtocolConfig
             ):
@@ -400,13 +421,22 @@ class PantherIvyServiceManager(
             """Get base Ivy environment variables from defaults and config."""
             # Import the default environment variables
             from panther.plugins.services.testers.panther_ivy.config_schema import DEFAULT_ENVIRONMENT_VARIABLES
-    
+
             # Start with defaults and merge in config environment variables
             ivy_env_vars = DEFAULT_ENVIRONMENT_VARIABLES.copy()
-    
+
+            # Z3 library paths are only needed when z3_source=local (submodule build).
+            # For z3_source=pip, pip z3-solver bundles its own libz3.so and setting
+            # these paths to /opt/panther_ivy/lib (which may be empty or stale)
+            # can cause ctypes Ast type mismatches.
+            if self.get_z3_source() == "local":
+                ivy_env_vars["Z3_LIBRARY_DIRS"] = "$IVY_DIR/lib"
+                ivy_env_vars["Z3_LIBRARY_PATH"] = "$IVY_DIR/lib"
+                ivy_env_vars["LD_LIBRARY_PATH"] = "$LD_LIBRARY_PATH:$IVY_DIR/lib"
+
             if config_env_vars := getattr(self.service_config_to_test, 'environment', {}):
                 ivy_env_vars.update(config_env_vars)
-    
+
             return ivy_env_vars
 
     def _load_version_environment_variables(self):

@@ -1,4 +1,5 @@
 ARG BASE_IMAGE
+ARG Z3_SOURCE="local"
 
 # =============================================================================
 # STAGE 1: DEPS - Shared toolchain
@@ -170,6 +171,7 @@ RUN python3.10 -m pip install pexpect \
 FROM deps AS z3-builder
 
 ARG BUILD_MODE=""
+ARG Z3_SOURCE="local"
 
 WORKDIR /opt/panther_ivy/
 
@@ -178,14 +180,20 @@ ADD build_submodules.py setup.py /opt/panther_ivy/
 ADD patches /opt/panther_ivy/patches/
 ADD submodules/z3 /opt/panther_ivy/submodules/z3/
 
-# Apply patch to make Z3 git dependency optional for Docker builds
-RUN patch -p1 < patches/z3-cmake-git-optional.patch
+# Apply patch only when building Z3 from submodule
+RUN if [ "$Z3_SOURCE" = "local" ]; then \
+        patch -p1 < patches/z3-cmake-git-optional.patch; \
+    fi
 
 # Ensure output directories exist for COPY --from in later stages
 RUN mkdir -p lib include ivy/lib ivy/z3 ivy/include
 
-# Build Z3 only (BUILD_MODE passed inline to avoid extra ENV layer)
-RUN BUILD_MODE=${BUILD_MODE} python3.10 build_submodules.py --z3-only
+# Build Z3 only when Z3_SOURCE=local (BUILD_MODE passed inline to avoid extra ENV layer)
+RUN if [ "$Z3_SOURCE" = "local" ]; then \
+        BUILD_MODE=${BUILD_MODE} python3.10 build_submodules.py --z3-only; \
+    else \
+        echo "Z3_SOURCE=pip: skipping local Z3 build (will use pip z3-solver)"; \
+    fi
 
 # =============================================================================
 # STAGE 3: BASE - Main build (picotls, aiger, abc) + install
@@ -194,6 +202,7 @@ RUN BUILD_MODE=${BUILD_MODE} python3.10 build_submodules.py --z3-only
 FROM deps AS base
 
 ARG BUILD_MODE=""
+ARG Z3_SOURCE="local"
 
 ENV PYTHONPATH="/opt/panther_ivy/:${PYTHONPATH}"
 WORKDIR /opt/panther_ivy/
@@ -208,6 +217,18 @@ ADD lib /opt/panther_ivy/lib/
 # Overlay Z3 build artifacts from z3-builder stage
 COPY --from=z3-builder /opt/panther_ivy/lib/ /opt/panther_ivy/lib/
 COPY --from=z3-builder /opt/panther_ivy/include/ /opt/panther_ivy/include/
+COPY --from=z3-builder /opt/panther_ivy/ivy/z3/ /opt/panther_ivy/ivy/z3/
+COPY --from=z3-builder /opt/panther_ivy/ivy/lib/ /opt/panther_ivy/ivy/lib/
+COPY --from=z3-builder /opt/panther_ivy/ivy/include/ /opt/panther_ivy/ivy/include/
+
+# If using pip Z3, remove stale local Z3 artifacts that could cause ctypes
+# Ast type mismatches (two different Ast classes from different module paths).
+# The z3-builder stage creates empty dirs for pip mode, but the ADD ivy/ above
+# may have copied local z3 bindings from the source tree.
+RUN if [ "$Z3_SOURCE" != "local" ]; then \
+        rm -rf ivy/z3/*.py ivy/z3/*.so lib/libz3.* && \
+        echo "Z3_SOURCE=pip: cleaned stale local Z3 artifacts from ivy/z3/ and lib/"; \
+    fi
 
 # Install build toolchain
 RUN apt-get update && \
@@ -217,19 +238,65 @@ RUN apt-get update && \
 
 # Build remaining submodules (skip Z3) + install
 # BUILD_MODE passed inline to avoid invalidating COPY layers on mode change
+# NOTE: When Z3_SOURCE=local, both Python bindings and C++ test binaries
+#   use Z3 4.7.1 from the submodule. When Z3_SOURCE=pip, Python uses 4.13.4.0.
 RUN BUILD_MODE=${BUILD_MODE} python3.10 build_submodules.py --skip-z3 && \
-    sudo python3.10 -m pip install z3-solver==4.13.4.0 && \
-    sudo python3.10 setup.py install && \
-    mkdir -p submodules/z3/build/python/z3 && \
-    mkdir -p ivy/z3 && \
-    if [ ! -f lib/libz3.so ]; then \
-        echo "ERROR: lib/libz3.so not found - Z3 build may have failed"; \
-        exit 1; \
+    if [ "$Z3_SOURCE" = "local" ]; then \
+        # Install locally-built Z3 Python bindings as the system 'z3' package. \
+        # This ensures 'import z3' uses v4.7.1, matching the C++ libz3.so. \
+        mkdir -p /tmp/z3-pkg/z3 && \
+        cp ivy/z3/*.py /tmp/z3-pkg/z3/ && \
+        cp lib/libz3.so /tmp/z3-pkg/z3/ && \
+        printf 'from setuptools import setup, find_packages\nsetup(name="z3-local", version="4.7.1", packages=find_packages(), package_data={"z3": ["*.so", "*.dylib"]})\n' > /tmp/z3-pkg/setup.py && \
+        sudo python3.10 -m pip install /tmp/z3-pkg/ && \
+        rm -rf /tmp/z3-pkg ; \
+    else \
+        sudo python3.10 -m pip install z3-solver==4.13.4.0 && \
+        # Copy pip z3-solver's C++ headers and shared library to where
+        # ivy_to_cpp.py's get_lib_dirs() expects them (ivy/include/, ivy/lib/).
+        Z3_PKG_DIR=$(python3.10 -c "import z3; import os; print(os.path.dirname(os.path.abspath(z3.__file__)))") && \
+        echo "Z3 pip package at: $Z3_PKG_DIR" && \
+        mkdir -p ivy/include ivy/lib && \
+        if [ -d "$Z3_PKG_DIR/include" ]; then \
+            cp -r "$Z3_PKG_DIR/include/"* ivy/include/ && \
+            echo "Copied Z3 C++ headers from pip package to ivy/include/"; \
+        else \
+            echo "WARN: pip z3-solver has no include/ dir — C++ compilation may fail"; \
+        fi && \
+        if [ -d "$Z3_PKG_DIR/lib" ]; then \
+            cp "$Z3_PKG_DIR/lib/"libz3* ivy/lib/ && \
+            echo "Copied libz3 from pip package to ivy/lib/"; \
+        else \
+            Z3_LIB=$(python3.10 -c "import z3; import os; d=os.path.dirname(os.path.abspath(z3.__file__)); [print(os.path.join(d,f)) for f in os.listdir(d) if f.startswith('libz3') and (f.endswith('.so') or f.endswith('.dylib'))]" 2>/dev/null | head -1) && \
+            if [ -n "$Z3_LIB" ]; then \
+                cp "$Z3_LIB" ivy/lib/ && \
+                echo "Copied libz3 from pip package root to ivy/lib/"; \
+            else \
+                echo "WARN: pip z3-solver has no lib/ dir or libz3 — C++ linking may fail"; \
+            fi; \
+        fi ; \
     fi && \
-    cp lib/libz3.so submodules/z3/build/python/z3/ && \
-    cp lib/libz3.so submodules/z3/build/ && \
-    cp lib/libz3.so ivy/z3/ && \
-    echo "Successfully copied libz3.so to all required locations"
+    sudo python3.10 setup.py install && \
+    python3.10 -c "import z3; print('Python Z3 version:', z3.get_version_string())" && \
+    if [ "$Z3_SOURCE" = "local" ]; then \
+        # C++ linking: make libz3.so discoverable by the dynamic linker \
+        if [ ! -f lib/libz3.so ]; then \
+            echo "ERROR: lib/libz3.so not found - Z3 build may have failed"; \
+            exit 1; \
+        fi && \
+        echo "/opt/panther_ivy/lib" | sudo tee /etc/ld.so.conf.d/panther-z3.conf && \
+        sudo ldconfig && \
+        echo "Z3_SOURCE=local: Python=4.7.1 (local pkg), C++=4.7.1 (ldconfig)"; \
+    else \
+        # For pip mode, make ivy/lib/libz3.so discoverable for C++ test binaries
+        if [ -f ivy/lib/libz3.so ] || ls ivy/lib/libz3* >/dev/null 2>&1; then \
+            echo "/opt/panther_ivy/ivy/lib" | sudo tee /etc/ld.so.conf.d/panther-z3.conf && \
+            sudo ldconfig && \
+            echo "Z3_SOURCE=pip: Python=4.13.4.0, C++ headers+lib copied to ivy/{include,lib}"; \
+        else \
+            echo "Z3_SOURCE=pip: Python=4.13.4.0 (pip z3-solver, no C++ artifacts copied)"; \
+        fi; \
+    fi
 
 ADD protocol-testing /opt/panther_ivy/protocol-testing/
 
@@ -241,11 +308,13 @@ FROM base AS final
 
 ARG VERSION
 ARG BUILD_MODE
+ARG Z3_SOURCE
 
 LABEL service.type="tester"
 LABEL service.name="panther_ivy"
 LABEL version="${VERSION}"
 LABEL build.mode="${BUILD_MODE}"
+LABEL z3.source="${Z3_SOURCE}"
 LABEL runtime.description="PANTHER IVY formal verification tester environment"
 
 WORKDIR /opt/panther_ivy/
