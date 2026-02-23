@@ -3,7 +3,7 @@
 #
 # TODO get rid of import *
 
-from z3 import *
+from .z3_shim import *
 from . import ivy_utils as iu
 
 def get_id(x):

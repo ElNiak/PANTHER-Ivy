@@ -17,7 +17,7 @@ from . import ivy_trace
 from . import ivy_solver as slvr
 from . import ivy_printer
 
-from z3 import simplify, is_func_decl, DatatypeSortRef
+from .z3_shim import simplify, is_func_decl, DatatypeSortRef
 import tempfile
 import subprocess
 from collections import defaultdict
