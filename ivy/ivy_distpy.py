@@ -64,7 +64,7 @@ opt_trace = iu.get_parameter("trace")
 opt_separate = iu.get_parameter("separate")
 opt_unchecked_properties = iu.get_parameter("unchecked_properties")
 opt_ivy_stats = iu.get_parameter("ivy_stats")
-opt_distributed = iu.get_parameter("distribuedt")
+opt_distributed = iu.get_parameter("distributed")
 
 
 ### dispy functionalities
