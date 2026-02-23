@@ -8368,14 +8368,19 @@ public:
         // can't use operator[] here because the value classes don't have nullary constructors
         enum_sorts.insert(std::pair<std::string, z3::sort>(sort_name,sort));
         enum_values.insert(std::pair<Z3_sort, z3::func_decl_vector>(sort,cs));
-        sort_names.push_back(Z3_mk_string_symbol(ctx,sort_name));
-        sorts.push_back(sort);
+        // Do NOT add enum sorts to sort_names/sorts vectors.
+        // In Z3 >= 4.12, Z3_parse_smtlib2_string's insert_sort() auto-registers
+        // datatype constructors via insert_datatype(), which collides with the
+        // constructors already present in decl_names. Enum constructors are
+        // resolved from decl_names; the sort object lives in enum_sorts.
         for(unsigned i = 0; i < num_values; i++){
             Z3_symbol sym = Z3_mk_string_symbol(ctx,value_names[i]);
-            decl_names.push_back(sym);
-            decls.push_back(cs[i]);
             enum_to_int[sym] = i;
-            decls_by_name.insert(std::pair<std::string, z3::func_decl>(value_names[i], cs[i]));
+            if (decls_by_name.find(value_names[i]) == decls_by_name.end()) {
+                decl_names.push_back(sym);
+                decls.push_back(cs[i]);
+                decls_by_name.insert(std::pair<std::string, z3::func_decl>(value_names[i], cs[i]));
+            }
         }
     }
 
