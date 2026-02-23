@@ -272,7 +272,7 @@ module c_time_wrapper(timer) = {
 				unsigned long  long  time = getTimeFromBreakpoint(last_bp_micro,true);
 				std::cerr << "C time = now_micros_last_bp - timer started" << std::endl;
 				std::cerr << "C time = now_micros_last_bp - time = " << time << std::endl;
-				int int_last_bp = stoi(last_bp_micro);
+				int int_last_bp = std::stoi(last_bp_micro);
 				/*if(int_last_bp == 0) {
 					i = 0;
 				} else {*/
@@ -296,7 +296,7 @@ module c_time_wrapper(timer) = {
 				unsigned long  long  time = getTimeFromBreakpoint(last_bp_ms,false);
 				std::cerr << "C time = now_millis_last_bp - timer started" << std::endl;
 				std::cerr << "C time = now_millis_last_bp - time = " << time << std::endl;
-				int int_last_bp = stoi(last_bp_ms);
+				int int_last_bp = std::stoi(last_bp_ms);
 				/*if(int_last_bp == 0) {
 					i = 0;
 				} else {*/

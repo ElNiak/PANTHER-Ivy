@@ -16,7 +16,7 @@ from . import logic as lg
 from . import mypyvy_syntax as pyv
 
 import time
-import z3
+from . import z3_shim as z3
 
 logfile = None
 verbose = False

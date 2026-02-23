@@ -253,7 +253,30 @@ RUN --mount=type=cache,target=/root/.cache/pip-$TARGETPLATFORM,sharing=locked \
         sudo python3.10 -m pip install /tmp/z3-pkg/ && \
         rm -rf /tmp/z3-pkg ; \
     else \
-        sudo python3.10 -m pip install z3-solver==4.13.4.0 ; \
+        sudo python3.10 -m pip install z3-solver==4.13.4.0 && \
+        # Copy pip z3-solver's C++ headers and shared library to where \
+        # ivy_to_cpp.py's get_lib_dirs() expects them (ivy/include/, ivy/lib/). \
+        Z3_PKG_DIR=$(python3.10 -c "import z3; import os; print(os.path.dirname(os.path.abspath(z3.__file__)))") && \
+        echo "Z3 pip package at: $Z3_PKG_DIR" && \
+        mkdir -p ivy/include ivy/lib && \
+        if [ -d "$Z3_PKG_DIR/include" ]; then \
+            cp -r "$Z3_PKG_DIR/include/"* ivy/include/ && \
+            echo "Copied Z3 C++ headers from pip package to ivy/include/"; \
+        else \
+            echo "WARN: pip z3-solver has no include/ dir — C++ compilation may fail"; \
+        fi && \
+        if [ -d "$Z3_PKG_DIR/lib" ]; then \
+            cp "$Z3_PKG_DIR/lib/"libz3* ivy/lib/ && \
+            echo "Copied libz3 from pip package to ivy/lib/"; \
+        else \
+            Z3_LIB=$(python3.10 -c "import z3; import os; d=os.path.dirname(os.path.abspath(z3.__file__)); [print(os.path.join(d,f)) for f in os.listdir(d) if f.startswith('libz3') and (f.endswith('.so') or f.endswith('.dylib'))]" 2>/dev/null | head -1) && \
+            if [ -n "$Z3_LIB" ]; then \
+                cp "$Z3_LIB" ivy/lib/ && \
+                echo "Copied libz3 from pip package root to ivy/lib/"; \
+            else \
+                echo "WARN: pip z3-solver has no lib/ dir or libz3 — C++ linking may fail"; \
+            fi; \
+        fi ; \
     fi && \
     sudo python3.10 setup.py install && \
     python3.10 -c "import z3; print('Python Z3 version:', z3.get_version_string())" && \
@@ -267,12 +290,19 @@ RUN --mount=type=cache,target=/root/.cache/pip-$TARGETPLATFORM,sharing=locked \
         sudo ldconfig && \
         echo "Z3_SOURCE=local: Python=4.7.1 (local pkg), C++=4.7.1 (ldconfig)"; \
     else \
-        echo "Z3_SOURCE=pip: Python=4.13.4.0 (pip z3-solver, bundles own libz3.so)"; \
+        # For pip mode, make ivy/lib/libz3.so discoverable for C++ test binaries \
+        if [ -f ivy/lib/libz3.so ] || ls ivy/lib/libz3* >/dev/null 2>&1; then \
+            echo "/opt/panther_ivy/ivy/lib" | sudo tee /etc/ld.so.conf.d/panther-z3.conf && \
+            sudo ldconfig && \
+            echo "Z3_SOURCE=pip: Python=4.13.4.0, C++ headers+lib copied to ivy/{include,lib}"; \
+        else \
+            echo "Z3_SOURCE=pip: Python=4.13.4.0 (pip z3-solver, no C++ artifacts copied)"; \
+        fi; \
     fi
 
 # Verify egg has the z3_shim fix (catches pyenv egg caching stale code)
 RUN python3.10 -c "\
-import importlib, pathlib; \
+import importlib.util, pathlib; \
 spec = importlib.util.find_spec('ivy.ivy_z3_utils'); \
 assert spec and spec.origin, 'Could not locate ivy.ivy_z3_utils module'; \
 first_line = pathlib.Path(spec.origin).read_text().split('\n')[0]; \
@@ -284,11 +314,9 @@ RUN python3.10 -c "\
 from ivy import z3_shim, ivy_z3_utils; \
 shim_ast = getattr(z3_shim, 'Ast', None); \
 utils_ast = getattr(ivy_z3_utils, 'Ast', None); \
-if shim_ast and utils_ast: \
-    assert shim_ast is utils_ast, f'Ast mismatch: z3_shim.Ast={shim_ast} vs ivy_z3_utils.Ast={utils_ast}'; \
-    print(f'OK: Ast type consistent ({shim_ast})'); \
-else: \
-    print(f'WARN: could not verify Ast types (shim={shim_ast}, utils={utils_ast})')"
+assert not (shim_ast and utils_ast) or shim_ast is utils_ast, \
+    f'Ast mismatch: z3_shim.Ast={shim_ast} vs ivy_z3_utils.Ast={utils_ast}'; \
+print(f'OK: Ast type consistent ({shim_ast})' if (shim_ast and utils_ast) else f'WARN: could not verify Ast types (shim={shim_ast}, utils={utils_ast})')"
 
 # Add protocol testing files (last to optimize layer caching)
 COPY protocol-testing /opt/panther_ivy/protocol-testing/

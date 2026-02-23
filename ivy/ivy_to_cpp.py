@@ -764,13 +764,16 @@ native_expr_full = native_type_full
 thunk_counter = 0
 
 
+# Generates C++ calling gen::parse_smtlib2_compat() instead of raw
+# Z3_parse_smtlib2_string. See the compat wrapper comment in the gen class
+# template (~line 8397) for the Z3 API change details.
 def expr_to_z3(expr,prefix=''):
     fmla = '(assert ' + slv.formula_to_z3(expr).sexpr().replace('|!1','!1|').replace('\\|','').replace('\n',' "\n"') + ')'
-    return 'z3::expr(g.ctx,Z3_parse_smtlib2_string({}ctx, "{}", {}sort_names.size(), &{}sort_names[0], &{}sorts[0], {}decl_names.size(), &{}decl_names[0], &{}decls[0]))'.format(prefix,fmla,prefix,prefix,prefix,prefix,prefix,prefix)
+    return '{}parse_smtlib2_compat("{}")'.format(prefix, fmla)
 
 def expr_to_z3_no_type_cnst(expr,prefix=''):
     fmla = '(assert ' + slv.formula_to_z3_int(expr).sexpr().replace('|!1','!1|').replace('\\|','').replace('\n',' "\n"') + ')'
-    return 'z3::expr(g.ctx,Z3_parse_smtlib2_string({}ctx, "{}", {}sort_names.size(), &{}sort_names[0], &{}sorts[0], {}decl_names.size(), &{}decl_names[0], &{}decls[0]))'.format(prefix,fmla,prefix,prefix,prefix,prefix,prefix,prefix)
+    return '{}parse_smtlib2_compat("{}")'.format(prefix, fmla)
 
 
 
@@ -2888,6 +2891,33 @@ def module_to_cpp_class(classname,basename):
 
     if target.get() in ["gen","test"]:
         header.append('#include "z3++.h"\n')
+        # Pull in Z3 version macros so parse_smtlib2_compat picks the right API path.
+        header.append('#if defined(__has_include)\n')
+        header.append('#  if __has_include(<z3_version.h>)\n')
+        header.append('#    include <z3_version.h>\n')
+        header.append('#  elif __has_include("z3_version.h")\n')
+        header.append('#    include "z3_version.h"\n')
+        header.append('#  endif\n')
+        header.append('#endif\n')
+        # --- Z3 >= 4.8 compatibility shims ---
+        # Shim 1: Z3 >= 4.8 z3++.h uses #pragma once instead of
+        #   #ifndef Z3PP_H_ / #define Z3PP_H_.
+        # ivy_cpp_types.py templates use #ifdef Z3PP_H_ to gate Z3-specific
+        # class members (z3_sort, prepare, cleanup, hash maps).  Without
+        # this define, XBVI-based types (LongBV) emit out-of-class static
+        # member definitions that have no matching in-class declarations.
+        header.append('#ifndef Z3PP_H_\n')
+        header.append('#define Z3PP_H_ 1\n')
+        header.append('#endif\n')
+        # Shim 2: Z3 >= 4.8 removed Z3_TRUE/Z3_FALSE macros.
+        # The eval() and eval_apply() methods use Z3_TRUE to check
+        # return values from Z3_get_numeral_int/uint64/uint.
+        header.append('#ifndef Z3_TRUE\n')
+        header.append('#define Z3_TRUE  1\n')
+        header.append('#endif\n')
+        header.append('#ifndef Z3_FALSE\n')
+        header.append('#define Z3_FALSE 0\n')
+        header.append('#endif\n')
 
 
     header.append(hash_h)
@@ -8330,6 +8360,9 @@ public:
     }
 
     void mk_enum(const char *sort_name, unsigned num_values, char const * const * value_names) {
+        if (enum_sorts.find(sort_name) != enum_sorts.end()) {
+            return;  // Sort already declared, skip to avoid Z3 4.12+ "already declared" error
+        }
         z3::func_decl_vector cs(ctx), ts(ctx);
         z3::sort sort = ctx.enumeration_sort(sort_name, num_values, value_names, cs, ts);
         // can't use operator[] here because the value classes don't have nullary constructors
@@ -8342,6 +8375,7 @@ public:
             decl_names.push_back(sym);
             decls.push_back(cs[i]);
             enum_to_int[sym] = i;
+            decls_by_name.insert(std::pair<std::string, z3::func_decl>(value_names[i], cs[i]));
         }
     }
 
@@ -8374,6 +8408,9 @@ public:
     }
 
     void mk_decl(const char *decl_name, unsigned arity, const char **domain_names, const char *range_name) {
+        if (decls_by_name.find(decl_name) != decls_by_name.end()) {
+            return;  // Already declared (e.g., as enum constructor), skip to avoid Z3 4.12+ duplicate error
+        }
         std::vector<z3::sort> domain;
         for (unsigned i = 0; i < arity; i++) {
             if (enum_sorts.find(domain_names[i]) == enum_sorts.end()) {
@@ -8383,7 +8420,7 @@ public:
             domain.push_back(enum_sorts.find(domain_names[i])->second);
         }
         std::string bool_name("Bool");
-        z3::sort range = (range_name == bool_name) ? ctx.bool_sort() : enum_sorts.find(range_name)->second;   
+        z3::sort range = (range_name == bool_name) ? ctx.bool_sort() : enum_sorts.find(range_name)->second;
         z3::func_decl decl = ctx.function(decl_name,arity,&domain[0],range);
         decl_names.push_back(Z3_mk_string_symbol(ctx,decl_name));
         decls.push_back(decl);
@@ -8394,10 +8431,41 @@ public:
         mk_decl(const_name,0,0,sort_name);
     }
 
-    void add(const std::string &z3inp) {
-        z3::expr fmla(ctx,Z3_parse_smtlib2_string(ctx, z3inp.c_str(), sort_names.size(), &sort_names[0], &sorts[0], decl_names.size(), &decl_names[0], &decls[0]));
+    // Compat wrapper for Z3_parse_smtlib2_string API change.
+    //
+    // Z3 <= 4.7: returns Z3_ast (single expression)
+    //   Header: submodules/z3/src/api/z3_api.h  (Z3_parse_smtlib2_string -> Z3_ast)
+    //
+    // Z3 >= 4.8: returns Z3_ast_vector (breaking change introduced in Z3 4.8.1)
+    //   Commit:  https://github.com/Z3Prover/z3/commit/0ac80fc042ba
+    //            "have parser produce ast-vector instead of single ast" (2017-06-02)
+    //   Release: https://github.com/Z3Prover/z3/releases/tag/z3-4.8.1
+    //            "A breaking change to the API is that parsers for SMT-LIB2
+    //             formulas return a vector of formulas as opposed to a conjunction"
+    //   Issue:   https://github.com/Z3Prover/z3/issues/1928
+    //   Header:  z3_api.h  (Z3_parse_smtlib2_string -> Z3_ast_vector)
+    //
+    // Version macros (Z3_MAJOR_VERSION, Z3_MINOR_VERSION) are defined in:
+    //   submodules/z3/src/util/version.h.in  (local build)
+    //   <z3_version.h>                       (pip z3-solver package)
+    z3::expr parse_smtlib2_compat(const char* str) {
+#if !defined(Z3_MAJOR_VERSION) || Z3_MAJOR_VERSION > 4 || (Z3_MAJOR_VERSION == 4 && Z3_MINOR_VERSION >= 8)
+        std::cerr << "Using Z3 API for version 4.8 or later" << std::endl;
+        Z3_ast_vector av = Z3_parse_smtlib2_string(ctx, str,
+            sort_names.size(), &sort_names[0], &sorts[0],
+            decl_names.size(), &decl_names[0], &decls[0]);
         ctx.check_error();
+        return z3::expr(ctx, Z3_ast_vector_get(ctx, av, 0));
+#else
+        std::cerr << "Using Z3 API for version 4.7 or earlier" << std::endl;
+        return z3::expr(ctx, Z3_parse_smtlib2_string(ctx, str,
+            sort_names.size(), &sort_names[0], &sorts[0],
+            decl_names.size(), &decl_names[0], &decls[0]));
+#endif
+    }
 
+    void add(const std::string &z3inp) {
+        z3::expr fmla = parse_smtlib2_compat(z3inp.c_str());
         slvr.add(fmla);
     }
 
@@ -8599,18 +8667,15 @@ def main_int(is_ivyc):
             if isolate != None:
                 isolates = [isolate]
             else:
-                if target.get() == 'test':
-                    isolates = ['this']
+                extracts = list((x,y) for x,y in im.module.isolates.items()
+                                if isinstance(y,ivy_ast.ExtractDef))
+                if len(extracts) == 0:
+                    isol = ivy_ast.ExtractDef(ivy_ast.Atom('extract'),ivy_ast.Atom('this'))
+                    isol.with_args = 1
+                    im.module.isolates['extract'] = isol
+                    isolates = ['extract']
                 else:
-                    extracts = list((x,y) for x,y in im.module.isolates.items()
-                                    if isinstance(y,ivy_ast.ExtractDef))
-                    if len(extracts) == 0:
-                        isol = ivy_ast.ExtractDef(ivy_ast.Atom('extract'),ivy_ast.Atom('this'))
-                        isol.with_args = 1
-                        im.module.isolates['extract'] = isol
-                        isolates = ['extract']
-                    else:
-                        isolates = [ex[0] for ex in extracts]
+                    isolates = [ex[0] for ex in extracts]
         else:
             if isolate != None:
                 isolates = [isolate]

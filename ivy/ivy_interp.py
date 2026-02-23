@@ -6,7 +6,7 @@ Symbolic interpreter for Ivy
 """
 
 import sys
-import z3
+from . import z3_shim as z3
 import string
 from collections import defaultdict
 

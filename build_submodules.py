@@ -346,7 +346,7 @@ def build_aiger():
 
     os.chdir('submodules/aiger')
 
-    do_cmd('./configure.sh && make')
+    do_cmd('./configure.sh && make -j 4')
     
     os.chdir(cwd)
 
@@ -367,7 +367,7 @@ def build_abc():
     
     os.chdir('submodules/abc')
     
-    do_cmd('make')
+    do_cmd('make -j 4')
     
     os.chdir(cwd)
 
@@ -391,14 +391,20 @@ if __name__ == "__main__":
     group.add_argument(
         "--skip-z3", action="store_true",
         help="Skip Z3, build everything else (for Docker multi-stage main stage)")
+    parser.add_argument(
+        "--z3-source", choices=["local", "pip"], default="local",
+        help="Z3 source: 'local' builds from submodule, 'pip' uses pip z3-solver only")
     args = parser.parse_args()
 
     print("--- Running build_submodules.py ---")
 
     if args.z3_only:
-        print("[z3-only mode] Building Z3 only")
-        build_z3()
-        install_z3()
+        if args.z3_source == "pip":
+            print("[z3-only + pip mode] Skipping Z3 build, pip z3-solver will be used")
+        else:
+            print("[z3-only mode] Building Z3 from submodule")
+            build_z3()
+            install_z3()
     elif args.skip_z3:
         print("[skip-z3 mode] Skipping Z3, building picotls/aiger/abc")
         build_picotls()

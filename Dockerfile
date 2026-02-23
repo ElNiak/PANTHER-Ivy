@@ -304,7 +304,7 @@ RUN BUILD_MODE=${BUILD_MODE} python3.10 build_submodules.py --skip-z3 && \
 
 # Verify egg has the z3_shim fix (catches pyenv egg caching stale code)
 RUN python3.10 -c "\
-import importlib, pathlib; \
+import importlib.util, pathlib; \
 spec = importlib.util.find_spec('ivy.ivy_z3_utils'); \
 assert spec and spec.origin, 'Could not locate ivy.ivy_z3_utils module'; \
 first_line = pathlib.Path(spec.origin).read_text().split('\n')[0]; \
@@ -316,11 +316,9 @@ RUN python3.10 -c "\
 from ivy import z3_shim, ivy_z3_utils; \
 shim_ast = getattr(z3_shim, 'Ast', None); \
 utils_ast = getattr(ivy_z3_utils, 'Ast', None); \
-if shim_ast and utils_ast: \
-    assert shim_ast is utils_ast, f'Ast mismatch: z3_shim.Ast={shim_ast} vs ivy_z3_utils.Ast={utils_ast}'; \
-    print(f'OK: Ast type consistent ({shim_ast})'); \
-else: \
-    print(f'WARN: could not verify Ast types (shim={shim_ast}, utils={utils_ast})')"
+assert not (shim_ast and utils_ast) or shim_ast is utils_ast, \
+    f'Ast mismatch: z3_shim.Ast={shim_ast} vs ivy_z3_utils.Ast={utils_ast}'; \
+print(f'OK: Ast type consistent ({shim_ast})' if (shim_ast and utils_ast) else f'WARN: could not verify Ast types (shim={shim_ast}, utils={utils_ast})')"
 
 ADD protocol-testing /opt/panther_ivy/protocol-testing/
 

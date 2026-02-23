@@ -10,7 +10,7 @@ from collections import OrderedDict
 
 import IPython.html.widgets as widgets
 
-import z3
+from . import z3_shim as z3
 
 from . import tactics_api as ta
 from . import tactics as t

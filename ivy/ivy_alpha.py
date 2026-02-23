@@ -4,7 +4,7 @@
 import sys
 import itertools
 from collections import defaultdict
-import z3
+from . import z3_shim as z3
 
 from .ivy_logic_utils import to_literal, false_clauses, Clauses
 from .ivy_solver import *
@@ -201,6 +201,8 @@ class RelAlg1(object):
         return not tab[1]
 
 
+# TODO - Chris: ivy_alpha uses low-level Z3 C API (Z3_solver_assert, Z3_mk_and, Z3_mk_eq)
+#   for performance. These are stable ABI but should be re-validated if Z3 upgrades past 4.13.
 def is_sat(solver,f):
     solver.push()
     ctx = z3.main_ctx()

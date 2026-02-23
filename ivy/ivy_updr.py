@@ -12,7 +12,7 @@ from . import ivy
 from . import ivy_transrel as tr
 from itertools import chain
 from . import ivy_solver as sv
-import z3
+from . import z3_shim as z3
 import mini_pdr as pd
 from . import ivy_utils as iu
 

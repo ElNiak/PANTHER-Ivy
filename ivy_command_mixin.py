@@ -392,7 +392,7 @@ class IvyCommandMixin:
             "echo 'Updating Ivy tool...' >> /app/logs/compile/ivy_setup.log",
             #"cd /opt/panther_ivy && sudo python3.10 setup.py develop >> /app/logs/compile/ivy_setup.log 2>&1",
             "cd /opt/panther_ivy && sudo python3.10 setup.py install >> /app/logs/compile/ivy_setup.log 2>&1",
-            "cd /opt/panther_ivy && cp lib/libz3.so /opt/panther_ivy/submodules/z3/build/python/z3 >> /app/logs/compile/ivy_setup.log 2>&1",
+            "cd /opt/panther_ivy && if [ -f lib/libz3.so ]; then cp lib/libz3.so /opt/panther_ivy/ivy/z3/ && echo 'Copied libz3.so to ivy/z3/'; else echo 'No local libz3.so (z3_source=pip), skipping copy'; fi >> /app/logs/compile/ivy_setup.log 2>&1",
             "echo \"Copying updated Ivy files (from $PYTHON_IVY_DIR/ivy/include/1.7/) into /opt/panther_ivy/ivy/include/1.7/.\" >> /app/logs/compile/ivy_setup.log",
             # Initialize copied files list for cleanup tracking
             "echo '' > /app/logs/compile/copied_ivy_files.list",
@@ -582,6 +582,8 @@ class IvyCommandMixin:
             '(if [ "$' + '{COMPILE_RESULT:-0}" -eq 0 ] 2>/dev/null; then echo "Compilation succeeded"; else echo "Compilation failed with code $' + '{COMPILE_RESULT:-unknown}"; fi) > /app/logs/compile/compilation_status.txt',
             "echo 'Copying executable from ivy include to build directory...' >> /app/logs/compile/ivy_compile.log",
             f"cp $PYTHON_IVY_DIR/ivy/include/1.7/{self.test_to_compile} {container_base_path}/{tests_build_dir}/ >> /app/logs/compile/ivy_compile.log 2>&1",
+            "echo 'Copying executable from ivy include to outputs directory...' >> /app/logs/compile/ivy_compile.log",
+            f"cp $PYTHON_IVY_DIR/ivy/include/1.7/{self.test_to_compile} /app/logs/compile/{self.test_to_compile} 2>&1",
             f"ls -la {container_base_path}/{tests_build_dir}/ >> /app/logs/compile/ivy_compile.log",
         ]
 

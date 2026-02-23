@@ -134,18 +134,19 @@ class PantherIvyServiceManager(
         Returns:
             Build mode string: '', 'debug-asan', 'rel-lto', or 'release-static-pgo'
         """
-        # Check plugin_config first (primary location)
+        # Check plugin_config first (only if key actually exists)
         if (hasattr(self, 'service_config_to_test') and
             hasattr(self.service_config_to_test, 'plugin_config') and
-            isinstance(self.service_config_to_test.plugin_config, dict)):
-            build_mode = self.service_config_to_test.plugin_config.get('build_mode', '')
+            isinstance(self.service_config_to_test.plugin_config, dict) and
+            'build_mode' in self.service_config_to_test.plugin_config):
+            build_mode = self.service_config_to_test.plugin_config['build_mode']
             if build_mode:
                 return build_mode
 
-        # Fallback to implementation config
+        # Fallback to implementation config (where YAML extras go via setattr)
         if (hasattr(self, 'service_config_to_test') and
             hasattr(self.service_config_to_test, 'implementation')):
-            build_mode = getattr(self.service_config_to_test.implementation, 'build_mode', '')
+            build_mode = getattr(self.service_config_to_test.implementation, 'build_mode', None)
             if build_mode:
                 return build_mode
 
@@ -157,16 +158,19 @@ class PantherIvyServiceManager(
         Controls whether Z3 is built from the local submodule ('local')
         or installed only via pip z3-solver ('pip').
         """
+        # Check plugin_config first (only if key actually exists)
         if (hasattr(self, 'service_config_to_test') and
             hasattr(self.service_config_to_test, 'plugin_config') and
-            isinstance(self.service_config_to_test.plugin_config, dict)):
-            z3_source = self.service_config_to_test.plugin_config.get('z3_source', 'local')
+            isinstance(self.service_config_to_test.plugin_config, dict) and
+            'z3_source' in self.service_config_to_test.plugin_config):
+            z3_source = self.service_config_to_test.plugin_config['z3_source']
             if z3_source:
                 return z3_source
 
+        # Fallback to implementation config (where YAML extras go via setattr)
         if (hasattr(self, 'service_config_to_test') and
             hasattr(self.service_config_to_test, 'implementation')):
-            z3_source = getattr(self.service_config_to_test.implementation, 'z3_source', 'local')
+            z3_source = getattr(self.service_config_to_test.implementation, 'z3_source', None)
             if z3_source:
                 return z3_source
 
