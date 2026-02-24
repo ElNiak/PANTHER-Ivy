@@ -23,12 +23,12 @@ from .ivy_union_find import *
 # universally quantified variable, `f` is an uninterpreted symbol and
 # `j` is an argument position of `f` (since variable names are
 # globally unique, we don't identify variable occurrences by a pair
-# `k,i` as in the paper). 
+# `k,i` as in the paper).
 #
 # Nodes `S_v` and `A_f,j` are unified (using union-find) when `v`
 # occurs as the `jth` argument of `f`.  An arc occurs in the graph from `S_v`
 # to `A_f,j` when some term containing `S_v` *not* at top level occurs
-# as the the `jth` argument of `f`. 
+# as the the `jth` argument of `f`.
 #
 # The formula is in the finite essentially uninterpreted fragment
 # (FEU) iff this graph is acyclic.
@@ -49,7 +49,7 @@ from .ivy_union_find import *
 #    | v:s                    | S_s = S_v      |
 #    | t[v]:s                 | S_v --> S_s    |
 #
-# Here, `S_s` is a special set of relevant terms associated with sort `s`. 
+# Here, `S_s` is a special set of relevant terms associated with sort `s`.
 # This sort is represented in `strat_map` by a fake symbol '=' of sort `s`.
 #
 # We drop the constraint that `A_f,i = S_s` when `dom_f,j = s` from
@@ -60,7 +60,7 @@ from .ivy_union_find import *
 # and the constraint `forall v,w. (c -> f(v,w) = t1[v]) & (~c -> f(v,w) = t2[w]`.
 
 # We treat quantifier alternations as if the were skolemized. That is, if
-# we have `exists w. t[v,w]` we treat it as `t<f(v)/w>`. 
+# we have `exists w. t[v,w]` we treat it as `t<f(v)/w>`.
 
 # The return value of `map_fmla` is a pair `(v,uvs)` where:
 #
@@ -119,10 +119,10 @@ def map_fmla(lineno,fmla,pol):
                 arcs.extend((v,S_sigma,fmla,lineno) for v in uv)
         else:
             check_interpreted(fmla,nodes,uvs,lineno,pol)
-        return None,all_uvs 
+        return None,all_uvs
     if il.is_ite(fmla):
         # S_sigma = strat_map[il.Symbol('=',fmla.args[1])]
-        # for x,uv in zip(nodes[1:],uvs[1:]): 
+        # for x,uv in zip(nodes[1:],uvs[1:]):
         #     if x is not None:
         #         unify(x,S_sigma)
         #     arcs.extend((v,S_sigma,fmla,lineno) for v in uv)
@@ -149,11 +149,11 @@ def map_fmla(lineno,fmla,pol):
             check_interpreted(fmla,nodes,uvs,lineno,pol)
         return None,all_uvs
     return None,all_uvs
-                
+
 # An interpreted symbol over a variable puts us outside the FEU
 # fragment. However, the FAU fragment allows "arithmetic literals"
 # of the form X = t, X < Y, X < t, t < X, where t is a ground term and
-# the arguments are of integer sort. 
+# the arguments are of integer sort.
 #
 # Check that a given application of a symbol does not violate this
 # rule. Takes the map_fmla results for the symbol arguments, and the
@@ -180,7 +180,7 @@ def is_arithmetic_literal(app,pos,nodes,uvs,pol):
     whether `app` is an arithmetic literal.
 
     As a side effect, if both arguments of an arithmetic literal are universals,
-    we unify them (per the rule in seciont 4 of ibid). 
+    we unify them (per the rule in seciont 4 of ibid).
     """
 
     if ((il.is_inequality_symbol(app.rep) or il.is_eq(app))
@@ -210,7 +210,7 @@ def is_arithmetic_literal(app,pos,nodes,uvs,pol):
 # - macro_var_map stores, for each macro parameter the universal
 #   variables that are substituted *exactly* for the parameter, that is,
 #   as the top-level symbol. The set of universal variables is unified
-#   in the stratification map and represented by a single element. 
+#   in the stratification map and represented by a single element.
 #
 # These sets have to be propagated downward from calling to called
 # macros, so we travese the list of macros in reverse order.
@@ -285,7 +285,7 @@ def create_macro_maps(assumes,asserts,macros):
 # equivalent to add `w -> v` to `macro_dep_map`. The following
 # procedure does this for a given formula.
 #
-# skolem_map maps existential variables to the terms that bind them. 
+# skolem_map maps existential variables to the terms that bind them.
 
 skolem_map = {}
 
@@ -353,7 +353,7 @@ def create_strat_map(assumes,asserts,macros):
                 universally_quantified_variables[v] = lf
 
     # print 'universally_quantified_variables : {}'.format([str(v) for v in universally_quantified_variables])
-    
+
     # Create an empty graph.
 
     strat_map = defaultdict(UFNode)
@@ -392,8 +392,8 @@ def show_strat_graph(m,a):
     for arc in a:
         print('(' + ','.join(str(x) for x in arc) + ')')
     print('}')
-    
-        
+
+
 def report_feu_error(text):
     raise iu.IvyError(None,"The verification condition is not in the fragment FAU.\n\n{}".format(text))
 
@@ -414,7 +414,7 @@ def report_arc(arc):
         res += '\n    (position {} is a function from '.format(idx) + str(get_node_sort(v)) + ' to ' + str(term.sort) + ')'
         if term in skolem_map:
             sm = skolem_map[term]
-            res += '\n    ' + str(sm[1].lineno) + 'skolem function defined by:\n         ' + str(sm[0])  
+            res += '\n    ' + str(sm[1].lineno) + 'skolem function defined by:\n         ' + str(sm[0])
     return res
 
 def report_cycle(cycle):
@@ -447,7 +447,7 @@ def check_feu(assumes,asserts,macros):
 
     global var_uniq
     var_uniq = il.VariableUniqifier()
-    
+
     def vupair(p):
         return (var_uniq(p[0]),p[1])
 
@@ -458,7 +458,7 @@ def check_feu(assumes,asserts,macros):
     # Create the stratificaiton graph, as described above.
 
     create_strat_map(assumes,asserts,macros)
-    
+
     # Check for cycles in the stratification graph.
 
     report_cycle(iu.cycle(arcs, first = lambda x: find(x[0]), second = lambda x: find(x[1])))
@@ -472,7 +472,7 @@ def check_feu(assumes,asserts,macros):
     #                         report_interp_over_var(v,app,lf)
     #                 if il.is_app(v) and v.rep in macro_value_map and macro_value_map[v.rep][0] is not None:
     #                     report_interp_over_var(v,app,lf)
-                        
+
 
     # for x,y in strat_map.iteritems():
     #     if isinstance(x,tuple) and (il.is_interpreted_symbol(x[0]) or x[0].name == '='):
@@ -493,7 +493,7 @@ def check_feu(assumes,asserts,macros):
 # the whole it would probably be better to fragment check each prover
 # context separately.
 
-def get_assumes_and_asserts(preconds_only):    
+def get_assumes_and_asserts(preconds_only):
     assumes = []
     asserts = []
     macros = []
@@ -532,7 +532,7 @@ def get_assumes_and_asserts(preconds_only):
 #             foo = ilu.close_epr(ilu.clauses_to_formula(triple[2]))
 # #            print 'ivy_theory.py: foo (2): {}'.format(foo)
 #             assumes.append((foo,action))
-            
+
     defined = set()
     referenced = set()
 
@@ -548,7 +548,7 @@ def get_assumes_and_asserts(preconds_only):
                         definitions.append(lf.clone([lf.label,il.Definition(lhs,rhs)]))
                         continue
         axioms.append(lf)
-    
+
     for ldf in definitions:
         if not isinstance(ldf.formula,il.DefinitionSchema):
             if (ldf.formula.defines() not in ilu.symbols_ast(ldf.formula.rhs())
@@ -598,7 +598,7 @@ def get_assumes_and_asserts(preconds_only):
     #     print 'macro: {}'.format(x[0])
     return assumes,asserts,macros
 
-    
+
 def check_fragment(preconds_only=False):
     if 'fo' not in im.logics():
         assumes,asserts,macros = get_assumes_and_asserts(preconds_only)

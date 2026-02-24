@@ -61,7 +61,7 @@
 #    octets for the Total Path Attribute Length (the value of Withdrawn
 #    Routes Length is 0 and the value of Total Path Attribute Length is
 #    0).
-   
+
 #    An UPDATE message can advertise, at most, one set of path attributes,
 #    but multiple destinations, provided that the destinations share these
 #    attributes.  All path attributes contained in a given UPDATE message
@@ -90,11 +90,11 @@
 
 include bgp_route
 include bgp_path_attribute
-include bgp_network_layer_reachability_info   
+include bgp_network_layer_reachability_info
 
 object bgp_update_message = {
     type this = struct {
-        withdraw_routes_len : stream_pos,         
+        withdraw_routes_len : stream_pos,
         withdraw_routes : withdraw_route.arr,
         total_path_attr_len : stream_pos,
         path_attrs : path_attr.arr,
@@ -102,7 +102,7 @@ object bgp_update_message = {
     }
 
     instance idx : unbounded_sequence
-    instance arr : array(idx,this) 
+    instance arr : array(idx,this)
 }
 
 action bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_message) = {}
@@ -118,7 +118,7 @@ around  bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_me
     bgp_update_event := true;
     ...
     require isup(bgpid_to_endpoint(src));
-    
+
     origin_present(src) := false;
     queued_path_attr(src) := path_attr.arr.empty;
     num_queued_path_attr(src) := 0;

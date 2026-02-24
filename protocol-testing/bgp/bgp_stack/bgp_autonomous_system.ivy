@@ -19,7 +19,7 @@ object autonomous_system = {
         id:as_number
     }
     instance idx : unbounded_sequence
-    instance arr : array(idx,this) 
+    instance arr : array(idx,this)
 }
 
 
@@ -34,7 +34,7 @@ before as_event(src:bgp_id,dst:bgp_id,as:autonomous_system) {
 }
 
 around as_path_event(src:bgp_id,dst:bgp_id,ases:autonomous_system.arr) {
-    #  require queued_segment_type(src, num_queued_as_path(src)) = 
+    #  require queued_segment_type(src, num_queued_as_path(src)) =
     require open_message_recv(src) & open_message_recv(dst);
     require bgp_update_event;
     require num_queued_segment_value(src, num_queued_as_path(src)) = ases.end;

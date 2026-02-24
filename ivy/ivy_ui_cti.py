@@ -81,7 +81,7 @@ class AnalysisGraphUI(ivy_ui.AnalysisGraphUI):
         self.transitive_relations = []
         self.transitive_relation_concepts = []
 
-                    
+
         axioms = im.module.background_theory()
         for c in il.all_symbols():
             if (type(c.sort) is lg.FunctionSort and
@@ -110,7 +110,7 @@ class AnalysisGraphUI(ivy_ui.AnalysisGraphUI):
         from .ivy_logic_utils import Clauses, and_clauses, dual_clauses
         from random import randrange
         from .ivy_art import AnalysisGraph
-        
+
         with self.ui_parent.run_context():
 
             ag,succeed,fail = ivy_trace.make_check_art(precond=self.conjectures)
@@ -135,7 +135,7 @@ class AnalysisGraphUI(ivy_ui.AnalysisGraphUI):
                         k for k, v in il.sig.symbols.items()
                         if (type(v.sort) is lg.FunctionSort and
                             v.sort.range == lg.Boolean and
-                            v.name not in self.transitive_relations 
+                            v.name not in self.transitive_relations
 #                            and '.' not in v.name
                         )
                     ))
@@ -152,7 +152,7 @@ class AnalysisGraphUI(ivy_ui.AnalysisGraphUI):
                     relation = il.sig.symbols[x]
                     relation = history.maps[0].get(relation, relation)
                     rels_to_min.append(relation)
-                        
+
                 clauses.annot = ia.EmptyAnnotation()
                 res = ivy_trace.check_final_cond(ag,post,clauses,rels_to_min,True)
 #                    res = ag.bmc(post, clauses, None, None, _get_model_clauses)
@@ -228,7 +228,7 @@ class AnalysisGraphUI(ivy_ui.AnalysisGraphUI):
 
     def set_states(self,s0,s1):
         self.cg = self.view_state(s0, reset=True)
-        
+
     def show_result(self,res):
         print(res)
 
@@ -269,7 +269,7 @@ class AnalysisGraphUI(ivy_ui.AnalysisGraphUI):
                 for lc in old_dropped:
                     f.write('# ')
                     _write_conj(f,lc.label,lc.formula)
-                    
+
             if new:
                 f.write('\n# new conjectures\n\n')
                 for conj in new:
@@ -304,7 +304,7 @@ class AnalysisGraphUI(ivy_ui.AnalysisGraphUI):
             conj = conjecture
             if conj is None:
                 conj = and_clauses(*self.conjectures)
-            
+
             assert conj.is_universal_first_order()
             used_names = frozenset(x.name for x in list(il.sig.symbols.values()))
             def witness(v):
@@ -599,7 +599,7 @@ class ConceptGraphUI(ivy_graph_ui.GraphWidget):
             clauses.annot = ia.EmptyAnnotation()
             res = ivy_trace.check_final_cond(ag,post,clauses,[],True)
 
-            text = '(1) ' + str(conj.to_formula()) 
+            text = '(1) ' + str(conj.to_formula())
             if res is not None:
                 self.ui_parent.text_dialog('(1) is not relatively inductive. View counterexample?',
                                            text,command_label='View',command = lambda: self.ui_parent.add(res))
@@ -719,4 +719,3 @@ class ConceptGraphUI(ivy_graph_ui.GraphWidget):
         self.fact_elems = dict(facts)
         self.update()
         self.highlight_selected_facts()
-

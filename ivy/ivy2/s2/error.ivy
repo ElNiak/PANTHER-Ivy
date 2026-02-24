@@ -9,14 +9,14 @@
 include ivylang
 
 object ivy = { ...
-    
+
     object error = {
         type this
         action encode(e:this,b:pretty) returns (b:pretty) = {
             b := b.extend("unknown error")
         }
     }
-    
+
     var errors : vector[error]
 
     # Reports an error and returns
@@ -192,7 +192,7 @@ object ivy = { ...
             b := b.newline;
         }
     }
-    
+
     # - Error `redefining(n,ann)` indicates that identifier `n` is redefined,
     # and `ann` is the location of the original definition.
 
@@ -247,7 +247,7 @@ object ivy = { ...
             b := b.newline;
         }
     }
-    
+
     # - Error `bad_syntax(e)` indicates bad syntax at expression `e`.
 
     object bad_syntax = {

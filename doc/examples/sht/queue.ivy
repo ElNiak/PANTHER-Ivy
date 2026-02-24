@@ -38,12 +38,12 @@ module message_queue(net_msg,seq_num) = {
 	after pick_one {
 	    assert contents(res)
 	}
-    
+
 	before delete_all  {
 	    contents(M) := contents(M) & ~(net_msg.num(M) <= seq)
 	}
     }
-    
+
     object impl = {
 
 	instance imap : ordered_map(seq_num,net_msg.t)
@@ -56,7 +56,7 @@ module message_queue(net_msg,seq_num) = {
 	implement empty {
 	    res := seq_num.iter.is_end(imap.lub(seq_num.iter.create(0)))
 	}
-	
+
 	implement delete_all(seq:seq_num.t) {
 	    call imap.erase(seq_num.iter.create(0),seq_num.iter.create(seq_num.next(seq)))
 	}

@@ -96,7 +96,7 @@ class GraphWidget(object):
                         elif ena[0].get():
                             lit = r.status_lit(status)
                             labels[x.name].append(make_lit_label(lit))
-                    else: 
+                    else:
                         style = {'true':0,'undef':1,'false':2}[status]
                         if ena[style].get():
                             if style != 1:
@@ -109,7 +109,7 @@ class GraphWidget(object):
     # Return label for a node as a list of string
 
     def make_node_label(self,n):
-        foo = [lit for lit in n.fmla if not(lit.polarity == 0 and lit.atom.relname == "=")] 
+        foo = [lit for lit in n.fmla if not(lit.polarity == 0 and lit.atom.relname == "=")]
     #    foo = n.fmla
         return [repr(n.sort)] + [make_lit_label(lit) for lit in foo]
 
@@ -200,7 +200,7 @@ class GraphWidget(object):
         if "backtrack_point" in gs.current.attributes:
             gs.current.attributes.remove("backtrack_point")
         self.update()
-        
+
     # make the state concrete by adding concrete state constraints
 
     def concrete(self):
@@ -211,7 +211,7 @@ class GraphWidget(object):
 
     # return the set of visible concepts (those represented in any way
     # in the graph)
-    
+
     def visible_relations(self):
         return [rel for rel in self.g.relations if any(e.get() for e in self.get_enabled(rel.name))]
 
@@ -253,13 +253,13 @@ class GraphWidget(object):
                         self.select_edge(concepts,True)
 
     # Set the current facts
-    
+
     def set_facts(self,facts):
         self.checkpoint()
         self.g.set_facts(facts)
         self.update()
-            
-        
+
+
     # Find a current fact whose printed form is "text"
 
     def fact(self,text):
@@ -301,7 +301,7 @@ class GraphWidget(object):
                 self.ui_parent.ok_dialog("PDR terminated")
         else:
             self.diagram()
-            
+
     # Recalculate the current state
 
     def recalculate(self):
@@ -309,7 +309,7 @@ class GraphWidget(object):
             g = self.g
             p = self.parent.recalculate_state(g.parent_state)
             clauses = g.parent_state.clauses
-#            clauses = ilu.remove_duplicates_clauses(and_clauses(g.state,clauses)) 
+#            clauses = ilu.remove_duplicates_clauses(and_clauses(g.state,clauses))
 #            print "recalculate clauses={}".format(clauses)
             g.set_state(clauses)
             self.update()
@@ -337,14 +337,14 @@ class GraphWidget(object):
         else:
             with self.ui_parent.run_context():  # to catch errors
                 self.parent.remember_graph(text,self.g.copy())
-                
+
     # Call this if relations might have changed
 
     def update_relations(self):
         if self.update_callback != None:
             self.update_callback()
-            
-        
+
+
 
     # Add a concept to the graph
 
@@ -369,7 +369,7 @@ class GraphWidget(object):
         self.g.set_state(clauses if clauses else new_parent_state.clauses, reset=reset)
         self.update_relations()
         self.update()
-                         
+
     # Check whether the goal is reachable in one step from
     # a known-reachable state
 
@@ -456,7 +456,7 @@ class GraphWidget(object):
                 self.update()
             else:
                 self.ui_parent.ok_dialog("The current state is vacuous.")
-        
+
 
     def split(self,p,node):
         self.checkpoint()
@@ -470,7 +470,7 @@ class GraphWidget(object):
         self.show_mark(False)
         self.mark = node
         self.show_mark(True)
-        
+
     def empty(self,node):
         self.checkpoint()
         self.g.empty(node)
@@ -500,7 +500,7 @@ class GraphWidget(object):
             msg = "Materialize this relation from selected node:"
             cmd = functools.partial(self.materialize_from_selected_aux,rels,node)
             self.ui_parent.listbox_dialog(msg,items,command=cmd)
-            
+
     def materialize_from_selected_aux(self,rels,node,idx):
         edge = (rels[idx],self.mark,node)
         self.materialize_edge(edge)
@@ -522,7 +522,7 @@ class GraphWidget(object):
             self.show_node_label(w)
         self.show_edge(edge[0])
         self.update()
-        
+
     # Materialize a negative edge
 
     def dematerialize_edge(self,edge):
@@ -555,5 +555,3 @@ if __name__ == '__main__':
     g.add_relation(r)
     g.set_state(state)
     show_graph(g)
-
-

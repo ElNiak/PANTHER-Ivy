@@ -13,11 +13,11 @@ include quic_fsm_receiving
 # ------------------
 
 # This section defines the foged packet datatype. Forged UDP datagram are the basic
-# unit of communication between endpoints and MiM agent. It consist in UDP headers 
+# unit of communication between endpoints and MiM agent. It consist in UDP headers
 # containing QUIC packet as payloads
 # ### Packet
 
-# The type `forged_datagram` represents forged UDP datagram. 
+# The type `forged_datagram` represents forged UDP datagram.
 
 # The fields are:
 #
@@ -81,21 +81,21 @@ function forged_datagram_to_made : forged_datagram # associate src ?
 
 # ### Effects
 #
-   
+
 #
 # ### Notes
 #
 
 around forged_datagram_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_datagram) {
     # Before
-    
+
     ...
 
     # Here, we have the updates to the packet protocol state.
 
-  
+
 }
 
 
 # Procedures
-# ==========    
+# ==========

@@ -25,13 +25,13 @@ module bgp_network(pkt,ser,des) = {
     action failed(self:bgp_id,s:socket)
 
     action connected(self:bgp_id,s:socket)
-    
+
     var open(A:bgp_id,S:socket) : bool
     var req(A1:bgp_id,S1:socket,A2:bgp_id) : bool
     var ack(A1:bgp_id,S1:socket) : bool
     var conn(A1:bgp_id,S1:socket,A2:bgp_id,S2:socket) : bool
     var sent_to(A:bgp_id,S:socket,P:pkt) : bool
-        
+
     object spec =  {
 
 
@@ -81,14 +81,14 @@ module bgp_network(pkt,ser,des) = {
                 if some (other:bgp_id,s2:socket) conn(self,s,other,s2) {
                     sent_to(other,s2,p) := true
                 }
-            } 
+            }
         }
 
         before recv {
             call tcp_recv;
             require open(self,s);
             require sent_to(self,s,p);
-        }            
+        }
 
         around close {
             call tcp_close;
@@ -118,14 +118,14 @@ module bgp_network(pkt,ser,des) = {
         import action tcp_close
         import action tcp_failed
         import action tcp_connect
-        
+
         invariant ~(open(A,S) & (req(A,S,A1) | ack(A,S))) & ~(req(A,S,A1) & ack(A,S))
         invariant req(A,S,A1) & req(A,S,A2) -> A1 = A2
         invariant (conn(A,S,A1,S1) | sent_to(A1,S1,P)) -> (open(A1,S1) | ack(A1,S1))
         invariant conn(A1,S1,A,S) -> (open(A1,S1) | ack(A1,S1))
     }
 
-    
+
     implementation {
         instance impl : tcp_impl(pkt, bgp_ivy_instance.bgpid, bgp_ivy_instance.ep.addr ,179,ser,des)
     }

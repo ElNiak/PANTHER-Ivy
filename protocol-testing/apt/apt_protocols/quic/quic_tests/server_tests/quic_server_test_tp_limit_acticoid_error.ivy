@@ -80,7 +80,7 @@ before quic_frameframeframe.new_connection_idquic_framequic_framequic_frame.new_
 # Generate connection_close frames only for the environment process(es).
 #
 # Note: requiring the `err_code` is zero on non-generated frames means that
-# we stop the test if the peer reports a protocol error. 
+# we stop the test if the peer reports a protocol error.
 
 before quic_frameframeframe.connection_closequic_framequic_framequic_frame.connection_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
@@ -122,8 +122,6 @@ attribute quic_frameframeframe.new_connection_id.handle.weight = "5"
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require is_connection_id_limit_error;
 }
-
-

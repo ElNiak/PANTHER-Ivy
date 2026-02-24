@@ -21,20 +21,16 @@ class IvyOutputPatternMixin:
             ("pre_compile_stdout", "pre-compile/stdout.log"),
             ("pre_compile_stderr", "pre-compile/stderr.log"),
             ("pre_compile_env", "pre-compile/ivy_env.sh"),
-
             ("compile_stdout", "compile/stdout.log"),
             ("compile_stderr", "compile/stderr.log"),
             ("compile_status", "compile/compilation_status.txt"),
             ("compile_log", "compile/ivy_compile.log"),
-
             ("runtime_stdout", "runtime/stdout.log"),
             ("runtime_stderr", "runtime/stderr.log"),
             ("runtime_setup", "runtime/ivy_setup.log"),
-
             ("test_stdout", "test/stdout.log"),
             ("test_stderr", "test/stderr.log"),
             ("test_results", "test/test_results.json"),
-
             # Ivy-specific artifacts
             ("ivy_log", "artifacts/ivy_{service_name}.log"),
             ("pcap", "artifacts/{service_name}.pcap"),
@@ -43,12 +39,14 @@ class IvyOutputPatternMixin:
         ]
 
         # Protocol-specific additions
-        if hasattr(self, 'get_protocol_name'):
+        if hasattr(self, "get_protocol_name"):
             protocol = self.get_protocol_name()
             if protocol == "quic":
-                patterns.extend([
-                    ("qlog", "artifacts/*.qlog"),
-                    ("keys", "artifacts/*keys.log"),
-                ])
+                patterns.extend(
+                    [
+                        ("qlog", "artifacts/*.qlog"),
+                        ("keys", "artifacts/*keys.log"),
+                    ]
+                )
 
         return patterns

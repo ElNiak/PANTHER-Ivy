@@ -33,7 +33,7 @@ global {
     # identifiers take on integer values from `0` to `node_max`, where
     # `node_max` is implicitly defined here as global parameter whose
     # value can be selected a run time.
-    
+
     instance host_id : iterable
     alias node_max = host_id.max
     # object host_id = {
@@ -41,11 +41,11 @@ global {
     #     action next(x:host_id) returns (x:host_id) = {x := x + 1;}
     # }
     # alias node_max = 2
-    
+
     # Since we have three kinds of messages in our protocol, we define
     # an enumerated type for the message kind with three symbolic
     # values.
-    
+
     type msg_kind = {request,reply,release}
 
     # In addition, we use a sequence type to represent timestamps. The
@@ -58,8 +58,8 @@ global {
     # Our messages are stucts with three fields: the message kind and the
     # host identifier of the sender and a timestamp. We order messages
     # according to the timestamp. This ordering is useful in the proof
-    # of correctness. 
-    
+    # of correctness.
+
     object msg_t = {
         type this = struct {
             kind : msg_kind,
@@ -73,7 +73,7 @@ global {
     # will communicate. Here, `tcp.net` is a template defined in the
     # `network` library that we included above. The template takes one
     # parameter, which is the type of messages to be sent. Our instance
-    # of this template is an object called `net`. 
+    # of this template is an object called `net`.
 
     instance net : tcp_test.net(msg_t)
 }
@@ -95,7 +95,7 @@ process node(self:host_id) = {
 
     # Our action is an export `request_cs`, which our client uses to
     # request to enter the critical section. It takes no parameters.
-    
+
     export action request_cs
 
     # Our second action is an import `enter_cs`. This is a callback to
@@ -113,12 +113,12 @@ process node(self:host_id) = {
     # Next we declare per-process objects. Each process needs a socket
     # on network `net` in order to communicate. We declare the socket
     # here. The socket `sock` is an instance of the template `socket`
-    # declared by the network service `net`. 
-    
+    # declared by the network service `net`.
+
     instance sock : net.socket
 
-    # We also declare some local (per-process) types and variables. 
-    
+    # We also declare some local (per-process) types and variables.
+
     type state_t = {idle,waiting,critical}
     var state : state_t
 
@@ -140,7 +140,7 @@ process node(self:host_id) = {
     # `after init` section runs on initialization of the process. You
     # aren't allowed to do much here, just assign values to local
     # variables.
-    
+
     after init {
         state := idle;
         ts := 0;
@@ -174,7 +174,7 @@ process node(self:host_id) = {
     # of the sending socket (not useful here) and the incoming
     # message.
 
-    
+
     implement sock.recv(src:tcp.endpoint,incoming:msg_t) {
 
         # show_incoming(incoming);
@@ -189,7 +189,7 @@ process node(self:host_id) = {
         var outgoing : msg_t;
         outgoing.sender_id := self;
         outgoing.ts := ts;
-        
+
         # What we do here depends on the kind of message.
 
         # When we receive a `request` message, we put it on our request queue,
@@ -200,20 +200,20 @@ process node(self:host_id) = {
             request_ts(incoming.sender_id) := incoming.ts;
             unicast(outgoing,incoming.sender_id);
         }
-        
+
         # When we receive a `release` message, the sender's request
         # must be at the head of our queue.  We dequeue it.
 
         else if incoming.kind = release {
             request_ts(incoming.sender_id) := 0;
-            
+
         }
 
         # On a reply, we update the highest timestamp received from
         # this sender. Because of in-order devlivery, the timestamps
         # are received in increasing order, so the incoming one must
         # be the greatest so far.
-        
+
         else if incoming.kind = reply {
             reply_ts(incoming.sender_id) := incoming.ts;
         }
@@ -224,7 +224,7 @@ process node(self:host_id) = {
         # - We are in the waiting state
         # - Our request message has the least timestamp in lexicographic order
         # - Every host has sent a reply later than our request
-        
+
         if state = waiting
         & forall X. X ~= self ->
                       (request_ts(X) = 0 | lexord(request_ts(self),self,request_ts(X),X))
@@ -233,7 +233,7 @@ process node(self:host_id) = {
             state := critical;
             enter_cs;
         }
-    }                    
+    }
 
     implement exit_cs {
         ts := ts.next;
@@ -266,7 +266,7 @@ process node(self:host_id) = {
     # because the network addresses of the sockets are immutable
     # parameters that are determined at initialization and are
     # provided to all processes.
-    
+
     action unicast(outgoing:msg_t, dst_id : host_id) = {
        sock.send(node(dst_id).sock.id,outgoing);
     }
@@ -304,20 +304,20 @@ process node(self:host_id) = {
     import action show_incoming(incoming:msg_t)
 
     specification {
-        
+
         var client_state : state_t
 
         axiom node(X).sock.id = node(Y).sock.id -> X = Y
-        
+
         after init {
             client_state := idle;
         }
-        
+
         before request_cs {
             require client_state = idle;
             client_state := waiting;
         }
-        
+
         before enter_cs {
             require client_state = waiting;
             require node.client_state(X) ~= critical
@@ -328,7 +328,7 @@ process node(self:host_id) = {
 
             client_state := critical;
         }
-        
+
         before exit_cs {
             require client_state = critical;
             client_state := idle;
@@ -355,7 +355,7 @@ process node(self:host_id) = {
         # All messages in the channel from us to Y have us as sender
 
         invariant net.sent(S,node(Y).sock.id,M) -> S = node(msg_t.sender_id(M)).sock.id
-        
+
         # If our request is in our quque, then for all other processes
         # Y, either the request is on the way to Y, or Y has stored
         # the request. Note this is written in a funny way to avoid
@@ -366,12 +366,12 @@ process node(self:host_id) = {
             & msg_t.ts(M) = request_ts(self) & msg_t.kind(M) = request & msg_t.sender_id(M) = self
             & Y ~= self ->
                 (net.sent(sock.id,node(Y).sock.id,M) | node(Y).request_ts(self) = request_ts(self))
-        
+
         # The latest timestamp we have received from process Y is <=
         # the current timestamp of Y.
 
         invariant Y ~= self -> reply_ts(Y) <= node(Y).ts
-        
+
         # If we are in the waiting or critical state, we have a
         # request in our own queue.
 
@@ -395,24 +395,24 @@ process node(self:host_id) = {
             proof {apply msg_t.constr}
         }
 
-        # If we are critical, everone else has a higher ticket number than our request 
+        # If we are critical, everone else has a higher ticket number than our request
 
         invariant state = critical & Y ~= self -> node(Y).ts > request_ts(self)
 
         # Our request at Y can be bigger than our current request or our current ts.
 
         invariant (Y ~= self -> (request_ts(self) > 0 -> node(Y).request_ts(self) <= request_ts(self))) & node(Y).request_ts(self) <= ts
-        
+
         # Our request ts in the network must be <= than our current request, if any
-        
+
         invariant net.sent(S,node(Y).sock.id,M) & msg_t.kind(M) = request & msg_t.sender_id(M) = self & request_ts(self) > 0 -> msg_t.ts(M) <= request_ts(self)
-        
+
         # Request messages can't have a ts of 0
 
         invariant net.sent(S,node(Y).sock.id,M) & msg_t.kind(M) = request -> msg_t.ts(M) > 0
-        
+
         # A release massage means there is no current request <= ts
-        
+
         invariant net.sent(S,node(Y).sock.id,M) & msg_t.kind(M) = release & msg_t.sender_id(M) = self -> node(Y).request_ts(self) <= msg_t.ts(M) & (request_ts(self) > 0 -> msg_t.ts(M) < request_ts(self))
 
         # If we are  critical, everyone else is holding our request

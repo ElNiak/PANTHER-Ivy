@@ -36,7 +36,7 @@ object frame = {
 
     instance idx : unbounded_sequence
     instance arr : array(idx,this)
-}       
+}
 
 function queued_frames : frame.arr
 function num_queued_frames : frame.idx
@@ -55,7 +55,7 @@ after init {
 object frame = {
     ...
     action handle(f:this) = {
-        require false; 
+        require false;
     }
 }
 

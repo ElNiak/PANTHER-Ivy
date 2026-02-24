@@ -49,7 +49,7 @@ after modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_p
             var pkts := prot.arr.empty;
             pkts := pkts.append(spkt);
             call net.send(endpoint_id.mim,endpoint_to_socket_mim(src),dst,pkts);
-        #     idx := idx.next; 
+        #     idx := idx.next;
         # }
     }
 }
@@ -57,18 +57,18 @@ after modify_protected_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_p
 after forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_pkts) {
     # if _generating {  # & ~conn_closed(pkt.the_cid)
         var idx := pkt.begin;
-        
+
         # while idx < pkt.end {
         #     var pkts_mim := prot.arr.empty;
         #     pkts_mim := pkts_mim.append(pkt.value(idx));
         #     call net.send(endpoint_id.mim,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
-        #     idx := idx.next; 
+        #     idx := idx.next;
         # };
-        
+
         var pkts_mim := prot.arr.empty;
         while idx < pkt.end {
             pkts_mim := pkts_mim.append(pkt.value(idx));
-            idx := idx.next; 
+            idx := idx.next;
         };
         call net.send(endpoint_id.mim,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
 
@@ -85,17 +85,17 @@ after forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_
         #     var pkts_mim := prot.arr.empty;
         #     pkts_mim := pkts_mim.append(pkt.value(idx));
         #     call net.send(endpoint_id.mim,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
-        #     idx := idx.next; 
+        #     idx := idx.next;
         # };
-        
+
         var pkts_mim := prot.arr.empty;
         while idx < pkt.end {
             pkts_mim := pkts_mim.append(pkt.value(idx));
             # TODO allow forwarding coalesed packet or not
-            idx := idx.next; 
-        }; 
+            idx := idx.next;
+        };
         call net.send(endpoint_id.mim,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
-        
+
         mim_agent.last_cppkt_forwarded_to_client := mim_agent.last_cppkt_forwarded_to_client + 1;
     # }
 }
@@ -107,7 +107,7 @@ after replay_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_p
             var pkts_mim := prot.arr.empty;
             pkts_mim := pkts_mim.append(pkt.value(idx));
             call net.send(endpoint_id.mim,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
-            idx := idx.next; 
+            idx := idx.next;
         };
     }
 }
@@ -144,4 +144,3 @@ after replayed_packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:replayed_qu
         call net.send(endpoint_id.mim,endpoint_to_socket_mim(src),dst,pkts);
     }
 }
-

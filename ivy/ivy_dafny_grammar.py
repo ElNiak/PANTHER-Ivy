@@ -193,7 +193,7 @@ def p_expr_expr_PLUS_expr(p):
     'expr : expr PLUS expr'
     p[0] = da.App(da.InfixSymbol(p[2]),p[1],p[3])
     p[0].lineno = p.lineno(2)
-    
+
 def p_expr_expr_MINUS_expr(p):
     'expr : expr MINUS expr'
     p[0] = da.App(da.InfixSymbol(p[2]),p[1],p[3])
@@ -269,7 +269,7 @@ def p_stmt_assert_expr_semi(p):
 def p_stmts_stmt(p):
     'stmts : stmt'
     p[0] = [p[1]]
-    
+
 def p_stmts_stmts_stmt(p):
     'stmts : stmts stmt'
     p[0] = p[1]
@@ -312,7 +312,7 @@ def p_stmt_var_assign_expr_semi(p):
     'stmt : VAR symbols ASSIGN exprs SEMI'
     p[0] = da.VarStmt(da.AssignStmt(da.Tuple(*[da.App(x) for x in p[2]]),da.Tuple(*p[4])))
     p[0].lineno = p.lineno(1);
-    
+
 def p_stmt_return_semi(p):
     'stmt : RETURN SEMI';
     p[0] = da.ReturnStmt();
@@ -322,6 +322,3 @@ def p_stmt_return_exprs_semi(p):
     'stmt : RETURN exprs SEMI';
     p[0] = da.ReturnStmt(*p[2]);
     p[0].lineno = p.lineno(1);
-
-
-

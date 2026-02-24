@@ -50,7 +50,7 @@ after init {
 
 # This token MUST be repeated by the client in all
 #    Initial packets it sends for that connection after it receives the
-#    Retry packet. 
+#    Retry packet.
 
 # In comparison, a
 #    token obtained in a Retry packet MUST be used immediately during the
@@ -104,7 +104,6 @@ attribute quic_frame.path_response.handle.weight = "5"
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require conn_total_data(the_cid) > 0;
 }
-

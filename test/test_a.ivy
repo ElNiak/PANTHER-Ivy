@@ -93,17 +93,17 @@ module irb_type = {
 #
 ################################################################################
 ## ****
-module p_mod = { 
+module p_mod = {
   individual  state(A:addr_type) : state_type
   instantiate rrb(A:addr_type)      : rrb_type
   instantiate irb(A:addr_type)      : irb_type
   instantiate wrb(A:addr_type)      : wrb_type
   individual  data(A:addr_type)      : data_type
   individual wr        : bool
- 
+
   individual error       : bool
   individual ivack : bool
- 
+
   action p_rec(p:proc,a:addr_type,ph:ph_type,send:send_type,store:bool,store_data:data_type) = {
   error := true;
 
@@ -114,19 +114,19 @@ module p_mod = {
     } else {
        net.last_ivack := true;
     };
-       
+
     ivack := true;
   } else {
     net.last_ivack := false;
-    ivack := false;    
+    ivack := false;
   };
- 
+
  if ph=req_rsp_ph1 & ~rrb(a).v & ~wrb(a).v & state(a)=inv & send=send_rdsh {
   rrb(a).v := true;
   rrb(a).r := false;
   rrb(a).a := false;
   net.req_rsp(p,a).kind := rdsh;
- 
+
   error    := false;
 }
 else if ph=req_rsp_ph1 & ~rrb(a).v & ~wrb(a).v & state(a)=inv & send=send_ex {
@@ -134,7 +134,7 @@ else if ph=req_rsp_ph1 & ~rrb(a).v & ~wrb(a).v & state(a)=inv & send=send_ex {
   rrb(a).r := false;
   rrb(a).a := false;
   net.req_rsp(p,a).kind := rdex;
- 
+
   error    := false;
 }
   else {
@@ -149,9 +149,9 @@ else if ph=req_rsp_ph1 & ~rrb(a).v & ~wrb(a).v & state(a)=inv & send=send_ex {
 
     individual ptr(A:addr_type)       : proc
     individual pptr(A:addr_type)  : proc
-    individual tmp_pptr  : proc    
+    individual tmp_pptr  : proc
     individual pptr_vld(A:addr_type) : bool
-  
+
     relation   owner(X:proc,A:addr_type)
 
     individual mem(A:addr_type)         : data_type
@@ -175,7 +175,7 @@ action dir_rec(p:proc,a:addr_type,ph:ph_type) = {
 
     shrd_only  := ~(exists P. owner(P,a) & p~=P);
     excl_owner := p=ptr(a);
- 
+
 if ph=req_rsp_ph2 & net.req_rsp(p,a).kind=rdsh & dstate(a)=uown {
   dstate(a) := shrd;
   owner(p,a) := true;
@@ -199,11 +199,11 @@ else if ph=req_rsp_ph2 & net.req_rsp(p,a).kind=rdsh & dstate(a)=excl & excl_owne
       error                 := false;
       }
     }
- 
-    after dir_rec { 
-      assert ~error 
-    } 
- 
+
+    after dir_rec {
+      assert ~error
+    }
+
   }
 
 ## ****
@@ -215,14 +215,14 @@ else if ph=req_rsp_ph2 & net.req_rsp(p,a).kind=rdsh & dstate(a)=excl & excl_owne
 module network = {
   instantiate req_rsp(X:proc,A:addr_type) : req_rsp_type
   instantiate req(X:proc,A:addr_type)     : req_type
-  
+
   instantiate rpl(A:addr_type)     : rpl_type
-  
+
   instantiate trf(A:addr_type)      : trf_type
 
   individual binv(A:addr_type)        : bool
   individual inval(A:addr_type)       : bool
-  
+
   individual store_data   : data_type
 
   individual last_ivack  : bool
@@ -246,7 +246,7 @@ module network = {
    } else if ph=req_ph {                  # proc receives intervention/invalidate request
      call pi(p).p_rec(p,a,ph,send,store,store_data)
    } else if ph=trf_ph {                  # directory receives ownership transfer message
-     call d.dir_rec(p,a,ph) 
+     call d.dir_rec(p,a,ph)
    } else if ph=store_ph {                # proc writes/dirties a cex cache line
      call pi(p).p_rec(p,a,ph,send,store,store_data)
    }
@@ -275,15 +275,15 @@ module network = {
     }
   }
 
-  action step4(p:proc,a:addr_type,send:send_type,store:bool) = {  
+  action step4(p:proc,a:addr_type,send:send_type,store:bool) = {
      call pi(p).p_rec(p,a,req_ph,send,store,store_data)
   }
 
-  action step5(p:proc,a:addr_type,send:send_type,store:bool) = {  
-     call d.dir_rec(p,a,trf_ph) 
+  action step5(p:proc,a:addr_type,send:send_type,store:bool) = {
+     call d.dir_rec(p,a,trf_ph)
   }
 
-  action step6(p:proc,a:addr_type,send:send_type,store:bool) = {  
+  action step6(p:proc,a:addr_type,send:send_type,store:bool) = {
      call pi(p).p_rec(p,a,store_ph,send,store,store_data)
   }
 
@@ -293,16 +293,16 @@ after init {
     net.req_rsp(P,A).kind := idle_r_r;
     net.req(P,A).kind     := idle_req;
     net.ivec(P,A)         := false;
-    net.ivack(P,A)        := false;    
-    net.inval(A)          := false;  
-    net.binv(A)           := false;  
-    
+    net.ivack(P,A)        := false;
+    net.inval(A)          := false;
+    net.binv(A)           := false;
+
     pi(X).state(A)        := inv;
-    pi(X).rrb(A).v        := false;    
-    
+    pi(X).rrb(A).v        := false;
+
     d.dstate(A)           := uown;
     d.owner(X,A)          := false;
-    d.pptr_vld(A)         := false;    
+    d.pptr_vld(A)         := false;
 
     d.mem_real(A)         := d.mem(A);
 
@@ -320,7 +320,7 @@ instantiate pi(X:proc) : p_mod
 instantiate net : network
 
 ################################################################################
-# 
+#
 ################################################################################
 
  conjecture (net.req_rsp(P,A).kind~=rdsh)
@@ -334,4 +334,3 @@ export net.step3
 export net.step4
 export net.step5
 export net.step6
-

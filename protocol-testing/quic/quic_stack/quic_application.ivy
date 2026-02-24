@@ -37,7 +37,7 @@ action app_server_open_event(src:ip.endpoint,dst:ip.endpoint,scid:cid,dcid:cid)
 #
 # This event corresponds to transfer of application data to QUIC to
 # be transmitted. The data is copied into the sent stream at the given position.
-# This allows the sending application to provide data out of order. 
+# This allows the sending application to provide data out of order.
 #
 # Parameters
 # ----------
@@ -94,11 +94,11 @@ after init {
 # Requirements:
 #
 # - A connection must have been requested by the client [1].
-# - The two cids must not be previously associated to any peer [2]. 
+# - The two cids must not be previously associated to any peer [2].
 # - Gives one ack credit to the server for the initial packet
 
 around app_server_open_event {
-    require conn_requested(dst,src,dcid);  # [1] 
+    require conn_requested(dst,src,dcid);  # [1]
     require ~connected(dcid) & ~connected(scid);  # [2]
     ...
     call map_cids(scid,dcid);
@@ -128,7 +128,7 @@ after init {
 # Requirements
 #
 # - If the data overwites existing data in the stream, then it must
-#   agree with that data [2]. 
+#   agree with that data [2].
 #
 # - Writing non-empty data to a closed stream is not allowed [4].
 #
@@ -139,7 +139,7 @@ after init {
 #
 # - The stream data length is updated to reflect the new data [1].
 #
-# - If `close` is true, the stream is marked as finished [3]. 
+# - If `close` is true, the stream is marked as finished [3].
 #
 
 after app_send_event {

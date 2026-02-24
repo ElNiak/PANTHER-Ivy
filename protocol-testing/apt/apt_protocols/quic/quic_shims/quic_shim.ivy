@@ -61,7 +61,7 @@ include quic_loss_recovery
 include quic_congestion_control
 
 include ivy_quic_server
-include ivy_quic_client 
+include ivy_quic_client
 # include ivy_quic_client_server
 # include ivy_quic_attacker_client
 # include ivy_quic_target
@@ -82,7 +82,7 @@ include ivy_quic_client
 ######## Test type config
 
 relation initial_keys_set(C:cid)
-relation tp_client_set # (C:cid) TODO strange segfault for level 2 not set with quant 
+relation tp_client_set # (C:cid) TODO strange segfault for level 2 not set with quant
 
 function client_initial_rcid : cid
 function client_initial_scid : cid
@@ -127,13 +127,13 @@ var server_cid_alt : cid
 
 instance ip_endpoints : array(index,ip.endpoint)
 # instance endpoints : array(index,endpoint)
-relation allowed_migration 
+relation allowed_migration
 relation allowed_multiple_migration
 
 relation first_datagram_received
 function last_datagram_received_size : stream_pos
 
-# for client & server tests 
+# for client & server tests
 relation version_negociated
 function initial_version : version # init in each entities/test
 relation negocation_of_version(E:ip.endpoint)
@@ -144,7 +144,7 @@ after init {
     zero_rtt_server_test := false;
     allowed_migration          := true;
     allowed_multiple_migration := false;
-    
+
     version_negociated := false;
     negocation_of_version_initiated(E) := false;
     negocation_of_version(E):=  false;
@@ -153,10 +153,10 @@ after init {
     last_datagram_received_size := 0;
 
     nclients := 1;
-    # the_cids := 
+    # the_cids :=
 }
 
-######## RTT config 
+######## RTT config
 
 # var early_data_end : stream_data
 # after init {
@@ -212,14 +212,14 @@ after init {
         v1 := v1.append(0x0);
         v1 := v1.append(0x22); # TODO
         supported_versions_bv := supported_versions_bv.append(0xff000022);
-        initial_version := 0xff000022; 
+        initial_version := 0xff000022;
     } else if iversion = 29 {
         v1 := v1.append(0xff);
         v1 := v1.append(0x0);
         v1 := v1.append(0x0);
         v1 := v1.append(0x1d); # TODO
         supported_versions_bv := supported_versions_bv.append(0xff00001d);
-        initial_version := 0xff00001d; 
+        initial_version := 0xff00001d;
     } else if iversion = 28 {
         v1 := v1.append(0xff);
         v1 := v1.append(0x0);
@@ -262,11 +262,11 @@ after init {
 #             call undefined_host_error(host,s,src);
 #         };
 #     }
-    
+
 # }
 
 # For logging purposes. This logs the decoded packets received from the network, before
-# event inference. 
+# event inference.
 
 
 import action recv_packet(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
@@ -288,7 +288,7 @@ import action on_purpose_lost_packet_event(host:endpoint_id,src:ip.endpoint,pkt:
 # --------------------
 
 # Here, we connect protocol events at the security layer to API calls of the
-# TLS 1.3 service (a part of the test locale). 
+# TLS 1.3 service (a part of the test locale).
 #
 #
 # TLS send event shim
@@ -305,15 +305,15 @@ import action on_purpose_lost_packet_event(host:endpoint_id,src:ip.endpoint,pkt:
         #     the_cid_used          := the_cid_used.append(the_cid);
         #     # last_connection_id    := client_current_connection_id;
         #     client_current_connection_id := client_current_connection_id.next;
-            
+
         #     client.ep.port        := client.ep.port + 1;
         #     client.set_tls_id(client_current_connection_id);
-            
+
         #     sock     := quic_net.open(endpoint_id.client,client.ep);
         #     sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
         #     sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
         #      # server.set_tls_id(client_current_connection_id.next);
-    
+
         #     cid_map_tls_id(the_cid) := client_current_connection_id;
         #     ep_map_tls_id(client.ep)   := client_current_connection_id;
         #     ep_map_cid(client.ep)      := the_cid;
@@ -325,10 +325,10 @@ import action on_purpose_lost_packet_event(host:endpoint_id,src:ip.endpoint,pkt:
         #     call show_dev( client.ep,server.ep,the_cid,dcid,src_tls_id(client.ep));
         #     number_of_open_connection(server.ep) := number_of_open_connection(server.ep) + 1;
         #     used_client_ports(client.ep.port) := true;
-    
+
         #     var extns := tls_extensions.empty;
         #     extns := extns.append(make_transport_parameters);
-        #     call tls_api.upper.create(client_current_connection_id,false,extns); 
+        #     call tls_api.upper.create(client_current_connection_id,false,extns);
         #     # the_cid := next_cid(the_cid);
         #     # # server_cid := next_cid(server_cid);
         #     # # nonce_cid(the_cid) := server_cid;
@@ -338,14 +338,14 @@ import action on_purpose_lost_packet_event(host:endpoint_id,src:ip.endpoint,pkt:
         #     # client.ep.port        := client.ep.port + 1;
         #     # used_client_ports(client.ep.port) := true;
         #     # client.set_tls_id(client_current_connection_id);
-            
+
         #     # sock     := quic_net.open(endpoint_id.client,client.ep);
         #     # sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
         #     # sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
         #     #     # server.set_tls_id(client_current_connection_id.next);
         #     # var extns := tls_extensions.empty;
         #     # extns := extns.append(make_transport_parameters);
-        #     # call tls_api.upper.create(client_current_connection_id,false,extns); 
+        #     # call tls_api.upper.create(client_current_connection_id,false,extns);
         # }
     }
 }
@@ -362,10 +362,10 @@ after tls_send_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, data 
     #     the_cid_used          := the_cid_used.append(the_cid);
     #     # last_connection_id    := client_current_connection_id;
     #     client_current_connection_id := client_current_connection_id.next;
-        
+
     #     client.ep.port        := client.ep.port + 1;
     #     client.set_tls_id(client_current_connection_id);
-        
+
     #     sock     := quic_net.open(endpoint_id.client,client.ep);
     #     sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
     #     sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
@@ -385,7 +385,7 @@ after tls_send_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, data 
 
     #     var extns := tls_extensions.empty;
     #     extns := extns.append(make_transport_parameters);
-    #     call tls_api.upper.create(client_current_connection_id,false,extns); 
+    #     call tls_api.upper.create(client_current_connection_id,false,extns);
     #     # the_cid := next_cid(the_cid);
     #     # # server_cid := next_cid(server_cid);
     #     # # nonce_cid(the_cid) := server_cid;
@@ -395,14 +395,14 @@ after tls_send_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, data 
     #     # client.ep.port        := client.ep.port + 1;
     #     # used_client_ports(client.ep.port) := true;
     #     # client.set_tls_id(client_current_connection_id);
-        
+
     #     # sock     := quic_net.open(endpoint_id.client,client.ep);
     #     # sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
     #     # sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
     #     #     # server.set_tls_id(client_current_connection_id.next);
     #     # var extns := tls_extensions.empty;
     #     # extns := extns.append(make_transport_parameters);
-    #     # call tls_api.upper.create(client_current_connection_id,false,extns); 
+    #     # call tls_api.upper.create(client_current_connection_id,false,extns);
     # }
 }
 

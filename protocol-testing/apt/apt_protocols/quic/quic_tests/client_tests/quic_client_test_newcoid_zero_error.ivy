@@ -36,7 +36,7 @@ before quic_frame.new_connection_id.handle(f:quic_frame.new_connection_id,scid:c
 
 before quic_frame.connection_close.handle(f:quic_frame.connection_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
-        require client.ep.addr ~= 0;         
+        require client.ep.addr ~= 0;
         require scid = the_cid;
     } else {
         require is_protocol_violation
@@ -82,8 +82,6 @@ export quic_frame.streams_blocked.handle
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require is_protocol_violation;
 }
-
-

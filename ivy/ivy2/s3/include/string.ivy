@@ -15,7 +15,7 @@
 # - An action `extend` that append a string to a string
 # - An action `resize` that sets the length of the string
 # - An action `segment` that returns a substring,
- 
+
 include collections
 
 object string = {
@@ -33,13 +33,13 @@ object string = {
         # The domain type for ASCII strings is represented by the C++
         # `size_t` type. This allows strings as large as available
         # memory will allow.
-        
+
         type domain
         interpret domain -> ivy.native_int[size_t]
 
         # The domain type for ASCII strings is represented by the C++
         # `char` type. This allows code points in the range 0-127.
-        
+
         type range
         interpret range -> ivy.native_int[char]
 

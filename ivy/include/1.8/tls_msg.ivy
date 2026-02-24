@@ -10,18 +10,18 @@ include tls_picotls
 
 module tls_lower_intf(cid,bytes) = {
 
-    # Encryption level, ranges from 0-3. 
-    
+    # Encryption level, ranges from 0-3.
+
     type level
 
     # Transfers message data from connection to underlying transport
-    
+
     action send(c:cid,data:bytes,lev:level)
-    
+
     # Transfers message data from the underlying transport to connection
-    
+
     action recv(c:cid,data:bytes,lev:level)
-    
+
 }
 
 # This module defines the interface of a TLS endpoint (either a client
@@ -37,37 +37,37 @@ module tls_intf(cid,index,bytes,lower,extens,hextens,exten_ser,seq_num) = {
 
     # The upper interface is between TLS and the application
 
-    # Encryption level, ranges from 0-3. 
-    
+    # Encryption level, ranges from 0-3.
+
     type level
 
     # Transfers connection data to application
-    
+
     action recv(c:cid,data:bytes)
-    
+
     # Transfers application data to conection
-    
+
     action send(c:cid,data:bytes)
-    
+
     # Alert from connection to application
-    
+
     action alert(c:cid,data:bytes)
-    
+
     # Indicates to application that a session is established,
     # meaning the connection is ready to send on.
-    
+
     action session_established(c:cid)
-    
+
     # Indicates to application that the keys for a given encryption
-    # level are established.  
-    
+    # level are established.
+
     action keys_established(c:cid,lev:level)
-    
+
     # Generates key material based on master secret, per RFC 5705.
-    
+
     action key_material_export(c:cid,label:bytes,context:bytes,length:index)
     returns (key:bytes)
-    
+
     # Create a new connection with a fresh cid, and list of extensions
 
     action create(c:cid, is_server:bool, e:extens)
@@ -79,7 +79,7 @@ module tls_intf(cid,index,bytes,lower,extens,hextens,exten_ser,seq_num) = {
     action get_old_retry_token returns (b:stream_data)
 
     action save_token(token:stream_data)
-    
+
     action save_initial_max_stream_data_uni(i:stream_pos)
 
     action save_initial_max_stream_data_bidi_remote(i:stream_pos)
@@ -91,7 +91,7 @@ module tls_intf(cid,index,bytes,lower,extens,hextens,exten_ser,seq_num) = {
     action save_initial_max_stream_id_bidi(i:stream_id)
 
     action save_active_connection_id_limit(i:stream_pos)
-    
+
     action get_initial_max_stream_data_uni returns(i:stream_pos)
 
     action get_initial_max_stream_data_bidi_remote returns(i:stream_pos)
@@ -129,11 +129,11 @@ module tls_intf(cid,index,bytes,lower,extens,hextens,exten_ser,seq_num) = {
     # QUIC header protection.
 
     action encrypt_cipher(c:cid,l:level,clear:bytes,iv:bytes,recv:bool) returns (cipher:bytes)
-    
-    # Decrypt data with receiving symmetric cipher for given level and initial value. 
+
+    # Decrypt data with receiving symmetric cipher for given level and initial value.
 
     action decrypt_cipher(c:cid,l:level,cipher:bytes,iv:bytes) returns (clear:bytes)
-    
+
 
     action compute_retry_integrity_tag(odcil: stream_pos, odcid: cid,
                                        pversion: version,
@@ -146,7 +146,7 @@ module tls_intf(cid,index,bytes,lower,extens,hextens,exten_ser,seq_num) = {
     # sequence number `seq`.
 
     action encrypt_aead(c:cid,l:level,clear:bytes,seq:seq_num,ad:bytes) returns (cipher:bytes)
-    
+
     type decrypt_result = struct {
         ok:bool,
         data:bytes,
@@ -159,12 +159,12 @@ module tls_intf(cid,index,bytes,lower,extens,hextens,exten_ser,seq_num) = {
 
     action decrypt_aead(c:cid,l:level,cipher:bytes,seq:seq_num,ad:bytes)
     returns (res:decrypt_result)
-    
+
     specification {
 
         relation open(C:cid)
         relation established(C:cid)
-        
+
         after init {
             open(C) := false;
             established(C) := false;
@@ -202,9 +202,7 @@ module tls_intf(cid,index,bytes,lower,extens,hextens,exten_ser,seq_num) = {
 
         invariant established(C) -> open(C)
     }
-    
+
     instance foo:tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,this)
 
 }
-
-

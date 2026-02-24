@@ -37,7 +37,7 @@ object quic_deser = {}
             } else if (state == quic_s_type) {
                 res = hdr_type;
                 state = quic_s_cid;
-            } else if (state == quic_s_cid) { 
+            } else if (state == quic_s_cid) {
                 ivy_binary_deser::get(res);
                 state = quic_s_version;
             } else if (state == quic_s_version) {

@@ -34,7 +34,7 @@ include byte_stream
 
 # ### Packet
 
-# The type `quic_packet` represents packet. 
+# The type `quic_packet` represents packet.
 
 # The fields are:
 #
@@ -145,7 +145,7 @@ action packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_retry)
 #    packet in response to a single UDP datagram.
 
 # A client MUST discard a Retry packet with a zero-length
-#    Retry Token field. 
+#    Retry Token field.
 
 #    A Retry packet does not include a packet number and cannot be
 #    explicitly acknowledged by a client. TODO
@@ -175,7 +175,7 @@ after init {
 }
 
 
-around packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_retry) {    
+around packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_retry) {
     # Extract the source and destination cid's and packet number from the packet.
     var dcid := pkt.dst_cid;
     var scid := pkt.src_cid;
@@ -188,12 +188,12 @@ around packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_retry)
 	    #call net.close(endpoint_id.client,sock);	# destroy connection ?
     };
 
-    if ~ _generating  { # TODO refactor with client test 
+    if ~ _generating  { # TODO refactor with client test
         var expected_itoken := prot.retry_integrity_tag(8,server_cid,
                                            pkt.pversion,
                                            scid_size_pos(true),dcid,
                                            dcid_size_pos(true),scid,
-                                           pkt.token, 
+                                           pkt.token,
                                            last_pkt_num(scid,quic_packet_type.initial),
                                            header_retry,
                                            token_saved);
@@ -201,8 +201,8 @@ around packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_retry)
         require bytes_to_itoken(expected_itoken) = pkt.integrity_token;
     };
     # Similarly, an endpoint MUST NOT reuse a connection ID when sending to
-    # more than one destination address.  
-        
+    # more than one destination address.
+
     # The destination cid must represent an existing connection,
     # except in the case of a client initial packet, when the
     # destination cid may be the nonce cid chosen by the client for
@@ -234,9 +234,9 @@ around packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_retry)
         connected(scid) := false;
         conn_seen(dcid) := false;
         conn_seen(scid) := false;
-        
+
         require ~retry_recv(dcid);
-        retry_recv(dcid) := true;   
+        retry_recv(dcid) := true;
         server_cid := scid; # 0x1;
 
         connected(the_cid)    := false;
@@ -263,6 +263,3 @@ around packet_event_retry(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_retry)
         call tls_api.upper.destroy(src_tls_id(src)); # not totally freeing all parameter
     };
 }
-
-
-

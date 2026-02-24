@@ -58,14 +58,14 @@ Concept graphs
 - concept_alpha.py: abstract the models of a constraint into a concept domain
 - concept_interactive_session: interactive concept domain session
 - cy_elements.py: representation if directed graphs in cytoscape format
-- dot_layout.py: annotates cytoscape graphs with layout information using dot 
+- dot_layout.py: annotates cytoscape graphs with layout information using dot
 - ivy_graph.py: lays out concept domain element as a graph
 
 A concept domain defines an abstraction in terms of a collection of concepts
 and concept combiners. These is represented by the classes Concept, ConceptCombiner
 qand ConceptDomain in concept.py. An element of the concept domain is represented
 by a list of assignments of truth values to "facts", which are obtained by applying
-concept combiners to concepts. 
+concept combiners to concepts.
 
 The abstraction operator alpha for a domain takes a set of logical
 structures, represented as the models of a formula, and yields the
@@ -106,7 +106,7 @@ operations for changing the concept domain, with an undo/redo
 stack. Some user operations are also provided for constructing
 abstract reachability graphs (ARG's). The GraphWidget class is
 toolkit-independent, and is designed to be used as a mixin with a GUI
-widget using a particular GUI toolkit. 
+widget using a particular GUI toolkit.
 
 The class TkGraphWidget (tk_graph_ui.py) provides a GUI for concept
 graphs using the tcl/tk toolkit. It uses tk_cy.py to render cytoscape
@@ -129,4 +129,4 @@ top-level UI using tcl/tk.
 
 
 
-- 
+-

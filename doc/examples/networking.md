@@ -52,10 +52,10 @@ implements it).
 
 As in the leader example, the specification promises that only packets
 that have been sent will be received (but packets may be dropped,
-duplicated or re-ordered). 
+duplicated or re-ordered).
 
 For now, ignore the definition of object `impl`. We'll come back to it
-later. 
+later.
 
 Let's begin by writing a simple test program that uses `udp_simple`:
 
@@ -95,7 +95,7 @@ Now we can send a packets:
 
     > foo.send(0,1,2)
     > foo.recv(1,2)
-     
+
 What happened here? When we started the REPL, IVY bound addresses 0 and
 1 to two UDP port numbers. Call them ports A and B. We called
 `foo.send` to send a packet from address 0 to address 1 with content
@@ -164,7 +164,7 @@ address 1:
 Now, let's send a packet from A to B:
 
     A: > foo.send(1,2)
-    A: > 
+    A: >
 
     B: foo.recv(2)
 
@@ -250,7 +250,7 @@ system's API, which we can't formally verify. We can only verify
 For now, let's try to run our protocol. As before, we compile it like this:
 
     $ ivy_to_cpp target=repl isolate=iso_impl leader_election_ring_udp.ivy
-    $ g++ -o leader_election_ring_udp leader_election_ring_udp.cpp 
+    $ g++ -o leader_election_ring_udp leader_election_ring_udp.cpp
 
 Recall that we interpret the type `node.t` as one-bit numbers. That
 means that we have two processes in our ring numbered 0 and 1. So let's
@@ -316,7 +316,7 @@ To test, this interface, let's write a simple program that just imports
 
 Here's what we get:
 
-    $ ivy_to_cpp target=repl timeout_test.ivy 
+    $ ivy_to_cpp target=repl timeout_test.ivy
     $ g++ -o timeout_test timeout_test.cpp
     $ ./timeout_test
     > foo.timeout
@@ -354,7 +354,7 @@ Notice that `sec.impl` also has one parameter stripped, since we have
 one timer per process. We compile as before:
 
     $ ivy_to_cpp target=repl isolate=iso_impl leader_election_ring_udp2.ivy
-    $ g++ -o leader_election_ring_udp2 leader_election_ring_udp2.cpp 
+    $ g++ -o leader_election_ring_udp2 leader_election_ring_udp2.cpp
 
 Now we run the processes in terminals A and B:
 
@@ -426,7 +426,7 @@ non-interfering. This means that if we execute action of distinct
 processes in parallel, the result is the same as if we had executed
 them sequentially in either order. Thus, the actions are serializable.
 
-We could fix the above program by creating one copy of the bit for each 
+We could fix the above program by creating one copy of the bit for each
 process:
 
     #lang ivy1.7
@@ -473,7 +473,7 @@ where `x` is an input. Here's what happens when we compile:
 
 Ivy recognizes that `bit(me)` is an access to the current process'
 copy of `bit`, but it cannot compile `bit(x)`, because `x` might not
-be equal to `me`. 
+be equal to `me`.
 
 # Effects on the environment
 
@@ -533,7 +533,7 @@ IVy can compile this program and run it:
     $ ./paraminit 0
     > foo.get_bit
     0
-    > 
+    >
 
 Note that it is allowed for the initial condition to depend on the
 parameter `me`. For example, we could write:
@@ -542,10 +542,10 @@ parameter `me`. For example, we could write:
         bit := me = 0
     }
 
-That is, we want `bit` to be true initially only for process 0. 
+That is, we want `bit` to be true initially only for process 0.
 This version can also be stripped and gives the expected result:
 
-    $ ivy_to_cpp target=repl isolate=iso_foo paraminit3.ivy 
+    $ ivy_to_cpp target=repl isolate=iso_foo paraminit3.ivy
     $ g++ -o paraminit3 paraminit3.cpp
     $ ./paraminit3 0
     > foo.get_bit
@@ -554,11 +554,4 @@ This version can also be stripped and gives the expected result:
     $ ./paraminit3 1
     > foo.get_bit
     0
-    > 
-
-
-
-
-
-
-
+    >

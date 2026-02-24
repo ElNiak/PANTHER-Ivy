@@ -10,7 +10,7 @@ include ivy_mim
 
 # Server
 action socket_endpoint_mim(host:endpoint_id,s:quic_net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
-    dst := mim_agent.ep_client if src = mim_agent.ep_server else mim_agent.ep_server; # is_mim_standalone | 
+    dst := mim_agent.ep_client if src = mim_agent.ep_server else mim_agent.ep_server; # is_mim_standalone |
     call socket_endpoint_mim_event_debug_event(host,s,src,dst);
 }
 
@@ -39,14 +39,14 @@ action dst_is_generated_tls(dst:ip.endpoint) returns (res:bool) = {
 
 # Returns the TLS instance associated to a destination IP endppoint.
 # TODO: shouldn't be needed.
-# toward 
+# toward
 action dst_tls_id(dst:ip.endpoint) returns (tls_id:tls_api.id) = {
     tls_id := 1;
 }
 
 action src_tls_id(src:ip.endpoint) returns (tls_id:tls_api.id) = {
     tls_id := 0;
-    # if src = mim_agent.ep_server 
+    # if src = mim_agent.ep_server
     # else second_client.tls_id; #TODO can cause error server vn eg
 }
 
@@ -79,12 +79,12 @@ action tls_id_to_cid(tls_id:tls_api.id) returns (scid:cid) = {
 action endpoint_to_socket(src:ip.endpoint) returns (socket:quic_net.socket) = {
     if src = mim_agent.ep_server {
         socket := sock_mim_server;
-    } 
+    }
     # else if src = client_alt {
     #     socket := sock_alt;
     # } else if src = client_vn {
     #     socket := sock_vn;
-    # } 
+    # }
 }
 
 after init {

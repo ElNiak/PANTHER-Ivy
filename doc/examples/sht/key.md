@@ -23,7 +23,7 @@ The [abstract data type for keys](key.ivy) is quite simple:
 That is, keys are totally ordered with a least element called `0`. They could
 be, for example, ASCII strings ordered lexicographically, in which case
 the zero element would be the empty string. Just for a test, though, we will
-use 16-bit numbers. 
+use 16-bit numbers.
 
 Keys are also equipped with an iterator type. An iterator type gives
 us an `end` value that is greater than all other values. This is often
@@ -41,7 +41,7 @@ standard library:
 
         instantiate totally_ordered(range.t)
 
-        definition (X < Y) = ~is_end(X) & is_end(Y) 
+        definition (X < Y) = ~is_end(X) & is_end(Y)
                           | ~is_end(X) & ~is_end(Y) & val(X) < val(Y)
 
         function done(X,Y) = is_end(Y) | X < val(Y)
@@ -77,5 +77,4 @@ line:
         isolate iso = iter with impl
 
 This says to use the interpration of type `key.t` to prove the
-properties required by `key.iter`. 
-
+properties required by `key.iter`.

@@ -9,7 +9,7 @@ module binary_input_file_ping(data,cont) = {
     specification {
         var contents : data
         relation pending(C:cont)
-        
+
         after init {
             pending(C) := false;
         }
@@ -64,11 +64,11 @@ module binary_input_file_ping(data,cont) = {
 		}
 		`fildes` = f;
         std::cerr << `fildes` << std::endl;
-        
+
 	    }
         >>>
         implement write {
-        <<< 
+        <<<
             std::cerr << "Writing file:" << std::endl;
             if (::lseek(`fildes`,0,SEEK_SET) < 0) {
                 perror("cannot seek to beginning of file");
@@ -85,7 +85,7 @@ module binary_input_file_ping(data,cont) = {
         >>>
         }
         implement read {
-        <<< 
+        <<<
             std::cerr << "Reading file: " << `fildes` << std::endl;
             if (::lseek(`fildes`,0,SEEK_SET) < 0) {
                 perror("cannot seek to beginning of file");
@@ -120,7 +120,7 @@ module binary_input_file_ping(data,cont) = {
                     fd = -1;
                     cb(c);
                     ivy->__unlock();
-                }  
+                }
             };
         >>>
         implement sync {
@@ -133,5 +133,5 @@ module binary_input_file_ping(data,cont) = {
         }
 
     }
-    trusted isolate iso = this 
+    trusted isolate iso = this
 }

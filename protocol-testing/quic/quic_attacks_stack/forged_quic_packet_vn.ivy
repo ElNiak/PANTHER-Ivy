@@ -32,7 +32,7 @@ include ip
 
 # ### Packet
 
-# The type `forged_quic_packet_vn` represents packet. 
+# The type `forged_quic_packet_vn` represents packet.
 
 # The fields are:
 #
@@ -115,7 +115,7 @@ around forged_packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:forged_quic_pa
 	    migration_done := true;
 	    #call net.close(endpoint_id.client,sock);	# destroy connection ?
     };
- 
+
     require mim_agent.nat_configured;
 
     ...
@@ -127,4 +127,3 @@ around forged_packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:forged_quic_pa
     };
 
 }
-

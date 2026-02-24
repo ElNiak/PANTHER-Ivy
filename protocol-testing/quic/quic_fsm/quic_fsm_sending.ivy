@@ -9,14 +9,14 @@ include quic_types
 # of the opponant.
 
 # - For each stream id S, `sending_ready(S)`
-#   indicates that a stream has been create by the sender. 
+#   indicates that a stream has been create by the sender.
 # => not testable since we only receive its frame
 
 relation sending_ready(S:stream_id)
 
 # - For stream id S, `sending_send(S)` indicates that for
 #   the stream id S, we received either a STREAM frame, either
-#   a STREAM_DATA_BLOCKED or that a bidirectional stream is 
+#   a STREAM_DATA_BLOCKED or that a bidirectional stream is
 #   open
 # => meaning =  we received STREAM or STREAM_DATA_BLOCKED frame
 
@@ -33,7 +33,7 @@ relation sending_dataSent(S:stream_id)
 # - For stream id S, `sending_dataRecvd(S)` indicates that
 #   the stream id S is finished and that all the ack has been received
 # => meaning = [no retransmission of the STREAM or STREAM_DATA_BLOCKED frames
-#              we represent retransmission by receiving twice packet with same 
+#              we represent retransmission by receiving twice packet with same
 #              pkt_num => we should know the pkt_num of the frames],
 #              we send ack for the packet number
 
@@ -49,19 +49,19 @@ relation sending_resetSent(S:stream_id)
 
 # - For stream id S, `sending_resetRecvd(S)` indicates that
 #   the stream id S is reset and that the RST ack has been received
-# => meaning = [no retransmission of RST frame or] we send ack for 
+# => meaning = [no retransmission of RST frame or] we send ack for
 #              corresponding packet/frame = liveness
 
 relation sending_resetRecvd(S:stream_id)
 
 
-# lastest_stream_id_sender(P) contains a list of stream_id that appear 
+# lastest_stream_id_sender(P) contains a list of stream_id that appear
 # in a given packet_number P, allow us to track which packet are acked
 instance idx_s : unbounded_sequence
 instance arr_streamid_s : array(idx_s,stream_id)
 function lastest_stream_id_sender(P:pkt_num) : this.arr_streamid_s
 
-# lastest_pkt_num_sender contains a list of pkt_num that appear 
+# lastest_pkt_num_sender contains a list of pkt_num that appear
 # in a given execution, allow us to track which packet are sent(received)
 instance jdx_s : unbounded_sequence
 instance arr_pkt_num_s : array(jdx_s,pkt_num)
@@ -167,7 +167,7 @@ action handle_sending_ack(largest_acked:pkt_num) = {
         var idx_s : idx_s := 0;
         while seq <= largest_acked & idx_s < lastest_stream_id_sender(seq).end {
             var sid := lastest_stream_id_sender(seq).value(idx_s);
-            if sending_resetSent(sid) { 
+            if sending_resetSent(sid) {
                 call handle_sending_resetRecvd(sid);
             } else if sending_dataSent(sid) {
                 call handle_sending_dataRecvd(sid);

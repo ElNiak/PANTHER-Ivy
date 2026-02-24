@@ -3,7 +3,7 @@
 
 
 
-relation pending(P, S, T) 
+relation pending(P, S, T)
 relation rp(H, S, D) # There is a forwarding path from S to t for P
 relation src(P, H)
 relation dst(P, H)
@@ -52,7 +52,7 @@ init ~pending(P,S,T)
      & (X = Y | ~rp(H,X,Y))
      & (~e(X,Y) | X = Y)
      & e(X,X)
-     
+
 individual p0, sw0, sw1,sw2, s0, t0
 
 
@@ -70,14 +70,14 @@ action receive = {
   if (pending(p0,sw0, sw1)) {
     pending(p0, sw0, sw1) := *
   };
-  
+
   #if ((~rp(s0, sw1, X) | X = sw1) & sw0 ~= sw1) {
   if (~e(s0, sw1) & sw0 ~= sw1) {
     # assert ~rp(s0,sw0,sw1)
     rp(s0, S, D) := rp(s0, S, D) | rp(s0, S, sw1) &  rp(s0, sw0, D) ;
     e(s0,sw1) := true
   };
-   
+
   if (t0 ~= sw1) {
       #if (~rp(t0, sw1, X) | X = sw1)  {
       if (~e(t0, sw1))  {
@@ -86,13 +86,13 @@ action receive = {
       else {
 	 sw2 := *;
 	 assume sw2 ~= sw1 & rp(t0, sw1, sw2) & (~rp(t0, sw1, X) | X = sw1 | rp(t0, sw2, X)) ;
-	 pending(p0, sw1, sw2) := true 
+	 pending(p0, sw1, sw2) := true
       }
   }
 }
- 
 
-action error = {       
+
+action error = {
   p0 := *;
   sw0 := *;
   sw1 := *;
@@ -100,7 +100,7 @@ action error = {
   t0 := *;
   assume dst(p0, t0);
   assume src(p0, s0);
-  assume pending(p0,sw0, sw1) | s0 = sw1 & sw0 = sw1;  
+  assume pending(p0,sw0, sw1) | s0 = sw1 & sw0 = sw1;
   assume (~e(s0,sw1) & sw0 ~= sw1) & rp(s0,sw0,sw1)
 }
 
@@ -122,4 +122,3 @@ conjecture ~(pending(P, V0, V1) & src(P,S) & ~e(S, V0))
 conjecture ~(~V0 = S & rp(S, S, V0))
 
 #conjecture ~(pending(P, V0, V1) & src(P,S) & ~e(S, V0))
-

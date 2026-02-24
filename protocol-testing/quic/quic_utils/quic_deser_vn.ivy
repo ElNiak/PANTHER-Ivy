@@ -46,7 +46,7 @@ object quic_deser_vn = {}
 	    bool have_scid = false;
         int version_count = 0;
         int n_version;
-    
+
     public:
         quic_deser_vn(const std::vector<char> &inp) : ivy_binary_deser_128(inp),state(quic_s_init) {
         //quic_deser_vn(const std::vector<char> &inp) : ivy_binary_deser(inp),state(quic_s_init) {
@@ -92,7 +92,7 @@ object quic_deser_vn = {}
                 }
                 break;
                 case quic_s_dcid:
-                {   
+                {
                     std::cerr << "state " << state << "\n";
                     std::cerr << "res " << res << "\n";
                     std::cerr << "pos " << pos << "\n";
@@ -126,10 +126,10 @@ object quic_deser_vn = {}
                         int128_t cil;
                         //long long cil;
                         getn(cil,1);
-                        std::cerr << "sourceID size " << cil << "\n";  
+                        std::cerr << "sourceID size " << cil << "\n";
                         if(cil > 0)
                             have_scid = true;
-                        else 
+                        else
                             have_scid = false;
                         scil = cil;
                         scid_h = cil;
@@ -148,7 +148,7 @@ object quic_deser_vn = {}
                 }
                 break;
                 case quic_s_supported_version:
-                {   
+                {
 
                     int packet_size = inp.size();
                     std::cerr << "packet_size " << packet_size << "\n";
@@ -159,15 +159,15 @@ object quic_deser_vn = {}
                         n_version = versions;
 
                     std::cerr << "version_count " << version_count << "\n";
-                    
+
                     if(version_count < n_version){
-                        getn(res,4);    
+                        getn(res,4);
                         version_count += 1;
                         state = quic_s_supported_version; //useless ?
                     }*/
 
-                    
-                    //while (pos < inp.size()) 
+
+                    //while (pos < inp.size())
                     getn(res,4);
                     std::cerr << "vn version " << res << "\n";
                     //getn(res,4);
@@ -182,10 +182,10 @@ object quic_deser_vn = {}
                     //state = quic_s_supported_version;
                 }
                 break;
-                default: 
+                default:
                 {
                     std::cerr << "state " << state << "\n";
-                    std::cerr << "quic_deser_vn 3\n";  
+                    std::cerr << "quic_deser_vn 3\n";
                     throw deser_err();
                 }
             }
@@ -225,26 +225,26 @@ object quic_deser_vn = {}
         }
 
         virtual int open_tag(const std::vector<std::string> &tags) {
-            std::cerr << "quic_deser_vn 6\n";    
+            std::cerr << "quic_deser_vn 6\n";
             throw deser_err();
         }
 
         virtual bool open_list_elem() {
             if (state == quic_s_supported_version) {
                 // We must use/take in count the padding frame since Picoquic client sometimes send packet
-                // only with 1 padding frame which make fails the requirement saying that a 
+                // only with 1 padding frame which make fails the requirement saying that a
                 // packet cannot be empty
                 //while ((fence == 0 || pos < fence) && more(1) && inp[pos] == 0)
                 //   pos++;  // skip padding frames
                 //return (fence == 0 || pos < fence) && more(1);
-                return pos < inp.size()-4; //version_count < n_version; 
+                return pos < inp.size()-4; //version_count < n_version;
             }
             if (state == quic_s_init)
                 return more(1);
 
             //if (state == quic_crypto_data)
             //    return data_remaining-->  0;
-            std::cerr << "quic_deser_vn 1\n";  
+            std::cerr << "quic_deser_vn 1\n";
             throw deser_err();
         }
 
@@ -270,7 +270,7 @@ object quic_deser_vn = {}
 
 
 <<< init
-    
+
     transport_error_name_map(transport_error_codes,transport_error_codes_map);
 
 >>>

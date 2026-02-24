@@ -195,7 +195,7 @@ class Test(object):
             return False
     def preprocess_commands(self):
         return []
-        
+
 class IvyCheck(Test):
     def command(self):
         import platform
@@ -224,7 +224,7 @@ class IvyRepl(Test):
         modname = self.res if self.res != None else (self.name+'_expect')
         mod = imp.load_source(modname,modname+'.py')
         return mod.run('build/'+self.name,self.opts,self.res)
-    
+
 class IvyToCpp(Test):
     def command(self):
         res = 'ivy_to_cpp ' + ' '.join(self.opts) + ' '+self.name+'.ivy'
@@ -305,5 +305,3 @@ else:
 #         except pexpect.EOF:
 #             print child.before
 #             print 'FAIL'
-        
-

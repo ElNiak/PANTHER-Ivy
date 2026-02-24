@@ -1,7 +1,7 @@
 #
 # Copyright (c) Microsoft Corporation. All Rights Reserved.
 #
-from .ivy_logic import Variable,Constant,Atom,Literal,App,sig,Iff,And,Or,Not,Implies,EnumeratedSort,Ite,Definition, is_atom, equals, Equals, Symbol,ast_match_lists, is_in_logic, Exists, RelationSort, is_boolean, is_app, is_eq, pto, close_formula,symbol_is_polymorphic,is_interpreted_symbol 
+from .ivy_logic import Variable,Constant,Atom,Literal,App,sig,Iff,And,Or,Not,Implies,EnumeratedSort,Ite,Definition, is_atom, equals, Equals, Symbol,ast_match_lists, is_in_logic, Exists, RelationSort, is_boolean, is_app, is_eq, pto, close_formula,symbol_is_polymorphic,is_interpreted_symbol
 
 from .ivy_logic_utils import to_clauses, formula_to_clauses, substitute_constants_clause,\
     substitute_clause, substitute_ast, used_symbols_clauses, used_symbols_ast, rename_clauses, subst_both_clauses,\
@@ -93,7 +93,7 @@ class SymExContext(object):
         return False # don't block any exceptions
 
 symex_params = []
-    
+
 class SymbolList(AST):
     def __init__(self,*symbols):
         assert all(isinstance(a,str) or isinstance(a,Symbol) for a in symbols)
@@ -197,7 +197,7 @@ def fresh_constructor_args(sort):
     n = constructor_args_counter
     constructor_args_counter += 1
     return [Symbol(sort.name + '$' + destr.name + '$' + str(n), destr.sort.rng).skolem() for destr in sort_destructors(sort)]
-    
+
 def is_first_order_struct(sort):
     return all(len(destr.sort.dom) == 1 for destr in sort_destructors(sort))
 
@@ -206,9 +206,9 @@ def sort_constructor(sort):
 #    return Symbol(sort.name + '.cons',ivy_logic.FunctionSort(arg_sorts + [sort]))
     cs = ivy_module.module.sort_constructors.get(sort.name,[])
     return cs[0] if cs else None
-        
 
-    
+
+
 def elim_destructors(cl):
     cnstrs = []
     memo = {}
@@ -238,7 +238,7 @@ def elim_destructors(cl):
     defs = [recur(x) for x in cl.defs]
     fmlas = fmlas + cnstrs
     return Clauses(fmlas, defs, cl.annot)
-    
+
 class Action(AST):
     def __init__(self,*args):
         self.args = list(args)
@@ -414,7 +414,7 @@ class AssertAction(Action):
                 if unprovable:
                     return ([],true_clauses(annot = EmptyAnnotation()),false_clauses(annot = EmptyAnnotation()))
                 return ([],formula_to_clauses(fmla,annot = EmptyAnnotation()),false_clauses(annot = EmptyAnnotation()))
-    
+
         cl = formula_to_clauses(dual_formula(fmla))
 #        return ([],formula_to_clauses_tseitin(self.args[0]),cl)
         cl = Clauses(cl.fmlas,cl.defs,EmptyAnnotation())
@@ -427,7 +427,7 @@ class AssertAction(Action):
         ivy_ast.copy_attributes_ast(self,res)
         self.copy_formals(res)
         return res
-    
+
 # Prior to version 1.7, Ensures is always verified
 
 class EnsuresAction(AssertAction):
@@ -520,7 +520,7 @@ def assign_refs(self,refs):
             recur(n.args[0])
             for a in n.args[1:]:
                 refs.update(symbols_ast(a))
-        else: 
+        else:
             for a in n.args:
                 refs.update(symbols_ast(a))
     recur(self.args[0])
@@ -835,9 +835,9 @@ def my_str(x,depth=0):
 class Sequence(Action):
     def name(self):
         return 'sequence'
-    def dstr(self,depth=0):  
+    def dstr(self,depth=0):
         return '{' + '; '.join(my_str(x,depth+1) for x in self.args) + '}'
-    def __str__(self):  
+    def __str__(self):
         return '{' + '; '.join(my_str(x) for x in self.args) + '}'
     def int_update(self,domain,pvars):
         update = ([],true_clauses(EmptyAnnotation()),false_clauses(EmptyAnnotation()))
@@ -855,7 +855,7 @@ class Sequence(Action):
             interpreter.execute(op)
     def decompose(self,pre,post,fail=False):
         return [(pre,self.args,post)]
-        
+
 determinize = False
 
 def set_determinize(t):
@@ -963,7 +963,7 @@ class IfAction(Action):
 #            iu.dbg('else_part')
         else:
             if not is_boolean(self.args[0]):
-                raise IvyError(self,'condition must be boolean') 
+                raise IvyError(self,'condition must be boolean')
             if_part = Sequence(AssumeAction(self.args[0]),self.args[1])
             else_action = self.args[2] if len(self.args) >= 3 else Sequence()
             else_part = Sequence(AssumeAction(dual_formula(self.args[0])),else_action)
@@ -976,7 +976,7 @@ class IfAction(Action):
             raise IvyError(self,'variables in "if" conditions must be explicitly quantified')
         if not isinstance(self.args[0],ivy_ast.Some):
             if not is_boolean(self.args[0]):
-                raise IvyError(self,'condition must be boolean') 
+                raise IvyError(self,'condition must be boolean')
             branches = [self.args[1],self.args[2] if len(self.args) >= 3 else Sequence()]
             upds = [a.int_update(domain,pvars) for a in branches]
 #            if hasattr(self,'lineno'):
@@ -1063,7 +1063,7 @@ class WhileAction(Action):
         if decreases is not None:
             res = LocalAction(aux,res)
         return res
-            
+
     def int_update(self,domain,pvars):
         global context
         if isinstance(context,UnrollContext):
@@ -1109,7 +1109,7 @@ class WhileAction(Action):
             res = IfAction(self.args[0],Sequence(body or self.args[1],res))
         self.copy_formals(res)
         return res
-            
+
 
 
 local_action_ctr = 0
@@ -1193,15 +1193,15 @@ class CrashAction(Action):
 
         seq = Sequence(*havocs)
         return seq.int_update(domain,pvars)
-            
+
 # Assign a thunk to a local variable. This action doesn't need an update method because it
-# is desugared. 
+# is desugared.
 
 class ThunkAction(Action):
     def name(self):
         return 'thunk'
     def __str__(self):
-        return ('thunk [' + str(self.args[0]) + '] ' + str(self.args[1]) + ' : ' + str(self.args[2]) + ' := ' + str(self.args[3]) + 
+        return ('thunk [' + str(self.args[0]) + '] ' + str(self.args[1]) + ' : ' + str(self.args[2]) + ' := ' + str(self.args[3]) +
                 (' ; ' + str(self.args[4]) if len(self.args) > 4 else ''))
     def iter_internal_defines(self):
         lineno = self.lineno if hasattr(self,'lineno') else None
@@ -1235,7 +1235,7 @@ class NativeAction(Action):
         return ivy_ast.native_to_string(self.args)
     def int_update(self,domain,pvars):
         return ([], true_clauses(), false_clauses())
-        
+
 call_action_ctr = 0
 
 class BindOldsAction(Action):
@@ -1361,11 +1361,11 @@ class CallAction(Action):
                             else self.args[0].rename(pref(self.args[0].rep))] + self.args[1:]))
         if hasattr(self,'lineno'):
             res.lineno = self.lineno
-        else: 
+        else:
             pass
 #            print 'no lineno in prefix_calls: {}'.format(self)
         self.copy_formals(res)
-        return res        
+        return res
     def callee(self):
         return self.args[0].relname
     def iter_calls(self):
@@ -1452,7 +1452,7 @@ def apply_mixin(decl,action1,action2):
         raise IvyError(decl,"mixin {} has wrong number of input parameters for {}".format(name1,name2))
     if len(action1.formal_returns) != len(action2.formal_returns):
         raise IvyError(decl,"mixin {} has wrong number of output parameters for {}".format(name1,name2))
-    formals1,formals2 = (a.formal_params + a.formal_returns for a in (action1,action2)) 
+    formals1,formals2 = (a.formal_params + a.formal_returns for a in (action1,action2))
     for x,y in zip(formals1,formals2):
         if x.sort != y.sort:
             raise IvyError(decl,"parameter {} of mixin {} has wrong sort".format(str(x),name1))
@@ -1480,7 +1480,7 @@ def append_to_action(action1,action2):
     if hasattr(action1,'labels'):
         res.labels = action1.labels
     return res
-    
+
 
 def params_to_str(params):
     params = [(s.drop_prefix('fml:') if s.name.startswith('fml:') else s) for s in params]
@@ -1526,9 +1526,9 @@ def prefix_action(self,stmts):
     res = Sequence(*(stmts + [self]))
     self.copy_formals(res)
     if hasattr(self,"lineno"):
-        res.lineno = self.lineno    
+        res.lineno = self.lineno
     return res
-    
+
 # adds a list of statements at the end of an action.
 
 def postfix_action(self,stmts):
@@ -1537,7 +1537,7 @@ def postfix_action(self,stmts):
     res = Sequence(*([self] + stmts))
     self.copy_formals(res)
     if hasattr(self,"lineno"):
-        res.lineno = self.lineno    
+        res.lineno = self.lineno
     return res
 
 # Annotations let us reconstruct an execution trace from a satisfying assignment.
@@ -1581,7 +1581,7 @@ class ConjAnnotation(Annotation):
         self.args = args
     def __str__(self):
         return 'And(' + ','.join(str(a) for a in self.args) + ')'
-        
+
 class ComposeAnnotation(Annotation):
     def __init__(self,*args):
         self.args = args
@@ -1767,9 +1767,9 @@ def match_annotation(action,annot,handler):
     except AnnotationError:
         assert False
         print("internal error: cannot convert satisfying assignment to program trace")
-    
+
 def env_action(actname,label=None):
-    actnames = sorted(ivy_module.module.public_actions) if actname is None else [actname] 
+    actnames = sorted(ivy_module.module.public_actions) if actname is None else [actname]
     racts = []
     for a in actnames:
         act = ivy_module.module.actions[a] if isinstance(a,str) else actname
@@ -1788,4 +1788,3 @@ def env_action(actname,label=None):
         action.label = label
 #        action.label = label if not isinstance(actname,str) else actname
     return action
-

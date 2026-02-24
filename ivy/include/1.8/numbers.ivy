@@ -8,18 +8,18 @@ module number_iterator(range) = {
     }
     alias t=this
 
-    definition (X < Y) = ~is_end(X) & is_end(Y) 
+    definition (X < Y) = ~is_end(X) & is_end(Y)
                       | ~is_end(X) & ~is_end(Y) & val(X) < val(Y)
 
     function done(X,Y) = is_end(Y) | X < val(Y)
     function ahead(X,Y) = ~is_end(Y) & val(Y) < X
     function between(X,V,Y) = ~done(V,X) & done(V,Y)
     function value(X:t) = val(X)
-    
+
     action create(x:range) returns (y:t)
     action begin returns (y:t)
     action end returns (y:t)
-    
+
     implement create {
 	is_end(y) := false;
 	val(y) := x
@@ -35,7 +35,7 @@ module number_iterator(range) = {
 
     action next(x:t) returns (x:t)
     action prev(x:t) returns (x:t)
-    
+
     implement next {
 	if range.is_max(val(x)) {
 	    x := end
@@ -102,7 +102,7 @@ module unsigned_bit_vector(bits) = {
         }
     }
 }
-    
+
 autoinstance uint[bits] : unsigned_bit_vector(bits)
 
 global {

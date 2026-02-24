@@ -395,7 +395,7 @@ namespace IvyLanguage
               foreach (Tuple<Bpl.IToken, BoundVar, bool> entry in mt.varList) {
                 IdRegion.Add(regions, prog, entry.Item1, entry.Item2, entry.Item3, (ICallable)null, module);
               }
-            }              
+            }
           });
         }
       } else if (stmt is LoopStmt) {

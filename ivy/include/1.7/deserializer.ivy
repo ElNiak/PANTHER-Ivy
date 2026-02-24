@@ -1,6 +1,6 @@
 #lang ivy
 
-# This module provides access to packet deserializers. 
+# This module provides access to packet deserializers.
 #
 # The module takes three parameters:
 #
@@ -21,7 +21,7 @@ module deserializer(index,bytes,datatype,deser) = {
         pos : index,
         value : datatype
     }
-    
+
     action deserialize(x:bytes,pos:index) returns (res:result)
 
     implementation {
@@ -30,7 +30,7 @@ module deserializer(index,bytes,datatype,deser) = {
             std::copy(x.begin()+pos,x.end(),buf.begin());
             `deser` ds(buf);
 
-            try { 
+            try {
                 std::cerr << x << std::endl;
                 std::cerr << pos << std::endl;
                 std::cerr << std::endl;
@@ -46,7 +46,7 @@ module deserializer(index,bytes,datatype,deser) = {
                 //std::cerr << err.what() << std::endl;
                 std::cerr << "hex dump of data follows." << std::endl;
                 for (unsigned i = 0; i < buf.size(); i++) {
-                    if (i > 0 && i % 16 == 0) 
+                    if (i > 0 && i % 16 == 0)
                         std::cerr << std::endl;
                     if (i == ds.pos)
                         fprintf(stderr,"*");

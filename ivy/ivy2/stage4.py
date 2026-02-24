@@ -1,4 +1,4 @@
-from parser1 import * 
+from parser1 import *
 with ivywhite: grammar =  Grammar (
     rules =
         [
@@ -32,7 +32,7 @@ with ivywhite: grammar =  Grammar (
                                     [
                                         Apply (
                                             args = [ Expr ( apps = [ Apply ( func = 'foo' ) ] ) ] ,
-                                            func = 'set' ) ] ) ) , lhs = 'out' ) ] ) 
+                                            func = 'set' ) ] ) ) , lhs = 'out' ) ] )
 src = "test1_inp.txt"
 obj = "test1_out.txt"
 with ivywhite:
@@ -40,4 +40,3 @@ with ivywhite:
         with DefaultSemantics(globals()):
             thing = parse_file("inp",src)
             pretty_to_file("out",thing,obj)
- 

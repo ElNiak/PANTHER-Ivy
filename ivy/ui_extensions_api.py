@@ -399,7 +399,7 @@ def arg_join2(node):
         raise InteractionError("You must select one node to with. " +
                                "Seem's you've selected an edge.")
     sels = [x[0] for x in sels if len(x) == 1]
-    user_selection = yield UserSelect(options=dict((str(x.id),x) for x in sels),title='Binary join',prompt='Choose a node to join with')    
+    user_selection = yield UserSelect(options=dict((str(x.id),x) for x in sels),title='Binary join',prompt='Choose a node to join with')
     code = dedent('''
     join2(arg_node({!r}), arg_node({!r}))
     ''').strip().format(

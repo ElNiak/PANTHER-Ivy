@@ -15,7 +15,7 @@ object quic_long_type = {
 type cid
 interpret cid -> bv[64]
 
-type version 
+type version
 interpret version -> bv[32]
 
 type pkt_num
@@ -52,7 +52,7 @@ after init {
 
 implement pc.handle(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     call show_packet(src,dst,pkt);
-    
+
     var cid := pkt.hdr_cid;
     var pnum := pkt.hdr_pkt_num;
 

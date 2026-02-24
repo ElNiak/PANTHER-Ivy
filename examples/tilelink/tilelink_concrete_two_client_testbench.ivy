@@ -1,14 +1,14 @@
 #lang ivy1.3
 
 ################################################################################
-# 
+#
 # Test bench for a TileLink component with two client ports.
 #
 ################################################################################
 
 
 ################################################################################
-# 
+#
 # The system we want to verify. Somewhat arbitrarily, the DUT is called "b".
 #
 ################################################################################
@@ -24,7 +24,7 @@ export c1.step
 export b.step
 
 ################################################################################
-# 
+#
 # Instantiate the reference specification
 #
 ################################################################################
@@ -32,7 +32,7 @@ export b.step
 instantiate ref : reference
 
 ################################################################################
-# 
+#
 # Specify the two interfaces of the buffer
 #
 # To do this, we arbitrarily distribute the process id's on the client and
@@ -57,10 +57,3 @@ instantiate intf1 : tl_interface(ref,c1,b.dir1,side1)
 ################################################################################
 
 isolate iso_b = b with ref,intf0,intf1,c0,c1
-
-
-
-
-
-
-

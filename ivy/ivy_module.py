@@ -198,7 +198,7 @@ class Module(object):
             if not all(isinstance(p,il.Variable) for p in ldf.formula.args[0].args):
                 non_epr[ldf.formula.defines()] = (ldf,cnst)
         return ModuleTheoryContext(non_epr)
-        
+
 
     def is_variant(self,lsort,rsort):
         """ true if rsort is a variant of lsort """
@@ -223,7 +223,7 @@ class Module(object):
         return sort_card(sort)
 
 
-    # This makes a semi-shallow copy so we can side-effect 
+    # This makes a semi-shallow copy so we can side-effect
 
     def copy(self):
         m = Module()
@@ -262,7 +262,7 @@ class Module(object):
             self.ext_preconds = resort_map_any_ast(self.ext_preconds)
             lu.resort_sig(sort_refinement)
 
-            
+
         # Make concept spaces from the conjecture
 
     def update_conjs(self):
@@ -389,7 +389,7 @@ def relevant_definitions(symbols):
     dfn_map = dict((ldf.formula.defines(),ldf.formula.args[1]) for ldf in module.definitions)
     rch = set(iu.reachable(list(il.normalize_symbol(x) for x in symbols),lambda sym: lu.symbols_ast(dfn_map[sym]) if sym in dfn_map else []))
     return [ldf for ldf in module.definitions if ldf.formula.defines() in rch]
-    
+
 def sort_dependencies(mod,sortname,with_variants=True):
     if sortname in mod.sort_destructors:
         return [s.name for destr in mod.sort_destructors[sortname]

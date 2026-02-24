@@ -95,7 +95,7 @@ object ref = {
     action eval(tx : txid) returns (res : response_body.t)
 
     instance rep : replica
-    
+
     var next : txid
     function txs(X:txid) : request_body.t
     function txres(X:txid) : response_body.t
@@ -133,7 +133,7 @@ object ref = {
 # The serialization object is the same as before
 
 object ser = {
-    
+
     action serialize(tx : txid)
 
     # The serializer object keeps track of which transactions have
@@ -182,7 +182,7 @@ type req_msg = struct {
 }
 
 module client(cid,prim_chan,sec_chan,cl_chans) = {
-    
+
     action client_request(req : request_body.t, the_dst: dest.t)
     action client_response(req : response_body.t, tx : txid)
 
@@ -215,7 +215,7 @@ module primary_node(port, fwd_chan, rev_chan, cl_chans) = {
     instance req_chan : nondup_endpoint(port,req_msg)
 
     instance fail_chan : nondup_endpoint(port,fail_msg)
-    
+
     instance counter : unbounded_sequence
     function pending(K:key) : counter.t
 
@@ -225,7 +225,7 @@ module primary_node(port, fwd_chan, rev_chan, cl_chans) = {
         pending(K) := 0;
         sec_failed := false;
     }
-        
+
     # If we receive a failure message, set `sec_failed`.
 
     implement fail_chan.recv(inp : fail_msg) {
@@ -255,7 +255,7 @@ module primary_node(port, fwd_chan, rev_chan, cl_chans) = {
                 pending(rr.ky) := pending(rr.ky).next;
                 var res := rep.exec(inp.req.bd);
             }
-        }             
+        }
     }
 
     # When we receive a write request on the acknowledgement channel,
@@ -270,13 +270,13 @@ module primary_node(port, fwd_chan, rev_chan, cl_chans) = {
 }
 
 # The secondary receives a signal `fail` from the environment indicating it should
-# fail. When this happens it sends a fail message to the primary and shuts down. 
+# fail. When this happens it sends a fail message to the primary and shuts down.
 
 module secondary_node(port, fwd_chan, rev_chan, fail_chan, cl_chans) = {
     instance rep : replica
 
     instance req_chan : nondup_endpoint(port,req_msg)
-        
+
     var failed : bool
 
     after init {
@@ -298,7 +298,7 @@ module secondary_node(port, fwd_chan, rev_chan, fail_chan, cl_chans) = {
                 res.tx := inp.req.tx;
                 res.bd := rep.exec(rr);
                 call cl_chans(inp.cid).send(res);
-            }             
+            }
             # ignore writes!
         }
     }
@@ -353,7 +353,7 @@ object service_spec = {
     after init {
         responded(X) := false;
     }
-    
+
     before cl_chans.send(p : client_id, m : response.t) {
         assert ~responded(m.tx);
         assert m.bd = ref.eval(m.tx);
@@ -361,7 +361,7 @@ object service_spec = {
     }
 }
 
-# The interface between primary and secondary is changed a bit to reflect the failure channel. 
+# The interface between primary and secondary is changed a bit to reflect the failure channel.
 
 
 object mid_spec = {
@@ -385,14 +385,14 @@ object mid_spec = {
         acked(X) := false;
         sec_failed := false;
     }
-    
+
     before rev_chan.sndr.send(inp : req_msg) {
         assert ref.committed(inp.req.tx);
         assert ref.txs(inp.req.tx) = inp.req.bd;
         assert ~acked(inp.req.tx);
         acked(inp.req.tx) := true;
     }
-    
+
     # If the secondary has failed, then write transactions are commited at the
     # moment they are serialized.
 
@@ -408,7 +408,7 @@ object mid_spec = {
     after ref.create(inp : request_body.t, dst:dest.t) returns (tx : txid) {
         req_dest(tx) := dst
     }
-        
+
     # Here, we set the `sec_failed` flag.
 
     after prim.fail_chan.send(m : fail_msg) {

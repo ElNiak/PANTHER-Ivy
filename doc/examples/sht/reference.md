@@ -148,8 +148,8 @@ specification:
             }
             else {
                 map(key_(lt)) := data_(lt)
-            }                        
-        }     
+            }
+        }
 
 The precondition for this operation is that the operation has begun,
 but has not yet committed. We add the `txid` to the commited set and
@@ -164,7 +164,7 @@ end).
         action end(lt:txid)
         before end {
             assert commited(lt)
-        }        
+        }
     }
 
 In principle, we can now write a monitor for the reference object that
@@ -174,6 +174,3 @@ problem for later however, and just trust that our reference object is
 correct. The reference object is all we really need, since it can be
 used as a specification of our protocol by a client in order to prove
 the client correct.
-
-
-

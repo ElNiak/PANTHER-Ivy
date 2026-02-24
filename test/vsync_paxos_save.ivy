@@ -127,11 +127,11 @@ action receive_wedge_ack_msgs(e:epoch, s:stake, nset:nodeset.set, maxs : stake, 
 
 #    assert N1 = n & K2 = maxs & E1 = e & C1 = c & S1 = left_maj(E1,K) &
 #       0 < K & K < s  -> (accept_msg(e,K,c) | (nodeset.majority(S1) & (nodeset.member(N,S1) -> K < node_stake(e,N) & ~accepted_msg(e,N,K,C))));
-    assume forall K,C,N. 
+    assume forall K,C,N.
        0 < K & K < s  -> (accept_msg(e,K,c) | (nodeset.majority(left_maj(e,K)) & (nodeset.member(N,left_maj(e,K)) -> K < node_stake(e,N) & ~accepted_msg(e,N,K,C))));
 
 
-#    assert N1 = n & K2=maxs & E1 = e & C1 = c & S1 = accept_maj(e,s) & K = s -> 
+#    assert N1 = n & K2=maxs & E1 = e & C1 = c & S1 = accept_maj(e,s) & K = s ->
 #        nodeset.majority(accept_maj(e,s)) & (nodeset.member(N,accept_maj(e,s)) -> ~(node_stake(e,N) = 0) & ((vote(e, N, I, V) | transferral(e,N,I,V)) -> val_at(c, I, V)));
     assume forall N,I,V. nodeset.majority(accept_maj(e,s)) & (nodeset.member(N,accept_maj(e,s)) -> ~(node_stake(e,N) = 0) & ( (vote(e, N, I, V) | transferral(e,N,I,V)) -> val_at(c, I, V)));
 
@@ -168,7 +168,7 @@ action start(e:epoch, e_prev: epoch, n:node, s:stake, nset:nodeset.set, c:config
 #    assume epoch_ended(e_prev) -> s = epoch_stake(e_prev) & c = config_decided(e_prev);
 #    assert E1 = e_prev & K = s & C = c & N = nodeset.common(nset,nset) -> accept_msg(e_prev,s,c);
 #    assume accept_msg(e_prev,s,c);
-    
+
 # true but not needed...
 
 #    assert forall C,K,E1,N,E2. C = c & K = s & E1 = e_prev & N = nodeset.common(nset,nset) & E2 < e_prev -> epoch_ended(E2);
@@ -231,7 +231,7 @@ action decide(e:epoch, n:node, v:value, nset:nodeset.set, i:inst) = {
 # proof let S1 = dec_maj(I,V1), S2 = dec_maj(I,V2), N = nodeset.common(S1,S2), E1 = dec_epoch(I,V1), E2 = dec_epoch(I,V2)
 
 # invariant any_decision(I,V1) & dec_epoch(I,V1) < E1 & started(E1,N1) -> transferral(E1,N1,I,V1)
-# proof let E2 = dec_epoch(I,V1), S1 = dec_maj(I,V1), S2 = epoch_maj(E2), N = nodeset.common(S1,S2) 
+# proof let E2 = dec_epoch(I,V1), S1 = dec_maj(I,V1), S2 = epoch_maj(E2), N = nodeset.common(S1,S2)
 
 # invariant E2 < E1 & nodeset.member(N,epoch_maj(E2)) & vote(E2,N,I,V1) & started(E1,N1) -> transferral(E1,N1,I,V1)
 
@@ -281,14 +281,14 @@ schema cong1 = {
     function x : t
     function y : u
     function f1(X:t) : u
-    property (f1(X) = y <-> f1(x) = y) | x ~= X 
+    property (f1(X) = y <-> f1(x) = y) | x ~= X
 }
 
 schema cong1b = {
     type t
     function x : t
     function f2(X:t) : bool
-    property (f2(X) = f2(x)) | x ~= X 
+    property (f2(X) = f2(x)) | x ~= X
 }
 
 schema cong2 = {

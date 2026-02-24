@@ -24,14 +24,14 @@ module array_impl = {
 
 	implement set(a:t,x:domain,y:range) returns (a:t) {
 	    <<<
-	        if (0 <= `x` && `x` < (`domain`)`a`.size()) 
+	        if (0 <= `x` && `x` < (`domain`)`a`.size())
 	            `a`[`x`] = `y`;
 	    >>>
 	}
 
 	implement get(a:t,x:domain) returns (y:range) {
 	    <<<
-	        if (0 <= `x` && `x` < (`domain`)`a`.size()) 
+	        if (0 <= `x` && `x` < (`domain`)`a`.size())
 	            `y` = `a`[`x`];
 	    >>>
 	}
@@ -86,7 +86,7 @@ module array_impl = {
                     std::swap(`a`[i],`a`[`a`.size()-i-1]);
                 }
             >>>
-            
+
         }
 
         <<< impl
@@ -103,7 +103,7 @@ module array_impl = {
         }
         >>>
 
-	definition segment(a:t,lo:domain,hi:domain) = 
+	definition segment(a:t,lo:domain,hi:domain) =
 	<<< __array_segment(a,lo,hi) >>>
 
 	<<< impl
@@ -130,7 +130,7 @@ module array_impl = {
 				s << a[i];
 			}
 		}
-		
+
 	        s << ']';
 		return s;
             }
@@ -138,7 +138,7 @@ module array_impl = {
 	    template <>
 	    `t` _arg<`t`>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        `t` a;
 	        a.resize(arg.fields.size());

@@ -11,7 +11,7 @@ object bgp_ser_notification = {}
 >>>
 
 <<< impl
-    
+
     class `bgp_ser_notification` : public ivy_binary_ser_128 {
         enum {bgp_s_error_code,
               bgp_s_error_subcode,
@@ -46,7 +46,7 @@ object bgp_ser_notification = {}
             }
             break;
             default:
-            std::cerr << "deser_err 42 "  << "\n";  
+            std::cerr << "deser_err 42 "  << "\n";
             throw deser_err();
             }
         }
@@ -58,10 +58,10 @@ object bgp_ser_notification = {}
                 setn(ft,1); // could be bigger ivy_binary_deser_128::
                 frame_type = ft;
                 std::cerr << "recv frame_type = " << frame_type << "\n";
-                //std::cerr << "saw tag " << ft << "\n";  
+                //std::cerr << "saw tag " << ft << "\n";
             }
-            std::cerr << "deser_err 43 " << tag << "\n";  
-            std::cerr << "deser_err 43 " << state << "\n";  
+            std::cerr << "deser_err 43 " << tag << "\n";
+            std::cerr << "deser_err 43 " << state << "\n";
             throw deser_err();
         }
 
@@ -70,11 +70,11 @@ object bgp_ser_notification = {}
                 std::cerr << "bgp_s_error_code bgp_ser_notification 2\n";
             }
             if (state == bgp_s_payload) {
-                std::cerr << "bgp_s_payload bgp_ser_notification 2\n";  
+                std::cerr << "bgp_s_payload bgp_ser_notification 2\n";
                 //state = bgp_s_time;
                 //return payload_length-->  0;
             }
-            std::cerr << "bgp_ser_notification 1\n";  
+            std::cerr << "bgp_ser_notification 1\n";
             throw deser_err();*/
         }
 

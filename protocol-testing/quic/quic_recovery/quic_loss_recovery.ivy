@@ -18,14 +18,14 @@ include quic_locale
 
 # instance quic_packet : quic_packet_arr(quic_packet)
 
-# QUIC uses separate packet number spaces for each encryption level, except 0-RTT and all generations of 1-RTT keys use the same packet number space. 
-# Separate packet number spaces ensures that the acknowledgment of packets sent with one level of encryption will not cause spurious retransmission of 
+# QUIC uses separate packet number spaces for each encryption level, except 0-RTT and all generations of 1-RTT keys use the same packet number space.
+# Separate packet number spaces ensures that the acknowledgment of packets sent with one level of encryption will not cause spurious retransmission of
 # packets sent with a different encryption level. Congestion control and round-trip time (RTT) measurement are unified across packet number spaces
 
-# QUIC separates transmission order from delivery order: packet numbers indicate transmission order, 
+# QUIC separates transmission order from delivery order: packet numbers indicate transmission order,
 # and delivery order is determined by the stream offsets in STREAM frames.
 
-# QUIC's packet number is strictly increasing within a packet number space and directly encodes transmission order. 
+# QUIC's packet number is strictly increasing within a packet number space and directly encodes transmission order.
 # A higher packet number signifies that the packet was sent later, and a lower packet number signifies that the packet was sent earlier.
 
 # QUIC starts a loss epoch when a packet is lost. The loss epoch ends when any packet sent after the start of the epoch is acknowledged
@@ -35,9 +35,9 @@ function loss_epoch : microseconds
 # Multi-modal timer used for loss detection
 function loss_detection_timer : microseconds
 
-# QUIC endpoints measure the delay incurred between when a packet is received and when the corresponding acknowledgment is sent, allowing a 
+# QUIC endpoints measure the delay incurred between when a packet is received and when the corresponding acknowledgment is sent, allowing a
 # peer to maintain a more accurate RTT estimate; see Section 13.2 of [QUIC-TRANSPORT].
-# At a high level, an endpoint measures the time from when a packet was sent to when it is acknowledged as an RTT sample. 
+# At a high level, an endpoint measures the time from when a packet was sent to when it is acknowledged as an RTT sample.
 function first_rtt_sample : microseconds
 
 # Note: we do all the calculation in microseconds, but the result is in milliseconds. Why ? to avoid loosing precision when dividing by 1000
@@ -45,7 +45,7 @@ function first_rtt_sample : microseconds
 
 function latest_rtt(C:cid) : microseconds
 
-# smoothed_rtt is an exponentially-weighted moving average of an endpoint's RTT samples, 
+# smoothed_rtt is an exponentially-weighted moving average of an endpoint's RTT samples,
 # When there are no samples for a network path, and on the first RTT sample for the network path:
     # smoothed_rtt = rtt_sample
     # rttvar = rtt_sample / 2
@@ -63,9 +63,9 @@ function smoothed_rtt(C:cid) : microseconds
 # and rttvar is the variation in the RTT samples, estimated using a mean variation.
 function rttvar(C:cid) : microseconds
 
-# min_rtt is the minimum RTT observed for a given network path. min_rtt is set 
-# to the latest_rtt on the first RTT sample, and to the lesser of min_rtt and 
-# latest_rtt on subsequent samples. In this document, min_rtt is used by loss 
+# min_rtt is the minimum RTT observed for a given network path. min_rtt is set
+# to the latest_rtt on the first RTT sample, and to the lesser of min_rtt and
+# latest_rtt on subsequent samples. In this document, min_rtt is used by loss
 # detection to reject implausibly small rtt samples.
 function min_rtt(C:cid) : microseconds
 
@@ -124,12 +124,12 @@ function packets_to_retransmit_end(E: quic_packet_type) : stream_pos
 relation ack_eliciting_packet_in_flight
 relation ack_eliciting_packet_in_flight_per_space(E: quic_packet_type)
 
-# QUIC uses a probe timeout (PTO; see Section 6.2), with a timer based on TCP's retransmission timeout (RTO) computation; 
+# QUIC uses a probe timeout (PTO; see Section 6.2), with a timer based on TCP's retransmission timeout (RTO) computation;
 # see [RFC6298]. QUIC's PTO includes the peer's maximum expected acknowledgment delay instead of using a fixed minimum timeout.
-# QUIC does not collapse the congestion window when the PTO expires, since a single packet loss at the tail does not indicate persistent congestion. 
-# Instead, QUIC collapses the congestion window when persistent congestion is declared; 
-# Since QUIC does not collapse the congestion window on a PTO expiration, a QUIC sender is not limited from sending more in-flight packets after 
-# a PTO expiration if it still has available congestion window. This occurs when a sender is application limited and the PTO timer expires. 
+# QUIC does not collapse the congestion window when the PTO expires, since a single packet loss at the tail does not indicate persistent congestion.
+# Instead, QUIC collapses the congestion window when persistent congestion is declared;
+# Since QUIC does not collapse the congestion window on a PTO expiration, a QUIC sender is not limited from sending more in-flight packets after
+# a PTO expiration if it still has available congestion window. This occurs when a sender is application limited and the PTO timer expires.
 # This is more aggressive than TCP's RTO mechanism when application limited, but identical when not application limited
 
 function sent_time_of_largest_acked(S:pkt_num) : microseconds
@@ -138,9 +138,9 @@ function ack_time : microseconds
 # Maximum reordering in packets before packet threshold loss detection considers a packet lost. The value recommended in Section 6.1.1 is 3.
 function kPacketThreshold : stream_pos
 
-# Therefore, after receiving packets from an address that is not yet validated, an endpoint MUST 
-# limit the amount of data it sends to the unvalidated address to three times the amount of data 
-# received from that address. This limit on the size of responses is known as the anti-amplification 
+# Therefore, after receiving packets from an address that is not yet validated, an endpoint MUST
+# limit the amount of data it sends to the unvalidated address to three times the amount of data
+# received from that address. This limit on the size of responses is known as the anti-amplification
 # limit
 
 relation anti_amplification_limit_reached
@@ -154,7 +154,7 @@ function kGranularity : microseconds
 # The RTT used before an RTT sample is taken. The value recommended in Section 6.2.2 is 333 ms.
 function kInitialRtt : milliseconds
 
-# When an ack-eliciting packet is transmitted, the sender schedules a timer 
+# When an ack-eliciting packet is transmitted, the sender schedules a timer
 # for the PTO period as follows:
 # PTO = smoothed_rtt + max(4*rttvar, kGranularity) + max_ack_delay
 # The number of times a PTO has been sent without receiving an acknowledgment.
@@ -168,7 +168,7 @@ function max_idle_timeout_used : microseconds
 function idle_timeout(C:cid) : microseconds
 function timeout : microseconds
 relation respect_idle_timeout
-relation connection_timeout 
+relation connection_timeout
 
 function max_ack_delay_tp : microseconds
 function local_max_ack_delay_tp : microseconds
@@ -186,8 +186,8 @@ relation need_sent_ack_eliciting_application_packet
 # QUIC allows probe packets to temporarily exceed the congestion window whenever the timer expires
 
 # Sending a single ack-eliciting packet also increases the chances of incurring additional latency when a receiver delays its acknowledgment.
-# QUIC therefore recommends that the minimum congestion window be two packets. While this increases network load, it is considered safe since 
-# the sender will still reduce its sending rate exponentially under persistent congestion 
+# QUIC therefore recommends that the minimum congestion window be two packets. While this increases network load, it is considered safe since
+# the sender will still reduce its sending rate exponentially under persistent congestion
 
 function minimum_congestion_window : stream_pos
 
@@ -203,7 +203,7 @@ after init {
     need_sent_ack_eliciting_application_packet := false;
 
     loss_detection_timer := 0;
-    pto_count := 0; 
+    pto_count := 0;
 
     latest_rtt(C) := 0;
     smoothed_rtt(C) := 333000; # 333ms ~ kInitialRtt -> from handshake
@@ -260,12 +260,12 @@ action abs(x:microseconds) returns (z:microseconds) = {
     >>>
 }
 
-# QUIC loss detection uses a single timer for all timeout loss detection. 
-# The duration of the timer is based on the timer's mode, which is set in 
-# the packet and timer events further below. The function SetLossDetectionTimer 
-# defined below shows how the single timer is set.This algorithm may result in 
-# the timer being set in the past, particularly if timers wake up late. 
-# Timers set in the past fire immediately.Pseudocode for SetLossDetectionTimer 
+# QUIC loss detection uses a single timer for all timeout loss detection.
+# The duration of the timer is based on the timer's mode, which is set in
+# the packet and timer events further below. The function SetLossDetectionTimer
+# defined below shows how the single timer is set.This algorithm may result in
+# the timer being set in the past, particularly if timers wake up late.
+# Timers set in the past fire immediately.Pseudocode for SetLossDetectionTimer
 # follows (where the "^" operator represents exponentiation):
 
 action get_pto_time_and_space(dst:ip.endpoint, dcid:cid) returns (pto_timeout_res:microseconds, pto_space:quic_packet_type) = {
@@ -281,7 +281,7 @@ action get_pto_time_and_space(dst:ip.endpoint, dcid:cid) returns (pto_timeout_re
             pto_timeout_res := duration + time_api.c_timer.now_micros;
             if established_handshake_keys(dcid) {
                 pto_space := quic_packet_type.handshake;
-            } 
+            }
             else {
                 pto_space := quic_packet_type.initial;
             }
@@ -289,7 +289,7 @@ action get_pto_time_and_space(dst:ip.endpoint, dcid:cid) returns (pto_timeout_re
     } else {
         # TODO should loop on all packet number spaces, but strange
         var temp_pto_timeout_res : microseconds := 0xFFFFFF; # infinity
-        
+
         var temp_pto_space := quic_packet_type.initial;
         var t := time_of_last_ack_eliciting_packet(temp_pto_space) + duration;
         if t < temp_pto_timeout_res {
@@ -303,7 +303,7 @@ action get_pto_time_and_space(dst:ip.endpoint, dcid:cid) returns (pto_timeout_re
             pto_timeout_res := t;
             pto_space := temp_pto_space;
         };
-        
+
         temp_pto_space := quic_packet_type.one_rtt;
         if peer_completed_address_validation(dst, dcid) {
             duration := duration + max_ack_delay_tp * pow(pto_count,2);
@@ -330,7 +330,7 @@ action get_loss_time_space returns (time:microseconds, space:quic_packet_type) =
         inter_time := loss_time(quic_packet_type.one_rtt);
         inter_space := quic_packet_type.one_rtt;
     };
-    
+
     time := inter_time;
     space := inter_space;
 }
@@ -367,7 +367,7 @@ action set_loss_detection_timer(dst:ip.endpoint, dcid: cid) = {
                 loss_detection_timer := pto_timeout_t;
                 pto_timeout := pto_timeout_t;
             }
-            
+
         }
     };
     call show_loss_detection_timer(loss_detection_timer);
@@ -381,7 +381,7 @@ action on_loss_detection_timeout(dst:ip.endpoint, dcid: cid) = {
     (earliest_loss_time, pn_space) := get_loss_time_space;
     call show_get_loss_time_space(earliest_loss_time, pn_space);
     if earliest_loss_time ~= 0 {
-        # var lost_packets := 
+        # var lost_packets :=
         detect_and_remove_lost_packets(pn_space,dcid);
         # assert(!lost_packets.empty())
         if lost_packets_end(pn_space) > 0 {
@@ -432,7 +432,7 @@ import action show_need_sent_ack_eliciting_handshake_packet
 import action show_need_sent_ack_eliciting_application_packet
 
 # DetectAndRemoveLostPackets is called every time an ACK is received or the time
-# threshold loss detection timer expires. This function operates on the sent_packets 
+# threshold loss detection timer expires. This function operates on the sent_packets
 # for that packet number space and returns a list of packets newly detected as lost.
 
 action detect_and_remove_lost_packets(pn_space:quic_packet_type, dcid:cid) = {
@@ -464,13 +464,13 @@ action detect_and_remove_lost_packets(pn_space:quic_packet_type, dcid:cid) = {
                     largest_acked_packet(pn_space) >= current_pkt.seq_num + streampos_to_seqnum(ack_out_of_order_val(dcid)) {
                     lost_packets(pn_space,lost_packets_end(pn_space)) := current_pkt;
                     lost_packets_end(pn_space) := lost_packets_end(pn_space) + 1;
-                } 
+                }
                 else {
                     sent_packets(pn_space,sent_packets_end(pn_space)) := current_pkt;
                     sent_packets_end(pn_space) := sent_packets_end(pn_space) + 1;
                     if loss_time(pn_space) = 0 {
                         loss_time(pn_space) := sent_packets_time_sent(pn_space, current_pkt.seq_num) + loss_delay;
-                    } 
+                    }
                     else {
                         var min := loss_time(pn_space);
                         if min > sent_packets_time_sent(pn_space, current_pkt.seq_num) + loss_delay {
@@ -489,7 +489,7 @@ action detect_and_remove_lost_packets(pn_space:quic_packet_type, dcid:cid) = {
                     sent_packets_end(pn_space) := sent_packets_end(pn_space) + 1;
                     if loss_time(pn_space) = 0 {
                         loss_time(pn_space) := sent_packets_time_sent(pn_space, current_pkt.seq_num) + loss_delay;
-                    } 
+                    }
                     else {
                         var min := loss_time(pn_space);
                         if min > sent_packets_time_sent(pn_space, current_pkt.seq_num) + loss_delay {
@@ -507,8 +507,8 @@ action detect_and_remove_lost_packets(pn_space:quic_packet_type, dcid:cid) = {
 
 import action show_loss_time_update(t:microseconds, pn_space:quic_packet_type)
 
-# When a server is blocked by anti-amplification limits, receiving a datagram 
-# unblocks it, even if none of the packets in the datagram are successfully 
+# When a server is blocked by anti-amplification limits, receiving a datagram
+# unblocks it, even if none of the packets in the datagram are successfully
 # processed. In such a case, the PTO timer will need to be rearmed.
 
 action on_datagram_received(dst:ip.endpoint, dcid:cid, datagram:stream_data) = {
@@ -592,7 +592,7 @@ action on_ack_received(dst:ip.endpoint, largest_acked:pkt_num, ack_delay:microse
             call show_latest_rtt(latest_rtt(largest_acked_pkt.dst_cid),largest_acked_pkt.dst_cid);
             call update_rtt(ack_delay, largest_acked_pkt.dst_cid);
         }
-        
+
         # Process ECN information if present.
         # TODO
         # if ack.ecn {
@@ -701,7 +701,7 @@ action on_pn_space_discarded(dst:ip.endpoint, dcid:cid, pn_space:quic_packet_typ
 
 import action show_on_pn_space_discarded(pn_space:quic_packet_type)
 
-# After a packet is sent, information about the packet is stored. The parameters to OnPacketSent are described in detail above in Appendix A.1.1. 
+# After a packet is sent, information about the packet is stored. The parameters to OnPacketSent are described in detail above in Appendix A.1.1.
 
 action on_packet_sent(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet, sent_bytes:stream_pos) = {
     sent_time_of_largest_acked(pkt.seq_num) := time_api.c_timer.now_micros;

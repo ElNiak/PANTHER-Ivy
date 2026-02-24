@@ -309,7 +309,7 @@ with defwhite:
                         elems =
                             [ NonTerm ( name = 'PyApply' ) , NonTerm ( name = 'PyIdent' ) ,
                                 NonTerm ( name = 'PyList' ) , NonTerm ( name = 'PyStr' ) ] ) ,
-                lhs = 'PyExpr' ) ] ) 
+                lhs = 'PyExpr' ) ] )
 
 class Field(Format):
     def __init__(self,name,type):

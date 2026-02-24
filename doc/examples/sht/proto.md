@@ -263,7 +263,7 @@ The global protocol state invariants are:
 	conjecture impl.dm.map(K,me) & X ~= me -> ~proto(X).impl.dm.map(K,X)
 
 The second invarient refers to `proto`, which is a collection of all
-hosts. This will be defined when we [instantiate the protocol](sht.md). 
+hosts. This will be defined when we [instantiate the protocol](sht.md).
 
 The invariants for delegation message in transit are:
 
@@ -325,4 +325,3 @@ Notice that replies differ from requests in that they represent committed transa
 
 These invariants are inductive and imply that the protocol satisfies
 its service specification.  We'll prove that in the next section.
-

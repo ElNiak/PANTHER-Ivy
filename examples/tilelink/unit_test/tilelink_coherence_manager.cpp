@@ -32,7 +32,7 @@ int to_a_type(int own, int op){
 }
 
 int to_r_type(int voluntary, int dirty){
-    if (!dirty) 
+    if (!dirty)
         return 0b011; // releaseInvalidateAck
     return 0b000;  // releaseInvalidateData
 }
@@ -128,11 +128,11 @@ class tilelink_coherence_manager : public tilelink_two_port_dut {
    }
 
     /* This is the "inner" port */
-  
+
   struct my_manager_port : public manager_port {
     L2Unit_t &dut;
     unsigned stride;
-    
+
 
     hash_map<int, hash_map<int,int> > client_txid_to_addr_hi;
     hash_map<int, hash_map<int,int> > client_txid_to_ltime;
@@ -144,7 +144,7 @@ class tilelink_coherence_manager : public tilelink_two_port_dut {
 
     void set_acquire(bool send, const acquire &a){
         dut.L2Unit__io_inner_acquire_valid = LIT<1>(send);
-        dut.L2Unit__io_inner_acquire_bits_client_id = LIT<2>(a.cid);        
+        dut.L2Unit__io_inner_acquire_bits_client_id = LIT<2>(a.cid);
         dut.L2Unit__io_inner_acquire_bits_client_xact_id = LIT<2>(a.id_);
         dut.L2Unit__io_inner_acquire_bits_is_builtin_type = LIT<1>(a.own == 0);
         dut.L2Unit__io_inner_acquire_bits_addr_beat = LIT<2>(a.word);
@@ -160,7 +160,7 @@ class tilelink_coherence_manager : public tilelink_two_port_dut {
         }
     }
     bool get_acquire_ready(){
-        if (dut.L2Unit__io_inner_acquire_valid.values[0] && dut.L2Unit__io_inner_acquire_ready.values[0]) { 
+        if (dut.L2Unit__io_inner_acquire_valid.values[0] && dut.L2Unit__io_inner_acquire_ready.values[0]) {
             addr_hi_to_ltime[latest_addr_hi] = latest_ltime;
         }
         return dut.L2Unit__io_inner_acquire_ready.values[0];
@@ -179,7 +179,7 @@ class tilelink_coherence_manager : public tilelink_two_port_dut {
         dut.L2Unit__io_inner_release_valid = LIT<1>(send);
         dut.L2Unit__io_inner_release_bits_voluntary = LIT<1>(a.voluntary);
         dut.L2Unit__io_inner_release_bits_client_xact_id = LIT<2>(a.id_);
-        dut.L2Unit__io_inner_release_bits_client_id = LIT<2>(a.cid);        
+        dut.L2Unit__io_inner_release_bits_client_id = LIT<2>(a.cid);
         dut.L2Unit__io_inner_release_bits_addr_beat = LIT<2>(a.word);
         dut.L2Unit__io_inner_release_bits_r_type = LIT<3>(to_r_type(a.voluntary,a.dirty));
         dut.L2Unit__io_inner_release_bits_addr_block = LIT<26>(to_addr_block(a.addr_hi,stride));
@@ -297,7 +297,7 @@ class tilelink_coherence_manager : public tilelink_two_port_dut {
             client_txid_to_own[a.id_] = a.own;
         }
         return send;
-#else 
+#else
         // No such port!
         return false;
 #endif
@@ -314,7 +314,7 @@ class tilelink_coherence_manager : public tilelink_two_port_dut {
         dut.L2Unit__io_outer_grant_bits_addr_beat = LIT<2>(a.word);
         dut.L2Unit__io_outer_grant_bits_client_xact_id = LIT<2>(a.clnt_txid);
         // TODO: this doesn't seem to exist in emulator code
-        // dut.L2Unit__io_outer_grant_bits_client_id = LIT<2>(a.cid);        
+        // dut.L2Unit__io_outer_grant_bits_client_id = LIT<2>(a.cid);
         dut.L2Unit__io_outer_grant_bits_manager_xact_id = LIT<4>(a.mngr_txid);
         dut.L2Unit__io_outer_grant_bits_g_type = LIT<3>(to_g_type(own,client_txid_to_op[a.clnt_txid]));
         dut.L2Unit__io_outer_grant_bits_data = LIT<128>(a.data_);
@@ -341,7 +341,7 @@ class tilelink_coherence_manager : public tilelink_two_port_dut {
   // The chisel generated code
   L2Unit_t dut;
   FILE *dumpf;
-  
+
   virtual manager_port *mp(){
     return m_mp;
   }
@@ -354,7 +354,7 @@ class tilelink_coherence_manager : public tilelink_two_port_dut {
       //      dut.clock_lo(LIT<1>(0),true);
       //      dut.clock_hi(LIT<1>(0));
       dut.clock(LIT<1>(0));
-      /*      std::cout << "s0 = " << ((dut.L2Unit_managerEndpoint_meta_meta__tag_arr.contents[0].values[0]) & 0x3) 
+      /*      std::cout << "s0 = " << ((dut.L2Unit_managerEndpoint_meta_meta__tag_arr.contents[0].values[0]) & 0x3)
                 << " s1 = " << ((dut.L2Unit_managerEndpoint_meta_meta__tag_arr.contents[1].values[0]) & 0x3)
                 << "\n"; */
 
@@ -362,7 +362,7 @@ class tilelink_coherence_manager : public tilelink_two_port_dut {
 
       std::cout
           // TODO: metadata array seems to get different names for no reason
-          // << "s0 = " << ((dut.L2Unit_managerEndpoint_meta_meta__T4.contents[0].values[0]) & 0x3) 
+          // << "s0 = " << ((dut.L2Unit_managerEndpoint_meta_meta__T4.contents[0].values[0]) & 0x3)
           // << " s1 = " << ((dut.L2Unit_managerEndpoint_meta_meta__T4.contents[1].values[0]) & 0x3)
                 << " d0 = " << ((dut.L2Unit_managerEndpoint_data__array.contents[0].values[0]))
                 << " d1 = " << ((dut.L2Unit_managerEndpoint_data__array.contents[1].values[0]))
@@ -384,7 +384,7 @@ public:
       dut.init(rand());
 
       // reset a couple of clocks
-      
+
       dut.clock_lo(LIT<1>(1),true);
       dut.clock_hi(LIT<1>(1));
       dut.clock_lo(LIT<1>(1),true);
@@ -403,10 +403,10 @@ public:
 
       dumpf = fopen("dump.vcd","w");
       dut.set_dumpfile(dumpf);
-  }  
+  }
 
   ~tilelink_coherence_manager(){
-      if (dumpf) 
+      if (dumpf)
           fclose(dumpf);
       delete m_mp;
       delete m_cp;

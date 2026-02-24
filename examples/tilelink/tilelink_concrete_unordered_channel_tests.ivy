@@ -21,7 +21,7 @@ module tests = {
       if * {
         call c.step
       } else if * {
-        call b.step 
+        call b.step
       } else {
         call m.step
       }
@@ -54,7 +54,7 @@ module tests = {
 	call c.acquire(acq2);
 	call b.acquire(acq2);
 	call b.acquire(acq1);
-	assume acqs(acq1).word = gnts(gnt1).word; 
+	assume acqs(acq1).word = gnts(gnt1).word;
 	call m.perform(acqs(acq1).ltime_,id1);
 	call m.grant(gnt1);
         call b.grant(gnt2);
@@ -167,7 +167,7 @@ module tests = {
 #  	call c.finish(fns2)
 # ;
 #  	call b.finish(fns2)
-	
+
 #         call b.grant(gnt2)
 # ;
 #  	call c.release(rls1)
@@ -213,4 +213,3 @@ export b.acquire
  export b.probe
 
 isolate iso_t = b with ref,front,back,c,m,t
-

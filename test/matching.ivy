@@ -8,13 +8,13 @@ relation rel(X:t,Y:t)
 
 isolate prog = {
     # Start with the identity
-    
+
     after init {
         rel(X,Y) := X = Y;
     }
-    
+
     # Swap pairs
-    
+
     action swap(a:t,b:t,c:t,d:t) = {
         require rel(a,b) & rel(c,d);
         rel(a,b) := false;

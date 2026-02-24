@@ -41,7 +41,7 @@ after init {
     sock := quic_net.open(endpoint_id.client,client.ep);
     sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
     sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
-    
+
     client.set_tls_id(1);
     server.set_tls_id(0);
 
@@ -63,15 +63,15 @@ after init {
     other_tls_id_map_cid(client.tls_id) := server_cid;
     tls_id_map_cid(server.tls_id)       := server_cid;
     other_tls_id_map_cid(server.tls_id) := the_cid;
-    
+
     call show_cid_event(the_cid);
     call show_cid_event(server_cid);
-    
+
     tls_id_map_ep(server.tls_id)       := server.ep;
     other_tls_id_map_ep(server.tls_id) := client.ep;
     ep_map_tls_id(server.ep)           := server.tls_id;
     # ep_map_cid(server.ep)              := the_cid;
-   
+
     var extns := tls_extensions.empty;
     extns := extns.append(make_transport_parameters);
     call tls_api.upper.create(client.tls_id,false,extns);  # false means this instance of tls is not a server
@@ -118,7 +118,7 @@ require src.port = client.ep.port;
         require src.addr = client.ep.addr;
 	    require ep_present(src) &  scid = ep_map_cid(src);
 	    require f.length = 8; #[1]
-        require f.scid ~= scid; 
+        require f.scid ~= scid;
         require f.scid ~= dcid;
         require f.retire_prior_to = 0; #[4]
         require f.seq_num > last_cid_seq(scid);
@@ -161,8 +161,6 @@ export quic_frame.new_connection_id.handle_maliciously
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require conn_total_data(the_cid) > 0;
 }
-
-

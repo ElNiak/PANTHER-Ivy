@@ -87,7 +87,7 @@ class ConceptInteractiveSession(object):
         if self.widget != None and hasattr(self.widget,'projection'):
             return self.widget.projection
         return None
-            
+
     def recompute(self,projection = None):
         projection = projection or (lambda *args: True)
         self.abstract_value = alpha(self.domain, self._to_formula(), self.cache,
@@ -194,7 +194,7 @@ class ConceptInteractiveSession(object):
         if source == target:
             target_c = source_c
         else:
-            target_c = self._materialize_node(target)        
+            target_c = self._materialize_node(target)
         f = edge_concept(source_c, target_c)
         self.suppose(f if polarity else Not(f))
         return (source_c,target_c)
@@ -273,7 +273,7 @@ class ConceptInteractiveSession(object):
         facts = []
         for node in self.domain.concepts['nodes']:
             facts.extend(self.get_node_facts(node))
-        
+
         for tag,value in self.abstract_value:
             if value:
                 if tag[0] == 'edge_info' and tag[1] in ('none_to_none','all_to_all'):

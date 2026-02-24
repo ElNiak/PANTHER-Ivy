@@ -1,7 +1,7 @@
 #lang ivy1.7
 
 ################################################################################
-# 
+#
 ################################################################################
 
 type proc
@@ -63,7 +63,7 @@ module net_snp_type_msg = {
 # issues net requests and receives completions
 ################################################################################
 
-module p_mod = { 
+module p_mod = {
   individual  state : p_state_type
   instantiate prb   : prb_type
   instantiate irb   : irb_type
@@ -123,7 +123,7 @@ module p_mod = {
        error := false;
     }
   }
-} 
+}
 
 ## ****
 
@@ -132,7 +132,7 @@ module dir_mod = {
   individual _OwnerPtrValid   : bool
 
   individual _OwnerPtr        : proc
-  individual oldest_OwnerPtr  : proc  
+  individual oldest_OwnerPtr  : proc
 
   individual  error : bool
 
@@ -203,8 +203,8 @@ after init {
     net.snp(P).kind          := _NOP_snp;
 
     pi(P).state       := _I;
-    pi(P).prb.v       := false;    
-    pi(P).irb.v       := false;    
+    pi(P).prb.v       := false;
+    pi(P).irb.v       := false;
 
     pi(P).error       := false;
     dir.error          := false;
@@ -221,7 +221,7 @@ instantiate dir               : dir_mod
 instantiate net               : net_fabric
 
 ################################################################################
-# Proofs 
+# Proofs
 ################################################################################
 
 conjecture net.cmp.kind=_ERESP
@@ -230,10 +230,10 @@ conjecture net.cmp.kind=_ERESP
             dir._State=dir_E & (net.cmp.dst=dir._OwnerPtr & dir._OwnerPtr=dir.oldest_OwnerPtr  | net.cmp.dst=dir.oldest_OwnerPtr)
            )
 
-conjecture dir._State=dir_E 
-           -> 
+conjecture dir._State=dir_E
+           ->
            (
-            pi(dir.oldest_OwnerPtr).state=_E & net.cmp.kind=_NOP_cmp | 
+            pi(dir.oldest_OwnerPtr).state=_E & net.cmp.kind=_NOP_cmp |
             net.cmp.kind=_ERESP & net.cmp.dst=dir.oldest_OwnerPtr
            )
 
@@ -270,7 +270,7 @@ conjecture pi(P).state=_I |
            pi(P).state=_E & ~pi(P).prb.v & net.cmp.kind=_NOP_cmp & (
                                                          dir._State=dir_E & dir._OwnerPtr=P |
                                                          dir._State=dir_E & dir._OwnerPtr~=P & (net.snp(P).kind=_IRDEX | pi(P).irb.v)
-                                                        ) 
+                                                        )
 
 conjecture net.req(P).kind~=_NOP_req -> ~(net.cmp.kind~=_NOP_cmp & net.cmp.dst=P | net.snp(P).kind~=_NOP_snp | pi(P).irb.v)
 conjecture net.cmp.kind~=_NOP_cmp    -> ~(net.req(net.cmp.dst).kind~=_NOP_req)
@@ -290,11 +290,11 @@ conjecture pi(P).prb.v
            ->
            (
            (
-             net.req(P).kind~=_NOP_req | 
+             net.req(P).kind~=_NOP_req |
              net.cmp.kind~=_NOP_cmp & net.cmp.dst=P |
              (exists X. net.snp(X).kind=_IRDEX & net.snp(X).src=P)
            )
-           & (pi(P).state=_I) 
+           & (pi(P).state=_I)
            )
 
 conjecture ((net.req(P).kind~=_NOP_req | net.cmp.kind~=_NOP_cmp & net.cmp.dst=P) & (pi(P).state=_I))
@@ -322,5 +322,3 @@ conjecture ~dir.error
 conjecture (pi(P).state=_E) -> dir.oldest_OwnerPtr=P
 
 export net.step
-
-

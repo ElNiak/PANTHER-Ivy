@@ -50,5 +50,3 @@ with im.Module():
         ick.check_module()
     except iu.IvyError as e:
         assert str(e) == "error: Some assertions are not checked","should have been an error"
-
-

@@ -46,8 +46,8 @@ object ivy = { ...
                 st.supertype_of := st.supertype_of.set(s.sort.get_name,s.super);
             }
         }
-    }        
-            
+    }
+
     # This analysis runs over a flat program and maps all the global
     # identifiers to their types. For this purpose, actions are
     # treated as if they were functions. If the types of member functions
@@ -61,7 +61,7 @@ object ivy = { ...
             curried : bool
         }
     }
-    
+
     object prog = { ...
         action get_global_types(p:this, curried : bool) returns (s:global_types) = {
             s.curried := curried;
@@ -84,7 +84,7 @@ object ivy = { ...
     # (3)  (f : (t1*...*tn->t)(...)) : u
     # (4)  (f : (t1*...*tn->t)(...))
     #
-    
+
     action is_typing_complete(typing:expr) returns (res:bool) = {
         if typing.is(verb.colon) {
             var lhs := typing.get_arg(0);
@@ -128,7 +128,7 @@ object ivy = { ...
 	        st.type_of := st.type_of.set(id,ty);
             }
         }
-    }        
+    }
 
     action get_formal_type(typings : vector[expr],ann:annot) returns (res:expr) = {
 	if typings.end = 0 {
@@ -200,7 +200,7 @@ object ivy = { ...
 	    }
 	}
     }
-    
+
 
     # Does a prototype have any non-const ref parameters?
 
@@ -218,7 +218,7 @@ object ivy = { ...
     # Get a map from param names to positions
 
     instance param_map : hash_map(ident,vector[expr].domain)
-    
+
     action param_set(ps:vector[expr]) returns (res:param_map) = {
         var idx := ps.begin;
         while idx < ps.end {
@@ -226,7 +226,7 @@ object ivy = { ...
             idx := idx.next
         }
     }
-        
+
     # Here, we add a default prototype to an action declaration, if a
     # prototype has not already been specified.  The default prototype
     # has one of two forms. If there is one output, and it is not an
@@ -236,8 +236,8 @@ object ivy = { ...
     # are by const reference. If the input is modified in the action
     # body, we change it to a value parameter. A exception is the
     # `this` parameter of a member action. This is normally passed by
-    # con-const reference, even if it is not an output. 
-    
+    # con-const reference, even if it is not an output.
+
     # A member action of a base type, or an overriding action of a
     # variant type that modifies the `this` parameter needs special
     # handling. For example, suppose we have this code:
@@ -251,9 +251,9 @@ object ivy = { ...
     # all other foo member actions of variants of t must be non-const, so that
     # we can successfully override foo. For now, we handle this in the simplest
     # way. That is, for member functions of bases and variants, if any parameter
-    # is internally modified, we pass a const reference and make an internal copy. 
+    # is internally modified, we pass a const reference and make an internal copy.
     # We indicate this by setting the `is_copy` bit of the prototype argument.
-    
+
     object actdc = { ...
         action get_proto(s:actdc,gl:global_types,st:subtypes) returns (res:prototype) = {
             if s.has_proto {
@@ -285,7 +285,7 @@ object ivy = { ...
 				    arg.is_copy := true;
 				} else if idx ~= 0 {
 				    arg.is_ref := false;
-				}   
+				}
 			    } else {
 				arg.is_ref := false;
 			    }
@@ -295,7 +295,7 @@ object ivy = { ...
                     };
                     res.args := res.args.append(arg);
                     idx := idx.next
-                };                
+                };
                 if s.outputs.end = 1 & ~inps.mem(s.outputs.value(0).get_arg(0).get_name) {
                     res.has_ret := true;
                     res.ret.name := s.outputs.value(0);
@@ -315,7 +315,7 @@ object ivy = { ...
                         };
                         idx := idx.next
                     }
-                }                
+                }
             }
         }
     }
@@ -338,7 +338,7 @@ object ivy = { ...
             res := arrow.make(dom.value(0),ty2,ty.get_ann.strip)
         }
     }
-    
+
 
     # Uncurry a function. This converts `f : t -> (... -> u)` to `t.f : (t * ... -> u)`.
 
@@ -359,7 +359,7 @@ object ivy = { ...
             b := res.is(verb.times);
         };
     }
-    
+
     # Test whether a type-decorated function is a member
     # function. That is, it returns true if `func` has the form
     # `t.f : (t * ...) -> u`.
@@ -374,7 +374,7 @@ object ivy = { ...
             }
         }
     }
-    
+
 
     # A function application can be in several forms
     #
@@ -446,7 +446,7 @@ module push_pop_map(domain,range) = {
 
     instance map_t : hash_map(domain,range)
     instance vec_t : array(pos,undo)
-    
+
     type this = struct {
         map : map_t,
         del : vec_t,
@@ -490,9 +490,9 @@ module push_pop_map(domain,range) = {
         }
     }
 }
-    
+
 object ivy = { ...
-        
+
     # Local variable tracking
     # =======================
 
@@ -513,7 +513,7 @@ object ivy = { ...
 
         action push(s:this) returns (s:this) = {
             s.map := s.map.push;
-        }                
+        }
 
         action add_var(s:this,typing:expr,is_ref:bool,loop_nesting:pos) returns (s:this) = {
             var v := typing.get_arg(0) if typing.is(verb.colon) else typing;
@@ -584,7 +584,7 @@ object ivy = { ...
     # Get the root modset of an assignment, given its lhs. There are several cases:
     #
     # - `x:...`: `x` is a root
-    # - `x:...,y:...`: both `x` and `y` are roots    
+    # - `x:...,y:...`: both `x` and `y` are roots
     # - `(x:...).(f:...)(...)`: `x` is a root (and `f` must be a destructor)
     # - `(f:...)(...)` where `f` is *not* a destructor: `f` is the root
     #
@@ -626,7 +626,7 @@ object ivy = { ...
 	st := s.rhs.mod_roots(st);
         st.ignore := st.ignore.pop;
     }
-    
+
     action asgn.mod_roots(s:asgn, st:root_mod_ref) returns (st:root_mod_ref) = {
 	st := get_lhs_roots(s.lhs,st);
     }

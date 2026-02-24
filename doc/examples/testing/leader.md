@@ -42,7 +42,7 @@ We'll start with a service specification for this protocol:
 
         object spec = {
             before elect {
-                assert asgn.pid(v) >= asgn.pid(X)  
+                assert asgn.pid(v) >= asgn.pid(X)
             }
         }
     }
@@ -235,7 +235,7 @@ In this run, process 1 times out and sends its id 170 to process
 (meaning process 0's id must be less than 170). Later, process 0 times
 out and sends its id 149 to process 1. Eventually, the network decides
 to deliver to process 1 the message with its own id, causing process
-1 to be elected. When this happens, the assertion monitor checkes that in 
+1 to be elected. When this happens, the assertion monitor checkes that in
 fact process 1 has the highest id.
 
 The important point here is that there is no actual network. The
@@ -315,7 +315,7 @@ Finally, we can test the timer:
 
 Not very interesting, but it shows both timeouts occurring once every
 second, which is what we expect. Again, we are really testing the
-operating system here (and also IVy's run time scheduler, which 
+operating system here (and also IVy's run time scheduler, which
 uses the operating system API).
 
 # Running the protocol
@@ -366,16 +366,3 @@ once per second, but they are being dropped because no port is yet
 open to receive them. After we start node 1, it forwards node 0's
 packets, which causes node 0 to be elected (and to continues to be
 elected once per second).
-
-
-
-
-
-
-
-
-
-
-
-
-

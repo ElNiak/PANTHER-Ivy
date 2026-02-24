@@ -5,11 +5,11 @@
 isolate iso1 = {
 
     var b : bool
-    
+
     after init {
         b := true;
     }
-    
+
     action act(x:bool) = {
         b := b | x
     }

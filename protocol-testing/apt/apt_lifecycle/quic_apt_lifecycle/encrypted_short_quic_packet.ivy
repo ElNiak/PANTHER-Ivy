@@ -25,7 +25,7 @@ object packet = {
     #     Protected Payload (128),   # Sampled Part
     #     Protected Payload (..),    # Remainder
     # }
-  
+
     object encrypted_short_quic_packet = {
         variant this of packet = struct {
             head_byte : stream_pos, # [2]
@@ -38,7 +38,7 @@ object packet = {
         #Hamid
 
         instance idx : unbounded_sequence
-        instance arr : array(idx,this) 
+        instance arr : array(idx,this)
 
     }
 }
@@ -49,7 +49,7 @@ object packet = {
 
     object encrypted_short_quic_packet = {
         ...
-        
+
         action forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet)
         around forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
             # require _generating;
@@ -71,7 +71,7 @@ object packet = {
                 call enqueue_packet(src,dst,pkt);
                 is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
                 coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
-                call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+                call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
             }
         }
 
@@ -96,7 +96,7 @@ object packet = {
                 call enqueue_packet(src,dst,pkt);
                 is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
                 coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
-                call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+                call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
             }
         }
 
@@ -119,7 +119,7 @@ object packet = {
                 call enqueue_packet(src,dst,pkt);
                 is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := true;
                 coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
-                call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+                call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
             }
         }
 
@@ -142,7 +142,7 @@ object packet = {
                 call enqueue_packet(src,dst,pkt);
                 is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := true;
                 coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
-                call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+                call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
             }
         }
 
@@ -166,15 +166,15 @@ object packet = {
                 is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := true;
                 coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
                 call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
-            }            
+            }
         }
     }
 
 }
 
-function encrypted_short_quic_packets_received_last_round(C:ip.endpoint) : packet.encrypted_short_quic_packet.arr 
+function encrypted_short_quic_packets_received_last_round(C:ip.endpoint) : packet.encrypted_short_quic_packet.arr
 function encrypted_short_quic_packet_received_at_round(C:ip.endpoint,P:stream_pos,R:stream_pos) : packet.encrypted_short_quic_packet
-relation is_encrypted_short_quic_packet_received(C:ip.endpoint, P:packet.encrypted_short_quic_packet, P:stream_pos) 
+relation is_encrypted_short_quic_packet_received(C:ip.endpoint, P:packet.encrypted_short_quic_packet, P:stream_pos)
 relation encrypted_short_quic_packet_forwarded(C:ip.endpoint, P:packet.encrypted_short_quic_packet)
 
 after init {
@@ -184,7 +184,7 @@ after init {
 before enqueue_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet) {
     if some(cf:packet.encrypted_short_quic_packet) pkt *> cf  {
         encrypted_short_quic_packet_forwarded(dst,cf) := true;
-    } 
+    }
 }
 
 after receiving_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet, pkt_num: stream_pos) {
@@ -192,7 +192,7 @@ after receiving_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet, pkt_num: stre
         encrypted_short_quic_packet_received_at_round(dst,pkt_num,current_receving_round(dst))  := cf;
         is_encrypted_short_quic_packet_received(dst,cf,pkt_num)       := true;
         encrypted_short_quic_packets_received_last_round(dst)         := encrypted_short_quic_packets_received_last_round(dst).append(cf);
-    } 
+    }
 }
 
 after update_forwarded_packet(src:ip.endpoint,dst:ip.endpoint) {

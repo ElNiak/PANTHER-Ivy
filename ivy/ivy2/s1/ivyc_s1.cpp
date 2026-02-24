@@ -16,7 +16,7 @@
 #else
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <netinet/ip.h> 
+#include <netinet/ip.h>
 #include <sys/select.h>
 #include <unistd.h>
 #define _open open
@@ -52,16 +52,16 @@ public:
 };
 
 #ifdef _WIN32
-DWORD WINAPI ReaderThreadFunction( LPVOID lpParam ) 
+DWORD WINAPI ReaderThreadFunction( LPVOID lpParam )
 {
     reader *cr = (reader *) lpParam;
     cr->bind();
     while (true)
         cr->read();
     return 0;
-} 
+}
 
-DWORD WINAPI TimerThreadFunction( LPVOID lpParam ) 
+DWORD WINAPI TimerThreadFunction( LPVOID lpParam )
 {
     timer *cr = (timer *) lpParam;
     while (true) {
@@ -70,7 +70,7 @@ DWORD WINAPI TimerThreadFunction( LPVOID lpParam )
         cr->timeout(ms);
     }
     return 0;
-} 
+}
 #else
 void * _thread_reader(void *rdr_void) {
     reader *rdr = (reader *) rdr_void;
@@ -82,7 +82,7 @@ void * _thread_reader(void *rdr_void) {
     return 0; // just to stop warning
 }
 
-void * _thread_timer( void *tmr_void ) 
+void * _thread_timer( void *tmr_void )
 {
     timer *tmr = (timer *) tmr_void;
     while (true) {
@@ -94,20 +94,20 @@ void * _thread_timer( void *tmr_void )
         tmr->timeout(ms);
     }
     return 0;
-} 
-#endif 
+}
+#endif
 
 void ivyc_s1::install_reader(reader *r) {
     #ifdef _WIN32
 
         DWORD dummy;
-        HANDLE h = CreateThread( 
+        HANDLE h = CreateThread(
             NULL,                   // default security attributes
-            0,                      // use default stack size  
+            0,                      // use default stack size
             ReaderThreadFunction,   // thread function name
-            r,                      // argument to thread function 
-            0,                      // use default creation flags 
-            &dummy);                // returns the thread identifier 
+            r,                      // argument to thread function
+            0,                      // use default creation flags
+            &dummy);                // returns the thread identifier
         if (h == NULL) {
             std::cerr << "failed to create thread" << std::endl;
             exit(1);
@@ -122,7 +122,7 @@ void ivyc_s1::install_reader(reader *r) {
         }
         thread_ids.push_back(thread);
     #endif
-}      
+}
 
 void ivyc_s1::install_thread(reader *r) {
     install_reader(r);
@@ -132,13 +132,13 @@ void ivyc_s1::install_timer(timer *r) {
     #ifdef _WIN32
 
         DWORD dummy;
-        HANDLE h = CreateThread( 
+        HANDLE h = CreateThread(
             NULL,                   // default security attributes
-            0,                      // use default stack size  
+            0,                      // use default stack size
             TimersThreadFunction,   // thread function name
-            r,                      // argument to thread function 
-            0,                      // use default creation flags 
-            &dummy);                // returns the thread identifier 
+            r,                      // argument to thread function
+            0,                      // use default creation flags
+            &dummy);                // returns the thread identifier
         if (h == NULL) {
             std::cerr << "failed to create thread" << std::endl;
             exit(1);
@@ -153,7 +153,7 @@ void ivyc_s1::install_timer(timer *r) {
         }
         thread_ids.push_back(thread);
     #endif
-}      
+}
 
 
 #ifdef _WIN32
@@ -168,7 +168,7 @@ void ivyc_s1::install_timer(timer *r) {
 Copyright (c) Microsoft Corporation
 
 This string hash function is borrowed from Microsoft Z3
-(https://github.com/Z3Prover/z3). 
+(https://github.com/Z3Prover/z3).
 
 --*/
 
@@ -214,38 +214,38 @@ unsigned string_hash(const char * str, unsigned length, unsigned init_value) {
     /*------------------------------------- handle the last 11 bytes */
     c += length;
     switch(len) {        /* all the case statements fall through */
-    case 11: 
+    case 11:
         c+=((unsigned)str[10]<<24);
         __fallthrough;
-    case 10: 
+    case 10:
         c+=((unsigned)str[9]<<16);
         __fallthrough;
-    case 9 : 
+    case 9 :
         c+=((unsigned)str[8]<<8);
         __fallthrough;
         /* the first byte of c is reserved for the length */
-    case 8 : 
+    case 8 :
         b+=((unsigned)str[7]<<24);
         __fallthrough;
-    case 7 : 
+    case 7 :
         b+=((unsigned)str[6]<<16);
         __fallthrough;
-    case 6 : 
+    case 6 :
         b+=((unsigned)str[5]<<8);
         __fallthrough;
-    case 5 : 
+    case 5 :
         b+=str[4];
         __fallthrough;
-    case 4 : 
+    case 4 :
         a+=((unsigned)str[3]<<24);
         __fallthrough;
-    case 3 : 
+    case 3 :
         a+=((unsigned)str[2]<<16);
         __fallthrough;
-    case 2 : 
+    case 2 :
         a+=((unsigned)str[1]<<8);
         __fallthrough;
-    case 1 : 
+    case 1 :
         a+=str[0];
         __fallthrough;
         /* case 0: nothing left to add */
@@ -540,7 +540,7 @@ template <>
 void __ser<std::vector<bool>::const_reference>(ivy_ser &res, const std::vector<bool>::const_reference &inp) {
     bool thing = inp;
     res.set(thing);
-} 
+}
 
 template <>
 void __ser<__strlit>(ivy_ser &res, const __strlit &inp) {
@@ -1268,7 +1268,7 @@ void __deser<ivyc_s1::annot>(ivy_deser &res, ivyc_s1::annot &inp) {
 
     int tag = res.open_tag(tags);
     switch (tag) {
-    case 0: {ivyc_s1::annot_i tmp; __deser(res,tmp); inp = ivyc_s1::annot(0, new ivyc_s1::annot::twrap<ivyc_s1::annot_i>(tmp)); break;} 
+    case 0: {ivyc_s1::annot_i tmp; __deser(res,tmp); inp = ivyc_s1::annot(0, new ivyc_s1::annot::twrap<ivyc_s1::annot_i>(tmp)); break;}
 
     }
     res.close_tag();
@@ -1374,9 +1374,9 @@ void __deser<ivyc_s1::ivy__ident>(ivy_deser &res, ivyc_s1::ivy__ident &inp) {
 
     int tag = res.open_tag(tags);
     switch (tag) {
-    case 0: {ivyc_s1::ivy__strident tmp; __deser(res,tmp); inp = ivyc_s1::ivy__ident(0, new ivyc_s1::ivy__ident::twrap<ivyc_s1::ivy__strident>(tmp)); break;} 
-    case 1: {ivyc_s1::ivy__numident tmp; __deser(res,tmp); inp = ivyc_s1::ivy__ident(1, new ivyc_s1::ivy__ident::twrap<ivyc_s1::ivy__numident>(tmp)); break;} 
-    case 2: {ivyc_s1::ivy__dotident tmp; __deser(res,tmp); inp = ivyc_s1::ivy__ident(2, new ivyc_s1::ivy__ident::twrap<ivyc_s1::ivy__dotident>(tmp)); break;} 
+    case 0: {ivyc_s1::ivy__strident tmp; __deser(res,tmp); inp = ivyc_s1::ivy__ident(0, new ivyc_s1::ivy__ident::twrap<ivyc_s1::ivy__strident>(tmp)); break;}
+    case 1: {ivyc_s1::ivy__numident tmp; __deser(res,tmp); inp = ivyc_s1::ivy__ident(1, new ivyc_s1::ivy__ident::twrap<ivyc_s1::ivy__numident>(tmp)); break;}
+    case 2: {ivyc_s1::ivy__dotident tmp; __deser(res,tmp); inp = ivyc_s1::ivy__ident(2, new ivyc_s1::ivy__ident::twrap<ivyc_s1::ivy__dotident>(tmp)); break;}
 
     }
     res.close_tag();
@@ -1552,10 +1552,10 @@ void __deser<ivyc_s1::ivy__expr>(ivy_deser &res, ivyc_s1::ivy__expr &inp) {
 
     int tag = res.open_tag(tags);
     switch (tag) {
-    case 0: {ivyc_s1::ivy__symbol tmp; __deser(res,tmp); inp = ivyc_s1::ivy__expr(0, new ivyc_s1::ivy__expr::twrap<ivyc_s1::ivy__symbol>(tmp)); break;} 
-    case 1: {ivyc_s1::ivy__app tmp; __deser(res,tmp); inp = ivyc_s1::ivy__expr(1, new ivyc_s1::ivy__expr::twrap<ivyc_s1::ivy__app>(tmp)); break;} 
-    case 2: {ivyc_s1::ivy__variable tmp; __deser(res,tmp); inp = ivyc_s1::ivy__expr(2, new ivyc_s1::ivy__expr::twrap<ivyc_s1::ivy__variable>(tmp)); break;} 
-    case 3: {ivyc_s1::ivy__pi tmp; __deser(res,tmp); inp = ivyc_s1::ivy__expr(3, new ivyc_s1::ivy__expr::twrap<ivyc_s1::ivy__pi>(tmp)); break;} 
+    case 0: {ivyc_s1::ivy__symbol tmp; __deser(res,tmp); inp = ivyc_s1::ivy__expr(0, new ivyc_s1::ivy__expr::twrap<ivyc_s1::ivy__symbol>(tmp)); break;}
+    case 1: {ivyc_s1::ivy__app tmp; __deser(res,tmp); inp = ivyc_s1::ivy__expr(1, new ivyc_s1::ivy__expr::twrap<ivyc_s1::ivy__app>(tmp)); break;}
+    case 2: {ivyc_s1::ivy__variable tmp; __deser(res,tmp); inp = ivyc_s1::ivy__expr(2, new ivyc_s1::ivy__expr::twrap<ivyc_s1::ivy__variable>(tmp)); break;}
+    case 3: {ivyc_s1::ivy__pi tmp; __deser(res,tmp); inp = ivyc_s1::ivy__expr(3, new ivyc_s1::ivy__expr::twrap<ivyc_s1::ivy__pi>(tmp)); break;}
 
     }
     res.close_tag();
@@ -1776,13 +1776,13 @@ void __deser<ivyc_s1::ivy__stmt>(ivy_deser &res, ivyc_s1::ivy__stmt &inp) {
 
     int tag = res.open_tag(tags);
     switch (tag) {
-    case 0: {ivyc_s1::ivy__asgn tmp; __deser(res,tmp); inp = ivyc_s1::ivy__stmt(0, new ivyc_s1::ivy__stmt::twrap<ivyc_s1::ivy__asgn>(tmp)); break;} 
-    case 1: {ivyc_s1::ivy__sequence tmp; __deser(res,tmp); inp = ivyc_s1::ivy__stmt(1, new ivyc_s1::ivy__stmt::twrap<ivyc_s1::ivy__sequence>(tmp)); break;} 
-    case 2: {ivyc_s1::ivy__skipst tmp; __deser(res,tmp); inp = ivyc_s1::ivy__stmt(2, new ivyc_s1::ivy__stmt::twrap<ivyc_s1::ivy__skipst>(tmp)); break;} 
-    case 3: {ivyc_s1::ivy__ifst tmp; __deser(res,tmp); inp = ivyc_s1::ivy__stmt(3, new ivyc_s1::ivy__stmt::twrap<ivyc_s1::ivy__ifst>(tmp)); break;} 
-    case 4: {ivyc_s1::ivy__whilest tmp; __deser(res,tmp); inp = ivyc_s1::ivy__stmt(4, new ivyc_s1::ivy__stmt::twrap<ivyc_s1::ivy__whilest>(tmp)); break;} 
-    case 5: {ivyc_s1::ivy__breakst tmp; __deser(res,tmp); inp = ivyc_s1::ivy__stmt(5, new ivyc_s1::ivy__stmt::twrap<ivyc_s1::ivy__breakst>(tmp)); break;} 
-    case 6: {ivyc_s1::ivy__varst tmp; __deser(res,tmp); inp = ivyc_s1::ivy__stmt(6, new ivyc_s1::ivy__stmt::twrap<ivyc_s1::ivy__varst>(tmp)); break;} 
+    case 0: {ivyc_s1::ivy__asgn tmp; __deser(res,tmp); inp = ivyc_s1::ivy__stmt(0, new ivyc_s1::ivy__stmt::twrap<ivyc_s1::ivy__asgn>(tmp)); break;}
+    case 1: {ivyc_s1::ivy__sequence tmp; __deser(res,tmp); inp = ivyc_s1::ivy__stmt(1, new ivyc_s1::ivy__stmt::twrap<ivyc_s1::ivy__sequence>(tmp)); break;}
+    case 2: {ivyc_s1::ivy__skipst tmp; __deser(res,tmp); inp = ivyc_s1::ivy__stmt(2, new ivyc_s1::ivy__stmt::twrap<ivyc_s1::ivy__skipst>(tmp)); break;}
+    case 3: {ivyc_s1::ivy__ifst tmp; __deser(res,tmp); inp = ivyc_s1::ivy__stmt(3, new ivyc_s1::ivy__stmt::twrap<ivyc_s1::ivy__ifst>(tmp)); break;}
+    case 4: {ivyc_s1::ivy__whilest tmp; __deser(res,tmp); inp = ivyc_s1::ivy__stmt(4, new ivyc_s1::ivy__stmt::twrap<ivyc_s1::ivy__whilest>(tmp)); break;}
+    case 5: {ivyc_s1::ivy__breakst tmp; __deser(res,tmp); inp = ivyc_s1::ivy__stmt(5, new ivyc_s1::ivy__stmt::twrap<ivyc_s1::ivy__breakst>(tmp)); break;}
+    case 6: {ivyc_s1::ivy__varst tmp; __deser(res,tmp); inp = ivyc_s1::ivy__stmt(6, new ivyc_s1::ivy__stmt::twrap<ivyc_s1::ivy__varst>(tmp)); break;}
 
     }
     res.close_tag();
@@ -2122,18 +2122,18 @@ void __deser<ivyc_s1::ivy__decl>(ivy_deser &res, ivyc_s1::ivy__decl &inp) {
 
     int tag = res.open_tag(tags);
     switch (tag) {
-    case 0: {ivyc_s1::ivy__actdc tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(0, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__actdc>(tmp)); break;} 
-    case 1: {ivyc_s1::ivy__groupdc tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(1, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__groupdc>(tmp)); break;} 
-    case 2: {ivyc_s1::ivy__typedc tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(2, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__typedc>(tmp)); break;} 
-    case 3: {ivyc_s1::ivy__vardc tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(3, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__vardc>(tmp)); break;} 
-    case 4: {ivyc_s1::ivy__header tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(4, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__header>(tmp)); break;} 
-    case 5: {ivyc_s1::ivy__interpdc tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(5, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__interpdc>(tmp)); break;} 
-    case 6: {ivyc_s1::ivy__includedc tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(6, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__includedc>(tmp)); break;} 
-    case 7: {ivyc_s1::ivy__moduledc tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(7, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__moduledc>(tmp)); break;} 
-    case 8: {ivyc_s1::ivy__instantiatedc tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(8, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__instantiatedc>(tmp)); break;} 
-    case 9: {ivyc_s1::ivy__objectdc tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(9, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__objectdc>(tmp)); break;} 
-    case 10: {ivyc_s1::ivy__instancedc tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(10, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__instancedc>(tmp)); break;} 
-    case 11: {ivyc_s1::ivy__initdc tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(11, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__initdc>(tmp)); break;} 
+    case 0: {ivyc_s1::ivy__actdc tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(0, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__actdc>(tmp)); break;}
+    case 1: {ivyc_s1::ivy__groupdc tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(1, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__groupdc>(tmp)); break;}
+    case 2: {ivyc_s1::ivy__typedc tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(2, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__typedc>(tmp)); break;}
+    case 3: {ivyc_s1::ivy__vardc tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(3, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__vardc>(tmp)); break;}
+    case 4: {ivyc_s1::ivy__header tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(4, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__header>(tmp)); break;}
+    case 5: {ivyc_s1::ivy__interpdc tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(5, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__interpdc>(tmp)); break;}
+    case 6: {ivyc_s1::ivy__includedc tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(6, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__includedc>(tmp)); break;}
+    case 7: {ivyc_s1::ivy__moduledc tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(7, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__moduledc>(tmp)); break;}
+    case 8: {ivyc_s1::ivy__instantiatedc tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(8, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__instantiatedc>(tmp)); break;}
+    case 9: {ivyc_s1::ivy__objectdc tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(9, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__objectdc>(tmp)); break;}
+    case 10: {ivyc_s1::ivy__instancedc tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(10, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__instancedc>(tmp)); break;}
+    case 11: {ivyc_s1::ivy__initdc tmp; __deser(res,tmp); inp = ivyc_s1::ivy__decl(11, new ivyc_s1::ivy__decl::twrap<ivyc_s1::ivy__initdc>(tmp)); break;}
 
     }
     res.close_tag();
@@ -2598,8 +2598,8 @@ void __deser<ivyc_s1::ivy__typespec>(ivy_deser &res, ivyc_s1::ivy__typespec &inp
 
     int tag = res.open_tag(tags);
     switch (tag) {
-    case 0: {ivyc_s1::ivy__enumspec tmp; __deser(res,tmp); inp = ivyc_s1::ivy__typespec(0, new ivyc_s1::ivy__typespec::twrap<ivyc_s1::ivy__enumspec>(tmp)); break;} 
-    case 1: {ivyc_s1::ivy__structspec tmp; __deser(res,tmp); inp = ivyc_s1::ivy__typespec(1, new ivyc_s1::ivy__typespec::twrap<ivyc_s1::ivy__structspec>(tmp)); break;} 
+    case 0: {ivyc_s1::ivy__enumspec tmp; __deser(res,tmp); inp = ivyc_s1::ivy__typespec(0, new ivyc_s1::ivy__typespec::twrap<ivyc_s1::ivy__enumspec>(tmp)); break;}
+    case 1: {ivyc_s1::ivy__structspec tmp; __deser(res,tmp); inp = ivyc_s1::ivy__typespec(1, new ivyc_s1::ivy__typespec::twrap<ivyc_s1::ivy__structspec>(tmp)); break;}
 
     }
     res.close_tag();
@@ -2762,15 +2762,15 @@ void __deser<ivyc_s1::ivy__error>(ivy_deser &res, ivyc_s1::ivy__error &inp) {
 
     int tag = res.open_tag(tags);
     switch (tag) {
-    case 0: {ivyc_s1::ivy__type_clash tmp; __deser(res,tmp); inp = ivyc_s1::ivy__error(0, new ivyc_s1::ivy__error::twrap<ivyc_s1::ivy__type_clash>(tmp)); break;} 
-    case 1: {ivyc_s1::ivy__type_conversion tmp; __deser(res,tmp); inp = ivyc_s1::ivy__error(1, new ivyc_s1::ivy__error::twrap<ivyc_s1::ivy__type_conversion>(tmp)); break;} 
-    case 2: {ivyc_s1::ivy__untyped tmp; __deser(res,tmp); inp = ivyc_s1::ivy__error(2, new ivyc_s1::ivy__error::twrap<ivyc_s1::ivy__untyped>(tmp)); break;} 
-    case 3: {ivyc_s1::ivy__not_first_order tmp; __deser(res,tmp); inp = ivyc_s1::ivy__error(3, new ivyc_s1::ivy__error::twrap<ivyc_s1::ivy__not_first_order>(tmp)); break;} 
-    case 4: {ivyc_s1::ivy__file_not_found tmp; __deser(res,tmp); inp = ivyc_s1::ivy__error(4, new ivyc_s1::ivy__error::twrap<ivyc_s1::ivy__file_not_found>(tmp)); break;} 
-    case 5: {ivyc_s1::ivy__cannot_write tmp; __deser(res,tmp); inp = ivyc_s1::ivy__error(5, new ivyc_s1::ivy__error::twrap<ivyc_s1::ivy__cannot_write>(tmp)); break;} 
-    case 6: {ivyc_s1::ivy__undefined tmp; __deser(res,tmp); inp = ivyc_s1::ivy__error(6, new ivyc_s1::ivy__error::twrap<ivyc_s1::ivy__undefined>(tmp)); break;} 
-    case 7: {ivyc_s1::ivy__wrong_number_params tmp; __deser(res,tmp); inp = ivyc_s1::ivy__error(7, new ivyc_s1::ivy__error::twrap<ivyc_s1::ivy__wrong_number_params>(tmp)); break;} 
-    case 8: {ivyc_s1::ivy__syntax_error tmp; __deser(res,tmp); inp = ivyc_s1::ivy__error(8, new ivyc_s1::ivy__error::twrap<ivyc_s1::ivy__syntax_error>(tmp)); break;} 
+    case 0: {ivyc_s1::ivy__type_clash tmp; __deser(res,tmp); inp = ivyc_s1::ivy__error(0, new ivyc_s1::ivy__error::twrap<ivyc_s1::ivy__type_clash>(tmp)); break;}
+    case 1: {ivyc_s1::ivy__type_conversion tmp; __deser(res,tmp); inp = ivyc_s1::ivy__error(1, new ivyc_s1::ivy__error::twrap<ivyc_s1::ivy__type_conversion>(tmp)); break;}
+    case 2: {ivyc_s1::ivy__untyped tmp; __deser(res,tmp); inp = ivyc_s1::ivy__error(2, new ivyc_s1::ivy__error::twrap<ivyc_s1::ivy__untyped>(tmp)); break;}
+    case 3: {ivyc_s1::ivy__not_first_order tmp; __deser(res,tmp); inp = ivyc_s1::ivy__error(3, new ivyc_s1::ivy__error::twrap<ivyc_s1::ivy__not_first_order>(tmp)); break;}
+    case 4: {ivyc_s1::ivy__file_not_found tmp; __deser(res,tmp); inp = ivyc_s1::ivy__error(4, new ivyc_s1::ivy__error::twrap<ivyc_s1::ivy__file_not_found>(tmp)); break;}
+    case 5: {ivyc_s1::ivy__cannot_write tmp; __deser(res,tmp); inp = ivyc_s1::ivy__error(5, new ivyc_s1::ivy__error::twrap<ivyc_s1::ivy__cannot_write>(tmp)); break;}
+    case 6: {ivyc_s1::ivy__undefined tmp; __deser(res,tmp); inp = ivyc_s1::ivy__error(6, new ivyc_s1::ivy__error::twrap<ivyc_s1::ivy__undefined>(tmp)); break;}
+    case 7: {ivyc_s1::ivy__wrong_number_params tmp; __deser(res,tmp); inp = ivyc_s1::ivy__error(7, new ivyc_s1::ivy__error::twrap<ivyc_s1::ivy__wrong_number_params>(tmp)); break;}
+    case 8: {ivyc_s1::ivy__syntax_error tmp; __deser(res,tmp); inp = ivyc_s1::ivy__error(8, new ivyc_s1::ivy__error::twrap<ivyc_s1::ivy__syntax_error>(tmp)); break;}
 
     }
     res.close_tag();
@@ -3140,9 +3140,9 @@ void __deser<ivyc_s1::cpp__ident>(ivy_deser &res, ivyc_s1::cpp__ident &inp) {
 
     int tag = res.open_tag(tags);
     switch (tag) {
-    case 0: {ivyc_s1::cpp__strident tmp; __deser(res,tmp); inp = ivyc_s1::cpp__ident(0, new ivyc_s1::cpp__ident::twrap<ivyc_s1::cpp__strident>(tmp)); break;} 
-    case 1: {ivyc_s1::cpp__numident tmp; __deser(res,tmp); inp = ivyc_s1::cpp__ident(1, new ivyc_s1::cpp__ident::twrap<ivyc_s1::cpp__numident>(tmp)); break;} 
-    case 2: {ivyc_s1::cpp__dotident tmp; __deser(res,tmp); inp = ivyc_s1::cpp__ident(2, new ivyc_s1::cpp__ident::twrap<ivyc_s1::cpp__dotident>(tmp)); break;} 
+    case 0: {ivyc_s1::cpp__strident tmp; __deser(res,tmp); inp = ivyc_s1::cpp__ident(0, new ivyc_s1::cpp__ident::twrap<ivyc_s1::cpp__strident>(tmp)); break;}
+    case 1: {ivyc_s1::cpp__numident tmp; __deser(res,tmp); inp = ivyc_s1::cpp__ident(1, new ivyc_s1::cpp__ident::twrap<ivyc_s1::cpp__numident>(tmp)); break;}
+    case 2: {ivyc_s1::cpp__dotident tmp; __deser(res,tmp); inp = ivyc_s1::cpp__ident(2, new ivyc_s1::cpp__ident::twrap<ivyc_s1::cpp__dotident>(tmp)); break;}
 
     }
     res.close_tag();
@@ -3318,10 +3318,10 @@ void __deser<ivyc_s1::cpp__expr>(ivy_deser &res, ivyc_s1::cpp__expr &inp) {
 
     int tag = res.open_tag(tags);
     switch (tag) {
-    case 0: {ivyc_s1::cpp__symbol tmp; __deser(res,tmp); inp = ivyc_s1::cpp__expr(0, new ivyc_s1::cpp__expr::twrap<ivyc_s1::cpp__symbol>(tmp)); break;} 
-    case 1: {ivyc_s1::cpp__app tmp; __deser(res,tmp); inp = ivyc_s1::cpp__expr(1, new ivyc_s1::cpp__expr::twrap<ivyc_s1::cpp__app>(tmp)); break;} 
-    case 2: {ivyc_s1::cpp__variable tmp; __deser(res,tmp); inp = ivyc_s1::cpp__expr(2, new ivyc_s1::cpp__expr::twrap<ivyc_s1::cpp__variable>(tmp)); break;} 
-    case 3: {ivyc_s1::cpp__pi tmp; __deser(res,tmp); inp = ivyc_s1::cpp__expr(3, new ivyc_s1::cpp__expr::twrap<ivyc_s1::cpp__pi>(tmp)); break;} 
+    case 0: {ivyc_s1::cpp__symbol tmp; __deser(res,tmp); inp = ivyc_s1::cpp__expr(0, new ivyc_s1::cpp__expr::twrap<ivyc_s1::cpp__symbol>(tmp)); break;}
+    case 1: {ivyc_s1::cpp__app tmp; __deser(res,tmp); inp = ivyc_s1::cpp__expr(1, new ivyc_s1::cpp__expr::twrap<ivyc_s1::cpp__app>(tmp)); break;}
+    case 2: {ivyc_s1::cpp__variable tmp; __deser(res,tmp); inp = ivyc_s1::cpp__expr(2, new ivyc_s1::cpp__expr::twrap<ivyc_s1::cpp__variable>(tmp)); break;}
+    case 3: {ivyc_s1::cpp__pi tmp; __deser(res,tmp); inp = ivyc_s1::cpp__expr(3, new ivyc_s1::cpp__expr::twrap<ivyc_s1::cpp__pi>(tmp)); break;}
 
     }
     res.close_tag();
@@ -3546,14 +3546,14 @@ void __deser<ivyc_s1::cpp__stmt>(ivy_deser &res, ivyc_s1::cpp__stmt &inp) {
 
     int tag = res.open_tag(tags);
     switch (tag) {
-    case 0: {ivyc_s1::cpp__asgn tmp; __deser(res,tmp); inp = ivyc_s1::cpp__stmt(0, new ivyc_s1::cpp__stmt::twrap<ivyc_s1::cpp__asgn>(tmp)); break;} 
-    case 1: {ivyc_s1::cpp__sequence tmp; __deser(res,tmp); inp = ivyc_s1::cpp__stmt(1, new ivyc_s1::cpp__stmt::twrap<ivyc_s1::cpp__sequence>(tmp)); break;} 
-    case 2: {ivyc_s1::cpp__skipst tmp; __deser(res,tmp); inp = ivyc_s1::cpp__stmt(2, new ivyc_s1::cpp__stmt::twrap<ivyc_s1::cpp__skipst>(tmp)); break;} 
-    case 3: {ivyc_s1::cpp__ifst tmp; __deser(res,tmp); inp = ivyc_s1::cpp__stmt(3, new ivyc_s1::cpp__stmt::twrap<ivyc_s1::cpp__ifst>(tmp)); break;} 
-    case 4: {ivyc_s1::cpp__whilest tmp; __deser(res,tmp); inp = ivyc_s1::cpp__stmt(4, new ivyc_s1::cpp__stmt::twrap<ivyc_s1::cpp__whilest>(tmp)); break;} 
-    case 5: {ivyc_s1::cpp__breakst tmp; __deser(res,tmp); inp = ivyc_s1::cpp__stmt(5, new ivyc_s1::cpp__stmt::twrap<ivyc_s1::cpp__breakst>(tmp)); break;} 
-    case 6: {ivyc_s1::cpp__varst tmp; __deser(res,tmp); inp = ivyc_s1::cpp__stmt(6, new ivyc_s1::cpp__stmt::twrap<ivyc_s1::cpp__varst>(tmp)); break;} 
-    case 7: {ivyc_s1::cpp__retst tmp; __deser(res,tmp); inp = ivyc_s1::cpp__stmt(7, new ivyc_s1::cpp__stmt::twrap<ivyc_s1::cpp__retst>(tmp)); break;} 
+    case 0: {ivyc_s1::cpp__asgn tmp; __deser(res,tmp); inp = ivyc_s1::cpp__stmt(0, new ivyc_s1::cpp__stmt::twrap<ivyc_s1::cpp__asgn>(tmp)); break;}
+    case 1: {ivyc_s1::cpp__sequence tmp; __deser(res,tmp); inp = ivyc_s1::cpp__stmt(1, new ivyc_s1::cpp__stmt::twrap<ivyc_s1::cpp__sequence>(tmp)); break;}
+    case 2: {ivyc_s1::cpp__skipst tmp; __deser(res,tmp); inp = ivyc_s1::cpp__stmt(2, new ivyc_s1::cpp__stmt::twrap<ivyc_s1::cpp__skipst>(tmp)); break;}
+    case 3: {ivyc_s1::cpp__ifst tmp; __deser(res,tmp); inp = ivyc_s1::cpp__stmt(3, new ivyc_s1::cpp__stmt::twrap<ivyc_s1::cpp__ifst>(tmp)); break;}
+    case 4: {ivyc_s1::cpp__whilest tmp; __deser(res,tmp); inp = ivyc_s1::cpp__stmt(4, new ivyc_s1::cpp__stmt::twrap<ivyc_s1::cpp__whilest>(tmp)); break;}
+    case 5: {ivyc_s1::cpp__breakst tmp; __deser(res,tmp); inp = ivyc_s1::cpp__stmt(5, new ivyc_s1::cpp__stmt::twrap<ivyc_s1::cpp__breakst>(tmp)); break;}
+    case 6: {ivyc_s1::cpp__varst tmp; __deser(res,tmp); inp = ivyc_s1::cpp__stmt(6, new ivyc_s1::cpp__stmt::twrap<ivyc_s1::cpp__varst>(tmp)); break;}
+    case 7: {ivyc_s1::cpp__retst tmp; __deser(res,tmp); inp = ivyc_s1::cpp__stmt(7, new ivyc_s1::cpp__stmt::twrap<ivyc_s1::cpp__retst>(tmp)); break;}
 
     }
     res.close_tag();
@@ -3910,14 +3910,14 @@ void __deser<ivyc_s1::cpp__decl>(ivy_deser &res, ivyc_s1::cpp__decl &inp) {
 
     int tag = res.open_tag(tags);
     switch (tag) {
-    case 0: {ivyc_s1::cpp__header tmp; __deser(res,tmp); inp = ivyc_s1::cpp__decl(0, new ivyc_s1::cpp__decl::twrap<ivyc_s1::cpp__header>(tmp)); break;} 
-    case 1: {ivyc_s1::cpp__typedecl tmp; __deser(res,tmp); inp = ivyc_s1::cpp__decl(1, new ivyc_s1::cpp__decl::twrap<ivyc_s1::cpp__typedecl>(tmp)); break;} 
-    case 2: {ivyc_s1::cpp__enumdecl tmp; __deser(res,tmp); inp = ivyc_s1::cpp__decl(2, new ivyc_s1::cpp__decl::twrap<ivyc_s1::cpp__enumdecl>(tmp)); break;} 
-    case 3: {ivyc_s1::cpp__vardecl tmp; __deser(res,tmp); inp = ivyc_s1::cpp__decl(3, new ivyc_s1::cpp__decl::twrap<ivyc_s1::cpp__vardecl>(tmp)); break;} 
-    case 4: {ivyc_s1::cpp__funcdecl tmp; __deser(res,tmp); inp = ivyc_s1::cpp__decl(4, new ivyc_s1::cpp__decl::twrap<ivyc_s1::cpp__funcdecl>(tmp)); break;} 
-    case 5: {ivyc_s1::cpp__structdecl tmp; __deser(res,tmp); inp = ivyc_s1::cpp__decl(5, new ivyc_s1::cpp__decl::twrap<ivyc_s1::cpp__structdecl>(tmp)); break;} 
-    case 6: {ivyc_s1::cpp__namespacedecl tmp; __deser(res,tmp); inp = ivyc_s1::cpp__decl(6, new ivyc_s1::cpp__decl::twrap<ivyc_s1::cpp__namespacedecl>(tmp)); break;} 
-    case 7: {ivyc_s1::cpp__groupdc tmp; __deser(res,tmp); inp = ivyc_s1::cpp__decl(7, new ivyc_s1::cpp__decl::twrap<ivyc_s1::cpp__groupdc>(tmp)); break;} 
+    case 0: {ivyc_s1::cpp__header tmp; __deser(res,tmp); inp = ivyc_s1::cpp__decl(0, new ivyc_s1::cpp__decl::twrap<ivyc_s1::cpp__header>(tmp)); break;}
+    case 1: {ivyc_s1::cpp__typedecl tmp; __deser(res,tmp); inp = ivyc_s1::cpp__decl(1, new ivyc_s1::cpp__decl::twrap<ivyc_s1::cpp__typedecl>(tmp)); break;}
+    case 2: {ivyc_s1::cpp__enumdecl tmp; __deser(res,tmp); inp = ivyc_s1::cpp__decl(2, new ivyc_s1::cpp__decl::twrap<ivyc_s1::cpp__enumdecl>(tmp)); break;}
+    case 3: {ivyc_s1::cpp__vardecl tmp; __deser(res,tmp); inp = ivyc_s1::cpp__decl(3, new ivyc_s1::cpp__decl::twrap<ivyc_s1::cpp__vardecl>(tmp)); break;}
+    case 4: {ivyc_s1::cpp__funcdecl tmp; __deser(res,tmp); inp = ivyc_s1::cpp__decl(4, new ivyc_s1::cpp__decl::twrap<ivyc_s1::cpp__funcdecl>(tmp)); break;}
+    case 5: {ivyc_s1::cpp__structdecl tmp; __deser(res,tmp); inp = ivyc_s1::cpp__decl(5, new ivyc_s1::cpp__decl::twrap<ivyc_s1::cpp__structdecl>(tmp)); break;}
+    case 6: {ivyc_s1::cpp__namespacedecl tmp; __deser(res,tmp); inp = ivyc_s1::cpp__decl(6, new ivyc_s1::cpp__decl::twrap<ivyc_s1::cpp__namespacedecl>(tmp)); break;}
+    case 7: {ivyc_s1::cpp__groupdc tmp; __deser(res,tmp); inp = ivyc_s1::cpp__decl(7, new ivyc_s1::cpp__decl::twrap<ivyc_s1::cpp__groupdc>(tmp)); break;}
 
     }
     res.close_tag();
@@ -4330,7 +4330,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::vector__pretty__token__ _arg<ivyc_s1::vector__pretty__token__>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::vector__pretty__token__ a;
 	        a.resize(arg.fields.size());
@@ -4409,7 +4409,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::vector__pretty__state__ _arg<ivyc_s1::vector__pretty__state__>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::vector__pretty__state__ a;
 	        a.resize(arg.fields.size());
@@ -4488,7 +4488,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::vector__pos__ _arg<ivyc_s1::vector__pos__>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::vector__pos__ a;
 	        a.resize(arg.fields.size());
@@ -4567,7 +4567,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::vector__str__ _arg<ivyc_s1::vector__str__>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::vector__str__ a;
 	        a.resize(arg.fields.size());
@@ -4646,7 +4646,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::vector__ivy__ident__ _arg<ivyc_s1::vector__ivy__ident__>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::vector__ivy__ident__ a;
 	        a.resize(arg.fields.size());
@@ -4725,7 +4725,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::vector__ivy__expr__ _arg<ivyc_s1::vector__ivy__expr__>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::vector__ivy__expr__ a;
 	        a.resize(arg.fields.size());
@@ -4804,7 +4804,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::vector__ivy__stmt__ _arg<ivyc_s1::vector__ivy__stmt__>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::vector__ivy__stmt__ a;
 	        a.resize(arg.fields.size());
@@ -4883,7 +4883,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::vector__ivy__prototype_argument__ _arg<ivyc_s1::vector__ivy__prototype_argument__>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::vector__ivy__prototype_argument__ a;
 	        a.resize(arg.fields.size());
@@ -4962,7 +4962,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::ivy__ident_set _arg<ivyc_s1::ivy__ident_set>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::ivy__ident_set a;
 		for (unsigned i = 0; i < arg.fields.size(); i++) {
@@ -5015,7 +5015,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::vector__ivy__decl__ _arg<ivyc_s1::vector__ivy__decl__>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::vector__ivy__decl__ a;
 	        a.resize(arg.fields.size());
@@ -5094,7 +5094,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::vector__ivy__error__ _arg<ivyc_s1::vector__ivy__error__>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::vector__ivy__error__ a;
 	        a.resize(arg.fields.size());
@@ -5173,7 +5173,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::ivy__symeval _arg<ivyc_s1::ivy__symeval>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::ivy__symeval a;
 		for (unsigned i = 0; i < arg.fields.size(); i++) {
@@ -5226,7 +5226,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::ivy__ident_to_moduledc _arg<ivyc_s1::ivy__ident_to_moduledc>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::ivy__ident_to_moduledc a;
 		for (unsigned i = 0; i < arg.fields.size(); i++) {
@@ -5279,7 +5279,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::ivy__ident_to_ident _arg<ivyc_s1::ivy__ident_to_ident>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::ivy__ident_to_ident a;
 		for (unsigned i = 0; i < arg.fields.size(); i++) {
@@ -5332,7 +5332,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::ivy__ident_to_instantiatedc _arg<ivyc_s1::ivy__ident_to_instantiatedc>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::ivy__ident_to_instantiatedc a;
 		for (unsigned i = 0; i < arg.fields.size(); i++) {
@@ -5385,7 +5385,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::ivy__ident_to_exprs _arg<ivyc_s1::ivy__ident_to_exprs>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::ivy__ident_to_exprs a;
 		for (unsigned i = 0; i < arg.fields.size(); i++) {
@@ -5438,7 +5438,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::ivy__param_map _arg<ivyc_s1::ivy__param_map>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::ivy__param_map a;
 		for (unsigned i = 0; i < arg.fields.size(); i++) {
@@ -5491,7 +5491,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::ivy__push_pop_ident_set__map_t _arg<ivyc_s1::ivy__push_pop_ident_set__map_t>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::ivy__push_pop_ident_set__map_t a;
 		for (unsigned i = 0; i < arg.fields.size(); i++) {
@@ -5544,7 +5544,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::ivy__push_pop_ident_set__vec_t _arg<ivyc_s1::ivy__push_pop_ident_set__vec_t>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::ivy__push_pop_ident_set__vec_t a;
 	        a.resize(arg.fields.size());
@@ -5623,7 +5623,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::ivy__decost__map _arg<ivyc_s1::ivy__decost__map>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::ivy__decost__map a;
 		for (unsigned i = 0; i < arg.fields.size(); i++) {
@@ -5676,7 +5676,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::ivy__elidest__map _arg<ivyc_s1::ivy__elidest__map>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::ivy__elidest__map a;
 		for (unsigned i = 0; i < arg.fields.size(); i++) {
@@ -5729,7 +5729,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::vector__ivy__type_context__stack_entry__ _arg<ivyc_s1::vector__ivy__type_context__stack_entry__>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::vector__ivy__type_context__stack_entry__ a;
 	        a.resize(arg.fields.size());
@@ -5808,7 +5808,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::vector__cpp__ident__ _arg<ivyc_s1::vector__cpp__ident__>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::vector__cpp__ident__ a;
 	        a.resize(arg.fields.size());
@@ -5887,7 +5887,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::vector__cpp__expr__ _arg<ivyc_s1::vector__cpp__expr__>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::vector__cpp__expr__ a;
 	        a.resize(arg.fields.size());
@@ -5966,7 +5966,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::vector__cpp__stmt__ _arg<ivyc_s1::vector__cpp__stmt__>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::vector__cpp__stmt__ a;
 	        a.resize(arg.fields.size());
@@ -6045,7 +6045,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::vector__cpp__simpletype__ _arg<ivyc_s1::vector__cpp__simpletype__>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::vector__cpp__simpletype__ a;
 	        a.resize(arg.fields.size());
@@ -6124,7 +6124,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::vector__cpp__decl__ _arg<ivyc_s1::vector__cpp__decl__>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::vector__cpp__decl__ a;
 	        a.resize(arg.fields.size());
@@ -6203,7 +6203,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::ivy__ident_to_declvec _arg<ivyc_s1::ivy__ident_to_declvec>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::ivy__ident_to_declvec a;
 		for (unsigned i = 0; i < arg.fields.size(); i++) {
@@ -6256,7 +6256,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::ivy__ident_to_cppclass _arg<ivyc_s1::ivy__ident_to_cppclass>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::ivy__ident_to_cppclass a;
 		for (unsigned i = 0; i < arg.fields.size(); i++) {
@@ -6309,7 +6309,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::ivy__ident_to_prototype _arg<ivyc_s1::ivy__ident_to_prototype>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::ivy__ident_to_prototype a;
 		for (unsigned i = 0; i < arg.fields.size(); i++) {
@@ -6362,7 +6362,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::vector__ivy__lvalue_count__ _arg<ivyc_s1::vector__ivy__lvalue_count__>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::vector__ivy__lvalue_count__ a;
 	        a.resize(arg.fields.size());
@@ -6441,7 +6441,7 @@ int tag = rand() % 8;
 	    template <>
 	    ivyc_s1::vector__ivy__access_path__ _arg<ivyc_s1::vector__ivy__access_path__>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        ivyc_s1::vector__ivy__access_path__ a;
 	        a.resize(arg.fields.size());
@@ -7419,7 +7419,7 @@ unsigned long long ivyc_s1::ext__vector__pretty__token____domain__prev(unsigned 
 ivyc_s1::vector__pretty__token__ ivyc_s1::ext__vector__pretty__token____empty(){
     ivyc_s1::vector__pretty__token__ a;
     {
-        
+
     }
     return a;
 }
@@ -7711,7 +7711,7 @@ unsigned long long ivyc_s1::ext__vector__str____domain__next(unsigned long long 
 ivyc_s1::vector__str__ ivyc_s1::ext__vector__str____empty(){
     ivyc_s1::vector__str__ a;
     {
-        
+
     }
     return a;
 }
@@ -8747,7 +8747,7 @@ unsigned long long ivyc_s1::ext__vector__ivy__expr____domain__next(unsigned long
 ivyc_s1::vector__ivy__expr__ ivyc_s1::ext__vector__ivy__expr____empty(){
     ivyc_s1::vector__ivy__expr__ a;
     {
-        
+
     }
     return a;
 }
@@ -10507,7 +10507,7 @@ unsigned long long ivyc_s1::ext__vector__ivy__decl____domain__prev(unsigned long
 ivyc_s1::vector__ivy__decl__ ivyc_s1::ext__vector__ivy__decl____empty(){
     ivyc_s1::vector__ivy__decl__ a;
     {
-        
+
     }
     return a;
 }
@@ -24896,7 +24896,7 @@ unsigned long long ivyc_s1::ext__vector__cpp__stmt____domain__prev(unsigned long
 ivyc_s1::vector__cpp__stmt__ ivyc_s1::ext__vector__cpp__stmt____empty(){
     ivyc_s1::vector__cpp__stmt__ a;
     {
-        
+
     }
     return a;
 }
@@ -26805,7 +26805,7 @@ unsigned long long ivyc_s1::ext__vector__ivy__lvalue_count____domain__next(unsig
 ivyc_s1::vector__ivy__lvalue_count__ ivyc_s1::ext__vector__ivy__lvalue_count____empty(){
     ivyc_s1::vector__ivy__lvalue_count__ a;
     {
-        
+
     }
     return a;
 }
@@ -36491,7 +36491,7 @@ int ask_ret(long long bound) {
     while(true) {
         __ivy_out << "? ";
         std::cin >> res;
-        if (res >= 0 && res < bound) 
+        if (res >= 0 && res < bound)
             return res;
         std::cerr << "value out of range" << std::endl;
     }
@@ -36507,7 +36507,7 @@ int ask_ret(long long bound) {
         if (!truth) {
             __ivy_out << "assertion_failed(\"" << msg << "\")" << std::endl;
             std::cerr << msg << ": error: assertion failed\n";
-            
+
             __ivy_exit(1);
         }
     }
@@ -36515,7 +36515,7 @@ int ask_ret(long long bound) {
         if (!truth) {
             __ivy_out << "assumption_failed(\"" << msg << "\")" << std::endl;
             std::cerr << msg << ": error: assumption failed\n";
-            
+
             __ivy_exit(1);
         }
     }
@@ -36626,7 +36626,7 @@ ivy_value parse_value(const std::string& cmd, int &pos) {
             throw_syntax(pos);
         pos++;
     }
-    else 
+    else
         res.atom = get_ident(cmd,pos);
     return res;
 }
@@ -41550,7 +41550,7 @@ public:
 class cmd_reader: public stdin_reader {
     int lineno;
 public:
-    ivyc_s1_repl &ivy;    
+    ivyc_s1_repl &ivy;
 
     cmd_reader(ivyc_s1_repl &_ivy) : ivy(_ivy) {
         lineno = 1;
@@ -41597,8 +41597,8 @@ int main(int argc, char **argv){
 
     int seed = 1;
     int sleep_ms = 10;
-    int final_ms = 0; 
-    
+    int final_ms = 0;
+
     std::vector<char *> pargs; // positional args
     pargs.push_back(argv[0]);
     for (int i = 1; i < argc; i++) {
@@ -41719,7 +41719,7 @@ int main(int argc, char **argv){
     ivy.__init();
 
 
-    
+
     ivy.__unlock();
 
     // The main thread waits for all reader threads to die

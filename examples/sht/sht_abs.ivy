@@ -1,7 +1,7 @@
 #lang ivy1.5
 
 ## This file contains a first attempt at refining the network model to
-## a sort of toy TCP. 
+## a sort of toy TCP.
 
 ## Two conjectures were added about the messages in
 ## the lower (UDP) network layer (that is, they must obey the same
@@ -136,7 +136,7 @@ module hashev = {
 # time. It provides actions that assign global time to events in
 # increasing order. The pre-conditions of these actions enforce the
 # consistency model (that is, what orderings in local time must be
-# preserved in global time). 
+# preserved in global time).
 #
 ################################################################################
 
@@ -145,22 +145,22 @@ object reference = {
     ########################################
     # memory events by local time
 
-    instantiate evs(T:ltime) : hashev 
+    instantiate evs(T:ltime) : hashev
 
 
     ########################################
-    # global memory state 
+    # global memory state
     # obeys partial function axiom
 
     individual hash(A:key) : data
 
     # An aribtrary init value
     init hash(A) = 0
-    
+
     ########################################
     # serialize an event lt at current global time. The "id"
     # parameter tells us what process is serializing the event.
-    # 
+    #
 
     action serialize(lt:ltime, id_:id) = {
 
@@ -178,9 +178,9 @@ object reference = {
 	    }
 	    else { # write
 		hash(a) := d
-	    }			
+	    }
 	}
-    }     
+    }
     delegate serialize
 
     ########################################
@@ -291,13 +291,13 @@ module delegation_map() = {
 
     conjecture has.s(K) & has.succ.map(K,L) & K <= M & (L = 0 | ~(L <= M)) -> dma.map(me,M,entries(K))
 
-    # We always have an entry for key zero. 
+    # We always have an entry for key zero.
 
     conjecture has.s(0)
 }
 
 ################################################################################
-# 
+#
 # This is the top-level server description
 #
 # "ref" is the reference object
@@ -307,9 +307,9 @@ module delegation_map() = {
 module server_top(ref,me,neti) = {
 
     # The server's hash table
-    
+
     instance hash : hash_top(key,data)
-    
+
     # The server's delegation map
 
     instance dm : delegation_map
@@ -482,7 +482,7 @@ object encoder = {
 	  & net_msg_seq_num(msg) = seq
 	  & net_msg_mtype(msg) = ack_t
     }
-    
+
 }
 
 module message_queue_top(me) = {
@@ -503,7 +503,7 @@ module message_queue_top(me) = {
     action pick_one returns (res:net_msg) = {
 	assume ~contents(res) -> ~contents(M)
     }
-    
+
     action delete_all(seq:seq_num) = {
 	contents(M) := contents(M) & ~(net_msg_seq_num(M) <= seq)
     }
@@ -589,7 +589,7 @@ module net_impl(ref,proto,me,lower) = {
 
     conjecture neti(S1).mq(D).contents(M1) & neti(D).recv_seq(S1) <= net_msg_seq_num(M1)
        & neti(S2).mq(D).contents(M2) & neti(D).recv_seq(S2) <= net_msg_seq_num(M2)
-       & net_msg_mtype(M1) = request_t & net_msg_mtype(M2) = request_t 
+       & net_msg_mtype(M1) = request_t & net_msg_mtype(M2) = request_t
        & (S1 ~= S2 | net_msg_seq_num(M1) ~= net_msg_seq_num(M2))
        -> net_msg_req(M1) ~= net_msg_req(M2)
 
@@ -597,7 +597,7 @@ module net_impl(ref,proto,me,lower) = {
 
     conjecture neti(S1).mq(D).contents(M1) & neti(D).recv_seq(S1) <= net_msg_seq_num(M1)
        & neti(S2).mq(D).contents(M2) & neti(D).recv_seq(S2) <= net_msg_seq_num(M2)
-       & net_msg_mtype(M1) = delegate_t & net_msg_mtype(M2) = delegate_t 
+       & net_msg_mtype(M1) = delegate_t & net_msg_mtype(M2) = delegate_t
        & (S1 ~= S2 | net_msg_seq_num(M1) ~= net_msg_seq_num(M2))
        -> net_msg_shard(M1) ~= net_msg_shard(M2)
 
@@ -644,7 +644,7 @@ module net_impl(ref,proto,me,lower) = {
 module lower(net_impl) = {
 
     relation sent(M:net_msg)
-    
+
     init ~sent(M)
 
     action send_msg(msg:net_msg) = {
@@ -678,7 +678,7 @@ execute dma.get after servers.dm.get
 instance neti(X:id) : net_impl(reference,servers,X,low)
 
 # lower network specification
-instance low : lower(neti) 
+instance low : lower(neti)
 
 ## input/output specification
 
@@ -719,7 +719,7 @@ export neti.timeout
 #  verify the servers
 #
 # This says verify all the actions of "servers", keeping "ref" and "net"
-# concrete. 
+# concrete.
 
 isolate iso_s = servers with reference,net,dma,io_spec
 

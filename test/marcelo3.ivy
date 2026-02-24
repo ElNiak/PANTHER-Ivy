@@ -19,7 +19,7 @@ with node
 
 object localstate = {
     individual my_voters : nset
-    invariant ~nset.member(VOTER, my_voters) 
+    invariant ~nset.member(VOTER, my_voters)
     after init {
         my_voters := nset.emptyset;
     }

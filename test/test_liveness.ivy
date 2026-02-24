@@ -237,7 +237,7 @@ object ticket_protocol = {
 	################################################################################
 
 
-	object impl = { 
+	object impl = {
 	    # # all safety conjectures for saved state are autumatically added
 	    # # conjecture X.l2s_saved -> phi(X.l2s_s) for phi in conjectures over original vocabulary
 	    conjecture l2s_saved -> ( ($l2s_s T. pc1(T))(T) | ($l2s_s T. pc2(T))(T) | ($l2s_s T. pc3(T))(T) )

@@ -42,10 +42,10 @@ after init {
 
 before quic_frame.ack_frequency.handle(f:quic_frame.ack_frequency,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
-        require client.ep.addr ~= 0;         
+        require client.ep.addr ~= 0;
         require scid = the_cid;
         force_ack_frequency := true;
-    } 
+    }
 }
 
 
@@ -54,7 +54,7 @@ before quic_frame.immediate_ack.handle(f:quic_frame.immediate_ack,scid:cid,dcid:
         require client.ep.addr ~= 0;
         require scid = the_cid;
         force_immediate_ack := true;
-    } 
+    }
 }
 
 export quic_frame.ack.handle
@@ -86,8 +86,6 @@ export tls_recv_event
 
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require conn_total_data(the_cid) > 0;
 }
-
-

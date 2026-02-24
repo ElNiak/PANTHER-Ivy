@@ -35,7 +35,7 @@ isolate bar = {
         var head : nat
         var tail : nat
         var queue(X:nat) : id
-        
+
         after init {
             head := 0;
             tail := 0;
@@ -68,7 +68,7 @@ isolate bar = {
         # queue that will hold messge X. The 'work_needed' predicate is tus defined to
         # be the set of queue positions up to the one that will hold X. We do this
         # to avoid using a quantifier to define work_needed as the set of positions
-        # up to the least one currently holding X. 
+        # up to the least one currently holding X.
         #
         # To do this proof, we use tactic l2s_auto2. This differs from l2s_auto in that
         # we require that there is always work left to be done only *after* the
@@ -103,4 +103,3 @@ isolate bar = {
 
 export bar.send
 export bar.recv
-

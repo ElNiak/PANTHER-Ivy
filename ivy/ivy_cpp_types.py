@@ -27,7 +27,7 @@ class XBV(CppClass):
 ("""
 CLASSNAME(){}
 CLASSNAME(const BASECLASS &s) : BASECLASS(s) {}
-""" + 
+""" +
 constructors +
 """
 size_t __hash() const { return hash_space::hash<BASECLASS>()(*this); }
@@ -45,7 +45,7 @@ static int x_to_bv(const BASECLASS &s){
                 x_to_bv_hash[s] = next_bv;
                 bv_to_x_hash[next_bv] = s;
                 return next_bv++;
-            } 
+            }
         }
         std::cerr << "Ran out of values for type CLASSNAME" << std::endl;
         __ivy_out << "out_of_values(CLASSNAME,\\"" << s << "\\")" << std::endl;
@@ -80,7 +80,7 @@ static void cleanup() {
     next_bv = 0;
 }
 #endif""").replace('BITS',str(bits)).replace('CLASSNAME',classname).replace('BASECLASS',baseclass))
-     
+
     def emit_inlines(self):
         pass
 
@@ -110,7 +110,7 @@ void __randomize<CLASSNAME>( gen &g, const  z3::expr &apply_expr, const std::str
     if (CLASSNAME::bv_to_x_hash.size() == (1<<BITS)) {
         value = CLASSNAME::bv_to_x(rand() % (1<<BITS));
     } else {
-        if (CLASSNAME::nonces.size() == 0) 
+        if (CLASSNAME::nonces.size() == 0)
            for (int i = 0; i < 2; i++)
                CLASSNAME::nonces.push_back(CLASSNAME::random_x());
         value = CLASSNAME::nonces[rand() % CLASSNAME::nonces.size()];
@@ -142,7 +142,7 @@ class XBVI(CppClass):
 ("""
 CLASSNAME(){}
 CLASSNAME(const BASECLASS &s) : BASECLASS(s) {}
-""" + 
+""" +
 constructors +
 """
 size_t __hash() const { return hash_space::hash<BASECLASS>()(*this); }
@@ -161,7 +161,7 @@ static int x_to_bv(const BASECLASS &s){
                 bv_to_x_hash[next_bv] = s;
 		//std::cerr << "bv_to_x_hash[next_bv]" << s << std::endl;
                 return next_bv++;
-            } 
+            }
         }
         std::cerr << "Ran out of values for type CLASSNAME" << std::endl;
         __ivy_out << "out_of_values(CLASSNAME,\\"" << s << "\\")" << std::endl;
@@ -198,7 +198,7 @@ static void cleanup() {
     next_bv = 0;
 }
 #endif""").replace('BITS',str(bits)).replace('CLASSNAME',classname).replace('BASECLASS',baseclass))
-     
+
     def emit_inlines(self):
         pass
 
@@ -227,7 +227,7 @@ void __randomize<CLASSNAME>( gen &g, const  z3::expr &apply_expr, const std::str
     if (CLASSNAME::bv_to_x_hash.size() == (1<<BITS)) {
         value = CLASSNAME::bv_to_x(rand() % (1<<BITS));
     } else {
-        if (CLASSNAME::nonces.size() == 0) 
+        if (CLASSNAME::nonces.size() == 0)
            for (int i = 0; i < 2; i++)
                CLASSNAME::nonces.push_back(CLASSNAME::random_x());
         value = CLASSNAME::nonces[rand() % CLASSNAME::nonces.size()];
@@ -312,7 +312,7 @@ class IntBV(XBV):
     def __init__(self,classname,loval,hival,bits):
         """ bits is the number of bits in the bit vector representation """
         add_once_global("""
-    struct IntClass { 
+    struct IntClass {
         IntClass() : val(0) {}
         IntClass(long long val) : val(val) {}
         long long val;
@@ -387,7 +387,7 @@ BASECLASS CLASSNAME::random_x(){
 #     string values. Each time a new string constant is introduces, it
 #     is given an entry in the table. This can fail, however, if the
 #     number of string constants exceeds the number of bit vector
-#     values.  
+#     values.
 #     std::chrono::milliseconds 	duration</*signed integer type of at least 45 bits*/, std::milli>
 #     """
 #     def __init__(self,classname,loval,hival,bits):
@@ -469,7 +469,7 @@ BASECLASS CLASSNAME::random_x(){
 #     string values. Each time a new string constant is introduces, it
 #     is given an entry in the table. This can fail, however, if the
 #     number of string constants exceeds the number of bit vector
-#     values.  
+#     values.
 #     std::chrono::microseconds 	duration</*signed integer type of at least 55 bits*/, std::micro>
 #     """
 #     def __init__(self,classname,loval,hival,bits):
@@ -568,29 +568,29 @@ class LongBV(XBVI):
 	    #"std::ostream& operator<<(std::ostream&s, const LongClass &v) {return s << v.val;}\n"
         printed = """
 	std::ostream& operator<<(std::ostream&s, const LongClass &v) {
-		std::ostream::sentry ss( s ); 
-		if ( ss ) { 
-		   __int128_t value = v.val; 
-		   //https://stackoverflow.com/questions/25114597/how-to-print-int128-in-g 
-		   __uint128_t tmp = value < 0 ? -value : value; 
-		   char buffer[ 128 ]; 
-		   char* d = std::end( buffer ); 
-		   do 
-		   { 
-		     -- d; 
-		     *d = "0123456789"[ tmp % 10 ]; 
-		     tmp /= 10; 
-		   } while ( tmp != 0 ); 
-		   if ( value < 0 ) { 
-		      -- d; 
-		      *d = '-'; 
-		   } 
-		   int len = std::end( buffer ) - d; 
-		   if ( s.rdbuf()->sputn( d, len ) != len ) { 
-		      s.setstate( std::ios_base::badbit ); 
-		    } 
-	    } 
-	    return s; 
+		std::ostream::sentry ss( s );
+		if ( ss ) {
+		   __int128_t value = v.val;
+		   //https://stackoverflow.com/questions/25114597/how-to-print-int128-in-g
+		   __uint128_t tmp = value < 0 ? -value : value;
+		   char buffer[ 128 ];
+		   char* d = std::end( buffer );
+		   do
+		   {
+		     -- d;
+		     *d = "0123456789"[ tmp % 10 ];
+		     tmp /= 10;
+		   } while ( tmp != 0 );
+		   if ( value < 0 ) {
+		      -- d;
+		      *d = '-';
+		   }
+		   int len = std::end( buffer ) - d;
+		   if ( s.rdbuf()->sputn( d, len ) != len ) {
+		      s.setstate( std::ios_base::badbit );
+		    }
+	    }
+	    return s;
 	}
     std::istream& operator>>(std::istream& is, LongClass& x) {
         x.val = 0;
@@ -636,7 +636,7 @@ class LongBV(XBVI):
         for (; i < in.size(); ++i)
         {
         const char c = in[i];
-        if (not std::isdigit(c)) 
+        if (not std::isdigit(c))
             throw std::runtime_error(std::string("Non-numeric character: ") + c);
         res *= 10;
         res += c - '0';
@@ -652,28 +652,28 @@ class LongBV(XBVI):
 
     std::ostream &operator <<(std::ostream &s, const CLASSNAME &t){
         //s << t.val;
-        std::ostream::sentry ss( s ); 
-        if ( ss ) { 
-        __int128_t value = t.val; 
-        //https://stackoverflow.com/questions/25114597/how-to-print-int128-in-g 
-        __uint128_t tmp = value < 0 ? -value : value; 
-        char buffer[ 128 ]; 
-        char* d = std::end( buffer ); 
-        do 
-        { 
-          -- d; 
-          *d = "0123456789"[ tmp % 10 ]; 
-          tmp /= 10; 
-        } while ( tmp != 0 ); 
-          if ( value < 0 ) { 
-             -- d; 
-             *d = '-'; 
-        } 
-        int len = std::end( buffer ) - d; 
-        if ( s.rdbuf()->sputn( d, len ) != len ) { 
-            s.setstate( std::ios_base::badbit ); 
-        } 
-        } 
+        std::ostream::sentry ss( s );
+        if ( ss ) {
+        __int128_t value = t.val;
+        //https://stackoverflow.com/questions/25114597/how-to-print-int128-in-g
+        __uint128_t tmp = value < 0 ? -value : value;
+        char buffer[ 128 ];
+        char* d = std::end( buffer );
+        do
+        {
+          -- d;
+          *d = "0123456789"[ tmp % 10 ];
+          tmp /= 10;
+        } while ( tmp != 0 );
+          if ( value < 0 ) {
+             -- d;
+             *d = '-';
+        }
+        int len = std::end( buffer ) - d;
+        if ( s.rdbuf()->sputn( d, len ) != len ) {
+            s.setstate( std::ios_base::badbit );
+        }
+        }
         return s;
     }
 
@@ -740,10 +740,10 @@ class LongBV(XBVI):
 class VariantType(CppClass):
     """ A type that represents an abstract IVy type with variants.
     The parameter "variants" is a list of C types representing
-    the variants. 
+    the variants.
 
     The type is represented as a class with a tag field indicating
-    the variant sort and a void pointer to the actual value. 
+    the variant sort and a void pointer to the actual value.
 
     """
 
@@ -772,11 +772,11 @@ class VariantType(CppClass):
             add_member(classname + '(int tag,wrap *ptr) : tag(tag),ptr(ptr) {}\n')
             add_member(classname + '(const ' + classname + '&other){\n' +
                        '    tag=other.tag;\n' +
-                       '    ptr = other.ptr ? other.ptr->dup() : 0;\n' + 
+                       '    ptr = other.ptr ? other.ptr->dup() : 0;\n' +
                        '};\n')
             add_member(classname + '& operator=(const ' + classname + '&other){\n' +
                        '    tag=other.tag;\n' +
-                       '    ptr = other.ptr ? other.ptr->dup() : 0;\n' + 
+                       '    ptr = other.ptr ? other.ptr->dup() : 0;\n' +
                        '    return *this;\n' +
                        '};\n')
             add_member('~' + classname + '(){if(ptr){if (!ptr->deref()) delete ptr;}}\n')
@@ -1052,5 +1052,3 @@ def get_cpptype_constructor(descr):
     if len(params) != nparams:
         raise iu.IvyError(None,'expecting {} parameter in "{}"'.format(nparams,descr))
     return lambda classname: cpptype(*([classname]+params))
-
-

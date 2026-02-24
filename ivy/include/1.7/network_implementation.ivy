@@ -17,14 +17,14 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 	# The type of socket descriptors
 
     type socket
-	
+
 	# TCP objects:
-    
+
 	object rdr = {}         # the listener object
     object rdra = {}        # the listener object
     object tcp_cb = {}      # struct holding the callbacks
     object send_queue = {}  # queues of outgoing packets
-  
+
 	# This code goes in the C++ header file, ahead of the ivy object declaration.
 	# Here, we put declarations (perhaps forward) of any auxiliary classes we need).
 	# We need to be careful that the names of these don't clash with other modules.
@@ -267,7 +267,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 							std::cerr << "Eavesdropped client addr: " << inet_ntoa(eavesdroped_client_addr.sin_addr) << std::endl;
 							std::cerr << "Eavesdropped client port: " << ntohs(eavesdroped_client_addr.sin_port) << std::endl;
 							eavesdroped_client_addr_setup = true;
-						} 
+						}
 						if(!eavesdroped_server_addr_setup) {
 							eavesdroped_server_addr.sin_family = AF_INET;
 							eavesdroped_server_addr.sin_addr.s_addr = ip_hdr->daddr;
@@ -360,7 +360,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 							std::cerr << "Eavesdropped client addr: " << inet_ntoa(eavesdroped_client_addr.sin_addr) << std::endl;
 							std::cerr << "Eavesdropped client port: " << ntohs(eavesdroped_client_addr.sin_port) << std::endl;
 							eavesdroped_client_addr_setup = true;
-						} 
+						}
 						if(!eavesdroped_server_addr_setup) {
 							eavesdroped_server_addr.sin_family = AF_INET;
 							eavesdroped_server_addr.sin_addr.s_addr = ip_hdr->daddr;
@@ -546,7 +546,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 					std::cerr << "RECEIVING finsh\n";
 				}
 				//std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-				//std::cerr << "Performance recv packet measurement: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " milliseconds" << std::endl; 
+				//std::cerr << "Performance recv packet measurement: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " milliseconds" << std::endl;
 			}
 		};
 
@@ -588,7 +588,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 						perror("Error getting semaphore value");
 						exit(EXIT_FAILURE);
 					}
-					sem_post(&sem); 
+					sem_post(&sem);
 					if (sem_getvalue(&sem, &value) == 0) {
 						std::cerr << "Semaphore value: " << value << "\n";
 					} else {
@@ -616,7 +616,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 		};
 
 		class tcp_queue {
-			tcp_mutex mutex; 
+			tcp_mutex mutex;
 			tcp_sem sem;
 			bool closed;
 			bool reported_closed;
@@ -1252,9 +1252,9 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 			// Get the current TCP configuration. If none, create a default one.
 
 			tcp_config *get_tcp_config() {
-				if (!the_tcp_config) 
+				if (!the_tcp_config)
 					the_tcp_config = new tcp_config();
-				return the_tcp_config; 
+				return the_tcp_config;
 			}
 
 			// Set the current TCP configuration. This is called by the runtime environment.
@@ -1372,12 +1372,12 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 
 		# open creates a socket and binds it to the requested endpoint.
 
-		action open(addr : ip.endpoint) returns(s : socket) = { 
-			<<< impure 
+		action open(addr : ip.endpoint) returns(s : socket) = {
+			<<< impure
 				s = make_udp_socket();
 				char *shadowTest = getenv("SHADOW_TEST");
 				if (addr.addr != 0x7f000001 && shadowTest == NULL)
-				{ 
+				{
 					// TODO
 					std::cerr << "open SOCKET " << s << std::endl;
 					std::cerr << "open SOCKET addr " << addr.addr << std::endl;
@@ -1488,7 +1488,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 		}
 
 		action eavesdrop(dst:ip.endpoint) returns (s:socket) = {
-			<<< impure 
+			<<< impure
 				std::cerr << "eavesdrop SOCKET " << dst.addr << std::endl;
 				char *dev = strdup("lo"); //TODO
 				int port;
@@ -1546,7 +1546,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 					perror("setsockopt(SO_REUSEADDR) failed");
 				}
 
-				/* 
+				/*
 				struct sockaddr_in v_dst = {};
 				v_dst.sin_addr.s_addr = htonl(INADDR_ANY); // Bind to any address
 				v_dst.sin_port = htons(port); // Specify port if needed
@@ -1582,7 +1582,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 				bool free = false;
 				char opt;
 				int port;
-				
+
 				if (dst.interface == `ip.ivy`) {
 					dev = strdup("ivy");
 				}
@@ -1615,23 +1615,23 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 					perror(s);
 					exit(EXIT_FAILURE);
 				}
-				
+
 				int error = 0;
 				if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR,  &error, sizeof(int)) < 0 || setsockopt(s, SOL_SOCKET, SO_REUSEPORT,  &error, sizeof(int)) < 0)
 					perror("setsockopt(SO_REUSEADDR) failed");
-				
+
 				struct sockaddr_in v_dst = {};
 				v_dst.sin_addr.s_addr = htonl(dst.addr);
 				v_dst.sin_port = htons(dst.port);
 				v_dst.sin_family = AF_INET;
-				
+
 				if (bind(s, (struct sockaddr*) &v_dst, sizeof(struct sockaddr_in)) != 0) {
 						char s[100];
 						sprintf(s, "bind to addr %u", htonl(dst.addr));
 						perror(s);
 					exit(EXIT_FAILURE);
 				}
-				
+
 
 				install_reader(new udp_reader(`me`,s, *`udp_cb`, this));
 
@@ -1649,7 +1649,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 			std::cerr << "|~ closing socket: " << s << std::endl;
 			// We don't want to close a socket when there is another thread
 			// waiting, because the other thread won't know what to do with the
-			// error. 
+			// error.
 
 			// Instead we shut down the socket and let the other thread close it.
 			// If there is a reader thread, it will see EOF and close the socket. If there is
@@ -1657,13 +1657,13 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 			// send queue. If the queue is already closed, closing it has no effect.
 
 			// invariant: if a socket is open there is a reader thread or
-			// an open writer thread, but not both. 
+			// an open writer thread, but not both.
 
 			// Because of this invariant, the socket will be closed exactly once.
 
 			::shutdown(s,SHUT_RDWR);
 
-			if (`send_queue`.find(s) != `send_queue`.end()) 
+			if (`send_queue`.find(s) != `send_queue`.end())
 					`send_queue`[s] -> set_closed();
 
 		>>>
@@ -1683,7 +1683,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 		s := impl.eavesdrop(me,addr)
 	}
 
-	# send transmits a packet synchronously.  
+	# send transmits a packet synchronously.
 	action send(me:host,s:socket,dst:ip.endpoint,x:pkt) = {
 		<<< impure
 		std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
@@ -1757,7 +1757,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 			std::cerr << "  - eavesdroped_server_addr.sin_addr.s_addr: " << eavesdroped_server_addr.sin_addr.s_addr << std::endl;
 			std::cerr << "  - eavesdroped_client_addr.sin_addr.s_addr: " << eavesdroped_client_addr.sin_addr.s_addr << std::endl;
 			std::cerr << "  - dst.port: " << dst.port << std::endl;
-			std::cerr << "  - eavesdroped_server_addr.sin_port: " << eavesdroped_server_addr.sin_port << std::endl;	
+			std::cerr << "  - eavesdroped_server_addr.sin_port: " << eavesdroped_server_addr.sin_port << std::endl;
 			std::cerr << "  - eavesdroped_client_addr.sin_port: " << eavesdroped_client_addr.sin_port << std::endl;
 
 			if(htonl(dst.addr) != eavesdroped_client_addr.sin_addr.s_addr) {
@@ -1767,7 +1767,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 				ip_hdr.saddr = eavesdroped_server_addr.sin_addr.s_addr; // Set the source IP address
 				ip_hdr.daddr = htonl(dst.addr);
 			}
-			
+
 
 			// Calculate the IP checksum
 			ip_hdr.check = checksum(&ip_hdr, sizeof(ip_hdr));
@@ -1889,7 +1889,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 
 			// Set socket option to include the IP header
 			/*
-			int one = 1; // important enable to change ip header 
+			int one = 1; // important enable to change ip header
 			const int *val = &one;
 			if (::setsockopt(raw_sock, IPPROTO_IP, IP_HDRINCL, &one, sizeof(one)) < 0) {
 				perror("setsockopt failed");
@@ -1914,20 +1914,20 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 			}
 
 			// Send the packet using raw socket
-			if (::sendto(raw_sock, &packet[0], packet.size(), 0, (struct sockaddr *)&dstaddr, sizeof(dstaddr)) < 0) 
+			if (::sendto(raw_sock, &packet[0], packet.size(), 0, (struct sockaddr *)&dstaddr, sizeof(dstaddr)) < 0)
 			#ifdef _WIN32
-				{ 
-					std::cerr << "sendto failed " << WSAGetLastError() << "\n"; 
-					exit(1); 
+				{
+					std::cerr << "sendto failed " << WSAGetLastError() << "\n";
+					exit(1);
 				}
 			#else
-				{ 
-					perror("sendto failed"); 
+				{
+					perror("sendto failed");
 					std::cerr << "packet size : " <<  packet.size() << std::endl;
-					exit(1); 
+					exit(1);
 				}
 			#endif
-		
+
 			int error = 0;
 			socklen_t lsen = sizeof(error);
 			int retval = ::getsockopt(raw_sock, SOL_SOCKET, SO_ERROR, &error, &lsen);
@@ -1987,18 +1987,18 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 		std::cerr << "sending id finish" << std::endl;
 
 		std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-		std::cerr << "Performance sending packet measurement: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " milliseconds" << std::endl; 
+		std::cerr << "Performance sending packet measurement: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " milliseconds" << std::endl;
 		>>>
 	}
 
-	
+
 	# These are the implementations of the interface calls. These
 	# operations are synchronous.
 
 
 	# connect creates a socket and then installs a connector task
 	# to establish the connection asynchronously.
-	
+
 	action connect(self:host, other:host, other_ip:ip.addr) returns (s:socket) = {
 		<<< impure
 			s = make_tcp_socket();
@@ -2026,7 +2026,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 			install_reader(`rdra` = new tcp_listener_accept(`me`,*`tcp_cb`,this));
 
 			std::cerr << " |~ TCP connecting & accepting to " << other << std::endl;
-			
+
 			// create a send queue for this socket, if needed, along with
 			// its thread. if the queue exists, it must be closed, so
 			// we open it.
@@ -2047,10 +2047,10 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 	# given socket. It returns true if sending was successful. Not, a "successfully"
 	# sent packet could still be lost to due congestion. If we want to maintain
 	# ordered semantics, we will need to have an additional return code indicating
-	# the packet could not be queued (analogous to EAGAIN). 
+	# the packet could not be queued (analogous to EAGAIN).
 
 	action send_tcp(self:host, s:socket,other:host, p:pkt) returns (ok:bool) = {
-		<<< impure          
+		<<< impure
 				std::cerr << " |~ sending TCP packet from " << s << std::endl;
 				std::cerr << " |~ sending TCP packet to   " << other << std::endl;
 
@@ -2060,14 +2060,14 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 
 				// if the send queue for this sock doesn's exist, it isn't open,
 				// so the client has vioalted the precondition. we do the bad client
-				// the service of not crashing. 
+				// the service of not crashing.
 
 				if (`send_queue`.find(s) == `send_queue`.end()) {
 					std::cerr << " |~ no TCP queue for socket " << s << std::endl;
 					ok = true;
 				}
 				else {
-					// get the send queue, and enqueue the packet, 
+					// get the send queue, and enqueue the packet,
 					// returning false if the queue is closed.
 					std::cerr << " |~ enqueuing TCP packet " << s << std::endl;
 					ok = !`send_queue`[s]->enqueue_swap(sr.res);

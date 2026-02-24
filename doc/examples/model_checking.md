@@ -17,7 +17,7 @@ does not hold.
 The catch is that model checkers only work reliably for finite-state
 systems. In practice, that means that each IVy type must be
 interpreted as some finite set, for example, as a finite sub-range of
-the integers, or as a fixed-width bit vector. 
+the integers, or as a fixed-width bit vector.
 
 Checking finite instances of protocols
 ======================================
@@ -34,7 +34,7 @@ Take our simple client-server example from the section
     after init {
         semaphore(W) := true;
         link(X,Y) := false
-    }       
+    }
 
     action connect(x:client,y:server) = {
       require semaphore(y);
@@ -60,14 +60,14 @@ the example:
 
     interpret client -> {0..2}
     interpret server -> {0..1}
-    
+
     attribute method = mc
 
 The first two declarations tell IVy to interpret `client` and `server` as finite
 sub-ranges of the integers. We have exactly three clients and two servers. The last
 declaration tells IVy to prove the invariant using model checking. Here's what IVY has to say:
 
-    $ ivy_check client_server_example_mv.ivy 
+    $ ivy_check client_server_example_mv.ivy
 
     Isolate this:
 
@@ -106,7 +106,7 @@ Suppose we made a mistake, and forgot the requirement the that
 sempahore has to be up when connecting a client (the `require`
 statement in action `connect`). Here's what we would get:
 
-    $ ivy_check client_server_example_mv.ivy 
+    $ ivy_check client_server_example_mv.ivy
 
     Isolate this:
 
@@ -220,5 +220,3 @@ Another way that model checking can help us is by verifying a finite
 *abstraction* of the program. Abstraction means limiting the reasoning
 that we can perform. For example, we might pick two representative clients
 and one representaticve server
-
-

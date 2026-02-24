@@ -14,7 +14,7 @@
 
             char *lineNumber =0;
             char * command = "sed \'"<< lineNumber << "!d\'"  <<  path;
-            
+
             if (system(NULL)) i=system(command);
             else exit (EXIT_FAILURE);
             std::cerr << msg << ": error: assumption failed\\n";

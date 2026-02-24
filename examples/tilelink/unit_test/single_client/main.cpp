@@ -13,11 +13,11 @@ typedef tilelink_two_port_dut::finish finish;
 typedef tilelink_two_port_dut::release release;
 typedef tilelink_two_port_dut::grant grant;
 typedef tilelink_two_port_dut::probe probe;
- 
+
 int main(int argc, const char **argv){
 
     unsigned random_seed = (unsigned)time(NULL) ^ (unsigned)getpid();
-      
+
     if (argc) random_seed = atoi(argv[0]);
 
     srand(random_seed);
@@ -54,7 +54,7 @@ int main(int argc, const char **argv){
         // Assume front interface is ordered
 
         tb.front__ordered = 1;
-        
+
 #if 0
 	tb.back__cached[0] = 0;
 	tb.back__cached[1] = 0;
@@ -95,7 +95,7 @@ int main(int argc, const char **argv){
           // than one input in a clock cycle.  TODO: we ought to
           // dequeue these messages randomly.
 
-	  
+
           if (rand() % 2 && acq_i.size() < BUF_MAX && cag.generate(tb)) {
               acquire acq_g = {cag.id_,cag.addr_hi,cag.word,cag.own,cag.op,cag.data_,cag.ltime_};
 	      tb.ext__c__acquire(acq_g.id_,acq_g.addr_hi,acq_g.word,acq_g.own,acq_g.op, acq_g.data_, acq_g.ltime_);
@@ -105,7 +105,7 @@ int main(int argc, const char **argv){
           acq_gen = acq_i.size();
           if (acq_gen) acq_m = acq_i[0];
           dut.mp()->set_acquire(acq_gen,acq_m);
-	  
+
           if (rand() % 2 && fns_i.size() < BUF_MAX && cfg.generate(tb)) {
               finish fns_g = {cfg.id_, cfg.addr_hi, cfg.word, cfg.own};
               tb.ext__c__finish(fns_g.id_, fns_g.addr_hi, fns_g.word, fns_g.own);
@@ -154,7 +154,7 @@ int main(int argc, const char **argv){
 	  dut.cp()->set_release_ready(rls_ready);
 	  dut.mp()->set_grant_ready(gnt_ready);
 	  dut.mp()->set_probe_ready(prb_ready);
-	  
+
           std::cout << "====clock " << cycle << "====\n";
 	  dut.clock();
 
@@ -197,7 +197,7 @@ int main(int argc, const char **argv){
 	  bool gnt_send = dut.mp()->get_grant(gnt_m);
 	  probe prb_m;
 	  bool prb_send = dut.mp()->get_probe(prb_m);
-	    
+
 	  // check the dut outputs, advancing tester state
 
 	  if (acq_send & acq_ready){
@@ -224,7 +224,7 @@ int main(int argc, const char **argv){
 
 
 	  // end of clock cycle
-	}	  
+	}
 
 
     }

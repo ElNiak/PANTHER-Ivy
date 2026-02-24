@@ -27,7 +27,7 @@ after init {
 }
 
 #     Length:  An 8-bit unsigned integer containing the length of the
-#      connection ID.  Values less than 1 and greater than [20 not testable 
+#      connection ID.  Values less than 1 and greater than [20 not testable
 #      since 20 bytes not available] are invalid
 #      and MUST be treated as a connection error of type
 #       FRAME_ENCODING_ERROR
@@ -47,7 +47,7 @@ before frame.new_connection_id.handle(f:frame.new_connection_id,scid:cid,dcid:ci
 # Generate connection_close frames only for the environment process(es).
 #
 # Note: requiring the `err_code` is zero on non-generated frames means that
-# we stop the test if the peer reports a protocol error. 
+# we stop the test if the peer reports a protocol error.
 
 before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid) {
     if _generating {
@@ -94,8 +94,6 @@ export frame.new_connection_id.handle
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require is_frame_encoding_error
 }
-
-

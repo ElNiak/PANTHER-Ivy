@@ -11,4 +11,3 @@ The following people have contributed ideas, code or examples to IVy.
 * [Aurojit Panda](https://www.eecs.berkeley.edu/~apanda/), UC Berkeley
 * [Mooly Sagiv](https://www.cs.tau.ac.il/~msagiv/), Tel Aviv University
 * [Sharon Shoham](http://www2.mta.ac.il/~sharon.shoham/), Academic College of Tel Aviv Yaffo
-

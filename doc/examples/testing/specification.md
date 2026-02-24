@@ -46,7 +46,7 @@ execute the TCP protocol according to its specification, then events
 at the application/transport interface should be consistent with the TCP
 service specification. From the point of view of the TCP protocol, we
 say that the IP service specification is an *assumption*, while the
-TCP service specification is a *guarantee*. 
+TCP service specification is a *guarantee*.
 
 IVy has features that allow us to combine testing with formal
 verification to perform this kind of reasoning. It allows us to:
@@ -87,7 +87,7 @@ events.
 
 As an example, here is a definition of an interface for a ridiculously
 simple network service:
- 
+
     #lang ivy1.6
     type packet
 
@@ -283,7 +283,7 @@ Let's put a bug in the protocol to see what happens. The action
         }
 
     ...
- 
+
     export protocol.bug
 
 Here's a test run:
@@ -431,7 +431,7 @@ Now what we want to do is to generate testers for the left and right
 players in isolation. That is, we want the tester for the left player
 to act as its environment. This means the tester has to call both
 `left_player.hit` and `intf.pong`. Similarly, the tester for the right
-player has to call `right_player.hit` and `intf.ping`. 
+player has to call `right_player.hit` and `intf.ping`.
 
 To generate these testers, we use `isolate` declarations:
 
@@ -486,13 +486,13 @@ has changed to `assume`.
 This is an example of *assume-guarantee* reasoning. The left player
 *guarantees* to call `ping` only when the ball is on the
 left. However, it *assumes* that the right player only calls `pong`
-when the ball is on the right. This is a very common situation in protocols. 
+when the ball is on the right. This is a very common situation in protocols.
 Each participant in the protocol guarantees correctness of its outputs,
 but only so long as its inputs are correct.
 
 Let's start by testing the left player. First, we compile a tester:
 
-    $ ivy_to_cpp isolate=iso_l target=test build=true pingpong.ivy 
+    $ ivy_to_cpp isolate=iso_l target=test build=true pingpong.ivy
     g++ -I $Z3DIR/include -L $Z3DIR/lib -g -o pingpong pingpong.cpp -lz3
 
 Notice we specified the isolate `iso_l` on the command line.  Now
@@ -539,7 +539,7 @@ precondition of `ping`.
 Now let's consider try right player. We compile and run a tester for
 the isolate `iso_r`:
 
-    $ ivy_to_cpp isolate=iso_r target=test build=true pingpong.ivy 
+    $ ivy_to_cpp isolate=iso_r target=test build=true pingpong.ivy
     g++ -I $Z3DIR/include -L $Z3DIR/lib -g -o pingpong pingpong.cpp -lz3
     $ ./pingpong
     > right_player.hit
@@ -569,7 +569,7 @@ according to the specification.
 
 We can ask IVY to check this conclusion for us:
 
-    $ ivy_check trusted=true pingpong.ivy 
+    $ ivy_check trusted=true pingpong.ivy
     Checking isolate iso_l...
     Checking isolate iso_r...
     OK
@@ -617,7 +617,7 @@ is visible to the remaining actions. We will call this condition
 *non-interference*.
 
 IVy uses a fairly simple analysis to check non-interference. As an example,
-suppose the right player tries to cheat by putting the ball back in 
+suppose the right player tries to cheat by putting the ball back in
 the left player's court without hitting it:
 
     object right_player = {
@@ -633,7 +633,7 @@ the left player's court without hitting it:
 
 Here's what happens when when we try to verify this version:
 
-    $ ivy_check trusted=true interference.ivy 
+    $ ivy_check trusted=true interference.ivy
     Checking isolate iso_l...
     interference.ivy: line 30: error: Call out to right_player.intf_ping[implement] may have visible effect on left_player.ball
     interference.ivy: line 37: referenced here
@@ -716,17 +716,4 @@ missed a bug in a system component. Because IVy checked our
 assume/guarantee proof, however, we know that if the whole system has
 a bug, then one of the isolates must have a bug. If we test the
 isolates long enough, we will eventually find it without testing the
-system as a whole. 
-
-
-
-
-
-
-
-
-
-
-
-
-
+system as a whole.

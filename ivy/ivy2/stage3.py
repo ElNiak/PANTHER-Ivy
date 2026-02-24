@@ -575,7 +575,7 @@ with ivywhite: grammar = Grammar (
                                                                 fmt = NonTerm ( name = 'PyExpr' ) ,
                                                                 fld = 'grammar' ) ] ) ) ,
                                         Assign ( fmt = RegEx ( exp = '.*' ) , fld = 'code' ) ] ) ,
-                        cls = 'Top' ) , lhs = 'PyTop' ) ] ) 
+                        cls = 'Top' ) , lhs = 'PyTop' ) ] )
 src = "stage4.src"
 obj = "stage4.py"
 with ivywhite:

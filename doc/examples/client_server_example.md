@@ -6,7 +6,7 @@ title: Invariants
 In this tutorial, we'll learn how to make an abstract model of a
 simple protocol and prove a property of it using an *inductive
 invariant*. This is usually the first step in designing and
-implementing a protocol in Ivy. 
+implementing a protocol in Ivy.
 
 An invariant of a system is a formula about the system's state that is
 always true.  Invariants are the simplest class of properties that we
@@ -85,7 +85,7 @@ every server `W`. `semaphore(W)` is set to true) and there are no
 links (that is, for every client `X` and server `Y`, `link(X,Y)` is
 set to false). These statements are simultaneous assignments that
 update the given relations for many values of their parameters at
-once. 
+once.
 You can recognize a simultaneous assignment by the fact that the
 parameters of the relations are placeholders (or wildcards)
 represented by capital letters.
@@ -127,7 +127,7 @@ following invariant assertion:
 Once again the capital letters act as wildcards. The invariant
 assertion implicitly holds true for all clients `X` and `Z` and all
 servers `Y`. Another way to say this is that the placeholders `X`, `Y`
-and `Z` are implicitly *universally quantified*. 
+and `Z` are implicitly *universally quantified*.
 
 # Proving the invariant
 
@@ -136,16 +136,16 @@ and that every action of the program preserves it. Ivy can do this automatically
 To make the check, we use this command:
 
     $ ivy_check client_server_example.ivy
-    
+
 [Note: the source files for the examples in this tutorial can be found in the
 subdirectory `doc/examples` of the Ivy source tree]. Ivy attempts the check and produces
 this somewhat discouraging output (with uninteresting parts omitted):
 
     ...
-    
+
     Initialization must establish the invariant
         client_server_example.ivy: line 30: invar2 ... PASS
-    
+
     ...
 
     The following set of external actions must preserve the invariant:
@@ -179,7 +179,7 @@ In the left pane of this window is a diagram in which each oval
 represents a state of the protocol and each arrow represents the
 execution of an action. There are two states, labeled 0 and 1. From
 state 0 to state 1 there is an arrow labeled with the action
-`connect`. We know something has gone wrong in the execution of `connect`. 
+`connect`. We know something has gone wrong in the execution of `connect`.
 
 In the middle pane, we see a graphical representation of
 state 0. Currently, all we see is that there are two clients (in other
@@ -237,17 +237,17 @@ choosing `Remove tab` from the `File menu`.
 
 At this point we understand the reason that the invariant is not inductive.
 The failure was caused by the fact that a client `X` was connected to a server `Y`
-and the semaphore at this server was up. This *bad pattern* caused the failure, 
+and the semaphore at this server was up. This *bad pattern* caused the failure,
 and we conjecture that it can never actually occur. For this reason, we will *strengthen*
 our invariant with a condition that rules out the bad pattern. It is very important to
-understand that we do not want to rule out *everything* about the counterexample that is unrealistic -- only those aspects that actually *cause* the failure. 
+understand that we do not want to rule out *everything* about the counterexample that is unrealistic -- only those aspects that actually *cause* the failure.
 
 To rule out the bad pattern, we add this new conjectured invariant to our Ivy program:
 
     private {
         invariant ~(link(X,Y) & semaphore(Y))
     }
-    
+
 This says that there is *no* client `X` and server `Y` such that `X`
 is linked to `Y` and the semaphore at `Y` is up. Notice again that the
 capital letters `X` and `Y` are universally quantified placeholders.
@@ -274,10 +274,10 @@ original invariant. Now when we check the program, we get this:
 
     ...
     OK
-    
+
 The OK at the end tells us that our invariants taken together are now
 inductive. This means we can be confident that the invariants always
-hold. 
+hold.
 
 Another way to create a conjectured invariant from a bad pattern is to
 have Ivy gather the displayed facts and generalize them. Once we
@@ -338,7 +338,7 @@ slightly different from the invariant we selected previously. That
 is, the bad pattern includes a second client `D` that is needed to
 violate the desired property of mutual exclusion. It turns out this
 doesn't matter. This weaker invariant is still strong enough to prove
-the property. 
+the property.
 
 Let's consider the process we just used to arrive at an inductive
 invariant. We took the following steps:
@@ -351,7 +351,7 @@ invariant. We took the following steps:
 
 The first and last steps were done automatically by Ivy. However, we
 performed the second step manually, by select which relations to
-display. 
+display.
 
 This process is something of an art and can be
 confusing.  For example, it sometimes happens that a condition we
@@ -382,7 +382,7 @@ addition, it includes the link from client 1 to the server, and the
 fact that the semaphore is true at the server. These facts are listed
 below the diagram under the heading 'Constraints'. Ivy has determined
 that these conditions are sufficient to cause the invariant to
-fail. 
+fail.
 
 Since we agree that this is a bad pattern, we can use the `Strengthen`
 option from the `Conjecture` menu, as above, to produce a conjectured
@@ -416,7 +416,7 @@ This illustrates an important point about inductive invariants: there
 are many of them.  This give us the flexibility to find a simple one.
 By dropping a fact from the bad pattern, we effectively generalized
 it.  That is, we ruled out a larger class of states, so in effect we
-made a *stronger* conjecture. 
+made a *stronger* conjecture.
 
 Ivy can often discover automatically that a bad pattern can be
 simplified.  One way to do this is to use *bounded
@@ -444,7 +444,7 @@ which completes the proof.
 At some point, we will make a conjecture that is just plain wrong, in
 the sense that it is not always true. Before clicking `Strengthen`, it's a good
 idea to try `Bounded check` to see if the proposed bad pattern can actually
-occur within some fixed number of steps. 
+occur within some fixed number of steps.
 
 To see how this goes, suppose we get into this situation:
 
@@ -489,13 +489,13 @@ the `Weaken` operation in the `Invariant` menu:
 
 <p><img src="images/client_server27.png" alt="Testing Ivy screenshot" /></p>
 
-This dialog can be resized to see long formulas. 
+This dialog can be resized to see long formulas.
 
 # Summary
 
 We prove invariant properties by induction. If our proposed invariant
 is not inductive, Ivy generates a *counterexample to induction* or CTI.  Ivy
-tries to generate the simplest possible counterexample. 
+tries to generate the simplest possible counterexample.
 
 A CTI can be eliminated by strengthening the proposed inductive invariant. To do this,
 we identify a bad pattern in the CTI. This is done in the following steps:
@@ -522,15 +522,3 @@ To remove a conjecture from the proposed invariant, use `Weaken`.
 When `Check induction` produces no CTI, the conjectured invariant is
 in fact a safety invariant. You can save it for future use with the
 `Save invariant` operation.
-
-
-
-
-
-
-
-
-
-
-
-

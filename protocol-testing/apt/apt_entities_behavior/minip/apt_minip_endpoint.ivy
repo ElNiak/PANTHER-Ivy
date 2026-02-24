@@ -11,12 +11,12 @@ object endpoint = {
         ...
 
         module mim_minip_ep(address:ip.addr,
-                            port:ip.port, 
-                            oport:ip.port, 
-                            toward_client:bool, 
+                            port:ip.port,
+                            oport:ip.port,
+                            toward_client:bool,
                             standalone: bool,
-                            bridged: bool) = { 
-            
+                            bridged: bool) = {
+
                 # variant this of man_in_the_middle_endpoint = struct { }
                 individual ep_mim    : ip.endpoint
                 individual ep_client : ip.endpoint
@@ -56,7 +56,7 @@ object endpoint = {
                                 if toward_client {
                                     ep_client.interface  := ip.ivy_server;
                                     ep_server.interface  := ip.ivy_client;
-                                } 
+                                }
                                 else {
                                     ep_client.interface := ip.ivy_client;
                                     ep_server.interface := ip.ivy_server;
@@ -68,11 +68,11 @@ object endpoint = {
                             ep_server.interface := ip.ivy;
                         }
                     }
-                    
+
                     nat_configured := false;
                     server_initial_response := false;
                 }
-                
+
                 action set_ep(e:ip.endpoint) = {
                     ep_mim := e; # TODO
                 }
@@ -85,16 +85,16 @@ object endpoint = {
                     var dst := socket_endpoint_mim(host,s,src);  # because quic_net API doesn't tell us the dst socket_endpoint_mim
                     var idx := pkts.begin;
                     is_receiving(dst) := true;
-    
+
                     # TODO should not be here
 
                     if ~nat_configured {
                         nat_configured := true;
-                        ep_client := src; # Like initial connection from client 
+                        ep_client := src; # Like initial connection from client
                         client.set_ep(src);
                         call nat_configured_event(src,dst);
-                    } 
-                    
+                    }
+
                     var packet_number_of_coalesed : stream_pos := 0;
                     var to_forward : bool := false;
 
@@ -106,7 +106,7 @@ object endpoint = {
                         var jdx := rppkt.payload.begin;
                         while jdx < rppkt.payload.end {
                             var f := rppkt.payload.value(jdx);
-                            # TODO frame 
+                            # TODO frame
                             jdx := jdx.next;
                         };
 
@@ -115,7 +115,7 @@ object endpoint = {
                             call receiving_packet(src,dst,rppkt, packet_number_of_coalesed);
                             packet_number_of_coalesed := packet_number_of_coalesed + 1;
                         };
-                        idx := idx.next; 
+                        idx := idx.next;
                     };
 
                     if forward_packets & keep_coalesed & to_forward { # To server
@@ -156,7 +156,7 @@ object endpoint = {
 
                 action reset_NAT = {
                     <<<
-                        const char * command = "pkill arpspoof;"; 
+                        const char * command = "pkill arpspoof;";
                         int cr = system( command );
                     >>>
                 }
@@ -164,16 +164,16 @@ object endpoint = {
             import action client_target_setup_event(src:ip.endpoint)
             import action recv_packet(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet)
         }
-    
+
     }
 
     object client_attacker_endpoint = {
         ...
 
-        module attacker_minip_ep(address:ip.addr, 
+        module attacker_minip_ep(address:ip.addr,
             port:ip.port,
-            oport:ip.port, 
-            bridged:bool, 
+            oport:ip.port,
+            bridged:bool,
             standalone:bool) = {
 
             #variant endpoint of client_attacker_endpoint = struct { }
@@ -239,7 +239,7 @@ object endpoint = {
                     };
                     call ping_packet_event(src,dst,pkt);       # also an inferred event
                     idx := idx.next;
-                };  
+                };
             }
 
             action configure_NAT_attack(src:ip.addr, dst:ip.addr) = {
@@ -274,7 +274,7 @@ object endpoint = {
 
             action reset_NAT = {
                 <<<
-                    const char * command = "pkill arpspoof;"; 
+                    const char * command = "pkill arpspoof;";
                     int cr = system( command );
                 >>>
             }
@@ -284,10 +284,10 @@ object endpoint = {
     object server_attacker_endpoint = {
         ...
 
-        module attacker_minip_ep(address:ip.addr, 
+        module attacker_minip_ep(address:ip.addr,
             port:ip.port,
-            oport:ip.port, 
-            bridged:bool, 
+            oport:ip.port,
+            bridged:bool,
             standalone:bool) = {
 
             #variant endpoint of client_attacker_endpoint = struct { }
@@ -396,7 +396,7 @@ object endpoint = {
 
             action reset_NAT = {
                 <<<
-                    const char * command = "pkill arpspoof;"; 
+                    const char * command = "pkill arpspoof;";
                     int cr = system( command );
                 >>>
             }

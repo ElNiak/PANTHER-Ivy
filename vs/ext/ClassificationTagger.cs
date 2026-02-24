@@ -43,7 +43,7 @@ namespace IvyLanguage
     ITagAggregator<IvyTokenTag> _aggregator;
     IDictionary<IvyTokenKind, IClassificationType> _typeMap;
 
-    
+
 
     internal IvyClassifier(ITextBuffer buffer,
                              ITagAggregator<IvyTokenTag> tagAggregator,

@@ -53,7 +53,7 @@ Install into your local Python like this:
     $ pip3 install z3-solver
     $ pip3 install .
 
-Instead of installing z3 with pip, as above, you can install it manually in your python environment. You can ask pip to install a specific version of z3 with `z3-solver==X.Y`. 
+Instead of installing z3 with pip, as above, you can install it manually in your python environment. You can ask pip to install a specific version of z3 with `z3-solver==X.Y`.
 If you want to run from the source tree for development purposes, do
 this instead:
 
@@ -74,7 +74,7 @@ Run Ivy on an example, like this:
 Or, if you only want to use Ivy on the command line, test it like this:
 
     $ ivy_check trace=true doc/examples/client_server_example_new.ivy
-    
+
 Ivy should print out a counterexample trace.
 
 ### Emacs mode
@@ -86,7 +86,7 @@ somewhere in your emacs load path and add the following code to your
     (add-to-list 'auto-mode-alist '("\\.ivy\\'" . ivy-mode))
     (autoload 'ivy-mode  "ivy-mode.el" "Major mode for editing Ivy code" t nil)
 
-    
+
 <a name="macnotes"></a> Installation from source on MacOS
 =========================================================
 
@@ -115,7 +115,7 @@ These instructions have not been tested on recent MacOS versions.
         $ sudo port install python310 py310-pip graphviz tix py310-tkinter git cmake openssl
         $ sudo port select --set python3 python310
         $ sudo port select --set pip3 pip310
-        
+
 5. Install Ivy:
 
     Follow the Linux instructions above, under "Install Ivy".
@@ -150,5 +150,3 @@ these from github like this (see the directory `ivy/doc`):
 ### <a name="macbinary"> Install binary release on Mac
 
 Mac binary distributions are not yet available.
-
- 

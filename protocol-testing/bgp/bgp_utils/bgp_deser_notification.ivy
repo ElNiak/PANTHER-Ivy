@@ -50,7 +50,7 @@ object bgp_deser_notification = {}
             }
             break;
             default:
-                std::cerr << "bgp_deser_notification 3\n";  
+                std::cerr << "bgp_deser_notification 3\n";
                 throw deser_err();
             }
         }
@@ -107,20 +107,20 @@ object bgp_deser_notification = {}
                     }
                 }
             }
-            std::cerr << "state          = " << state << "\n";  
-            std::cerr << "bgp_deser_notification 2\n";  
+            std::cerr << "state          = " << state << "\n";
+            std::cerr << "bgp_deser_notification 2\n";
             throw deser_err();
         }
 
         virtual bool open_list_elem() {
             if (state == bgp_s_payload) {
-                std::cerr << "bgp_s_payload bgp_deser_notification 2\n";  
+                std::cerr << "bgp_s_payload bgp_deser_notification 2\n";
                 //state = bgp_s_time;
                 return payload_length-->  0;
             }
                 //return more(1);
            /* if ( state == bgp_s_error_subcode || state == bgp_s_error_code) {
-                 std::cerr << "bgp_s_error_code bgp_deser_notification 2\n";  
+                 std::cerr << "bgp_s_error_code bgp_deser_notification 2\n";
                 if (current_bgp_size == 5) {
                     //state = bgp_s_time;
                     return false;
@@ -129,8 +129,8 @@ object bgp_deser_notification = {}
                 payload_length -= 1;
                 return true;
             }*/
-                
-            std::cerr << "bgp_deser_notification 1\n";  
+
+            std::cerr << "bgp_deser_notification 1\n";
             throw deser_err();
         }
 

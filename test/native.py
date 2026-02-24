@@ -30,7 +30,7 @@ module bar = {
 }
 
 type t
-interpret t -> {0..1} 
+interpret t -> {0..1}
 instance baz(X:t) : bar
 
 """
@@ -64,5 +64,3 @@ with im.Module():
 #     main_ui.answer("View")
 #     cg.bmc_conjecture(bound=1)
 # #    main_ui.mainloop()
-
-

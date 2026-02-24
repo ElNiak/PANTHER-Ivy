@@ -132,7 +132,7 @@ class Translation:
             return fn
         else:
             raise NotImplementedError("translating symbol {} to mypyvy ".format(repr(sym)))
- 
+
     def pyv_havoc_symbol(sym: il.Symbol) -> pyv.Expr:
         '''Return a two-state formula that havocs the given symbol.'''
         sort = sym.sort
@@ -169,7 +169,7 @@ class Translation:
             fmla = lg.ForAll(uvars, eq)
 
         return Translation.translate_logic_fmla(fmla, is_twostate=True)
-    
+
     def smt_to_ivy(fmla: z3.BoolRef, sorts: dict[str, Any], syms: dict[str, Any], binders=[]) -> lg.And:
         '''Convert an SMT formula to an Ivy formula.
         sorts: dict from sort names to Ivy sorts
@@ -322,7 +322,7 @@ class Translation:
         s = set()
         if pred(fmla):
             s.add(fmla)
-        
+
         if isinstance(fmla, lg.ForAll) or isinstance(fmla, lg.Exists):
             return s | Translation.filter_subterms(fmla.body, pred)
         elif isinstance(fmla, lg.Ite):
@@ -349,7 +349,7 @@ class Translation:
             with_fmla = with_fn(fmla)
             # print("replace {} with {}... ".format(fmla, with_fmla), end='\n', flush=True)
             return with_fmla
-        
+
         if isinstance(fmla, lg.ForAll):
             return lg.ForAll(fmla.variables, Translation.replace_subterms(fmla.body, pred, with_fn))
         elif isinstance(fmla, lg.Exists):
@@ -389,7 +389,7 @@ class Translation:
         # identify equalities for constants (e.g., they shouldn't be under negation).
         if len(vs) == 0:
             return Translation.is_temp_definitional_equality(f)
-        
+
         if il.is_eq(f) or isinstance(f, il.Iff):
             lhs, rhs = f.args
             # the or True is necessary because all() throws if list empty
@@ -635,7 +635,7 @@ class Translation:
             check_simpl_equiv(fmla, sfmla)
             fmla = sfmla
 
-        # Make sure round-tripping through SMT works        
+        # Make sure round-tripping through SMT works
         z3_fmla = ivy_solver.formula_to_z3(fmla)
         _fmla = Translation.smt_to_ivy(z3_fmla, im.module.sig.sorts, symbols)
         assert fmla == _fmla, "Round-tripping Ivy -> SMT -> Ivy is incorrect: BEFORE:\n{}\n!=\nAFTER:\n{}".format(fmla, _fmla)

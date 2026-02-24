@@ -29,7 +29,7 @@ include ip
 # packet consists of a sequence of *frames* (see quic_frame.ivy).
 
 # TODO: retry and one_rtt packet types
-  
+
 instance  index : unbounded_sequence
 instance  versions : array(index,stream_data)
 interpret version -> bv[32]
@@ -37,7 +37,7 @@ instance  versions_bv : array(index,version)
 
 # Packet
 
-# The type `packet.quic_packet_vn` represents packet. 
+# The type `packet.quic_packet_vn` represents packet.
 
 # The fields are:
 #
@@ -115,12 +115,12 @@ action packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_vn
 
 # A client that supports only this version of QUIC MUST abandon the
 #    current connection attempt if it receives a Version Negotiation
-#    packet, with the following two exceptions.  
+#    packet, with the following two exceptions.
 
 # A client MUST discard any
 #    Version Negotiation packet if it has received and successfully
 #    processed any other packet, including an earlier Version Negotiation
-#    packet.  
+#    packet.
 
 # A client MUST discard a Version Negotiation packet that
 #    lists the QUIC version selected by the client.
@@ -139,7 +139,7 @@ around packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet_vn
 	    migration_done := true;
 	    #call quic_net.close(endpoint_id.client,sock);	# destroy connection ?
     };
- 
+
 
     require pkt.ptype = quic_packet_type.version_negociation;
 

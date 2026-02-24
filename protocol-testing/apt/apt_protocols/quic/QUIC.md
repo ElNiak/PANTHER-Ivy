@@ -1,5 +1,5 @@
 # QUIC model
 
-## QUIC components 
+## QUIC components
 
 TODO

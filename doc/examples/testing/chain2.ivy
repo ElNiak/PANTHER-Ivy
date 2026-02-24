@@ -71,11 +71,11 @@ instance ref : reference
 type msg = struct {
     val : data,
     tx : ref.txid
-}    
+}
 
 
 # module client(req_chan,rsp_chan) = {
-    
+
 #     action request_upd(val : data) = {
 # 	call req_chan.sender.send(val);
 #     }
@@ -88,7 +88,7 @@ type msg = struct {
 # }
 
 module client(out_chan) = {
-    
+
     action request_upd(val : data) returns (tx : ref.txid)
 
     implement request_upd {
@@ -108,7 +108,7 @@ module head_node(req_chan1, req_chan2, out_chan) = {
 	var res := rep.upd(inp.val);  # ignore the result
 	call out_chan.send(inp);
     }
-	
+
     implement req_chan1.recv(inp : msg) {
 	call upd(inp);
     }
@@ -128,7 +128,7 @@ module tail_node(inp_chan, out_chan) = {
 	    call out_chan.send(out);
 	}
     }
-	
+
     implement inp_chan.recv(inp : msg) {
 	call upd(inp);
     }

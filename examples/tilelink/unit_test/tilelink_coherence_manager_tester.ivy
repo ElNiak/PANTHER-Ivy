@@ -1,7 +1,7 @@
 #lang ivy1.3
 
 ################################################################################
-# 
+#
 # Test generator for a TileLink coherence manager. The coherence manager
 # has a coherent TileLink interface on inside and non-coherent main memory
 # interface on outside.
@@ -38,7 +38,7 @@ module generic_client_intf(mngr) = {
 
            ltime_ : ltime         # (aux) logical time
    ) = {
-       local a:acq_id 
+       local a:acq_id
        {
            acqs(a).cid := cid;
            acqs(a).id_ := id_;
@@ -171,7 +171,7 @@ module generic_manager_intf(clnt) = {
 }
 
 module tl_generic_manager_gen(clnt,ref,side) = {
- 
+
    instantiate generic_manager_intf(clnt)
 
    action perform(lt:ltime, sid:id) = {
@@ -187,7 +187,7 @@ module tl_generic_manager_gen(clnt,ref,side) = {
 }
 
 ################################################################################
-# 
+#
 # The system we want to verify. This is a "block of wood", since we are just
 # generating inputs, not verifying anything. The block of wood is implemented
 # by combining a generic client and a generic manager.
@@ -219,7 +219,7 @@ export b.grant
 export b.probe
 
 ################################################################################
-# 
+#
 # Instantiate the reference specification
 #
 ################################################################################
@@ -227,7 +227,7 @@ export b.probe
 instantiate ref : reference
 
 ################################################################################
-# 
+#
 # Specify the two interfaces of the buffer
 #
 # To do this, we arbitrarily distribute the process id's on the client and
@@ -348,4 +348,3 @@ interpret fns_id -> {0..0}
 interpret rls_id -> {0..0}
 interpret prb_id -> {0..0}
 interpret client_id -> {0..1}
-

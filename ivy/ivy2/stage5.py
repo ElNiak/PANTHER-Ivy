@@ -1,20 +1,20 @@
-from parser1 import * 
-class  Field (Format): 
-    def __init__(self, name , type ): 
-        self. name  =  name 
-        self. type  =  type 
-class  StructType (Format): 
-    def __init__(self, fields ): 
-        self. fields  =  fields 
-class  TypeDecl (Format): 
-    def __init__(self, name , type ): 
-        self. name  =  name 
-        self. type  =  type 
-class  Top (Format): 
-    def __init__(self, typedecls , grammar , code ): 
-        self. typedecls  =  typedecls 
-        self. grammar  =  grammar 
-        self. code  =  code 
+from parser1 import *
+class  Field (Format):
+    def __init__(self, name , type ):
+        self. name  =  name
+        self. type  =  type
+class  StructType (Format):
+    def __init__(self, fields ):
+        self. fields  =  fields
+class  TypeDecl (Format):
+    def __init__(self, name , type ):
+        self. name  =  name
+        self. type  =  type
+class  Top (Format):
+    def __init__(self, typedecls , grammar , code ):
+        self. typedecls  =  typedecls
+        self. grammar  =  grammar
+        self. code  =  code
 with ivywhite: grammar =  Grammar (
     rules =
         [ Rule ( rhs = RegEx ( exp = '[_a-zA-Z0-9]+' ) , lhs = 'Ident' ) ,
@@ -527,7 +527,7 @@ with ivywhite: grammar =  Grammar (
                                                                 fmt = NonTerm ( name = 'PyExpr' ) ,
                                                                 fld = 'grammar' ) ] ) ) ,
                                         Assign ( fmt = RegEx ( exp = '.*' ) , fld = 'code' ) ] ) ,
-                        cls = 'Top' ) , lhs = 'PyTop' ) ] ) 
+                        cls = 'Top' ) , lhs = 'PyTop' ) ] )
 src = "stage6.src"
 obj = "stage6.py"
 with ivywhite:
@@ -535,4 +535,3 @@ with ivywhite:
         with DefaultSemantics(globals()):
             thing = parse_file("Top",src)
             pretty_to_file("PyTop",thing,obj)
- 

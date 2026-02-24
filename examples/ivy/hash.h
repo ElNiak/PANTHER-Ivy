@@ -122,18 +122,18 @@ namespace hash_space {
 
         typedef Value &reference;
         typedef const Value &const_reference;
-    
+
         struct Entry
         {
             Entry* next;
             Value val;
-      
+
         Entry(const Value &_val) : val(_val) {next = 0;}
         };
-    
+
 
         struct iterator
-        {      
+        {
             Entry* ent;
             hashtable* tab;
 
@@ -170,7 +170,7 @@ namespace hash_space {
             }
 
 
-            bool operator==(const iterator& it) const { 
+            bool operator==(const iterator& it) const {
                 return ent == it.ent;
             }
 
@@ -180,7 +180,7 @@ namespace hash_space {
         };
 
         struct const_iterator
-        {      
+        {
             const Entry* ent;
             const hashtable* tab;
 
@@ -217,7 +217,7 @@ namespace hash_space {
             }
 
 
-            bool operator==(const const_iterator& it) const { 
+            bool operator==(const const_iterator& it) const {
                 return ent == it.ent;
             }
 
@@ -235,13 +235,13 @@ namespace hash_space {
         HashFun hash_fun ;
         GetKey get_key;
         KeyEqFun key_eq_fun;
-    
+
     public:
 
     hashtable(size_t init_size) : buckets(init_size,(Entry *)0) {
             entries = 0;
         }
-    
+
         hashtable(const hashtable& other) {
             dup(other);
         }
@@ -256,11 +256,11 @@ namespace hash_space {
             clear();
         }
 
-        size_t size() const { 
+        size_t size() const {
             return entries;
         }
 
-        bool empty() const { 
+        bool empty() const {
             return size() == 0;
         }
 
@@ -268,15 +268,15 @@ namespace hash_space {
             buckets.swap(other.buckets);
             std::swap(entries, other.entries);
         }
-    
+
         iterator begin() {
             for (size_t i = 0; i < buckets.size(); ++i)
                 if (buckets[i])
                     return iterator(buckets[i], this);
             return end();
         }
-    
-        iterator end() { 
+
+        iterator end() {
             return iterator(0, this);
         }
 
@@ -286,15 +286,15 @@ namespace hash_space {
                     return const_iterator(buckets[i], this);
             return end();
         }
-    
-        const_iterator end() const { 
+
+        const_iterator end() const {
             return const_iterator(0, this);
         }
-    
+
         size_t get_bucket(const Value& val, size_t n) const {
             return hash_fun(get_key(val)) % n;
         }
-    
+
         size_t get_key_bucket(const Key& key) const {
             return hash_fun(key) % buckets.size();
         }
@@ -309,11 +309,11 @@ namespace hash_space {
 
             size_t n = get_bucket(val);
             Entry* from = buckets[n];
-      
+
             for (Entry* ent = from; ent; ent = ent->next)
                 if (key_eq_fun(get_key(ent->val), get_key(val)))
                     return ent;
-      
+
             if(!ins) return 0;
 
             Entry* tmp = new Entry(val);
@@ -327,11 +327,11 @@ namespace hash_space {
         {
             size_t n = get_key_bucket(key);
             Entry* from = buckets[n];
-      
+
             for (Entry* ent = from; ent; ent = ent->next)
                 if (key_eq_fun(get_key(ent->val), key))
                     return ent;
-      
+
             return 0;
         }
 
@@ -348,7 +348,7 @@ namespace hash_space {
             Entry *ent = lookup(val,true);
             return std::pair<iterator,bool>(iterator(ent,this),entries > old_entries);
         }
-    
+
         iterator insert(const iterator &it, const Value& val){
             Entry *ent = lookup(val,true);
             return iterator(ent,this);
@@ -390,7 +390,7 @@ namespace hash_space {
             }
             buckets.swap(tmp);
         }
-    
+
         void clear()
         {
             for (size_t i = 0; i < buckets.size(); ++i) {
@@ -416,7 +416,7 @@ namespace hash_space {
         }
     };
 
-    template <typename T> 
+    template <typename T>
         class equal {
     public:
         bool operator()(const T& x, const T &y) const {
@@ -440,7 +440,7 @@ namespace hash_space {
         }
     };
 
-    template <typename Element, class HashFun = hash<Element>, 
+    template <typename Element, class HashFun = hash<Element>,
         class EqFun = equal<Element> >
         class hash_set
         : public hashtable<Element,Element,HashFun,identity<Element>,EqFun> {
@@ -453,7 +453,7 @@ namespace hash_space {
     : hashtable<Element,Element,HashFun,identity<Element>,EqFun>(7) {}
     };
 
-    template <typename Key, typename Value, class HashFun = hash<Key>, 
+    template <typename Key, typename Value, class HashFun = hash<Key>,
         class EqFun = equal<Key> >
         class hash_map
         : public hashtable<std::pair<Key,Value>,Key,HashFun,proj1<Key,Value>,EqFun> {
@@ -465,7 +465,7 @@ namespace hash_space {
 
     Value &operator[](const Key& key) {
 	std::pair<Key,Value> kvp(key,Value());
-	return 
+	return
 	hashtable<std::pair<Key,Value>,Key,HashFun,proj1<Key,Value>,EqFun>::
         lookup(kvp,true)->val.second;
     }

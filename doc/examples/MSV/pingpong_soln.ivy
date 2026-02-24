@@ -55,7 +55,7 @@ object left_player = {
             ball := false
         }
     }
-    
+
     implement intf.pong(val:t) {
         ball := true;
         next := val + 1;
@@ -68,14 +68,14 @@ object right_player = {
     var ball : bool
     init ~ball
     var next : t
-    
+
     action hit = {
         if ball {
             call intf.pong(next);
             ball := false
         }
     }
-    
+
     implement intf.ping(val:t) {
         ball := true;
         next := val + 1;
@@ -113,5 +113,3 @@ interpret t -> bv[4]
 #
 #     > c:\ivy\scripts\activate.bat
 #
-
-

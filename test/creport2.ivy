@@ -46,9 +46,9 @@ module shift_theory(idx) = {
 }
 
 module mysegment(domain,range,none) = {
-    
+
     type this
-    
+
     relation value(S:this,D:domain,R:range)
     relation begin(S:this,D:domain)
     relation end(S:this,D:domain)
@@ -61,10 +61,10 @@ module mysegment(domain,range,none) = {
     action getBegin(w:this) returns (i:domain)
     action getEnd(w:this) returns (i:domain)
 
-    specification {	
+    specification {
 
         after init {
-	    
+
         }
         around set {
             require v ~= none;
@@ -93,7 +93,7 @@ module mysegment(domain,range,none) = {
 
         # around getBegin {
         #     ...
-        #     ensure begin(w, i); 
+        #     ensure begin(w, i);
         # }
 
         # around getEnd {
@@ -119,7 +119,7 @@ module mysegment(domain,range,none) = {
 #        property shift.r(offset(W),X,Y) & Y >= elems(W).end -> value(W,X,none)
         property value(W, I, V1) & value(W, I, V2) -> V1 = V2
         property value(W, I, V) -> 0 <= I
-            
+
         # definition value(w:this,x:domain,v:range) =
         #           (exists Y. shift.r(offset(w),x,Y) &
         #               (v = elems(w).value(Y) if Y < elems(w).end else none))
@@ -141,12 +141,12 @@ module mysegment(domain,range,none) = {
             w.elems := w.elems.set(index, v);
         }
 
-        
+
         implement read {
             var index := shift.f(offset(w),i);
 	    v := none if (index >= w.elems.end) else w.elems.value(index)
         }
-        
+
         implement trim {
             var bound := shift.b(offset(w),w.elems.end);
             var j := i;
@@ -182,7 +182,7 @@ module mysegment(domain,range,none) = {
 	# 	invariant i <= j
 	# 	invariant j <= bound(w)
 	# 	invariant shift.r(offset(w),bound(w),content(w).end)
-	# 	invariant j <= X & X < bound(w) & shift.r(offset(w),X,Y) -> value(old w, X, maxview(content(w).value(Y)), maxop(content(w).value(Y))) 
+	# 	invariant j <= X & X < bound(w) & shift.r(offset(w),X,Y) -> value(old w, X, maxview(content(w).value(Y)), maxop(content(w).value(Y)))
 	# 	invariant i <= X & X < j & shift.r(i,X,Y) -> value(old w, X, maxview(content(w).value(Y)), maxop(content(w).value(Y)) )
 	# 	invariant bound(w) = bound(old w)
 	# 	invariant offset(w) = offset(old w)

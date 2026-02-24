@@ -1,7 +1,7 @@
 #lang ivy1.7
 
 type word_t
-type reg_t 
+type reg_t
 type tag_t
 type eu_t
 type opcode = {op_alu,op_rd,op_wr,op_nop}
@@ -68,12 +68,12 @@ object ref = {
             toma.aux(st_choice).res  := res;
             toma.aux(st_choice).srca := srca;
             toma.aux(st_choice).srcb := srcb;
-        }; 
-        
+        };
+
 
     }
 }
-  
+
 object toma = {
 
    object ir(self:reg_t) = {
@@ -81,7 +81,7 @@ object toma = {
         relation tag(T:tag_t)
         var val : word_t
     }
-  
+
     object st(self:tag_t) = {
         var valid : bool
         instance opra : st_opr_r
@@ -98,7 +98,7 @@ object toma = {
     }
 
 
-    # the auxiliary state 
+    # the auxiliary state
 
     object aux(self:tag_t) = {
         var opra : word_t
@@ -120,7 +120,7 @@ object toma = {
 
         ref.r(R) := ir(R).val;
     }
-    
+
 
     action step (
       opin : opcode,                           # opcode input
@@ -157,7 +157,7 @@ object toma = {
 
         # stall if station is busy or read of reserved register
 
-        stallout := opin = op_alu & st(st_choice).valid 
+        stallout := opin = op_alu & st(st_choice).valid
                     | opin = op_rd & ir(srca).resvd;
 
         # use pout to retire an instruction
@@ -168,10 +168,10 @@ object toma = {
 
             st(T).opra.val := (pout.val) if ~st(T).opra.valid & st(T).opra.tag(pout.tag) else st(T).opra.val;
             st(T).opra.valid := st(T).opra.tag(pout.tag) | st(T).opra.valid;
-            
+
             st(T).oprb.val := (pout.val) if ~st(T).oprb.valid & st(T).oprb.tag(pout.tag) else st(T).oprb.val;
             st(T).oprb.valid := st(T).oprb.tag(pout.tag) | st(T).oprb.valid;
-            
+
             st(T).valid := ~(st(T).issued & pout.tag = T) & st(T).valid;
         };
 
@@ -180,14 +180,14 @@ object toma = {
 
         if(~stallout) {
             if opin = op_alu {
-	        
+
 	        # store the instruction in an RS
-	  
+
 	        st(st_choice).valid := true;
 	        st(st_choice).issued := false;
-	  
+
 	        # fetch the a operand (with bypass)
-	  
+
 	        if(pout.valid & ir(srca).resvd & ir(srca).tag(pout.tag) ) {
 	            st(st_choice).opra.valid := true;
 	            st(st_choice).opra.tag(X) := ir(srca).tag(X);
@@ -197,9 +197,9 @@ object toma = {
 	            st(st_choice).opra.tag(X) := ir(srca).tag(X);
 	            st(st_choice).opra.val := ir(srca).val;
 	        };
-	  
+
 	        # fetch the b operand (with bypass) */
-	  
+
 	        if(pout.valid & ir(srcb).resvd & ir(srcb).tag(pout.tag)){
 	            st(st_choice).oprb.valid := true;
 	            st(st_choice).oprb.tag(X) := ir(srcb).tag(X);
@@ -225,7 +225,7 @@ object toma = {
 	        ir(dst).resvd := false;
 	    }
         };
-    
+
         # instruction issue from station to eu
 
         exe_rdy := ~eu(issue_eu).valid;
@@ -240,11 +240,11 @@ object toma = {
 	    st(issue_choice).issued := true;
         }
         else exe_valid := false;
-        
+
         exe_tag  := issue_choice;
         exe_opra :=  st(issue_choice).opra.val;
         exe_oprb :=  st(issue_choice).oprb.val;
-    
+
         # perform op in execution unit, store result
 
         if(~eu(issue_eu).valid){
@@ -254,9 +254,9 @@ object toma = {
             assume  f(exe_opra,exe_oprb,eu(issue_eu).res);
             eu(issue_eu).tag(X) := exe_tag = X;
         };
-        
+
         # commit the abstract operation here
-        
+
         if ~stallout {
             var dout := ref.step(opin,srca,srcb,dst,din,st_choice,issue_choice) # ghost
         };
@@ -266,10 +266,10 @@ object toma = {
         };
 
     }
-   
 
-    # the refinement maps 
-    
+
+    # the refinement maps
+
     invariant st(K).valid & st(K).opra.valid -> st(K).opra.val = aux(K).opra
 
     invariant st(K).valid & st(K).oprb.valid -> st(K).oprb.val = aux(K).oprb
@@ -279,7 +279,7 @@ object toma = {
     invariant ~ir(R).resvd -> ir(R).val = ref.r(R)
 
     invariant ir(R).resvd & ir(R).tag(K) -> st(K).valid & aux(K).res = ref.r(R) & st(K).dst = R
-    
+
     invariant st(K).valid & ~st(K).opra.valid & st(K).opra.tag(T) -> st(T).valid & aux(T).res = aux(K).opra
 
     invariant st(K).valid & ~st(K).oprb.valid & st(K).oprb.tag(T) -> st(T).valid & aux(T).res = aux(K).oprb
@@ -288,7 +288,7 @@ object toma = {
 
     # invariant pout.tag = I & pout.valid -> pout.val = aux(I).res;
     # proof let A = aux(i).opra, B = aux(i).oprb, C = f(a,b), J = complete_eu
-   
+
     # # noninterference lemma
 
     # invariant pout.valid -> complete_eu = aux(pout.tag).eu;
@@ -298,4 +298,3 @@ object toma = {
 }
 
 export toma.step
-

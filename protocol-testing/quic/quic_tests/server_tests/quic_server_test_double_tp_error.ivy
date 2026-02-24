@@ -63,7 +63,7 @@ after init {
 # Generate connection_close frames only for the environment process(es).
 #
 # Note: requiring the `err_code` is zero on non-generated frames means that
-# we stop the test if the peer reports a protocol error. 
+# we stop the test if the peer reports a protocol error.
 
 before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid) {
     if _generating {
@@ -103,7 +103,6 @@ export tls_recv_event
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require is_transport_parameter_error | ~handshake_done_send;
 }
-

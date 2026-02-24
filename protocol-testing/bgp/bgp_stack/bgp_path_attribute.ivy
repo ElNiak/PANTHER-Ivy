@@ -119,7 +119,7 @@ object path_attr = {
                 segment_value: autonomous_system.arr
             }
             instance idx : unbounded_sequence
-            instance arr : array(idx,this) 
+            instance arr : array(idx,this)
         }
 
         variant this of path_attr = struct {
@@ -194,7 +194,7 @@ object path_attr = {
     }
 
     instance idx : unbounded_sequence
-    instance arr : array(idx,this) 
+    instance arr : array(idx,this)
 }
 
 
@@ -224,7 +224,7 @@ object path_attr = {
         action handle(f:path_attr.origin, src:bgp_id, dst:bgp_id)
 
         around handle {
-            # TODO use an action to make this general 
+            # TODO use an action to make this general
             # require src = bgp_ivy_instance.bgpid;
             # require dst = bgp_impl_instance.bgpid;
             require open_message_recv(src) & open_message_recv(dst);
@@ -263,7 +263,7 @@ object path_attr = {
                     queued_segment_value(src,idx) := aspath.segment_value;
                 };
                 require queued_segment_type(src,idx) = 1 | queued_segment_type(src,idx) = 2;
-                require aspath.segment_type  = queued_segment_type(src,idx); 
+                require aspath.segment_type  = queued_segment_type(src,idx);
                 require aspath.segment_len   = num_queued_segment_value(src,idx);
                 require aspath.segment_value = queued_segment_value(src,idx);
                 path_attr_size(src) := path_attr_size(src) + 1 + 2 * as_idx_to_stream_pos(aspath.segment_len);

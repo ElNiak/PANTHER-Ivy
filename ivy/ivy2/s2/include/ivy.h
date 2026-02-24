@@ -33,9 +33,9 @@ namespace ivy {
     // is the default value. The __hash method returns a hash of
     // the value of type size_t. We require that the hash of the default
     // value (i.e., 0) is always zero.
-    // 
+    //
     // The predicate __is_seq gives true for unsigned integer types.
-    
+
 
     // This struct implements the Ivy boolean type based on the native
     // C++ bool type. It provides the standard traits for Ivy values,
@@ -231,13 +231,13 @@ namespace ivy {
     // `data` by one to accomodate the new value. This allows the
     // vector to grow, provided values are appended sequentially. The
     // `resize` function produces a pure vector of the given size, even
-    // if argument function is represented sparsely. 
+    // if argument function is represented sparsely.
     //
     // Functions of more than one argument are represented by currying.
-    
-    
+
+
     template <class T, class ... RestD> struct vector;
-    
+
     // This specialization represents the base case: a function of
     // one argument.
 
@@ -272,7 +272,7 @@ namespace ivy {
             }
             return v.__is_zero();
         }
-        
+
         native_bool operator==(const vector &other) const {
             if (PrimaryD::__is_seq()) {
                 for (std::size_t idx = 0; idx < data.size(); ++idx) {
@@ -315,7 +315,7 @@ namespace ivy {
                     if (!PrimaryD::__is_seq() || ((std::size_t)idx) >= data.size())
                         if (!it->second.__is_zero()) return false;
                 }
-            }                        
+            }
             return true;
         }
 
@@ -337,11 +337,11 @@ namespace ivy {
                             res += h(it->second);
                         }
                     }
-                }                    
+                }
                 return res;
             }
         };
-        
+
         static T zero;  // apologies to Calvino
 
         const T& operator() (PrimaryD idx) const {
@@ -357,7 +357,7 @@ namespace ivy {
             }
             return zero;
         }
-        
+
         T& operator() (PrimaryD idx) {
             if (PrimaryD::__is_seq()) {
                 if (((std::size_t)idx) < data.size())
@@ -397,10 +397,10 @@ namespace ivy {
     };
 
     template<class T, class PrimaryD > T vector<T, PrimaryD>::zero;
-    
+
 
     // This specialization represents the recursive case: a function of more than
-    // one argument. 
+    // one argument.
 
     template<class T, class PrimaryD, class ... RestD > struct vector<T, PrimaryD, RestD...> {
         typedef PrimaryD index_type;
@@ -618,7 +618,7 @@ namespace ivy {
     // would be sufficient. Also, this and other Ivy classes should
     // have move constructors that would allow the compiler in some
     // cases to avoid the reference counting overhead.
-    
+
 
     template <class T> struct ptr {
 
@@ -647,9 +647,9 @@ namespace ivy {
 
             virtual wrap *clone() {return new twrap(item);}
 
-            virtual const T *get() const {return &item;} 
+            virtual const T *get() const {return &item;}
 
-            virtual T *get() {return &item;} 
+            virtual T *get() {return &item;}
 
             virtual std::size_t __hash() const {
                 return typename S::__hash()(item);
@@ -697,7 +697,7 @@ namespace ivy {
                 p->deref();
                 p = p->clone();
                 return p->get();
-            }   
+            }
         }
 
         ~ptr() {
@@ -734,7 +734,7 @@ namespace ivy {
     template <class T> const T* to_ptr (const T &x) {
         return &x;
     }
-    
+
     template <class T,class S> native_bool isa(const S& x) {
         return dynamic_cast<const T *>(&x);
     }
@@ -795,7 +795,7 @@ namespace ivy {
             ::close(fd);
         }
     }
-    
+
     template <class N, class D> static inline bool __write_file(const N &name, const D &data) {
         bool ok;
         std::string sname;
@@ -851,7 +851,7 @@ namespace ivy {
 
     template <class N, class D> static inline void get_argv(const N &idx, D &data) {
         const char* p = __argv[(std::size_t)idx];
-        for (; *p; ++p) 
+        for (; *p; ++p)
             data.append(*p);
     }
     static inline int get_argc() {
@@ -892,4 +892,3 @@ namespace ivy {
     }
 
 }
-

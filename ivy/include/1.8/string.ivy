@@ -16,7 +16,7 @@ include order
 # range interpreted as numeric types. In particular the range
 # type will be interpreted representing unicode code points.
 # The primary difference between string and array is the
-# textual format. 
+# textual format.
 
 
 module string(domain,range) = {
@@ -35,11 +35,11 @@ module string(domain,range) = {
     action set(a:t,x:domain,y:range) returns (a:t)
 
     # get the value y such that x in [0,end) maps to y in string a
-    action get(a:t,x:domain) returns (y:range) 
+    action get(a:t,x:domain) returns (y:range)
 
     # get the value of end
     action size(a:t) returns (s:domain)
-    
+
     # change the size of the string
     action resize(a:t,s:domain,v:range) returns (a:t)
 
@@ -88,7 +88,7 @@ module string(domain,range) = {
 	}
         before set {
 	    assert 0 <= x & x < end(a)
-	}	       	 
+	}
 	after set {
             assert end(a) = end(old a);
 	    assert value(a,X) = y if X = x else value(old a,X)
@@ -151,14 +151,14 @@ module string(domain,range) = {
 
 	implement set {
 	    <<<
-	        if (0 <= `x` && `x` < (`domain`)`a`.size()) 
+	        if (0 <= `x` && `x` < (`domain`)`a`.size())
 	            `a`[`x`] = `y`;
 	    >>>
 	}
 
 	implement get {
 	    <<<
-	        if (0 <= `x` && `x` < (`domain`)`a`.size()) 
+	        if (0 <= `x` && `x` < (`domain`)`a`.size())
 	            `y` = `a`[`x`];
 	    >>>
 	}
@@ -205,7 +205,7 @@ module string(domain,range) = {
         }
         >>>
 
-	definition segment(a:t,lo:domain,hi:domain) = 
+	definition segment(a:t,lo:domain,hi:domain) =
 	<<< __string_segment(a,lo,hi) >>>
 
 	<<< impl
@@ -283,7 +283,7 @@ module string(domain,range) = {
                 }
 	        res.close_list();
 	    }
-		
+
 	    #ifdef Z3PP_H_
 	    template <>
             z3::expr __to_solver(gen& g, const z3::expr& z3val, `t`& val) {
@@ -325,7 +325,7 @@ module string(domain,range) = {
 }
 
 ################################################################################
-# 
+#
 # Use of the type string[domain][range], where domain and range are
 # types, implicitly creates an instance of string(domain,range) called
 # string[domain][range].
@@ -342,17 +342,16 @@ autoinstance string[domain][range] : string(domain,range)
 #
 
 module char_vector(range) = {
-    
+
     instance domain : unbounded_sequence
-    
+
     instantiate string(domain,range)
 }
 
 ################################################################################
-# 
+#
 # Use of the type vector[range], where range is a type, implicitly
 # creates an instance of vector(range) called vector[range].
 #
 
 autoinstance char_vector[range] : vector(range)
-

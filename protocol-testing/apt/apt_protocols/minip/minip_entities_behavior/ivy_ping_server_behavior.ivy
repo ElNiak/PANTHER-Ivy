@@ -52,7 +52,7 @@ after init {
 
 
 before ping_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
-    if _generating { 
+    if _generating {
         require client.ep.addr ~= 0;  # must have a client address to send to
         require src = server.ep;
         require dst = client.ep;
@@ -60,7 +60,7 @@ before ping_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet)
 }
 
 action client_send_event(src:ip.endpoint, dst:ip.endpoint, end : stream_pos)
-    
+
 around client_send_event {
     require src = server.ep;
     require dst = client.ep;

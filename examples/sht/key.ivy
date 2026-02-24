@@ -3,7 +3,7 @@
 include order
 
 object key = {
-    
+
     type t
     instance props : totally_ordered_with_zero(t)
     instance iter : order_iterator(t)
@@ -37,7 +37,7 @@ object key = {
 
     object impl = {
 	interpret t -> bv[1]
-	
+
 	implement iter.prev {
 	    iter.iter_val(x) := max if iter.iter_end(y) else iter.iter_val(y) - 1;
 	    iter.iter_end(x) := false
@@ -58,4 +58,3 @@ object key = {
 
     isolate iso_props = props with impl
 }
-

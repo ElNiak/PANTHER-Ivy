@@ -3,7 +3,7 @@
 # Copyright (c) Microsoft Corporation. All Rights Reserved.
 #
 
-from .ivy_init import ivy_init 
+from .ivy_init import ivy_init
 from . import ivy_module
 from .tk_ui import ui_main_loop
 
@@ -15,4 +15,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

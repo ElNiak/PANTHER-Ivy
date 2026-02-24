@@ -47,7 +47,7 @@ isolate bar = {
         var head : nat
         var tail : nat
         var queue(X:nat) : id
-        
+
         after init {
             head := 0;
             tail := 0;
@@ -106,7 +106,7 @@ isolate bar = {
         (globally eventually receiving.now) ->
         globally (sending.now & sending.value = X) ->
                  (eventually receiving.now & receiving.value = X)
-        
+
         proof {
             tactic tempind with Y = tail;
             tactic skolemize;
@@ -117,4 +117,3 @@ isolate bar = {
 
 export bar.send
 export bar.recv
-

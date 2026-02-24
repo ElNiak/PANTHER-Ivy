@@ -1,7 +1,7 @@
 #lang ivy
 
 # This module inplements a reader for the pcap packet dump format
-# (https://wiki.wireshark.org/Development/LibpcapFileFormat). 
+# (https://wiki.wireshark.org/Development/LibpcapFileFormat).
 
 # The module parameters are:
 #
@@ -9,7 +9,7 @@
 # - serdes : the serializer/deserializer for type pkt
 
 # The module takes one command-line parameter "name" giving the pathname of
-# the file to read. 
+# the file to read.
 
 # Packets are read from file "name", deserialized, and passes to
 # action "handle".
@@ -74,7 +74,7 @@ module pcap(pkt,deser) = {
 
             public:
 
-                // In the constructor, we open the file and 
+                // In the constructor, we open the file and
                 // read the global header.
 
                 pcap_reader(const std::string &name, %`handle` cb) : cb(cb) {
@@ -86,7 +86,7 @@ module pcap(pkt,deser) = {
                         perror("cannot read header of pcap file");
                     }
                 }
-            
+
                 int fdes() { return fd; }
 
                 void read() {
@@ -135,11 +135,11 @@ module pcap(pkt,deser) = {
 		    // skip 42 bytes of IP and UDP header
 
 		    buf.erase(buf.begin(),buf.begin()+42);
-		
+
                     // Create a deserializer and deserialize the packet.
 
                     deser ds(buf);
-                
+
                     while (ds.inp.size() > ds.pos) {
                         pkt packet;
                         try {
@@ -153,7 +153,7 @@ module pcap(pkt,deser) = {
                             std::cerr << "error: failed to deserialize packet in pcap file." << std::endl;
                             std::cerr << "hex dump of packet follows." << std::endl;
                             for (unsigned i = 0; i < buf.size(); i++) {
-                                if (i > 0 && i % 16 == 0) 
+                                if (i > 0 && i % 16 == 0)
                                     std::cerr << std::endl;
                                 if (i == ds.pos)
                                     fprintf(stderr,"*");
@@ -173,10 +173,10 @@ module pcap(pkt,deser) = {
         # At initialization, we instantiate a reader object and install it
 
         <<< init
-          
+
             install_reader(new pcap_reader<`pkt`,`deser`>(`name`,`handle`));
-        
+
         >>>
 
-    }        
+    }
 }

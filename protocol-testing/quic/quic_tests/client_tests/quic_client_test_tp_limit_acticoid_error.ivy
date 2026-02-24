@@ -55,13 +55,13 @@ action make_transport_parameters returns (tp:quic_transport_parameters) = {
     tp.transport_parameters := tp.transport_parameters.append(acid);
 }
 
-# TODO connection close 
+# TODO connection close
 
 # Generate connection_close frames only for the client.
 
 before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid) {
     if _generating {
-        require client.ep.addr ~= 0;         
+        require client.ep.addr ~= 0;
         require scid = the_cid;
     } else {
         require is_connection_id_limit_error
@@ -108,8 +108,6 @@ attribute frame.new_connection_id.handle.weight = "5"
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require is_connection_id_limit_error;
 }
-
-

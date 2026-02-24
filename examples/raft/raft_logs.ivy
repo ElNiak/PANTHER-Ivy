@@ -61,11 +61,11 @@ object logs = {
 }
 
 object proto = {
-    
+
     individual node_logs(X:node) : log
     individual node_terms(X:node) : term
     relation leader(T:term,X:node)
-    
+
     init ~leader(T,X)
     init node_terms(X) = 0
 
@@ -73,13 +73,13 @@ object proto = {
 	assume leader(node_terms(n),n);
 	node_logs(n) := logs.extend(node_logs(n),e,node_terms(n))
     }
-    
+
     action send_log(leader:node, dominated:node_set) = {
 	assume maj(dominated);
-	assume mem(X,dominated) -> (meas(node_logs(X)) < meas(node_logs(leader)) 
+	assume mem(X,dominated) -> (meas(node_logs(X)) < meas(node_logs(leader))
                                     | meas(node_logs(X)) = meas(node_logs(leader)));
 	call abs_net.send_log(leader,node_logs(leader))
-    }	
+    }
 
     action receive_log(dst:node, leader:node, l:log) = {
 	if meas(node_logs(dst)) < meas(l) {
@@ -129,11 +129,10 @@ object abs_net = {
     }
     execute receive_log before proto.receive_log
 }
-    
+
 export proto.extend
 export proto.send_log
 export proto.receive_log
 export proto.commit
 
 isolate iso_p = proto with abs_net,logs
-

@@ -15,7 +15,7 @@ function max_latency : milliseconds
 function processing_delay : milliseconds
 function non_lifetime : milliseconds
 
-relation rtt_enabled 
+relation rtt_enabled
 function current_rtt(E:ip.endpoint) : milliseconds
 function lastest_rtt(E:ip.endpoint) : milliseconds
 function max_rtt : milliseconds
@@ -53,7 +53,7 @@ function max_rtt : milliseconds
 after init {
     nstart                := 1;
     exchange_lifetime (I) := 0;
-    ack_timeout           := 2000; 
+    ack_timeout           := 2000;
     ack_random_factor     := 1.5;
     default_leisure       := 5000;
 
@@ -63,7 +63,7 @@ after init {
 #       from the start of its transmission to the completion of its
 #       reception.  This constant is related to the MSL (Maximum Segment
 #       Lifetime) of [RFC0793], which is "arbitrarily defined to be 2
-#       minutes" ([RFC0793] glossary, page 81).  
+#       minutes" ([RFC0793] glossary, page 81).
 
 #       Note that this is not
 #       necessarily smaller than MAX_TRANSMIT_WAIT, as MAX_LATENCY is not

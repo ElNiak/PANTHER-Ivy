@@ -11,7 +11,7 @@ include quic_random_value
 # -------------
 #
 # To test the server over the OS sockets layer, we need some setup. We must
-# establish which interface and which ports the tester will use. 
+# establish which interface and which ports the tester will use.
 #
 
 
@@ -21,7 +21,7 @@ var sock_vn : quic_net.socket
 
 # Server
 action socket_endpoint_mim(host:endpoint_id,s:quic_net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
-    dst := mim_agent.ep_client if src = mim_agent.ep_server else mim_agent.ep_server; # is_mim_standalone | 
+    dst := mim_agent.ep_client if src = mim_agent.ep_server else mim_agent.ep_server; # is_mim_standalone |
     call socket_endpoint_mim_event_debug_event(host,s,src,dst);
 }
 
@@ -60,5 +60,3 @@ attribute stream_pos.cardinality = 4
 
 # The following are some imported actions that can be used to put
 # "debugging" information in the logs. They have no other effect.
-
-

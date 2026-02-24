@@ -50,13 +50,13 @@ module array(domain,range) = {
         }
     }
 
-    # The `resize` action sets the end marker of the string. 
-    
+    # The `resize` action sets the end marker of the string.
+
     action resize(s:this,end:domain) returns (s:this) = {
         s.value := cast(ivy.resize(cast(s.value),cast(end)));
         s.end := end;
     }
-    
+
     # The `back` action returns the last element of an array, or zero
     # if the array is empty.
 
@@ -85,8 +85,8 @@ module array(domain,range) = {
 	    res := res.append(s.value(idx));
 	    idx := idx.next
 	}
-    }    
-    
+    }
+
     # The `reverse` action reverses an array.
 
     action reverse(s:this) returns (s:this) = {
@@ -99,7 +99,7 @@ module array(domain,range) = {
 	    jdx := jdx.prev;
 	    idx := idx.next;
 	}
-    }    
+    }
 }
 
 ################################################################################
@@ -111,9 +111,9 @@ module array(domain,range) = {
 #
 
 module vector(range) = {
-    
+
     instance domain : unbounded_sequence
-    
+
     instantiate array(domain,range)
 }
 

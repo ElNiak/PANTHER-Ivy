@@ -44,7 +44,7 @@ module test_to_cpp(ivyclass,cppclass) = {
         var ivyexpr := ivyclass.dec(s);
         var fst : flatst;
         (ivyexpr,fst) := ivyexpr.flat(fst);
-        var st : tocppst; 
+        var st : tocppst;
         (res,st) := ivyexpr.to_cpp(st);
     }
     export action test2(s:str) returns(res:ivyclass) = {
@@ -64,7 +64,7 @@ object ivy = { ...
         out:str,
         st:decost
     }
-    
+
     export action testdeco(inp:str) returns (res:thing) = {
         var e := expr.dec(inp);
         var ty : expr;
@@ -89,7 +89,7 @@ object ivy = { ...
     object expr = { ...
         instantiate test_to_cpp(ivy.expr,cpp.expr)
     }
-    
+
     object stmt = { ...
         instantiate test_to_cpp(ivy.stmt,cpp.stmt)
     }
@@ -106,7 +106,7 @@ object ivy = { ...
 
 export ivy.prog.file_to_cpp
 
-        
+
 
 
 import action show_pretty(p:pretty)

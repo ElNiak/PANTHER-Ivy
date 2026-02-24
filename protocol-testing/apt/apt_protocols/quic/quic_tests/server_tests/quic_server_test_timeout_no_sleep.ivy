@@ -60,14 +60,14 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     # require (_generating  -> is_not_sleeping);
     # # require (~is_not_sleeping -> ~_generating);
     if slept & time_api.c_timer.is_sleep_fake_timeout   { # & sleep_start + microseconds_to_milliseconds(max_idle_timeout_used) + 500 < time_api.c_timer.now_millis
-        #call _finalize; 
+        #call _finalize;
         if ~_generating {
             last_pkt_send_before_sleep := pkt.seq_num;
         }
     };
     if _generating {
-        
-    } 
+
+    }
     else {
         # call show_is_sleep_fake_timeout(time_api.c_timer.is_sleep_fake_timeout);
         # require time_api.c_timer.is_sleep_fake_timeout <-> _generating;
@@ -95,7 +95,7 @@ before send_ack_eliciting_handshake_packet(src:ip.endpoint,dst:ip.endpoint,pkt:p
             require src = client_vn;
         } else {
             if ~disable_active_migration.is_set(tp) {
-                if ~migration_done | allowed_multiple_migration { 
+                if ~migration_done | allowed_multiple_migration {
                     #only one migration
                     require src = client.ep | src = client_alt;
                 } else {
@@ -106,11 +106,11 @@ before send_ack_eliciting_handshake_packet(src:ip.endpoint,dst:ip.endpoint,pkt:p
             }
         };
         require dst = server.ep;
-        #require pkt.token.end = 0; 
+        #require pkt.token.end = 0;
         if pkt.ptype = quic_packet_type.initial & retry_recv(pkt.src_cid) & ~zero_length_token {
             require pkt.token = retry_token(pkt.src_cid); # TODO new_token
         } else {
-            require pkt.token.end = 0; 
+            require pkt.token.end = 0;
         };
     };
     if final_version = 0x00000000 {
@@ -130,7 +130,7 @@ before send_ack_eliciting_initial_packet(src:ip.endpoint,dst:ip.endpoint,pkt:pac
             require src = client_vn;
         } else {
             if ~disable_active_migration.is_set(tp) {
-                if ~migration_done | allowed_multiple_migration { 
+                if ~migration_done | allowed_multiple_migration {
                     #only one migration
                     require src = client.ep | src = client_alt;
                 } else {
@@ -141,11 +141,11 @@ before send_ack_eliciting_initial_packet(src:ip.endpoint,dst:ip.endpoint,pkt:pac
             }
         };
         require dst = server.ep;
-        #require pkt.token.end = 0; 
+        #require pkt.token.end = 0;
         if pkt.ptype = quic_packet_type.initial & retry_recv(pkt.src_cid) & ~zero_length_token {
             require pkt.token = retry_token(pkt.src_cid); # TODO new_token
         } else {
-            require pkt.token.end = 0; 
+            require pkt.token.end = 0;
         };
     };
     if final_version = 0x00000000 {
@@ -165,7 +165,7 @@ before send_ack_eliciting_application_packet(src:ip.endpoint,dst:ip.endpoint,pkt
             require src = client_vn;
         } else {
             if ~disable_active_migration.is_set(tp) {
-                if ~migration_done | allowed_multiple_migration { 
+                if ~migration_done | allowed_multiple_migration {
                     #only one migration
                     require src = client.ep | src = client_alt;
                 } else {
@@ -176,11 +176,11 @@ before send_ack_eliciting_application_packet(src:ip.endpoint,dst:ip.endpoint,pkt
             }
         };
         require dst = server.ep;
-        #require pkt.token.end = 0; 
+        #require pkt.token.end = 0;
         if pkt.ptype = quic_packet_type.initial & retry_recv(pkt.src_cid) & ~zero_length_token {
             require pkt.token = retry_token(pkt.src_cid); # TODO new_token
         } else {
-            require pkt.token.end = 0; 
+            require pkt.token.end = 0;
         };
     };
     if final_version = 0x00000000 {
@@ -219,7 +219,7 @@ before quic_frame.ack.handle(f:quic_frame.ack,scid:cid,dcid:cid,e:quic_packet_ty
         require scid = the_cid;
         force_new_ack := true;
         #call handle_sending_ack(f.largest_acked);
-    } 
+    }
 }
 
 # Generate rst_stream frames only for the environment process(es).
@@ -234,7 +234,7 @@ before quic_frame.rst_stream.handle(f:quic_frame.rst_stream,scid:cid,dcid:cid,e:
 before quic_frame.new_token.handle(f:quic_frame.new_token,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require ~is_idle;
-    } 
+    }
 }
 
 # Generate stop_sending frames only for the environment process(es).
@@ -269,12 +269,12 @@ before quic_frame.retire_connection_id.handle(f:quic_frame.retire_connection_id,
 # Generate connection_close frames only for the environment process(es).
 #
 # Note: requiring the `err_code` is zero on non-generated frames means that
-# we stop the test if the peer reports a protocol error. 
+# we stop the test if the peer reports a protocol error.
 
 before quic_frame.connection_close.handle(f:quic_frame.connection_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require ~is_idle;
-    } 
+    }
 }
 
 # Generate application_close frames only for the environment process(es).
@@ -282,7 +282,7 @@ before quic_frame.connection_close.handle(f:quic_frame.connection_close,scid:cid
 before quic_frame.application_close.handle(f:quic_frame.application_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
         require ~is_idle;
-    } 
+    }
 }
 
 # Generate max_stream_data frames only for the environment process(es), and only for
@@ -349,12 +349,12 @@ import action show_last_pkt_num_for_cid(pktnum:pkt_num,dst_cid:cid,ptype:quic_pa
 # export quic_frame.ping.handle
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require is_no_error;
     require conn_total_data(the_cid) > 0;
     require ~connection_closed; # silent close
     require last_pkt_send_after_sleep - last_pkt_send_before_sleep < 3;
     # require ~ (received_packets_time_sent(quic_packet_type.one_rtt, streampos_to_seqnum(received_packets_end(quic_packet_type.one_rtt))) - milliseconds_to_microseconds(sleep_start) > max_idle_timeout_used + 0x10);
     # require received_packets_time_sent(quic_packet_type.one_rtt, streampos_to_seqnum(received_packets_end(quic_packet_type.one_rtt))) - milliseconds_to_microseconds(sleep_start) <= max_idle_timeout_used + 0x10;
-    #call 
+    #call
 }

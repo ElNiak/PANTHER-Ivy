@@ -44,7 +44,7 @@ module hash_table(key,value,shard) = {
 
 	before incorporate(s:shard.t) {
 	    assert shard.valid(s);
-	    hash(K) := shard.value(s,K) 
+	    hash(K) := shard.value(s,K)
 	               if key.iter.between(shard.lo(s),K,shard.hi(s))
 	               else hash(K)
 	}
@@ -54,7 +54,7 @@ module hash_table(key,value,shard) = {
     # Implementation
 
     object impl = {
-	
+
 	instance tab : ordered_map(key,value)
 
 	implement set {
@@ -70,7 +70,7 @@ module hash_table(key,value,shard) = {
             var idx := tab.lub(lo);
             while idx < hi
                 invariant lo <= idx & (idx < hi -> tab.contains(idx.val))
-                invariant lo.between(X,idx) & tab.contains(X) -> 
+                invariant lo.between(X,idx) & tab.contains(X) ->
                                exists I. (res.key_at(I,X) & tab.maps(X,res.value_at(I)))
                 invariant res.key_at(I,X) -> lo.between(X,idx) & tab.contains(X)
                 invariant shard.valid(res)
@@ -78,7 +78,7 @@ module hash_table(key,value,shard) = {
                 var k := idx.val;
                 res.kv := res.kv.append_pair(k,tab.get(k,0));
                 idx := tab.next(idx)
-            };		
+            };
             res.lo := lo;
             res.hi := hi
 	}
@@ -101,10 +101,10 @@ module hash_table(key,value,shard) = {
                 var d := s.kv.get_value(pos);
                 if lo.between(k,hi) & d ~= 0{
                     call tab.set(k,d)
-                };			
+                };
                 pos := pos.next
             }
-	}	
+	}
 
 	object spec = {
 	    function tab_invar(X,Y) =
@@ -119,4 +119,3 @@ module hash_table(key,value,shard) = {
     }
 
 }
-

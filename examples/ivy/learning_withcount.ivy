@@ -3,7 +3,7 @@
 
 
 
-relation pending(P, S, T, Di) # A pednding packet P at on the link from S to T oof distance Di 
+relation pending(P, S, T, Di) # A pednding packet P at on the link from S to T oof distance Di
 relation rp(H, S, D) # There is a path from S to D for H
 relation dist(H, S, Di) # There is a path from S to H of length Di
 relation src(P, H)
@@ -64,8 +64,8 @@ init ~pending(P,S,T, Di)
      & rp(H,X,X)
      & (X = Y | ~rp(H,X,Y))
      & ~dist(X,Y,Z)
-     
-     
+
+
 individual p0, sw0, sw1,sw2, s0, t0, di, cdi, ndi
 
 
@@ -103,14 +103,14 @@ action receive = {
 	  assume dist(s0, sw1, di) ;
 	  if (lt(cdi, di)) { # Shorter path
 	       # assert ~rp(s0,sw0,sw1) // error 3
-	       rp(s0, S, D) := rp(s0, S, D) & (S = D |  ~ (rp(s0, S, sw1) &  rp(s0, sw0, D))) ;  # Remove deleted entries 
+	       rp(s0, S, D) := rp(s0, S, D) & (S = D |  ~ (rp(s0, S, sw1) &  rp(s0, sw0, D))) ;  # Remove deleted entries
 	       rp(s0, S, D) := rp(s0, S, D) | rp(s0, S, sw1) &  rp(s0, sw0, D) ;
 	       dist(s0, sw1, di) := false;
 	       dist(s0, sw1, cdi) := true
 	       }
 	  }
   };
-         
+
 
   assume(lt(cdi, ndi) & (~lt(cdi, X) | le(ndi, X))); # ndi is the immedidate successor of cdi
   if (t0 ~= sw1) {
@@ -120,13 +120,13 @@ action receive = {
       else {
 	 sw2 := *;
 	 assume sw2 ~= sw1 & rp(t0, sw1, sw2) & (~rp(t0, sw1, X) | X = sw1 | rp(t0, sw2, X)) ;
-	 pending(p0, sw1, sw2, ndi) := true 
+	 pending(p0, sw1, sw2, ndi) := true
       }
   }
 }
- 
 
-action error1 = {       
+
+action error1 = {
   p0 := *;
   sw0 := *;
   sw1 := *;
@@ -135,13 +135,13 @@ action error1 = {
   cdi := * ;
   assume dst(p0, t0);
   assume src(p0, s0);
-  assume pending(p0,sw0, sw1, cdi) | (s0 = sw1 & sw0 = sw1 & cdi=zero) ;  
+  assume pending(p0,sw0, sw1, cdi) | (s0 = sw1 & sw0 = sw1 & cdi=zero) ;
   assume (~rp(s0, sw1, X) | X = sw1) & sw0 ~= sw1 ;
   assume rp(s0,sw0,sw1)
 }
 
 
-action error2 = {       
+action error2 = {
   p0 := *;
   sw0 := *;
   sw1 := *;
@@ -151,12 +151,12 @@ action error2 = {
   sw2 := * ;
   assume dst(p0, t0);
   assume src(p0, s0);
-  assume pending(p0,sw0, sw1, cdi) | (s0 = sw1 & sw0 = sw1 & cdi =zero);  
+  assume pending(p0,sw0, sw1, cdi) | (s0 = sw1 & sw0 = sw1 & cdi =zero);
   assume (rp(s0, sw1, sw2) & sw2 ~= sw1) | sw0 = sw1 ;
   assume ~dist(s0, sw1, X)
 }
 
-action error3 = {       
+action error3 = {
   p0 := *;
   sw0 := *;
   sw1 := *;
@@ -167,11 +167,9 @@ action error3 = {
   di := * ;
   assume dst(p0, t0);
   assume src(p0, s0);
-  assume pending(p0,sw0, sw1, cdi) | (s0 = sw1 & sw0 = sw1 & cdi =zero);  
+  assume pending(p0,sw0, sw1, cdi) | (s0 = sw1 & sw0 = sw1 & cdi =zero);
   assume (rp(s0, sw1, sw2) & sw2 ~= sw1) | sw0 = sw1 ;
   assume dist(s0, sw1, di) ;
   assume lt(cdi, di) ;
-  assume rp(s0, sw0, sw1)      
+  assume rp(s0, sw0, sw1)
 }
-
-

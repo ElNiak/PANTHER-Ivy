@@ -14,7 +14,7 @@ class UFNode(object):
         self.id = ufidctr
         ufidctr += 1
     def __str__(self):
-        return str(self.id) 
+        return str(self.id)
     def __repr__(self):
         return str(self.id)
     def __hash__(self):
@@ -48,5 +48,3 @@ def unify(s1, s2):
 
     if s1 != s2:
         s1.instance = s2
-
-

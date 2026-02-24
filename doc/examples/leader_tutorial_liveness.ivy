@@ -95,7 +95,7 @@ isolate abstract_model = {
 	                     (eventually (sent(P,N) & P > pid(N) | P = pid(N))
 	                       -> eventually call send(P,N)))
 			    -> eventually exist L. sent(pid(L),L)
-			    
+
 
     }
 
@@ -160,7 +160,7 @@ isolate leader = {
     private {
         temporal axiom forall N. globally eventually call timer.timeout(N)
 	temporal axiom forall P,N. (eventually net.sent(P,N)) -> (eventually call net.recv(N,P))
-	
+
 
         invariant net.sent(V,N) -> abstract_model.sent(V,N)
         invariant highest(N) >= pid(N)

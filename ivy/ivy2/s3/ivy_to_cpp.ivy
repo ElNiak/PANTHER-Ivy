@@ -25,12 +25,12 @@ module binary_op_to_cpp(ivytype,cpptype,cppclass) = {
         (res.rhs,st) := s.rhs.to_cpp(st);
     }
 }
-    
+
 object ivy = { ...
-    
+
     # The set of names reserved by C++. Ivy names that clash with these
     # have to be changed.
-    
+
     function cpp_reserved_word(X:str) : bool
 
     after init {
@@ -62,7 +62,7 @@ object ivy = { ...
     }
 
     # Two paths may alias if one is a prefix of the other
-    
+
     action path_may_alias(v:access_path,w:access_path) returns (res : bool) = {
         res := true;
         var idx := v.elems.begin;
@@ -71,7 +71,7 @@ object ivy = { ...
             idx := idx.next
         }
     }
-    
+
     # A pair consisting of an lvalue and an alias count
 
     type lvalue_count = struct {
@@ -79,7 +79,7 @@ object ivy = { ...
         path : access_path,
         cnt : pos
     }
-    
+
     # A path tree is a map from access paths to vector[ident].
     # It provides traversal from root to leaf.
 
@@ -139,7 +139,7 @@ object ivy = { ...
 	    s.value(und.leaf).leaves := s.value(und.leaf).leaves.pop_back;
 	    s.undos := s.undos.pop_back;
 	}
-	
+
 	# Collect a list of all items for paths that may alias with the given path.
 
 	action collect(s:this, path:access_path) returns (res:vector[ident]) = {
@@ -163,7 +163,7 @@ object ivy = { ...
 	    }
 	}
     }
-    
+
     # This struct holds the state of the borrowing state machine for
     # a given local variable. The meanings of the starte variables are:
     #
@@ -176,7 +176,7 @@ object ivy = { ...
     # - cancel_non_const: the local cannot be a non-const ref
     #
     # The state is updated as code in scope of the borrowing is compiled.
-    # 
+    #
 
     object borrowing = {
 	type this = struct {
@@ -196,10 +196,10 @@ object ivy = { ...
     instance ident_to_prototype : hash_map(ident,prototype)
     instance ident_to_borrowing : push_pop_map(ident,borrowing)
     instance cppident_to_cppexpr : push_pop_map(cpp.ident,cpp.expr)
-    
+
     object tocppst = {
         type this = struct {
-            
+
             # Maps types to their members, which includes destructors and
             # member actions.
 
@@ -242,7 +242,7 @@ object ivy = { ...
             native : bool,
 
             # True if we are emitting forward declarations
-            
+
             forward : bool,
 
             # Current outputs (lvalues to which expression value will be assigned).
@@ -280,7 +280,7 @@ object ivy = { ...
 	    dot_rhs : bool,
 
 	    # Path tree giving path conflicts
-	    
+
 	    conflicts : path_tree,
 
 	    # States of each current borrowing
@@ -328,7 +328,7 @@ object ivy = { ...
             res := cpp.sequence.fold_right(s.code,ann);
             s.code := vector[cpp.stmt].empty;
 	}
-	
+
         # This adds a statement to the end of the current code, clears
         # the code and returns the result.
 
@@ -338,7 +338,7 @@ object ivy = { ...
         }
 
     }
-        
+
     # Generate a temporay symbol name
 
     action temp_sym(s:tocppst,ann:annot) returns (s:tocppst,res:cpp.expr) = {
@@ -347,7 +347,7 @@ object ivy = { ...
         name := name.extend(s.counter.to_str);
         s.counter := s.counter.next;
         res := cpp.symbol.makestr(name,ann);
-    }	
+    }
 
     # This declares a temporary variable in the current code
     # context and returns it.
@@ -399,7 +399,7 @@ object ivy = { ...
     #
     # - ao : arguments only
     # - ro : roots only
-    
+
     action lvalue_paths(s:expr,paths:vector[access_path],ao:bool,ro:bool)
         returns (paths:vector[access_path]) =
     {
@@ -431,7 +431,7 @@ object ivy = { ...
             }
         }
     }
-    
+
     # This determines whether a C++ lvalue is dead in current context
 
     action is_dead(e:cpp.expr,st:tocppst,cnt:pos) returns (res:bool) = {
@@ -516,7 +516,7 @@ object ivy = { ...
     object expr = { ...
         action to_cpp(s:expr,st:tocppst) returns (res:cpp.expr,st:tocppst)
     }
-    
+
     # When translating symbols to C++, we need to take care of name clashes between
     # namespaces (Ivy objects) and classes (Ivy types). If a type has the same identifier as
     # an object, we append `.__t` to the identifier of the type.
@@ -528,7 +528,7 @@ object ivy = { ...
             id := dotident.make(id,tok);
         }
     }
-    
+
     # Also, when compiling a class member function, the first argument is implicit, and
     # is replaced in the C++ by `(*this)`. A few verbs are spelled differently in C++.
     # We fix this here.
@@ -570,7 +570,7 @@ object ivy = { ...
 #        s := symbol.make(fix_object_clash(s.get_name,st),s.get_ann);
         (res,st) := fix_variant_type(s,st)
     }
-        
+
     action make_md_vector_type(dom:vector[expr],rng:expr,st:tocppst)
         returns (res:cpp.expr,st:tocppst) =
     {
@@ -595,7 +595,7 @@ object ivy = { ...
     # using `std::vector`. This works only when the domain types are
     # convertible to `size_t`. We also need at least a hash table type
     # here for sparse data.
-    
+
     action function_type(ty:expr,st:tocppst) returns (res:cpp.expr,st:tocppst) = {
 	if ty isa app {
 	    # var cty := ty.curry;
@@ -628,7 +628,7 @@ object ivy = { ...
     }
 
     # Returns true if the C++ express is `*this`. This case requires special
-    # handling for indirect calls. 
+    # handling for indirect calls.
 
     action is_cpp_this(s : cpp.expr) returns (res:bool) = {
 	if s isa cpp.symbol {
@@ -646,8 +646,8 @@ object ivy = { ...
     # The last two cases are used if `f : (t * ... -> u)` is a member function where
     # type `t` is a variant type. However, if the first argument is `(*this)` we
     # do *not* use this form, as `this` is a normal C++ pointer, not a special
-    # Ivy variant pointer. 
-    
+    # Ivy variant pointer.
+
     action make_cpp_call(func:expr, args:vector[cpp.expr], ann:annot, st:tocppst, proto : prototype)
         returns (res:cpp.expr, st:tocppst) =
     {
@@ -696,7 +696,7 @@ object ivy = { ...
             idx := idx.next
         }
     }
-        
+
     # A dead lvalue can be converted to an rvalue, which may allow the
     # C++ compiler to use a move rather than a copy.
 
@@ -706,7 +706,7 @@ object ivy = { ...
 	}
     }
 
-    
+
     # Translate an action call to C++. This is complicated, because we have
     # to apply the action prototype and deal with call-by-reference.
     #
@@ -741,9 +741,9 @@ object ivy = { ...
         returns (res:cpp.expr,st:tocppst) =
     {
         var proto := st.protos.value(func.get_arg(0).get_name);
-	
+
         # First evaluate all of the inputs.
-        
+
         var inpvals : vector[cpp.expr];
         var idx := proto.args.begin;
         while idx < proto.args.end {
@@ -758,7 +758,7 @@ object ivy = { ...
             inpvals := inpvals.append(inp);
             idx := idx.next
         };
-        
+
 
         # Evaluate all of the arguments
 
@@ -822,13 +822,13 @@ object ivy = { ...
 	s := cpp.app.make1(cpp.symbol.makestr1("ivy::isa",ty.get_name,s.get_ann),s,s.get_ann);
     }
 
-    # Translate a function application to C++. 
+    # Translate a function application to C++.
 
     object app = { ...
         action to_cpp(s:this,st:tocppst) returns (res:cpp.expr,st:tocppst) = {
 
 	    if s.is(verb.colon) {
-                
+
                 # Generally, type decorations are not emitted to
                 # C++. However, in case of a numeral, we need to cast
                 # the numeral to the appropriate type. If a string
@@ -890,26 +890,26 @@ object ivy = { ...
 	    } else if s.func.is(verb.colon) & s.func.get_arg(0).get_verb = verb.castv {
 
                 # A cast operator looks like (cast : (t->u))(x). This may indicate
-                # a need for an upcast in C++. 
+                # a need for an upcast in C++.
 
                 var ty := s.func.get_arg(1).get_arg(1);  # the range type of the cast operator
                 (res,st) := upcast(ty,s.args.value(0),st)
 	    } else {
 
                 # Detect whether a function application is an action call.
-                
+
                 var func : expr;
                 var args : vector[expr];
                 (func,args) := get_app(s);
 
                 if st.globals.is_action.mem(func.get_arg(0).get_name) {
-                    
+
                     # An action call needs special treatment
-                    
+
                     (res,st) := call_to_cpp(func,args,s.ann,st);
 
-                
-                } else {    
+
+                } else {
 
                     # This is the normal case of function application. We
                     # translate the function and all the arguments and
@@ -1041,7 +1041,7 @@ object ivy = { ...
             idx := idx.next
         }
     }
-    
+
     action kill_lvalue(e:expr,st:tocppst,paths:vector[access_path]) returns (st:tocppst) = {
         var path : access_path;
         var ok : bool;
@@ -1121,7 +1121,7 @@ object ivy = { ...
 	    }
 	}
     }
-    
+
     # Given a list of referenced paths, update the live locals.
 
     action update_live(paths:vector[access_path],st:tocppst) returns (st:tocppst) = {
@@ -1179,7 +1179,7 @@ object ivy = { ...
 
     # When borrowing, we sometimes need to strip off "std::move", indicating
     # that an expression should be treated as an lvalue.
-    
+
     action strip_move(s:cpp.expr) returns (s:cpp.expr) = {
 	if s isa cpp.app {
 	    if s.get_func.get_name.to_str = "std::move" {
@@ -1229,7 +1229,7 @@ object ivy = { ...
     # at the beginning of the next iteration and we do not track this. It might actually
     # be dead (i.e., if the first reference in the loop is always a full assignment)
     # but in this case the programmer can be punished for not declaring the variable
-    # inside the loop. 
+    # inside the loop.
 
     action setup_borrowing(s:stmt,st:tocppst) returns (st:tocppst,ok:bool,id:ident) = {
 	if s isa asgn {
@@ -1281,7 +1281,7 @@ object ivy = { ...
 	st.borrowings := st.borrowings.pop;
 	st.num_borrowings := st.num_borrowings.prev;
     }
-    
+
     # Whenver we access paths, we update the state of any conflicting
     # borrowings.  We note in the state of any conficting borrowings
     # whether we've see a mod or a ref. Note, a mod is any modification of a conflicting
@@ -1311,7 +1311,7 @@ object ivy = { ...
 		    if is_mod & br.saw_ref {
 			br.cancel_non_const := true;
 			br.cancel_const := true;
-		    }			
+		    }
 		    st.borrowings.map := st.borrowings.map.set(id,br);
 		}
 		jdx := jdx.next;
@@ -1354,9 +1354,9 @@ object ivy = { ...
 	    }
 	}
     }
-    
+
     # Turn a local assignment into a reference
-    
+
     action make_local_ref(typing:expr,lhs:cpp.stmt,is_const:bool,st:tocppst) returns (res:cpp.stmt,st:tocppst) = {
 	var vst : cpp.varst;
 	(vst.vtype._type,st) := fix_variant_type(typing.get_arg(1),st);
@@ -1463,7 +1463,7 @@ object ivy = { ...
             (res.elsest,st) := s.elsest.to_cpp(st);
 	    st.cond_nesting := st.cond_nesting.prev;
 	    resd := res;
-            st.code := code;  
+            st.code := code;
 	    (st,resd) := st.wrap_stmt(resd,s.ann);
 	    st := update_live(paths,st);
         }
@@ -1479,7 +1479,7 @@ object ivy = { ...
 	    resd := res
 
 	}
-    }	    
+    }
 
     # Translate "while" statement. We have to account for any side effects in
     # the condition evaluation. For example, suppose we have `while f(x) {s1}`
@@ -1533,7 +1533,7 @@ object ivy = { ...
             (res.body,st) := s.body.fix_borrow(st);
 	    resd := res
 	}
-    }	    
+    }
 
     object varst = { ...
 #        instantiate generic_to_cpp(ivy.varst,cpp.varst,cpp.stmt)
@@ -1545,7 +1545,7 @@ object ivy = { ...
             resd := res;
         }
     }
-    
+
     object cpp.varst = {
         action setup_fix_borrow(s:this,st:ivy.tocppst) returns (st:ivy.tocppst,ok:bool) = {
 	    if s.vtype.is_borrow {
@@ -1555,7 +1555,7 @@ object ivy = { ...
 	    }
 	}
     }
-    
+
     object decl = { ...
         action to_cpp(s:this,st:tocppst) returns (res:cpp.decl,st:tocppst)
         action reg_member(s:this,st:tocppst) returns (st:tocppst)
@@ -1579,7 +1579,7 @@ object ivy = { ...
             var funid := name.get_name.get_member.prefix(clsid);
             res := cpp.symbol.make(funid.to_cpp(false),name.get_ann);
         } else {
-            (res,st) := name.to_cpp(st) 
+            (res,st) := name.to_cpp(st)
         }
     }
 
@@ -1602,7 +1602,7 @@ object ivy = { ...
 	vd.ann := typing.get_ann;
 	res := vd;
     }
-	
+
 
     # Create a temporary name for an argument that will be copied into
     # a local variable.
@@ -1618,7 +1618,7 @@ object ivy = { ...
         # function declaration. The C++ function declarations depends
         # on the action prototype.  If the action is a member action,
         # we drop the first input and replace it with `*this`.
-        
+
         action to_cpp(s:this,st:tocppst) returns (resd:cpp.decl,st:tocppst) = {
             var res : cpp.funcdecl;
             res.ann := s.ann;
@@ -1633,7 +1633,7 @@ object ivy = { ...
             var is_member := s.is_member;
             var full_name : cpp.expr;
             (full_name,st) := full_action_name(s.name,is_member,st);
-	    res.ftype.base.name := member_name(full_name) if (cprot | st.in_class) else full_name; 
+	    res.ftype.base.name := member_name(full_name) if (cprot | st.in_class) else full_name;
             var idx := proto.args.begin;
             st.is_member := is_member;
 	    var argasgns : vector[cpp.stmt];
@@ -1705,7 +1705,7 @@ object ivy = { ...
         }
 
         # Here, we register actions as members of types. These will be emitted
-        # as members of the corresponding C++ class. 
+        # as members of the corresponding C++ class.
 
         action reg_member(s:this,st:tocppst) returns (st:tocppst) = {
             if s.is_member {
@@ -1737,7 +1737,7 @@ object ivy = { ...
 	# it gets us aroud the problem that assigning a value of a subtype to `*this` will result
 	# in the value being sliced.
 
-	
+
 	action fix_action(s : this, st:tocppst) returns (res : decl) = {
 	    if s.is_member {
 		var outs := param_set(s.outputs);
@@ -1765,7 +1765,7 @@ object ivy = { ...
     # Init declarations are not emitted
 
     object initdc = { ...
-        
+
         action emitted(s:this,st:tocppst) returns (res:bool) = {
             res := false;
         }
@@ -1787,13 +1787,13 @@ object ivy = { ...
         if id isa dotident {
             d := add_namespaces_rec(d,id.get_namesp);
         }
-    }        
+    }
 
     action member_name(s:cpp.expr) returns(s:cpp.expr) = {
         if (s.get_name) isa cpp.dotident {
             s := cpp.symbol.make(s.get_name.get_member,s.get_ann)
         }
-    }        
+    }
 
     # Instantiate a standard template. This produces a type name of
     # the form `ivy.tpl[ty]`.
@@ -1805,7 +1805,7 @@ object ivy = { ...
 	var tname := cpp.dotident.make(cpp.strident.make("ivy"),vid);
         res := cpp.symbol.make(tname,ann);
     }
-    
+
     # Make the name of the C++ enum that corresponds to an Ivy enumerated
     # type. The name is `__enum_name` where `name is the Ivy name.
 
@@ -1813,7 +1813,7 @@ object ivy = { ...
         res := "__enum_";
         res := res.extend(name.get_name.to_str)
     }
-        
+
     # Unfortunately, enumerated types can't be classes in C++.  To
     # represent one an enumerated type `t`, we declared a C++ enum
     # named `__enum_t`. We then instantiate a template
@@ -1825,14 +1825,14 @@ object ivy = { ...
     #
     #     struct name : ivy::native_enum< __enum_name > {
     #         name() : ivy::native_enum< __enum_name >() {}
-    #         name(long long value) : 
+    #         name(long long value) :
     #         name(__enum_name value) : ivy::native_enum< __enum_name >(value) {}
     #     };
     #
     # Note we have to promote the constructors of the base class to
     # the derived class. The parameter `sd` is the struct declaration.
     # This action prepends the C++ enum declaration.
-    
+
     action enum_to_cpp(name:cpp.expr,spec:typespec,sd:cpp.decl,st:tocppst)
         returns(res:cpp.decl,st:tocppst) =
     {
@@ -1856,7 +1856,7 @@ object ivy = { ...
         gd.decls := gd.decls.append(sd);
         res := gd;
     }
-    
+
     # All the delcared classes have to have certain standard traits.
     # These are:
     #
@@ -1953,23 +1953,23 @@ object ivy = { ...
         ncons.ftype.args := ncons.ftype.args.append(nconsarg0);
         s.members := s.members.append(ncons);
     }
-        
+
     # Conversion to size_t returns zero:
     #     operator size_t() const { return 0; }
-    
+
     action add_sizet_conv(s:cpp.structdecl) returns (s:cpp.structdecl) = {
-        
+
         var tosizet : cpp.funcdecl;
         tosizet.ftype.base.name := cpp.symbol.makestr("operator std::size_t",s.ann);
         tosizet.ftype.is_const := true;
         tosizet.has_body := true;
         tosizet.body := cpp.retst.make(cpp.symbol.makestr("0",s.ann),s.ann);
         s.members := s.members.append(tosizet);
-    }        
+    }
 
     # __is_seq returns zero:
     #     static bool __is_seq() {return false;}
-    
+
     action add_is_seq_pred(s:cpp.structdecl) returns (s:cpp.structdecl) = {
         var isseq : cpp.funcdecl;
         isseq.ftype.base._type := cpp.symbol.makestr("bool",s.ann);
@@ -1980,9 +1980,9 @@ object ivy = { ...
         s.members := s.members.append(isseq);
     }
 
-    # Equality comparison yields member-wise equality: 
+    # Equality comparison yields member-wise equality:
     #     bool operator==(const name &other) const { return f1==other.f1 & ...; }
-    
+
     action add_eq_pred(s:cpp.structdecl) returns (s:cpp.structdecl) = {
         var eq : cpp.funcdecl;
         eq.ftype.base._type := cpp.symbol.makestr("ivy::native_bool",s.ann);
@@ -2035,10 +2035,10 @@ object ivy = { ...
         diseq.body := cpp.retst.make(diseqret,s.ann);
         s.members := s.members.append(diseq);
     }
-    
+
     # __is_zero is conjunction of __is_zero for members.
     #    bool __is_zero() const { return f1.is_zero() & ...; }
-    
+
     action add_is_zero_pred(s:cpp.structdecl) returns (s:cpp.structdecl) = {
         var iszero : cpp.funcdecl;
         iszero.ftype.base._type := cpp.symbol.makestr("bool",s.ann);
@@ -2070,7 +2070,7 @@ object ivy = { ...
 
         # Hash function adds hashes of members:
         #     struct __hash { size_t operator()(const name &x) {returns t1::__hash(f1) + ...; } };
-            
+
         var hashstr : cpp.structdecl;
         hashstr.ann := s.ann;
         hashstr.name := cpp.symbol.makestr("__hash",s.ann);
@@ -2145,7 +2145,7 @@ object ivy = { ...
     #     derived(const t& value) : base(value) {}
     #
     # The latter is produced if the `constref` parameter is true
-    
+
     action add_derived_cons(s:cpp.structdecl,t:cpp.expr,constref:bool) returns (s:cpp.structdecl) = {
         var dcons := make_cpp_cons(s);
         var dconsarg0 : cpp.simpletype;
@@ -2165,7 +2165,7 @@ object ivy = { ...
     #
 
     action add_base_conversion(s:cpp.structdecl) returns (s:cpp.structdecl) = {
-        
+
         var abc : cpp.funcdecl;
         var op : str;
         op := op.extend("operator ");
@@ -2175,7 +2175,7 @@ object ivy = { ...
         abc.has_body := true;
         abc.body := cpp.retst.make(cpp.symbol.makestr("(*this)",s.ann),s.ann);
         s.members := s.members.append(abc);
-    }        
+    }
 
     # Subclasses of native c++ classes inherit the standard traits from those classes.
     # In order to allow them to use the overloads of the native classes, we add this
@@ -2192,7 +2192,7 @@ object ivy = { ...
     # like `x+y`, where `x` and `y` are of the derived class. Since the only available
     # conversion is to the base class, the `+` operator of the base class is used. On
     # assignment, the constructor is used.
-    
+
     action add_derived_traits(s:cpp.structdecl) returns (s:cpp.structdecl) = {
 
         s.members := s.members.append(make_cpp_cons(s));
@@ -2256,16 +2256,16 @@ object ivy = { ...
 		if is_variant_type(s.sort,st) {
                     res := add_virtual_destructor(res);
 		};
-                resd := res; 
+                resd := res;
                 if s.has_spec & (s.spec isa enumspec) {
                     (resd,st) := enum_to_cpp(res.name,s.spec,resd,st);
                 };
             } else {
                 resd := res;
             };
-            resd := add_namespaces(resd,fix_object_clash(s.sort.get_name,st)); 
+            resd := add_namespaces(resd,fix_object_clash(s.sort.get_name,st));
 	}
-	    
+
 	# Here, we register the constructors of enumerated types
 
 	import action tocpp_show_str(s:str)
@@ -2283,10 +2283,10 @@ object ivy = { ...
 		}
 	    }
         }
-	    
+
 
     }
-	
+
     action is_variant_type(t:expr,st:tocppst) returns (res:bool) = {
         if t isa symbol {
             if st.subtype_rel.subtypes_of.mem(t.get_name) {
@@ -2320,8 +2320,8 @@ object ivy = { ...
         action fix_action(s : this, st:tocppst) returns (res : decl) = {
             res := s;
         }
-    }   
-            
+    }
+
     object vardc = { ...
         action func_to_action(s : vardc) returns (dres : decl) = {
             if s.has_def {
@@ -2349,7 +2349,7 @@ object ivy = { ...
         }
     }
 
-    # Translate a local variable declaration to C++. 
+    # Translate a local variable declaration to C++.
 
     object vardc = { ...
         action to_cpp(s:this,st:tocppst) returns (resd:cpp.decl,st:tocppst) = {
@@ -2388,16 +2388,16 @@ object ivy = { ...
     }
 
     # Translate a header declaration to C++
-    
+
     object header = { ...
         instantiate generic_to_cpp(this,cpp.header,cpp.decl)
-        
+
 	action to_cpp_int(s:this,st:tocppst) returns (res:cpp.header,st:tocppst) = {
             res.filename := s.filename
 	}
     }
-    
-    # Translate an interpret declaration to C++. 
+
+    # Translate an interpret declaration to C++.
 
     object interpdc = { ...
 
@@ -2408,14 +2408,14 @@ object ivy = { ...
         }
 
         # Interpret declarations are never emitted
-        
+
         action emitted(s:this,st:tocppst) returns (res:bool) = {
             res := false;
         }
 
     }
 
-    # Translate an object declaration to C++. 
+    # Translate an object declaration to C++.
 
     object objectdc = { ...
 
@@ -2429,14 +2429,14 @@ object ivy = { ...
         }
 
         # Object declarations are never emitted
-        
+
         action emitted(s:this,st:tocppst) returns (res:bool) = {
             res := false;
         }
 
     }
 
-    # Translate an Ivy program to C++. 
+    # Translate an Ivy program to C++.
 
     object prog = { ...
 	action to_cpp(sp:this) returns (res:cpp.prog) = {
@@ -2444,7 +2444,7 @@ object ivy = { ...
             var st:tocppst;
 
             # Get the subtyping relation
-            
+
             st.subtype_rel := s.get_subtypes;
 
             # A pass to convert function defs to actions
@@ -2461,7 +2461,7 @@ object ivy = { ...
             st.globals := s.get_global_types(true);
 
             # A pass to register all of the type members
-            
+
             idx := s.decls.begin;
 	    while idx < s.decls.end {
                 st := s.decls.value(idx).reg_member(st);
@@ -2491,17 +2491,17 @@ object ivy = { ...
                 s.decls := s.decls.set(idx,d);
 		idx := idx.next
 	    };
-	    
+
 	    # A pass to record all of the C++ function prototypes
-	    
+
             idx := s.decls.begin;
 	    while idx < s.decls.end {
 		st := s.decls.value(idx).record_prototypes(st);
 		idx := idx.next
 	    };
-	    
+
             # A pass to emit the C++ prototypes and class declarations
-            
+
             st.proto_only := true;
             idx := s.decls.begin;
 	    while idx < s.decls.end {
@@ -2514,7 +2514,7 @@ object ivy = { ...
 	    };
 
             # A pass to emit the C++ function implementations
-            
+
             st.proto_only := false;
             idx := s.decls.begin;
 	    while idx < s.decls.end {
@@ -2526,8 +2526,8 @@ object ivy = { ...
                 };
 		idx := idx.next
 	    };
-            
-            
+
+
             # Emit a main function by concatenating the init
             # declaration bodies.
 
@@ -2600,7 +2600,6 @@ object ivy = { ...
         }
     }
 
-	
+
 
 }
-

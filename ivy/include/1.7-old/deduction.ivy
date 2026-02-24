@@ -171,7 +171,7 @@ axiom [elimFalse] {
 
 axiom [introNot] {
     function p : bool
-    { 
+    {
         function q : bool
         property p
         property q
@@ -194,7 +194,7 @@ axiom [elimNot] {
 # ### Existential introduction
 #
 # If we can prove `p(witness)`, we can prove `exists X. p(X)`.
-# 
+#
 axiom [introE] {
     type t
     function p(X:t) : bool
@@ -258,11 +258,11 @@ axiom [introEq] {
     type t
     individual x : t
     individual y : t
-    { 
+    {
         function p(X:t) : bool
         property p(x)
         property p(y)
-    }   
+    }
     #---------------------
     property x = y
 }
@@ -293,4 +293,3 @@ axiom [exmid] {
     theorem [neg] { property ~q property p }
     property p
 }
-

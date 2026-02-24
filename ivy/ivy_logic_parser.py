@@ -146,7 +146,7 @@ else:
     def p_term_aappelem(p):
         'term : appelem'
         p[0] = p[1]
-        
+
     def p_term_old_aappelem(p):
         'term : OLD appelem'
         p[0] = Old(p[2])
@@ -165,7 +165,7 @@ else:
         else:
             p[0] = MethodCall(p[1],p[3])
             p[0].lineno = get_lineno(p,2)
-        
+
     def p_aterm_aappelem(p):
         'aterm : appelem'
         p[0] = p[1]
@@ -174,7 +174,7 @@ else:
         'aterm : aterm DOT appelem'
         p[0] = compose_atoms(p[1],p[3])
         p[0].lineno = get_lineno(p,2)
-        
+
 
     def p_term_term_colon_term(p):
         'term : term COLON atype'
@@ -630,7 +630,7 @@ else:
         p[0] = WhenOperator('last',p[1],p[3])
         p[0].lineno = get_lineno(p,2)
 
-        
+
 def p_term_namedbinder_vars_dot_term(p):
     'term : LPAREN DOLLAR SYMBOL simplevars DOT fmla RPAREN LPAREN terms RPAREN'
     x = NamedBinder(p[3], p[4],p[6])
@@ -655,5 +655,5 @@ if not (iu.get_numeric_version() <= [1,6]):
         tp.lineno = get_lineno(p,2)
         p[0] = Isa(p[1],tp)
         p[0].lineno = get_lineno(p,2)
-    
+
 # TODO: should the above rules create formulas also or only for terms

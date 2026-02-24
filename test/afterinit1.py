@@ -25,7 +25,7 @@ with im.Module():
     iu.set_parameters({'mode':'induction','isolate':'iso_foo','show_compiled':'true'})
     main_ui = new_ui()
     ui = main_ui.add(ivy_from_string(prog))
-    main_ui.tk.update_idletasks()    
+    main_ui.tk.update_idletasks()
     main_ui.answer("OK")
     ui.check_safety_node(ui.node(0))
     assert not ui.node(0).safe
@@ -43,5 +43,3 @@ with im.Module():
 #     main_ui.answer("View")
 #     cg.bmc_conjecture(bound=1)
 #    main_ui.mainloop()
-
-

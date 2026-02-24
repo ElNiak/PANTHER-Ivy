@@ -46,7 +46,7 @@ module udp_wrapper(addr,pkt,me,port_base) = {
                 }
                 bound = true;
             }
-                    
+
 	    virtual void bind() {
 	        ivy -> __lock();  // can be asynchronous, so must lock ivy!
                 bind_int();
@@ -111,7 +111,7 @@ module udp_wrapper(addr,pkt,me,port_base) = {
 		ivy_binary_ser sr;
 	        __ser(sr,pkt);
 		//std::cout << "SENDING\n";
-		if (sendto(sock,&sr.res[0],sr.res.size(),0,(sockaddr *)&dstaddr,sizeof(sockaddr_in)) < 0) 
+		if (sendto(sock,&sr.res[0],sr.res.size(),0,(sockaddr *)&dstaddr,sizeof(sockaddr_in)) < 0)
 #ifdef _WIN32
 		     { std::cerr << "sendto failed " << WSAGetLastError() << "\n"; exit(1); }
 #else
@@ -123,12 +123,12 @@ module udp_wrapper(addr,pkt,me,port_base) = {
     <<< member
 	udp_reader *`rdr`;
 
-        udp_config *the_udp_config;        
+        udp_config *the_udp_config;
 
         udp_config *get_udp_config() {
-	    if (!the_udp_config) 
+	    if (!the_udp_config)
 	        the_udp_config = new udp_config();
-	    return the_udp_config; 
+	    return the_udp_config;
 	}
 
         void set_udp_config(udp_config *conf) {
@@ -162,7 +162,7 @@ module udp_simple(addr,pkt) = {
         after init {
 	    sent(V, N) := false
 	}
-    
+
 	before send {
 	    sent(v,dst) := true
 	}
@@ -186,7 +186,7 @@ module nondup_endpoint(port,pkt) = {
         after init {
 	    sent(V) := false
 	}
-    
+
 	before send {
 	    assert ~sent(v);
 	    sent(v) := true
@@ -212,7 +212,7 @@ module nondup_endpoint(port,pkt) = {
 
 
 module nondup_endpoint_set(addr,port_base,pkt) = {
-    
+
     action recv(dst:addr,v:pkt)
     action send(dst:addr,v:pkt)
 
@@ -222,7 +222,7 @@ module nondup_endpoint_set(addr,port_base,pkt) = {
         after init {
 	    sent(V, N) := false
 	}
-    
+
 	before send {
 	    assert ~sent(v,dst);
 	    sent(v,dst) := true

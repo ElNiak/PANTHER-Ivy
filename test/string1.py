@@ -27,5 +27,3 @@ with ivy_module.Module():
     p = cg.relation('p')
     cg.split(p,g)
 #    ui.mainloop()
-
-

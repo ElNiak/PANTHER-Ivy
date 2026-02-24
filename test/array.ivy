@@ -6,9 +6,9 @@ module array(domain,range) = {
 
     action create(s:domain,y:range) returns (a:t)
     action set(a:t,x:domain,y:range) returns (a:t)
-    action get(a:t,x:domain) returns (y:range) 
+    action get(a:t,x:domain) returns (y:range)
     action size(a:t) returns (s:domain)
-    
+
     function end(A:t) : domain
     function value(A:t,X:domain) : range
 
@@ -18,7 +18,7 @@ module array(domain,range) = {
 	}
         before set {
 	    assert 0 <= x & x < end(a)
-	}	       	 
+	}
 	after set {
 	    assert value(a,x) = y
 	}
@@ -48,14 +48,14 @@ module array(domain,range) = {
 
 	implement set {
 	    <<<
-	        if (0 <= `x` && `x` < (`domain`)`a`.size()) 
+	        if (0 <= `x` && `x` < (`domain`)`a`.size())
 	            `a`[`x`] = `y`;
 	    >>>
 	}
 
 	implement get {
 	    <<<
-	        if (0 <= `x` && `x` < (`domain`)`a`.size()) 
+	        if (0 <= `x` && `x` < (`domain`)`a`.size())
 	            `y` = `a`[`x`];
 	    >>>
 	}

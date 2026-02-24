@@ -12,7 +12,7 @@ pass a reference to an abstract object -- we have to represent the
 contents of the object in a concrete way.
 
 To facilitate exchange of data across interfaces, Ivy provides a set of
-standard concrete datatypes. 
+standard concrete datatypes.
 
 # Structs
 
@@ -138,7 +138,7 @@ Here is a part of the interface definition for array types, from the
 
         action create(s:domain,y:range) returns (a:t)
         action set(a:t,x:domain,y:range) returns (a:t)
-        action get(a:t,x:domain) returns (y:range) 
+        action get(a:t,x:domain) returns (y:range)
         action size(a:t) returns (s:domain)
         action resize(a:t,s:domain,v:range) returns (a:t)
 
@@ -154,7 +154,7 @@ Here is a part of the interface definition for array types, from the
             }
             before set {
                 assert 0 <= x & x < end(a)
-            }                        
+            }
             after set {
                 assert value(a,X) = y if X = x else value(old a,X)
             }
@@ -214,7 +214,7 @@ set. Here is the start of a module that accomplishes that:
         relation contains(X:t,Y:elem)
         action emptyset returns(s:t)
         action add(s:t,e:elem) returns (s:t)
-        ...    
+        ...
 
 Notice something new here: `type this`.  This declares a type with the
 same name as the object we are declaring (which won't be known until
@@ -266,13 +266,13 @@ representation. Here's one way we could implement `set`:
         instance index : unbounded_sequence
         instance arr : array(index.t,elem)
         destructor repr(X:t) : arr
-        
+
         definition contains(X:t,y:elem) = exists Z. 0 <= Z & Z < repr(X).end & repr(X).value(Z) = y
-        
+
 	implement emptyset {
 	    repr(s) := arr.create(0,0)
 	}
-	
+
 	implement add {
 	    if ~contains(s,e) {
                 repr(s) := arr.resize(repr(s),index.next(arr.end(repr(s))),e)
@@ -300,7 +300,7 @@ of a set.
 Next, we give the definition of `contains` in terms of `repr`. This
 definition is also private. We say that `contains(x,y)` is `true`
 if a given `elem` *y* can be found somewhere in the array representing
-set `x`. 
+set `x`.
 
 The implementation of `emptyset` returns an empty array. To add an
 element to a set, we test whether the element is already present.  If
@@ -348,7 +348,7 @@ We export our two actions:
 Then we verify:
 
     $ivy_check arrayset.ivy
-    ivy_check arrayset.ivy 
+    ivy_check arrayset.ivy
     Checking isolate s.impl.index.iso...
     trying ext:s.impl.index.next...
     checking consecution...
@@ -393,7 +393,7 @@ Now let's try adding an action to our `set` module that removes an element:
 
 This implementation of `remove` scans the array for some index `i` whose value is `e`.
 If such an `i` exists, the value `e` is removed by replacing it with the last value
-in the array and then resizing the array to make it one element smaller. 
+in the array and then resizing the array to make it one element smaller.
 
 Unfortunately, this implementation doesn't work: if the input array
 contains two copies of the element `e`, one copy will remain. One
@@ -445,7 +445,7 @@ verifying [arrayset2.ivy](arrayset2.ivy)). There is a disadvantage to
 this approach, however. Users of our `set` module now have to keep
 track of the invariant that set values are valid. This could lead to many
 "boilerplate" invariant conjectures. One day, IVy will solve this problem
-using predicate subtypes. 
+using predicate subtypes.
 
 # Array and loops
 
@@ -516,7 +516,7 @@ Now we need to know that when we get to the and of the array, we have
 the desired result. Here is how we write this condition:
 
     property I = arr.end(a) -> step(I) = or
-        
+
 Again, Ivy can easily prove this from the definitions of `step` and
 `or`. If you squint at these two properties a bit, you'll see that
 they are very close to a logic program for computing `or` (in fact,
@@ -533,7 +533,7 @@ We have have in mind, however, to do the computation using a loop:
     {
         res := res | arr.value(a,i);
         i := index.next(i)
-    } 
+    }
     assert res = or
 
 
@@ -608,21 +608,3 @@ through.
 
 In general, though, it's best to avoid this kind of painstaking
 construction of loops by using higher-level operations on containers.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

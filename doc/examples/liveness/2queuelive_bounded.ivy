@@ -80,7 +80,7 @@ module isolate bounded_queue with nat = {
         var head : nat
         var tail : nat
         var queue(X:nat) : id
-        
+
         after init {
             head := 0;
             tail := 0;
@@ -131,7 +131,7 @@ module isolate bounded_queue with nat = {
             tactic skolemize;
             tactic l2s_auto with {
                 definition work_created(X) = (X < tail)
-                definition work_needed(X) = ~exists Y. Y < X & queue(Y) = _X 
+                definition work_needed(X) = ~exists Y. Y < X & queue(Y) = _X
                 definition work_done(X) = (X < head)
                 definition work_start = (sending.now & sending.value = _X)
                 definition work_progress = head < tail -> recv_trying.now
@@ -190,7 +190,7 @@ isolate m = {
 
     temporal property [fpull]
     (globally eventually q2.head < q2.tail -> q2.recv_trying.now) &
-    (globally eventually polling.now) 
+    (globally eventually polling.now)
     -> (globally eventually q1.head < q1.tail -> q1.recv_trying.now)
     proof {
         instantiate q2.nb;
@@ -211,7 +211,7 @@ isolate m = {
 
     temporal property [poll_lemma]
     forall X. (eventually q1.receiving.now & q1.receiving.value = X)
-              -> (eventually q2.sending.now & q2.sending.value = X) 
+              -> (eventually q2.sending.now & q2.sending.value = X)
 
     proof {
         tactic skolemize;
@@ -229,7 +229,7 @@ isolate m = {
     temporal property [live]
     forall X.
     (globally eventually q2.head < q2.tail -> q2.recv_trying.now) &
-    (globally eventually polling.now) 
+    (globally eventually polling.now)
     & (eventually q1.sending.now & q1.sending.value = X) ->
     (eventually q2.receiving.now & q2.receiving.value = X)
     proof {
@@ -243,10 +243,9 @@ isolate m = {
         }
         showgoals
     }
-    
+
 }
 
 export m.q1.send
 export m.poll
 export m.q2.recv
-

@@ -7,7 +7,7 @@
 # the problem of consistency in some form. That is, when processing a
 # collection of transactions concurrently, we need to define in what
 # sense the view of these transactions seen by various concurrent
-# processes is consistent. 
+# processes is consistent.
 #
 # To illustrate this idea, we will use a consistency condition called
 # *linearizability* (sometimes also called "strong consistency"). In a
@@ -88,7 +88,7 @@ object response_body = {
 }
 
 # A response message encapsulates the response body with a transaction
-# identifier. 
+# identifier.
 
 object response = {
     type t = struct {
@@ -157,7 +157,7 @@ object ref = {
 # transactions. Initially, there are no committed transactions.
 
     instance rep : replica
-    
+
     var next : txid
     function txs(X:txid) : request_body.t
     function txres(X:txid) : response_body.t
@@ -242,7 +242,7 @@ type req_msg = struct {
 
 
 module client(cid,srvr_chan,cl_chans) = {
-    
+
     action client_request(req : request_body.t, dst: dest.t)
     action client_response(req : response_body.t, tx : txid)
 
@@ -276,7 +276,7 @@ module server_node(port, cl_chans) = {
     instance rep : replica
 
     instance req_chan : nondup_endpoint(port,req_msg)
-        
+
 # When we receive a request message on our port, we first commit the
 # transaction id, then build a response message by executing the
 # trasnaction on the replica, then send the response to the client. In
@@ -305,7 +305,7 @@ module server_node(port, cl_chans) = {
 # with network channels. We use a parameterized array of endpoints for
 # the clients called `cl_chans`. The endpoints will use a range of
 # port numbers beginning with `441000`.
- 
+
 instance cl_chans : nondup_endpoint_set(client_id,44100,response.t)
 
 # We create a corresponding array of clients.
@@ -336,7 +336,7 @@ object service_spec = {
     after init {
         responded(X) := false;
     }
-    
+
     before cl_chans.send(p : client_id, m : response.t) {
         assert ~responded(m.tx);
         assert m.bd = ref.eval(m.tx);
@@ -361,7 +361,7 @@ import cl.client_response
 trusted isolate iso_srvr = srvr with cl,cl_chans,ref,service_spec
 
 # To test, we have to interpret all of the uninterpreted types. We use
-# strings for the keys, 16-bit unsigned integers for the values and 
+# strings for the keys, 16-bit unsigned integers for the values and
 # one-bit integers for the client ids (meaning we have exactly two clients).
 #
 # The theory `strbv[1]` encodes strings with 1-bit vectors. This means
@@ -377,11 +377,11 @@ interpret client_id -> bv[1]
 # The source file for this example is [here](repstore1.ivy). Try running this
 # example using commands like this:
 #
-#     $ ivy_to_cpp target=test isolate=iso_srvr build=true repstore1.ivy  
+#     $ ivy_to_cpp target=test isolate=iso_srvr build=true repstore1.ivy
 #     $ ./repstore1 iters=100 runs=10 out=file.iev
 #
 # Look at the trace file `file.iev` to see the test generator, server
 # and reference object interact.  Try putting some errors in this
 # example and see if they produce assertions failures. If not, why
 # not?
-# 
+#

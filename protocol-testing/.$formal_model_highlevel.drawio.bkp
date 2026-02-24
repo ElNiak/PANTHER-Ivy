@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" pages="1">
+  <diagram id="highlevel" name="High-Level Architecture">
+    <mxGraphModel dx="1600" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="1">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- ============================================ -->
+        <!-- TITLE -->
+        <!-- ============================================ -->
+        <mxCell id="title" value="&lt;font style=&quot;font-size:20px;&quot;&gt;&lt;b&gt;General Formal Model Architecture for Network Protocol Testing&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:12px;color:#666;&quot;&gt;Ivy / Panther Specification-Based Testing Framework&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;" vertex="1" parent="1">
+          <mxGeometry x="220" y="-30" width="660" height="55" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- LEGEND - top right -->
+        <!-- ============================================ -->
+        <mxCell id="leg_generic" value="" style="rounded=1;fillColor=#2C3E50;strokeColor=none;opacity=90;" vertex="1" parent="1">
+          <mxGeometry x="920" y="40" width="18" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg_generic_t" value="&lt;font style=&quot;font-size:11px;&quot;&gt;Generic / Reusable&lt;/font&gt;" style="text;html=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="945" y="35" width="130" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg_prot" value="" style="rounded=1;fillColor=#E67E22;strokeColor=none;opacity=90;" vertex="1" parent="1">
+          <mxGeometry x="920" y="62" width="18" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg_prot_t" value="&lt;font style=&quot;font-size:11px;&quot;&gt;&lt;b&gt;Protocol-Specific&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="945" y="57" width="130" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg_opt" value="" style="rounded=1;fillColor=#27AE60;strokeColor=none;opacity=90;" vertex="1" parent="1">
+          <mxGeometry x="920" y="84" width="18" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg_opt_t" value="&lt;font style=&quot;font-size:11px;&quot;&gt;Optional Module&lt;/font&gt;" style="text;html=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="945" y="79" width="130" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg_apt" value="" style="rounded=1;fillColor=#8E44AD;strokeColor=none;opacity=90;" vertex="1" parent="1">
+          <mxGeometry x="920" y="106" width="18" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg_apt_t" value="&lt;font style=&quot;font-size:11px;&quot;&gt;APT Security Model&lt;/font&gt;" style="text;html=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="945" y="101" width="130" height="22" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- MAIN STACK - Center column -->
+        <!-- ============================================ -->
+
+        <!-- Container for the stack -->
+        <mxCell id="stack_container" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#BDC3C7;strokeWidth=2;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="40" width="380" height="680" as="geometry"/>
+        </mxCell>
+        <mxCell id="stack_label" value="&lt;font style=&quot;font-size:13px;color:#7F8C8D;&quot;&gt;&lt;b&gt;PROTOCOL STACK&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="300" y="44" width="170" height="22" as="geometry"/>
+        </mxCell>
+
+        <!-- Application Layer -->
+        <mxCell id="app" value="&lt;font style=&quot;font-size:14px;&quot;&gt;&lt;b&gt;Application Layer&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px;color:#FFF;&quot;&gt;Data transfer semantics, stream / message / route model&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E67E22;strokeColor=#CF6A0C;fontColor=#FFFFFF;shadow=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="230" y="75" width="320" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- Security Layer -->
+        <mxCell id="sec" value="&lt;font style=&quot;font-size:14px;&quot;&gt;&lt;b&gt;Security / Handshake&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px;color:#FFF;&quot;&gt;TLS 1.3 · DTLS · TCP-MD5 · IPsec&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E67E22;strokeColor=#CF6A0C;fontColor=#FFFFFF;shadow=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="230" y="155" width="320" height="55" as="geometry"/>
+        </mxCell>
+
+        <!-- Frame/Message Layer -->
+        <mxCell id="frame" value="&lt;font style=&quot;font-size:14px;&quot;&gt;&lt;b&gt;Frame / Message Layer&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px;color:#FFF;&quot;&gt;Protocol data units, frame types, handler actions&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E67E22;strokeColor=#CF6A0C;fontColor=#FFFFFF;shadow=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="230" y="230" width="320" height="55" as="geometry"/>
+        </mxCell>
+
+        <!-- Packet Layer -->
+        <mxCell id="pkt" value="&lt;font style=&quot;font-size:14px;&quot;&gt;&lt;b&gt;Packet Layer&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px;color:#FFF;&quot;&gt;Header format, packet types, packet events&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E67E22;strokeColor=#CF6A0C;fontColor=#FFFFFF;shadow=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="230" y="305" width="320" height="55" as="geometry"/>
+        </mxCell>
+
+        <!-- Protection Layer -->
+        <mxCell id="prot" value="&lt;font style=&quot;font-size:14px;&quot;&gt;&lt;b&gt;Protection Layer&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px;color:#FFF;&quot;&gt;AEAD encryption, header protection, key material&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E67E22;strokeColor=#CF6A0C;fontColor=#FFFFFF;shadow=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="230" y="380" width="320" height="55" as="geometry"/>
+        </mxCell>
+
+        <!-- Connection / State -->
+        <mxCell id="conn" value="&lt;font style=&quot;font-size:14px;&quot;&gt;&lt;b&gt;Connection &amp;amp; State Management&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px;color:#FFF;&quot;&gt;Session lifecycle, FSM, CID mapping, error handling&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E67E22;strokeColor=#CF6A0C;fontColor=#FFFFFF;shadow=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="230" y="455" width="320" height="55" as="geometry"/>
+        </mxCell>
+
+        <!-- Types & Parameters -->
+        <mxCell id="types" value="&lt;font style=&quot;font-size:14px;&quot;&gt;&lt;b&gt;Types &amp;amp; Transport Parameters&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px;color:#FFF;&quot;&gt;Identifiers, enums, bit vectors, negotiable params&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E67E22;strokeColor=#CF6A0C;fontColor=#FFFFFF;shadow=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="230" y="530" width="320" height="55" as="geometry"/>
+        </mxCell>
+
+        <!-- Serialization -->
+        <mxCell id="ser" value="&lt;font style=&quot;font-size:14px;&quot;&gt;&lt;b&gt;Serialization / Deserialization&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px;color:#FFF;&quot;&gt;Wire format encoding (C++ implementation)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E67E22;strokeColor=#CF6A0C;fontColor=#FFFFFF;shadow=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="230" y="605" width="320" height="55" as="geometry"/>
+        </mxCell>
+
+        <!-- Infrastructure -->
+        <mxCell id="infra" value="&lt;font style=&quot;font-size:13px;&quot;&gt;&lt;b&gt;Infrastructure&lt;/b&gt;  &lt;font style=&quot;font-size:10px;&quot;&gt;byte_stream · file · time · random&lt;/font&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2C3E50;strokeColor=#1A252F;fontColor=#FFFFFF;shadow=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="230" y="680" width="320" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- Stack arrows -->
+        <mxCell id="sa1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#BDC3C7;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="app" target="sec"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="sa2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#BDC3C7;strokeWidth=1.5;" edge="1" parent="1" source="sec" target="frame"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="sa3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#BDC3C7;strokeWidth=1.5;" edge="1" parent="1" source="frame" target="pkt"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="sa4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#BDC3C7;strokeWidth=1.5;" edge="1" parent="1" source="pkt" target="prot"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="sa5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#BDC3C7;strokeWidth=1.5;" edge="1" parent="1" source="prot" target="conn"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="sa6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#BDC3C7;strokeWidth=1.5;" edge="1" parent="1" source="conn" target="types"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="sa7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#BDC3C7;strokeWidth=1.5;" edge="1" parent="1" source="types" target="ser"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="sa8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#BDC3C7;strokeWidth=1.5;" edge="1" parent="1" source="ser" target="infra"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- ============================================ -->
+        <!-- RIGHT SIDE - Entity Model -->
+        <!-- ============================================ -->
+
+        <mxCell id="ent_container" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#BDC3C7;strokeWidth=2;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="630" y="40" width="250" height="350" as="geometry"/>
+        </mxCell>
+        <mxCell id="ent_label" value="&lt;font style=&quot;font-size:13px;color:#7F8C8D;&quot;&gt;&lt;b&gt;ENTITY MODEL&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="690" y="44" width="130" height="22" as="geometry"/>
+        </mxCell>
+
+        <!-- Entities -->
+        <mxCell id="entities" value="&lt;font style=&quot;font-size:14px;&quot;&gt;&lt;b&gt;Entity Definitions&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px;color:#FFF;&quot;&gt;Client · Server · Speaker&lt;br&gt;MIM · Attacker · Victim&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E67E22;strokeColor=#CF6A0C;fontColor=#FFFFFF;shadow=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="650" y="75" width="210" height="68" as="geometry"/>
+        </mxCell>
+
+        <!-- Behavior -->
+        <mxCell id="behavior" value="&lt;font style=&quot;font-size:14px;&quot;&gt;&lt;b&gt;Entity Behavior&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px;color:#FFF;&quot;&gt;Protocol FSM, action handlers,&lt;br&gt;constraints (before/after monitors)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E67E22;strokeColor=#CF6A0C;fontColor=#FFFFFF;shadow=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="650" y="163" width="210" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- Shims -->
+        <mxCell id="shims" value="&lt;font style=&quot;font-size:14px;&quot;&gt;&lt;b&gt;Shims&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px;color:#FFF;&quot;&gt;Implementation bridge&lt;br&gt;(UDP/TCP · TLS API · socket I/O)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2C3E50;strokeColor=#1A252F;fontColor=#FFFFFF;shadow=1;arcSize=12;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="650" y="253" width="210" height="65" as="geometry"/>
+        </mxCell>
+
+        <!-- Tests & Config -->
+        <mxCell id="tests" value="&lt;font style=&quot;font-size:13px;&quot;&gt;&lt;b&gt;Tests &amp;amp; Configuration&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px;color:#FFF;&quot;&gt;Test harnesses · .dsc descriptors&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E67E22;strokeColor=#CF6A0C;fontColor=#FFFFFF;shadow=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="650" y="338" width="210" height="42" as="geometry"/>
+        </mxCell>
+
+        <!-- Entity arrows -->
+        <mxCell id="ea1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#BDC3C7;strokeWidth=1.5;" edge="1" parent="1" source="entities" target="behavior"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ea2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#BDC3C7;strokeWidth=1.5;" edge="1" parent="1" source="behavior" target="shims"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ea3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#BDC3C7;strokeWidth=1.5;" edge="1" parent="1" source="shims" target="tests"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- Cross-link: Behavior → Stack -->
+        <mxCell id="cross1" style="dashed=1;strokeColor=#E67E22;strokeWidth=1.5;rounded=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" edge="1" parent="1" source="behavior" target="app">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="610" y="198"/>
+              <mxPoint x="610" y="105"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cross1_label" value="&lt;font style=&quot;font-size:9px;color:#E67E22;&quot;&gt;&lt;i&gt;drives&lt;/i&gt;&lt;/font&gt;" style="text;html=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="590" y="140" width="40" height="18" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- LEFT SIDE - Optional Modules -->
+        <!-- ============================================ -->
+
+        <mxCell id="opt_container" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#BDC3C7;strokeWidth=2;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="-40" y="40" width="200" height="420" as="geometry"/>
+        </mxCell>
+        <mxCell id="opt_label" value="&lt;font style=&quot;font-size:13px;color:#7F8C8D;&quot;&gt;&lt;b&gt;OPTIONAL MODULES&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="-20" y="44" width="165" height="22" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="opt_tls" value="&lt;font style=&quot;font-size:12px;&quot;&gt;&lt;b&gt;Security Sub-Protocol&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#FFF;&quot;&gt;TLS 1.3 / DTLS stack&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#27AE60;strokeColor=#1E8449;fontColor=#FFFFFF;shadow=1;arcSize=15;" vertex="1" parent="1">
+          <mxGeometry x="-25" y="75" width="170" height="48" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="opt_fsm" value="&lt;font style=&quot;font-size:12px;&quot;&gt;&lt;b&gt;FSM Modules&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#FFF;&quot;&gt;Send / Receive state machines&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#27AE60;strokeColor=#1E8449;fontColor=#FFFFFF;shadow=1;arcSize=15;" vertex="1" parent="1">
+          <mxGeometry x="-25" y="143" width="170" height="48" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="opt_rec" value="&lt;font style=&quot;font-size:12px;&quot;&gt;&lt;b&gt;Recovery &amp;amp; Congestion&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#FFF;&quot;&gt;Loss detection, retransmission&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#27AE60;strokeColor=#1E8449;fontColor=#FFFFFF;shadow=1;arcSize=15;" vertex="1" parent="1">
+          <mxGeometry x="-25" y="211" width="170" height="48" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="opt_ext" value="&lt;font style=&quot;font-size:12px;&quot;&gt;&lt;b&gt;Extensions&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#FFF;&quot;&gt;Protocol extension mechanism&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#27AE60;strokeColor=#1E8449;fontColor=#FFFFFF;shadow=1;arcSize=15;" vertex="1" parent="1">
+          <mxGeometry x="-25" y="279" width="170" height="48" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="opt_stream" value="&lt;font style=&quot;font-size:12px;&quot;&gt;&lt;b&gt;Stream / Flow Mgmt&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#FFF;&quot;&gt;Multiplexing, flow control&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#27AE60;strokeColor=#1E8449;fontColor=#FFFFFF;shadow=1;arcSize=15;" vertex="1" parent="1">
+          <mxGeometry x="-25" y="347" width="170" height="48" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="opt_atk" value="&lt;font style=&quot;font-size:12px;&quot;&gt;&lt;b&gt;Attacks Stack&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#FFF;&quot;&gt;Forged / replayed packets&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#27AE60;strokeColor=#1E8449;fontColor=#FFFFFF;shadow=1;arcSize=15;" vertex="1" parent="1">
+          <mxGeometry x="-25" y="415" width="170" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Dashed arrows from optional to stack -->
+        <mxCell id="oa1" style="dashed=1;strokeColor=#27AE60;strokeWidth=1.5;rounded=1;entryX=0;entryY=0.5;" edge="1" parent="1" source="opt_tls" target="sec"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="oa2" style="dashed=1;strokeColor=#27AE60;strokeWidth=1.5;rounded=1;entryX=0;entryY=0.5;" edge="1" parent="1" source="opt_fsm" target="sec"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="oa3" style="dashed=1;strokeColor=#27AE60;strokeWidth=1.5;rounded=1;entryX=0;entryY=0.5;" edge="1" parent="1" source="opt_rec" target="frame"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="oa4" style="dashed=1;strokeColor=#27AE60;strokeWidth=1.5;rounded=1;entryX=0;entryY=0.5;" edge="1" parent="1" source="opt_ext" target="pkt"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="oa5" style="dashed=1;strokeColor=#27AE60;strokeWidth=1.5;rounded=1;entryX=0;entryY=0.5;" edge="1" parent="1" source="opt_stream" target="prot"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="oa6" style="dashed=1;strokeColor=#27AE60;strokeWidth=1.5;rounded=1;entryX=0;entryY=0.5;" edge="1" parent="1" source="opt_atk" target="conn"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- ============================================ -->
+        <!-- BOTTOM RIGHT - APT Model -->
+        <!-- ============================================ -->
+
+        <mxCell id="apt_container" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#BDC3C7;strokeWidth=2;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="630" y="420" width="250" height="300" as="geometry"/>
+        </mxCell>
+        <mxCell id="apt_label" value="&lt;font style=&quot;font-size:13px;color:#7F8C8D;&quot;&gt;&lt;b&gt;APT SECURITY MODEL&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="680" y="424" width="170" height="22" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="apt_ent" value="&lt;font style=&quot;font-size:12px;&quot;&gt;&lt;b&gt;APT Entities&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#FFF;&quot;&gt;Attacker · Target · MIM · Bot · C2&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8E44AD;strokeColor=#6C3483;fontColor=#FFFFFF;shadow=1;arcSize=15;" vertex="1" parent="1">
+          <mxGeometry x="650" y="455" width="210" height="45" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="apt_life" value="&lt;font style=&quot;font-size:12px;&quot;&gt;&lt;b&gt;Attack Lifecycle&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#FFF;&quot;&gt;Recon → Infiltration → C2 →&lt;br&gt;Escalation → Persistence → Exfiltration&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8E44AD;strokeColor=#6C3483;fontColor=#FFFFFF;shadow=1;arcSize=15;" vertex="1" parent="1">
+          <mxGeometry x="650" y="520" width="210" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="apt_bind" value="&lt;font style=&quot;font-size:12px;&quot;&gt;&lt;b&gt;Protocol Bindings&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#FFF;&quot;&gt;Malicious frames &amp;amp; packets per protocol&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8E44AD;strokeColor=#6C3483;fontColor=#FFFFFF;shadow=1;arcSize=15;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="650" y="600" width="210" height="48" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="apt_locale" value="&lt;font style=&quot;font-size:12px;&quot;&gt;&lt;b&gt;Locales &amp;amp; Protection&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#FFF;&quot;&gt;Network binding per protocol stack&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8E44AD;strokeColor=#6C3483;fontColor=#FFFFFF;shadow=1;arcSize=15;" vertex="1" parent="1">
+          <mxGeometry x="650" y="668" width="210" height="42" as="geometry"/>
+        </mxCell>
+
+        <!-- APT arrows -->
+        <mxCell id="aa1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#BDC3C7;strokeWidth=1.5;" edge="1" parent="1" source="apt_ent" target="apt_life"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="aa2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#BDC3C7;strokeWidth=1.5;" edge="1" parent="1" source="apt_life" target="apt_bind"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="aa3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#BDC3C7;strokeWidth=1.5;" edge="1" parent="1" source="apt_bind" target="apt_locale"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- Cross-link: APT → Stack -->
+        <mxCell id="apt_cross1" style="dashed=1;strokeColor=#8E44AD;strokeWidth=1.5;rounded=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" edge="1" parent="1" source="apt_bind" target="ser">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="610" y="624"/>
+              <mxPoint x="610" y="633"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="apt_cross1_label" value="&lt;font style=&quot;font-size:9px;color:#8E44AD;&quot;&gt;&lt;i&gt;injects&lt;/i&gt;&lt;/font&gt;" style="text;html=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="590" y="612" width="40" height="18" as="geometry"/>
+        </mxCell>
+
+        <!-- Cross-link: APT entities → Entity defs -->
+        <mxCell id="apt_cross2" style="dashed=1;strokeColor=#8E44AD;strokeWidth=1.5;rounded=1;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" edge="1" parent="1" source="apt_ent" target="tests">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="755" y="440"/>
+              <mxPoint x="755" y="400"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="apt_cross2_label" value="&lt;font style=&quot;font-size:9px;color:#8E44AD;&quot;&gt;&lt;i&gt;extends&lt;/i&gt;&lt;/font&gt;" style="text;html=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="760" y="408" width="45" height="18" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- ANNOTATION: Protocol-Specific callout -->
+        <!-- ============================================ -->
+        <mxCell id="callout" value="&lt;font style=&quot;font-size:11px;&quot;&gt;All &lt;b style=&quot;color:#E67E22;&quot;&gt;orange&lt;/b&gt; layers contain &lt;b&gt;protocol-specific&lt;/b&gt;&lt;br&gt;requirements derived from the RFC.&lt;br&gt;&lt;br&gt;The structural &lt;i&gt;pattern&lt;/i&gt; is reusable —&lt;br&gt;the &lt;i&gt;content&lt;/i&gt; is protocol-dependent.&lt;/font&gt;" style="shape=callout;whiteSpace=wrap;html=1;fillColor=#FDEBD0;strokeColor=#E67E22;perimeter=calloutPerimeter;size=20;position=0.3;position2=1;base=15;rounded=1;arcSize=8;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="-40" y="510" width="230" height="110" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- BOTTOM: Protocol instances footnote -->
+        <!-- ============================================ -->
+        <mxCell id="footnote" value="&lt;font style=&quot;font-size:10px;color:#95A5A6;&quot;&gt;&lt;b&gt;Protocol instances:&lt;/b&gt; QUIC (complete) · BGP · CoAP · MiniP (partial) · System · new_prot (template)&lt;/font&gt;" style="text;html=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="200" y="730" width="680" height="20" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

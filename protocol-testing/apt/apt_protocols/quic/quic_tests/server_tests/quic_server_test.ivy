@@ -35,7 +35,7 @@ after init {
     # sock_vn := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
 
     client.set_tls_id(0);
-    second_client.set_tls_id(0); 
+    second_client.set_tls_id(0);
     server.set_tls_id(1);
 
     client_current_connection_id := 1;
@@ -56,10 +56,10 @@ after init {
     other_tls_id_map_cid(client.tls_id) := server_cid;
     tls_id_map_cid(server.tls_id)       := server_cid;
     other_tls_id_map_cid(server.tls_id) := the_cid;
-    
+
     call show_cid_event(the_cid);
     call show_cid_event(server_cid);
-    
+
     tls_id_map_ep(server.tls_id)       := server.ep;
     other_tls_id_map_ep(server.tls_id) := client.ep;
     ep_map_tls_id(server.ep)           := server.tls_id;
@@ -104,9 +104,8 @@ export quic_frame.ping.handle
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require is_no_error;
     require conn_total_data(the_cid) > 0;
-    #call 
+    #call
 }
-

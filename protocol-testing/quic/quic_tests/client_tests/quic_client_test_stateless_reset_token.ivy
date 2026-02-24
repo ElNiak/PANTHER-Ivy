@@ -41,7 +41,7 @@ action make_transport_parameters returns (tp:quic_transport_parameters) = {
     tp.transport_parameters := tp.transport_parameters.append(odci);
 
     var token : stateless_reset_token; # TODO normal senario
-    token.data_8 := random_stream_data(0,0xFFFFFFF,16); 
+    token.data_8 := random_stream_data(0,0xFFFFFFF,16);
     tp.transport_parameters := tp.transport_parameters.append(token);
 }
 
@@ -50,7 +50,7 @@ action make_transport_parameters returns (tp:quic_transport_parameters) = {
 
 before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid) {
     if _generating {
-        require client.ep.addr ~= 0;         
+        require client.ep.addr ~= 0;
         require scid = the_cid;
     } else {
         require is_no_error
@@ -95,8 +95,6 @@ export tls_recv_event
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require conn_total_data(the_cid) > 0;
 }
-
-

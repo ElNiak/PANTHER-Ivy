@@ -108,7 +108,7 @@ module isolate unbounded_queue with time = {
                 (eventually receiving.now & receiving.value = _X))
                 invariant [inv6] ~(l2s_waiting & l2s_frozen) & ~(l2s_waiting & l2s_saved) & ~(l2s_frozen & l2s_saved)
                 invariant [inv7] globally eventually trying.now
-                invariant [inv8] l2s_saved & X <= _X & pending(X) -> ($was. pending(X)) 
+                invariant [inv8] l2s_saved & X <= _X & pending(X) -> ($was. pending(X))
             }
             showgoals
         }
@@ -119,4 +119,3 @@ instance q : unbounded_queue
 
 export q.send
 export q.recv
-

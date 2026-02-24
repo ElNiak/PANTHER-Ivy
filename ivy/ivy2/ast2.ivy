@@ -9,7 +9,7 @@ object ivy = {
     instantiate decl_base(expr,stmt)
 
     # Here, we parse statements specific to Ivy: var and assign.
-    
+
     object stmt = { ...
 
         object varst = {
@@ -31,7 +31,7 @@ object ivy = {
                     b := b.nest;
                     b := b.extend("{");
                     b := b.newline;
-                };	    
+                };
                 b := s.ann.encode(b);
                 b := b.nest;
                 b := b.extend("var");
@@ -43,7 +43,7 @@ object ivy = {
                     b := b.unnest;
                     b := b.newline;
                     b := b.extend("}");
-                };	    
+                };
             }
         }
 
@@ -105,7 +105,7 @@ object ivy = {
             b := b.unnest;
             b := b.newline;
             b := b.extend("}");
-        }	    
+        }
     }
 
     object decl = { ...
@@ -213,7 +213,7 @@ export pr
 
 #     p := p.flush;
 #     call show_pretty(p);
-    
+
 # }
 
 import action show_pretty(p:pretty)

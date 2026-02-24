@@ -51,7 +51,7 @@ def thing(self):
     with ASTContext(self):
         return self.cmpl()
 
-# "roots" are AST objects that bind variables, such as assignment, assume, etc. 
+# "roots" are AST objects that bind variables, such as assignment, assume, etc.
 # some roots have symbols as args instead of terms (e.g., field assign)
 def compile_root_args(self):
     return [(find_symbol(a) if isinstance(a,str) else a.compile()) for a in self.args]
@@ -104,7 +104,7 @@ class ReturnContext(Context):
         self.values = values
         self.lineno = lineno
         self.name = 'return_context'
-    
+
 
 class ExprContext(Context):
     """ Context Manager for compiling an expression. """
@@ -192,7 +192,7 @@ def compile_field_reference_rec(symbol_name,args,top=False,old=False):
         res = sym(*args)
         return res
     return old_sym(sym,old)
-                           
+
 def field_reference_action(actname,args,top):
     nformals = len(top_context.actions[actname][0])
     call = ivy_ast.Atom(actname,[])
@@ -210,7 +210,7 @@ def compile_field_reference(symbol_name,args,lineno,old=False):
             raise IvyError(None,"type {} used where a function or individual symbol is expected".format(err.symbol_name))
         raise IvyError(None,"unknown symbol: {}".format(err.symbol_name))
 
-    
+
 def sort_infer_covariant(term,sort):
     try:
         return sort_infer(term,sort,True)
@@ -310,7 +310,7 @@ def compile_app(self,old=False):
     if expr_context and top_context and rep in top_context.actions:
         # note, we are taking 'old' of an action to be the action, since actions are immutable
         return compile_inline_call(self,args)
-    sym = rep.cmpl() if isinstance(rep,ivy_ast.NamedBinder) else ivy_logic.Equals if rep == '=' else ivy_logic.find_polymorphic_symbol(rep,throw=False) 
+    sym = rep.cmpl() if isinstance(rep,ivy_ast.NamedBinder) else ivy_logic.Equals if rep == '=' else ivy_logic.find_polymorphic_symbol(rep,throw=False)
     if sym is not ivy_logic.Equals:
         if ivy_logic.is_numeral(sym):
             if hasattr(self,'sort') and self.sort != 'S':
@@ -321,7 +321,7 @@ def compile_app(self,old=False):
     im.module.sig.add_symbol('_generating',ivy_logic.BooleanSort()) #chris
     res = compile_field_reference(rep,args,self.lineno,old=old)
     return res
-    
+
 def compile_method_call(self):
     with ReturnContext(None):
         base = self.args[0].compile()
@@ -330,7 +330,7 @@ def compile_method_call(self):
     sort = base.sort
     if ivy_logic.is_topsort(sort):
         raise IvyError(self,'cannot apply method notation to {} because its type is not inferred'.format(base))
-        
+
     # trucky: we first look for the method as a child of the sort.
     # if not found, we look for a sibling of the sort
     destr_name = iu.compose_names(sort.name,child_name)
@@ -370,7 +370,7 @@ def compile_isa(self):
     v = ivy_logic.Variable(rn('V'),rhs)
     res = ivy_logic.Exists([v],ivy_logic.pto(lhs.sort,rhs)(lhs,v))
     return res
-    
+
 ivy_ast.Isa.cmpl = compile_isa
 
 def variable_sort(self):
@@ -409,23 +409,23 @@ ivy_ast.NamedBinder.cmpl = lambda self: ivy_logic.NamedBinder(
 )
 
 ivy_ast.LabeledFormula.cmpl = lambda self: self.clone([None if self.label is None else self.label.clone([sortify_with_inference(x) for x in self.label.args]),
-                                                       self.formula.compile() 
+                                                       self.formula.compile()
                                                        if isinstance(self.formula,ivy_ast.SchemaBody)
                                                        else sortify_with_inference(self.formula)])
 
-ivy_ast.ProofDecl.cmpl = lambda self: self.clone([sortify_with_inference(self.args[0])]+self.args[1:]) 
+ivy_ast.ProofDecl.cmpl = lambda self: self.clone([sortify_with_inference(self.args[0])]+self.args[1:])
 
 # compiling update patterns is complicated because they declare constants internally
 def UpdatePattern_cmpl(self):
     with ivy_logic.sig.copy():
         return ivy_ast.AST.cmpl(self)
-        
+
 UpdatePattern.cmpl = UpdatePattern_cmpl
 
 def ConstantDecl_cmpl(self):
     return self.clone([compile_const(v,ivy_logic.sig) for v in self.args])
 
-ConstantDecl.cmpl =  ConstantDecl_cmpl 
+ConstantDecl.cmpl =  ConstantDecl_cmpl
 
 def Old_cmpl(self):
 #    foo = self.args[0].compile()
@@ -439,7 +439,7 @@ def get_arg_sorts(sig,args,term=None):
         args = sortify_with_inference(ivy_ast.AST(*(args+[term]))).args[0:-1]
         return [arg.get_sort() for arg in args]
     return [arg.compile().get_sort() for arg in args]
-                
+
 def get_function_sort(sig,args,rng,term=None):
     return ivy_logic.FunctionSort(*(get_arg_sorts(sig,args,term)+[rng])) if args else rng
 
@@ -467,7 +467,7 @@ def compile_const(v,sig):
       sort = get_function_sort(sig,v.args,rng)
       with sig:
           return add_symbol(v.rep,sort)
-    
+
 
 def compile_local(self):
     sig = ivy_logic.sig.copy()
@@ -802,7 +802,7 @@ def compile_action_def(a,sig):
     with sig:
         with ASTContext(a.args[1]):
             params = a.args[0].args
-            pformals = [v.to_const('prm:') for v in params] 
+            pformals = [v.to_const('prm:') for v in params]
             if params:
                 subst = dict((x.rep,y) for x,y in zip(params,pformals))
                 a = ivy_ast.substitute_ast(a,subst)
@@ -866,7 +866,7 @@ def compile_defn(df):
             if is_schema:
                 df = ivy_logic.DefinitionSchema(*df.args)
             return df
-    
+
 def compile_schema_prem(self,sig):
     if isinstance(self,ivy_ast.ConstantDecl):
         with ivy_logic.WithSorts(list(sig.sorts.values())):
@@ -886,7 +886,7 @@ def compile_schema_prem(self,sig):
     #     with ivy_logic.WithSymbols(sig.all_symbols()):
     #         with ivy_logic.WithSorts(sig.sorts.values()):
     #             return compile_schema_body(self)
-    
+
 def compile_schema_conc(self,sig):
     with ivy_logic.WithSymbols(sig.all_symbols()):
         with ivy_logic.WithSorts(list(sig.sorts.values())):
@@ -901,7 +901,7 @@ def compile_schema_body(self):
     res.instances = []
     return res
 
-ivy_ast.SchemaBody.compile = compile_schema_body    
+ivy_ast.SchemaBody.compile = compile_schema_body
 
 def lookup_schema(name,proof):
     if name in im.module.schemata:
@@ -950,28 +950,28 @@ def compile_let_tactic(self):
     fmla = ivy_ast.And(*[ivy_ast.Atom('=',x.args[0],x.args[1]) for x in self.args])
     thing = sortify_with_inference(fmla)
     return self.clone(thing.args)
-    
+
 ivy_ast.LetTactic.compile = compile_let_tactic
 
 def compile_witness_tactic(self):
     return self
-    
+
 ivy_ast.WitnessTactic.compile = compile_witness_tactic
 
 def compile_unfold_tactic(self):
     return self
-    
+
 ivy_ast.UnfoldTactic.compile = compile_unfold_tactic
 
 def compile_forget_tactic(self):
     return self
-    
+
 ivy_ast.ForgetTactic.compile = compile_forget_tactic
 
 def compile_if_tactic(self):
     cond = sortify_with_inference(self.args[0])
     return self.clone([cond,self.args[1].compile(),self.args[2].compile()])
-    
+
 ivy_ast.IfTactic.compile = compile_if_tactic
 
 def compile_property_tactic(self):
@@ -985,22 +985,22 @@ def compile_property_tactic(self):
         name = name.clone(args)
     proof = self.args[2].compile()
     return self.clone([prop,name,proof])
-        
+
 ivy_ast.PropertyTactic.compile = compile_property_tactic
 
 def compile_function_tactic(self):
     return self
-        
+
 ivy_ast.FunctionTactic.compile = compile_function_tactic
 
 def compile_tactic_tactic(self):
     return self.clone(self.args)
-    
+
 ivy_ast.TacticTactic.compile = compile_tactic_tactic
 
 def compile_proof_tactic(self):
     return self.clone([self.label,self.proof.compile()])
-    
+
 ivy_ast.ProofTactic.compile = compile_proof_tactic
 
 def compile_trigger(self):
@@ -1008,7 +1008,7 @@ def compile_trigger(self):
 
 ivy_ast.Trigger.compile = compile_trigger
 
-def resolve_alias_int(name): 
+def resolve_alias_int(name):
     if name in im.module.aliases:
         return im.module.aliases[name]
     parts = name.rsplit(iu.ivy_compose_character,1)
@@ -1016,7 +1016,7 @@ def resolve_alias_int(name):
         return resolve_alias_int(parts[0]) + iu.ivy_compose_character + parts[1]
     return name
 
-def resolve_alias(name): 
+def resolve_alias(name):
     res = resolve_alias_int(name)
     return res
 
@@ -1178,7 +1178,7 @@ class IvyDomainSetup(IvyDeclInterp):
         self.domain.symbol_order.append(df.args[0].rep)
         if not self.domain.sig.contains_symbol(df.args[0].rep):
             add_symbol(df.args[0].rep.name,df.args[0].rep.sort)
-            
+
     def proof(self,pf):
         if isinstance(pf,ivy_ast.LabeledFormula):   # proof has a label
             self.domain.proofs.append((ivy_ast.LabeledFormula(pf.label,None),pf.formula.compile()))
@@ -1266,7 +1266,7 @@ class IvyDomainSetup(IvyDeclInterp):
 #            raise IvyError(v,"cannot implement type {} with {} because {} depends on {}".format(impd,impr,impr,impd))
         ivy_logic.implement_type(ivy_logic.find_sort(impd),ivy_logic.find_sort(impr))
         self.domain.interps[impd].append(thing)
-        
+
     def interpret(self,thing):
         sig = self.domain.sig
         interp = sig.interp
@@ -1342,7 +1342,7 @@ class IvyDomainSetup(IvyDeclInterp):
         if m.args[1].relname  != 'init' and m.args[1].relname not in top_context.actions:
             raise IvyError(m,'unknown action: {}'.format(m.args[1].relname))
 
-    # Here, we scan the actions for thunks to declare the thunk types 
+    # Here, we scan the actions for thunks to declare the thunk types
     def action(self,a):
         counter = 0
         for action in a.args[1].iter_subactions():
@@ -1371,7 +1371,7 @@ class IvyDomainSetup(IvyDeclInterp):
                 top_context.actions[actname] = (orig_args + [selfparam], [], len(orig_args))
 
 
-            
+
 class IvyConjectureSetup(IvyDeclInterp):
     def __init__(self,domain):
         self.domain = domain
@@ -1530,8 +1530,8 @@ class IvyARGSetup(IvyDeclInterp):
                 choice.formal_returns = returns
                 self.mod.actions[mixer.rep] = choice
                 self.mixin(ivy_ast.MixinAfterDef(mixer,mixee))
-                
-        
+
+
 def BalancedChoice(choices):
     if len(choices) == 1:
         return choices[0]
@@ -1561,7 +1561,7 @@ def ivy_new(filename = None):
     ag = AnalysisGraph()
     return ag
 
-isolate = iu.Parameter("isolate")    
+isolate = iu.Parameter("isolate")
 
 # collect actions in case of forward reference
 def collect_actions(decls):
@@ -1659,7 +1659,7 @@ def tarjan_arcs(arcs,notriv=True):
     if notriv:
         sccs = [scc for scc in sccs if len(scc) > 1 or scc[0] in m[scc[0]]]
     return sccs
-        
+
 
 def get_symbol_dependencies(mp,res,t):
     for s in lu.used_symbols_ast(t):
@@ -1693,8 +1693,8 @@ def attach_proofs(mod):
                 mod.isolate_proofs[lab] = pf[1]
             else:
                 raise IvyError
-        
-                
+
+
 def check_definitions(mod):
 
     # get the definitions that have no dependence on proofs
@@ -1736,7 +1736,7 @@ def check_definitions(mod):
         checkdef(term.rep,ldf)
 
     # check that no actions interfere with axioms or definitions
-    
+
     if iu.version_le("1.7",iu.get_string_version()):
         side_effects = dict()
         for action in list(mod.actions.values()):
@@ -1759,7 +1759,7 @@ def check_definitions(mod):
             s = lf.formula.lhs().rep
             if s in side_effects:
                 raise IvyError(side_effects[s],'immutable symbol assigned. \n{} Symbol is defined here'.format(lf.lineno))
-                
+
     arcs = [(d.formula.defines(),x)
             for d in mod.definitions
             for x in lu.symbols_ast(d.formula.args[1])]
@@ -1775,7 +1775,7 @@ def check_definitions(mod):
         if d.id not in pmap:
             raise iu.IvyError(d,'definition of {} requires a recursion schema'.format(d.formula.defines()))
         prover.admit_definition(d,pmap[d.id])
-        
+
 
 # Take a goal with premises and convert it to an implication. To do this, we have to skolemize
 # the bound vocabulary in the goal. Also, any definitions in the proof goal are made global
@@ -1856,7 +1856,7 @@ def reorder_props(mod,props):
             rprops.append(prop)
     rprops.reverse()
     return rprops
-        
+
 
 def create_constructor_schemata(mod):
     from . import ivy_proof
@@ -1901,8 +1901,8 @@ def create_constructor_schemata(mod):
         for cons in conss:
             if sortname not in mod.sort_destructors:
                 raise iu.IvyError(cons,"Cannot define constructor {} for type {} because {} is not a structure type".format(cons,sortname,sortname))
-    
-        
+
+
 def fix_constructors(mod):
     for sortname,destrs in mod.sort_destructors.items():
         if any(len(f.sort.dom) > 1 for f in destrs):
@@ -1922,7 +1922,7 @@ def fix_constructors(mod):
                 cons = ivy_logic.find_symbol(cons.name)
             new_cons.append(cons)
         mod.sort_constructors[sortname] = new_cons
-    
+
 def apply_assert_proof(prover,self,pf):
     cond = self.args[0]
     goal = cond if isinstance(cond,ivy_ast.LabeledFormula) else ivy_ast.LabeledFormula(None,cond)
@@ -1970,17 +1970,17 @@ def apply_assert_proofs(mod,prover):
         action = mod.actions[actname]
         with ivy_logic.WithSymbols(list(set(action.formal_params+action.formal_returns))):
             mod.actions[actname] = action.copy_formals(recur(action))
-    
+
 def check_properties(mod):
     props = reorder_props(mod,mod.labeled_props)
-    
-    
+
+
 
     mod.labeled_props = []
     pmap = dict((lf.id,p) for lf,p in mod.proofs)
     nmap = dict((lf.id,n) for lf,n in mod.named)
 
-    # Give empty proofs to theorems without proofs. 
+    # Give empty proofs to theorems without proofs.
     for prop in props:
         if prop.id not in pmap and isinstance(prop.formula,ivy_ast.SchemaBody):
             emptypf = ivy_ast.ComposeTactics()
@@ -1997,7 +1997,7 @@ def check_properties(mod):
             fmla = ivy_logic.drop_universals(fmla)
             prop = prop.clone_with_fresh_id([prop.label,fmla])
         return prop
-            
+
     from . import ivy_proof
     prover = ivy_proof.ProofChecker(mod.labeled_axioms,mod.definitions,mod.schemata)
 
@@ -2014,7 +2014,7 @@ def check_properties(mod):
                 if not isinstance(prop.formula,ivy_ast.SchemaBody):
                     if isinstance(prop.formula,ivy_logic.Definition):
                         mod.definitions.append(prop)
-                    else: 
+                    else:
                         mod.labeled_axioms.append(prop)
                 else:
                     mod.schemata[prop.label.relname] = prop
@@ -2058,10 +2058,10 @@ option_verifying = True
 def set_verifying(tv):
     global option_verifying
     option_verifying = tv
-    
+
 def ivy_compile_theory(mod,decls,**kwargs):
     IvyDomainSetup(mod)(decls)
-    
+
 def ivy_compile_theory_from_string(mod,theory,sortname,**kwargs):
     import io
     sio = io.StringIO(theory)
@@ -2074,7 +2074,7 @@ def compile_theory(mod,sortname,theoryname,**kwargs):
     theory = ith.get_theory_schemata(theoryname)
     if theory is not None:
         ivy_compile_theory_from_string(mod,theory,sortname,**kwargs)
-    
+
 def compile_theories(mod,**kwargs):
     for name,value in mod.sig.interp.items():
         if name in mod.sig.sorts and (isinstance(value,str) or isinstance(value,ivy_logic.RangeSort)):
@@ -2113,7 +2113,7 @@ def create_conj_actions(mod):
     action_isos = defaultdict(set)
 
     # check that object invariants are used correctly
-    
+
     if iso.do_check_interference.get():
         for ison,actions in myexports.items():
             for action in actions:
@@ -2133,7 +2133,7 @@ def create_conj_actions(mod):
                                 for victim in exports:
                                     if action in set(iu.reachable([victim],lambda x: cg[x])) and action != victim:
                                         raise IvyError(conj, "isolate {} depends on invariant {} which might not hold because action {} is called from within action {}, which invalidates the invariant.".format(ison,conj.label.rep,victim,action))
-                
+
 # This handles the modular semantics of temporal properties. Each
 # temporal operator is labeled with an isolate (which could be
 # 'this'). If the user does not give a label for an operator, then the
@@ -2160,7 +2160,7 @@ def handle_temporals(mod):
     #         new_props.append(prop.clone([prop.label,ivy_logic.label_temporal(prop.formula,isonames[0])]))
     #     else:
     #         new_props.append(prop)
-            
+
     # for prop,proof in mod.proofs:
     #     if prop.temporal:
     #         isonames = imap[prop.name]
@@ -2178,8 +2178,8 @@ def add_labels_to_proof(proof,labels):
     if isinstance(proof,ivy_ast.TacticTactic):
         proof.labels = list(labels)
     return proof
-        
-        
+
+
 def add_action_label(action,label):
     if not hasattr(action,'labels'):
         action.labels = []
@@ -2188,7 +2188,7 @@ def add_action_label(action,label):
 def show_call_graph(cg):
     for caller,callees in cg.items():
         print('{} -> {}'.format(caller,','.join(callees)))
-    
+
 def ivy_compile(decls,mod=None,create_isolate=True,**kwargs):
     mod = mod or im.module
     with mod.sig:
@@ -2218,7 +2218,7 @@ def ivy_compile(decls,mod=None,create_isolate=True,**kwargs):
             if not hasattr(action,'lineno'):
                 print("no lineno: {}".format(name))
             assert hasattr(action,'formal_params'), action
-    
+
         # from version 1.7, there is always one global "isolate"
         if not iu.version_le(iu.get_string_version(),"1.6"):
             if 'this' not in mod.isolates:
@@ -2241,7 +2241,7 @@ def ivy_compile(decls,mod=None,create_isolate=True,**kwargs):
         for iso in list(im.module.isolates.values()):
             iso.args += tuple(global_objects)
             iso.with_args += len(global_objects)
-                    
+
 
         create_sort_order(mod)
         create_constructor_schemata(mod)
@@ -2279,7 +2279,7 @@ def read_module(f,nested=False):
             iu.set_string_version(version)
             if version != old_version:
                 if nested:
-                    raise IvyError(None,'#lang ivy{} expected in included file'.format(old_version)) 
+                    raise IvyError(None,'#lang ivy{} expected in included file'.format(old_version))
     #            print "version: {}, old_version: {}".format(version,old_version)
                 clear_rules('ivy_logic_parser')
                 clear_rules('ivy_parser')
@@ -2299,7 +2299,7 @@ def read_module(f,nested=False):
 
 def import_module(name):
     fname = name + '.ivy'
-    try: 
+    try:
         f = open(fname,'r')
     except Exception:
         fname = os.path.join(iu.get_std_include_dir(),fname)

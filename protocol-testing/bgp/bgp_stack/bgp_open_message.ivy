@@ -97,15 +97,15 @@ relation open_message_recv(I:bgp_id)
 
 object bgp_open_message = {
     type this = struct {
-        pversion: version,         
-        my_as_number: as_number, 
+        pversion: version,
+        my_as_number: as_number,
         hold_time: seconds,
         bgp_identifier: bgp_id,
         opt_parm_len: stream_pos,
         opt_params: optional_parameter.arr
     }
     instance idx : unbounded_sequence
-    instance arr : array(idx,this) 
+    instance arr : array(idx,this)
 }
 
 action bgp_open_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_open_message) = {}

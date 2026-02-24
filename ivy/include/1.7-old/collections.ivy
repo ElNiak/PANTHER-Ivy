@@ -32,11 +32,11 @@ module array(domain,range) = {
     action set(a:t,x:domain,y:range) returns (a:t)
 
     # get the value y such that x in [0,end) maps to y in array a
-    action get(a:t,x:domain) returns (y:range) 
+    action get(a:t,x:domain) returns (y:range)
 
     # get the value of end
     action size(a:t) returns (s:domain)
-    
+
     # change the size of the array
     action resize(a:t,s:domain,v:range) returns (a:t)
 
@@ -70,7 +70,7 @@ module array(domain,range) = {
 
     # reverse an array
     action reverse(a:t) returns (a:t)
-    
+
 
     ########################################
     # Specification
@@ -96,7 +96,7 @@ module array(domain,range) = {
 	}
         before set {
 	    assert 0 <= x & x < end(a)
-	}	       	 
+	}
 	after set {
             assert end(a) = end(old a);
 	    assert value(a,X) = y if X = x else value(old a,X)
@@ -136,7 +136,7 @@ module array(domain,range) = {
 }
 
 ################################################################################
-# 
+#
 # Use of the type array[domain][range], where domain and range are
 # types, implicitly creates an instance of array(domain,range) called
 # array[domain][range].
@@ -153,14 +153,14 @@ autoinstance array[domain][range] : array(domain,range)
 #
 
 module vector(range) = {
-    
+
     instance domain : unbounded_sequence
-    
+
     instantiate array(domain,range)
 }
 
 ################################################################################
-# 
+#
 # Use of the type vector[range], where range is a type, implicitly
 # creates an instance of vector(range) called vector[range].
 #
@@ -194,11 +194,11 @@ module rel_array(domain,range) = {
     action set(a:t,x:domain,y:range) returns (a:t)
 
     # get the value y such that x in [0,end) maps to y in array a
-    action get(a:t,x:domain) returns (y:range) 
+    action get(a:t,x:domain) returns (y:range)
 
     # get the value of end
     action size(a:t) returns (s:domain)
-    
+
     # change the size of the array
     action resize(a:t,s:domain,v:range) returns (a:t)
 
@@ -219,7 +219,7 @@ module rel_array(domain,range) = {
 
     # reverse an array
     action reverse(a:t) returns (a:t)
-    
+
     ########################################
     # Representation
     #
@@ -240,7 +240,7 @@ module rel_array(domain,range) = {
     object spec = {
 	property end(X) >= 0
         property value_is(A,X,Y1) & value_is(A,X,Y2) -> Y1 = Y2
- 
+
 	after empty {
 	    assert end(a) = 0
 	}
@@ -252,7 +252,7 @@ module rel_array(domain,range) = {
 	}
         before set {
 	    assert 0 <= x & x < end(a)
-	}	       	 
+	}
 	after set {
             assert end(a) = end(old a);
 	    assert value_is(a,x,Y) <-> Y = y;
@@ -290,7 +290,7 @@ module rel_array(domain,range) = {
 	definition value_is(A,X,V) = (value(A,X) = V)
     }
 
-	
+
     trusted isolate iso = spec,impl
 
     attribute test = impl
@@ -322,7 +322,7 @@ module option(range_t) = {
 }
 
 ################################################################################
-# 
+#
 # Use of the type option[range], where range is a type, implicitly
 # creates an instance of option(range) called option[range].
 #
@@ -331,7 +331,7 @@ autoinstance option[range] : option(range)
 
 ################################################################################
 #
-# Null number types 
+# Null number types
 #
 # A Null number type is one that has a special value representing "not a number".
 # The "not a number" value is encoded as the constant `null_value`.
@@ -356,7 +356,7 @@ module null_type(range_t,null_value) = {
 	template <>
 	`t` _arg<`t`>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	    ivy_value &arg = args[idx];
-	    if (arg.fields.size()) 
+	    if (arg.fields.size())
 		throw out_of_bounds(idx);
 	    `t` a;
 	    a.is_null = (arg.atom == "`null_value`");
@@ -382,7 +382,7 @@ module null_type(range_t,null_value) = {
 	    std::ostringstream sts;
 	    sts << val;
 	    args[0].atom = sts.str();
-	    res.contents = _arg<`range_t`>(args,0,0);	    
+	    res.contents = _arg<`range_t`>(args,0,0);
         }
 
 	template <>
@@ -403,7 +403,7 @@ module null_type(range_t,null_value) = {
 	    std::ostringstream sts;
 	    sts << val;
 	    args[0].atom = sts.str();
-	    res.contents = _arg<`range_t`>(args,0,0);	    
+	    res.contents = _arg<`range_t`>(args,0,0);
         }
     >>>
 }
@@ -446,11 +446,11 @@ module path(domain,range) = {
     action set(a:t,x:domain,y:range) returns (a:t)
 
     # get the value y such that x in [0,end) maps to y in array a
-    action get(a:t,x:domain) returns (y:range) 
+    action get(a:t,x:domain) returns (y:range)
 
     # get the value of end
     action size(a:t) returns (s:domain)
-    
+
     # change the size of the array
     action resize(a:t,s:domain,v:range) returns (a:t)
 
@@ -491,7 +491,7 @@ module path(domain,range) = {
 	}
         before set {
 	    assert 0 <= x & x < end(a)
-	}	       	 
+	}
 	after set {
 	    assert value(a,X) = y if X = x else value(old a,X)
 	}
@@ -547,14 +547,14 @@ module path(domain,range) = {
 
 	implement set {
 	    <<<
-	        if (0 <= `x` && `x` < (`domain`)`a`.size()) 
+	        if (0 <= `x` && `x` < (`domain`)`a`.size())
 	            `a`[`x`] = `y`;
 	    >>>
 	}
 
 	implement get {
 	    <<<
-	        if (0 <= `x` && `x` < (`domain`)`a`.size()) 
+	        if (0 <= `x` && `x` < (`domain`)`a`.size())
 	            `y` = `a`[`x`];
 	    >>>
 	}
@@ -606,7 +606,7 @@ module path(domain,range) = {
 	    template <>
 	    `t` _arg<`t`>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.fields.size()) 
+	        if (arg.fields.size())
 	            throw out_of_bounds(idx);
 	        `t` a;
 		ivy_value tmp;
@@ -620,7 +620,7 @@ module path(domain,range) = {
 		        tmp.fields.resize(tmp.fields.size()+1);
 		    else if (c != '\"')
                         tmp.fields.back().atom.push_back(c);
-                }			
+                }
 	        a.resize(tmp.fields.size());
 		for (unsigned i = 0; i < a.size(); i++) {
 		    a[i] = _arg<`range`>(tmp.fields,i,0);
@@ -713,11 +713,11 @@ module path(domain,range) = {
 
 ################################################################################
 #
-# Maps. 
+# Maps.
 #
 # This module provides a relational model of a function from a type
 # dom to a type rng. Initially, everything is mapped to the element zero.
-# 
+#
 # The key invariant of a map is that it is a function, i.e., for every
 # X there exists a Y such that map(X,Y). The module does not state
 # this invariant, however, since the quantifier alternation could
@@ -772,7 +772,7 @@ module map(dom,rng,zero) = {
 module partial_function(dom,rng) = {
 
     relation map(X:dom,Y:rng)
-    relation pre(X:dom) 
+    relation pre(X:dom)
 
     # mutate the function so x maps to y
     action remap(x:dom,y:rng)
@@ -785,7 +785,7 @@ module partial_function(dom,rng) = {
 
     # true if x is in the pre-image
     action present(x:dom) returns (r:bool)
-    
+
     # if x in pre, there exists a y such that map(x,y)
     action lemma(x:dom)
 
@@ -844,7 +844,7 @@ module witness(rng) = {
 
     action is_empty returns (r:bool)
 
-    action clear 
+    action clear
 
     relation is(Y:rng)
 
@@ -907,7 +907,7 @@ module witness(rng) = {
 }
 
 # This module makes a relation functional, meaning that it
-# is total and injective. 
+# is total and injective.
 
 module functional(rel) = {
     property [totality] exists Y. rel(X,Y)
@@ -915,7 +915,7 @@ module functional(rel) = {
 }
 
 # This module makes a relation inverse functional, meaning that its
-# transpose is total and injective. 
+# transpose is total and injective.
 
 module inverse_functional(rel) = {
     property [totality] exists Y. rel(Y,X)
@@ -954,7 +954,7 @@ module set_wrapper(key) = {
 	<<<
             `res` = *(--`s`.upper_bound(`k`));
 	>>>
-	
+
     }
 
 
@@ -970,7 +970,7 @@ module set_wrapper(key) = {
 # with a least element 0.  They provide insertion of elements (in log
 # time), deletion of ranges (in n log(n) time) and finding greatest
 # lower bounds (log n).
-# 
+#
 # For help with proofs, this module also provides an auxiliary map
 # "succ" that gives the successor of every element in the set. The
 # "successor" of the maximal element in the set is 0.
@@ -1089,7 +1089,7 @@ module map_wrapper(key,value) = {
     # 	        `res`.val = __it->first;
     # 	    }
     # 	>>>
-	
+
     # }
 
     implement lub(it:key.iter.t) returns (res:key.iter.t) {
@@ -1108,7 +1108,7 @@ module map_wrapper(key,value) = {
 		}
 	    }
 	>>>
-	
+
     }
 
     implement glb(it:key.iter.t) returns (res:key.iter.t) {
@@ -1117,7 +1117,7 @@ module map_wrapper(key,value) = {
 	    `res`.is_end = false;
             `res`.val = (--__it)->first;
 	>>>
-	
+
     }
 
     implement next(inp:key.iter.t) returns (res:key.iter.t) {
@@ -1154,7 +1154,7 @@ module map_wrapper(key,value) = {
 # a least element 0 and iteration.  They provide insertion of
 # key/value pairs (in log time), deletion of ranges of keys (in n
 # log(n) time) and iteration.
-# 
+#
 # For help with proofs, this module also provides an auxiliary map
 # "succ" that gives the successor of every element in the map. The
 # "successor" of the maximal element in the map is 0.
@@ -1342,12 +1342,12 @@ module ordered_map_impl(key,value) = {
 
 module keyval(index,key,data) = {
 
-    type t 
+    type t
 
     function end(A:t) : index.t
     relation key_at(A:t, I:index.t, X:key)
     function value_at(A:t, I:index.t) : data
-    
+
     action empty returns (s:t)
     action get_key(s:t, i:index.t) returns (k:key)
     action get_value(s:t, i:index.t) returns (d:data)
@@ -1357,7 +1357,7 @@ module keyval(index,key,data) = {
 
         property key_at(A,I,X) -> 0 <= I & I < end(A)
         property key_at(A,I,X) & key_at(A,I,Y) -> X = Y
-        property 0 <= end(A) 
+        property 0 <= end(A)
 
         after empty {
             assert s.end = 0 & ~key_at(s,I,X)
@@ -1395,7 +1395,7 @@ module keyval(index,key,data) = {
         definition end(A:t) = repr(A).end
         definition value_at(A,I) = repr(A).value(I).p_value
         definition key_at(A,I,X) = (0 <= I & I < end(A) & repr(A).value(I).p_key = X)
-        
+
         implement empty {
             repr(s) := arr.empty
         }
@@ -1427,7 +1427,7 @@ module segment(domain,range,arr) = {
     # - Type `arr` must be an array type over (`domain`,`range`).
 
     # This is a type of segments over `arr`
-    
+
     type this
 
     # Extract a segment of an array, from a begin index to an end
@@ -1463,23 +1463,23 @@ module segment(domain,range,arr) = {
             ensure begin <= N & N < end -> value(seg,N) = arr.value(data,N)
         }
     }
-        
+
     implementation {
 
         # The implementation represents a segment as a pair consisting
         # of an offset into the original array and an array containin
         # the segment values. It constructs segmens in the expected
-        # way, by copying array elements in a loop. 
+        # way, by copying array elements in a loop.
 
         # We have to use arithmetic to prove the implementation, but
         # this is within the decidable array property fragment.
-        
+
         # Notice we use domain.impl to prove this isolate, so we get
         # the arithmetic theory.
 
         destructor offset(X:this) : domain
         destructor elems(X:this) : arr
-        
+
         definition value(X,N) = elems(X).value(N - offset(X))
 
         implement make {
@@ -1497,6 +1497,6 @@ module segment(domain,range,arr) = {
             };
         }
     }
-    
+
     isolate iso = this with domain.impl,arr
 }

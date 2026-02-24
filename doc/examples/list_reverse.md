@@ -10,7 +10,7 @@ The problem we will tackle is reversal of an array. The difficulty
 from the point of view of decidability is that, to specify an array
 reversal procedure, we need arithmetic in some form. For example,
 we might say that array `a` is the reverse of array `b` if they have
-the same length `n`, and if, for all `0 <= i < n`, we have `b[i] = a[n-i-1]`. 
+the same length `n`, and if, for all `0 <= i < n`, we have `b[i] = a[n-i-1]`.
 
 The difficulty with this specification is that it applies the
 arithmetic operator `+` to the universally quantifier variable `n`,
@@ -19,14 +19,14 @@ which means it is not in the `almost uninterpreted` fragment.
 We can see this if we try to verify the following program:
 
     # include collections
-    # 
+    #
     # type t
     # interpret t -> int
     # type u
     # interpret u -> int
-    # 
+    #
     # instance arr : array(t,u)
-    # 
+    #
     # action rev(a:arr) returns(b:arr) = {
     #     var idx : t := 0;
     #     b := b.resize(a.end,0);
@@ -40,7 +40,7 @@ We can see this if we try to verify the following program:
     #     ensure b.end = a.end & forall I. 0 <= I & I < a.end
     #         -> b.value((a.end)-I-2) = a.value(I)
     # }
-    # 
+    #
     # export rev
 
 Because the loop invariant is outside the decidable fragment, Ivy gives
@@ -53,13 +53,13 @@ this error message:
 
 If we try to force Ivy to verify the program with the `complete=fo` option,
 it gets stuck producing a counter-model for the `ensure` condition (notice
-there is an error there!). 
+there is an error there!).
 
 To avoid the use of arithmetic in defining array reversal, we can
 define *relationally* what it means for one array to be the
 reverse of another. That is, we will define a relation `rev(n,i,j)` that
 holds for two indices `i,j` of an array of length `n`, provide `i` is
-the reverse position of `j`, that is, `i + j + 1 = n`. 
+the reverse position of `j`, that is, `i + j + 1 = n`.
 
 We will then prove some useful properties of `rev` in an isolate, and
 also provide a procedure that, given `n` and `i`, returns the `j`
@@ -273,9 +273,9 @@ is benign, since it is from `arr` and `idx` to `t`.
 ```
 relation arr_rev(A1:arr,A2:arr)
 
-definition [def_arr_rev] 
+definition [def_arr_rev]
     arr_rev(A1:arr,A2:arr) =
-        arr.end(A1) = arr.end(A2) & 
+        arr.end(A1) = arr.end(A2) &
         forall X,Y. rt.rev(arr.end(A1),X,Y) -> arr.value(A1,X) = arr.value(A2,Y)
 
 ```
@@ -314,7 +314,7 @@ The specification says that the output is the reverse of the input.
     }
 
 ```
-The implementation just copies the array backward. 
+The implementation just copies the array backward.
 
 ```
     implement reverse {
@@ -364,7 +364,7 @@ Our lemma says that corresponding elements of `B` and `C` are equal.
 
 ```
 To show this, we need theorem `into`, which tells us that every
-index in `B` and `C` corresponds to *some* index in `A`. 
+index in `B` and `C` corresponds to *some* index in `A`.
 The elements of `B` and `C` are both equal by definition to this
 element of `A`, so by transitivity they are equal to each
 other. We use the `assume` tactic to bring in theorem `into` as
@@ -380,7 +380,7 @@ Here is the resulting proof goal:
 
     #     {
     #        property 0 <= X & X < arr.end(B) -> exists Y. rt.rev(arr.end(B),X,Y)
-    #        property (arr_rev(A,B) & arr_rev(A,C) & 0:idx <= X & X < arr.end(B)) 
+    #        property (arr_rev(A,B) & arr_rev(A,C) & 0:idx <= X & X < arr.end(B))
     #                     -> arr.value(B,X) = arr.value(C,X)
     #     }
 
@@ -451,7 +451,7 @@ The proof begins by applying "implication introduction" to move
 `arr_rev(A,B) & arr_rev(A,C)` into the assumptions [1]. Then we can
 apply array extensionality, since its conclusion `X=Y` matches our
 conclusion `B = C`. Ivy finds this match automatically, so we don't
-need a `with` clause [2]. 
+need a `with` clause [2].
 
 ```
     proof
@@ -470,7 +470,7 @@ We now have the following proof goal:
 That is, we need to prove a conjunction of two facts: the array lengths are equal and
 the array contents are equal. We apply the "and introduction" rule to break this into
 two separate goals [3], and then we use `defergoal` to defer the first case, since the
-default tactic can handle it [4]. 
+default tactic can handle it [4].
 
 ```
         apply introAnd;  # [3]
@@ -479,7 +479,7 @@ default tactic can handle it [4].
 ```
 Now we need to hand the universal quantifier. We apply the "forall introduction" rule,
 which requires us to prove the quantified fact for a generic `x` [5]. This particular index
-`x` in `B` and `C` corresponds to some index in `A`, which we can establish by assuming 
+`x` in `B` and `C` corresponds to some index in `A`, which we can establish by assuming
 the `into` theorem for `x` [6].
 
 ```
@@ -593,7 +593,7 @@ are unchanged, while the elements outside this range are reversed.
             var j := rt.reverse(i,a.end);
             while i < j
             invariant 0 <= i & i <= a.end & a.end = (old a).end & rt.rev(a.end,i,j)
-            invariant forall I. (0 <= I & I < i | j < I & I < a.end) 
+            invariant forall I. (0 <= I & I < i | j < I & I < a.end)
                                 & rt.rev(a.end,I,J)-> a.value(J) = (old a).value(I)
             invariant i <= I & I <= j -> a.value(I) = (old a).value(I)
             {
@@ -611,7 +611,7 @@ are unchanged, while the elements outside this range are reversed.
 
 ```
 Finally, to actually verify the executable code, we export actions
-to the environment. 
+to the environment.
 
 ```
 export my_rev.reverse

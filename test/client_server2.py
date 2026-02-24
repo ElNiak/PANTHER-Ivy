@@ -56,5 +56,3 @@ with ivy_module.Module():
     cg = dui.view_state(dui.node(4))
     cg.show_relation(cg.relation('c(X,Y)'),'+')
 #    ui.mainloop()
-
-

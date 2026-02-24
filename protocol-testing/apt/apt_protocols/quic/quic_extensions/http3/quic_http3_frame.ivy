@@ -14,7 +14,7 @@
 # MAX_PUSH_ID 	Yes 	No 	No 	Section 7.2.7
 # Reserved 	Yes 	Yes 	Yes 	Section 7.2.8
 
-object http3_frame = { 
+object http3_frame = {
     type this
     # Type (i) = 0x00,
     object data = {
@@ -89,13 +89,13 @@ object http3_frame = {
         # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
         # require (~is_not_sleeping -> ~_generating);
         # require (_generating -> is_not_sleeping);
-        
+
         require false; # this generic action should never be called
     }
 }
 
 #
-# DATA 
+# DATA
 #
 
 object http3_frame = {
@@ -104,7 +104,7 @@ object http3_frame = {
         require tls_handshake_finished;
 
         require connected(dcid) & connected_to(dcid) = scid;
-        require (e = quic_packet_type.one_rtt) & established_1rtt_keys(scid); # | e = quic_packet_type.zero_rtt  | e = quic_packet_type.zero_rtt & established_0rtt_keys(scid) 
+        require (e = quic_packet_type.one_rtt) & established_1rtt_keys(scid); # | e = quic_packet_type.zero_rtt  | e = quic_packet_type.zero_rtt & established_0rtt_keys(scid)
         require num_queued_frames(scid) > 0 -> e = queued_level(scid);
         require ~conn_closed(scid);  # [8]
         require conn_seen(scid);  # [9]
@@ -123,7 +123,7 @@ object http3_frame = {
         require tls_handshake_finished;
 
         require connected(dcid) & connected_to(dcid) = scid;
-        require (e = quic_packet_type.one_rtt) & established_1rtt_keys(scid); # | e = quic_packet_type.zero_rtt  | e = quic_packet_type.zero_rtt & established_0rtt_keys(scid) 
+        require (e = quic_packet_type.one_rtt) & established_1rtt_keys(scid); # | e = quic_packet_type.zero_rtt  | e = quic_packet_type.zero_rtt & established_0rtt_keys(scid)
         require num_queued_frames(scid) > 0 -> e = queued_level(scid);
         require ~conn_closed(scid);  # [8]
         require conn_seen(scid);  # [9]
@@ -142,7 +142,7 @@ object http3_frame = {
         require tls_handshake_finished;
 
         require connected(dcid) & connected_to(dcid) = scid;
-        require (e = quic_packet_type.one_rtt) & established_1rtt_keys(scid); # | e = quic_packet_type.zero_rtt  | e = quic_packet_type.zero_rtt & established_0rtt_keys(scid) 
+        require (e = quic_packet_type.one_rtt) & established_1rtt_keys(scid); # | e = quic_packet_type.zero_rtt  | e = quic_packet_type.zero_rtt & established_0rtt_keys(scid)
         require num_queued_frames(scid) > 0 -> e = queued_level(scid);
         require ~conn_closed(scid);  # [8]
         require conn_seen(scid);  # [9]
@@ -161,7 +161,7 @@ object http3_frame = {
         require tls_handshake_finished;
 
         require connected(dcid) & connected_to(dcid) = scid;
-        require (e = quic_packet_type.one_rtt) & established_1rtt_keys(scid); # | e = quic_packet_type.zero_rtt  | e = quic_packet_type.zero_rtt & established_0rtt_keys(scid) 
+        require (e = quic_packet_type.one_rtt) & established_1rtt_keys(scid); # | e = quic_packet_type.zero_rtt  | e = quic_packet_type.zero_rtt & established_0rtt_keys(scid)
         require num_queued_frames(scid) > 0 -> e = queued_level(scid);
         require ~conn_closed(scid);  # [8]
         require conn_seen(scid);  # [9]
@@ -180,7 +180,7 @@ object http3_frame = {
         require tls_handshake_finished;
 
         require connected(dcid) & connected_to(dcid) = scid;
-        require (e = quic_packet_type.one_rtt) & established_1rtt_keys(scid); # | e = quic_packet_type.zero_rtt  | e = quic_packet_type.zero_rtt & established_0rtt_keys(scid) 
+        require (e = quic_packet_type.one_rtt) & established_1rtt_keys(scid); # | e = quic_packet_type.zero_rtt  | e = quic_packet_type.zero_rtt & established_0rtt_keys(scid)
         require num_queued_frames(scid) > 0 -> e = queued_level(scid);
         require ~conn_closed(scid);  # [8]
         require conn_seen(scid);  # [9]
@@ -199,7 +199,7 @@ object http3_frame = {
         require tls_handshake_finished;
 
         require connected(dcid) & connected_to(dcid) = scid;
-        require (e = quic_packet_type.one_rtt) & established_1rtt_keys(scid); # | e = quic_packet_type.zero_rtt  | e = quic_packet_type.zero_rtt & established_0rtt_keys(scid) 
+        require (e = quic_packet_type.one_rtt) & established_1rtt_keys(scid); # | e = quic_packet_type.zero_rtt  | e = quic_packet_type.zero_rtt & established_0rtt_keys(scid)
         require num_queued_frames(scid) > 0 -> e = queued_level(scid);
         require ~conn_closed(scid);  # [8]
         require conn_seen(scid);  # [9]
@@ -218,7 +218,7 @@ object http3_frame = {
         require tls_handshake_finished;
 
         require connected(dcid) & connected_to(dcid) = scid;
-        require (e = quic_packet_type.one_rtt) & established_1rtt_keys(scid); # | e = quic_packet_type.zero_rtt  | e = quic_packet_type.zero_rtt & established_0rtt_keys(scid) 
+        require (e = quic_packet_type.one_rtt) & established_1rtt_keys(scid); # | e = quic_packet_type.zero_rtt  | e = quic_packet_type.zero_rtt & established_0rtt_keys(scid)
         require num_queued_frames(scid) > 0 -> e = queued_level(scid);
         require ~conn_closed(scid);  # [8]
         require conn_seen(scid);  # [9]

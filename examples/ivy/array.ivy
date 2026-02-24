@@ -5,7 +5,7 @@ type t
 module array = {
 
     individual a(X:t) : t
-    
+
     action put(addr:t,val:t) = {
 	a(addr) := val
     }
@@ -17,7 +17,7 @@ module array = {
 }
 
 module array_spec(arr) = {
-    
+
     relation rel(X:t,Y:t)
 
     init rel(X,Y)
@@ -41,5 +41,3 @@ instantiate s : array_spec(a)
 
 export a.put
 export a.get
-
-

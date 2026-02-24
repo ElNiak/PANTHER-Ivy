@@ -11,7 +11,7 @@ object bgp_ser = {}
 >>>
 
 <<< impl
-    
+
     class `bgp_ser` : public ivy_binary_ser_128 {
         enum {bgp_s_init,
               bgp_s_len,
@@ -57,21 +57,21 @@ object bgp_ser = {}
             }
             break;
             default:
-            std::cerr << "deser_err 42 "  << "\n";  
+            std::cerr << "deser_err 42 "  << "\n";
             throw deser_err();
             }
         }
 
 
         virtual void open_tag(int tag, const std::string &) {
-            std::cerr << "deser_err 43 " << tag << "\n";  
-            std::cerr << "deser_err 43 " << state << "\n";  
+            std::cerr << "deser_err 43 " << tag << "\n";
+            std::cerr << "deser_err 43 " << state << "\n";
             throw deser_err();
         }
 
         virtual void open_list_elem() {
             if (state == bgp_s_payload) {
-                std::cerr << "bgp_s_payload bgp_deser 2\n";  
+                std::cerr << "bgp_s_payload bgp_deser 2\n";
                 payload_length-->  0;
             }
         }

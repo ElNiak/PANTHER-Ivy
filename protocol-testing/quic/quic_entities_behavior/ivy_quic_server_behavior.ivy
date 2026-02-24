@@ -12,7 +12,7 @@ include random_value
 # -------------
 #
 # To test the server over the OS sockets layer, we need some setup. We must
-# establish which interface and which ports the tester will use. 
+# establish which interface and which ports the tester will use.
 #
 # create an UDP network instance to communicate to server with
 # Note: because of packet coalescing, a single UDP datagram contains
@@ -23,7 +23,7 @@ include random_value
 # can model migration.
 
 # var server_cid  : cid  # useless for now, refactoring of shim neeeded
-# var client_addr : ip.addr 
+# var client_addr : ip.addr
 # var client_port : ip.port
 # var client_port_alt : ip.port
 
@@ -66,7 +66,7 @@ after init {
 # endpoints, TLS instances and host ids. TODO: This is a mess and
 # should be done in a more systematic way.
 
-# Get the host id associated to an ip endpoint. 
+# Get the host id associated to an ip endpoint.
 
 # TODO remove if is_mim
 action endpoint_to_pid(src:ip.endpoint) returns (pid:endpoint_id) = {
@@ -86,7 +86,7 @@ action endpoint_to_pid(src:ip.endpoint) returns (pid:endpoint_id) = {
 action socket_endpoint(host:endpoint_id,s:net.socket) returns (src:ip.endpoint) = {
     src := server.ep;
 }
-    
+
 action socket_endpoint_mim(host:endpoint_id,s:net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
     dst := client.ep if (is_mim_standalone | src = mim_server_target.ep) else server.ep;
 }
@@ -248,7 +248,7 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
 }
 
 # import action show_version(v:version)
-    
+
 
 # The protocol specification describes all the events occurring the system
 # at all protocol layers. When we test, however, we need to divide the system
@@ -329,7 +329,7 @@ before frame.rst_stream.handle(f:frame.rst_stream,scid:cid,dcid:cid) {
 
 before frame.stop_sending.handle(f:frame.stop_sending,scid:cid,dcid:cid) {
     if _generating {
-        require client.ep.addr ~= 0;       
+        require client.ep.addr ~= 0;
         require scid = the_cid;
         require f.id = 4;
     }
@@ -348,7 +348,7 @@ before frame.max_streams.handle(f:frame.max_streams,scid:cid,dcid:cid) {
 
 before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid) {
     if _generating {
-        require client.ep.addr ~= 0;         
+        require client.ep.addr ~= 0;
         require scid = the_cid;
     } else {
         require is_no_error;
@@ -417,7 +417,7 @@ before frame.new_token.handle(f:frame.new_token,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid;
         # call handle_sending_ack(f.largest_acked);
-    } 
+    }
     # else {
     #     call tls_api.upper.save_token(f.data);
     # }
@@ -447,12 +447,12 @@ before frame.max_data.handle(f:frame.max_data,scid:cid,dcid:cid) {
 # lines.
 
 action client_send_event(src:ip.endpoint, dst:ip.endpoint, dcid:cid, s : stream_id, end : stream_pos)
-    
+
 around client_send_event {
     # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
     # require _generating -> is_not_sleeping;
     #if _generating {
-    
+
     #};
     require stream_seen(dcid,s); # TODO: wait until client request is finished?
     require src = server.ep;

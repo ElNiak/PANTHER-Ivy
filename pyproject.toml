@@ -1,0 +1,29 @@
+# Tool configuration only - setup.py remains the build config.
+# This prevents accidental reformatting of upstream code when running
+# Black/isort outside of pre-commit (e.g. `black .` or IDE integration).
+
+[tool.black]
+target-version = ["py310"]
+extend-exclude = '''
+/(
+    ivy
+  | test
+  | submodules
+  | examples
+  | doc
+  | notebooks
+  | protocol-testing
+)/
+'''
+
+[tool.isort]
+profile = "black"
+skip_glob = [
+    "ivy/*",
+    "test/*",
+    "submodules/*",
+    "examples/*",
+    "doc/*",
+    "notebooks/*",
+    "protocol-testing/*",
+]

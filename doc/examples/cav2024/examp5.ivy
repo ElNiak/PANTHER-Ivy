@@ -62,7 +62,7 @@ module isolate unbounded_queue with time = {
     specification {
         var latest : time
         var pending(X:time) : bool
-        
+
         after init {
             latest := 0;
             pending(X) := false;
@@ -140,7 +140,7 @@ module isolate arr_queue with time, arr_time = {
         var clock : arr_time
         var done : arr_time
         var arr(X:time) : arr_time
-        
+
         after init {
             pending(X) := false;
             clock := 0;
@@ -222,7 +222,7 @@ isolate m = {
         require x > clock;
         clock := x;
     }
-    
+
     invariant q1.pending(X) -> clock >= X
     invariant q2.pending(X) -> clock >= X
     invariant q3.pending(X) -> clock >= X
@@ -233,7 +233,7 @@ isolate m = {
     # This is a system property we want to prove. That is, if we infinitely often poll
     # both q1 and q2, then every message X sent on q1 should eventually be received on q2.
     #
-    
+
     temporal property
     forall X. ((globally eventually q1.trying.now)
                & (globally eventually q3.trying.now)
@@ -264,4 +264,3 @@ export m.q1.send
 export m.poll1
 export m.poll2
 export m.q3.recv
-

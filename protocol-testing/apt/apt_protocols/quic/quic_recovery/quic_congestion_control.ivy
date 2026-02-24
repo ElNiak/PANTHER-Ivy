@@ -11,25 +11,25 @@ function kMinimumWindow : stream_pos
 # Scaling factor applied to reduce the congestion window when a new loss event is detected. Section 7 recommends a value of 0.5.
 function kLossReductionFactor: stream_pos
 
-# Period of time for persistent congestion to be established, specified as a PTO multiplier. Section 7.6 recommends a value of 3.  
+# Period of time for persistent congestion to be established, specified as a PTO multiplier. Section 7.6 recommends a value of 3.
 function kPersistentCongestionThreshold : stream_pos
 
-    
 
-# The sender's current maximum payload size. This does not include UDP or IP overhead. 
-# The max datagram size is used for congestion window computations. An endpoint sets 
+
+# The sender's current maximum payload size. This does not include UDP or IP overhead.
+# The max datagram size is used for congestion window computations. An endpoint sets
 # the value of this variable based on its Path Maximum Transmission Unit (PMTU; see Section 14.2 of [QUIC-TRANSPORT]), with a minimum value of 1200 bytes.
 function max_datagram_size : stream_pos
 
 
-# The highest value reported for the ECN-CE counter in the packet number space by the peer in an 
+# The highest value reported for the ECN-CE counter in the packet number space by the peer in an
 # ACK quic_frame. This value is used to detect increases in the reported ECN-CE counter.
 function ecn_ce_counters(E:quic_packet_type) : stream_pos
 
-# The sum of the size in bytes of all sent packets that contain at least one ack-eliciting or 
-# PADDING quic_frame and have not been acknowledged or declared lost. 
-# The size does not include IP or UDP overhead, but does include the QUIC header and 
-# Authenticated Encryption with Associated Data (AEAD) overhead. Packets only containing ACK 
+# The sum of the size in bytes of all sent packets that contain at least one ack-eliciting or
+# PADDING quic_frame and have not been acknowledged or declared lost.
+# The size does not include IP or UDP overhead, but does include the QUIC header and
+# Authenticated Encryption with Associated Data (AEAD) overhead. Packets only containing ACK
 # frames do not count toward bytes_in_flight to ensure congestion control does not impede congestion feedback.
 function bytes_in_flight : stream_pos
 
@@ -38,11 +38,11 @@ function bytes_in_flight : stream_pos
 # Maximum number of bytes allowed to be in flight
 function congestion_window : stream_pos
 
-# The time the current recovery period started due to the detection of loss or ECN. When a packet sent after this time is 
+# The time the current recovery period started due to the detection of loss or ECN. When a packet sent after this time is
 # acknowledged, QUIC exits congestion recovery
 function congestion_recovery_start_time : microseconds
 
-# Slow start threshold in bytes. When the congestion window is below ssthresh, the mode is slow start and the 
+# Slow start threshold in bytes. When the congestion window is below ssthresh, the mode is slow start and the
 # window grows by the number of bytes acknowledged.
 function ssthresh : stream_pos
 
@@ -58,7 +58,7 @@ after init {
 }
 
 
-# This is invoked from ProcessECN and OnPacketsLost when a new congestion event is detected. 
+# This is invoked from ProcessECN and OnPacketsLost when a new congestion event is detected.
 # If not already in recovery, this starts a recovery period and reduces the slow start threshold and congestion window immediately.
 action on_congestion_event(sent_time_of_last_loss:microseconds) = {
     # No reaction if already in a recovery period.
@@ -86,9 +86,9 @@ action on_congestion_event(sent_time_of_last_loss:microseconds) = {
 # }
 
 
-# This is invoked from loss detection's OnAckReceived and is supplied with the newly 
-# acked_packets from sent_packets.In congestion avoidance, implementers that use an 
-# integer representation for congestion_window should be careful with division and 
+# This is invoked from loss detection's OnAckReceived and is supplied with the newly
+# acked_packets from sent_packets.In congestion avoidance, implementers that use an
+# integer representation for congestion_window should be careful with division and
 # can use the alternative approach suggested in Section 2.1 of [RFC3465].
 action on_packets_acked(pn_space:quic_packet_type) = {
     var idx : stream_pos := 0;
@@ -105,7 +105,7 @@ action on_packet_acked(acked_packet:packet.quic_packet) = {
         # limited or flow control limited.
         # if (IsAppOrFlowControlLimited())
         #     return # TODO
-        
+
         # Do not increase congestion window in recovery period.
         if ~(sent_packets_time_sent(acked_packet.ptype,acked_packet.seq_num) <= congestion_recovery_start_time) {
             # Slow start.
@@ -150,7 +150,7 @@ action on_packets_lost(pn_space:quic_packet_type) = {
         while idx < lost_packets_end(pn_space) {
               if sent_packets_time_sent(lost_packets(pn_space,idx).ptype,lost_packets(pn_space,idx).seq_num) > first_rtt_sample {
                   pc_lost_end(pn_space) := pc_lost_end(pn_space) + 1;
-              }  
+              }
               idx := idx + 1;
         }
         if pc_lost_end(pn_space) >= kPersistentCongestionThreshold {
@@ -172,4 +172,3 @@ action remove_from_bytes_in_flight(pn_space:quic_packet_type) = {
         idx := idx + 1;
     }
 }
-

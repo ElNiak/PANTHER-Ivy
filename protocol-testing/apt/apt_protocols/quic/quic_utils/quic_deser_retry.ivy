@@ -46,7 +46,7 @@ object quic_deser_retry = {}
         int token_count = 0;
         int tokeni_count = 0;
         int token_len;
-    
+
     public:
         quic_deser_retry(const std::vector<char> &inp) : ivy_binary_deser_128(inp),state(quic_s_init) {
         //quic_deser_retry(const std::vector<char> &inp) : ivy_binary_deser(inp),state(quic_s_init) {
@@ -82,7 +82,7 @@ object quic_deser_retry = {}
                 }
                 break;
                 case quic_s_dcid:
-                {   
+                {
                     if (long_format) {
                         int128_t cil;
                         //long long cil;
@@ -104,10 +104,10 @@ object quic_deser_retry = {}
                         int128_t cil;
                         //long long cil;
                         getn(cil,1);
-                        std::cerr << "sourceID size " << cil << "\n";  
+                        std::cerr << "sourceID size " << cil << "\n";
                         if(cil > 0)
                             have_scid = true;
-                        else 
+                        else
                             have_scid = false;
                         scil = cil;
                         scid_h = cil;
@@ -138,15 +138,15 @@ object quic_deser_retry = {}
 
                     char str_l[100];
                     sprintf(str_l,"%d",token_length);
-                    if(setenv("RETRY_TOKEN_LENGTH",str_l,true) != 0) 
+                    if(setenv("RETRY_TOKEN_LENGTH",str_l,true) != 0)
                         fprintf(stderr, "setenv failed\n");
 
                     if(token_count == 0)
                         token_len = token_length;
 
                     std::cerr << "token_count " << token_count << "\n";
-                    
-                    getn(res,1);    
+
+                    getn(res,1);
                     token_count += 1;
                     if(token_count == token_len)
                     state = quic_s_retry_integrity_tag;
@@ -159,7 +159,7 @@ object quic_deser_retry = {}
                     std::cerr << "retry_integrity_tag inp " << inp.size() << "\n";
                     getn(res,16); //ivy_binary_deser_128::
                     /*if(tokeni_count < 16){
-                        getn(res,1);    
+                        getn(res,1);
                         tokeni_count += 1;
                         state = quic_s_retry_integrity_tag;
                     }*/
@@ -168,9 +168,9 @@ object quic_deser_retry = {}
                     std::cerr << "retry_integrity_tag " << res << "\n";
                 }
                 break;
-                default: 
+                default:
                 {
-                    std::cerr << "quic_deser_retry 3\n";  
+                    std::cerr << "quic_deser_retry 3\n";
                     throw deser_err();
                 }
             }
@@ -210,14 +210,14 @@ object quic_deser_retry = {}
         }
 
         virtual int open_tag(const std::vector<std::string> &tags) {
-            std::cerr << "quic_deser_retry 6\n";    
+            std::cerr << "quic_deser_retry 6\n";
             throw deser_err();
         }
 
         virtual bool open_list_elem() {
             if (state == quic_s_retry_token) {
                 // We must use/take in count the padding quic_frame since Picoquic client sometimes send packet
-                // only with 1 padding quic_frame which make fails the requirement saying that a 
+                // only with 1 padding quic_frame which make fails the requirement saying that a
                 // packet cannot be empty
                /*while ((fence == 0 || pos < fence) && more(1) && inp[pos] == 0)
                    pos++;  // skip padding frames
@@ -226,16 +226,16 @@ object quic_deser_retry = {}
             }
             if (quic_s_retry_integrity_tag) {
                 // We must use/take in count the padding quic_frame since Picoquic client sometimes send packet
-                // only with 1 padding quic_frame which make fails the requirement saying that a 
+                // only with 1 padding quic_frame which make fails the requirement saying that a
                 // packet cannot be empty
                /*while ((fence == 0 || pos < fence) && more(1) && inp[pos] == 0)
                    pos++;  // skip padding frames
                 */
-               return false; //more(16); //oken_count == token_len;//  (fence == 0 || pos < fence) && more(1); //more(1); //tokeni_count < 16; //more(16); //(fence == 0 || pos < fence) && 
+               return false; //more(16); //oken_count == token_len;//  (fence == 0 || pos < fence) && more(1); //more(1); //tokeni_count < 16; //more(16); //(fence == 0 || pos < fence) &&
             }
             if (state == quic_s_init)
                 return more(1);
-            std::cerr << "quic_deser_retry 1\n";  
+            std::cerr << "quic_deser_retry 1\n";
             throw deser_err();
         }
 

@@ -13,7 +13,7 @@ extern int dcid_h;
     } *transport_error_struct_ptr;
 
     struct transport_error_map : hash_space::hash_map<std::string,int> {};
-    
+
     struct transport_error_struct transport_error_codes[17] = {
         {"no_error",0x0},
         {"internal_error",0x1},
@@ -169,7 +169,7 @@ struct tls_name_struct tls_field_bytes[43] = {
     {"mtype", 1},
     {"gmt_unix_time", 4},
     {"cipher_suites", 2},
-    {"the_cipher_suite", 2},    
+    {"the_cipher_suite", 2},
     {"compression_methods", 1},
     {"the_compression_method", 1},
     {"session_id", 1},

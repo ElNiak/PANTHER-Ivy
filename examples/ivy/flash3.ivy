@@ -145,7 +145,7 @@ action pi_Remote_Get = {
 # 	dir.shlist(src) := true;
 # 	dir.real := dir.shlist # what is this?
 #     }
-#     else { 
+#     else {
 # 	dir.head := true;
 # 	dir.hptr := src
 #     }
@@ -243,7 +243,7 @@ action ni_Local_GetX = {
 action ni_Local_GetX_nak = {
     assume net.getX(src,home);
     assume home ~= src;
-    assume dir.pending | dir.dirty & cache(home).state ~= exclusive | src = dir.hptr; 
+    assume dir.pending | dir.dirty & cache(home).state ~= exclusive | src = dir.hptr;
     net.getX(src,home) := false;
     net.nak(home,src) := true;
     src := *
@@ -256,7 +256,7 @@ action ni_Local_GetX_nak = {
 action ni_Local_GetX_pend = {
     assume net.getX(src,home);
     assume home ~= src;
-    assume ~dir.pending & dir.dirty & ~dir.local_ & src ~= dir.hptr; 
+    assume ~dir.pending & dir.dirty & ~dir.local_ & src ~= dir.hptr;
     net.getX(src,home) := false;
     dir.pending :=  true;
     collecting := false;
@@ -268,22 +268,22 @@ action ni_Local_GetX_pend = {
 
 # Directory receives an exclusive request. This action handles the
 # case when invalidations are sent out.
- 
+
 action ni_localGetX_inv = {
     assume net.getX(src,home);
     assume home ~= src;
-    assume ~dir.pending & ~dir.dirty & ~dir.local_; 
+    assume ~dir.pending & ~dir.dirty & ~dir.local_;
     assume dir.head;
     assume src ~= dir.hptr | (dir.shlist(dst) & dst~=src);
     net.getX(src,home) := false;
     invnet(X) := X ~= home & X ~= src & dir.shlist(X);
     collecting := true;
     #   m1 := m;
-    #   last_other_invack := (dir.hptr ~= src) ? dir.hptr . {i  . i in Proc, dir.shlist(i) & i~=src}; 
+    #   last_other_invack := (dir.hptr ~= src) ? dir.hptr . {i  . i in Proc, dir.shlist(i) & i~=src};
     cache(home).invmarked := (cache(home).wait = get & dir.local_) | cache(home).invmarked;
     dir.local_ := false;
     dir.dirty := true;
-    dir.head := true; 
+    dir.head := true;
     dir.hptr := src;
     dir.pending := true;
     dir.real(X) := X ~= home & X ~= src & dir.shlist(X);
@@ -354,7 +354,7 @@ action ni_WB = {
     wbnet.wb := false;
     dir.dirty := false;
     dir.head := false;
-    dir.shlist(X) := false; 
+    dir.shlist(X) := false;
     last_WB := wbnet.proc
 }
 
@@ -480,14 +480,12 @@ invariant [coherent]
 invariant [nodups]
   cache(X).state = exclusive -> dir.dirty & ~wbnet.wb & ~net.shwb(Y,home)
 
-invariant net.putX(X,Y) -> Y = real_owner & dir.dirty & ~wbnet.wb & ~net.shwb(Z,home) & cache(Z).state ~= exclusive 
+invariant net.putX(X,Y) -> Y = real_owner & dir.dirty & ~wbnet.wb & ~net.shwb(Z,home) & cache(Z).state ~= exclusive
 
-invariant net.shwb(Z,home) -> dir.dirty & ~wbnet.wb & ~net.putX(X,Y) & cache(X).state ~= exclusive 
+invariant net.shwb(Z,home) -> dir.dirty & ~wbnet.wb & ~net.putX(X,Y) & cache(X).state ~= exclusive
 
 invariant wbnet.wb -> dir.dirty & ~net.putX(X,Y) & ~net.shwb(Z,home) & cache(X).state ~= exclusive
 
 invariant net.putX(X,Y) & net.putX(Z,Y) -> X = Z
 
 invariant net.shwb(X,home) & net.shwb(Z,home) -> X = Z
-
-

@@ -19,7 +19,7 @@ object bgp_speaker = {
         individual ep        : ip.endpoint
         individual bgpid     : bgp_id
         individual bas_number : as_number
-        # individual mode : 
+        # individual mode :
 
         after init {
             ep.protocol := ip.tcp;
@@ -27,8 +27,8 @@ object bgp_speaker = {
             ep.port := 179;
             bgpid := id;
             bas_number := as;
-            
-            if ep.addr = 0x7f000001 { 
+
+            if ep.addr = 0x7f000001 {
                 ep.interface := ip.lo;
             } else {
                 ep.interface := ip.ivy;

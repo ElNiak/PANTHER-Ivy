@@ -69,9 +69,9 @@ include deduction
 
 module indexset(basis) = {
 
-    type set 
+    type set
     instance index : unbounded_sequence
-    
+
     relation member(E:basis,S:set)
     function card(S:set) : index.t
     relation majority(S:set)
@@ -94,11 +94,11 @@ module indexset(basis) = {
 	    assert r <-> ~ exists X. member(X,s)
 	}
     }
-    
+
     function cnt(E:basis) : index.t
     relation disjoint(X:set,Y:set)
 
-    
+
     isolate disjointness = {
 
 	object impl = {
@@ -149,16 +149,16 @@ module indexset(basis) = {
 	    # the basis set.
 
 	    definition majority(X) = 2 * card(X) > cnt(basis.max)
-	    
+
 	    object spec = {
 		# This is the definition of dijoint sets in terms of
 		# the member relation.  Notice that there is a
 		# quantifier alternation in the direction set ->
 		# basis.
 
-		definition 
+		definition
                     disjoint(X,Y) = forall E. ~(member(E,X) & member(E,Y))
-                
+
 		# This is our inductive invariant. It says that, for
 		# disjoint sets, the sum of the cardinalities up to
 		# bound B is less than the total number of elements
@@ -181,21 +181,21 @@ module indexset(basis) = {
 	    }
 
 	}
-	
+
 	object spec = {
 
 	    # With the above lemma, Z3 can prove the "majorities intersect"
             # property. The idea is that the lemma can be specialized to this:
             #
             #      # property disjoint(X,Y) -> card(X) + card(Y) <= cnt(basis.max)
-            # 
+            #
             # Since both majorities have cardinality greater than
             # `cnt(basis.max)/2`, it follows that majorities cannot be
             # disjoint, so they must have an element in common.
 
             property majority(X) & majority(Y) -> exists E. (member(E,X) & member(E,Y))
 	}
-	
+
 	attribute test = impl
     }
     with basis.impl,index.impl
@@ -205,7 +205,7 @@ module indexset(basis) = {
     # run afoul of the fragment checker.
 
     isolate api = {
-	
+
 	object impl = {
 	    # Here is the implementation of the set type using an unsorted array.
 
@@ -221,7 +221,7 @@ module indexset(basis) = {
 
 	    definition member(y:basis,X:set) = exists Z. 0 <= Z & Z < repr(X).end & repr(X).value(Z) = y
 
-	    # These lemmas are needed to prove correctness of is_empty. 
+	    # These lemmas are needed to prove correctness of is_empty.
 
 	    property member(Y,X) -> repr(X).end ~= 0
 	    property repr(X).end ~= 0 -> member(repr(X).value(0),X)
@@ -249,7 +249,7 @@ module indexset(basis) = {
 }
 
 
-# 
+#
 # The following is a test instantiation of `indexset`, to check that the
 # verification goes through.
 #

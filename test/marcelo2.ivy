@@ -2,7 +2,7 @@
 
 type t
 interpret t -> int
-relation value(A:t,X:t) 
+relation value(A:t,X:t)
 definition value(A:t,X:t) = <<< 3 >>>
 relation contains(SET:t) = exists IDX. IDX < 0 & IDX > 0 & value(SET,IDX)
 

@@ -18,7 +18,7 @@ module tcp_channel(addr,pkt) = {
 	individual send_idx : index.t
 	individual recv_idx : index.t
 	relation sent(I:index.t,P:pkt)
-	
+
 	after init {
 	    send_idx := 0;
 	    recv_idx := 0;
@@ -74,13 +74,13 @@ module tcp_network(addr,pkt) = {
     action failed(self:addr,s:socket)
 
     action connected(self:addr,s:socket)
-    
+
         var open(A:addr,S:socket) : bool
         var req(A1:addr,S1:socket,A2:addr) : bool
         var ack(A1:addr,S1:socket) : bool
         var conn(A1:addr,S1:socket,A2:addr,S2:socket) : bool
         var sent_to(A:addr,S:socket,P:pkt) : bool
-        
+
     object spec =  {
 
 
@@ -125,13 +125,13 @@ module tcp_network(addr,pkt) = {
                 if some (other:addr,s2:socket) conn(self,s,other,s2) {
                     sent_to(other,s2,p) := true
                 }
-            } 
+            }
         }
 
         before recv {
             require open(self,s);
             require sent_to(self,s,p);
-        }            
+        }
 
         around close {
             require open(self,s);
@@ -151,14 +151,14 @@ module tcp_network(addr,pkt) = {
             sent_to(self,s,P) := false;
             conn(A,S,self,s) := false;
         }
-        
+
         invariant ~(open(A,S) & (req(A,S,A1) | ack(A,S))) & ~(req(A,S,A1) & ack(A,S))
         invariant req(A,S,A1) & req(A,S,A2) -> A1 = A2
         invariant (conn(A,S,A1,S1) | sent_to(A1,S1,P)) -> (open(A1,S1) | ack(A1,S1))
         invariant conn(A1,S1,A,S) -> (open(A1,S1) | ack(A1,S1))
     }
 
-    
+
     implementation {
         instance impl(X:addr) : tcp_impl(addr,pkt,X,5990)
     }
@@ -179,7 +179,7 @@ module simple_tcp(addr,pkt) = {
         after init {
 	    sent(V, N) := false
 	}
-    
+
 	before send {
 	    sent(v,dst) := true
 	}
@@ -199,7 +199,7 @@ module simple_tcp(addr,pkt) = {
             relation isup(A:addr)
             function sock(A:addr) : tcp.socket
             relation pend(A:addr)
-            
+
             after init {
                 isup(A) := false;
                 pend(A) := false;
@@ -263,4 +263,3 @@ module simple_tcp(addr,pkt) = {
    isolate iso = this
    attribute test = impl
 }
-

@@ -11,7 +11,7 @@ def get_id(x):
 
 def biased_core(s,alits,unlikely):
     """ Try to produce a minimal unsatisfiable subset of alits, using as few
-    of the alits in unlikely as possible. 
+    of the alits in unlikely as possible.
     """
     core = alits
     for lit in unlikely:
@@ -22,7 +22,7 @@ def biased_core(s,alits,unlikely):
     assert is_sat == unsat
     core = minimize_core(s)
     return core
-    
+
 
 def minimize_core_aux2(s, core):
     mus = []
@@ -46,4 +46,3 @@ def minimize_core(s):
     core = minimize_core_aux2(s, core)
 #    print "minimize_core: core = {}".format(core)
     return core
-

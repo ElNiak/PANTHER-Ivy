@@ -102,7 +102,7 @@ object message_method = {
     }
 
     instance idx : unbounded_sequence
-    instance arr : array(idx, this) 
+    instance arr : array(idx, this)
 
     action handle(r: this, src:ip.endpoint,dst:ip.endpoint, i:id)  = {
         require false;
@@ -118,7 +118,7 @@ object message_method = {
         action handle(r: message_method.request, src:ip.endpoint,dst:ip.endpoint, i:id)
 
         around handle {
-            
+
             ...
 
         }
@@ -133,7 +133,7 @@ object message_method = {
         action handle(r: message_method.response, src:ip.endpoint,dst:ip.endpoint, i:id)
 
         around handle {
-            
+
             ...
 
         }

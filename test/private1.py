@@ -20,7 +20,7 @@ module mod(me) = {
   }
 
   object baz = {
-     
+
     action thing(y:foo) = {
       x := me
     }
@@ -57,5 +57,3 @@ with im.Module():
 #     main_ui.answer("View")
 #     cg.bmc_conjecture(bound=1)
 # #    main_ui.mainloop()
-
-

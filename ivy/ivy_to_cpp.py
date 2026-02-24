@@ -45,7 +45,7 @@ def all_state_symbols():
 # 1) It is not derived
 # 2) It is initialized to all false
 # 3) Every update is either to a simple point, or to false
-# 
+#
 
 def extensional_relations():
     """
@@ -129,7 +129,7 @@ def sort_card(sort):
             if card != None:
                 return card
     raise iu.IvyError(None,'sort {} has no finite interpretation'.format(sort))
-    
+
 indent_level = 0
 
 def indent(header):
@@ -182,7 +182,7 @@ def sym_decl(sym,c_type = None,skip_params=0,classname=None,isref=False,ival=Non
     if ival is not None:
         res += ' = '+ival;
     return res
-    
+
 def declare_symbol(header,sym,c_type = None,skip_params=0,classname=None,isref=False,ival=None):
     """
     Declare a symbol in the header.
@@ -247,7 +247,7 @@ def varname(name):
         return special_names[name]
     if name.startswith('"'):
         return name
-    
+
     name = name.replace('loc:', 'loc__') \
             .replace('ext:', 'ext__') \
             .replace('___branch:', '__branch__') \
@@ -256,7 +256,7 @@ def varname(name):
             .replace('__fml:', '') \
             .replace('fml:', '') \
             .replace('ret:', '')
-            
+
     name = re.sub(puncs,'__',name).replace('@@','.')
     return name.replace(':','__COLON__')
 #    return name.split(':')[-1]
@@ -274,7 +274,7 @@ def other_varname(name):
     if global_classname is not None:
         return global_classname + '::' + varname(name)
     return varname(name)
-    
+
 
 def funname(name):
     """
@@ -299,7 +299,7 @@ def funname(name):
     if name[0] == '"':
         raise IvyError(None,"cannot compile a function whose name is a quoted string")
     return varname(name)
-        
+
 
 def mk_nondet(code,v,rng,name,unique_id):
     """
@@ -331,7 +331,7 @@ def is_native_sym(sym):
         bool: True if the symbol is a native symbol, False otherwise.
     """
     assert hasattr(sym.sort,'rng'),sym
-    return il.is_uninterpreted_sort(sym.sort.rng) and sym.sort.rng.name in im.module.native_types    
+    return il.is_uninterpreted_sort(sym.sort.rng) and sym.sort.rng.name in im.module.native_types
 
 
 def mk_nondet_sym(code,sym,name,unique_id):
@@ -380,7 +380,7 @@ def assign_zero_symbol(code,sym):
     fun = lambda v: (('('+ctype(v.sort)+')0')
                      if not (is_native_sym(v) or ctype(v.sort) == '__strlit' or v.sort in sort_to_cpptype) else None)
     assign_symbol_value(code,[varname(sym)],fun,sym,same=True)
-    
+
 
 def field_eq(s,t,field):
     """
@@ -491,7 +491,7 @@ class the_hash_type {
     };
 """.replace('the_hash_type',ctuple_hash(dom)).replace('the_type',the_type).replace('the_val','+'.join('hash_space::hash<{}>()(__s.arg{})'.format(hashtype(s),i,classname=classname) for i,s in enumerate(dom))))
 
-                  
+
 def declare_hash_thunk(header):
     """
     Declare a hash thunk structure.
@@ -528,7 +528,7 @@ struct hash_thunk {
         return res;
     }
 };
-""")        
+""")
 
 def all_members():
     """
@@ -565,7 +565,7 @@ def all_ctuples():
                 continue
             done.add(name)
             yield res
-    
+
 def all_hash_thunk_domains(classname):
     """
     Generates the names of all hash thunk domains for a given class.
@@ -604,9 +604,9 @@ def hashtype(sort,classname=None):
     if isinstance(sort,il.EnumeratedSort):
         return 'int'
     return ctype(sort,classname)
-    
+
 def has_string_interp(sort):
-    return il.sort_interp(sort) == 'strlit'    
+    return il.sort_interp(sort) == 'strlit'
 
 def is_numeric_range(sort):
     s = sort.extension[0]
@@ -712,7 +712,7 @@ def ctype(sort,classname=None,ptype=None):
         if sort.name in im.module.native_types or sort.name in im.module.sort_destructors:
             return ptype.make(((classname+'::') if classname != None else '') + varname(sort.name))
     return ptype.make(ctype_remaining_cases(sort,classname))
-    
+
 def ctypefull(sort,classname=None):
     classname = classname or global_classname
     if il.is_uninterpreted_sort(sort):
@@ -726,7 +726,7 @@ def ctypefull(sort,classname=None):
     return ctype_remaining_cases(sort,classname)
 
 def native_type_full(self):
-    return self.args[0].inst(native_reference_in_type,self.args[1:])    
+    return self.args[0].inst(native_reference_in_type,self.args[1:])
 
 large_thresh = 1024
 
@@ -748,7 +748,7 @@ def is_large_lhs(term):
         return True
     cards = [sort_size(v.sort) for v in lu.free_variables(term)]
     return not(all(cards) and reduce(mul,cards,1) <= large_thresh)
-    
+
 
 def ctype_function(sort,classname=None,skip_params=0):
     cards = list(map(sort_card,sort.dom[skip_params:] if hasattr(sort,'dom') else []))
@@ -758,7 +758,7 @@ def ctype_function(sort,classname=None,skip_params=0):
             return (cty,cards)
     cty = 'hash_thunk<'+ctuple(sort.dom[skip_params:],classname=classname)+','+cty+'>'
     return (cty,[])
-    
+
 native_expr_full = native_type_full
 
 thunk_counter = 0
@@ -797,7 +797,7 @@ def gather_referenced_symbols(expr,res,ignore=[]):
                 ldf = is_derived[sym]
                 if ldf is not True:
                     gather_referenced_symbols(ldf.formula.args[1],res,ldf.formula.args[0].args)
-                
+
 skip_z3 = False
 
 def is_numeric_or_enumerated_constant(s):
@@ -807,9 +807,9 @@ def is_numeric_or_enumerated_constant(s):
 def make_thunk(impl,vs,expr):
     """
     Create a thunk object for the given implementation, variables, and expression.
-    
-    Thunks are useful in object-oriented programming platforms that allow a class to inherit multiple interfaces, 
-    leading to situations where the same method might be called via any of several interfaces. 
+
+    Thunks are useful in object-oriented programming platforms that allow a class to inherit multiple interfaces,
+    leading to situations where the same method might be called via any of several interfaces.
 
     Args:
         impl: The implementation object.
@@ -876,13 +876,13 @@ def make_thunk(impl,vs,expr):
                 code_line(impl,'std::ostringstream __ss')
                 code_line(impl,'__ss << __ident')
                 def make_symbol(sym):
-                    sym_name = 'loc_'+varname(sym.name) 
+                    sym_name = 'loc_'+varname(sym.name)
                     code_line(impl,'std::string {} = std::string("__loc_") + __ss.str() + std::string("__") + "{}"'.format(sym_name,sym.name))
                     open_scope(impl,line='if (g.decls_by_name.find({}) == g.decls_by_name.end())'.format(sym_name))
                     emit_decl(impl,sym,sym_name=sym_name+'.c_str()',prefix='g.')
                     close_scope(impl)
                     return sym_name
-                vsyms = [il.Symbol(name+'_arg_{}'.format(idx),v.sort) for idx,v in enumerate(vs)] 
+                vsyms = [il.Symbol(name+'_arg_{}'.format(idx),v.sort) for idx,v in enumerate(vs)]
                 rsym = il.Symbol(name+'_res_{}'.format(0),expr.sort) # chris: error here with idx instead of 0 len(list(enumerate(vs)))
                 envsyms = [il.Symbol(name+'_env_{}'.format(idx),v.sort) for idx,v in enumerate(env)]
                 for v in vsyms+envsyms+[rsym]:
@@ -901,7 +901,7 @@ def make_thunk(impl,vs,expr):
                 code_line(impl,'hash_map<std::string,std::string> rn')
                 for sym,envsym in zip(env,envsyms):
                     locv = make_symbol(sym)
-                    emit_set(impl,sym,solver_add=solver_add,csname=locv+'.c_str()',cvalue=varname(sym),prefix='g.',obj='',gen='g') 
+                    emit_set(impl,sym,solver_add=solver_add,csname=locv+'.c_str()',cvalue=varname(sym),prefix='g.',obj='',gen='g')
                     code_line(impl,'rn["{}"]={}.c_str()'.format(envsym.name,locv))
 #                code_line(impl,'std::cout << "check 1" << std::endl')
 #                code_line(impl,'g.ctx.check_error()')
@@ -955,7 +955,7 @@ def struct_hash_fun(field_names,field_sorts):
             close_loop(code,vs)
     code_line(code,'return hv')
     return ''.join(code)
-    
+
 
 def emit_struct_hash(header,the_type,field_names,field_sorts):
     """
@@ -995,7 +995,7 @@ def is_primitive_sort(sort):
             nt = native_type_full(im.module.native_types[name]).strip()
             return nt.startswith('primitive ')
     return False
-            
+
 def emit_cpp_sorts(header):
     """
     Emits C++ code for the sorts defined in the module.
@@ -1129,7 +1129,7 @@ def emit_decl(header,symbol,sym_name=None,prefix=''):
     name = symbol.name
     sname = slv.solver_name(symbol)
     if sname == None:  # this means the symbol is interpreted in some theory
-        return 
+        return
     cname = '__pto__' + varname(symbol.sort.dom[0].name) + '__' + varname(symbol.sort.dom[1].name)  if symbol.name == '*>' else varname(name)
     sort = symbol.sort
     rng_name = "Bool" if sort.is_relational() else sort.rng.name
@@ -1138,7 +1138,7 @@ def emit_decl(header,symbol,sym_name=None,prefix=''):
         indent(header)
         if sym_name is not None:
             header.append('{}mk_const({},"{}");\n'.format(prefix,sym_name,rng_name))
-        else:            
+        else:
             header.append('{}mk_const("{}","{}");\n'.format(prefix,sname,rng_name))
     else:
         card = len(domain)
@@ -1151,7 +1151,7 @@ def emit_decl(header,symbol,sym_name=None,prefix=''):
             header.append('{}mk_decl({},{},{}_domain,"{}");\n'.format(prefix,sym_name,card,tname,rng_name))
         else:
             header.append('{}mk_decl("{}",{},{}_domain,"{}");\n'.format(prefix,sname,card,tname,rng_name))
-        
+
 def emit_sig(header):
     emit_sorts(header)
     for symbol in all_state_symbols():
@@ -1167,7 +1167,7 @@ def int_to_z3(sort,val):
         raise iu.IvyError(None,"cannot produce test generator because sort {} is uninterpreted".format(sort))
     return 'int_to_z3(sort("'+sort.name+'"),'+val+')'
 
-def emit_eval(header,symbol,obj=None,classname=None,lhs=None): 
+def emit_eval(header,symbol,obj=None,classname=None,lhs=None):
     """
     Emit the evaluation code for a symbol in C++.
 
@@ -1206,7 +1206,7 @@ def emit_eval(header,symbol,obj=None,classname=None,lhs=None):
                       + ''.join(",X{}".format(idx) for idx in range(len(domain)))
                       + ");\n")
     for idx,dsort in enumerate(domain):
-        indent_level -= 1    
+        indent_level -= 1
 
 def var_to_z3_val(v):
     return int_to_z3(v.sort,varname(v))
@@ -1251,7 +1251,7 @@ def emit_set_field(header,symbol,lhs,rhs,nvars=0,solver_add=solver_add_default,p
         solver_add(header,'__to_solver({},'.format(gen)+lhs1+','+rhs1+')')
     close_loop(header,vs)
 
-def emit_set(header,symbol,solver_add=solver_add_default,csname=None,cvalue=None,prefix='',obj='obj.',gen='*this'): 
+def emit_set(header,symbol,solver_add=solver_add_default,csname=None,cvalue=None,prefix='',obj='obj.',gen='*this'):
     """
     Emits code to set the value of a symbol in the header file.
 
@@ -1270,7 +1270,7 @@ def emit_set(header,symbol,solver_add=solver_add_default,csname=None,cvalue=None
     """
     global indent_level
     name = symbol.name
-    sname = '"' + slv.solver_name(symbol) + '"' if csname is None else csname 
+    sname = '"' + slv.solver_name(symbol) + '"' if csname is None else csname
     cname = varname(name) if cvalue is None else cvalue
     sort = symbol.sort
     domain = sort_domain(sort)
@@ -1310,7 +1310,7 @@ def emit_set(header,symbol,solver_add=solver_add_default,csname=None,cvalue=None
     #               + ",{}obj.{}".format(prefix,cname)+ ''.join("[X{}]".format(idx) for idx in range(len(domain)))
     #               + ");\n")
     for idx,dsort in enumerate(domain):
-        indent_level -= 1    
+        indent_level -= 1
 
 def sym_is_member(sym):
     global is_derived
@@ -1430,7 +1430,7 @@ public:
 }
 """)
     global_classname = None
-    
+
 def emit_randomize(header,symbol,classname=None):
     """
     Generates randomization code for a given symbol in C++.
@@ -1471,7 +1471,7 @@ def emit_randomize(header,symbol,classname=None):
                       + ''.join(",X{}".format(idx) for idx in range(len(domain)))
                       + ',"'+sort.rng.name+'");\n')
     for idx,dsort in enumerate(domain):
-        indent_level -= 1    
+        indent_level -= 1
 
 #    indent(header)
 #    header.append('randomize("{}");\n'.format(slv.solver_name(symbol)))
@@ -1569,7 +1569,7 @@ def collect_used_definitions(pre,inpdefs,ssyms):
     for inpdef in inpdefs:
         recur(inpdef)
     return res,usyms
-    
+
 
 def emit_defined_inputs(pre,inpdefs,code,classname,ssyms,fsyms):
     """
@@ -1609,7 +1609,7 @@ def emit_defined_inputs(pre,inpdefs,code,classname,ssyms,fsyms):
         code_line(code,code_eval(code,lhs) + ' = ' + code_eval(code,rhs))
         delegate_methods_to = ''
     delegate_enums_to = ''
-    
+
 def minimal_field_references(fmla,inputs):
     """
     Returns a dictionary containing minimal field references for a given formula and inputs.
@@ -1637,7 +1637,7 @@ def minimal_field_references(fmla,inputs):
             if f.rep in inpset:
                 return f.rep
         return None
-            
+
     def recur(f):
         if il.is_app(f):
             if f.rep.name in im.module.destructor_sorts and len(f.args) == 1:
@@ -1650,16 +1650,16 @@ def minimal_field_references(fmla,inputs):
                 return
         for x in f.args:
             recur(x)
-        
+
     def get_minima(refs):
         def lt(x,y):
             return len(y.args) == 1 and (x == y.args[0] or lt(x,y.args[0]))
         return set(y for y in refs if all(not(lt(x,y)) for x in refs))
-            
+
     recur(fmla)
     res = dict((inp,get_minima(refs)) for inp,refs in res.items())
     return res
-                
+
 def minimal_field_siblings(inputs,mrefs):
     """
     Returns a dictionary containing the minimal field siblings for each input.
@@ -1824,7 +1824,7 @@ def emit_action_gen(header,impl,name,action,classname):
         if hasattr(sort,'name') and iu.compose_names(sort.name,'cardinality') in im.module.attributes:
             return int(im.module.attributes[iu.compose_names(sort.name,'cardinality')].rep)
         return sort_card(sort)
-        
+
 #    action = action.unroll_loops(card)
     if name in im.module.ext_preconds:
         orig_action = action
@@ -1832,7 +1832,7 @@ def emit_action_gen(header,impl,name,action,classname):
         action.lineno = orig_action.lineno
         action.formal_params = orig_action.formal_params
         action.formal_returns = orig_action.formal_returns
-        
+
     with ia.UnrollContext(card):
         upd = action.update(im.module,None)
     pre = tr.reverse_image(ilu.true_clauses(),ilu.true_clauses(),upd)
@@ -2121,7 +2121,7 @@ def create_thunk(impl,actname,action,classname):
     tc = thunk_name(actname)
     impl.append('struct ' + tc + '{\n')
     impl.append('    ' + classname + ' *__ivy' + ';\n')
-    
+
     params = [p for p in action.formal_params if p.name.startswith('prm:')]
     inputs = [p for p in action.formal_params if not p.name.startswith('prm:')]
     for p in params:
@@ -2186,7 +2186,7 @@ def emit_native(header,impl,native,classname):
 
 # This determines the parameter passing type of each input and output
 # of an action (value, const reference, or no-const reference, return
-# by reference). The rules are as follows: 
+# by reference). The rules are as follows:
 #
 # If an output parameter is the same as an input parameter, that
 # parameter is returned by reference, and the input parameter is
@@ -2370,7 +2370,7 @@ def emit_method_decl(header,name,action,body=False,classname=None,inline=False):
     if body and not inline:
         header.append(classname + '::')
     emit_param_decls_with_inouts(header,name,action.formal_params,classname if inline else None,ptypes,rs,rtypes)
-    
+
 def emit_action(header,impl,name,classname):
     action = im.module.actions[name]
     emit_some_action(header,impl,name,action,classname)
@@ -2463,7 +2463,7 @@ def init_method():
     #     act = ia.AssertAction(ini.formula)
     #     act.lineno = ini.lineno
     #     asserts.append(act)
-    
+
     for name,ini in im.module.initializers:
         asserts.append(ini)
 
@@ -2493,7 +2493,7 @@ def emit_initial_action(header,impl,classname):
         action.emit(impl)
         close_loop(impl,action.formal_params)
     close_scope(impl)
-    
+
 int_ctypes = ["bool","int","long long","unsigned","unsigned long long","int128_t","uint128_t"]
 
 def is_iterable_sort(sort):
@@ -2591,10 +2591,10 @@ def open_loop(impl,vs,declare=True,bounds=None):
 def close_loop(impl,vs):
     global indent_level
     for idx in vs:
-        indent_level -= 1    
+        indent_level -= 1
         indent(impl)
         impl.append('}\n')
-        
+
 def open_scope(impl,newline=False,line=None):
     global indent_level
     if line != None:
@@ -2608,7 +2608,7 @@ def open_scope(impl,newline=False,line=None):
 
 def open_if(impl,cond):
     open_scope(impl,line='if('+(''.join(cond) if isinstance(cond,list) else cond)+')')
-    
+
 def close_scope(impl,semi=False):
     global indent_level
     indent_level -= 1
@@ -2634,7 +2634,7 @@ def emit_tick(header,impl,classname):
 
     Returns:
         None
-        
+
     """
     global indent_level
     indent_level += 1
@@ -2672,7 +2672,7 @@ def emit_tick(header,impl,classname):
         open_loop(impl,vs)
         maxt = new_temp(impl)
         indent(impl)
-        impl.append(maxt + ' = 0;\n') 
+        impl.append(maxt + ' = 0;\n')
         for r in rely_map[df.defines()]:
             if not isinstance(r,il.Implies):
                 continue
@@ -2689,7 +2689,7 @@ def emit_tick(header,impl,classname):
             for xv in xvs:
                 subs[xv.name] = xv.rename(xv.name + '__')
             xvs = [subs[xv.name] for xv in xvs]
-    
+
             e = ilu.substitute_ast(r.args[1],subs)
             open_loop(impl,xvs)
             indent(impl)
@@ -2726,7 +2726,7 @@ def emit_ctuple_to_solver(header,dom,classname):
     ct_name = classname + '::' + ctuple(dom)
     ch_name = classname + '::' + ctuple_hash(dom)
     emit_hash_thunk_to_solver(header,dom,classname,ct_name,ch_name)
-    
+
 def emit_hash_thunk_to_solver(header,dom,classname,ct_name,ch_name):
     """
     Emit the hash thunk to solver class for a given header, domain, classname, ct_name, and ch_name.
@@ -2801,7 +2801,7 @@ def is_really_uninterpreted_sort(sort):
         sort.name in im.module.sort_destructors or sort.name in im.module.native_types)
 
 # find the actions that wrap imports and flaf them so the we output a
-# trace. This is so that the trace of the action will appear before 
+# trace. This is so that the trace of the action will appear before
 # any assert failure in the precondition. To get the name of the caller
 # from the import, we remove the prefic 'imp__'.
 
@@ -2815,7 +2815,7 @@ def find_import_callers():
         if not imp.scope() and name in im.module.actions:
             import_callers.add('ext:' + name[5:])
             import_callers.add(name[5:])
-            
+
 def module_to_cpp_class(classname,basename):
     """
     Converts a module to a C++ class.
@@ -2841,7 +2841,7 @@ def module_to_cpp_class(classname,basename):
             is_derived[cons] = True
     global the_extensional_relations
     the_extensional_relations = set(extensional_relations())
-    
+
     global cpptypes
     cpptypes = []
     global sort_to_cpptype
@@ -2866,9 +2866,9 @@ def module_to_cpp_class(classname,basename):
     number_format = ''
     if 'radix' in im.module.attributes and im.module.attributes['radix'].rep == '16':
         number_format = ' << std::hex << std::showbase '
-        
+
     # remove the actions not reachable from exported
-        
+
     # TODO: may want to call internal actions from testbench
 
    # ra = iu.reachable(im.module.public_actions,lambda name: im.module.actions[name].iter_calls())
@@ -2930,7 +2930,7 @@ def module_to_cpp_class(classname,basename):
     header.append("typedef std::string __strlit;\n")
     header.append("extern std::ofstream __ivy_out;\n")
     header.append("void __ivy_exit(int);\n")
-    
+
     #chris
     header.append("#include <inttypes.h>\n")
     header.append("#include <math.h>\n")
@@ -2996,11 +2996,11 @@ def module_to_cpp_class(classname,basename):
         header.append('    virtual void ivy_assert(bool,const char *){}\n')
         header.append('    virtual void ivy_assume(bool,const char *){}\n')
         header.append('    virtual void ivy_check_progress(int,int){}\n')
-    
+
     with ivy_cpp.CppClassName(classname):
         emit_cpp_sorts(header)
 
-        
+
     impl = ivy_cpp.context.impls.code
     if opt_stdafx.get():
         impl.append('#include "stdafx.h"\n')
@@ -3021,7 +3021,7 @@ def module_to_cpp_class(classname,basename):
 #else
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <netinet/ip.h> 
+#include <netinet/ip.h>
 #include <sys/select.h>
 #include <unistd.h>
 #define _open open
@@ -3067,16 +3067,16 @@ public:
 };
 
 #ifdef _WIN32
-DWORD WINAPI ReaderThreadFunction( LPVOID lpParam ) 
+DWORD WINAPI ReaderThreadFunction( LPVOID lpParam )
 {
     reader *cr = (reader *) lpParam;
     cr->bind();
     while (true)
         cr->read();
     return 0;
-} 
+}
 
-DWORD WINAPI TimerThreadFunction( LPVOID lpParam ) 
+DWORD WINAPI TimerThreadFunction( LPVOID lpParam )
 {
     timer *cr = (timer *) lpParam;
     while (true) {
@@ -3085,7 +3085,7 @@ DWORD WINAPI TimerThreadFunction( LPVOID lpParam )
         cr->timeout(ms);
     }
     return 0;
-} 
+}
 #else
 void * _thread_reader(void *rdr_void) {
     reader *rdr = (reader *) rdr_void;
@@ -3099,7 +3099,7 @@ void * _thread_reader(void *rdr_void) {
     return 0; // just to stop warning
 }
 
-void * _thread_timer( void *tmr_void ) 
+void * _thread_timer( void *tmr_void )
 {
     timer *tmr = (timer *) tmr_void;
     while (true) {
@@ -3111,8 +3111,8 @@ void * _thread_timer( void *tmr_void )
         tmr->timeout(ms);
     }
     return 0;
-} 
-#endif 
+}
+#endif
 """)
 
     if target.get() == "repl":
@@ -3121,13 +3121,13 @@ void CLASSNAME::install_reader(reader *r) {
     #ifdef _WIN32
 
         DWORD dummy;
-        HANDLE h = CreateThread( 
+        HANDLE h = CreateThread(
             NULL,                   // default security attributes
-            0,                      // use default stack size  
+            0,                      // use default stack size
             ReaderThreadFunction,   // thread function name
-            r,                      // argument to thread function 
-            0,                      // use default creation flags 
-            &dummy);                // returns the thread identifier 
+            r,                      // argument to thread function
+            0,                      // use default creation flags
+            &dummy);                // returns the thread identifier
         if (h == NULL) {
             std::cerr << "failed to create thread" << std::endl;
             exit(1);
@@ -3143,7 +3143,7 @@ void CLASSNAME::install_reader(reader *r) {
         }
         thread_ids.push_back(thread);
     #endif
-}      
+}
 
 void CLASSNAME::install_thread(reader *r) {
     install_reader(r);
@@ -3153,13 +3153,13 @@ void CLASSNAME::install_timer(timer *r) {
     #ifdef _WIN32
 
         DWORD dummy;
-        HANDLE h = CreateThread( 
+        HANDLE h = CreateThread(
             NULL,                   // default security attributes
-            0,                      // use default stack size  
+            0,                      // use default stack size
             TimersThreadFunction,   // thread function name
-            r,                      // argument to thread function 
-            0,                      // use default creation flags 
-            &dummy);                // returns the thread identifier 
+            r,                      // argument to thread function
+            0,                      // use default creation flags
+            &dummy);                // returns the thread identifier
         if (h == NULL) {
             std::cerr << "failed to create thread" << std::endl;
             exit(1);
@@ -3174,7 +3174,7 @@ void CLASSNAME::install_timer(timer *r) {
         }
         thread_ids.push_back(thread);
     #endif
-}      
+}
 
 """.replace('CLASSNAME',classname))
 
@@ -3196,13 +3196,13 @@ void CLASSNAME::install_thread(reader *r) {
     #ifdef _WIN32
 
         DWORD dummy;
-        HANDLE h = CreateThread( 
+        HANDLE h = CreateThread(
             NULL,                   // default security attributes
-            0,                      // use default stack size  
+            0,                      // use default stack size
             ReaderThreadFunction,   // thread function name
-            r,                      // argument to thread function 
-            0,                      // use default creation flags 
-            &dummy);                // returns the thread identifier 
+            r,                      // argument to thread function
+            0,                      // use default creation flags
+            &dummy);                // returns the thread identifier
         if (h == NULL) {
             std::cerr << "failed to create thread" << std::endl;
             exit(1);
@@ -3218,7 +3218,7 @@ void CLASSNAME::install_thread(reader *r) {
         }
         thread_ids.push_back(thread);
     #endif
-}      
+}
 
 void CLASSNAME::install_timer(timer *r) {
     timers.push_back(r);
@@ -3434,7 +3434,7 @@ struct ivy_ser_128 {
     virtual void  open_field(const std::string &) = 0;
     virtual void  close_field() = 0;
     virtual void  open_tag(int, const std::string &) {
-	std::cout << "ivy_ser_128 open_tag deser_err\\n"; 
+	std::cout << "ivy_ser_128 open_tag deser_err\\n";
 	throw deser_err();
     }
     virtual void  close_tag() {}
@@ -3487,7 +3487,7 @@ struct ivy_deser_128 {
     virtual void  open_field(const std::string &) = 0;
     virtual void  close_field() = 0;
     virtual int   open_tag(const std::vector<std::string> &) {
-	    std::cout << "ivy_deser_128 open_tag deser_err\\n"; 
+	    std::cout << "ivy_deser_128 open_tag deser_err\\n";
 	    throw deser_err();
     }
     virtual void  close_tag() {}
@@ -3507,7 +3507,7 @@ struct ivy_binary_deser_128 : public ivy_deser_128 {
     }
     void getn(int128_t &res, int bytes) {
         if (!more(bytes)) {
-	    std::cerr << "ivy_binary_deser_128 getn deser_err\\n"; 
+	    std::cerr << "ivy_binary_deser_128 getn deser_err\\n";
             throw deser_err();
         } res = 0;
         for (int i = 0; i < bytes; i++)
@@ -3520,7 +3520,7 @@ struct ivy_binary_deser_128 : public ivy_deser_128 {
             res.push_back(inp[pos++]);
         }
         if(!(more(1) && inp[pos] == 0)) {
-	    std::cerr << "ivy_binary_deser_128 get deser_err\\n"; 
+	    std::cerr << "ivy_binary_deser_128 get deser_err\\n";
             throw deser_err();
         } pos++;
     }
@@ -3546,13 +3546,13 @@ struct ivy_binary_deser_128 : public ivy_deser_128 {
         int128_t res;
         get(res);
         if (res >= tags.size()) {
-	    std::cerr << "ivy_binary_deser_128 open_tag deser_err\\n"; 
+	    std::cerr << "ivy_binary_deser_128 open_tag deser_err\\n";
             throw deser_err();
         } return res;
     }
     void end() {
         if (!can_end()) {
-	    std::cerr << "ivy_binary_deser_128 end deser_err\\n"; 
+	    std::cerr << "ivy_binary_deser_128 end deser_err\\n";
             throw deser_err();
 	}
     }
@@ -4085,11 +4085,11 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
             impl.append('template <>\n')
             impl.append('void  __ser<' + cfsname + '>(ivy_ser &res, const ' + cfsname + '&);\n')
             impl.append('template <>\n')
-            impl.append('void  __deser<' + cfsname + '>(ivy_deser &inp, ' + cfsname + ' &res);\n')                
+            impl.append('void  __deser<' + cfsname + '>(ivy_deser &inp, ' + cfsname + ' &res);\n')
             impl.append('template <>\n')
             impl.append('void  __ser<' + cfsname + '>(ivy_ser_128 &res, const ' + cfsname + '&);\n')
             impl.append('template <>\n')
-            impl.append('void  __deser<' + cfsname + '>(ivy_deser_128 &inp, ' + cfsname + ' &res);\n')                          
+            impl.append('void  __deser<' + cfsname + '>(ivy_deser_128 &inp, ' + cfsname + ' &res);\n')
         if target.get() in ["test","gen"]:
             impl.append('template <>\n')
             impl.append('void __from_solver<' + cfsname + '>( gen &g, const  z3::expr &v, ' + cfsname + ' &res);\n')
@@ -4097,7 +4097,7 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
             impl.append('z3::expr __to_solver<' + cfsname + '>( gen &g, const  z3::expr &v, ' + cfsname + ' &val);\n')
             impl.append('template <>\n')
             impl.append('void __randomize<' + cfsname + '>( gen &g, const  z3::expr &v, const std::string &sort_name);\n')
-        
+
     for sort_name in sorted(im.module.sort_destructors):
         csname = varname(sort_name)
         cfsname = classname + '::' + csname
@@ -4108,12 +4108,12 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
             impl.append('template <>\n')
             impl.append('void  __ser<' + cfsname + '>(ivy_ser &res, const ' + cfsname + '&);\n')
             impl.append('template <>\n')
-            impl.append('void  __deser<' + cfsname + '>(ivy_deser &inp, ' + cfsname + ' &res);\n')                
+            impl.append('void  __deser<' + cfsname + '>(ivy_deser &inp, ' + cfsname + ' &res);\n')
             impl.append('template <>\n')
             impl.append('void  __ser<' + cfsname + '>(ivy_ser_128 &res, const ' + cfsname + '&);\n')
             impl.append('template <>\n')
-            impl.append('void  __deser<' + cfsname + '>(ivy_deser_128 &inp, ' + cfsname + ' &res);\n')              
-    
+            impl.append('void  __deser<' + cfsname + '>(ivy_deser_128 &inp, ' + cfsname + ' &res);\n')
+
 
     if target.get() in ["test","gen"]:
         for sort_name in sorted(im.module.sort_destructors):
@@ -4224,7 +4224,7 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
     impl.append('pthread_mutex_init(&mutex,NULL);\n')
     impl.append('#endif\n');
     impl.append('__lock();\n');
-    enums = set(sym.sort.name for sym in il.sig.constructors)  
+    enums = set(sym.sort.name for sym in il.sig.constructors)
 #    for sortname in enums:
 #        for i,n in enumerate(il.sig.sorts[sortname].extension):
 #            impl.append('    {} = {};\n'.format(varname(n),i))
@@ -4275,7 +4275,7 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
                 once_memo.add(code)
                 header.append(code)
 
- 
+
     ivy_cpp.context.globals.code.extend(header)
     ivy_cpp.context.members.code = []
     header = ivy_cpp.context.globals.code
@@ -4307,7 +4307,7 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
         global_classname = classname
         for sort_name in inline_sort_order:
             if sort_name in im.module.variants:
-                sort = im.module.sig.sorts[sort_name] 
+                sort = im.module.sig.sorts[sort_name]
                 assert sort in sort_to_cpptype
                 if sort in sort_to_cpptype:
                     sort_to_cpptype[sort].emit_inlines()
@@ -4605,7 +4605,7 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
                             trace_code = '__ivy_out ' + number_format + ' << "{}("'.format(actname.split(':')[-1]) + ' << "," '.join(' << {}'.format(arg) for arg in argstrings) + ' << ") {" << std::endl'
                         else:
                             trace_code = '__ivy_out ' + number_format + ' << "{} {{"'.format(actname.split(':')[-1]) + ' << std::endl'
-                        thing = trace_code + ';\n                    ' + thing + ';\n                    __ivy_out << "}" << std::endl' 
+                        thing = trace_code + ';\n                    ' + thing + ';\n                    __ivy_out << "}" << std::endl'
                     impl.append("""
                 if (action == "actname") {
                     check_arity(args,numargs,action);
@@ -4630,8 +4630,8 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
                 impl.append("""
     int seed = 1;
     int sleep_ms = 10;
-    int final_ms = 0; 
-    
+    int final_ms = 0;
+
     std::vector<char *> pargs; // positional args
     pargs.push_back(argv[0]);
     for (int i = 1; i < argc; i++) {
@@ -4652,7 +4652,7 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
                         emit_value_parser(impl,p,"value",classname)
                         impl.append('                continue;\n')
                         impl.append('            }\n')
-                
+
                 impl.append("""
             if (param == "out") {
                 __ivy_out.open(value.c_str());
@@ -4694,7 +4694,7 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
         __ivy_out.basic_ios<char>::rdbuf(std::cout.rdbuf());
     argc = pargs.size();
     argv = &pargs[0];
-    //chris 
+    //chris
     struct sigaction sa;
 	sa.sa_handler = signal1_handler_generating;
 	sa.sa_flags = SA_RESTART;
@@ -4713,7 +4713,7 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
 		perror("sigaction");
 		return 1;
 	}
- 
+
     /*if (signal(SIGUSR1, signal1_handler_generating) == SIG_ERR) {
         perror("Signal1 registration failed");
         return 1;
@@ -4758,7 +4758,7 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
                                     res += a
                                     first = False
                                 res += ')]'
-                            else: 
+                            else:
                                 for a in args:
                                     res += '[{}]'.format(a)
                             return res
@@ -4766,7 +4766,7 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
                         impl.append('        if (arg.atom.size())\n')
                         impl.append('            throw out_of_bounds({});\n'.format(idx))
                         impl.append('        for (unsigned i = 0; i < arg.fields.size(); i++) {\n')
-                        impl.append('            if (arg.fields[i].fields.size() != {})\n'.format(1 + len(s.sort.dom))) 
+                        impl.append('            if (arg.fields[i].fields.size() != {})\n'.format(1 + len(s.sort.dom)))
                         impl.append('                throw out_of_bounds({});\n'.format(idx))
                         impl.append('            ' + make_function_app(s.prefix('p__'),['_arg<{}>(arg.fields[i].fields,{},0)'.format(ctype(domt,classname=classname),q) for q,domt in enumerate(s.sort.dom)]))
                         impl.append('= _arg<{}>(arg.fields[i].fields,{},0);\n'.format(ctype(s.sort.rng,classname=classname),len(s.sort.dom)))
@@ -4799,7 +4799,7 @@ z3::expr __z3_rename(const z3::expr &e, hash_map<std::string,std::string> &rn) {
                 impl.append("    return 0;\n}\n")
 
 
-        
+
     return ivy_cpp.context.globals.get_file(), ivy_cpp.context.impls.get_file()
 
 def emit_value_parser(impl,s,arg,classname,lineno=None):
@@ -4843,7 +4843,7 @@ def really_check_representable(sym,ast=None,skip_args=0):
 
     Returns:
         None
-    """                
+    """
     sort = sym.sort
     if hasattr(sort,'dom'):
         for domsort in sort.dom[skip_args:]:
@@ -4896,9 +4896,9 @@ def assign_symbol_value(header,lhs_text,m,v,same=False):
                 assign_symbol_value(header,lhs_text+[memname(sym)],m,sym(v),same)
     else:
         mv = m(v)
-        if mv != None:           
+        if mv != None:
             header.append('    ' + '.'.join(lhs_text) + ' = ' + m(v) + ';\n')
-        
+
 
 def assign_symbol_from_model(header,sym,m):
     """
@@ -4961,7 +4961,7 @@ def assign_array_from_model(impl,sym,prefix,fun):
             close_loop(impl,[v])
     else:
         assign_symbol_value(impl,[prefix+varname(sym.name)],fun,sym)
-        
+
 def check_init_cond(kind,lfmlas):
     """
     Checks the initial conditions for logical formulas.
@@ -4980,15 +4980,15 @@ def check_init_cond(kind,lfmlas):
     for lfmla in lfmlas:
         if any(c in params for c in ilu.used_symbols_ast(lfmla.formula)):
             raise iu.IvyError(lfmla,"{} depends on stripped parameter".format(kind))
-        
-    
+
+
 def emit_one_initial_state(header):
     """
     Emit the initial state for the given header.
 
-    This function checks the initial conditions and axioms, constructs the 
-    necessary constraints, and generates the initial state based on these 
-    constraints. If the initial conditions and/or axioms are inconsistent, 
+    This function checks the initial conditions and axioms, constructs the
+    necessary constraints, and generates the initial state based on these
+    constraints. If the initial conditions and/or axioms are inconsistent,
     it raises an IvyError.
 
     Args:
@@ -4998,18 +4998,18 @@ def emit_one_initial_state(header):
         IvyError: If the initial conditions and/or axioms are inconsistent.
 
     Notes:
-        - The function uses the `im.module` to access initial conditions, 
+        - The function uses the `im.module` to access initial conditions,
           axioms, and relevant definitions.
-        - It constructs constraints from initial conditions and axioms, 
-          converts them to clauses, and attempts to get a model from these 
+        - It constructs constraints from initial conditions and axioms,
+          converts them to clauses, and attempts to get a model from these
           clauses.
-        - If a model is found, it assigns symbols from the model to the 
-          header. If a symbol is not used, it creates a non-deterministic 
+        - If a model is found, it assigns symbols from the model to the
+          header. If a symbol is not used, it creates a non-deterministic
           symbol.
     """
     check_init_cond("initial condition",im.module.labeled_inits)
     check_init_cond("axiom",im.module.labeled_axioms)
-        
+
     constraints = [ilu.clauses_to_formula(im.module.init_cond)]
     for a in im.module.axioms:
         constraints.append(a)
@@ -5048,7 +5048,7 @@ def emit_parameter_assignments(impl):
 
     This function iterates over the parameters defined in the module and generates
     code to assign values to these parameters. For each parameter, it creates the
-    necessary variable declarations, constructs the assignment expression, and 
+    necessary variable declarations, constructs the assignment expression, and
     emits the corresponding code lines.
 
     Args:
@@ -5063,14 +5063,14 @@ def emit_parameter_assignments(impl):
             open_loop(impl,vs)
             code_line(impl,'this->' + code_eval(impl,expr) + ' = ' + code_eval(impl,expr))
             close_loop(impl,vs)
-    
+
 
 def emit_constant(self,header,code):
     """
     Emits the C++ code representation of a constant symbol.
 
     This function appends the appropriate C++ code for a given constant symbol
-    to the provided `code` list. The behavior of the function depends on the 
+    to the provided `code` list. The behavior of the function depends on the
     type and properties of the symbol.
 
     Parameters:
@@ -5080,16 +5080,16 @@ def emit_constant(self,header,code):
 
     Behavior:
     - If the symbol is derived, it appends the function name followed by '()'.
-    - If the symbol is a numeral and has an interpretation as a range sort, it 
+    - If the symbol is a numeral and has an interpretation as a range sort, it
         generates a ternary expression to ensure the numeral is within bounds.
     - If the symbol is a native symbol, it generates a literal representation.
-    - If the symbol has a string interpretation and is not a literal string, it 
+    - If the symbol has a string interpretation and is not a literal string, it
         raises an error unless the symbol is '0', in which case it appends an empty string.
-    - If the symbol's sort has destructors or is interpreted as a bit-vector, 
+    - If the symbol's sort has destructors or is interpreted as a bit-vector,
         it generates the appropriate C++ code.
-    - If the symbol's sort has a corresponding C++ type, it uses the type's 
+    - If the symbol's sort has a corresponding C++ type, it uses the type's
         literal method to generate the code.
-    - If the symbol is a constructor and there is a delegate for enums, it 
+    - If the symbol is a constructor and there is a delegate for enums, it
         appends the delegate's namespace.
 
     Raises:
@@ -5107,7 +5107,7 @@ def emit_constant(self,header,code):
             code.append('( {} < {} ? {} : {} < {} ? {} : {})'.format(x,lb,lb,ub,x,ub,x))
             return
         if is_native_sym(self):
-            vv = self.name if self.is_literal_string() else ('"' + self.name + '"') 
+            vv = self.name if self.is_literal_string() else ('"' + self.name + '"')
             code.append('__lit<'+varname(self.sort)+'>(' + vv + ')')
             return
         if has_string_interp(self.sort) and self.name[0] != '"' :
@@ -5124,7 +5124,7 @@ def emit_constant(self,header,code):
             sname,sparms = parse_int_params(il.sig.interp[self.sort.name])
             code.append('(' + varname(self.name) + ' & ' + str((1 << sparms[0]) -1) + ')')
             return
-        if self.sort in sort_to_cpptype: 
+        if self.sort in sort_to_cpptype:
             code.append(sort_to_cpptype[self.sort].literal(self.name))
             return
     if isinstance(self,il.Symbol) and self in il.sig.constructors:
@@ -5154,14 +5154,14 @@ def emit_special_op(self,op,header,code):
     """
     Emit C++ code for special operations.
 
-    This method handles the emission of C++ code for specific operations such as 
-    'concat' and bit-field extraction (bfe). It appends the generated C++ code 
+    This method handles the emission of C++ code for specific operations such as
+    'concat' and bit-field extraction (bfe). It appends the generated C++ code
     to the provided `code` list based on the operation type.
 
     Parameters:
-    - op (str): The operation to be emitted. Supported operations are 'concat' 
+    - op (str): The operation to be emitted. Supported operations are 'concat'
         and operations starting with 'bfe['.
-    - header (list): A list to which any necessary header includes or declarations 
+    - header (list): A list to which any necessary header includes or declarations
         can be appended.
     - code (list): A list to which the generated C++ code will be appended.
 
@@ -5205,13 +5205,13 @@ def emit_bv_op(self,header,code):
         IvyError: If the bit-field extraction operator is malformed.
 
     Notes:
-        - The function handles different bit-vector operations based on the 
+        - The function handles different bit-vector operations based on the
             function name.
-        - For bit-field extraction (bfe), it parses the parameters and emits 
+        - For bit-field extraction (bfe), it parses the parameters and emits
             the appropriate code.
-        - For other operations, it uses a dictionary to map the function name 
+        - For other operations, it uses a dictionary to map the function name
             to the corresponding operator.
-        - The result is masked to fit within the bit-width specified by the 
+        - The result is masked to fit within the bit-width specified by the
             sort parameters.
     """
     sname,sparms = parse_int_params(il.sig.interp[self.sort.name])
@@ -5246,7 +5246,7 @@ def capture_emit(a,header,code,capture_args):
     a (object): An object that has an `emit` method.
     header (str): The header to be emitted.
     code (list): A list where the emitted code will be appended.
-    capture_args (list or None): If not None, the emitted code will be captured 
+    capture_args (list or None): If not None, the emitted code will be captured
                                     and appended to this list as a single string.
 
     Returns:
@@ -5336,7 +5336,7 @@ def emit_app(self,header,code,capture_args=None):
         code.append(' {} '.format(self.func.name))
         self.args[1].emit(header,code)
         code.append(')')
-        return 
+        return
     global is_derived
     # no way to deal with polymorphic ops if not derived, give up here
     if il.symbol_is_polymorphic(self.func) and self.func not in is_derived:
@@ -5373,7 +5373,7 @@ def emit_app(self,header,code,capture_args=None):
             capture_emit(a,header,code,capture_args)
             first = False
         code.append(')]')
-    else: 
+    else:
         for a in self.args[skip_params:]:
             code.append('[')
             capture_emit(a,header,code,capture_args)
@@ -5394,7 +5394,7 @@ class HavocSymbol(object):
     Methods:
         __init__(sort, name, unique_id):
             Initializes a new instance of the HavocSymbol class.
-        
+
         clone(args):
             Creates a clone of the current HavocSymbol instance with the given arguments.
     """
@@ -5408,7 +5408,7 @@ def emit_havoc_symbol(self,header,code):
     sym = il.Symbol(new_temp(header,sort=self.sort),self.sort)
     mk_nondet_sym(header,sym,self.name,self.unique_id)
     code.append(sym.name)
-    
+
 
 HavocSymbol.emit = emit_havoc_symbol
 
@@ -5490,7 +5490,7 @@ def get_bound_exprs(v0,variables,body,exists,res):
             subst = dict((v.name,a) for v,a in zip(ldf.formula.args[0].args,body.args))
             thing = ilu.substitute_ast(ldf.formula.args[1],subst)
             get_bound_exprs(v0,variables,thing,exists,res)
-    
+
 def sort_has_negative_values(sort):
     return sort.name in il.sig.interp and il.sig.interp[sort.name] == 'int'
 
@@ -5500,7 +5500,7 @@ class BoundsError(object):
         self.msg = msg
     def throw(self):
         raise iu.IvyError(self.ast,self.msg)
-        
+
 def get_bounds(header,v0,variables,body,exists,varname=None):
     """
     Compute the lower and upper bounds for a given variable within a specified context.
@@ -5692,10 +5692,10 @@ def emit_quant(variables, body, header, code, exists=False):
         header.append('for (' + ctypefull(iter_sort) + ' ' + idx + ' = '
                           + varname(iu.compose_names(iter,'create') + '('))
         header.extend(zero)
-        header.append('); !' + varname(iu.compose_names(iter,'is_end')) + '(' + idx + ');' 
+        header.append('); !' + varname(iu.compose_names(iter,'is_end')) + '(' + idx + ');'
                        + idx + '=' + varname(iu.compose_names(iter,'next')) + '(' + idx + ')) {\n')
     else:
-        
+
         berr = get_bounds(header,v0,variables,body,exists)
         if not isinstance(berr,BoundsError) and is_any_integer_type(v0.sort):
             lo,hi = berr
@@ -5731,7 +5731,7 @@ def emit_quant(variables, body, header, code, exists=False):
     indent_level -= 1
     indent(header)
     header.append('}\n')
-    code.append(res)    
+    code.append(res)
 
 
 lg.ForAll.emit = lambda self,header,code: emit_quant(list(self.variables),self.body,header,code,False)
@@ -5782,7 +5782,7 @@ def emit_some(self, header, code):
                         return
                 code.append('false')
                 return
-            
+
         vs = [il.Variable('X__'+str(idx),p.sort) for idx,p in enumerate(self.params())]
         subst = dict(list(zip(self.params(),vs)))
         fmla = ilu.substitute_constants_ast(self.fmla(),subst)
@@ -5826,7 +5826,7 @@ def emit_some(self, header, code):
     close_loop(header,vs)
     if isinstance(self,ivy_ast.Some):
         code.append(some)
-       
+
     else:
         iv = self.if_value()
         if iv == None:
@@ -5836,7 +5836,7 @@ def emit_some(self, header, code):
             ot = ilu.substitute_ast(iv,{vs[0].name:thing})
             code.append('(' + some + ' ? (' + code_eval(header,ot) + ') : ('
                         + code_eval(header,self.else_value()) + '))')
-            
+
 
 ivy_ast.Some.emit = emit_some
 
@@ -5884,7 +5884,7 @@ def emit_binop(self, header, code, op, ident=None):
         code.append(' ' + op + ' ')
         a.emit(header,code)
     code.append(')')
-    
+
 def emit_implies(self, header, code):
     """
     Appends a logical implication to the provided code list.
@@ -5907,7 +5907,7 @@ def emit_implies(self, header, code):
     code.append(' || ')
     self.args[1].emit(header,code)
     code.append(')')
-    
+
 
 lg.Eq.emit = lambda self,header,code: emit_binop(self,header,code,'==')
 lg.Iff.emit = lambda self,header,code: emit_binop(self,header,code,'==')
@@ -5919,17 +5919,17 @@ def emit_ternop(self, header, code):
     """
     Emits a ternary operation in C++ code.
 
-    This method appends a ternary operation to the provided code list. 
-    The ternary operation is constructed using the `self.args` list, 
-    where `self.args[0]` is the condition, `self.args[1]` is the 
-    expression if the condition is true, and `self.args[2]` is the 
+    This method appends a ternary operation to the provided code list.
+    The ternary operation is constructed using the `self.args` list,
+    where `self.args[0]` is the condition, `self.args[1]` is the
+    expression if the condition is true, and `self.args[2]` is the
     expression if the condition is false.
 
     Args:
-        header: A header object that may be used by the emit method of 
+        header: A header object that may be used by the emit method of
                 the arguments.
-        code (list): A list of strings representing the code being 
-                        generated. The ternary operation will be appended 
+        code (list): A list of strings representing the code being
+                        generated. The ternary operation will be appended
                         to this list.
     """
     code.append('(')
@@ -5939,7 +5939,7 @@ def emit_ternop(self, header, code):
     code.append(' : ')
     self.args[2].emit(header,code)
     code.append(')')
-    
+
 lg.Ite.emit = emit_ternop
 
 def emit_traced_lhs(self, trace, captured_args):
@@ -5981,13 +5981,13 @@ def emit_assign_simple(self, header):
     """
     Generates C++ code for a simple assignment operation.
 
-    This function constructs the C++ code for an assignment operation, 
+    This function constructs the C++ code for an assignment operation,
     potentially including tracing information if the `opt_trace` option is enabled.
-    
+
     Args:
         self: The instance of the class containing this method.
         header (list): A list to which the generated C++ code will be appended.
-    
+
     The function performs the following steps:
     1. Initializes a list `code` to store the generated code.
     2. Adds indentation to the `code` list.
@@ -6034,7 +6034,7 @@ def emit_assign_simple(self, header):
             code.append(sort_to_cpptype[lsort].upcast(im.module.variant_index(lsort,rsort),code_eval(header,self.args[1])))
         else:
             self.args[1].emit(header,code)
-    code.append(';\n')    
+    code.append(';\n')
     header.extend(code)
 
 def emit_assign_large(self, header):
@@ -6124,29 +6124,29 @@ def emit_assign(self, header):
     """
     Emits the C++ code for an assignment operation in the context of the Ivy language.
 
-    This function handles different cases of assignment based on the types and 
-    properties of the left-hand side (LHS) and right-hand side (RHS) expressions. 
+    This function handles different cases of assignment based on the types and
+    properties of the left-hand side (LHS) and right-hand side (RHS) expressions.
     It generates the appropriate C++ code and appends it to the provided header list.
 
     Args:
-        header (list): A list of strings representing the lines of C++ code to be 
-                        generated. The generated code for the assignment will be 
+        header (list): A list of strings representing the lines of C++ code to be
+                        generated. The generated code for the assignment will be
                         appended to this list.
 
     Notes:
         - If the LHS has no free variables, a simple assignment is emitted.
-        - If the RHS is a conditional expression (ite) and the LHS matches the 
+        - If the RHS is a conditional expression (ite) and the LHS matches the
             false branch of the conditional, special handling is applied.
-        - If the assignment involves bounded loops, these loops are opened and 
+        - If the assignment involves bounded loops, these loops are opened and
             closed appropriately in the generated code.
-        - Temporary symbols and variables are used to handle complex assignments 
+        - Temporary symbols and variables are used to handle complex assignments
             involving multiple variables and types.
     """
     global indent_level
     with ivy_ast.ASTContext(self):
 #        if is_large_type(self.args[0].rep.sort) and lu.free_variables(self.args[0]):
 #        if is_large_lhs(self.args[0]):
-#            
+#
 #            emit_assign_large(self,header)
 #            return
         vs = list(lu.free_variables(self.args[0]))
@@ -6189,7 +6189,7 @@ def emit_assign(self, header):
         # code.append(tmp + ''.join('['+varname(v.name)+']' for v in vs) + ' = ')
         code.append(' = ');
         self.args[1].emit(header,code)
-        code.append(';\n')    
+        code.append(';\n')
         header.extend(code)
         close_bounded_loops(header,loops)
 #        for idx in vs:
@@ -6203,7 +6203,7 @@ def emit_assign(self, header):
         code.append(' = ' + code_eval(header,lhs) + ';\n')
         header.extend(code)
         close_bounded_loops(header,loops)
-    
+
 ia.AssignAction.emit = emit_assign
 
 def emit_havoc(self,header):
@@ -6217,13 +6217,13 @@ def emit_sequence(self,header):
     """
     Emits a sequence of code into the provided header list.
 
-    This function appends a sequence of code to the `header` list, 
-    starting with an indented opening brace '{', followed by the 
-    emitted code for each argument in `self.args`, and ending with 
+    This function appends a sequence of code to the `header` list,
+    starting with an indented opening brace '{', followed by the
+    emitted code for each argument in `self.args`, and ending with
     an indented closing brace '}'.
 
     Args:
-        header (list): A list of strings representing the lines of code 
+        header (list): A list of strings representing the lines of code
                         to which the sequence will be appended.
 
     Modifies:
@@ -6235,7 +6235,7 @@ def emit_sequence(self,header):
     indent_level += 1
     for a in self.args:
         a.emit(header)
-    indent_level -= 1 
+    indent_level -= 1
     indent(header)
     header.append('}\n')
 
@@ -6358,9 +6358,9 @@ ia.AssumeAction.emit = emit_assume
 #             else:
 #                 p.emit(header,code)
 #             first = False
-#         code.append(');\n')    
+#         code.append(');\n')
 #         for (rv,retval) in retvals:
-#             indent(code) 
+#             indent(code)
 #             rv.emit(header,code)
 #             code.append(' = ' + retval + ';\n')
 #         header.extend(code)
@@ -6370,8 +6370,8 @@ ia.AssumeAction.emit = emit_assume
 
 def emit_call(self, header):
     """
-    Emit the code for a function call, handling special cases where the call 
-    involves variables on the left-hand side (lhs) and generating appropriate 
+    Emit the code for a function call, handling special cases where the call
+    involves variables on the left-hand side (lhs) and generating appropriate
     temporary variables and assignments.
 
     Args:
@@ -6379,25 +6379,25 @@ def emit_call(self, header):
         header (list): The list to which the generated code lines will be appended.
 
     Special Cases:
-        - If the call has variables on the lhs, it lowers this to a call with 
+        - If the call has variables on the lhs, it lowers this to a call with
             temporary return actual followed by assignment.
-        - If the target is "gen" or "test", it manages the stack by pushing and 
+        - If the target is "gen" or "test", it manages the stack by pushing and
             popping the unique ID of the call.
 
     Code Generation:
-        - Generates code for the function call, including handling of return 
+        - Generates code for the function call, including handling of return
             values and parameter types.
         - Manages temporary variables and assignments for return values.
         - Emits the final function call code and appends it to the header.
 
     Note:
-        - This function assumes the presence of several helper functions and 
-            classes such as `ilu.variables_ast`, `il.Symbol`, `ia.AssignAction`, 
-            `emit_assign`, `indent`, `get_param_types`, `ReturnRefType`, 
+        - This function assumes the presence of several helper functions and
+            classes such as `ilu.variables_ast`, `il.Symbol`, `ia.AssignAction`,
+            `emit_assign`, `indent`, `get_param_types`, `ReturnRefType`,
             `may_alias`, `new_temp`, `varname`, `sort_to_cpptype`, and `code_eval`.
     """
     # tricky: a call can have variables on the lhs. we lower this to
-    # a call with temporary return actual followed by assignment 
+    # a call with temporary return actual followed by assignment
     if len(self.args) == 2 and list(ilu.variables_ast(self.args[1])):
         sort = self.args[1].sort
         sym = il.Symbol(new_temp(header,sort=sort),sort)
@@ -6451,9 +6451,9 @@ def emit_call(self, header):
         else:
             p.emit(header,code)
         first = False
-    code.append(');\n')    
+    code.append(');\n')
     for (rv,retval) in retvals:
-        indent(code) 
+        indent(code)
         rv.emit(header,code)
         code.append(' = ' + retval + ';\n')
     header.extend(code)
@@ -6470,14 +6470,14 @@ ia.CrashAction.emit = emit_crash
 
 def local_start(header, params, nondet_id=None):
     """
-    Generates the initial part of a C++ function definition, including the function header and 
-    declarations for the parameters. Optionally, it can generate non-deterministic symbols for 
+    Generates the initial part of a C++ function definition, including the function header and
+    declarations for the parameters. Optionally, it can generate non-deterministic symbols for
     the parameters.
 
     Args:
         header (list): A list of strings representing the lines of the C++ function being generated.
         params (list): A list of parameter objects, each containing a 'sort' and 'name' attribute.
-        nondet_id (optional): An identifier for generating non-deterministic symbols. If None, 
+        nondet_id (optional): An identifier for generating non-deterministic symbols. If None,
                                 non-deterministic symbols are not generated.
 
     Returns:
@@ -6496,12 +6496,12 @@ def local_start(header, params, nondet_id=None):
 
 def local_end(header):
     """
-    Decreases the global indentation level, appends the closing brace '}' 
-    followed by a newline to the given header, and adjusts the indentation 
+    Decreases the global indentation level, appends the closing brace '}'
+    followed by a newline to the given header, and adjusts the indentation
     accordingly.
 
     Args:
-        header (list): A list of strings representing the lines of code 
+        header (list): A list of strings representing the lines of code
                        to which the closing brace and newline will be appended.
     """
     global indent_level
@@ -6601,7 +6601,7 @@ def emit_while(self, header):
         close_scope(header)
     if isinstance(self.args[0],ivy_ast.Some):
         local_end(header)
-        
+
 ia.WhileAction.emit = emit_while
 
 def emit_choice(self, header):
@@ -6683,7 +6683,7 @@ def emit_print_expr(impl, expr):
         code_line(impl,'std::cout << "]"')
 
 
-def emit_debug(self, header): 
+def emit_debug(self, header):
     """
     Emits debug information to the provided header.
 
@@ -6832,7 +6832,7 @@ int ask_ret(long long bound) {
     while(true) {
         __ivy_out << "? ";
         std::cin >> res;
-        if (res >= 0 && res < bound) 
+        if (res >= 0 && res < bound)
             return res;
         std::cerr << "value out of range" << std::endl;
     }
@@ -6845,30 +6845,30 @@ int ask_ret(long long bound) {
     class classname_repl : public classname {
 
     public:
-    
+
     // Helper function to get environment variable with default value
     std::string getEnvVar(const char* name, const std::string& defaultValue = "") {
         const char* value = std::getenv(name);
         return value ? std::string(value) : defaultValue;
     }
-    
+
     // Helper function to check if file exists
     bool fileExists(const std::string& filepath) {
         std::ifstream file(filepath);
         return file.good();
     }
-    
+
     // Helper function to safely extract line number from message
     int extractLineNumber(const std::string& msg) {
         std::string::size_type pos_n = msg.find("line");
         if (pos_n == std::string::npos) {
             return 1;
         }
-        
+
         std::string lineStr = msg.substr(pos_n);
         std::regex numberRegex("\\\\d+");
         std::smatch match;
-        
+
         if (std::regex_search(lineStr, match, numberRegex)) {
             try {
                 return std::stoi(match.str());
@@ -6879,7 +6879,7 @@ int ask_ret(long long bound) {
         }
         return 1;
     }
-    
+
     // Construct proper Ivy file path using environment variables
     std::string constructIvyPath(const std::string& filename) {
         std::string modelPath = getEnvVar("PYTHON_IVY_DIR", "");
@@ -6890,8 +6890,8 @@ int ask_ret(long long bound) {
         if (modelPath.empty()) {
             modelPath = getEnvVar("IVY_MODEL_PATH", "");
         }
-    
-        
+
+
         // Try different path combinations to find the file
         std::vector<std::string> pathCandidates = {
             modelPath + "/ivy/include/1.7/" + filename + ".ivy",
@@ -6899,30 +6899,30 @@ int ask_ret(long long bound) {
             modelPath + "/" + filename,
             "/opt/panther_ivy/protocol-testing/" + protocol + "/" + filename + ".ivy"
         };
-        
+
         std::cerr << "DEBUG: Constructing Ivy file path for: " << filename << "\\n";
-        
+
         for (const auto& candidate : pathCandidates) {
             std::cerr << "DEBUG: Checking file path: " << candidate << "\\n";
             if (fileExists(candidate)) {
                 return candidate;
             }
         }
-        
+
         // Return first candidate as fallback
         return pathCandidates[0];
     }
-    
+
     // Safe function to read specific line from file
     std::string readLineFromFile(const std::string& filepath, int lineNumber) {
         std::ifstream file(filepath);
         if (!file.is_open()) {
             return "Error: Could not open file " + filepath;
         }
-        
+
         std::string line;
         int currentLine = 0;
-        
+
         while (std::getline(file, line) && currentLine < lineNumber) {
             currentLine++;
             if (currentLine == lineNumber) {
@@ -6939,7 +6939,7 @@ int ask_ret(long long bound) {
                 return line;
             }
         }
-        
+
         return "Error: Line " + std::to_string(lineNumber) + " not found in file";
     }
 
@@ -6956,28 +6956,28 @@ int ask_ret(long long bound) {
             // Line number extracted safely via helper function
 
             std::string mode = "";
-            if(const char* env_p2 = std::getenv("TEST_TYPE")) { 
+            if(const char* env_p2 = std::getenv("TEST_TYPE")) {
                 mode = std::string(env_p2);
             }
-            
+
             std::string current_protocol = "";
-            if(const char* current_protocol_env = std::getenv("PROTOCOL_TESTED")) { 
+            if(const char* current_protocol_env = std::getenv("PROTOCOL_TESTED")) {
                 current_protocol = std::string(current_protocol_env);
             }
-            
+
             std::string command = "";
 		    path = constructIvyPath(path);
-        
+
             // Use safe file reading instead of system() calls
             int lineNum = extractLineNumber(std::string(msg));
             std::string str = readLineFromFile(path, lineNum);
-            
+
             // Debug output (controlled by environment variable)
             if (getEnvVar("IVY_DEBUG", "0") == "1") {
                 std::cerr << "DEBUG: Reading line " << lineNum << " from file: " << path << "\\n";
                 std::cerr << "DEBUG: File exists: " << (fileExists(path) ? "yes" : "no") << "\\n";
             }
-            
+
             std::cerr << str << "\\n";
 	        std::cerr << msg << ": error: assertion failed\\n";
             __ivy_out << "assertion_failed(" << str << ")\\n";
@@ -6985,7 +6985,7 @@ int ask_ret(long long bound) {
             __ivy_exit(1);
         }
     }
-    
+
     // Function to check if a line is within an action called _finalize
     bool isLineInFinalizeAction(const std::string &path, const std::string &lineToCheck, int lineNumber) {
         std::ifstream file(path);
@@ -7032,18 +7032,18 @@ int ask_ret(long long bound) {
         file.close();
         return false;
     }
-    
+
 
     virtual void ivy_assume(bool truth,const char *msg){
         if (!truth) {
             int i;
             __ivy_out << "assumption_failed(\\"" << msg << "\\")\\n";
-            
+
             std::string::size_type pos = std::string(msg).find(".ivy");
             std::string path = "";
             if (pos != std::string::npos)
                 path = std::string(msg+0,msg+pos);
-            
+
             std::string lineNumber = "1";
             std::string::size_type pos_n = std::string(msg).find("line");
             if (pos_n != std::string::npos)
@@ -7051,46 +7051,46 @@ int ask_ret(long long bound) {
             int num;
             sscanf(lineNumber.c_str(),"%*[^0-9]%d", &num);
             lineNumber = std::to_string(num);
-            
+
             std::string mode = "";
-            if(const char* env_p2 = std::getenv("TEST_TYPE")) { 
+            if(const char* env_p2 = std::getenv("TEST_TYPE")) {
                 mode = std::string(env_p2);
             }
-            
+
             std::string current_protocol = "";
-            if(const char* current_protocol_env = std::getenv("PROTOCOL_TESTED")) { 
+            if(const char* current_protocol_env = std::getenv("PROTOCOL_TESTED")) {
                 current_protocol = std::string(current_protocol_env);
             }
-            
+
             std::string command = "";
             path = constructIvyPath(path);
-        
+
             // Use safe file reading instead of system() calls
             int lineNum = extractLineNumber(std::string(msg));
             std::string str = readLineFromFile(path, lineNum);
-            
+
             // Debug output (controlled by environment variable)
             if (getEnvVar("IVY_DEBUG", "0") == "1") {
                 std::cerr << "DEBUG: Reading line " << lineNum << " from file: " << path << "\\n";
                 std::cerr << "DEBUG: File exists: " << (fileExists(path) ? "yes" : "no") << "\\n";
             }
-            
+
             std::cerr << str << "\\n";
 	        std::cerr << msg << ": error: assumption failed\\n";
             __ivy_out << "assumption_failed(" << str << ")\\n";
             CLOSE_TRACE
-            
+
             bool is_LineInFinalizeAction = isLineInFinalizeAction(path, str, lineNum);
             std::cerr << "is_LineInFinalizeAction: " << is_LineInFinalizeAction << "\\n";
             if (!is_LineInFinalizeAction) __ivy_exit(1);
         }
     }
-        
+
     """.replace('classname',classname).replace('CLOSE_TRACE','__ivy_out << "}" << std::endl;' if opt_trace.get() else ''))
 
     emit_param_decls(impl,classname+'_repl',im.module.params)
     impl.append(' : '+classname+'('+','.join(map(varname,im.module.params))+'){}\n')
-    
+
     for imp in im.module.imports:
         name = imp.imported()
         if not imp.scope() and name in im.module.actions:
@@ -7114,7 +7114,7 @@ int ask_ret(long long bound) {
                 impl.append('    return ask_ret(__CARD__{});\n'.format(action.formal_returns[0].sort))
             impl.append('}\n')
 
-    
+
 
     impl.append("""
     };
@@ -7128,20 +7128,20 @@ int ask_ret(long long bound) {
     impl.append("""
 // Override methods to implement low-level network service
 
-    
+
     //chris
     void signal1_handler_generating(int signo) {
         std::cerr << "call_generating = 1 -> NOT SLEEPING\\n";
         std::cerr << signo << "\\n";
         call_generating = 1;
     }
-    
+
     void signal2_handler_generating(int signo) {
         std::cerr << "call_generating = 0 -> SLEEPING\\n";
         std::cerr << signo << "\\n";
         call_generating = 0;
     }
-    
+
     void signal3_handler_generating(int signo, siginfo_t *info, void *context) {
         call_generating = 1;
         struct SignalData *data_recvd = (struct SignalData *)info->si_value.sival_ptr;
@@ -7168,39 +7168,39 @@ int ask_ret(long long bound) {
                     break;
                 idx++;
             }
-            
+
             // Comprehensive bounds and null pointer checking for signal handler
             if (idx >= actual_num_gens || idx < 0) {
                 std::cerr << "ERROR: Signal handler idx=" << idx << " out of bounds [0," << actual_num_gens-1 << "]" << std::endl;
                 data_recvd->ivy_ptr->__unlock();
                 return;
             }
-            
+
             if (idx >= (data_recvd->generators_ref)->size()) {
                 std::cerr << "ERROR: Signal handler generators_ref idx=" << idx << " >= size=" << (data_recvd->generators_ref)->size() << std::endl;
                 data_recvd->ivy_ptr->__unlock();
                 return;
             }
-            
+
             gen* gen_ptr = (data_recvd->generators_ref)->at(idx);
             if (gen_ptr == nullptr) {
                 std::cerr << "ERROR: Signal handler generators_ref[" << idx << "] is null pointer!" << std::endl;
                 data_recvd->ivy_ptr->__unlock();
                 return;
             }
-            
+
             std::cerr << "DEBUG: Signal handler about to access generators_ref[" << idx << "]" << std::endl;
             gen &g = *gen_ptr;
             data_recvd->ivy_ptr->__lock();
 #ifdef _WIN32
             LARGE_INTEGER before;
             QueryPerformanceCounter(&before);
-#endif      
+#endif
             bool sat = false;
             if (call_generating) {
                 data_recvd->ivy_ptr->_generating = true;
                 sat = g.generate(*data_recvd->ivy_ptr);
-            } 
+            }
 #ifdef _WIN32
             LARGE_INTEGER after;
             QueryPerformanceCounter(&after);
@@ -7241,7 +7241,7 @@ int ask_ret(long long bound) {
         int timer_min = 15;
 #else
         int timer_min = 5;
-        //if(const char* env_p2 = std::getenv("TIMEOUT_IVY")) { 
+        //if(const char* env_p2 = std::getenv("TIMEOUT_IVY")) {
         //    timer_min = std::stoi(std::string(env_p2));
         //}
 #endif
@@ -7266,7 +7266,7 @@ int ask_ret(long long bound) {
          //   foo = select(maxfds+1,&rdfds,0,0,&timeout);
         //    continue;
         //}
-            
+
 #endif
 
         if (foo < 0)
@@ -7275,9 +7275,9 @@ int ask_ret(long long bound) {
 #else
             {perror("select failed"); __ivy_exit(1);}
 #endif
-        
+
         if (foo == 0){
-           // std::cout << "TIMEOUT\\n";            
+           // std::cout << "TIMEOUT\\n";
            //cycle--;
            for (unsigned i = 0; i < timers.size(); i++){
                if (timer_min >= timers[i]->ms_delay()) {
@@ -7316,7 +7316,7 @@ int ask_ret(long long bound) {
             }
         }
     }
-    
+
 bool is_white(int c) {
     return (c == ' ' || c == '\\t' || c == '\\n' || c == '\\r');
 }
@@ -7409,7 +7409,7 @@ ivy_value parse_value(const std::string& cmd, int &pos) {
             throw_syntax(pos);
         pos++;
     }
-    else 
+    else
         res.atom = get_ident(cmd,pos);
     return res;
 }
@@ -7504,7 +7504,7 @@ public:
 class cmd_reader: public stdin_reader {
     int lineno;
 public:
-    classname_repl &ivy;    
+    classname_repl &ivy;
 
     cmd_reader(classname_repl &_ivy) : ivy(_ivy) {
         lineno = 1;
@@ -7571,7 +7571,7 @@ def emit_winsock_init(impl):
     Appends a string containing the boilerplate code for initializing Winsock on Windows to the provided list.
 
     This function adds a multi-line string to the `impl` list, which contains the necessary code to initialize
-    Winsock on a Windows platform. The code includes version checks and error handling as recommended by the 
+    Winsock on a Windows platform. The code includes version checks and error handling as recommended by the
     Windows documentation.
 
     Args:
@@ -7662,7 +7662,7 @@ def emit_repl_boilerplate3server(header, impl, classname):
     """
     impl.append("""
 
-    
+
     ivy.__unlock();
 
     // The main thread waits for all reader threads to die
@@ -7709,7 +7709,7 @@ def emit_repl_boilerplate3test(header, impl, classname):
         for(int rdridx = 0; rdridx < readers.size(); rdridx++) {
             readers[rdridx]->bind();
         }
-                    
+
         init_gen my_init_gen(ivy);
         my_init_gen.generate(ivy);
         std::vector<gen *> generators;
@@ -7718,7 +7718,7 @@ def emit_repl_boilerplate3test(header, impl, classname):
         sa3.sa_sigaction = signal3_handler_generating;
         sa3.sa_flags = SA_RESTART | SA_SIGINFO;
         sigemptyset(&sa3.sa_mask);
-                
+
 
         if (sigaction(SIGUSR3, &sa3, NULL) == -1) {
             perror("sigaction");
@@ -7729,7 +7729,7 @@ def emit_repl_boilerplate3test(header, impl, classname):
         signal_data.generators_ref = &generators;
         signal_data.weights_ref = &weights;
         sigdata.sival_ptr = &signal_data;
-        
+
 """)
     totalweight = 0.0
     num_public_actions = 0
@@ -7757,9 +7757,9 @@ def emit_repl_boilerplate3test(header, impl, classname):
         totalweight += aval
     impl.append("        double totalweight = {};\n".format(totalweight))
     impl.append("        int num_gens = {};\n".format(num_public_actions))
-            
+
     final_code = 'ivy.__lock(); ivy.ext___finalize(); ivy.__unlock();' if 'ext:_finalize' in im.module.public_actions else ''
-    
+
     impl.append("""
 
 #ifdef _WIN32$
@@ -7784,14 +7784,14 @@ def emit_repl_boilerplate3test(header, impl, classname):
             double sum = 0.0;
             int actual_num_gens = static_cast<int>(generators.size());
             std::cerr << "DEBUG: Weighted selection with actual_num_gens=" << actual_num_gens << ", frnd=" << frnd << ", totalweight=" << totalweight << std::endl;
-            
+
             while (idx < actual_num_gens - 1) {
                 sum += weights[idx]; // should not be execute with num_gen=1
                 if (frnd < sum)
                     break;
                 idx++;
             }
-            
+
             // Comprehensive bounds and null pointer checking
             if (idx >= actual_num_gens || idx < 0) {
                 std::cerr << "ERROR: idx=" << idx << " out of bounds [0," << actual_num_gens-1 << "]" << std::endl;
@@ -7801,14 +7801,14 @@ def emit_repl_boilerplate3test(header, impl, classname):
                 std::cerr << "ERROR: generators[" << idx << "] is null pointer!" << std::endl;
                 continue;
             }
-            
+
             std::cerr << "DEBUG: About to access generators[" << idx << "] with actual_num_gens=" << actual_num_gens << std::endl;
             gen &g = *generators[idx];
             ivy.__lock();
 #ifdef _WIN32
             LARGE_INTEGER before;
             QueryPerformanceCounter(&before);
-#endif      
+#endif
             //std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
             bool sat = false;
             if (call_generating) {
@@ -7820,7 +7820,7 @@ def emit_repl_boilerplate3test(header, impl, classname):
             //unsigned long long duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
             //if(duration > 300) {
             //    std::cerr << "Generating action: " << idx << std::endl;
-            //    std::cerr << "Performance generation measurement: " << duration << " milliseconds" << std::endl; 
+            //    std::cerr << "Performance generation measurement: " << duration << " milliseconds" << std::endl;
             //}
 #ifdef _WIN32
             LARGE_INTEGER after;
@@ -7862,7 +7862,7 @@ def emit_repl_boilerplate3test(header, impl, classname):
         int timer_min = 15;
 #else
         int timer_min = 5;
-        //if(const char* env_p2 = std::getenv("TIMEOUT_IVY")) { 
+        //if(const char* env_p2 = std::getenv("TIMEOUT_IVY")) {
         //    timer_min = std::stoi(std::string(env_p2));
         //}
 #endif
@@ -7896,9 +7896,9 @@ def emit_repl_boilerplate3test(header, impl, classname):
 #else
             {perror("select failed"); __ivy_exit(1);}
 #endif
-        
+
         if (foo == 0){
-           // std::cout << "TIMEOUT\\n";            
+           // std::cout << "TIMEOUT\\n";
            cycle--;
            for (unsigned i = 0; i < timers.size(); i++){
                if (timer_min >= timers[i]->ms_delay()) {
@@ -7935,9 +7935,9 @@ def emit_repl_boilerplate3test(header, impl, classname):
 
                 }
             }
-        }            
+        }
     }
-    
+
     FINALIZE
 #ifdef _WIN32
                 Sleep(final_ms);  // HACK: wait for late responses
@@ -7967,7 +7967,7 @@ def emit_repl_boilerplate3test(header, impl, classname):
     #     std::cout << "At exit #1\n";
     #     FINALIZE
     # }
-    
+
     # void atexit_handler_2()
     # {
     #     std::cout << "At exit #2\n";
@@ -8039,7 +8039,7 @@ public:
     virtual bool generate(classname& obj)=0;
     virtual void execute(classname& obj)=0;
     virtual ~gen(){}
-    
+
     std::string fresh_name() {
         std::ostringstream ss;
         ss << "$tmp" << tmp_ctr++;
@@ -8153,7 +8153,7 @@ public:
     long long eval_apply(const char *decl_name, int arg0) {
         return eval_apply(decl_name,1,&arg0);
     }
-    
+
     long long eval_apply(const char *decl_name, int arg0, int arg1) {
         int args[2] = {arg0,arg1};
         return eval_apply(decl_name,2,args);
@@ -8186,14 +8186,14 @@ public:
         a.push_back(arg0);
         return apply(decl_name,a);
     }
-    
+
     z3::expr apply(const char *decl_name, z3::expr arg0, z3::expr arg1) {
         std::vector<z3::expr> a;
         a.push_back(arg0);
         a.push_back(arg1);
         return apply(decl_name,a);
     }
-    
+
     z3::expr apply(const char *decl_name, z3::expr arg0, z3::expr arg1, z3::expr arg2) {
         std::vector<z3::expr> a;
         a.push_back(arg0);
@@ -8242,7 +8242,7 @@ public:
             res.second = 1;
         else if (range.is_bv()) {
             int size = range.bv_size();
-            if (size >= 64) 
+            if (size >= 64)
                 res.second = (unsigned long long)(-1);
             else res.second = (1 << size) - 1;
         }
@@ -8281,7 +8281,7 @@ public:
     int set(const char *decl_name, int arg0, int value) {
         return set(decl_name,1,&arg0,value);
     }
-    
+
     int set(const char *decl_name, int arg0, int arg1, int value) {
         int args[2] = {arg0,arg1};
         return set(decl_name,2,args,value);
@@ -8293,12 +8293,12 @@ public:
     }
 
     void add_alit(const z3::expr &pred){
-        if (__ivy_modelfile.is_open()) 
+        if (__ivy_modelfile.is_open())
             __ivy_modelfile << "pred: " << pred << std::endl;
         std::ostringstream ss;
         ss << "alit:" << alits.size();
         z3::expr alit = ctx.bool_const(ss.str().c_str());
-        if (__ivy_modelfile.is_open()) 
+        if (__ivy_modelfile.is_open())
             __ivy_modelfile << "alit: " << alit << std::endl;
         alits.push_back(alit);
         slvr.add(!alit || pred);
@@ -8339,7 +8339,7 @@ public:
     void randomize(const char *decl_name, int arg0, const std::string &sort_name) {
         randomize(decl_name,1,&arg0,sort_name);
     }
-    
+
     void randomize(const char *decl_name, int arg0, int arg1, const std::string &sort_name) {
         int args[2] = {arg0,arg1};
         randomize(decl_name,2,args,sort_name);
@@ -8493,11 +8493,11 @@ public:
     bool solve() {
         // std::cout << alits.size();
         static bool show_model = true;
-        if (__ivy_modelfile.is_open()) 
+        if (__ivy_modelfile.is_open())
             __ivy_modelfile << "begin check:\\n" << slvr << "end check:\\n" << std::endl;
         while(true){
             if (__ivy_modelfile.is_open()) {
-                __ivy_modelfile << "(check-sat"; 
+                __ivy_modelfile << "(check-sat";
                 for (unsigned i = 0; i < alits.size(); i++)
                     __ivy_modelfile << " " << alits[i];
                 __ivy_modelfile << ")" << std::endl;
@@ -8507,16 +8507,16 @@ public:
                 break;
             z3::expr_vector core = slvr.unsat_core();
             if (core.size() == 0){
-//                if (__ivy_modelfile.is_open()) 
+//                if (__ivy_modelfile.is_open())
 //                    __ivy_modelfile << "begin unsat:\\n" << slvr << "end unsat:\\n" << std::endl;
                 return false;
             }
-            if (__ivy_modelfile.is_open()) 
+            if (__ivy_modelfile.is_open())
                 for (unsigned i = 0; i < core.size(); i++)
                     __ivy_modelfile << "core: " << core[i] << std::endl;
             unsigned idx = rand() % core.size();
             z3::expr to_delete = core[idx];
-            if (__ivy_modelfile.is_open()) 
+            if (__ivy_modelfile.is_open())
                 __ivy_modelfile << "to delete: " << to_delete << std::endl;
             for (unsigned i = 0; i < alits.size(); i++)
                 if (z3::eq(alits[i],to_delete)) {
@@ -8583,7 +8583,7 @@ def add_conjs_to_actions():
     seq = ia.Sequence(*asserts)
     seq.formal_params = []
     im.module.initial_actions.append(seq)
-        
+
 
 
 def main():
@@ -8635,12 +8635,12 @@ def main_int(is_ivyc):
         iu.set_parameters({'filter_symbols':'false'})
     else:
         iu.set_parameters({'keep_destructors':'true'})
-        
+
     if target.get() == 'class':
         target.set('repl')
         global emit_main
         emit_main = False
-        
+
     with iu.ErrorPrinter():
         if len(sys.argv) == 2 and ic.get_file_version(sys.argv[1]) >= [2]:
             if not target.get() == 'repl' and emit_main:
@@ -8683,7 +8683,7 @@ def main_int(is_ivyc):
         #         print isolates
 #                    elif len(extracts) == 1:
 #                        isolates = [extracts[0][0]]
-# Old version 
+# Old version
         if is_ivyc:
             if isolate != None:
                 isolates = [isolate]
@@ -8727,7 +8727,7 @@ def main_int(is_ivyc):
                         status = os.system(cmd)
                         if status:
                             exit(1)
-    
+
                     if isolate:
                         if len(isolates) > 1:
                             print("Compiling isolate {}...".format(isolate))
@@ -8739,7 +8739,7 @@ def main_int(is_ivyc):
                             the_iso = ivy_ast.ExtractDef(*the_iso.args)
                             the_iso.with_args = len(the_iso.args)
                             im.module.isolates[isolate] = the_iso
-                        
+
                     # iso.compile_with_invariants.set("true" if target.get()=='test'
                     #                                 and not iu.version_le(iu.get_string_version(),"1.7")
                     #                                 else "false")
@@ -8787,7 +8787,7 @@ def main_int(is_ivyc):
                             sys.stderr.write('bad format in {}\n'.format(specfilename))
                             exit(1)
                     else:
-                        libs = []    
+                        libs = []
                     cpp11 = any((x == 'cppstd' or x.endswith('.cppstd')) and y.rep=='cpp11' for x,y in im.module.attributes.items())
                     gpp11_spec =  ' -std=c++11 ' # ' -std=c++11 ' if cpp11 else ' -std=c++20 '
                     libspec = ''
@@ -8849,7 +8849,7 @@ def main_int(is_ivyc):
                             cmd = "g++ -Wno-parentheses-equality {} {}  -c {}.cpp".format(gpp11_spec,paths,basename)
                         if target.get() in ['gen','test']:
                             cmd = cmd + ' -lz3'
-                        
+
                         MODE = os.getenv('BUILD_MODE', '')  # default to empty (original behavior)
                         EXTRA = {
                             '': '',  # Original method - no extra flags (preserves Shadow compatibility)
@@ -8861,12 +8861,12 @@ def main_int(is_ivyc):
                         }
                         if MODE not in EXTRA:
                             raise ValueError(f'unknown BUILD_MODE={MODE}. Valid modes: {list(EXTRA.keys())}')
-                        
+
                         if MODE:  # Only add extra flags if mode is specified
                             cmd += ' ' + EXTRA[MODE]
-                        
+
                         cmd += libspec
-                        
+
                         cmd += ' -pthread'
                         #cmd = cmd.replace("-ldl","-lrt -ldl")
                         from os import environ
@@ -8968,7 +8968,7 @@ def main_int(is_ivyc):
 
 def outfile(name):
     return (opt_outdir.get() + '/' + name) if opt_outdir.get() else name
-        
+
 def find_vs():
     try:
         windir = os.getenv('WINDIR')
@@ -8984,7 +8984,7 @@ def find_vs():
 
 if __name__ == "__main__":
     main_int(True)
-        
+
 hash_h = """
 /*++
   Copyright (c) Microsoft Corporation
@@ -9176,18 +9176,18 @@ namespace hash_space {
 
         typedef Value &reference;
         typedef const Value &const_reference;
-    
+
         struct Entry
         {
             Entry* next;
             Value val;
-      
+
         Entry(const Value &_val) : val(_val) {next = 0;}
         };
-    
+
 
         struct iterator
-        {      
+        {
             Entry* ent;
             hashtable* tab;
 
@@ -9224,7 +9224,7 @@ namespace hash_space {
             }
 
 
-            bool operator==(const iterator& it) const { 
+            bool operator==(const iterator& it) const {
                 return ent == it.ent;
             }
 
@@ -9234,7 +9234,7 @@ namespace hash_space {
         };
 
         struct const_iterator
-        {      
+        {
             const Entry* ent;
             const hashtable* tab;
 
@@ -9271,7 +9271,7 @@ namespace hash_space {
             }
 
 
-            bool operator==(const const_iterator& it) const { 
+            bool operator==(const const_iterator& it) const {
                 return ent == it.ent;
             }
 
@@ -9289,13 +9289,13 @@ namespace hash_space {
         HashFun hash_fun ;
         GetKey get_key;
         KeyEqFun key_eq_fun;
-    
+
     public:
 
     hashtable(size_t init_size) : buckets(init_size,(Entry *)0) {
             entries = 0;
         }
-    
+
         hashtable(const hashtable& other) {
             dup(other);
         }
@@ -9310,11 +9310,11 @@ namespace hash_space {
             clear();
         }
 
-        size_t size() const { 
+        size_t size() const {
             return entries;
         }
 
-        bool empty() const { 
+        bool empty() const {
             return size() == 0;
         }
 
@@ -9322,15 +9322,15 @@ namespace hash_space {
             buckets.swap(other.buckets);
             std::swap(entries, other.entries);
         }
-    
+
         iterator begin() {
             for (size_t i = 0; i < buckets.size(); ++i)
                 if (buckets[i])
                     return iterator(buckets[i], this);
             return end();
         }
-    
-        iterator end() { 
+
+        iterator end() {
             return iterator(0, this);
         }
 
@@ -9340,15 +9340,15 @@ namespace hash_space {
                     return const_iterator(buckets[i], this);
             return end();
         }
-    
-        const_iterator end() const { 
+
+        const_iterator end() const {
             return const_iterator(0, this);
         }
-    
+
         size_t get_bucket(const Value& val, size_t n) const {
             return hash_fun(get_key(val)) % n;
         }
-    
+
         size_t get_key_bucket(const Key& key) const {
             return hash_fun(key) % buckets.size();
         }
@@ -9363,11 +9363,11 @@ namespace hash_space {
 
             size_t n = get_bucket(val);
             Entry* from = buckets[n];
-      
+
             for (Entry* ent = from; ent; ent = ent->next)
                 if (key_eq_fun(get_key(ent->val), get_key(val)))
                     return ent;
-      
+
             if(!ins) return 0;
 
             Entry* tmp = new Entry(val);
@@ -9381,11 +9381,11 @@ namespace hash_space {
         {
             size_t n = get_key_bucket(key);
             Entry* from = buckets[n];
-      
+
             for (Entry* ent = from; ent; ent = ent->next)
                 if (key_eq_fun(get_key(ent->val), key))
                     return ent;
-      
+
             return 0;
         }
 
@@ -9402,7 +9402,7 @@ namespace hash_space {
             Entry *ent = lookup(val,true);
             return std::pair<iterator,bool>(iterator(ent,this),entries > old_entries);
         }
-    
+
         iterator insert(const iterator &it, const Value& val){
             Entry *ent = lookup(val,true);
             return iterator(ent,this);
@@ -9444,7 +9444,7 @@ namespace hash_space {
             }
             buckets.swap(tmp);
         }
-    
+
         void clear()
         {
             for (size_t i = 0; i < buckets.size(); ++i) {
@@ -9471,7 +9471,7 @@ namespace hash_space {
         }
     };
 
-    template <typename T> 
+    template <typename T>
         class equal {
     public:
         bool operator()(const T& x, const T &y) const {
@@ -9495,7 +9495,7 @@ namespace hash_space {
         }
     };
 
-    template <typename Element, class HashFun = hash<Element>, 
+    template <typename Element, class HashFun = hash<Element>,
         class EqFun = equal<Element> >
         class hash_set
         : public hashtable<Element,Element,HashFun,identity<Element>,EqFun> {
@@ -9508,7 +9508,7 @@ namespace hash_space {
     : hashtable<Element,Element,HashFun,identity<Element>,EqFun>(7) {}
     };
 
-    template <typename Key, typename Value, class HashFun = hash<Key>, 
+    template <typename Key, typename Value, class HashFun = hash<Key>,
         class EqFun = equal<Key> >
         class hash_map
         : public hashtable<std::pair<Key,Value>,Key,HashFun,proj1<Key,Value>,EqFun> {
@@ -9520,7 +9520,7 @@ namespace hash_space {
 
     Value &operator[](const Key& key) {
 	std::pair<Key,Value> kvp(key,Value());
-	return 
+	return
 	hashtable<std::pair<Key,Value>,Key,HashFun,proj1<Key,Value>,EqFun>::
         lookup(kvp,true)->val.second;
     }
@@ -9533,7 +9533,7 @@ namespace hash_space {
             hash<D > h1;
             hash<R > h2;
             size_t res = 0;
-            
+
             for (typename hash_map<D,R>::const_iterator it=p.begin(), en=p.end(); it!=en; ++it)
                 res += (h1(it->first)+h2(it->second));
             return res;
@@ -9561,7 +9561,7 @@ hash_cpp = """
 Copyright (c) Microsoft Corporation
 
 This string hash function is borrowed from Microsoft Z3
-(https://github.com/Z3Prover/z3). 
+(https://github.com/Z3Prover/z3).
 
 --*/
 
@@ -9602,43 +9602,43 @@ unsigned string_hash(const char * str, unsigned length, unsigned init_value) {
         c += reinterpret_cast<const unsigned *>(str)[2];
         mix(a,b,c);
         str += 12; len -= 12;
-    } 
+    }
 
     /*------------------------------------- handle the last 11 bytes */
     c += length;
     switch(len) {        /* all the case statements fall through */
-    case 11: 
+    case 11:
         c+=((unsigned)str[10]<<24);
         __fallthrough;
-    case 10: 
+    case 10:
         c+=((unsigned)str[9]<<16);
         __fallthrough;
-    case 9 : 
+    case 9 :
         c+=((unsigned)str[8]<<8);
         __fallthrough;
         /* the first byte of c is reserved for the length */
-    case 8 : 
+    case 8 :
         b+=((unsigned)str[7]<<24);
         __fallthrough;
-    case 7 : 
+    case 7 :
         b+=((unsigned)str[6]<<16);
         __fallthrough;
-    case 6 : 
+    case 6 :
         b+=((unsigned)str[5]<<8);
         __fallthrough;
-    case 5 : 
+    case 5 :
         b+=str[4];
         __fallthrough;
-    case 4 : 
+    case 4 :
         a+=((unsigned)str[3]<<24);
         __fallthrough;
-    case 3 : 
+    case 3 :
         a+=((unsigned)str[2]<<16);
         __fallthrough;
-    case 2 : 
+    case 2 :
         a+=((unsigned)str[1]<<8);
         __fallthrough;
-    case 1 : 
+    case 1 :
         a+=str[0];
         __fallthrough;
         /* case 0: nothing left to add */

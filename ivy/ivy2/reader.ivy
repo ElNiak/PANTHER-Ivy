@@ -10,7 +10,7 @@ instance env : environment(str)
 object ivy = { ...
 
     instance file : file_io(str,str)
-    
+
     action write_file(name:str,buf:str) = {
         var ok := file.write(name,buf);
         if ~ok {
@@ -38,10 +38,10 @@ object ivy = { ...
             include_path := include_path.append(inc.segment(start,idx));
         }
     }
-        
-        
+
+
     object prog = { ...
-        
+
         type readst = struct {
             have_read : ident_set
         }
@@ -96,7 +96,7 @@ object ivy = { ...
                 call report_error(foo,ann);
             }
         }
-        
+
         # Read the main file, named `name`. We prepend `include ivy`
         # to the file, to cause the standard preamble to be read.
 

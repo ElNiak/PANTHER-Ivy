@@ -24,7 +24,7 @@ module tcp_serdes(endpoint,data) = {
     # object rdr = {}         # the listener object
     # object cb = {}          # struct holding the callbacks
     # object send_queue = {}  # queues of outgoing packets
-    
+
 # This code goes in the C++ header file, ahead of the ivy object declaration.
 # Here, we put declarations (perhaps forward) of any auxiliary classes we need).
 # We need to be careful that the names of these don't clash with other modules.
@@ -50,7 +50,7 @@ module tcp_serdes(endpoint,data) = {
 >>>
 
 # This code goes in the C++ implementation file. Here, we put implementations of
-# the classes declared in the header, and auxiliary functions. 
+# the classes declared in the header, and auxiliary functions.
 
 <<< impl
 
@@ -182,13 +182,13 @@ module tcp_serdes(endpoint,data) = {
         if (sock < 0)
             { std::cerr << "cannot create socket\n"; exit(1); }
         int one = 1;
-        if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one)) < 0) 
+        if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one)) < 0)
             { perror("setsockopt TCP_NODELAY failed"); exit(1); }
         if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0)
             { perror("setsockopt SO_REUSEADDR failed"); exit(1); }
         return sock;
     }
-    
+
 
     // This structure holds all the callbacks for the endpoint. These are function objects
     // that are called asynchronously.
@@ -238,7 +238,7 @@ module tcp_serdes(endpoint,data) = {
       public:
 
         tcp_task(int sock, const tcp_callbacks<data> *cb, ivy_class *ivy)
-          : sock(sock), cb(cb), ivy(ivy) {} 
+          : sock(sock), cb(cb), ivy(ivy) {}
 
         virtual int fdes() {
             return sock;
@@ -250,7 +250,7 @@ module tcp_serdes(endpoint,data) = {
 
     // This task reads messages from a socket and calls the "recv" callback.
 
-    template <typename data> 
+    template <typename data>
     class tcp_reader : public tcp_task<data> {
         std::vector<char> buf;
         using tcp_task<data>::sock;
@@ -272,7 +272,7 @@ module tcp_serdes(endpoint,data) = {
 
             try {
                 __deser(ds,pkt);            // read the message
-            } 
+            }
 
             // If packet has bad syntax, we drop it, close the socket, call the "failed"
             // callback and terminate the task.
@@ -330,7 +330,7 @@ module tcp_serdes(endpoint,data) = {
         virtual void read() {
 
             if (!connected) {
-            
+
                 // if the socket is not connected, wait for the queue to be open,
                 // then connect
 
@@ -342,9 +342,9 @@ module tcp_serdes(endpoint,data) = {
             // dequeue a packet to send
 
             std::vector<char> buf;
-            bool qclosed = queue->dequeue_swap(buf);        
+            bool qclosed = queue->dequeue_swap(buf);
 
-            // if queue has been closed asynchrononously, close the socket. 
+            // if queue has been closed asynchrononously, close the socket.
 
             if (qclosed) {
                 std::cout << "CLOSING " << sock << std::endl;
@@ -355,7 +355,7 @@ module tcp_serdes(endpoint,data) = {
 
             // try a blocking send
 
-#ifdef MSG_NOSIGNAL	    
+#ifdef MSG_NOSIGNAL
             int bytes = send(sock,&buf[0],buf.size(),MSG_NOSIGNAL);
 #else
             int bytes = send(sock,&buf[0],buf.size(),0);
@@ -378,7 +378,7 @@ module tcp_serdes(endpoint,data) = {
             struct sockaddr_in myaddr;
             `endpoint` other = queue->other;
             get_tcp_addr(ivy,other,myaddr);
-            ivy -> __unlock(); 
+            ivy -> __unlock();
 
             // Call connect to make connection
 
@@ -387,11 +387,11 @@ module tcp_serdes(endpoint,data) = {
             int res = ::connect(sock,(sockaddr *)&myaddr,sizeof(myaddr));
 
             // If successful, call the "connected" callback, else "failed"
-            
+
             ivy->__lock();
             if (res >= 0) {
                 // std::cout << "CONNECT SUCCEEDED " << sock << std::endl;
-#ifdef MSG_NOSIGNAL	    
+#ifdef MSG_NOSIGNAL
                 int bytes = send(sock,&queue->self.port,sizeof(queue->self.port),MSG_NOSIGNAL);
 #else
                 int bytes = send(sock,&queue->self.port,sizeof(queue->self.port),0);
@@ -428,7 +428,7 @@ module tcp_serdes(endpoint,data) = {
 
     };
 
-    // This task listens for connections on a socket in the background. 
+    // This task listens for connections on a socket in the background.
 
     template <typename data>
     class tcp_listener : public tcp_task<data> {
@@ -463,7 +463,7 @@ module tcp_serdes(endpoint,data) = {
         virtual void read() {
             // Call accept to get an incoming connection request. May block.
             sockaddr_in other_addr;
-            socklen_t addrlen = sizeof(other_addr);    
+            socklen_t addrlen = sizeof(other_addr);
             int new_sock = accept(sock, (sockaddr *)&other_addr, &addrlen);
 
             // If this fails, something is very wrong: fail stop.
@@ -572,12 +572,12 @@ var send_queue : queue_t
             if (::bind(s, (struct sockaddr *)&myaddr, sizeof(myaddr)) < 0)
                 { perror("bind failed"); exit(1); }
             // Start lisetning on the socket
-            if (listen(s,2) < 0) 
+            if (listen(s,2) < 0)
                 { std::cerr << "cannot listen on socket\n"; exit(1); }
 #ifdef SO_NOSIGPIPE
             {
                 int opt = 1;
-		
+
                 if (setsockopt(s, SOL_SOCKET, SO_NOSIGPIPE, &opt, sizeof(opt)) == -1) {
                     perror("setsockopt");
                     return -1;
@@ -593,24 +593,24 @@ var send_queue : queue_t
 
     action close(s:socket) = {
         <<< impure
-            
+
             // We don't want to close a socket when there is another thread
             // waiting, because the other thread won't know what to do with the
-            // error. 
-        
+            // error.
+
             // Instead we shut down the socket and let the other thread close it.
             // If there is a reader thread, it will see EOF and close the socket. If there is
             // on open writer thread, it will close the socket after we close the
             // send queue. If the queue is already closed, closing it has no effect.
 
             // invariant: if a socket is open there is a reader thread or
-            // an open writer thread, but not both. 
+            // an open writer thread, but not both.
 
             // Because of this invariant, the socket will be closed exactly once.
 
             ::shutdown(s,SHUT_RDWR);
 
-            if (`send_queue`.find(s) != `send_queue`.end()) 
+            if (`send_queue`.find(s) != `send_queue`.end())
                 `send_queue`[s] -> set_closed();
 
         >>>
@@ -618,7 +618,7 @@ var send_queue : queue_t
 
     # connect creates a socket and then installs a connector task
     # to establish the connection asynchronously.
-    
+
     action connect(self:endpoint, other:endpoint) returns (s:socket) = {
         <<< impure
             s = make_tcp_socket();
@@ -641,7 +641,7 @@ var send_queue : queue_t
     # given socket. It returns true if sending was successful. Not, a "successfully"
     # sent packet could still be lost to due congestion. If we want to maintain
     # ordered semantics, we will need to have an additional return code indicating
-    # the packet could not be queued (analogous to EAGAIN). 
+    # the packet could not be queued (analogous to EAGAIN).
 
     action send(s:socket,p:data) returns (ok:bool) = {
         <<< impure
@@ -650,7 +650,7 @@ var send_queue : queue_t
 
                 // if the send queue for this sock doesn's exist, it isn't open,
                 // so the client has violated the precondition. we do the bad client
-                // the service of not crashing. 
+                // the service of not crashing.
 
                 if (`send_queue`.find(s) == `send_queue`.end()) {
                     // std::cout << "CANNOT FIND QUEUE: " << s << "\n";

@@ -10,7 +10,7 @@ include ivy_mim
 
 # Server
 action socket_endpoint_mim(host:endpoint_id,s:stream_data_net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
-    dst := mim_agent.ep_client if src = mim_agent.ep_server else mim_agent.ep_server; # is_mim_standalone | 
+    dst := mim_agent.ep_client if src = mim_agent.ep_server else mim_agent.ep_server; # is_mim_standalone |
     call socket_endpoint_mim_event_debug_event(host,s,src,dst);
 }
 
@@ -46,7 +46,7 @@ action dst_tls_id(dst:ip.endpoint) returns (tls_id:tls_api.id) = {
 
 action src_tls_id(src:ip.endpoint) returns (tls_id:tls_api.id) = {
     tls_id := mim_agent.tls_id;
-    # if src = mim_agent.ep_server 
+    # if src = mim_agent.ep_server
     # else second_client.tls_id; #TODO can cause error server vn eg
 }
 
@@ -64,12 +64,12 @@ action src_tls_id(src:ip.endpoint) returns (tls_id:tls_api.id) = {
 action endpoint_to_socket(src:ip.endpoint) returns (socket:stream_data_net.socket) = {
     if src = mim_agent.ep_server {
         socket := sock_mim_server;
-    } 
+    }
     # else if src = client_alt {
     #     socket := sock_alt;
     # } else if src = client_vn {
     #     socket := sock_vn;
-    # } 
+    # }
 }
 
 after init {

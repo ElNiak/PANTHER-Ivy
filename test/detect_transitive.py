@@ -20,5 +20,3 @@ with ivy_module.Module():
     main_ui = new_ui()
     ui = main_ui.add(ivy_from_string(prog))
 #    ui.mainloop()
-
-

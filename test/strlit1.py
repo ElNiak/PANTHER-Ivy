@@ -28,12 +28,10 @@ with im.Module():
         print(str(e))
         assert False,"property should have been true"
 
-    
+
     # with im.module.copy():
     #     ivy_isolate.create_isolate(None) # ,ext='ext'
     #     gui = new_ui()
     #     gui.tk.update_idletasks() # so that dialog is on top of main window
     #     gui.try_property()
     #     gui.mainloop()
-
-

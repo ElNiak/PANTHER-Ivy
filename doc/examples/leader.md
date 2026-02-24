@@ -36,7 +36,7 @@ suggestively called `self`. This parameter is used in any references
 to state components within the action. Thus, object `foo` really acts
 like a collection of independent objects or processes, one for each
 element of type `t`. The type `t` acts like a reference to one of
-these objects. 
+these objects.
 
 Ivy provides a shorthand for parameterized objects. We can equivalently
 write the object `foo` as follows:
@@ -122,7 +122,7 @@ Now that we know what the protocol is supposed to do, let's implement it:
 
     isolate app = {
 
-        ... 
+        ...
 
         implementation {
             implement tick(me:node) {
@@ -224,7 +224,7 @@ interesting:
 
         specification {
 
-            instantiate total_order_properties(this)   
+            instantiate total_order_properties(this)
 
             after get_next {
                 ensure (x < y & ~ (x < Z & Z < y)) | (y <= X & X <= x)
@@ -297,7 +297,7 @@ we will see how the transport service can be implemented.
 
 Now let's try to verify that the implementation of our leader election
 protocol `app` satisfies its service specification, assuming the
-specifications of `trans`, `node`, `id`. 
+specifications of `trans`, `node`, `id`.
 
 We are trying to prove that, when any node calls `app.elect`, it in
 fact has the highest `id`. That is, the `ensure` statement is a
@@ -311,7 +311,7 @@ in the Ivy source directory `doc/examples`. We start Ivy using this command:
     $ ivy_check isolate=app diagnose=true leader_election_ring.ivy
 
 Ivy finds a counterexample to the `ensure` statement, and starts the
-graphical interface (because we used `diagnose=true`). 
+graphical interface (because we used `diagnose=true`).
 
 This is what we see:
 
@@ -353,7 +353,7 @@ clearly has to be ruled out. We do this by selecting the
 
 In other words, we conjecture that it never happens that a node N has
 id less than a node P, and node N is receiving its own id. Now we choose
-`Invariant|Check induction`, to see if our conjecture is inductive. 
+`Invariant|Check induction`, to see if our conjecture is inductive.
 Of course, it isn't. Here's what Ivy says:
 
 <p><img src="images/leader5.png" alt="Testing Ivy screenshot" /></p>
@@ -451,7 +451,7 @@ into our implementation object `app`, like this:
         }
     }
 
-     
+
 ## How not to break the rotational symmetry
 
 As we observed above, this proof is a bit messy because of the way we
@@ -547,26 +547,8 @@ Finally, try this command to verify that in fact the properties of
 `btw` are correct for a particular implementation of `node`:
 
     $ ivy_check leader_election_ring_btw.ivy
-    
+
 Have a look at the implementation of the `node` isolate in file
 `leader_election_ring_btw.ivy`. If this doesn't make sense, see the
 tutorial on
 [abstract datatypes](http://microsoft.github.io/ivy/examples/datatypes.html).
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

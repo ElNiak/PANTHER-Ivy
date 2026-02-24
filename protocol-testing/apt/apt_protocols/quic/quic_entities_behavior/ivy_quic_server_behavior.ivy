@@ -12,7 +12,7 @@ include quic_random_value
 # -------------
 #
 # To test the server over the OS sockets layer, we need some setup. We must
-# establish which interface and which ports the tester will use. 
+# establish which interface and which ports the tester will use.
 #
 # create an UDP network instance to communicate to server with
 # Note: because of packet coalescing, a single UDP datagram contains
@@ -23,7 +23,7 @@ include quic_random_value
 # can model migration.
 
 # var server_cid  : cid  # useless for now, refactoring of shim neeeded
-# var client_addr : ip.addr 
+# var client_addr : ip.addr
 # var client_port : ip.port
 # var client_port_alt : ip.port
 
@@ -62,7 +62,7 @@ include quic_random_value
 after init {
     sock := quic_net.open(endpoint_id.server,server.ep);
     server.set_tls_id(0);
-    
+
     client.ep.addr := 0;
     client.ep.port := 0;
 
@@ -74,7 +74,7 @@ after init {
 # endpoints, TLS instances and host ids. TODO: This is a mess and
 # should be done in a more systematic way.
 
-# Get the host id associated to an ip endpoint. 
+# Get the host id associated to an ip endpoint.
 
 # TODO remove if is_mim
 action endpoint_to_pid(src:ip.endpoint) returns (pid:endpoint_id) = {
@@ -94,7 +94,7 @@ action endpoint_to_pid(src:ip.endpoint) returns (pid:endpoint_id) = {
 action socket_endpoint(host:endpoint_id,s:quic_net.socket) returns (src:ip.endpoint) = {
     src := server.ep;
 }
-    
+
 # Get the socket number associated to an IP endpoint.
 
 # TODO For mim-> according to dst
@@ -150,7 +150,7 @@ action endpoint_to_socket_mim(src:ip.endpoint) returns (socket:quic_net.socket) 
 }
 
 action socket_endpoint_mim(host:endpoint_id,s:quic_net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
-    dst := mim_agent.ep_client if src = mim_agent.ep_server else mim_agent.ep_server; # is_mim_standalone | 
+    dst := mim_agent.ep_client if src = mim_agent.ep_server else mim_agent.ep_server; # is_mim_standalone |
     call socket_endpoint_mim_event_debug_event(host,s,src,dst);
 }
 

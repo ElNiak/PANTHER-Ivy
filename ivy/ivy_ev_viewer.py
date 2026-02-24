@@ -12,10 +12,10 @@ Event = ev.Event
 class UI(object):
     def __init__(self,tk,root):
         self.tk,self.root = tk,root
-                
+
     def busy(self):
         pass
-                
+
     def ready(self):
         pass
 
@@ -30,7 +30,7 @@ def do_ask_pat(fun,pattern):
             pat_evs = ev.parse(pattern)
         except:
             raise iu.IvyError(None,'syntax error')
-        fun(pat_evs) 
+        fun(pat_evs)
 
 class EventTree(tkinter.tix.Tree,uu.WithMenuBar):
     def __init__(self,root,notebook,evs):
@@ -48,7 +48,7 @@ class EventTree(tkinter.tix.Tree,uu.WithMenuBar):
                  ],
                 ),
                ]
-                 
+
     def filter(self):
         ask_pat(self,self.do_filter,"Filter")
 
@@ -61,10 +61,10 @@ class EventTree(tkinter.tix.Tree,uu.WithMenuBar):
 
     def do_find_reverse(self,pats):
         self.do_find(pats,ev.EventRevGen)
-         
+
     def do_find_forward(self,pats):
         self.do_find(pats,ev.EventFwdGen)
-         
+
     def do_find(self,pats,gen):
         sel = self.hlist.info_selection()
         anchor_addr = sel[0] if len(sel) else None
@@ -84,8 +84,8 @@ class EventTree(tkinter.tix.Tree,uu.WithMenuBar):
             cs = addr.rsplit('/',1)
             self.uncover(cs[0])
             opendir(self,cs[0],self.evs)
-        
-        
+
+
 class EventNoteBook(tkinter.tix.NoteBook):
     def __init__(self,root):
         tkinter.tix.NoteBook.__init__(self,root)
@@ -94,7 +94,7 @@ class EventNoteBook(tkinter.tix.NoteBook):
         self.sheets = {}
     def new_sheet(self,evs):
         name = "sht{}".format(self.num_sheets)
-        tab = self.add(name,label="Sheet {}".format(self.num_sheets)) 
+        tab = self.add(name,label="Sheet {}".format(self.num_sheets))
         self.num_sheets += 1
         tree = EventTree(tab,self,evs)
         tree.pack(expand=1, fill=tkinter.tix.BOTH, padx=10, pady=10, side=tkinter.tix.LEFT)
@@ -135,26 +135,26 @@ class PatternList(tkinter.tix.Frame):
         self.tlist = tlist
         self.patlist = []
         self.notebook = notebook
-        
+
     def reverse(self):
         sel = self.tlist.info_selection()
         if len(sel):
             item = int(sel[0])
             self.notebook.current().do_find_reverse(self.patlist[item])
-    
+
     def forward(self):
         sel = self.tlist.info_selection()
         if len(sel):
             item = int(sel[0])
             self.notebook.current().do_find_forward(self.patlist[item])
-    
+
     def plus(self):
         ask_pat(self,self.do_plus,command_label="Add")
 
     def do_plus(self,pats):
         self.tlist.insert("end",text=str(pats))
         self.patlist.append(pats)
-        
+
     def minus(self):
         pass
 
@@ -164,13 +164,13 @@ class PatternList(tkinter.tix.Frame):
             for p in self.patlist:
                 f.write('{}\n'.format(p))
             f.close()
-                
+
     def load(self):
         f = tkinter.filedialog.askopenfile(mode='r',filetypes=[('event pattern files', '.pats')],title="Load patterns from...",parent=self)
         if f:
             for pat in f.readlines():
                 do_ask_pat(self.do_plus,pat)
-                
+
     def clear(self):
         pass
 
@@ -184,7 +184,7 @@ def RunSample(w,evs):
     pats = PatternList(top,notebook)
     pats.pack(expand=1, fill=tkinter.tix.BOTH, padx=10, side=tkinter.tix.LEFT)
     top.pack(side=tkinter.tix.LEFT, fill=tkinter.tix.BOTH, expand=1)
-    
+
 
 
 def adddir(tree, dir, thing):

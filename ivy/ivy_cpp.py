@@ -28,7 +28,7 @@ class CppFile(object):
 
 # Writing C++ objects the result. The objects can
 # be text strings (representing code) or other C++ objects
-# defined below. 
+# defined below.
 
 class CppText(object):
     def __init__(self):
@@ -47,7 +47,7 @@ class CppText(object):
 class DeadCode(object):
     def write(self,code):
         assert False,"Cannot write code here"
-    
+
 temp_counter = 0
 
 def get_temp():
@@ -67,7 +67,7 @@ class Context(object):
         global temp_counter
         temp_counter = self.old_temp_counter
         return False # don't block any exceptions
-    
+
 
 class CppContext(Context):
     """ A C++ context. This contains objects in various scopes:
@@ -83,7 +83,7 @@ class CppContext(Context):
 
     with context_object:
        ...
-    
+
     """
 
     def __init__(self):
@@ -141,7 +141,7 @@ def current_classname():
 
 def add_header(name):
     context.global_includes.append(name)
-    
+
 
 class CppType(Context):
     """ This base class repressents a C++ type.
@@ -183,16 +183,16 @@ def fullname(classname,membername):
     return (classname + '::' + membername) if classname else membername
 
 class CppClass(CppType):
-    """ Represents a C++ class with a given name. 
-    
+    """ Represents a C++ class with a given name.
+
     A CppClass is a context, which you can open like this:
 
     with cppclass:
         ...
 
     Within this context, all members delcarations become members of
-    the class. 
-    
+    the class.
+
     """
     def __init__(self,classname,baseclass=None):
         self.members = CppText()
@@ -267,7 +267,7 @@ class CppArray(CppArrFunType):
         self.declare()
     def suffix(self):
         return ''.join('[{}]'.format(d) for d in self.dims)
-        
+
 class CppFunction(CppArrFunType):
     """ Represents a C++ function type with argument types and an array of cpptype of given dimensions"""
     def __init__(self,cpptype,argtypes,name=None):
@@ -293,7 +293,7 @@ class CppReference(CppArrFunType):
         return self.cpptype.short_name() + '&'
     def prefix(self):
         return 'const &' if self.const else '&'
-    
+
 class TypeDef(CppType):
     """ Represents typedef oldtype newname; """
     def __init__(self,oldtype,newname):
@@ -323,7 +323,7 @@ class CppVector(TypeDef):
         add_header('<vector>')
         if self.name:
             add_member(self)
-    
+
 class CppMember(Context):
     """ Represents a member of a C++ class """
     def __init__(self,cpptype,name,static=False,inline=False):
@@ -339,7 +339,7 @@ class CppMember(Context):
     @property
     def scope(self):
         return context.members
-    def enter(self): 
+    def enter(self):
         global context
         assert self.scope and self.scope.code[-1] is self
         assert self.initializer is None
@@ -369,17 +369,17 @@ class CppScope(Context):
         self.code = CppText()
         add_local(self)
     def __str__(self):
-        return '{\n' + self.code.get(1) + '\n}' 
+        return '{\n' + self.code.get(1) + '\n}'
     def ref(self):
         assert False,"cannot reference a C++ scope"
-    def enter(self): 
+    def enter(self):
         global context
         self.old_locals = context.locals
         context.locals = self.code
     def exit(self):
         global context
         context.locals = self.old_locals
-    
+
 
 if __name__ == "__main__":
 
@@ -406,9 +406,8 @@ if __name__ == "__main__":
 
         with CppClass("other_class"):
             CppMember(myvec,"bif")
-            
+
         print('header:')
         print(context.globals.get())
         print('impl:')
         print(context.impls.get())
-        

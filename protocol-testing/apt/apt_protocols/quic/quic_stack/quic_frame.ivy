@@ -53,32 +53,32 @@ include quic_transport_error_code
         }
     }
 
-    # (0x12) 
+    # (0x12)
     object max_streams = {  # TODO: handle cases of MAX_STREAMS for bidi and uni
         # max_streams frames are a variant of quic_frame.
         variant this of quic_frame = struct {
-            id              : stream_id  # maximum stream id 
+            id              : stream_id  # maximum stream id
         }
     }
 
-    # (0x13) 
+    # (0x13)
     object max_streams_bidi = {  # TODO: handle cases of MAX_STREAMS for bidi and uni
         # max_streams frames are a variant of quic_frame.
         variant this of quic_frame = struct {
-            id              : stream_id  # maximum stream id 
+            id              : stream_id  # maximum stream id
         }
     }
 
 
-    # (0x14) DATA_BLOCKED FRAME 
+    # (0x14) DATA_BLOCKED FRAME
     object data_blocked = {
         # data_blocked frames are a variant of quic_frame.
         variant this of quic_frame = struct {
             pos               : stream_pos  # max number of bytes
         }
-    }  
+    }
 
-    # (0x15) STREAM_DATA_BLOCKED 
+    # (0x15) STREAM_DATA_BLOCKED
     object stream_data_blocked = {
         # Stream blocked frames are a variant of quic_frame.
         variant this of quic_frame = struct {
@@ -103,9 +103,9 @@ include quic_transport_error_code
         }
     }
 
-    # (0x18) 
+    # (0x18)
     object new_connection_id = {
-        
+
         # New connection id frames are a variant of quic_frame.
 
         variant this of quic_frame = struct {
@@ -115,18 +115,18 @@ include quic_transport_error_code
             scid                   : cid,         # the new cid
             token                  : reset_token  # the stateless reset token
         }
-        
+
     }
 
     # (0x19)
     object retire_connection_id = {
-        
+
         # Retire connection id frames are a variant of quic_frame.
 
         variant this of quic_frame = struct {
             seq_num                : cid_seq     # the sequence number of the new cid
         }
-        
+
     }
 
     # (0x1a)
@@ -144,8 +144,8 @@ include quic_transport_error_code
             data : stream_data                    # 8-byte payload
         }
     }
-    
-    # (0x1c or 0x1d) 
+
+    # (0x1c or 0x1d)
     object connection_close = {
         # Connection close frames are a variant of quic_frame.
         variant this of quic_frame = struct {
@@ -155,7 +155,7 @@ include quic_transport_error_code
             reason_phrase          : stream_data # bytes of reason phrase
         }
     }
-	
+
 
 
     # (0x1d) NOT PRESENT ANYMORE TOCHECK IF CAN BE REMOVED TODO
@@ -167,9 +167,9 @@ include quic_transport_error_code
             reason_phrase          : stream_data # bytes of reason phrase
         }
     }
-    
-    	
-    #(0x1e) HANDSHAKE_DONE 
+
+
+    #(0x1e) HANDSHAKE_DONE
     object handshake_done = {
         # HANDSHAKE_DONE frames are a variant of quic_frame.
         variant this of quic_frame = struct {
@@ -180,12 +180,12 @@ include quic_transport_error_code
     #TODO EXTENSION Frames
 
 
-    # (0x42) 
+    # (0x42)
     object unknown_frame = {
         # unknown_frame  quic_frame frames are a varianquic_framequic_frame and contains nothing
         variant this of quic_frame = struct {
         }
-    } 
+    }
 
 
 
@@ -194,13 +194,13 @@ include quic_transport_error_code
         # PADDING quic_frame frames are a varianquic_framequic_frame and contains nothing
 		# 1 byte quic_frame to increase the size of a packet
     #    variant this of quic_frame = struct {
-			
+
     #    }
-    #}    
+    #}
 
 
     instance idx : unbounded_sequence
     instance arr : array(idx,this)
-}        
+}
 
 # Generic event

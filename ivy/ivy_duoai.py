@@ -65,10 +65,10 @@ def check_isolate(method="duoai",tagged_dfns=[],use_array_encoding=True):
             return act.clone([inline(x) for x in act.args])
         newact = inline(act)
         newact.formal_params = act.formal_params
-        newact.formal_returns = act.formal_returns 
+        newact.formal_returns = act.formal_returns
         new_actions[name] = newact
     mod.actions = new_actions
-                
+
     new_actions = dict()
     for name,act in mod.actions.items():
         rn = iu.UniqueRenamer()
@@ -85,10 +85,10 @@ def check_isolate(method="duoai",tagged_dfns=[],use_array_encoding=True):
         syms = []
         newact = extract_locals(act,syms)
         newact.formal_params = act.formal_params + syms
-        newact.formal_returns = act.formal_returns 
+        newact.formal_returns = act.formal_returns
         new_actions[name] = newact
     mod.actions = new_actions
-    
+
 
     new_actions = dict()
     for name,act in mod.actions.items():
@@ -102,7 +102,7 @@ def check_isolate(method="duoai",tagged_dfns=[],use_array_encoding=True):
         syms = []
         newact = extract_bindolds(act,syms)
         newact.formal_params = act.formal_params + syms
-        newact.formal_returns = act.formal_returns 
+        newact.formal_returns = act.formal_returns
         new_actions[name] = newact
     mod.actions = new_actions
 
@@ -121,4 +121,3 @@ def check_isolate(method="duoai",tagged_dfns=[],use_array_encoding=True):
     except:
         print (f'failed to write to {file_name}')
         exit(1)
-        

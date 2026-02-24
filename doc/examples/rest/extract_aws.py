@@ -179,7 +179,7 @@ def new_temp():
     global temp_ctr
     temp_ctr += 1
     return 'temp' + str(temp_ctr)
-    
+
 def main():
     if len(sys.argv) != 2 or not sys.argv[1].endswith('.json'):
         sys.stderr.write('syntax: python extract.py <file>.json\n')
@@ -204,7 +204,7 @@ def main():
     except:
         sys.stderr.write('cannot open {} to write\n'.format(outname))
         exit(1)
-        
+
     out.write('#lang ivy1.7\n')
     out.write('\n')
     out.write('# File generated from {}. Do not edit.\n'.format(inpname))
@@ -242,14 +242,14 @@ def main():
                     format_error(inpname,'undefined ref: {}'.format(rf))
             return thing
         format_error(inpname,'undefined ref: {}'.format(rf))
-       
+
     def ref_basename(rf):
         return iname(rf)
         # if rf.startswith('#/definitions/'):
         #     return iname(rf[len('#/definitions/'):])
         # else:
         #     format_error(inpname,'reference {} is not a definition'.format(path,opname,respname))
-        
+
     def_refs = collections.defaultdict(list)
 
     for name,value in defs.items():
@@ -261,7 +261,7 @@ def main():
     order = [(y,x) for x in list(def_refs.keys()) for y in def_refs[x]]
     ordered_names = ivy.ivy_utils.topological_sort(list(defs.keys()),order)
     defs = collections.OrderedDict((x,defs[x]) for x in ordered_names)
-                    
+
     def get_ref_or_type(prop,name,df):
         if not isinstance(df,dict):
             format_error(inpname,'member {} of entry {} not a dictionary'.format(prop,name))
@@ -305,7 +305,7 @@ def main():
 #            name = prop+'_sub_'+str(idx)
 #            emit_type(name,ty)
 #            ty = name
-    
+
     def get_member_type(df):
         if "type" in df:
             return df["member"]
@@ -345,7 +345,7 @@ def main():
                 out.write(indent * "    " + 'if (' + out_fld + '.size()) {\n')
                 out.write((indent+1) * "    " + res + '.Set' + name + '(' + to_aws(out_fld+'[0]',df,indent+1) + ');\n')
                 out.write(indent * "    " + '}\n')
-        
+
 
     def to_aws(arg,df,indent=1):
         if "shape" in df and df["shape"] in defs and "members" in defs[df["shape"]]:
@@ -406,11 +406,11 @@ def main():
         elif ty == "blob":
 #            return '{}.insert({}.end(), std::istream_iterator<char>({}),std::istream_iterator<char>{{}}); for(int i = 0; i < {}.size(); i++) {}[i] &= 0xff;\n'.format(lhs,lhs,arg,lhs,lhs)
             return '{{ char c; while ({}.get(c)) {}.push_back(((int)c)&0xff);}}'.format(arg,lhs)
-        elif ty.startswith('unordered_map'): 
+        elif ty.startswith('unordered_map'):
 #            return 'for (auto it = {}.begin(), en = {}.end(); it != en; ++it) {{ {}[it->first.c_str()] = it->second.c_str(); }} \n'.format(arg,arg,lhs)
             return indent * "    " + 'for (auto it = {}.begin(), en = {}.end(); it != en; ++it) {{ {}.resize({}.size()+1); {}.back().first = it->first.c_str(); {}.back().second = it->second.c_str(); }} \n'.format(arg,arg,lhs,lhs,lhs,lhs)
         elif ty.startswith('vector'):
-            return indent * "    " + 'for (auto it = {}.begin(), en = {}.end(); it != en; ++it) {{ {}.resize({}.size()+1);\n{}{}}} \n'.format(arg,arg,lhs,lhs,from_aws('{}.back()'.format(lhs), '(*it)', get_member_type(df), indent+1),indent * "    ") 
+            return indent * "    " + 'for (auto it = {}.begin(), en = {}.end(); it != en; ++it) {{ {}.resize({}.size()+1);\n{}{}}} \n'.format(arg,arg,lhs,lhs,from_aws('{}.back()'.format(lhs), '(*it)', get_member_type(df), indent+1),indent * "    ")
         return indent * "    " + lhs + ' = ' + arg + ';\n'
 
     sorted_defs = []
@@ -437,10 +437,10 @@ def main():
             stack.remove(name)
             heap.add(name)
             sorted_defs.append(name)
-                
+
     for name,value in defs.items():
         recur_defs(name)
-        
+
     for name in sorted_defs:
         value = defs[name]
         if not isinstance(value,dict):
@@ -471,7 +471,7 @@ def main():
 
     def operation_name(op):
         return iname(op["name"])
-    
+
     def request_name(op):
         return "request"
 
@@ -509,7 +509,7 @@ def main():
             out.write('\n    action {}(txid: txid_t, val:{})\n'.format(response_name(op,resp["shape"]),ty))
         out.write('\n    action response_Error(txid: txid_t, code:string)\n')
         out.write("}\n")
-    
+
 
     # Generate implementation boilerplate
 
@@ -556,7 +556,7 @@ void return_aws_client(Aws::S3::S3Client *s3_client) {
 }
 
 >>>
-<<< init 
+<<< init
 {
     Aws::SDKOptions options;
     Aws::InitAPI(options);
@@ -575,7 +575,7 @@ void return_aws_client(Aws::S3::S3Client *s3_client) {
        `txid_t` txid;
        %`CALLBACK` cb;
 """ + ''.join('        %`{}.response_{}` err{};\n'.format(opname,err["shape"],idx) for idx,err in enumerate(errors)) + """
-""" + '        %`{}.response_Error` err_gen;\n'.format(opname) + """       
+""" + '        %`{}.response_Error` err_gen;\n'.format(opname) + """
        std::thread *thr;
        Aws::S3::S3Client *s3_client;
        Aws::S3::S3Error errcode;
@@ -608,7 +608,7 @@ void return_aws_client(Aws::S3::S3Client *s3_client) {
                        std::cout << "exception txid=" << txid << ": " << errcode.GetExceptionName() << std::endl;
 
 """ + ' else '.join('if ("{}" == errcode.GetExceptionName()) {{`{}` thing; err{}(txid,thing);}}\n'.format(err["shape"],iname(err["shape"]),idx) for idx,err in enumerate(errors)) + (' else ' if errors else '') + """
-               err_gen(txid,errcode.GetExceptionName().c_str());               
+               err_gen(txid,errcode.GetExceptionName().c_str());
            }
            thr->join();
            delete thr;
@@ -616,10 +616,10 @@ void return_aws_client(Aws::S3::S3Client *s3_client) {
     };
         """
         return text.replace('CALLBACK',outaction)
-    
+
 
     for operation,op in operations.items():
-        if "input" in op and operation not in missing_headers: 
+        if "input" in op and operation not in missing_headers:
             out.write("\n\n<<< impl\n")
             out.write("#include <aws/s3/model/{}Request.h>\n".format(operation))
             out.write(">>>\n")
@@ -687,7 +687,7 @@ void return_aws_client(Aws::S3::S3Client *s3_client) {
         """).replace('CALLBACK',callback))
         out.write("    >>>\n")
         out.write("}}\n".format())
-            
+
     out.write ('}\n')
 
 if __name__ == "__main__":

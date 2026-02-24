@@ -112,10 +112,10 @@ type msg_id
 module chan = {
 
     ########################################
-    # This models a multiset of msgs in channel       
+    # This models a multiset of msgs in channel
 
     relation msgs(X:msg_id,Y:msg)
-   
+
     init ~msgs(X,Y)
 
     action msgs_add(id:msg_id,ms:msg) = {

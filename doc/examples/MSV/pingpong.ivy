@@ -2,7 +2,7 @@
 
 # Now we'll consider specifying an interface for an extremely simple
 # protocol: `pingpong`. This protocol represents a simple game that is
-# played across in interface with two actions" `ping` and `pong`. 
+# played across in interface with two actions" `ping` and `pong`.
 
 object intf = {
     action ping
@@ -60,7 +60,7 @@ object left_player = {
             ball := false
         }
     }
-    
+
     implement intf.pong {
         ball := true
     }
@@ -80,7 +80,7 @@ object right_player = {
             ball := false
         }
     }
-    
+
     implement intf.ping {
         ball := true
     }
@@ -100,7 +100,7 @@ export right_player.hit
 # the left player, the right player is abstracted away, and its role is played
 # by the tester. Notice that in both isolate declarations, we say `with spec`.
 # Without this declaration, the `spec` object would also be abstracted away and
-# no assertions would be checked. 
+# no assertions would be checked.
 
 trusted isolate iso_l = left_player with spec
 trusted isolate iso_r = right_player with spec
@@ -124,5 +124,3 @@ trusted isolate iso_r = right_player with spec
 #
 #     > c:\ivy\scripts\activate.bat
 #
-
-

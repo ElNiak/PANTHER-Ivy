@@ -13,7 +13,7 @@ module set(index,elem) = {
     action emptyset returns(s:t)
     action add(s:t,e:elem) returns (s:t)
     action remove(s:t,e:elem) returns (res:t)
-    
+
     object spec = {
 	after emptyset {
 	    assert ~contains(s,X)
@@ -30,7 +30,7 @@ module set(index,elem) = {
 	implement emptyset {
 	    s := arr.create(0,0)
 	}
-	
+
 	implement add {
 	    if ~contains(s,e) {
                 s := arr.resize(s,index.next(arr.end(s)),e)

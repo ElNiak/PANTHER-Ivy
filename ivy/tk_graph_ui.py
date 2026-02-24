@@ -84,7 +84,7 @@ class TkGraphWidget(TkCyCanvas,uu.WithMenuBar):
             boxes = self.get_enabled(rel)
             for idx,box in enumerate(boxes):
                 box.set(self.g.get_checkbox(rel,idx))
-    
+
     # Make a node label visible
 
     def show_node_label(self,concept):
@@ -113,8 +113,8 @@ class TkGraphWidget(TkCyCanvas,uu.WithMenuBar):
         res['fill'] = ''
         res['outline'] = self.colors[get_obj(elem)]
         return res
-        
-            
+
+
     # Get styles for edges
 
     def get_edge_styles(self,elem):
@@ -123,7 +123,7 @@ class TkGraphWidget(TkCyCanvas,uu.WithMenuBar):
         res['fill'] = self.colors[get_obj(elem)]
         return res
 
- 
+
     # choose colors for concepts. nodes are colored by sort
 
     def choose_colors(self):
@@ -181,7 +181,7 @@ class TkGraphWidget(TkCyCanvas,uu.WithMenuBar):
                     action = lambda y, idx=idx, item=item: self.left_click_constraint (idx,item)
                     self.tag_bind(tag, "<Button-1>", action)
                     y = self.bbox(item)[3]
-                    
+
                 # text = ['Constraints:\n' + '\n'.join(str(clause) for clause in g.constraints.conjuncts())]
                 # item = self.create_text((x,y),anchor=NW,text=text)
                 # iu.dbg('self.bbox(item)')
@@ -303,7 +303,7 @@ def show_graph(g,tk=None,frame=None,parent=None,ui_parent=None):
     legend = Frame(frame)
 #    legend = Tix.ScrolledWindow(frame, scrollbar=Y) # just the vertical scrollbar
     legend.pack(side=RIGHT,fill=Y)
-    
+
 
 #    menubar = uu.MenuBar(frame)
 #    menubar.pack(side=TOP,fill=X)
@@ -351,12 +351,12 @@ def create_relbuttons_window(gw,relbuttons):
     sbtns.pack(side="left", fill="both", expand=True)
     btns = sbtns.subwidget('hlist')
     return lb,btns
-    
-    
+
+
 
 def update_relbuttons(gw,rb):
     lb,btns = rb
-    
+
     lb.configure(text="State: {}".format(gw.parent.state_label(gw.g.parent_state)))
 
 
@@ -425,7 +425,7 @@ def update_relbuttons(gw,rb):
 # #        foo.bind("<Button-1>", lambda e: askcolor())
 #         foo = Checkbutton(btns,fg=line_color(num),variable=gw.get_enabled(rel)[3],command=command)
 #         foo.grid(row = idx+1, column = 4)
-        
+
 
 def onFrameConfigure(canvas):
    bbox = canvas.bbox("all")
@@ -437,6 +437,3 @@ line_colors = ["black","blue","red","green","VioletRed4","brown1",
 "DeepSkyBlue4", "IndianRed1", "maroon4", "DarkOrchid3", "chocolate1",
 "RoyalBlue1", "OrangeRed4", "green2", "MediumPurple4", "brown4",
 ]
-
-   
-

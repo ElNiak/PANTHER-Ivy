@@ -7,12 +7,12 @@ ivy_trace = ""
 class SequenceOn:
     autonumber = True
     init_done = False
-    
+
     def __init__(self,participant=""):
         global ivy_trace
         if not SequenceOn.init_done :
             #activate if requested only once
-            if SequenceOn.autonumber: 
+            if SequenceOn.autonumber:
                 # content = ""
                 # if os.path.exists("/ivy_trace.txt"):
                 #     with open("/ivy_trace.txt", "r") as f:
@@ -28,7 +28,7 @@ class SequenceOn:
 
         #method/function name
         self.__funcName = callee_frame.f_code.co_name
-        
+
         # look for a class name
         if 'self' in callee_frame.f_locals:
             self.__className = callee_frame.f_locals['self'].__class__.__name__
@@ -58,7 +58,7 @@ class SequenceOn:
         ivy_trace += inpu
         print inpu
         #print(ivy_trace)
-        
+
 
 
     def __del__(self):

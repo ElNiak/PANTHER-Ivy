@@ -17,7 +17,7 @@ character, and `boolean` represents a Boolean value `true` or `false`.
 
 `isolate=name`
 
-This options specifies the name of a isolate to verify or extract. 
+This options specifies the name of a isolate to verify or extract.
 
 `show_compiled=boolean`
 
@@ -69,7 +69,7 @@ corresponding execution trace is printed on standard out. The trace is
 formatted so that in an emacs compilation buffer, references to source
 lines are active links. The printed trace can be more convenient than the
 graphical counterexample viewer, especially if the state contains functions
-or relations of arity greater than two. 
+or relations of arity greater than two.
 The default value is false.
 
 `summary=boolean`
@@ -96,7 +96,7 @@ value is true.
 
 This option affects the behavior of the fragment checker that checkers
 whether verification conditions are contained in the prover's
-decidable fragment. The possible values of `logic` are: 
+decidable fragment. The possible values of `logic` are:
 
 - `epr` This is the "effectively propositional" fragment, which is extended to
   include stratified use of function symbols.
@@ -119,7 +119,7 @@ If true, Z3 is used incrementally when checking invariants. Default is true.
 
 `seed=integer`
 
-Sets the random seed for the SMT solver. 
+Sets the random seed for the SMT solver.
 
 ivy_show
 --------
@@ -156,7 +156,7 @@ representing an implementation to be extracted. The options are:
 The `ivy_to_cpp` command can extract code in several forms:
 
 - `repl` This is a a "read-eval-print" loop that reads calls to exported actions from the
-command line and writes output on calls to imported actions. 
+command line and writes output on calls to imported actions.
 
 - `test` This composes the extract with a randomized tester.
 
@@ -200,8 +200,3 @@ Causes the file `stdafx.h` to be included in the first line of the implementatio
 `outdir=directory`
 
 Causes output files to be generated in `directory`. Default is the current directory.
-
- 
- 
-
- 

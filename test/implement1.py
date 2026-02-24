@@ -41,6 +41,3 @@ with im.Module():
     iu.set_parameters({'mode':'induction','show_compiled':'true'})
     ivy_from_string(prog,create_isolate=False)
     ick.check_module()
-
-
-

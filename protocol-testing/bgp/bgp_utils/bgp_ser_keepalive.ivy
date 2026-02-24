@@ -11,7 +11,7 @@ object bgp_ser_keepalive = {}
 >>>
 
 <<< impl
-    
+
     class `bgp_ser_keepalive` : public ivy_binary_ser_128 {
         enum {bgp_s_init} state;
         long frame_type;
@@ -26,15 +26,15 @@ object bgp_ser_keepalive = {}
             }
             break;
             default:
-            std::cerr << "deser_err 42 "  << "\n";  
+            std::cerr << "deser_err 42 "  << "\n";
             throw deser_err();
             }
         }
 
 
         virtual void open_tag(int tag, const std::string &) {
-            std::cerr << "deser_err 43 " << tag << "\n";  
-            std::cerr << "deser_err 43 " << state << "\n";  
+            std::cerr << "deser_err 43 " << tag << "\n";
+            std::cerr << "deser_err 43 " << state << "\n";
             throw deser_err();
         }
 

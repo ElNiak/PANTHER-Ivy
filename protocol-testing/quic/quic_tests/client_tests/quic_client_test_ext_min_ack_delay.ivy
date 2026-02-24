@@ -28,10 +28,10 @@ after init {
 
 before frame.ack_frequency.handle(f:frame.ack_frequency,scid:cid,dcid:cid) {
     if _generating {
-        require client.ep.addr ~= 0;         
+        require client.ep.addr ~= 0;
         require scid = the_cid;
         force_ack_frequency := true;
-    } 
+    }
 }
 
 
@@ -40,7 +40,7 @@ before frame.immediate_ack.handle(f:frame.immediate_ack,scid:cid,dcid:cid) {
         require client.ep.addr ~= 0;
         require scid = the_cid;
         force_immediate_ack := true;
-    } 
+    }
 }
 
 
@@ -73,8 +73,6 @@ export tls_recv_event
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require conn_total_data(the_cid) > 0;
 }
-
-

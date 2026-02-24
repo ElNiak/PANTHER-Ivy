@@ -34,7 +34,7 @@ include byte_stream
 
 # ### Packet
 
-# The type `quic_packet` represents packet. 
+# The type `quic_packet` represents packet.
 
 # The fields are:
 #
@@ -155,7 +155,7 @@ action packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_0rtt) =
 #    parameters apply to the new connection until the handshake completes
 #    and the client starts sending 1-RTT packets.  Once the handshake
 #    completes, the client uses the transport parameters established in
-#    the handshake. 
+#    the handshake.
 #    A client that attempts to send 0-RTT data MUST remember all other
 #    transport parameters used by the server.  The server can remember
 #    these transport parameters, or store an integrity-protected copy of
@@ -169,13 +169,13 @@ action packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_0rtt) =
 #    are smaller than the remembered value of the parameters.*** [6]
 
 # QUESTION: Is it:
-#           must not set value for following "transport parameters"  
+#           must not set value for following "transport parameters"
     #           Thus, the new TP will always be >=  old TP
-    #           This would be because new connection data is also counter with 
+    #           This would be because new connection data is also counter with
     #           initial 0rtt data
 #
 #           or "parameters" in internal state of programs
-    #           Thus, new TP can be <,> or =. In this case this simply mean it 
+    #           Thus, new TP can be <,> or =. In this case this simply mean it
     #           remembers the values and apply them on 0rtt data
     #           This would mean that 0rtt data size is not counted in max data
 
@@ -242,7 +242,7 @@ action packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_0rtt) =
 #   path validation for this address. Until path validation succeeds,
 #   the server limits data sent to the new address. Currently we
 #   cannot specify this limit because we don't know the byte size of
-#   packets or the timings of packets. 
+#   packets or the timings of packets.
 
 # 0-RTT allows application data to be sent by a
 #    client before receiving any response from the server.  However, 0-RTT
@@ -281,9 +281,9 @@ after init {
     last_zrtt_pkt := stream_data.empty;
 }
 
-around packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_0rtt) {    
+around packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_0rtt) {
     # Extract the source and destination cid's and packet number from the packet.
-    
+
     var dcid := pkt.dst_cid;
     var scid := pkt.src_cid;
     if cid_mapped(dcid) {
@@ -304,7 +304,7 @@ around packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_0rtt) {
 
     # 0-RTT and 1-RTT belongs to application PN space
     # TODO make more elegant
-    var pn_app_space := quic_packet_type.one_rtt; 
+    var pn_app_space := quic_packet_type.one_rtt;
     require ~sent_pkt(scid,pn_app_space,pkt.seq_num);  # [4]
     sent_pkt(scid,pn_app_space,pkt.seq_num) := true;   # [1]
 
@@ -320,13 +320,13 @@ around packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_0rtt) {
 
     require pkt.payload = queued_frames_rtt(scid);
 
-  
+
     # Similarly, an endpoint MUST NOT reuse a connection ID when sending to
-    # more than one destination address.  
-    
+    # more than one destination address.
+
 
     # require retry_source_connection_id.is_set(trans_params(dcid));
-    
+
     # The destination cid must represent an existing connection,
     # except in the case of a client initial packet, when the
     # destination cid may be the nonce cid chosen by the client for
@@ -338,7 +338,7 @@ around packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_0rtt) {
     #call show_pstats(scid,queued_level(scid),pkt.seq_num);
 
     # The packet type must match the encryption level of the queued
-    # frames at the source. 
+    # frames at the source.
 
 
     #require pkt.ptype = quic_packet_type.zero_rtt | pkt.ptype = quic_packet_type.one_rtt; # tODO
@@ -346,7 +346,7 @@ around packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_0rtt) {
     require conn_seen(scid) & pkt.long & is_client(scid) -> conn_requested(src,dst,scid);
 
     # Packet must be sent to the endpoint from which the highest numbered
-    # packet has been received. ~queued_challenge(dcid) & 
+    # packet has been received. ~queued_challenge(dcid) &
     # call show_probing(dcid ,hi_non_probing(dcid));
     # require  conn_seen(dcid) -> hi_non_probing_endpoint(dcid,dst);  # [10]
 
@@ -404,6 +404,3 @@ around packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_0rtt) {
     queued_ack_eliciting(scid) := false;
 #Hamid
 }
-
-
-

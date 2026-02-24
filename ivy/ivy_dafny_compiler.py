@@ -49,7 +49,7 @@ class ScopeContext(Context):
         Context.__exit__(self,exc_type, exc_val, exc_tb)
         if scope_context:
             scope_context.returns |= self.returns
-        
+
 class ExprContext(Context):
     """ Context Manager for compiling an expression. """
     def __init__(self,code):
@@ -108,7 +108,7 @@ def expect_return_vals(sym,num_vals,ast):
     if len(ret_type) != num_vals:
         raise IvyError(ast,"expected {} value(s) from {}, got {}".format(num,sym.rep,len(ret_type)))
     return ret_type
-    
+
 def assign_temp(expr):
     retval = make_temp(expr.type_infer())
     expr_context.code.append(ip.AssignAction(retval,expr.to_ivy()))
@@ -137,7 +137,7 @@ def type_infer_infix(symb,args):
 
 def type_infer_app(e):
     return e.symbol.type_infer(e.args)
-        
+
 def type_infer_call(c):
     sym = c.args[0]
     ret_type = expect_return_vals(sym,1,c)
@@ -210,7 +210,7 @@ def block(stmts):
         if scope_context.new_locals:
             actions = ip.LocalAction(*([a.rep for a in scope_context.new_locals] + [actions]))
     return actions
-        
+
 
 # if a while loop doesn't specify a modset, assume that loop body
 # modifies all locals in scope and modset of method
@@ -254,7 +254,7 @@ def do_varstmt(a):
         vardecl(da.VarDecl(local))
         scope_context.locals[a.rep] = local
         scope_context.new_locals.append(local)
-    
+
 
 def varstmt(s):
     global context
@@ -268,7 +268,7 @@ def varstmt(s):
             return a.to_ivy()
         else:
             do_varstmt(a)
-        
+
 opmap = {'==' : '='}
 
 def returnstmt(s):
@@ -288,7 +288,7 @@ def symbol(symb,args):
     rep = symb.rep
     res.rep = opmap.get(rep,rep)
     return res
-    
+
 def infixrelation(symb,args):
     if isinstance(args[0].symbol,da.InfixRelation):
         c1 = args[0].to_ivy()
@@ -334,7 +334,7 @@ def methoddecl(d):
     prd = [ip.App(make_dummy('cbv:',a).rep) for a in outs]
     ca = ip.CallAction(ip.Atom(symbol.rep,[]))
     mb += [ip.LetAction(*([ip.Atom('=',[x,y]) for x,y in zip(pa+pr,pad+prd)] + [ca]))]
-    mb += [ip.AssignAction(b,a) for a,b in zip(prd,mr)]    
+    mb += [ip.AssignAction(b,a) for a,b in zip(prd,mr)]
     ls = [s.rep for s in (pad+prd)]
     mb = ip.LocalAction(*(ls+[ip.Sequence(*mb)]))
 
@@ -474,5 +474,3 @@ if __name__ == "__main__":
         with ModuleContext(dm,im):
             dm.to_ivy()
             print(im)
-
-    

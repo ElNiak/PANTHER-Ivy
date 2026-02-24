@@ -20,7 +20,7 @@ after init {
 object ping_endpoint = {
     type this
 
-    module client_ep(address:ip.addr,port:ip.port) = { 
+    module client_ep(address:ip.addr,port:ip.port) = {
         variant this of ping_endpoint = struct { }
         individual ep        : ip.endpoint
         individual tls_id    : tls_api.id
@@ -35,7 +35,7 @@ object ping_endpoint = {
                 ep.interface := ip.ivy;
             }
         }
-        
+
         action set_ep(e:ip.endpoint) = {
             ep := e;
         }
@@ -59,14 +59,14 @@ object ping_endpoint = {
                 };
                 call ping_packet_event(src,dst,pkt);       # also an inferred event
                 idx := idx.next;
-            };  
+            };
         }
         import action show_data_received(s:stream_pos)
         import action show_data_sent(s:stream_pos)
         import action show_rnum(s:pkt_num)
     }
 
-    module server_ep(address:ip.addr,port:ip.port) = { 
+    module server_ep(address:ip.addr,port:ip.port) = {
         variant this of ping_endpoint = struct { }
         individual ep        : ip.endpoint
         individual tls_id    : tls_api.id
@@ -81,7 +81,7 @@ object ping_endpoint = {
                 ep.interface := ip.ivy;
             }
         }
-        
+
         action set_ep(e:ip.endpoint) = {
             ep := e;
         }

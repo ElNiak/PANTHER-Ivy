@@ -16,25 +16,25 @@ after init { #getsock(bgp_impl_instance.ep.addr)
 
 before bgp_open_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_open_message){
     if _generating {
-        
+
     }
 }
 
 before bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_message){
     if _generating {
-        
+
     }
 }
 
 before bgp_keepalive_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_keepalive_message){
     if _generating {
-        
+
     }
 }
 
 before bgp_notification_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_notification_message){
     if _generating {
-        
+
     }
 }
 
@@ -52,5 +52,5 @@ export as_event
 # export speaker_send_event
 
 export action _finalize = {
-    
+
 }

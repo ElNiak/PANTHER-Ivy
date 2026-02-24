@@ -18,7 +18,7 @@ object ping_prot_ser = {}
 
         virtual void  set(int128_t res) {
             setn(res,1);
-        }    
+        }
     };
 
 >>>
@@ -48,12 +48,12 @@ object ping_prot_deser = {}
 
         void  get(int128_t &res) {
             getn(res,1);
-        }    
+        }
 
         unsigned char peek(unsigned p) {
             return more(p-pos+1) ? inp[p] : 0;
         }
-            
+
         void open_list() {
             return;
         }

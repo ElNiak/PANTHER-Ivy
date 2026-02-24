@@ -21,16 +21,16 @@
 
 object quic_frame = {
     ...
-    
-    # (757) 
+
+    # (757)
     # https://tools.ietf.org/html/draft-iyengar-quic-delayed-ack-02
-    object timestamp = { # TODO could be moved BUT need to refactor the deser/ser in csq 
+    object timestamp = { # TODO could be moved BUT need to refactor the deser/ser in csq
         # ACK_FREQUENCY  quic_frame frames are a varianquic_framequic_frame and contains nothing
 		# 1 byte quic_frame to increase the size of a packet
          variant this of quic_frame = struct {
 			seq_num                     : stream_pos
          }
-    } 
+    }
 }
 
 

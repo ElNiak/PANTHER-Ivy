@@ -61,13 +61,13 @@ action make_transport_parameters returns (tp:quic_transport_parameters) = {
     tp.transport_parameters := tp.transport_parameters.append(pref_add);
 }
 
-# TODO connection close 
+# TODO connection close
 
 # Generate connection_close frames only for the client.
 
 before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid) {
     if _generating {
-        require client.ep.addr ~= 0;         
+        require client.ep.addr ~= 0;
         require scid = the_cid;
     } else {
         require is_transport_parameter_error
@@ -111,7 +111,7 @@ export tls_recv_event
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require is_transport_parameter_error;
 }
 
@@ -120,10 +120,9 @@ action export_pcil(dcil:stream_pos) = {
 
 	char str_d[20];
 	sprintf(str_d,"%llu",dcil);
-	if(setenv("TEST_PCIL",str_d,true) != 0) 
+	if(setenv("TEST_PCIL",str_d,true) != 0)
 		fprintf(stderr, "setenv failed\n");
 
 
     >>>
 }
-

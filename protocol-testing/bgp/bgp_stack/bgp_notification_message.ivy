@@ -88,19 +88,19 @@ around bgp_notification_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_noti
     require open_message_recv(src) & open_message_recv(dst);
     require is_errored(src);
     require bgp_message.error_code = bgp_error_code.header_mess_error |
-            bgp_message.error_code = bgp_error_code.open_mess_error   | 
-            bgp_message.error_code = bgp_error_code.update_mess_error   |    
-            bgp_message.error_code = bgp_error_code.hold_timer_expire   |    
-            bgp_message.error_code = bgp_error_code.fsm_error   | 
-            bgp_message.error_code = bgp_error_code.cease_error;      
-    
+            bgp_message.error_code = bgp_error_code.open_mess_error   |
+            bgp_message.error_code = bgp_error_code.update_mess_error   |
+            bgp_message.error_code = bgp_error_code.hold_timer_expire   |
+            bgp_message.error_code = bgp_error_code.fsm_error   |
+            bgp_message.error_code = bgp_error_code.cease_error;
+
     # TODO modify the deser/ser
-    # require bgp_message.error_code =  bgp_error_code.header_mess_error -> 
+    # require bgp_message.error_code =  bgp_error_code.header_mess_error ->
     #     (bgp_message.error_subcode = bgp_error_subcode.type_bgp_header_error_subcode.code.connection_not_synchronized |
     #      bgp_message.error_subcode = bgp_error_subcode.type_bgp_header_error_subcode.code.bad_message_length |
     #      bgp_message.error_subcode = bgp_error_subcode.type_bgp_header_error_subcode.code.bad_message_type);
-    
-    # require bgp_message.error_code =  bgp_error_code.open_mess_error -> 
+
+    # require bgp_message.error_code =  bgp_error_code.open_mess_error ->
     #     (bgp_message.error_subcode = bgp_open_error_subcode.unsupported_version_number |
     #      bgp_message.error_subcode = bgp_open_error_subcode.bad_peer_as |
     #      bgp_message.error_subcode = bgp_open_error_subcode.bad_bgp_identifier |

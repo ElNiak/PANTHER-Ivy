@@ -19,10 +19,10 @@ object ipv6 = {
     }
 
     implementation {
-        
+
         interpret addr -> longbv[1][128][3] #bv[62] # 64 c++ warning
         interpret port -> bv[16]
 
     }
 
-}    
+}

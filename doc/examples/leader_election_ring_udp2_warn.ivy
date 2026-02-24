@@ -157,9 +157,9 @@ isolate iso_app = app with node,id,trans,serv,asgn
 
 object node_impl = {
     interpret node.t -> bv[1]
-    
+
     implement node.get_next(x:node.t) returns (y:node.t) {
-	y := x + 1 
+	y := x + 1
    }
 }
 

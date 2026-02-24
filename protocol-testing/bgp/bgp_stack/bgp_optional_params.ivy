@@ -14,7 +14,7 @@ object optional_parameter = {
         param_len: stream_pos,
         param_name: stream_data
     }
-    # TODO 
+    # TODO
         #      a) Authentication Information (Parameter Type 1):
 
         #     This optional parameter may be used to authenticate a BGP
@@ -87,5 +87,5 @@ object optional_parameter = {
         #         of the Capability Value field in octets.
 
     instance idx : unbounded_sequence
-    instance arr : array(idx,this) 
+    instance arr : array(idx,this)
 }

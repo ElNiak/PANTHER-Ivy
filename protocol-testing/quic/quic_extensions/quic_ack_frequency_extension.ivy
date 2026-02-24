@@ -7,9 +7,9 @@
 #   delay at the peer.  An endpoint signals its tolerance to its peer
 #   using an ACK_FREQUENCY frame, shown below:
 
-# The min_ack_delay transport parameter is a unilateral indication of support for receiving 
-# ACK_FREQUENCY frames. If an endpoint sends the transport parameter, the peer is allowed to 
-# send ACK_FREQUENCY frames independent of whether it also sends the min_ack_delay transport 
+# The min_ack_delay transport parameter is a unilateral indication of support for receiving
+# ACK_FREQUENCY frames. If an endpoint sends the transport parameter, the peer is allowed to
+# send ACK_FREQUENCY frames independent of whether it also sends the min_ack_delay transport
 # parameter or not.
 
 import action is_min_ack_set(b:bool)
@@ -17,13 +17,13 @@ import action is_min_ack_set(b:bool)
 var force_immediate_ack : bool
 var force_ack_frequency : bool
 
-# When the number of in-flight ack-eliciting packets is larger than the 
-# ACK-Eliciting Threshold, an endpoint can expect that the peer will not 
-# need to wait for its max_ack_delay period before sending an acknowledgement. 
-# In such cases, the endpoint MAY therefore exclude the peer's 'max_ack_delay' 
+# When the number of in-flight ack-eliciting packets is larger than the
+# ACK-Eliciting Threshold, an endpoint can expect that the peer will not
+# need to wait for its max_ack_delay period before sending an acknowledgement.
+# In such cases, the endpoint MAY therefore exclude the peer's 'max_ack_delay'
 # from its PTO calculation. When Ignore Order is enabled and loss causes the peer
 # to not receive enough packets to trigger an immediate acknowledgement, the receiver
-# will wait 'max_ack_delay', increasing the chances of a premature PTO. Therefore, if 
+# will wait 'max_ack_delay', increasing the chances of a premature PTO. Therefore, if
 # Ignore Order is enabled, the PTO MUST be larger than the peer's 'max_ack_delay'
 
 # TODO error in picoquic
@@ -80,14 +80,14 @@ object frame = { ...
             } else {
                 if _generating {
                     require f.seq_num > last_ack_freq_seq(dcid);
-                } 
+                }
             };
             ...
             if _generating {
                 last_ack_freq_seq(dcid) := f.seq_num;
                 ack_eliciting_threshold_val(dcid) := f.ack_eliciting_threshold;
                 ack_out_of_order_val(dcid) := f.reordering_threshold;
-                # On receiving a valid value in this field, the endpoint MUST 
+                # On receiving a valid value in this field, the endpoint MUST
                 # update its max_ack_delay to the value provided by the peer.
                 max_ack_delay_tp :=  f.request_max_ack_delay
             } else {
@@ -97,7 +97,7 @@ object frame = { ...
                     last_ack_freq_seq(dcid) := f.seq_num;
                     ack_eliciting_threshold_val(dcid) := f.ack_eliciting_threshold;
                     ack_out_of_order_val(dcid) := f.reordering_threshold;
-                    # On receiving a valid value in this field, the endpoint MUST 
+                    # On receiving a valid value in this field, the endpoint MUST
                     # update its max_ack_delay to the value provided by the peer.
                     max_ack_delay_tp :=  f.request_max_ack_delay
                 }
@@ -110,31 +110,31 @@ object frame = { ...
 }
 
 # #### immediate_ack event
-# A sender can use an ACK_FREQUENCY frame to reduce the number of 
+# A sender can use an ACK_FREQUENCY frame to reduce the number of
 # acknowledgements sent by a receiver, but doing so increases the
-#  likelihood that time-sensitive feedback is delayed as well. 
-#  For example, as described in Section 8.3, delaying acknowledgements 
-#  can increase the time it takes for a sender to detect packet loss. 
+#  likelihood that time-sensitive feedback is delayed as well.
+#  For example, as described in Section 8.3, delaying acknowledgements
+#  can increase the time it takes for a sender to detect packet loss.
 #  Sending an IMMEDIATE_ACK frame can help mitigate this problem.
 
-# An IMMEDIATE_ACK frame can be useful in other situations as well. 
-# For example, if a sender wants an immediate RTT measurement or 
-# if a sender wants to establish receiver liveness as quickly as possible. 
-# PING frames (Section 19.2 of [QUIC-TRANSPORT]) are ack-eliciting, but 
-# if a PING frame is sent without an IMMEDIATE_ACK frame, the receiver might 
+# An IMMEDIATE_ACK frame can be useful in other situations as well.
+# For example, if a sender wants an immediate RTT measurement or
+# if a sender wants to establish receiver liveness as quickly as possible.
+# PING frames (Section 19.2 of [QUIC-TRANSPORT]) are ack-eliciting, but
+# if a PING frame is sent without an IMMEDIATE_ACK frame, the receiver might
 # not immediately send an ACK based on its local ACK strategy.
 
-# By definition IMMEDIATE_ACK frames are ack-eliciting. An endpoint 
-# SHOULD send a packet containing an ACK frame immediately upon receiving 
-# an IMMEDIATE_ACK frame. An endpoint MAY delay sending an ACK frame despite 
-# receiving an IMMEDIATE_ACK frame. For example, an endpoint might do this if 
-# a large number of received packets contain an IMMEDIATE_ACK or if the endpoint is 
+# By definition IMMEDIATE_ACK frames are ack-eliciting. An endpoint
+# SHOULD send a packet containing an ACK frame immediately upon receiving
+# an IMMEDIATE_ACK frame. An endpoint MAY delay sending an ACK frame despite
+# receiving an IMMEDIATE_ACK frame. For example, an endpoint might do this if
+# a large number of received packets contain an IMMEDIATE_ACK or if the endpoint is
 # under heavy load.
 
 object frame = { ...
     object immediate_ack = { ...
         action handle(f:frame.immediate_ack,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num)
-	around handle {      
+	around handle {
             require connected(dcid) & connected_to(dcid) = scid;
             require e = quic_packet_type.one_rtt & established_1rtt_keys(scid);
             require num_queued_frames(scid) > 0 -> e = queued_level(scid);
@@ -149,7 +149,7 @@ object frame = { ...
 
 
 #  An endpoint's min_ack_delay MUST NOT be greater than the its
-#  max_ack_delay. 
+#  max_ack_delay.
 
 action min_ack_delay_check(dcid:cid) returns (ok:bool) = {
     ok := false;

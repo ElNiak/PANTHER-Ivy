@@ -8,7 +8,7 @@ object endpoint = {
     object client_endpoint = {
         ...
 
-        module client_quic(address:ip.addr,port:ip.port) = { 
+        module client_quic(address:ip.addr,port:ip.port) = {
             # variant this of client_endpoint = struct { }
             individual ep        : ip.endpoint
             individual tls_id    : tls_api.id
@@ -26,7 +26,7 @@ object endpoint = {
                     ep.interface := ip.ivy;
                 }
             }
-            
+
             action set_ep(e:ip.endpoint) = {
                 ep := e;
             }
@@ -55,27 +55,27 @@ object endpoint = {
                     #     call show_update_(h.scid,server.tls_id,src);
                     #     # cid_map_ep(dcid)          := dst;
                     # };
-                
-                    
+
+
                     var version := ppkt.segment(1,1+4);
                     var bversion := bytes_to_version(version);
-                    
+
                     var ptype : byte := bvand(0x30,header);
 
-                    if (bversion = 0 & is_long) | version_not_found(src) { 
+                    if (bversion = 0 & is_long) | version_not_found(src) {
                         # for server test, for version_negociation
                         # 1000 0000 == version_negociation
                         past_data := past_data.extend(ppkt);
                         call tls_client_version_response(src,dst,past_data);
-                    } 
+                    }
                     else if (tt = 0x30 & is_long) & ~(bversion = 0)  {
                         #for server test, Retry packet
                         call tls_client_retry_response(src,dst,ppkt);
-                    } 
+                    }
                     # else if is_pad { #is_pad | is_rand_pad
                     #     call padding_packet_event(src,dst,ppkt); # For quic-go and quand  client
-                    # } 
-                    else { 
+                    # }
+                    else {
                         var rnum := reference_pkt_num(ppkt,true);
                         call show_rnum(rnum);
                         # if rnum = lost_pkt_num {
@@ -139,12 +139,12 @@ object endpoint = {
             import action show_update_(cid:cid,tls_id:tls_api.id,ep:ip.endpoint)
         }
     }
-    
+
 
     object server_endpoint = {
         ...
 
-        module server_quic(address:ip.addr,port:ip.port) = { 
+        module server_quic(address:ip.addr,port:ip.port) = {
             # variant this of server_endpoint = struct { }
             individual ep        : ip.endpoint
             individual tls_id    : tls_api.id
@@ -164,7 +164,7 @@ object endpoint = {
                 }
                 lost_pkt_num := 0xa; # 0xFFFFFF; # means we do not loss packet on purposes
             }
-            
+
             action set_ep(e:ip.endpoint) = {
                 ep := e;
             }
@@ -186,9 +186,9 @@ object endpoint = {
                     var ptype : byte := bvand(0x30,header);
 
                     var dst := server.ep; #dst_tls_id(dst); # todo multiple
-                  
+
                     var tls_id := src_tls_id(dst); # todo multiple
-                    
+
                     if zrtt_pkt_set & ~zrtt_pkt_process {
                         zrtt_pkt_process := true;
                         var rnum := reference_pkt_num(last_zrtt_pkt,true);
@@ -279,14 +279,14 @@ object endpoint = {
                                         var cdx := the_cids.begin;
                                         while cdx < the_cids.end {
                                             var tcid := the_cids.value(cdx);
-                                            if bvand(ppkt.value(0),0xf0) = 0xc0 & ~connected(tcid) { 
+                                            if bvand(ppkt.value(0),0xf0) = 0xc0 & ~connected(tcid) {
                                                 # for client test
                                                 call app_server_open_event(dst,src,tcid,pkt.src_cid);  # [1]
                                             };
                                             cdx := cdx.next;
                                         }
                                     } else {
-                                        if bvand(ppkt.value(0),0xf0) = 0xc0 & ~connected(the_cid) { 
+                                        if bvand(ppkt.value(0),0xf0) = 0xc0 & ~connected(the_cid) {
                                             # for client test
                                             call app_server_open_event(dst,src,the_cid,pkt.src_cid);  # [1]
                                         };

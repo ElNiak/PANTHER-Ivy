@@ -20,7 +20,7 @@ module tcp_host(endpoint,data) = {
     object rdr = {}         # the listener object
     object cb = {}          # struct holding the callbacks
     object send_queue = {}  # queues of outgoing packets
-    
+
 # This code goes in the C++ header file, ahead of the ivy object declaration.
 # Here, we put declarations (perhaps forward) of any auxiliary classes we need).
 # We need to be careful that the names of these don't clash with other modules.
@@ -42,7 +42,7 @@ module tcp_host(endpoint,data) = {
 >>>
 
 # This code goes in the C++ implementation file. Here, we put implementations of
-# the classes declared in the header, and auxiliary functions. 
+# the classes declared in the header, and auxiliary functions.
 
 <<< impl
 
@@ -74,7 +74,7 @@ module tcp_host(endpoint,data) = {
    };
 
    class tcp_queue {
-       tcp_mutex mutex; 
+       tcp_mutex mutex;
        tcp_sem sem;
        bool closed;
        bool reported_closed;
@@ -168,11 +168,11 @@ module tcp_host(endpoint,data) = {
         if (sock < 0)
             { std::cerr << "cannot create socket\n"; exit(1); }
         int one = 1;
-        if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one)) < 0) 
+        if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one)) < 0)
             { perror("setsockopt failed"); exit(1); }
         return sock;
     }
-    
+
 
     // This structure holds all the callbacks for the endpoint. These are function objects
     // that are called asynchronously.
@@ -203,7 +203,7 @@ module tcp_host(endpoint,data) = {
       public:
 
         tcp_task(int sock, const tcp_callbacks &cb, ivy_class *ivy)
-          : sock(sock), cb(cb), ivy(ivy) {} 
+          : sock(sock), cb(cb), ivy(ivy) {}
 
         virtual int fdes() {
             return sock;
@@ -271,7 +271,7 @@ module tcp_host(endpoint,data) = {
         virtual void read() {
 
             if (!connected) {
-            
+
                 // if the socket is not connected, wait for the queue to be open,
                 // then connect
 
@@ -283,9 +283,9 @@ module tcp_host(endpoint,data) = {
             // dequeue a packet to send
 
             std::vector<char> buf;
-            bool qclosed = queue->dequeue_swap(buf);        
+            bool qclosed = queue->dequeue_swap(buf);
 
-            // if queue has been closed asynchrononously, close the socket. 
+            // if queue has been closed asynchrononously, close the socket.
 
             if (qclosed) {
                 // std::cerr << "CLOSING " << sock << std::endl;
@@ -297,7 +297,7 @@ module tcp_host(endpoint,data) = {
             // try a blocking send
 
             int bytes = send(sock,&buf[0],buf.size(),MSG_NOSIGNAL);
-        
+
             // std::cerr << "SENT\n";
 
             // if not all bytes sent, channel has failed, close the queue
@@ -316,7 +316,7 @@ module tcp_host(endpoint,data) = {
             struct sockaddr_in myaddr;
             `endpoint` other = queue->other;
             get_tcp_addr(ivy,other,myaddr);
-            ivy -> __unlock(); 
+            ivy -> __unlock();
 
             // Call connect to make connection
 
@@ -325,7 +325,7 @@ module tcp_host(endpoint,data) = {
             int res = ::connect(sock,(sockaddr *)&myaddr,sizeof(myaddr));
 
             // If successful, call the "connected" callback, else "failed"
-            
+
             ivy->__lock();
             if (res >= 0) {
                 // std::cerr << "CONNECT SUCCEEDED " << sock << std::endl;
@@ -355,7 +355,7 @@ module tcp_host(endpoint,data) = {
 
     };
 
-    // This task listens for connections on a socket in the background. 
+    // This task listens for connections on a socket in the background.
 
     class tcp_listener : public tcp_task {
       public:
@@ -384,7 +384,7 @@ module tcp_host(endpoint,data) = {
 
             // Call accept to get an incoming connection request. May block.
             sockaddr_in other_addr;
-            socklen_t addrlen = sizeof(other_addr);    
+            socklen_t addrlen = sizeof(other_addr);
             int new_sock = accept(sock, (sockaddr *)&other_addr, &addrlen);
 
             // If this fails, something is very wrong: fail stop.
@@ -479,7 +479,7 @@ module tcp_host(endpoint,data) = {
             if (::bind(s, (struct sockaddr *)&myaddr, sizeof(myaddr)) < 0)
                 { perror("bind failed"); exit(1); }
             // Start lisetning on the socket
-            if (listen(s,2) < 0) 
+            if (listen(s,2) < 0)
                 { std::cerr << "cannot listen on socket\n"; exit(1); }
             `rdr`[s] = r;
             install_reader(r);
@@ -490,24 +490,24 @@ module tcp_host(endpoint,data) = {
 
     action close(s:socket) = {
         <<< impure
-            
+
             // We don't want to close a socket when there is another thread
             // waiting, because the other thread won't know what to do with the
-            // error. 
-        
+            // error.
+
             // Instead we shut down the socket and let the other thread close it.
             // If there is a reader thread, it will see EOF and close the socket. If there is
             // on open writer thread, it will close the socket after we close the
             // send queue. If the queue is already closed, closing it has no effect.
 
             // invariant: if a socket is open there is a reader thread or
-            // an open writer thread, but not both. 
+            // an open writer thread, but not both.
 
             // Because of this invariant, the socket will be closed exactly once.
 
             ::shutdown(s,SHUT_RDWR);
 
-            if (`send_queue`.find(s) != `send_queue`.end()) 
+            if (`send_queue`.find(s) != `send_queue`.end())
                 `send_queue`[s] -> set_closed();
 
         >>>
@@ -515,7 +515,7 @@ module tcp_host(endpoint,data) = {
 
     # connect creates a socket and then installs a connector task
     # to establish the connection asynchronously.
-    
+
     action connect(other:endpoint) returns (s:socket) = {
         <<< impure
             s = make_tcp_socket();
@@ -538,7 +538,7 @@ module tcp_host(endpoint,data) = {
     # given socket. It returns true if sending was successful. Not, a "successfully"
     # sent packet could still be lost to due congestion. If we want to maintain
     # ordered semantics, we will need to have an additional return code indicating
-    # the packet could not be queued (analogous to EAGAIN). 
+    # the packet could not be queued (analogous to EAGAIN).
 
     action send(s:socket,p:data) returns (ok:bool) = {
         <<< impure
@@ -549,7 +549,7 @@ module tcp_host(endpoint,data) = {
 
                 // if the send queue for this sock doesn's exist, it isn't open,
                 // so the client has violated the precondition. we do the bad client
-                // the service of not crashing. 
+                // the service of not crashing.
 
                 if (`send_queue`.find(s) == `send_queue`.end())
                     ok = true;

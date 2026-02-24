@@ -131,7 +131,7 @@ re-transmission:
 
         instance mq(D:id) : message_queue(net_msg,seq_num)
         instance timer(D:id) : timeout_sec
-        
+
 
 In addition, for each destination, we record `send_seq`, the next
 sequence number to use, and for each message source we record
@@ -268,7 +268,7 @@ the abstract state does not distinguish sources:
 
     conjecture impl(S1).mq(D).contents(M1) & impl(D).recv_seq(S1) <= net_msg.num(M1)
         & impl(S2).mq(D).contents(M2) & impl(D).recv_seq(S2) <= net_msg.num(M2)
-        & net_msg.mty(M1) = request_t & net_msg.mty(M2) = request_t 
+        & net_msg.mty(M1) = request_t & net_msg.mty(M2) = request_t
         & (S1 ~= S2 | net_msg.num(M1) ~= net_msg.num(M2))
            -> net_msg.rq(M1) ~= net_msg.rq(M2)
 
@@ -337,7 +337,7 @@ protocol message no more than once.
 We aqlso need to verify the mesage queues agains their specification. We will use [parameter stripping](leader.md) to do that:
 
     isolate iso_mq(mq_me:id) = mq(mq_me) with seq_num
-        
+
 What this means is that we verify one message queue instance named
 `mq_me` in isolation from the others. This works because the different
 message queues don't interfere with each other.
@@ -375,7 +375,7 @@ We left the `req` and `shard` types uninterpreted, since these don't
 matter to the transport service.  We use `udp_simple` as the low-level
 datagram service. Let's verify this module:
 
-    ivy_check trans_test.ivy 
+    ivy_check trans_test.ivy
     Checking isolate iso_t...
     trying ext:t.impl.timer.timeout...
     checking consecution...
@@ -417,7 +417,7 @@ Let's compile to a REPL and try a few packets:
 
     ./trans_test
     > t.send_request(0,1,42)
-    true    
+    true
     > t.recv_request(1,42)
     t.send_delegate(1,0,66)
     true

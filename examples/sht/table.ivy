@@ -50,7 +50,7 @@ module hash_table(key,value,shard) = {
     # Implementation
 
     object impl = {
-	
+
 	instance tab : ordered_map(key,value)
 
 	implement set {
@@ -69,7 +69,7 @@ module hash_table(key,value,shard) = {
 		pos := shard.iter.begin(0);
 		while ~shard.iter.iter_end(pos) & idx <= lim
 		    invariant ~shard.iter.done(X,pos) -> shard.second(res,X) = 0
-                    invariant lo <= X & key.iter.done(X,idx) -> shard.value(res,X) = hash(X)  
+                    invariant lo <= X & key.iter.done(X,idx) -> shard.value(res,X) = hash(X)
 		    invariant ~key.iter.iter_end(idx) -> lo <= key.iter.iter_val(idx)
 		    invariant shard.iter.iter_end(pos) -> key.iter.done(lo,idx)
 		    invariant ~key.iter.done(X,idx) -> ~shard.at(res,X,Y)
@@ -79,7 +79,7 @@ module hash_table(key,value,shard) = {
 		    shard.second(res,shard.iter.val(pos)) := tab.get(key.iter.val(idx));
 		    idx := tab.next(idx);
 		    pos := shard.iter.next(pos)
-		};		
+		};
 		shard.lo(res) := lo;
 		if key.iter.done(hi,idx) {
 		    shard.hi(res) := hi
@@ -108,12 +108,12 @@ module hash_table(key,value,shard) = {
 			    if lo <= shard.first(s,r) & shard.first(s,r) <= hi & shard.second(s,r) ~= 0 {
 				call tab.set(shard.first(s,r),shard.second(s,r))
 			    }
-			};			
+			};
 			pos := shard.iter.next(pos)
 		    }
 		}
 	    }
-	}	
+	}
 
 	object spec = {
 	    derived tab_invar(X,Y) =
@@ -127,4 +127,3 @@ module hash_table(key,value,shard) = {
     }
 
 }
-

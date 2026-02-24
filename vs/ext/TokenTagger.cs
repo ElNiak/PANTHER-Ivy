@@ -56,8 +56,8 @@ namespace IvyLanguage
   {
     internal sealed class ScanResult
     {
-      internal ITextSnapshot _oldSnapshot; 
-      internal ITextSnapshot _newSnapshot; 
+      internal ITextSnapshot _oldSnapshot;
+      internal ITextSnapshot _newSnapshot;
       internal List<TokenRegion> _regions; // the regions computed for the _newSnapshot
       internal NormalizedSnapshotSpanCollection _difference; // the difference between _oldSnapshot and _newSnapshot
 
@@ -126,7 +126,7 @@ namespace IvyLanguage
       ITextSnapshot snapshot = _buffer.CurrentSnapshot;
       if (snapshot == _snapshot)
         return;  // we've already computed the regions for this snapshot
-      
+
       NormalizedSnapshotSpanCollection difference = new NormalizedSnapshotSpanCollection();
       ScanResult result;
       if (_buffer.Properties.TryGetProperty(bufferTokenTaggerKey, out result) &&
@@ -140,8 +140,8 @@ namespace IvyLanguage
         List<TokenRegion>  regions = new List<TokenRegion>();
         List<SnapshotSpan> rescannedRegions = new List<SnapshotSpan>();
 
-        // loop through the changes and check for changes in comments first. If 
-        // the change is in a comments, we need to rescan starting from the 
+        // loop through the changes and check for changes in comments first. If
+        // the change is in a comments, we need to rescan starting from the
         // beginning of the comments (which in multi-lined comments, it can
         // be a line that the changes are not on), otherwise, we can just rescan the lines
         // that the changes are on.
@@ -185,7 +185,7 @@ namespace IvyLanguage
         foreach (TokenRegion r in regions) {
           newSpans.Add(r.Span);
         }
-        // loop through the old scan results and remove the ones that 
+        // loop through the old scan results and remove the ones that
         // are in the regions that are rescanned.
         foreach (TokenRegion r in _regions) {
           SnapshotSpan origSpan = r.Span.TranslateTo(snapshot, SpanTrackingMode.EdgeExclusive);
@@ -202,7 +202,7 @@ namespace IvyLanguage
             regions.Add(region);
           }
         }
-        
+
         NormalizedSnapshotSpanCollection oldSpanCollection = new NormalizedSnapshotSpanCollection(oldSpans);
         NormalizedSnapshotSpanCollection newSpanCollection = new NormalizedSnapshotSpanCollection(newSpans);
         difference = SymmetricDifference(oldSpanCollection, newSpanCollection);
@@ -407,10 +407,10 @@ namespace IvyLanguage
       return new SnapshotPoint(newSnapshot, start + N);
     }
 
-    private List<TokenRegion> Scan(ITextSnapshot newSnapshot) {      
-      List<TokenRegion> newRegions; 
+    private List<TokenRegion> Scan(ITextSnapshot newSnapshot) {
+      List<TokenRegion> newRegions;
       ScanResult result;
-      if (_buffer.Properties.TryGetProperty(bufferTokenTaggerKey, out result) &&         
+      if (_buffer.Properties.TryGetProperty(bufferTokenTaggerKey, out result) &&
         result._newSnapshot == newSnapshot) {
         newRegions = result._regions;
       } else {
@@ -430,7 +430,7 @@ namespace IvyLanguage
       return newRegions;
     }
 
-    
+
   }
 
   internal class TokenRegion

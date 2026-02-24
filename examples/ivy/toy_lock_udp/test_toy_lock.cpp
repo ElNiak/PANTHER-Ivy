@@ -4,7 +4,7 @@
 #include <sys/types.h>          /* See NOTES */
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <netinet/ip.h> 
+#include <netinet/ip.h>
 #include <sys/select.h>
 #include <string.h>
 #include <stdio.h>
@@ -39,9 +39,9 @@ public:
         dstaddr.sin_family = AF_INET;
         dstaddr.sin_addr.s_addr = htonl(INADDR_ANY);
         dstaddr.sin_port = htons(4990+dst);
-        
+
         std::cout << "SENDING\n";
-        if (sendto(sock,&pkt,sizeof(int),0,(sockaddr *)&dstaddr,sizeof(sockaddr_in)) < 0) 
+        if (sendto(sock,&pkt,sizeof(int),0,(sockaddr *)&dstaddr,sizeof(sockaddr_in)) < 0)
             { std::cerr << "sendto failed\n"; exit(1); }
     }
 
@@ -90,9 +90,9 @@ int main(int argc, char **argv){
 
         if (foo < 0)
             {perror("select failed"); exit(1);}
-        
+
         if (foo == 0){
-            std::cout << "TIMEOUT\n";            
+            std::cout << "TIMEOUT\n";
             dut.ext__n__timeout(my_id);
         }
         else if (FD_ISSET(0,&rdfds)) {
@@ -105,11 +105,11 @@ int main(int argc, char **argv){
             if (dut.p__held[my_id])
                 std::cout << "holding lock -- press return to grant\n";
         }
-        else 
+        else
             {perror("select exited without input"); exit(1);}
-            
+
 
     }
 
-    
+
 }

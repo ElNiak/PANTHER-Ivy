@@ -87,7 +87,7 @@ module packet_wrapper(pkt,ifnum,macaddr) = {
 //	    for (int i = 0; i < 6; i++) std::cout << std::hex <<  (((int)dstaddr.sll_addr[i]) & 0xff) << "::" ;
 //	    std::cout << std::endl;
 	        if (sendto(sock,&buf[0],buf.size(),0,(sockaddr *)&dstaddr,sizeof(sockaddr_ll)) < 0)
-	        // if (send(sock,&buf[0],buf.size(),0) < 0) 
+	        // if (send(sock,&buf[0],buf.size(),0) < 0)
 #ifdef _WIN32
 		     { std::cerr << "send failed " << WSAGetLastError() << "\n"; exit(1); }
 #else

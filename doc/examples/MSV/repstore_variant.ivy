@@ -72,7 +72,7 @@ module replica = {
 module reference = {
     instance rep : replica
 
-    
+
     action create(inp : request_body) returns (tx : txid)
     action serialize(tx : txid)
     action commit(tx : txid)
@@ -130,7 +130,7 @@ type req_msg = struct {
 }
 
 module client(cid,srvr_chan,cl_chans) = {
-    
+
     action client_request(req : request_body)
 
     implement client_request {
@@ -153,7 +153,7 @@ module primary_node(port, fwd_chan, rev_chan, cl_chans) = {
     after init {
         pending(K) := 0;
     }
-        
+
     implement req_chan.recv(inp : req_msg) {
         if some (rr:read_req.t) inp.req.bd *> rr {
             if pending(rr.ky) = 0 {
@@ -170,7 +170,7 @@ module primary_node(port, fwd_chan, rev_chan, cl_chans) = {
             call fwd_chan.send(inp);
             pending(wr.ky) := pending(wr.ky).next;
             var res := rep.exec(inp.req.bd);
-        }             
+        }
     }
 
     implement rev_chan.recv(inp : req_msg) {
@@ -184,14 +184,14 @@ module secondary_node(port, fwd_chan, rev_chan, cl_chans) = {
     instance rep : replica
 
     instance req_chan : nondup_endpoint(port,req_msg)
-        
+
     implement req_chan.recv(inp : req_msg) {
         if some (rr:read_req.t) inp.req.bd *> rr {
             var res : response.t;
             res.tx := inp.req.tx;
             res.bd := rep.exec(rr);
             call cl_chans(inp.cid).send(res);
-        }             
+        }
         # ignore writes!
     }
 
@@ -245,4 +245,3 @@ trusted isolate iso_prim = prim with cl,cl_chans,ref,service_spec,mid_spec,fwd_c
 trusted isolate iso_sec = sec with ref,service_spec,mid_spec
 
 interpret value -> bv[16]
-

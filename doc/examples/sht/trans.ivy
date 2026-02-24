@@ -143,7 +143,7 @@ module sht_transport(lower,req,shard,seq_num,id) = {
 		    call lower.send(me,dst,msg)
 		}
 	    }
-	    
+
 	}
 
 	# Receiving a message is the most complicated. First, we send
@@ -211,7 +211,7 @@ module sht_transport(lower,req,shard,seq_num,id) = {
 
 	conjecture impl(S1).mq(D).contents(M1) & impl(D).recv_seq(S1) <= net_msg.num(M1)
 	   & impl(S2).mq(D).contents(M2) & impl(D).recv_seq(S2) <= net_msg.num(M2)
-	   & net_msg.mty(M1) = request_t & net_msg.mty(M2) = request_t 
+	   & net_msg.mty(M1) = request_t & net_msg.mty(M2) = request_t
 	   & (S1 ~= S2 | net_msg.num(M1) ~= net_msg.num(M2))
 	   -> net_msg.rq(M1) ~= net_msg.rq(M2)
 
@@ -219,7 +219,7 @@ module sht_transport(lower,req,shard,seq_num,id) = {
 
 	conjecture impl(S1).mq(D).contents(M1) & impl(D).recv_seq(S1) <= net_msg.num(M1)
 	   & impl(S2).mq(D).contents(M2) & impl(D).recv_seq(S2) <= net_msg.num(M2)
-	   & net_msg.mty(M1) = reply_t & net_msg.mty(M2) = reply_t 
+	   & net_msg.mty(M1) = reply_t & net_msg.mty(M2) = reply_t
 	   & (S1 ~= S2 | net_msg.num(M1) ~= net_msg.num(M2))
 	   -> net_msg.rq(M1) ~= net_msg.rq(M2)
 
@@ -227,7 +227,7 @@ module sht_transport(lower,req,shard,seq_num,id) = {
 
 	conjecture impl(S1).mq(D).contents(M1) & impl(D).recv_seq(S1) <= net_msg.num(M1)
 	   & impl(S2).mq(D).contents(M2) & impl(D).recv_seq(S2) <= net_msg.num(M2)
-	   & net_msg.mty(M1) = delegate_t & net_msg.mty(M2) = delegate_t 
+	   & net_msg.mty(M1) = delegate_t & net_msg.mty(M2) = delegate_t
 	   & (S1 ~= S2 | net_msg.num(M1) ~= net_msg.num(M2))
 	   -> net_msg.sh(M1) ~= net_msg.sh(M2)
 

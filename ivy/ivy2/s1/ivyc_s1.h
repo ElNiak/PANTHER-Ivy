@@ -190,18 +190,18 @@ namespace hash_space {
 
         typedef Value &reference;
         typedef const Value &const_reference;
-    
+
         struct Entry
         {
             Entry* next;
             Value val;
-      
+
         Entry(const Value &_val) : val(_val) {next = 0;}
         };
-    
+
 
         struct iterator
-        {      
+        {
             Entry* ent;
             hashtable* tab;
 
@@ -238,7 +238,7 @@ namespace hash_space {
             }
 
 
-            bool operator==(const iterator& it) const { 
+            bool operator==(const iterator& it) const {
                 return ent == it.ent;
             }
 
@@ -248,7 +248,7 @@ namespace hash_space {
         };
 
         struct const_iterator
-        {      
+        {
             const Entry* ent;
             const hashtable* tab;
 
@@ -285,7 +285,7 @@ namespace hash_space {
             }
 
 
-            bool operator==(const const_iterator& it) const { 
+            bool operator==(const const_iterator& it) const {
                 return ent == it.ent;
             }
 
@@ -303,13 +303,13 @@ namespace hash_space {
         HashFun hash_fun ;
         GetKey get_key;
         KeyEqFun key_eq_fun;
-    
+
     public:
 
     hashtable(size_t init_size) : buckets(init_size,(Entry *)0) {
             entries = 0;
         }
-    
+
         hashtable(const hashtable& other) {
             dup(other);
         }
@@ -324,11 +324,11 @@ namespace hash_space {
             clear();
         }
 
-        size_t size() const { 
+        size_t size() const {
             return entries;
         }
 
-        bool empty() const { 
+        bool empty() const {
             return size() == 0;
         }
 
@@ -336,15 +336,15 @@ namespace hash_space {
             buckets.swap(other.buckets);
             std::swap(entries, other.entries);
         }
-    
+
         iterator begin() {
             for (size_t i = 0; i < buckets.size(); ++i)
                 if (buckets[i])
                     return iterator(buckets[i], this);
             return end();
         }
-    
-        iterator end() { 
+
+        iterator end() {
             return iterator(0, this);
         }
 
@@ -354,15 +354,15 @@ namespace hash_space {
                     return const_iterator(buckets[i], this);
             return end();
         }
-    
-        const_iterator end() const { 
+
+        const_iterator end() const {
             return const_iterator(0, this);
         }
-    
+
         size_t get_bucket(const Value& val, size_t n) const {
             return hash_fun(get_key(val)) % n;
         }
-    
+
         size_t get_key_bucket(const Key& key) const {
             return hash_fun(key) % buckets.size();
         }
@@ -377,11 +377,11 @@ namespace hash_space {
 
             size_t n = get_bucket(val);
             Entry* from = buckets[n];
-      
+
             for (Entry* ent = from; ent; ent = ent->next)
                 if (key_eq_fun(get_key(ent->val), get_key(val)))
                     return ent;
-      
+
             if(!ins) return 0;
 
             Entry* tmp = new Entry(val);
@@ -395,11 +395,11 @@ namespace hash_space {
         {
             size_t n = get_key_bucket(key);
             Entry* from = buckets[n];
-      
+
             for (Entry* ent = from; ent; ent = ent->next)
                 if (key_eq_fun(get_key(ent->val), key))
                     return ent;
-      
+
             return 0;
         }
 
@@ -416,7 +416,7 @@ namespace hash_space {
             Entry *ent = lookup(val,true);
             return std::pair<iterator,bool>(iterator(ent,this),entries > old_entries);
         }
-    
+
         iterator insert(const iterator &it, const Value& val){
             Entry *ent = lookup(val,true);
             return iterator(ent,this);
@@ -458,7 +458,7 @@ namespace hash_space {
             }
             buckets.swap(tmp);
         }
-    
+
         void clear()
         {
             for (size_t i = 0; i < buckets.size(); ++i) {
@@ -485,7 +485,7 @@ namespace hash_space {
         }
     };
 
-    template <typename T> 
+    template <typename T>
         class equal {
     public:
         bool operator()(const T& x, const T &y) const {
@@ -509,7 +509,7 @@ namespace hash_space {
         }
     };
 
-    template <typename Element, class HashFun = hash<Element>, 
+    template <typename Element, class HashFun = hash<Element>,
         class EqFun = equal<Element> >
         class hash_set
         : public hashtable<Element,Element,HashFun,identity<Element>,EqFun> {
@@ -522,7 +522,7 @@ namespace hash_space {
     : hashtable<Element,Element,HashFun,identity<Element>,EqFun>(7) {}
     };
 
-    template <typename Key, typename Value, class HashFun = hash<Key>, 
+    template <typename Key, typename Value, class HashFun = hash<Key>,
         class EqFun = equal<Key> >
         class hash_map
         : public hashtable<std::pair<Key,Value>,Key,HashFun,proj1<Key,Value>,EqFun> {
@@ -534,7 +534,7 @@ namespace hash_space {
 
     Value &operator[](const Key& key) {
 	std::pair<Key,Value> kvp(key,Value());
-	return 
+	return
 	hashtable<std::pair<Key,Value>,Key,HashFun,proj1<Key,Value>,EqFun>::
         lookup(kvp,true)->val.second;
     }
@@ -547,7 +547,7 @@ namespace hash_space {
             hash<D > h1;
             hash<R > h2;
             size_t res = 0;
-            
+
             for (typename hash_map<D,R>::const_iterator it=p.begin(), en=p.end(); it!=en; ++it)
                 res += (h1(it->first)+h2(it->second));
             return res;
@@ -696,88 +696,88 @@ return hv;
 class annot{
 public:
     struct wrap {
-    
+
         virtual wrap *dup() = 0;
         virtual bool deref() = 0;
         virtual ~wrap() {}
     };
-    
+
     template <typename T> struct twrap : public wrap {
-    
+
         unsigned refs;
-    
+
         T item;
-    
+
         twrap(const T &item) : refs(1), item(item) {}
-    
+
         virtual wrap *dup() {refs++; return this;}
-    
+
         virtual bool deref() {return (--refs) != 0;}
-    
+
     };
-    
+
     int tag;
-    
+
     wrap *ptr;
-    
+
     annot(){
     tag=-1;
     ptr=0;
     }
-    
+
     annot(int tag,wrap *ptr) : tag(tag),ptr(ptr) {}
-    
+
     annot(const annot&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
     };
-    
+
     annot& operator=(const annot&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
         return *this;
     };
-    
+
     ~annot(){if(ptr){if (!ptr->deref()) delete ptr;}}
-    
+
     static int temp_counter;
-    
+
     static void prepare() {temp_counter = 0;}
-    
+
     static void cleanup() {}
-    
+
     size_t __hash() const {
-    
+
         switch(tag) {
-    
+
             case 0: return 0 + hash_space::hash<ivyc_s1::annot_i>()(ivyc_s1::annot::unwrap< ivyc_s1::annot_i >((*this)));
-    
+
         }
-    
+
         return 0;
-    
+
     }
-    
+
     template <typename T> static const T &unwrap(const annot &x) {
-    
+
         return ((static_cast<const twrap<T> *>(x.ptr))->item);
-    
+
     }
-    
+
     template <typename T> static T &unwrap(annot &x) {
-    
+
          twrap<T> *p = static_cast<twrap<T> *>(x.ptr);
-    
+
          if (p->refs > 1) {
-    
+
              p = new twrap<T> (p->item);
-    
+
          }
-    
+
          return ((static_cast<twrap<T> *>(p))->item);
-    
+
     }
-    
+
 };    class vector__str__ : public std::vector<str>{
         public: size_t __hash() const { return hash_space::hash<std::vector<str> >()(*this);};
     };
@@ -811,92 +811,92 @@ return hv;
 class ivy__ident{
 public:
     struct wrap {
-    
+
         virtual wrap *dup() = 0;
         virtual bool deref() = 0;
         virtual ~wrap() {}
     };
-    
+
     template <typename T> struct twrap : public wrap {
-    
+
         unsigned refs;
-    
+
         T item;
-    
+
         twrap(const T &item) : refs(1), item(item) {}
-    
+
         virtual wrap *dup() {refs++; return this;}
-    
+
         virtual bool deref() {return (--refs) != 0;}
-    
+
     };
-    
+
     int tag;
-    
+
     wrap *ptr;
-    
+
     ivy__ident(){
     tag=-1;
     ptr=0;
     }
-    
+
     ivy__ident(int tag,wrap *ptr) : tag(tag),ptr(ptr) {}
-    
+
     ivy__ident(const ivy__ident&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
     };
-    
+
     ivy__ident& operator=(const ivy__ident&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
         return *this;
     };
-    
+
     ~ivy__ident(){if(ptr){if (!ptr->deref()) delete ptr;}}
-    
+
     static int temp_counter;
-    
+
     static void prepare() {temp_counter = 0;}
-    
+
     static void cleanup() {}
-    
+
     size_t __hash() const {
-    
+
         switch(tag) {
-    
+
             case 0: return 0 + hash_space::hash<ivyc_s1::ivy__strident>()(ivyc_s1::ivy__ident::unwrap< ivyc_s1::ivy__strident >((*this)));
-    
+
             case 1: return 1 + hash_space::hash<ivyc_s1::ivy__numident>()(ivyc_s1::ivy__ident::unwrap< ivyc_s1::ivy__numident >((*this)));
-    
+
             case 2: return 2 + hash_space::hash<ivyc_s1::ivy__dotident>()(ivyc_s1::ivy__ident::unwrap< ivyc_s1::ivy__dotident >((*this)));
-    
+
         }
-    
+
         return 0;
-    
+
     }
-    
+
     template <typename T> static const T &unwrap(const ivy__ident &x) {
-    
+
         return ((static_cast<const twrap<T> *>(x.ptr))->item);
-    
+
     }
-    
+
     template <typename T> static T &unwrap(ivy__ident &x) {
-    
+
          twrap<T> *p = static_cast<twrap<T> *>(x.ptr);
-    
+
          if (p->refs > 1) {
-    
+
              p = new twrap<T> (p->item);
-    
+
          }
-    
+
          return ((static_cast<twrap<T> *>(p))->item);
-    
+
     }
-    
+
 };    class vector__ivy__ident__ : public std::vector<ivy__ident>{
         public: size_t __hash() const { return hash_space::hash<std::vector<ivy__ident> >()(*this);};
     };
@@ -928,94 +928,94 @@ return hv;
 class ivy__expr{
 public:
     struct wrap {
-    
+
         virtual wrap *dup() = 0;
         virtual bool deref() = 0;
         virtual ~wrap() {}
     };
-    
+
     template <typename T> struct twrap : public wrap {
-    
+
         unsigned refs;
-    
+
         T item;
-    
+
         twrap(const T &item) : refs(1), item(item) {}
-    
+
         virtual wrap *dup() {refs++; return this;}
-    
+
         virtual bool deref() {return (--refs) != 0;}
-    
+
     };
-    
+
     int tag;
-    
+
     wrap *ptr;
-    
+
     ivy__expr(){
     tag=-1;
     ptr=0;
     }
-    
+
     ivy__expr(int tag,wrap *ptr) : tag(tag),ptr(ptr) {}
-    
+
     ivy__expr(const ivy__expr&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
     };
-    
+
     ivy__expr& operator=(const ivy__expr&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
         return *this;
     };
-    
+
     ~ivy__expr(){if(ptr){if (!ptr->deref()) delete ptr;}}
-    
+
     static int temp_counter;
-    
+
     static void prepare() {temp_counter = 0;}
-    
+
     static void cleanup() {}
-    
+
     size_t __hash() const {
-    
+
         switch(tag) {
-    
+
             case 0: return 0 + hash_space::hash<ivyc_s1::ivy__symbol>()(ivyc_s1::ivy__expr::unwrap< ivyc_s1::ivy__symbol >((*this)));
-    
+
             case 1: return 1 + hash_space::hash<ivyc_s1::ivy__app>()(ivyc_s1::ivy__expr::unwrap< ivyc_s1::ivy__app >((*this)));
-    
+
             case 2: return 2 + hash_space::hash<ivyc_s1::ivy__variable>()(ivyc_s1::ivy__expr::unwrap< ivyc_s1::ivy__variable >((*this)));
-    
+
             case 3: return 3 + hash_space::hash<ivyc_s1::ivy__pi>()(ivyc_s1::ivy__expr::unwrap< ivyc_s1::ivy__pi >((*this)));
-    
+
         }
-    
+
         return 0;
-    
+
     }
-    
+
     template <typename T> static const T &unwrap(const ivy__expr &x) {
-    
+
         return ((static_cast<const twrap<T> *>(x.ptr))->item);
-    
+
     }
-    
+
     template <typename T> static T &unwrap(ivy__expr &x) {
-    
+
          twrap<T> *p = static_cast<twrap<T> *>(x.ptr);
-    
+
          if (p->refs > 1) {
-    
+
              p = new twrap<T> (p->item);
-    
+
          }
-    
+
          return ((static_cast<twrap<T> *>(p))->item);
-    
+
     }
-    
+
 };    class vector__ivy__expr__ : public std::vector<ivy__expr>{
         public: size_t __hash() const { return hash_space::hash<std::vector<ivy__expr> >()(*this);};
     };
@@ -1064,100 +1064,100 @@ return hv;
 class ivy__stmt{
 public:
     struct wrap {
-    
+
         virtual wrap *dup() = 0;
         virtual bool deref() = 0;
         virtual ~wrap() {}
     };
-    
+
     template <typename T> struct twrap : public wrap {
-    
+
         unsigned refs;
-    
+
         T item;
-    
+
         twrap(const T &item) : refs(1), item(item) {}
-    
+
         virtual wrap *dup() {refs++; return this;}
-    
+
         virtual bool deref() {return (--refs) != 0;}
-    
+
     };
-    
+
     int tag;
-    
+
     wrap *ptr;
-    
+
     ivy__stmt(){
     tag=-1;
     ptr=0;
     }
-    
+
     ivy__stmt(int tag,wrap *ptr) : tag(tag),ptr(ptr) {}
-    
+
     ivy__stmt(const ivy__stmt&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
     };
-    
+
     ivy__stmt& operator=(const ivy__stmt&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
         return *this;
     };
-    
+
     ~ivy__stmt(){if(ptr){if (!ptr->deref()) delete ptr;}}
-    
+
     static int temp_counter;
-    
+
     static void prepare() {temp_counter = 0;}
-    
+
     static void cleanup() {}
-    
+
     size_t __hash() const {
-    
+
         switch(tag) {
-    
+
             case 0: return 0 + hash_space::hash<ivyc_s1::ivy__asgn>()(ivyc_s1::ivy__stmt::unwrap< ivyc_s1::ivy__asgn >((*this)));
-    
+
             case 1: return 1 + hash_space::hash<ivyc_s1::ivy__sequence>()(ivyc_s1::ivy__stmt::unwrap< ivyc_s1::ivy__sequence >((*this)));
-    
+
             case 2: return 2 + hash_space::hash<ivyc_s1::ivy__skipst>()(ivyc_s1::ivy__stmt::unwrap< ivyc_s1::ivy__skipst >((*this)));
-    
+
             case 3: return 3 + hash_space::hash<ivyc_s1::ivy__ifst>()(ivyc_s1::ivy__stmt::unwrap< ivyc_s1::ivy__ifst >((*this)));
-    
+
             case 4: return 4 + hash_space::hash<ivyc_s1::ivy__whilest>()(ivyc_s1::ivy__stmt::unwrap< ivyc_s1::ivy__whilest >((*this)));
-    
+
             case 5: return 5 + hash_space::hash<ivyc_s1::ivy__breakst>()(ivyc_s1::ivy__stmt::unwrap< ivyc_s1::ivy__breakst >((*this)));
-    
+
             case 6: return 6 + hash_space::hash<ivyc_s1::ivy__varst>()(ivyc_s1::ivy__stmt::unwrap< ivyc_s1::ivy__varst >((*this)));
-    
+
         }
-    
+
         return 0;
-    
+
     }
-    
+
     template <typename T> static const T &unwrap(const ivy__stmt &x) {
-    
+
         return ((static_cast<const twrap<T> *>(x.ptr))->item);
-    
+
     }
-    
+
     template <typename T> static T &unwrap(ivy__stmt &x) {
-    
+
          twrap<T> *p = static_cast<twrap<T> *>(x.ptr);
-    
+
          if (p->refs > 1) {
-    
+
              p = new twrap<T> (p->item);
-    
+
          }
-    
+
          return ((static_cast<twrap<T> *>(p))->item);
-    
+
     }
-    
+
 };    struct ivy__asgn {
     ivy__expr lhs;
     ivy__expr rhs;
@@ -1224,110 +1224,110 @@ return hv;
 class ivy__decl{
 public:
     struct wrap {
-    
+
         virtual wrap *dup() = 0;
         virtual bool deref() = 0;
         virtual ~wrap() {}
     };
-    
+
     template <typename T> struct twrap : public wrap {
-    
+
         unsigned refs;
-    
+
         T item;
-    
+
         twrap(const T &item) : refs(1), item(item) {}
-    
+
         virtual wrap *dup() {refs++; return this;}
-    
+
         virtual bool deref() {return (--refs) != 0;}
-    
+
     };
-    
+
     int tag;
-    
+
     wrap *ptr;
-    
+
     ivy__decl(){
     tag=-1;
     ptr=0;
     }
-    
+
     ivy__decl(int tag,wrap *ptr) : tag(tag),ptr(ptr) {}
-    
+
     ivy__decl(const ivy__decl&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
     };
-    
+
     ivy__decl& operator=(const ivy__decl&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
         return *this;
     };
-    
+
     ~ivy__decl(){if(ptr){if (!ptr->deref()) delete ptr;}}
-    
+
     static int temp_counter;
-    
+
     static void prepare() {temp_counter = 0;}
-    
+
     static void cleanup() {}
-    
+
     size_t __hash() const {
-    
+
         switch(tag) {
-    
+
             case 0: return 0 + hash_space::hash<ivyc_s1::ivy__actdc>()(ivyc_s1::ivy__decl::unwrap< ivyc_s1::ivy__actdc >((*this)));
-    
+
             case 1: return 1 + hash_space::hash<ivyc_s1::ivy__groupdc>()(ivyc_s1::ivy__decl::unwrap< ivyc_s1::ivy__groupdc >((*this)));
-    
+
             case 2: return 2 + hash_space::hash<ivyc_s1::ivy__typedc>()(ivyc_s1::ivy__decl::unwrap< ivyc_s1::ivy__typedc >((*this)));
-    
+
             case 3: return 3 + hash_space::hash<ivyc_s1::ivy__vardc>()(ivyc_s1::ivy__decl::unwrap< ivyc_s1::ivy__vardc >((*this)));
-    
+
             case 4: return 4 + hash_space::hash<ivyc_s1::ivy__header>()(ivyc_s1::ivy__decl::unwrap< ivyc_s1::ivy__header >((*this)));
-    
+
             case 5: return 5 + hash_space::hash<ivyc_s1::ivy__interpdc>()(ivyc_s1::ivy__decl::unwrap< ivyc_s1::ivy__interpdc >((*this)));
-    
+
             case 6: return 6 + hash_space::hash<ivyc_s1::ivy__includedc>()(ivyc_s1::ivy__decl::unwrap< ivyc_s1::ivy__includedc >((*this)));
-    
+
             case 7: return 7 + hash_space::hash<ivyc_s1::ivy__moduledc>()(ivyc_s1::ivy__decl::unwrap< ivyc_s1::ivy__moduledc >((*this)));
-    
+
             case 8: return 8 + hash_space::hash<ivyc_s1::ivy__instantiatedc>()(ivyc_s1::ivy__decl::unwrap< ivyc_s1::ivy__instantiatedc >((*this)));
-    
+
             case 9: return 9 + hash_space::hash<ivyc_s1::ivy__objectdc>()(ivyc_s1::ivy__decl::unwrap< ivyc_s1::ivy__objectdc >((*this)));
-    
+
             case 10: return 10 + hash_space::hash<ivyc_s1::ivy__instancedc>()(ivyc_s1::ivy__decl::unwrap< ivyc_s1::ivy__instancedc >((*this)));
-    
+
             case 11: return 11 + hash_space::hash<ivyc_s1::ivy__initdc>()(ivyc_s1::ivy__decl::unwrap< ivyc_s1::ivy__initdc >((*this)));
-    
+
         }
-    
+
         return 0;
-    
+
     }
-    
+
     template <typename T> static const T &unwrap(const ivy__decl &x) {
-    
+
         return ((static_cast<const twrap<T> *>(x.ptr))->item);
-    
+
     }
-    
+
     template <typename T> static T &unwrap(ivy__decl &x) {
-    
+
          twrap<T> *p = static_cast<twrap<T> *>(x.ptr);
-    
+
          if (p->refs > 1) {
-    
+
              p = new twrap<T> (p->item);
-    
+
          }
-    
+
          return ((static_cast<twrap<T> *>(p))->item);
-    
+
     }
-    
+
 };    enum ivy__action_kind{ivy__action_kind__internal,ivy__action_kind__external,ivy__action_kind__imported,ivy__action_kind__exported};
     struct ivy__prototype_argument {
     ivy__expr name;
@@ -1412,90 +1412,90 @@ return hv;
 class ivy__typespec{
 public:
     struct wrap {
-    
+
         virtual wrap *dup() = 0;
         virtual bool deref() = 0;
         virtual ~wrap() {}
     };
-    
+
     template <typename T> struct twrap : public wrap {
-    
+
         unsigned refs;
-    
+
         T item;
-    
+
         twrap(const T &item) : refs(1), item(item) {}
-    
+
         virtual wrap *dup() {refs++; return this;}
-    
+
         virtual bool deref() {return (--refs) != 0;}
-    
+
     };
-    
+
     int tag;
-    
+
     wrap *ptr;
-    
+
     ivy__typespec(){
     tag=-1;
     ptr=0;
     }
-    
+
     ivy__typespec(int tag,wrap *ptr) : tag(tag),ptr(ptr) {}
-    
+
     ivy__typespec(const ivy__typespec&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
     };
-    
+
     ivy__typespec& operator=(const ivy__typespec&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
         return *this;
     };
-    
+
     ~ivy__typespec(){if(ptr){if (!ptr->deref()) delete ptr;}}
-    
+
     static int temp_counter;
-    
+
     static void prepare() {temp_counter = 0;}
-    
+
     static void cleanup() {}
-    
+
     size_t __hash() const {
-    
+
         switch(tag) {
-    
+
             case 0: return 0 + hash_space::hash<ivyc_s1::ivy__enumspec>()(ivyc_s1::ivy__typespec::unwrap< ivyc_s1::ivy__enumspec >((*this)));
-    
+
             case 1: return 1 + hash_space::hash<ivyc_s1::ivy__structspec>()(ivyc_s1::ivy__typespec::unwrap< ivyc_s1::ivy__structspec >((*this)));
-    
+
         }
-    
+
         return 0;
-    
+
     }
-    
+
     template <typename T> static const T &unwrap(const ivy__typespec &x) {
-    
+
         return ((static_cast<const twrap<T> *>(x.ptr))->item);
-    
+
     }
-    
+
     template <typename T> static T &unwrap(ivy__typespec &x) {
-    
+
          twrap<T> *p = static_cast<twrap<T> *>(x.ptr);
-    
+
          if (p->refs > 1) {
-    
+
              p = new twrap<T> (p->item);
-    
+
          }
-    
+
          return ((static_cast<twrap<T> *>(p))->item);
-    
+
     }
-    
+
 };    struct ivy__enumspec {
     vector__ivy__expr__ constructors;
     annot ann;
@@ -1653,104 +1653,104 @@ return hv;
 class ivy__error{
 public:
     struct wrap {
-    
+
         virtual wrap *dup() = 0;
         virtual bool deref() = 0;
         virtual ~wrap() {}
     };
-    
+
     template <typename T> struct twrap : public wrap {
-    
+
         unsigned refs;
-    
+
         T item;
-    
+
         twrap(const T &item) : refs(1), item(item) {}
-    
+
         virtual wrap *dup() {refs++; return this;}
-    
+
         virtual bool deref() {return (--refs) != 0;}
-    
+
     };
-    
+
     int tag;
-    
+
     wrap *ptr;
-    
+
     ivy__error(){
     tag=-1;
     ptr=0;
     }
-    
+
     ivy__error(int tag,wrap *ptr) : tag(tag),ptr(ptr) {}
-    
+
     ivy__error(const ivy__error&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
     };
-    
+
     ivy__error& operator=(const ivy__error&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
         return *this;
     };
-    
+
     ~ivy__error(){if(ptr){if (!ptr->deref()) delete ptr;}}
-    
+
     static int temp_counter;
-    
+
     static void prepare() {temp_counter = 0;}
-    
+
     static void cleanup() {}
-    
+
     size_t __hash() const {
-    
+
         switch(tag) {
-    
+
             case 0: return 0 + hash_space::hash<ivyc_s1::ivy__type_clash>()(ivyc_s1::ivy__error::unwrap< ivyc_s1::ivy__type_clash >((*this)));
-    
+
             case 1: return 1 + hash_space::hash<ivyc_s1::ivy__type_conversion>()(ivyc_s1::ivy__error::unwrap< ivyc_s1::ivy__type_conversion >((*this)));
-    
+
             case 2: return 2 + hash_space::hash<ivyc_s1::ivy__untyped>()(ivyc_s1::ivy__error::unwrap< ivyc_s1::ivy__untyped >((*this)));
-    
+
             case 3: return 3 + hash_space::hash<ivyc_s1::ivy__not_first_order>()(ivyc_s1::ivy__error::unwrap< ivyc_s1::ivy__not_first_order >((*this)));
-    
+
             case 4: return 4 + hash_space::hash<ivyc_s1::ivy__file_not_found>()(ivyc_s1::ivy__error::unwrap< ivyc_s1::ivy__file_not_found >((*this)));
-    
+
             case 5: return 5 + hash_space::hash<ivyc_s1::ivy__cannot_write>()(ivyc_s1::ivy__error::unwrap< ivyc_s1::ivy__cannot_write >((*this)));
-    
+
             case 6: return 6 + hash_space::hash<ivyc_s1::ivy__undefined>()(ivyc_s1::ivy__error::unwrap< ivyc_s1::ivy__undefined >((*this)));
-    
+
             case 7: return 7 + hash_space::hash<ivyc_s1::ivy__wrong_number_params>()(ivyc_s1::ivy__error::unwrap< ivyc_s1::ivy__wrong_number_params >((*this)));
-    
+
             case 8: return 8 + hash_space::hash<ivyc_s1::ivy__syntax_error>()(ivyc_s1::ivy__error::unwrap< ivyc_s1::ivy__syntax_error >((*this)));
-    
+
         }
-    
+
         return 0;
-    
+
     }
-    
+
     template <typename T> static const T &unwrap(const ivy__error &x) {
-    
+
         return ((static_cast<const twrap<T> *>(x.ptr))->item);
-    
+
     }
-    
+
     template <typename T> static T &unwrap(ivy__error &x) {
-    
+
          twrap<T> *p = static_cast<twrap<T> *>(x.ptr);
-    
+
          if (p->refs > 1) {
-    
+
              p = new twrap<T> (p->item);
-    
+
          }
-    
+
          return ((static_cast<twrap<T> *>(p))->item);
-    
+
     }
-    
+
 };    class vector__ivy__error__ : public std::vector<ivy__error>{
         public: size_t __hash() const { return hash_space::hash<std::vector<ivy__error> >()(*this);};
     };
@@ -1999,92 +1999,92 @@ return hv;
 class cpp__ident{
 public:
     struct wrap {
-    
+
         virtual wrap *dup() = 0;
         virtual bool deref() = 0;
         virtual ~wrap() {}
     };
-    
+
     template <typename T> struct twrap : public wrap {
-    
+
         unsigned refs;
-    
+
         T item;
-    
+
         twrap(const T &item) : refs(1), item(item) {}
-    
+
         virtual wrap *dup() {refs++; return this;}
-    
+
         virtual bool deref() {return (--refs) != 0;}
-    
+
     };
-    
+
     int tag;
-    
+
     wrap *ptr;
-    
+
     cpp__ident(){
     tag=-1;
     ptr=0;
     }
-    
+
     cpp__ident(int tag,wrap *ptr) : tag(tag),ptr(ptr) {}
-    
+
     cpp__ident(const cpp__ident&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
     };
-    
+
     cpp__ident& operator=(const cpp__ident&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
         return *this;
     };
-    
+
     ~cpp__ident(){if(ptr){if (!ptr->deref()) delete ptr;}}
-    
+
     static int temp_counter;
-    
+
     static void prepare() {temp_counter = 0;}
-    
+
     static void cleanup() {}
-    
+
     size_t __hash() const {
-    
+
         switch(tag) {
-    
+
             case 0: return 0 + hash_space::hash<ivyc_s1::cpp__strident>()(ivyc_s1::cpp__ident::unwrap< ivyc_s1::cpp__strident >((*this)));
-    
+
             case 1: return 1 + hash_space::hash<ivyc_s1::cpp__numident>()(ivyc_s1::cpp__ident::unwrap< ivyc_s1::cpp__numident >((*this)));
-    
+
             case 2: return 2 + hash_space::hash<ivyc_s1::cpp__dotident>()(ivyc_s1::cpp__ident::unwrap< ivyc_s1::cpp__dotident >((*this)));
-    
+
         }
-    
+
         return 0;
-    
+
     }
-    
+
     template <typename T> static const T &unwrap(const cpp__ident &x) {
-    
+
         return ((static_cast<const twrap<T> *>(x.ptr))->item);
-    
+
     }
-    
+
     template <typename T> static T &unwrap(cpp__ident &x) {
-    
+
          twrap<T> *p = static_cast<twrap<T> *>(x.ptr);
-    
+
          if (p->refs > 1) {
-    
+
              p = new twrap<T> (p->item);
-    
+
          }
-    
+
          return ((static_cast<twrap<T> *>(p))->item);
-    
+
     }
-    
+
 };    class vector__cpp__ident__ : public std::vector<cpp__ident>{
         public: size_t __hash() const { return hash_space::hash<std::vector<cpp__ident> >()(*this);};
     };
@@ -2116,94 +2116,94 @@ return hv;
 class cpp__expr{
 public:
     struct wrap {
-    
+
         virtual wrap *dup() = 0;
         virtual bool deref() = 0;
         virtual ~wrap() {}
     };
-    
+
     template <typename T> struct twrap : public wrap {
-    
+
         unsigned refs;
-    
+
         T item;
-    
+
         twrap(const T &item) : refs(1), item(item) {}
-    
+
         virtual wrap *dup() {refs++; return this;}
-    
+
         virtual bool deref() {return (--refs) != 0;}
-    
+
     };
-    
+
     int tag;
-    
+
     wrap *ptr;
-    
+
     cpp__expr(){
     tag=-1;
     ptr=0;
     }
-    
+
     cpp__expr(int tag,wrap *ptr) : tag(tag),ptr(ptr) {}
-    
+
     cpp__expr(const cpp__expr&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
     };
-    
+
     cpp__expr& operator=(const cpp__expr&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
         return *this;
     };
-    
+
     ~cpp__expr(){if(ptr){if (!ptr->deref()) delete ptr;}}
-    
+
     static int temp_counter;
-    
+
     static void prepare() {temp_counter = 0;}
-    
+
     static void cleanup() {}
-    
+
     size_t __hash() const {
-    
+
         switch(tag) {
-    
+
             case 0: return 0 + hash_space::hash<ivyc_s1::cpp__symbol>()(ivyc_s1::cpp__expr::unwrap< ivyc_s1::cpp__symbol >((*this)));
-    
+
             case 1: return 1 + hash_space::hash<ivyc_s1::cpp__app>()(ivyc_s1::cpp__expr::unwrap< ivyc_s1::cpp__app >((*this)));
-    
+
             case 2: return 2 + hash_space::hash<ivyc_s1::cpp__variable>()(ivyc_s1::cpp__expr::unwrap< ivyc_s1::cpp__variable >((*this)));
-    
+
             case 3: return 3 + hash_space::hash<ivyc_s1::cpp__pi>()(ivyc_s1::cpp__expr::unwrap< ivyc_s1::cpp__pi >((*this)));
-    
+
         }
-    
+
         return 0;
-    
+
     }
-    
+
     template <typename T> static const T &unwrap(const cpp__expr &x) {
-    
+
         return ((static_cast<const twrap<T> *>(x.ptr))->item);
-    
+
     }
-    
+
     template <typename T> static T &unwrap(cpp__expr &x) {
-    
+
          twrap<T> *p = static_cast<twrap<T> *>(x.ptr);
-    
+
          if (p->refs > 1) {
-    
+
              p = new twrap<T> (p->item);
-    
+
          }
-    
+
          return ((static_cast<twrap<T> *>(p))->item);
-    
+
     }
-    
+
 };    class vector__cpp__expr__ : public std::vector<cpp__expr>{
         public: size_t __hash() const { return hash_space::hash<std::vector<cpp__expr> >()(*this);};
     };
@@ -2252,102 +2252,102 @@ return hv;
 class cpp__stmt{
 public:
     struct wrap {
-    
+
         virtual wrap *dup() = 0;
         virtual bool deref() = 0;
         virtual ~wrap() {}
     };
-    
+
     template <typename T> struct twrap : public wrap {
-    
+
         unsigned refs;
-    
+
         T item;
-    
+
         twrap(const T &item) : refs(1), item(item) {}
-    
+
         virtual wrap *dup() {refs++; return this;}
-    
+
         virtual bool deref() {return (--refs) != 0;}
-    
+
     };
-    
+
     int tag;
-    
+
     wrap *ptr;
-    
+
     cpp__stmt(){
     tag=-1;
     ptr=0;
     }
-    
+
     cpp__stmt(int tag,wrap *ptr) : tag(tag),ptr(ptr) {}
-    
+
     cpp__stmt(const cpp__stmt&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
     };
-    
+
     cpp__stmt& operator=(const cpp__stmt&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
         return *this;
     };
-    
+
     ~cpp__stmt(){if(ptr){if (!ptr->deref()) delete ptr;}}
-    
+
     static int temp_counter;
-    
+
     static void prepare() {temp_counter = 0;}
-    
+
     static void cleanup() {}
-    
+
     size_t __hash() const {
-    
+
         switch(tag) {
-    
+
             case 0: return 0 + hash_space::hash<ivyc_s1::cpp__asgn>()(ivyc_s1::cpp__stmt::unwrap< ivyc_s1::cpp__asgn >((*this)));
-    
+
             case 1: return 1 + hash_space::hash<ivyc_s1::cpp__sequence>()(ivyc_s1::cpp__stmt::unwrap< ivyc_s1::cpp__sequence >((*this)));
-    
+
             case 2: return 2 + hash_space::hash<ivyc_s1::cpp__skipst>()(ivyc_s1::cpp__stmt::unwrap< ivyc_s1::cpp__skipst >((*this)));
-    
+
             case 3: return 3 + hash_space::hash<ivyc_s1::cpp__ifst>()(ivyc_s1::cpp__stmt::unwrap< ivyc_s1::cpp__ifst >((*this)));
-    
+
             case 4: return 4 + hash_space::hash<ivyc_s1::cpp__whilest>()(ivyc_s1::cpp__stmt::unwrap< ivyc_s1::cpp__whilest >((*this)));
-    
+
             case 5: return 5 + hash_space::hash<ivyc_s1::cpp__breakst>()(ivyc_s1::cpp__stmt::unwrap< ivyc_s1::cpp__breakst >((*this)));
-    
+
             case 6: return 6 + hash_space::hash<ivyc_s1::cpp__varst>()(ivyc_s1::cpp__stmt::unwrap< ivyc_s1::cpp__varst >((*this)));
-    
+
             case 7: return 7 + hash_space::hash<ivyc_s1::cpp__retst>()(ivyc_s1::cpp__stmt::unwrap< ivyc_s1::cpp__retst >((*this)));
-    
+
         }
-    
+
         return 0;
-    
+
     }
-    
+
     template <typename T> static const T &unwrap(const cpp__stmt &x) {
-    
+
         return ((static_cast<const twrap<T> *>(x.ptr))->item);
-    
+
     }
-    
+
     template <typename T> static T &unwrap(cpp__stmt &x) {
-    
+
          twrap<T> *p = static_cast<twrap<T> *>(x.ptr);
-    
+
          if (p->refs > 1) {
-    
+
              p = new twrap<T> (p->item);
-    
+
          }
-    
+
          return ((static_cast<twrap<T> *>(p))->item);
-    
+
     }
-    
+
 };    struct cpp__asgn {
     cpp__expr lhs;
     cpp__expr rhs;
@@ -2463,102 +2463,102 @@ return hv;
 class cpp__decl{
 public:
     struct wrap {
-    
+
         virtual wrap *dup() = 0;
         virtual bool deref() = 0;
         virtual ~wrap() {}
     };
-    
+
     template <typename T> struct twrap : public wrap {
-    
+
         unsigned refs;
-    
+
         T item;
-    
+
         twrap(const T &item) : refs(1), item(item) {}
-    
+
         virtual wrap *dup() {refs++; return this;}
-    
+
         virtual bool deref() {return (--refs) != 0;}
-    
+
     };
-    
+
     int tag;
-    
+
     wrap *ptr;
-    
+
     cpp__decl(){
     tag=-1;
     ptr=0;
     }
-    
+
     cpp__decl(int tag,wrap *ptr) : tag(tag),ptr(ptr) {}
-    
+
     cpp__decl(const cpp__decl&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
     };
-    
+
     cpp__decl& operator=(const cpp__decl&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
         return *this;
     };
-    
+
     ~cpp__decl(){if(ptr){if (!ptr->deref()) delete ptr;}}
-    
+
     static int temp_counter;
-    
+
     static void prepare() {temp_counter = 0;}
-    
+
     static void cleanup() {}
-    
+
     size_t __hash() const {
-    
+
         switch(tag) {
-    
+
             case 0: return 0 + hash_space::hash<ivyc_s1::cpp__header>()(ivyc_s1::cpp__decl::unwrap< ivyc_s1::cpp__header >((*this)));
-    
+
             case 1: return 1 + hash_space::hash<ivyc_s1::cpp__typedecl>()(ivyc_s1::cpp__decl::unwrap< ivyc_s1::cpp__typedecl >((*this)));
-    
+
             case 2: return 2 + hash_space::hash<ivyc_s1::cpp__enumdecl>()(ivyc_s1::cpp__decl::unwrap< ivyc_s1::cpp__enumdecl >((*this)));
-    
+
             case 3: return 3 + hash_space::hash<ivyc_s1::cpp__vardecl>()(ivyc_s1::cpp__decl::unwrap< ivyc_s1::cpp__vardecl >((*this)));
-    
+
             case 4: return 4 + hash_space::hash<ivyc_s1::cpp__funcdecl>()(ivyc_s1::cpp__decl::unwrap< ivyc_s1::cpp__funcdecl >((*this)));
-    
+
             case 5: return 5 + hash_space::hash<ivyc_s1::cpp__structdecl>()(ivyc_s1::cpp__decl::unwrap< ivyc_s1::cpp__structdecl >((*this)));
-    
+
             case 6: return 6 + hash_space::hash<ivyc_s1::cpp__namespacedecl>()(ivyc_s1::cpp__decl::unwrap< ivyc_s1::cpp__namespacedecl >((*this)));
-    
+
             case 7: return 7 + hash_space::hash<ivyc_s1::cpp__groupdc>()(ivyc_s1::cpp__decl::unwrap< ivyc_s1::cpp__groupdc >((*this)));
-    
+
         }
-    
+
         return 0;
-    
+
     }
-    
+
     template <typename T> static const T &unwrap(const cpp__decl &x) {
-    
+
         return ((static_cast<const twrap<T> *>(x.ptr))->item);
-    
+
     }
-    
+
     template <typename T> static T &unwrap(cpp__decl &x) {
-    
+
          twrap<T> *p = static_cast<twrap<T> *>(x.ptr);
-    
+
          if (p->refs > 1) {
-    
+
              p = new twrap<T> (p->item);
-    
+
          }
-    
+
          return ((static_cast<twrap<T> *>(p))->item);
-    
+
     }
-    
+
 };    struct cpp__header {
     str filename;
     annot ann;

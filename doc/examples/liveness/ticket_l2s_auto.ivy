@@ -157,7 +157,7 @@ isolate ticket_protocol = {
 
 
         temporal property [lemma1]
-        (forall T. globally (eventually scheduled.now & scheduled.value = T)) 
+        (forall T. globally (eventually scheduled.now & scheduled.value = T))
         -> forall T,X. (globally pc2(T) & m(T,X) -> eventually pc3(T))
         proof {
             tactic skolemizenp;
@@ -181,13 +181,13 @@ isolate ticket_protocol = {
                 definition work_invar[0] = _X < next_ticket & pc2(_T) & m(_T,_X)
                 definition work_progress[0](T) = scheduled.now & scheduled.value = T
                 definition work_helpful[0](T) = m(T,service) & pc2(T)
-                
+
                 definition work_created[1](X) = X <= next_ticket
                 definition work_needed[1](X) = service <= X & X < _X & exists T. (m(T,X) & (pc2(T) | pc3(T)))
                 definition work_invar[1] = _X < next_ticket & pc2(_T) & m(_T,_X)
                 definition work_progress[1](T) = scheduled.now & scheduled.value = T
                 definition work_helpful[1](T) = m(T,service) & pc3(T)
-                
+
                 # These invariants are rho, the safety invariant in
                 # the notes.  The invariants used to prove safety
                 # (above) are also included in rho.
@@ -195,7 +195,7 @@ isolate ticket_protocol = {
                 invariant pc1(T) & m(T,M) & M ~= 0 -> service >  M
                 invariant forall K:ticket. next_ticket > K & service <= K -> exists T:thread. m(T,K) & ~pc1(T)
             }
-        }   
+        }
     }
 }
 
@@ -203,5 +203,3 @@ export ticket_protocol.step12
 export ticket_protocol.step22
 export ticket_protocol.step23
 export ticket_protocol.step31
-
-

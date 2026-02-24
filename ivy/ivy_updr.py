@@ -88,7 +88,7 @@ if __name__ == "__main__":
 
     # globals are the inflexible symbols
     gsyms = [ns(sym) for sym in inflex]
-    
+
     print("lsyms = {}".format(lsyms))
     print("gsyms = {}".format(gsyms))
 
@@ -145,11 +145,7 @@ if __name__ == "__main__":
     print("N =", pdr.N)
     print(pdr.iteration_count, "iterations")
     print(pdr.sat_query_count, "calls to SAT")
-            
+
 
 #    syms = set(s for (upd,tr,pre) in updates for s in lu.symbols_clauses(tr))
 #    print syms
-
-        
-
-

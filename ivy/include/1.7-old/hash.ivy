@@ -8,7 +8,7 @@
 #
 #    instance thing : hash_map(domain,range)
 #
-# 
+#
 
 module hash_map(domain,range) = {
 
@@ -24,13 +24,13 @@ module hash_map(domain,range) = {
 
     # get the value y such that x maps to z in a, else
     # leave y unchanged.
-    action get(a:t,x:domain,y:range) returns (y:range) 
+    action get(a:t,x:domain,y:range) returns (y:range)
 
     # return true if x maps to some value
-    action mem(a:t,x:domain) returns (res:bool) 
+    action mem(a:t,x:domain) returns (res:bool)
 
     # remove a key x from the map
-    action remove(a:t,x:domain) returns (a:t) 
+    action remove(a:t,x:domain) returns (a:t)
 
     ########################################
     # Specification
@@ -123,7 +123,7 @@ module hash_map(domain,range) = {
 	    template <>
 	    `t` _arg<`t`>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        `t` a;
 		for (unsigned i = 0; i < arg.fields.size(); i++) {
@@ -205,7 +205,7 @@ module hash_map(domain,range) = {
 #
 #    instance thing : hash_rel(domain,range)
 #
-# 
+#
 
 module hash_rel(domain,range) = {
 
@@ -220,11 +220,11 @@ module hash_rel(domain,range) = {
     action add(a:t,x:domain,y:range) returns (a:t)
 
     # get a vector of values y such that x maps to y in a
-    
-    action get(a:t,x:domain) returns (res:vector[range]) 
+
+    action get(a:t,x:domain) returns (res:vector[range])
 
     # return true if x maps to some value
-    action mem(a:t,x:domain) returns (res:bool) 
+    action mem(a:t,x:domain) returns (res:bool)
 
     ########################################
     # Specification
@@ -303,7 +303,7 @@ module hash_rel(domain,range) = {
 	    template <>
 	    `t` _arg<`t`>(std::vector<ivy_value> &args, unsigned idx, long long bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        `t` a;
 		for (unsigned i = 0; i < arg.fields.size(); i++) {

@@ -13,7 +13,7 @@ include random_value
 # -------------
 #
 # To test the server over the OS sockets layer, we need some setup. We must
-# establish which interface and which ports the tester will use. 
+# establish which interface and which ports the tester will use.
 #
 
 after init {
@@ -26,7 +26,7 @@ after init {
     the_cid := 0x1; # 0x0;
     server_cid := 0x2; # 0x1;
     client_port := 4989;
-    
+
     the_cid_alt := 0x3; # 0x0;
     server_cid_alt := 0x4; # 0x1;
 }
@@ -36,13 +36,13 @@ instance tls_hand_extensions : vector(tls.handshake)
 
 # This creates the sockets and also a TLS instance to be used by `the_cid`.
 # TODO: the TLS instance should be created dynamically when the application
-# layer creates a connection. 
+# layer creates a connection.
 
 # Here we have a bunch of conversions that map between cid's, IP
 # endpoints, TLS instances and host ids. TODO: This is a mess and
 # should be done in a more systematic way.
 
-# Get the host id associated to an ip endpoint. 
+# Get the host id associated to an ip endpoint.
 
 action endpoint_to_pid(src:ip.endpoint) returns (pid:endpoint_id) = {
     if src = client.ep {
@@ -51,17 +51,17 @@ action endpoint_to_pid(src:ip.endpoint) returns (pid:endpoint_id) = {
         pid:= endpoint_id.client_alt;
     } else if src = client_vn {
         pid:= endpoint_id.client_vn;
-    } 
+    }
 }
 
 # Get the IP endpoint associated to a host id and socket number.
 
 action socket_endpoint(host:endpoint_id,s:net.socket) returns (src:ip.endpoint) = {
-    src := client.ep if host = endpoint_id.client 
-    else (client_vn if version_negociated 
+    src := client.ep if host = endpoint_id.client
+    else (client_vn if version_negociated
     else second_client.ep)
 }
-    
+
 # Get the socket number associated to an IP endpoint.
 
 action endpoint_to_socket(src:ip.endpoint) returns (socket:net.socket) = {
@@ -71,13 +71,13 @@ action endpoint_to_socket(src:ip.endpoint) returns (socket:net.socket) = {
         socket := sock_alt;
     } else if src = client_vn {
         socket := sock_vn;
-    } 
+    }
 }
 
 action tls_id_to_src(tls_id:tls_api.id) returns (src:ip.endpoint) = {
-    src := client.ep if tls_id = client.tls_id & ~version_negociated 
-    else (second_client.ep if tls_id = second_client.tls_id & ~version_negociated 
-    else (second_server.ep if tls_id = second_server.tls_id 
+    src := client.ep if tls_id = client.tls_id & ~version_negociated
+    else (second_client.ep if tls_id = second_client.tls_id & ~version_negociated
+    else (second_server.ep if tls_id = second_server.tls_id
     else server.ep));
 }
 
@@ -85,7 +85,7 @@ action tls_id_to_src(tls_id:tls_api.id) returns (src:ip.endpoint) = {
 # TODO: this shouldn't be needed.
 
 action tls_id_to_dst(tls_id:tls_api.id) returns (dst:ip.endpoint) = {
-    dst := server.ep if tls_id = client.tls_id 
+    dst := server.ep if tls_id = client.tls_id
     else (second_server.ep if tls_id = second_client.tls_id
     else (client.ep if tls_id = server.tls_id
     else second_client.ep)); # TODO
@@ -94,7 +94,7 @@ action tls_id_to_dst(tls_id:tls_api.id) returns (dst:ip.endpoint) = {
 # Get cid associated to a TLS instance
 
 action tls_id_to_cid(tls_id:tls_api.id) returns (scid:cid) = {
-    scid := the_cid_alt if tls_id = second_client.tls_id 
+    scid := the_cid_alt if tls_id = second_client.tls_id
     else the_cid;
 }
 
@@ -114,12 +114,12 @@ action dst_is_generated_tls(dst:ip.endpoint) returns (res:bool) = {
 # TODO: shouldn't be needed.
 
 action dst_tls_id(dst:ip.endpoint) returns (tls_id:tls_api.id) = {
-    tls_id := client.tls_id if dst = server.ep 
+    tls_id := client.tls_id if dst = server.ep
     else second_client.tls_id; #TODO
 }
 
 action src_tls_id(src:ip.endpoint) returns (tls_id:tls_api.id) = {
-    tls_id := client.tls_id if src = client.ep 
+    tls_id := client.tls_id if src = client.ep
     else second_client.tls_id; #TODO can cause error server vn eg
 }
 
@@ -198,7 +198,7 @@ after init {
     # initial_version := 0x00000001;
 }
 
-# TODO 
+# TODO
 
 # before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
 #     if _generating {
@@ -207,7 +207,7 @@ after init {
 #             require src = client_vn;
 #         } else {
 #             if ~disable_active_migration.is_set(tp) {
-#                 if ~migration_done | allowed_multiple_migration { 
+#                 if ~migration_done | allowed_multiple_migration {
 #                     #only one migration
 #                     require src = client.ep | src = client_alt;
 #                 } else {
@@ -218,11 +218,11 @@ after init {
 #             }
 #         };
 #         require dst = server.ep;
-#         #require pkt.token.end = 0; 
+#         #require pkt.token.end = 0;
 #         if pkt.ptype = quic_packet_type.initial & retry_recv(pkt.src_cid) & ~zero_length_token {
 #             #require pkt.token = retry_token(pkt.src_cid);
 #         } else {
-#             require pkt.token.end = 0; 
+#             require pkt.token.end = 0;
 #         };
 #     };
 #     if final_version = 0x00000000 {
@@ -239,10 +239,10 @@ after init {
 # # system at all protocol layers. When constructing the test mirror,
 # # however, we need to generate only events that are outputs of the
 # # environment. Ivy doesn't have any built-in mechanism to do this,
-# # so we have to add a constraint to every generated action. 
+# # so we have to add a constraint to every generated action.
 # #
 # # We also add other pre-conditions to the actions to try to restrict
-# # them to relevant parameter values. 
+# # them to relevant parameter values.
 # #
 # # To restrict the generated events, we use the built-in predicate
 # # "_generating" that is true if this is a generated event.
@@ -251,7 +251,7 @@ after init {
 # # some requirements to make the tests more interesting. In particular,
 # # we don't want the tester to produce lots of tiny frames (or empty
 # # ones) so we require that a stream frame send all of the available
-# # stream data. 
+# # stream data.
 # #
 # # TODO: We reuquire tje `off` and `len` bits to be true. Maybe these should
 # # determined in the low-level packet encoding stage.
@@ -263,7 +263,7 @@ after init {
 #         if ~zero_rtt_server_test | zero_rtt_sent {
 #             require connected(the_cid) & dcid = connected_to(the_cid);
 #         };
-#         require f.len & f.off; 
+#         require f.len & f.off;
 #         require f.length > 0;
 #         require f.offset = stream_length(dcid,f.id);
 #         require f.length = (stream_app_data_end(dcid,f.id)) - f.offset;
@@ -292,7 +292,7 @@ after init {
 #         require scid = the_cid;
 #         force_new_ack := true;
 #         #call handle_sending_ack(f.largest_acked);
-#     } 
+#     }
 # }
 
 # # Generate rst_stream frames only for the environment process(es).
@@ -309,7 +309,7 @@ after init {
 #     if _generating {
 #         require scid = the_cid;
 #         #call handle_sending_ack(f.largest_acked);
-#     } 
+#     }
 #     # else {
 #     #     call tls_api.upper.save_token(f.data);
 #     # }
@@ -349,7 +349,7 @@ after init {
 # # Generate connection_close frames only for the environment process(es).
 # #
 # # Note: requiring the `err_code` is zero on non-generated frames means that
-# # we stop the test if the peer reports a protocol error. 
+# # we stop the test if the peer reports a protocol error.
 
 # before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid) {
 #     if _generating {

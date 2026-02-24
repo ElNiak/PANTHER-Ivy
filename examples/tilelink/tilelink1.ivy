@@ -124,10 +124,10 @@ module interface = {
 	if own(a) = excl {
 	    assume mem(nlt,a,d)
         };
-	own(a) := none; 
+	own(a) := none;
 	o := none
      }
-     
+
      macro release_check(a,nlt,d) = {
 	lt := *;
 	assume mem_clock(a,lt);
@@ -139,7 +139,7 @@ module interface = {
 	if own(a) = excl {
 	    assert mem(nlt,a,d)
         };
-	own(a) := none; 
+	own(a) := none;
 	o := none
      }
 
@@ -169,7 +169,7 @@ module interface = {
 	    local_clock := nlt
         };
         assert mem(nlt,a,d);
-	own(a) := o 
+	own(a) := o
      }
 
 
@@ -243,7 +243,7 @@ action step = {
           instantiate back_manager()
       }
   }
-  
+
 }
 
 # no two distinct active grant messages with same address
@@ -265,18 +265,18 @@ concept excl_front_back(A) = front:own(A) = excl * back:own(A) ~= excl
 # shared owned on fron side implies shared owned on back side
 concept shrd_front_back(A) = front:own(A) = shrd * back:own(A) ~= shrd
 # grant messages have correct data
-concept grant_data(A,M,L,D) = mrec(M) * msg(M):type_ = grant * msg(M):addr_(A) * msg(M):ltime_(L) * msg(M):data_(D) * ~mem(L,A,D) 
+concept grant_data(A,M,L,D) = mrec(M) * msg(M):type_ = grant * msg(M):addr_(A) * msg(M):ltime_(L) * msg(M):data_(D) * ~mem(L,A,D)
 # release messages have correct data
 concept release_data(A,M,L,D) = mrec(M) * msg(M):type_ = release * msg(M):addr_(A) * msg(M):ltime_(L) * msg(M):data_(D) * ~mem(L,A,D) * back:own(A) = excl
 # a grant message has the same clock as back side
-concept grant_clock_back(A,M,L1,L2) = mrec(M) * msg(M):type_ = grant * msg(M):addr_(A) * msg(M):ltime_(L1) * back:mem_clock(A,L2) * L1 ~= L2 
+concept grant_clock_back(A,M,L1,L2) = mrec(M) * msg(M):type_ = grant * msg(M):addr_(A) * msg(M):ltime_(L1) * back:mem_clock(A,L2) * L1 ~= L2
 # a grant message has the same clock >= front side
 concept grant_clock_front(A,M,L1,L2) = mrec(M) * msg(M):type_ = grant * msg(M):addr_(A) * msg(M):ltime_(L1) * front:mem_clock(A,L2) * ~lleq(L2,L1)
 # a release message has the same clock as front side
-concept release_clock_front(A,M,L1,L2) = mrec(M) * msg(M):type_ = release * msg(M):addr_(A) * msg(M):ltime_(L1) * front:mem_clock(A,L2) * L1 ~= L2 
+concept release_clock_front(A,M,L1,L2) = mrec(M) * msg(M):type_ = release * msg(M):addr_(A) * msg(M):ltime_(L1) * front:mem_clock(A,L2) * L1 ~= L2
 # a release message has the same clock >= front side
 concept release_clock_back(A,M,L1,L2) = mrec(M) * msg(M):type_ = release * msg(M):addr_(A) * msg(M):ltime_(L1) * back:mem_clock(A,L2) * ~lleq(L2,L1)
-# owned front has clock >= back 
+# owned front has clock >= back
 concept clock_front_back(A,L1,L2) = front:own(A) ~= none * front:mem_clock(A,L1) * back:mem_clock(A,L2) * ~lleq(L2,L1)
 # non-owned back has clock >= front
 concept clock_back_front(A,L1,L2) = back:own(A) = none * back:mem_clock(A,L1) * front:mem_clock(A,L2) * ~lleq(L2,L1)

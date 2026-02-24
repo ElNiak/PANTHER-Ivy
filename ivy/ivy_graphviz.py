@@ -162,9 +162,9 @@ class AGraph(object):
         return None
     def subgraphs(self):
         return self.g.get_subgraphs()
-    
 
-    
+
+
     def __str__(self):
         return str(self.g)
 
@@ -193,5 +193,3 @@ if __name__ == "__main__":
     print(g.get_node('1'))
     for sg in g.subgraphs():
         print(sg.graph_attr['bb'])
-
-

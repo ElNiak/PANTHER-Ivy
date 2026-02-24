@@ -72,5 +72,3 @@ with ivy_module.Module():
     ui.mark_node(ui.node(1))
     ui.cover_node(ui.node(2))
 #    ui.mainloop()
-
-

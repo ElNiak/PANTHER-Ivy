@@ -4,7 +4,7 @@ module array(domain,range) = {
 
     type this
     alias t = this
-    
+
 
     # return an empty array
 
@@ -17,11 +17,11 @@ module array(domain,range) = {
     action set(a:t,x:domain,y:range) returns (a:t)
 
     # get the value y such that x in [0,end) maps to y in array a
-    action get(a:t,x:domain) returns (y:range) 
+    action get(a:t,x:domain) returns (y:range)
 
     # get the value of end
     action size(a:t) returns (s:domain)
-    
+
     # change the size of the array
     action resize(a:t,s:domain,v:range) returns (a:t)
 
@@ -47,7 +47,7 @@ module array(domain,range) = {
     object spec = {
 	property end(X) >= 0
         property value(A,X,Y1) & value(A,X,Y2) -> Y1 = Y2
- 
+
 	after empty {
 	    assert end(a) = 0
 	}
@@ -59,7 +59,7 @@ module array(domain,range) = {
 	}
         before set {
 	    assert 0 <= x & x < end(a)
-	}	       	 
+	}
 	after set {
             assert end(a) = end(old a);
 	    assert value(a,x,Y) <-> Y = y;
@@ -117,14 +117,14 @@ module array(domain,range) = {
 
 	implement set {
 	    <<<
-	        if (0 <= `x` && `x` < (`domain`)`a`.size()) 
+	        if (0 <= `x` && `x` < (`domain`)`a`.size())
 	            `a`[`x`] = `y`;
 	    >>>
 	}
 
 	implement get {
 	    <<<
-	        if (0 <= `x` && `x` < (`domain`)`a`.size()) 
+	        if (0 <= `x` && `x` < (`domain`)`a`.size())
 	            `y` = `a`[`x`];
 	    >>>
 	}
@@ -165,7 +165,7 @@ module array(domain,range) = {
 	    template <>
 	    `t` _arg<`t`>(std::vector<ivy_value> &args, unsigned idx, int bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        `t` a;
 	        a.resize(arg.fields.size());

@@ -36,9 +36,9 @@ namespace ivy {
     // is the default value. The __hash method returns a hash of
     // the value of type size_t. We require that the hash of the default
     // value (i.e., 0) is always zero.
-    // 
+    //
     // The predicate __is_seq gives true for unsigned integer types.
-    
+
 
     // This struct implements the Ivy boolean type based on the native
     // C++ bool type. It provides the standard traits for Ivy values,
@@ -52,8 +52,8 @@ namespace ivy {
         native_bool (bool value) : value(value) {}
         native_bool(long long value) : value(value) {}
         native_bool(native_bool &&) = default;
-        native_bool &operator = (const native_bool &) = default; 
-        native_bool &operator = (native_bool &&) = default; 
+        native_bool &operator = (const native_bool &) = default;
+        native_bool &operator = (native_bool &&) = default;
         operator bool() const {
             return value;
         }
@@ -105,8 +105,8 @@ namespace ivy {
             return *this;
         }
         integer(integer &&) = default;
-        integer &operator = (const integer &) = default; 
-        integer &operator = (integer &&) = default; 
+        integer &operator = (const integer &) = default;
+        integer &operator = (integer &&) = default;
         operator std::size_t() const {
             return value;
         }
@@ -147,8 +147,8 @@ namespace ivy {
             return *this;
         }
         natural(natural &&) = default;
-        natural &operator = (const natural &) = default; 
-        natural &operator = (natural &&) = default; 
+        natural &operator = (const natural &) = default;
+        natural &operator = (natural &&) = default;
         operator std::size_t() const {
             return value;
         }
@@ -255,13 +255,13 @@ namespace ivy {
     // `data` by one to accomodate the new value. This allows the
     // vector to grow, provided values are appended sequentially. The
     // `resize` function produces a pure vector of the given size, even
-    // if argument function is represented sparsely. 
+    // if argument function is represented sparsely.
     //
     // Functions of more than one argument are represented by currying.
-    
-    
+
+
     template <class T, class ... RestD> struct vector;
-    
+
     // This specialization represents the base case: a function of
     // one argument.
 
@@ -279,8 +279,8 @@ namespace ivy {
         }
 
         vector(vector && other) = default;
-        vector &operator = (const vector &) = default; 
-        vector &operator = (vector &&) = default; 
+        vector &operator = (const vector &) = default;
+        vector &operator = (vector &&) = default;
 
         operator std::size_t() const {
             return 0;
@@ -301,7 +301,7 @@ namespace ivy {
             }
             return v.__is_zero();
         }
-        
+
         native_bool operator==(const vector &other) const {
             if (PrimaryD::__is_seq()) {
                 for (std::size_t idx = 0; idx < data.size(); ++idx) {
@@ -344,7 +344,7 @@ namespace ivy {
                     if (!PrimaryD::__is_seq() || ((std::size_t)idx) >= data.size())
                         if (!it->second.__is_zero()) return false;
                 }
-            }                        
+            }
             return true;
         }
 
@@ -366,11 +366,11 @@ namespace ivy {
                             res += h(it->second);
                         }
                     }
-                }                    
+                }
                 return res;
             }
         };
-        
+
         static T zero;  // apologies to Calvino
 
         const T& operator() (PrimaryD idx) const {
@@ -386,7 +386,7 @@ namespace ivy {
             }
             return zero;
         }
-        
+
         T& operator() (PrimaryD idx) {
             if (PrimaryD::__is_seq()) {
                 auto ptr = data.begin() + ((std::size_t)idx);
@@ -435,10 +435,10 @@ namespace ivy {
     };
 
     template<class T, class PrimaryD > T vector<T, PrimaryD>::zero;
-    
+
 
     // This specialization represents the recursive case: a function of more than
-    // one argument. 
+    // one argument.
 
     template<class T, class PrimaryD, class ... RestD > struct vector<T, PrimaryD, RestD...> {
         typedef PrimaryD index_type;
@@ -454,8 +454,8 @@ namespace ivy {
         }
 
         vector(vector &&) = default;
-        vector &operator = (const vector &) = default; 
-        vector &operator = (vector &&) = default; 
+        vector &operator = (const vector &) = default;
+        vector &operator = (vector &&) = default;
 
         operator std::size_t() const {
             return 0;
@@ -511,12 +511,12 @@ namespace ivy {
     template <typename T> struct native_int {
         T value;
         native_int() : value(0) {}
-        native_int(const native_int &) = default; 
+        native_int(const native_int &) = default;
         native_int(T value) : value(value) {}
         //        native_int(double value) : value(value) {}
-        native_int(native_int &&) = default; 
-        native_int &operator = (const native_int &) = default; 
-        native_int &operator = (native_int &&) = default; 
+        native_int(native_int &&) = default;
+        native_int &operator = (const native_int &) = default;
+        native_int &operator = (native_int &&) = default;
         operator std::size_t() const {
             return value;
         }
@@ -574,9 +574,9 @@ namespace ivy {
         native_unsigned() : value(0) {}
         native_unsigned(const native_unsigned&) = default;
         native_unsigned(long long value) : value(value) {}
-        native_unsigned(native_unsigned &&) = default; 
-        native_unsigned &operator = (const native_unsigned &) = default; 
-        native_unsigned &operator = (native_unsigned &&) = default; 
+        native_unsigned(native_unsigned &&) = default;
+        native_unsigned &operator = (const native_unsigned &) = default;
+        native_unsigned &operator = (native_unsigned &&) = default;
         operator std::size_t() const {
             return value;
         }
@@ -633,9 +633,9 @@ namespace ivy {
         native_enum(const native_enum&) = default;
         native_enum(long long value) : value((T)value) {}
         native_enum(T value) : value(value) {}
-        native_enum(native_enum &&) = default; 
-        native_enum &operator = (const native_enum &) = default; 
-        native_enum &operator = (native_enum &&) = default; 
+        native_enum(native_enum &&) = default;
+        native_enum &operator = (const native_enum &) = default;
+        native_enum &operator = (native_enum &&) = default;
         operator std::size_t() const {
             return (std::size_t)value;
         }
@@ -687,7 +687,7 @@ namespace ivy {
     // would be sufficient. Also, this and other Ivy classes should
     // have move constructors that would allow the compiler in some
     // cases to avoid the reference counting overhead.
-    
+
 
     template <class T> struct ptr {
 
@@ -718,9 +718,9 @@ namespace ivy {
 
             virtual wrap *clone() {return new twrap(item);}
 
-            virtual const T *get() const {return &item;} 
+            virtual const T *get() const {return &item;}
 
-            virtual T *get() {return &item;} 
+            virtual T *get() {return &item;}
 
             virtual std::size_t __hash() const {
                 return typename S::__hash()(item);
@@ -812,7 +812,7 @@ namespace ivy {
                 p->deref();
                 p = p->clone();
                 return p->get();
-            }   
+            }
         }
 
         ~ptr() {
@@ -867,7 +867,7 @@ namespace ivy {
     template <class T> const T* to_ptr (const T &x) {
         return &x;
     }
-    
+
     template <class T,class S> native_bool isa(const S& x) {
         return dynamic_cast<const T *>(&x);
     }
@@ -928,7 +928,7 @@ namespace ivy {
             ::close(fd);
         }
     }
-    
+
     template <class N, class D> static inline bool __write_file(const N &name, const D &data) {
         bool ok;
         std::string sname;
@@ -986,7 +986,7 @@ namespace ivy {
         x.value = v;
         return x;
     }
-    
+
     // Globals to hold the arguments to main
 
     int __argc;
@@ -994,7 +994,7 @@ namespace ivy {
 
     template <class N, class D> static inline void get_argv(const N &idx, D &data) {
         const char* p = __argv[(std::size_t)idx];
-        for (; *p; ++p) 
+        for (; *p; ++p)
             data.append(*p);
     }
     static inline int get_argc() {
@@ -1040,7 +1040,7 @@ namespace ivy {
 
     // Conversion of native numeric types to string types. The result
     // type must have array traits.
-    
+
     template <class T,class U> static inline void num_to_str(const native_int<T> &f, U &a) {
         std::ostringstream s;
         s << f.value;
@@ -1050,4 +1050,3 @@ namespace ivy {
     }
 
 }
-

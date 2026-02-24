@@ -1,7 +1,7 @@
 #lang ivy1.7
 
 object obj1 = {
-    relation r1    
+    relation r1
     action a
 
     specification {
@@ -12,7 +12,7 @@ object obj1 = {
 
     implementation {
         relation r2
-        definition r1 = r2        
+        definition r1 = r2
         implement a {
             r2 := true;
         }

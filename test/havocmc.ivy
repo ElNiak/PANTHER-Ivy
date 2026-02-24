@@ -15,7 +15,7 @@ action a = {
 
 invariant x = y
 proof let X = y
- 
+
 export a
 
 schema trans1 = {
@@ -36,4 +36,3 @@ schema contra = {
     function x : t
     property Y ~= X -> ~(x = X & x = Y)
 }
-

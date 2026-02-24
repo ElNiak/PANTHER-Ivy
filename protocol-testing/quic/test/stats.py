@@ -1,7 +1,7 @@
 import ivy.ivy_ev_parser as ev
 import ivy.ivy_utils as iu
 import os
-import sys 
+import sys
 
 
 counts = [
@@ -10,28 +10,28 @@ counts = [
     ['frame.crypto','frame.crypto.handle'],
     ['frame.rst_stream','frame.rst_stream.handle'],
     ['frame.connection_close','frame.connection_close.handle'],
-    
+
     ['packet_event','packet_event'],
     ['packet_event_retry','packet_event_retry'],
     ['packet_event_vn','packet_event_vn'],
     ['packet_event_0rtt','packet_event_0rtt'],
     ['packet_event_coal_0rtt','packet_event_coal_0rtt'],
-    
+
     ['recv_packet','recv_packet'],
     ['recv_packet_retry','recv_packet_retry'],
     ['recv_packet_vn','recv_packet_vn'],
     ['recv_packet_0rtt','recv_packet_0rtt'],
     ['undecryptable_packet_event','undecryptable_packet_event'],
-    
+
     ['app_send_event','app_send_event'],
     ['tls_recv_event','tls_recv_event'],
-    
+
     ['max stream offset','frame.stream.handle({offset:$1})','maxz','%($1)s'],
     ['max stream data','frame.stream.handle({offset:$1,length:$2})','maxz','%($1)s + %($2)s'],
-    
+
     ['ivy error','ivy_return_code'],
     ['server error','server_return_code'],
-    
+
     ['server_ack','show_frame(*,*,*,*,{frame.ack:*})'],
     ['server_stream','show_frame(*,*,*,*,{frame.stream:*})'],
 ]
@@ -85,8 +85,7 @@ def main():
         exit(1)
     fbase = sys.argv[1]
     doit(fbase,sys.stdout)
-    
-    
+
+
 if __name__ == '__main__':
     main()
-

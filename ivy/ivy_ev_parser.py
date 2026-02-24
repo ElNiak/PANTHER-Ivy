@@ -13,7 +13,7 @@ class Events(list):
         list.__init__(self,args)
     def __str__(self):
         return ' '.join(map(str,self))
-    
+
 class Event(object):
     def __init__(self,rep,args,children):
         self.rep,self.args,self.children = rep,args,children
@@ -57,7 +57,7 @@ class Symbol(object):
     def __init__(self,name):
         self.name = name
     def __str__(self):
-        return self.name    
+        return self.name
     def text(self):
         return self.name
     @property
@@ -74,7 +74,7 @@ class Symbol(object):
         return False
     def map(self,fun):
         return fun(self.name)
-    
+
 class App(object):
     def __init__(self,rep,args):
         self.rep,self.args = rep,args
@@ -123,7 +123,7 @@ class DictEntry(object):
     @property
     def subs(self):
         return self.value.subs
-        
+
 
 class DictValue(dict):
     def __init__(self,*args):
@@ -352,7 +352,7 @@ def p_value_lbr_list_rbr(p):
 def p_dict_symbol_colon_value(p):
     'dict : SYMBOL COLON value'
     p[0] = DictValue((p[1],p[3]))
-    
+
 def p_dict_dict_comma_key_colon_value(p):
     'dict : dict COMMA SYMBOL COLON value'
     p[0] = p[1]
@@ -374,7 +374,7 @@ def p_optargs_lp_args_rp(p):
     'optargs : LPAREN list RPAREN'
     p[0] = p[2]
 
-    
+
 class ParseError(Exception):
     def __init__(self,lineno,token,message):
 #        print "initializing"
@@ -411,7 +411,7 @@ def parse(s):
         print(error_list)
         raise iu.ErrorList(error_list)
     return res
-    
+
 
 # Build the parser
 import os
@@ -438,6 +438,3 @@ if __name__ == '__main__':
        pats = parser.parse(patstring)
        for e,b in bind(EventGen()(result),pats):
            print('event: {} binding: {}'.format(e,list((n,str(v)) for n,v in b.items())))
-           
-           
-

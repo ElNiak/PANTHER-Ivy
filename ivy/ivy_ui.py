@@ -51,7 +51,7 @@ class AnalysisGraphUI(object):
 
     # get the mode variable
 
-    @property 
+    @property
     def mode(self):
         return self.radiobutton('mode')
 
@@ -71,7 +71,7 @@ class AnalysisGraphUI(object):
                     else ivy_alpha.predicate_alpha if self.mode.get() == "pdr"
                     else top_alpha)
         return top_alpha
-        
+
 
     # Save the current arg and maybe concept graph in a file
 
@@ -89,7 +89,7 @@ class AnalysisGraphUI(object):
             for concept in self.g.domain.concept_spaces:
                 f.write('concept ' + repr(concept[0]) + ' = ' + repr(concept[1]) + '\n')
             f.close()
-    
+
     # Get the display color of an ARG node. Used by UI.
 
     def node_color(self,node):
@@ -234,7 +234,7 @@ class AnalysisGraphUI(object):
         self.view_state(s,reset=True)
         self.rebuild()
 
-        
+
     # Evaluate an action at a node
 
     def execute_action(self,n,a):
@@ -300,7 +300,7 @@ class AnalysisGraphUI(object):
         with self.ui_parent.run_context():
             self.g.recalculate_state(state,self.get_alpha())
         self.rebuild()
-        
+
     # Return a concrete reachability graph with all the known
     # reachable states
 
@@ -365,7 +365,7 @@ class AnalysisGraphUI(object):
                 bcs.append(("View concrete trace",functools.partial(self.view_concrete_trace,node.safe.state,node.safe.conc)))
             msg = "The node is not proved safe: {}".format(node.safe.msg)
             self.ui_parent.buttons_dialog_cancel(msg,bcs)
-        
+
     # Check safety of a node using the current mode.
 
     def check_safety_node(self,node):
@@ -378,7 +378,7 @@ class AnalysisGraphUI(object):
 
     def view_ag(self,res):
         self.ui_parent.add(res)
-            
+
     # Find an action that can extend the ARG at the given node,
     # without being covered. This is a useful operation for lazy
     # abstraction.
@@ -390,7 +390,7 @@ class AnalysisGraphUI(object):
                 self.do_state_action(a)
         except StopIteration:
             self.ui_parent.ok_dialog("State {} is closed.".format(node.id))
-            
+
 
     # Set up to prove a conjecture at the given node. If no conjecture
     # is given, display a list of not-yet-proven conjectures for the
@@ -417,7 +417,7 @@ class AnalysisGraphUI(object):
                 self.show_graph(sg)
 
     # Set up to prove a remembered subgoal. If no goal is given, display a list
-    # of remembered subgoals for the user. 
+    # of remembered subgoals for the user.
 
     def try_remembered_graph(self,node, goal=None):
         if not hasattr(self,'remembered_graphs'):
@@ -619,4 +619,3 @@ if __name__ == '__main__':
     ag.execute("t.n := y")
     ag.execute("y := t")
     ag.display()
-

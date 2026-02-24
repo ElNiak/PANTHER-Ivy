@@ -98,7 +98,7 @@ object trans = {
 
     relation pending(V:id.t, N:node.t) # The identity V is pending at node N
     init ~pending(V, N)
-    
+
     action send(dst:node.t, v:id.t)
     action recv(dst:node.t, v:id.t)
 
@@ -172,4 +172,3 @@ export app.send
 export trans.recv
 
 isolate iso_app = app with node,id,trans,serv
-

@@ -14,4 +14,3 @@ def run(name,opts,res):
         return False
     finally:
         child.close()
-        

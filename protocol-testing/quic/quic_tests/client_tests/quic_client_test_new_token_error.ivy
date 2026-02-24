@@ -18,7 +18,7 @@ include ivy_quic_server_standard_tp
 
 before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid) {
     if _generating {
-        require client.ep.addr ~= 0;         
+        require client.ep.addr ~= 0;
         require scid = the_cid;
     } else {
         require is_frame_encoding_error
@@ -73,8 +73,6 @@ export frame.new_token.handle
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require is_frame_encoding_error;
 }
-
-

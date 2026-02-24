@@ -11,15 +11,14 @@ object datagram = {
     # Normal behavior
 
     action handle(src:ip.endpoint,dst:ip.endpoint,dtg:this) = {
-        require false; 
+        require false;
     }
 
 ###### White noise
-    
+
     # 1. Denial-of-Service (DoS) Attacks
 
     action flood(src:ip.endpoint,dst:ip.endpoint,dtg:this) = {
-        require false; 
+        require false;
     }
 }
-

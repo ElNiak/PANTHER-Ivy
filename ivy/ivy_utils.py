@@ -101,7 +101,7 @@ def union_of_list(sets):
     for s in sets:
         res.update(s)
     return res
-    
+
 
 def union_to_list(to_list,from_list):
     used = set(to_list)
@@ -115,7 +115,7 @@ def list_union(l1,l2):
 def list_diff(l1,l2):
     """ Return set difference l1\l2. Assumes l1 and l2 are generators
     of hashable things """
-    sl2 = set(l2) 
+    sl2 = set(l2)
     return [s for s in l1 if s not in sl2]
 
 def distinct_unordered_pairs(l):
@@ -313,7 +313,7 @@ def warn(ast,msg):
     print(str(IvyError(ast,msg)).replace('error: ','warning: '))
 
 # This module provides a generic parameter mechanism similar to
-# "parameterize" in racket. 
+# "parameterize" in racket.
 #
 # A parameter is an object with set and get methods. Modules register
 # their parameters with string names, like this:
@@ -349,7 +349,7 @@ registry = dict()
 
 class Parameter(object):
     """ A named object holding a value that can be set temporarily by
-    "parameterize". 
+    "parameterize".
 
     >>> foo = Parameter("foo",True)
     >>> print foo.get()
@@ -400,7 +400,7 @@ class EnumeratedParameter(Parameter):
         Parameter.__init__(self,key,init_val,
                            check = lambda s, vals=vals: (s in vals),
                            process = lambda s: s)
-    
+
 
 
 def set_parameters(values):
@@ -576,7 +576,7 @@ def set_string_version(version):
     ivy_have_polymorphism = not get_numeric_version() <= [1,2]
     ivy_use_polymorphic_macros = not get_numeric_version() <= [1,5]
     ivy_forbid_ghost_init = not get_numeric_version() <= [1,6]
-    
+
 def get_string_version():
     return ivy_language_version
 
@@ -588,7 +588,7 @@ def get_numeric_version():
 
 def version_le(v1,v2):
     return string_version_to_numeric_version(v1) <= string_version_to_numeric_version(v2)
- 
+
 inc_dir_pat = re.compile(r'[0-9]*\.[0-9]*')
 
 def get_std_include_dir():
@@ -608,7 +608,7 @@ def compose_names(*names):
         return ivy_compose_character.join(names[1:])
     return ivy_compose_character.join(names)
 
-    
+
 def skip_symbol(name,pos):
     match = symbol_chars_parser.match(name,pos)
     assert match
@@ -643,7 +643,7 @@ def split_name(name):
             assert False,(name,pos)
     res.append(name[old:pos])
     return res
-            
+
 def base_name(name):
     return split_name(name)[0]
 
@@ -675,7 +675,7 @@ def extract_parameters_name(name):
     return (name,[])
 
 def add_params_name(name,parms):
-    return name + ''.join(('[' + p + ']') for p in parms) 
+    return name + ''.join(('[' + p + ']') for p in parms)
 
 def pretty(s,max_lines=None):
     lines = s.replace(';',';\n').replace('{','{\n').replace('}','\n}').split('\n')
@@ -729,7 +729,7 @@ def get_default_ui_module():
     prefix = ''.join(x + '.' for x in __name__.split('.')[:-1])
     module = __import__(prefix+defui)
     return module.__dict__[defui] if prefix else module
-    
+
 def get_default_ui_class():
     mod = get_default_ui_module()
     return mod.IvyUI
@@ -737,7 +737,7 @@ def get_default_ui_class():
 def get_default_ui_compile_kwargs():
     mod = get_default_ui_module()
     return mod.compile_kwargs
-    
+
 
 enable_debug = BooleanParameter("debug",False)
 

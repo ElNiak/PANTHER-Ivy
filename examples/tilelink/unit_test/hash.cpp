@@ -2,7 +2,7 @@
 Copyright (c) Microsoft Corporation
 
 This string hash function is borrowed from Microsoft Z3
-(https://github.com/Z3Prover/z3). 
+(https://github.com/Z3Prover/z3).
 
 --*/
 
@@ -47,38 +47,38 @@ unsigned string_hash(const char * str, unsigned length, unsigned init_value) {
     /*------------------------------------- handle the last 11 bytes */
     c += length;
     switch(len) {        /* all the case statements fall through */
-    case 11: 
+    case 11:
         c+=((unsigned)str[10]<<24);
         __fallthrough;
-    case 10: 
+    case 10:
         c+=((unsigned)str[9]<<16);
         __fallthrough;
-    case 9 : 
+    case 9 :
         c+=((unsigned)str[8]<<8);
         __fallthrough;
         /* the first byte of c is reserved for the length */
-    case 8 : 
+    case 8 :
         b+=((unsigned)str[7]<<24);
         __fallthrough;
-    case 7 : 
+    case 7 :
         b+=((unsigned)str[6]<<16);
         __fallthrough;
-    case 6 : 
+    case 6 :
         b+=((unsigned)str[5]<<8);
         __fallthrough;
-    case 5 : 
+    case 5 :
         b+=str[4];
         __fallthrough;
-    case 4 : 
+    case 4 :
         a+=((unsigned)str[3]<<24);
         __fallthrough;
-    case 3 : 
+    case 3 :
         a+=((unsigned)str[2]<<16);
         __fallthrough;
-    case 2 : 
+    case 2 :
         a+=((unsigned)str[1]<<8);
         __fallthrough;
-    case 1 : 
+    case 1 :
         a+=str[0];
         __fallthrough;
         /* case 0: nothing left to add */

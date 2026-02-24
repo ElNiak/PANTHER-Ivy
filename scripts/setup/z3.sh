@@ -37,4 +37,3 @@ case $1 in
     *)
         echo "usage: $self env|build"
 esac
-

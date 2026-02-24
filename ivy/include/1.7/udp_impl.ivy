@@ -19,7 +19,7 @@ module udp_impl(host,pkt,ser,des) = {
     type socket
 
 
-    
+
 # This code goes in the C++ header file, ahead of the ivy object declaration.
 # Here, we put declarations (perhaps forward) of any auxiliary classes we need).
 # We need to be careful that the names of these don't clash with other modules.
@@ -58,7 +58,7 @@ module udp_impl(host,pkt,ser,des) = {
 >>>
 
 # This code goes in the C++ implementation file. Here, we put implementations of
-# the classes declared in the header, and auxiliary functions. 
+# the classes declared in the header, and auxiliary functions.
 
 <<< impl
 
@@ -67,17 +67,17 @@ module udp_impl(host,pkt,ser,des) = {
 	bool eavesdrop = false;
 
 	// Function to calculate the checksum
-	unsigned short checksum(void* b, int len) {    
-		unsigned short* buf = (unsigned short*) b;    
-		unsigned int sum = 0;    
-		unsigned short result;    
-		for (sum = 0; len > 1; len -= 2)        
-			sum += *buf++;    
-		if (len == 1)        
-			sum += *(unsigned char*) buf;    
-		sum = (sum >> 16) + (sum & 0xFFFF);    
-		sum += (sum >> 16);    
-		result = ~sum;    
+	unsigned short checksum(void* b, int len) {
+		unsigned short* buf = (unsigned short*) b;
+		unsigned int sum = 0;
+		unsigned short result;
+		for (sum = 0; len > 1; len -= 2)
+			sum += *buf++;
+		if (len == 1)
+			sum += *(unsigned char*) buf;
+		sum = (sum >> 16) + (sum & 0xFFFF);
+		sum += (sum >> 16);
+		result = ~sum;
 		return result;
 	}
 
@@ -87,7 +87,7 @@ module udp_impl(host,pkt,ser,des) = {
             { std::cerr << "cannot create socket\n"; exit(1); }
         return sock;
     }
-    
+
 
     // This structure holds all the callbacks for the endpoint. These are function objects
     // that are called asynchronously.
@@ -113,7 +113,7 @@ module udp_impl(host,pkt,ser,des) = {
       public:
 
         udp_task(`host` my_id, int sock, const udp_callbacks &cb, ivy_class *ivy)
-          : my_id(my_id), sock(sock), cb(cb), ivy(ivy) {} 
+          : my_id(my_id), sock(sock), cb(cb), ivy(ivy) {}
 
         virtual int fdes() {
             return sock;
@@ -151,16 +151,16 @@ module udp_impl(host,pkt,ser,des) = {
 			int bytes;
 			sockaddr_in srcaddr;
 			socklen_t addrlen = sizeof(srcaddr);
-			
+
 			std::cerr << "DEBUG: About to call recvfrom on sock=" << sock << ", buf_size=" << len << std::endl;
-			
+
 			if ((bytes = recvfrom(sock,&buf[0],len,0,(sockaddr *)&srcaddr,&addrlen)) < 0)
-			{ 
+			{
 				std::cerr << "ERROR: recvfrom failed for sock=" << sock << ", errno=" << errno << std::endl;
-				perror("recvfrom failed"); 
-				exit(1); 
+				perror("recvfrom failed");
+				exit(1);
 			}
-			
+
 			std::cerr << "DEBUG: recvfrom success, received " << bytes << " bytes" << std::endl;
 			std::cerr << "RECEIVING srcaddr: " << inet_ntoa(srcaddr.sin_addr) << std::endl;
 			std::cerr << "RECEIVING srcport: " << ntohs(srcaddr.sin_port) << std::endl;
@@ -172,19 +172,19 @@ module udp_impl(host,pkt,ser,des) = {
 
 			if(eavesdrop) {
 				std::cerr << "DEBUG: Eavesdrop mode enabled, processing packet of " << bytes << " bytes" << std::endl;
-				
+
 				// Validate packet size before processing headers
 				if (bytes < (int)(sizeof(struct ethhdr) + sizeof(struct iphdr))) {
-					std::cerr << "ERROR: Packet too small for headers, bytes=" << bytes 
+					std::cerr << "ERROR: Packet too small for headers, bytes=" << bytes
 					          << ", min_required=" << (sizeof(struct ethhdr) + sizeof(struct iphdr)) << std::endl;
 					return;
 				}
-				
+
 				// Process the packet
 				struct ethhdr *eth_hdr = (struct ethhdr *)(&buf[0]);
 				struct iphdr *ip_hdr = (struct iphdr *)(&buf[0] + sizeof(struct ethhdr));
-				
-				std::cerr << "DEBUG: Processing IP packet, protocol=" << (int)ip_hdr->protocol 
+
+				std::cerr << "DEBUG: Processing IP packet, protocol=" << (int)ip_hdr->protocol
 				          << ", ihl=" << (int)ip_hdr->ihl << std::endl;
 
 				// Check if the packet is TCP or UDP
@@ -258,7 +258,7 @@ module udp_impl(host,pkt,ser,des) = {
 					cb.rcb(sock, src, pkt);
 					ivy->__unlock();
 					std::cerr << "RECEIVING finsh\n";
-				} 
+				}
 				else if (ip_hdr->protocol == IPPROTO_UDP) {
 					struct udphdr *udp_hdr = (struct udphdr *)(&buf[0] + sizeof(struct ethhdr) + ip_hdr->ihl * 4);
 					char *udp_payload = (char *)(&buf[0] + sizeof(struct ethhdr) + ip_hdr->ihl * 4 + sizeof(struct udphdr));
@@ -329,7 +329,7 @@ module udp_impl(host,pkt,ser,des) = {
 						src.interface = `ip.ivy`; // TODO
 					}
 					src.port = ntohs(udp_hdr->source);
-					
+
 					ivy->__lock();
 					cb.rcb(sock, src, pkt);
 					ivy->__unlock();
@@ -341,30 +341,30 @@ module udp_impl(host,pkt,ser,des) = {
 				}
 			} else {
 				std::cerr << "DEBUG: Standard UDP processing mode, bytes=" << bytes << std::endl;
-				
+
 				// Validate bytes before resizing
 				if (bytes < 0) {
 					std::cerr << "ERROR: Invalid byte count: " << bytes << std::endl;
 					return;
 				}
-				
+
 				buf.resize(bytes);
 				`pkt` pkt;
 				std::cerr << "RECEIVING __deser\n";
 				std::cerr << "DEBUG: About to deserialize packet, buf.size()=" << buf.size() << std::endl;
-				
+
 				try {
 					`des` ds(buf);
 					std::cerr << "DEBUG: Created deserializer, about to call __deser" << std::endl;
 					__deser(ds,pkt);
 					std::cerr << "DEBUG: Deserialization complete, ds.pos=" << ds.pos << ", buf.size()=" << buf.size() << std::endl;
-					
+
 					if (ds.pos < buf.size()) {
-						//std::cerr << pkt << std::endl; 
-						//std::cerr << ds << std::endl; 
-						std::cerr << "ERROR: Incomplete deserialization - buf.size()=" << buf.size() 
-						          << ", ds.pos=" << ds.pos << std::endl; 
-						std::cerr << "udp impl" << std::endl; 
+						//std::cerr << pkt << std::endl;
+						//std::cerr << ds << std::endl;
+						std::cerr << "ERROR: Incomplete deserialization - buf.size()=" << buf.size()
+						          << ", ds.pos=" << ds.pos << std::endl;
+						std::cerr << "udp impl" << std::endl;
 						throw deser_err();
 					}
 				} catch (deser_err &e){
@@ -391,14 +391,14 @@ module udp_impl(host,pkt,ser,des) = {
 					src.interface = `ip.lo`; //TODO
 				}
 				src.port = ntohs(srcaddr.sin_port);
-				
+
 				std::cerr << "DEBUG: About to acquire ivy lock and call callback" << std::endl;
-				std::cerr << "DEBUG: Callback data - sock=" << sock << ", src.addr=" << src.addr 
+				std::cerr << "DEBUG: Callback data - sock=" << sock << ", src.addr=" << src.addr
 				          << ", src.port=" << src.port << std::endl;
-				          
+
 				ivy->__lock();
 				std::cerr << "DEBUG: Ivy lock acquired, calling cb.rcb" << std::endl;
-				
+
 				try {
 					cb.rcb(sock,src,pkt);
 					std::cerr << "DEBUG: cb.rcb completed successfully" << std::endl;
@@ -407,7 +407,7 @@ module udp_impl(host,pkt,ser,des) = {
 				} catch (...) {
 					std::cerr << "ERROR: Unknown exception in cb.rcb" << std::endl;
 				}
-				
+
 				ivy->__unlock();
 				std::cerr << "DEBUG: Ivy lock released" << std::endl;
 				std::cerr << "RECEIVING finish\n";
@@ -502,25 +502,25 @@ object impl(me:host) = {
 				if (setsockopt(s, SOL_SOCKET, SO_BINDTODEVICE, dev, strlen(dev)) < 0) {
 					perror("setsockopt: bind to device");
 					exit(EXIT_FAILURE);
-				} 
+				}
 				//TODO comment for shadow
 				struct sockaddr_in v_src = {};
 				v_src.sin_addr.s_addr = htonl(addr.addr); // TODO reversorder
 				//inet_pton(AF_INET, htonl(addr.addr), &v_src.sin_addr.s_addr);
 				v_src.sin_port = htons(addr.port);
 				v_src.sin_family = AF_INET;
-				
+
 				int error = 0;
 				if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &error, sizeof(int)) < 0 || setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &error, sizeof(int)) < 0)
 					perror("setsockopt(SO_REUSEADDR) failed");
-			
+
 				if (bind(s, (struct sockaddr*) &v_src, sizeof(struct sockaddr_in)) != 0) {
 					char s[100];
 					sprintf(s, "bind to addr %u", htonl(addr.addr));
 					perror(s);
 					exit(EXIT_FAILURE);
 				}
-			} 
+			}
 			else {
 				std::cerr << "SOCKET " << s << std::endl;
 				struct sockaddr_in myaddr;
@@ -539,7 +539,7 @@ object impl(me:host) = {
 				std::cerr << "binding client id: " << `me` << " addr: " << ntohl(myaddr.sin_addr.s_addr) << " port: " << ntohs(myaddr.sin_port) << std::endl;
 				if (::bind(s, (struct sockaddr *)&myaddr, sizeof(myaddr)) != 0)
 					{ perror("bind failed"); exit(1); }
-				
+
 				len = sizeof(sin);
 				if (::getsockname(s, (struct sockaddr *)&sin, &len) == -1)
 					perror("getsockname");
@@ -551,10 +551,10 @@ object impl(me:host) = {
 		}
 
 		action eavesdrop(dst:ip.endpoint) returns (s:socket) = {
-			<<< impure 
+			<<< impure
 			char *dev = strdup("lo"); //TODO
 			int port;
-			
+
 			// Adjust interface name based on your needs
 			if (dst.interface == `ip.ivy`) {
 				dev = strdup("ivy");
@@ -604,7 +604,7 @@ object impl(me:host) = {
 				perror("setsockopt(SO_REUSEADDR) failed");
 			}
 
-			/* 
+			/*
 			struct sockaddr_in v_dst = {};
 			v_dst.sin_addr.s_addr = htonl(INADDR_ANY); // Bind to any address
 			v_dst.sin_port = htons(port); // Specify port if needed
@@ -631,7 +631,7 @@ object impl(me:host) = {
 				bool free = false;
 				char opt;
 				int port;
-				
+
 				if (dst.interface == `ip.ivy`) {
 					dev = strdup("ivy");
 				}
@@ -664,23 +664,23 @@ object impl(me:host) = {
 					perror(s);
 					exit(EXIT_FAILURE);
 				}
-				
+
 				int error = 0;
 				if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR,  &error, sizeof(int)) < 0 || setsockopt(s, SOL_SOCKET, SO_REUSEPORT,  &error, sizeof(int)) < 0)
 					perror("setsockopt(SO_REUSEADDR) failed");
-				
+
 				struct sockaddr_in v_dst = {};
 				v_dst.sin_addr.s_addr = htonl(dst.addr);
 				v_dst.sin_port = htons(dst.port);
 				v_dst.sin_family = AF_INET;
-				
+
 				if (bind(s, (struct sockaddr*) &v_dst, sizeof(struct sockaddr_in)) != 0) {
 						char s[100];
 						sprintf(s, "bind to addr %u", htonl(dst.addr));
 						perror(s);
 					exit(EXIT_FAILURE);
 				}
-				
+
 
 				install_reader(new udp_reader(`me`,s, *`cb`, this));
 
@@ -699,7 +699,7 @@ object impl(me:host) = {
 
 			// We don't want to close a socket when there is another thread
 			// waiting, because the other thread won't know what to do with the
-			// error. 
+			// error.
 
 			// Instead we shut down the socket and let the other thread close it.
 			// If there is a reader thread, it will see EOF and close the socket. If there is
@@ -707,7 +707,7 @@ object impl(me:host) = {
 			// send queue. If the queue is already closed, closing it has no effect.
 
 			// invariant: if a socket is open there is a reader thread or
-			// an open writer thread, but not both. 
+			// an open writer thread, but not both.
 
 			// Because of this invariant, the socket will be closed exactly once.
 
@@ -730,7 +730,7 @@ object impl(me:host) = {
         s := impl.eavesdrop(me,addr)
     }
 
-    # send transmits a packet synchronously.  
+    # send transmits a packet synchronously.
 	action send(me:host,s:socket,dst:ip.endpoint,x:pkt) = {
 		<<< impure
 		struct sockaddr_in dstaddr;
@@ -885,7 +885,7 @@ object impl(me:host) = {
 
 			// Set socket option to include the IP header
 			/*
-			int one = 1; // important enable to change ip header 
+			int one = 1; // important enable to change ip header
 			const int *val = &one;
 			if (::setsockopt(raw_sock, IPPROTO_IP, IP_HDRINCL, &one, sizeof(one)) < 0) {
 				perror("setsockopt failed");
@@ -910,13 +910,13 @@ object impl(me:host) = {
 			}
 
 			// Send the packet using raw socket
-			if (::sendto(raw_sock, &packet[0], packet.size(), 0, (struct sockaddr *)&dstaddr, sizeof(dstaddr)) < 0) 
+			if (::sendto(raw_sock, &packet[0], packet.size(), 0, (struct sockaddr *)&dstaddr, sizeof(dstaddr)) < 0)
 		#ifdef _WIN32
 					{ std::cerr << "sendto failed " << WSAGetLastError() << "\n"; exit(1); }
 		#else
 					{ perror("sendto failed"); exit(1); }
 		#endif
-			
+
 				int error = 0;
 				socklen_t lsen = sizeof(error);
 				int retval = ::getsockopt(raw_sock, SOL_SOCKET, SO_ERROR, &error, &lsen);

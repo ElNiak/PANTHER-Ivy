@@ -43,7 +43,7 @@ def triple_to_goal(lineno,name,action,precond=[],postcond=[]):
     return vc_to_goal(lineno,name,vc,action)
 
 pf.register_tactic('vcgen',vcgen)
-    
+
 def skolemize(self,decls,proof):
     goal = decls[0]
     goal = pr.skolemize_goal(goal)
@@ -73,7 +73,7 @@ def tempind_fmla(fmla,cond,params,vs=[]):
         whencond = lg.Not(lg.ForAll(vs,fmla.body))
         return lg.ForAll(vs+params,lg.Or(gbly,lg.WhenOperator("next",body,whencond)))
     return lg.ForAll(vs,fmla) if vs else fmla
-        
+
 def apply_tempind(goal,proof):
     if proof.tactic_decls:
         raise iu.IvyError(proof,'tactic does not take declarations')
@@ -91,12 +91,12 @@ def apply_tempind(goal,proof):
     else:
         fmla = tempind_fmla(conc,cond,params)
     return pr.clone_goal(goal,pr.goal_prems(goal),fmla)
-    
+
 def tempind(self,decls,proof):
     goal = decls[0]
     goal = apply_tempind(goal,proof)
     return [goal] + decls[1:]
-    
+
 pf.register_tactic('tempind',tempind)
 
 def tempcase_fmla(fmla,cond,vs,proof):
@@ -127,12 +127,12 @@ def apply_tempcase(goal,proof):
         fmla = tempcase_fmla(conc,cond,vs,proof)
     subgoal = pr.clone_goal(goal,pr.goal_prems(goal),fmla)
     return subgoal
-    
+
 def tempcase(self,decls,proof):
     goal = decls[0]
     goal = apply_tempcase(goal,proof)
     return [goal] + decls[1:]
-    
+
 pf.register_tactic('tempcase',tempcase)
 
 used_sorry = False
@@ -255,7 +255,7 @@ def flatten_expr(expr,syms,pref='',xargs=[]):
     except KeyError:
         print ('expr: {}'.format(expr))
         raise KeyError('')
-    
+
 def flatten_expr_simp(expr,sysms):
     return flatten_expr(expr,sysms)['']
 
@@ -264,7 +264,7 @@ def flatten_expr_list(exprs,syms):
     for expr in exprs:
         res.extend(flatten_expr(expr,syms).values())
     return res
-        
+
 class SaveSyms(object):
     def __init__(self,syms,newsyms):
         self.saved = [x for x in newsyms if x in syms]
@@ -275,7 +275,7 @@ class SaveSyms(object):
         for x in self.newsyms:
             self.syms.remove(x)
         self.syms.update(self.saved)
-        
+
 
 def flatten_action(act,syms):
     if isinstance(act,ia.AssignAction):
@@ -317,7 +317,7 @@ def flatten_binding(bnd,syms):
     bnd = tm.ActionTermBinding(bnd.name,actt)
     return bnd
 
-    
+
 def macro_expand(self,decls,proof):
     goal = decls[0]
     prems = pr.goal_prems(goal)
@@ -353,7 +353,7 @@ def macro_expand_expr(expr,defns):
             subst = dict(zip(defn.lhs().args,args))
             return lu.substitute(rhs,subst)
     return expr.clone(args)
-            
+
 def macro_expand_action(act,defns):
     args = []
     for arg in act.args:

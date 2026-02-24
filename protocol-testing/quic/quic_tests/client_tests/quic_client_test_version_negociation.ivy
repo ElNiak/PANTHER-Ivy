@@ -40,7 +40,7 @@ action make_transport_parameters returns (tp:quic_transport_parameters) = {
     var imsib : initial_max_stream_id_bidi;
     imsib.stream_id_16 := initial_max_streams_bidi;
     tp.transport_parameters := tp.transport_parameters.append(imsib);
-    
+
     #if client_non_zero_scil {
     var icid : initial_source_connection_id; #update v29
     icid.scid := the_cid;
@@ -65,12 +65,12 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
         require client.ep.addr ~= 0;  # must have a client address to send to
         require src = server.ep;
         require dst = client.ep;
-        
+
         require pkt.token.end = 0; # [1]
         require connected(pkt.src_cid);
     	require pkt.long -> pkt.pversion = initial_version;  #version 29
 	    call show_version(initial_version);
-    } 
+    }
     else {
         if pkt.ptype = quic_packet_type.initial {
             server_scid := pkt.src_cid;
@@ -87,7 +87,7 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
 
 before packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_vn) {
     if _generating {
-        #require initial_version ~= 0x00000001; 
+        #require initial_version ~= 0x00000001;
         require negocation_of_version(dst);
         require client.ep.addr ~= 0;  # must have a client address to send to
         require src = server.ep;
@@ -98,14 +98,14 @@ before packet_event_vn(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_vn) {
         pkt.supported_version := supported_versions_bv;
         #pkt.supported_version := versions_bv.empty;
         #pkt.supported_version := pkt.supported_version.append(0x00000001);
-    } 
+    }
 }
 
 # Generate connection_close frames only for the client.
 
 before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid) {
     if _generating {
-        require client.ep.addr ~= 0;         
+        require client.ep.addr ~= 0;
         require scid = the_cid;
     } else {
         require is_no_error;
@@ -192,8 +192,6 @@ before frame.max_data.handle(f:frame.max_data,scid:cid,dcid:cid,e:quic_packet_ty
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require conn_total_data(the_cid) > 0;
 }
-
-

@@ -9,10 +9,10 @@ env:
   PROTOCOL_TESTED: "quic"
   INITIAL_VERSION: "1"
 parameters:
-  tests_dir: 
+  tests_dir:
     value: "quic_tests/"
     description: "Directory where the Ivy QUIC tests are stored (default: quic_tests/)"
-  seed: 
+  seed:
     value: 0
     description: "Seed for the random generator (default: 0)"
   the_cid:
@@ -147,5 +147,3 @@ client:
     quic_server_test_connection_close:
       enabled: False
       description: "Test QUIC server connection close"
-
-

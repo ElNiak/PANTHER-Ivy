@@ -92,7 +92,7 @@ after init {
 
 after init {
     multiple_client := false; # TODO
-    is_mim := false; 
+    is_mim := false;
     zero_rtt_client_test := false;
 }
 
@@ -167,9 +167,9 @@ implement quic_net.recv(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pk
 
         var version := ppkt.segment(1,1+4);
         #call show_version_sd(src,dst,version);
-        
+
         var ptype : byte := bvand(0x30,header);
-        
+
         #if is_long { & ptype = 0xc0
         var bversion := bytes_to_version(version);
 
@@ -191,7 +191,7 @@ implement quic_net.recv(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pk
             var skm := cid_to_bytes(0,1); # scid
             if(~scil = 0) {
                 client_initial_scil := scil;
-                client_non_zero_scil := true;	
+                client_non_zero_scil := true;
                 skm := ppkt.segment(6+dcil+1,6+dcil+1+scil); # scid
             };
             client_initial_dcid := bytes_to_cid(ikm);
@@ -205,7 +205,7 @@ implement quic_net.recv(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pk
 }
 
 # For logging purposes. This logs the decoded packets received from the network, before
-# event inference. 
+# event inference.
 
 import action app_server_open_event_show(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet,cid1 : cid, cid2: cid)
 import action recv_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
@@ -219,7 +219,7 @@ import action undecryptable_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:str
 # --------------------
 
 # Here, we connect protocol events at the security layer to API calls of the
-# TLS 1.3 service (a part of the test locale). 
+# TLS 1.3 service (a part of the test locale).
 #
 #
 # TLS send event shim
@@ -318,7 +318,7 @@ import action show_dst_is_generated_handshake_data_event( dst :bool)
 function client_initial_scil : stream_pos
 
 after tls_client_initial_request(src:ip.endpoint,dst:ip.endpoint,nonce:cid, pversion:version, id:tls_api.id) {
-    var ikm := cid_to_bytes(nonce,dcid_size_cl(retry_rsp)); 
+    var ikm := cid_to_bytes(nonce,dcid_size_cl(retry_rsp));
     client_initial_scil := scid_size_pos(false);
     call show_set_initial_keys(ikm);
     call show_version(pversion);
@@ -403,8 +403,8 @@ import action show_l(ver:stream_pos)
 #
 
 # This event corresponds to the server responding to client
-# creating a new connection. We set up the initial keys based on 
-# the destination cid, which is used as initial key material. 
+# creating a new connection. We set up the initial keys based on
+# the destination cid, which is used as initial key material.
 # Note, the "salt" is specified in the QUIC-TLS document.
 #
 # TODO: this assumes the cid length is 8 bytes. Also, the ikm and salt
@@ -453,7 +453,7 @@ after tls_client_initial_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_d
     var skm := cid_to_bytes(0,1); # scid
     if(~scil = 0) {
         client_initial_scil := scil;
-		client_non_zero_scil := true;	
+		client_non_zero_scil := true;
 	    skm := spkt.segment(6+dcil+1,6+dcil+1+scil); # scid
     };
 
@@ -471,19 +471,19 @@ after tls_client_initial_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_d
     call export_length_cid(dcil,scil);
     call export_length_cid_extension(dcil,scil);
 
-    if ~tp_client_set 
+    if ~tp_client_set
         | negocation_of_version  {
         var extns := tls_extensions.empty;
         extns := extns.append(make_transport_parameters);
 	    call export_length_cid_extension(dcil,scil);
         if zero_rtt_client_test {
-            call tls_api.upper.create_0rtt_client(0,true,extns);  
+            call tls_api.upper.create_0rtt_client(0,true,extns);
         } else {
-            call tls_api.upper.create(0,true,extns);  
+            call tls_api.upper.create(0,true,extns);
         }
         # 'true' means this instance of tls is a server
         tp_client_set := true;
-	}; 
+	};
 
     if retry_sent & ~initial_keys_set {
         call export_length_cid_extension(dcil,scil);
@@ -493,16 +493,16 @@ after tls_client_initial_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_d
 
     if client_initial_version ~= 0x00000001 & client_initial_version ~= 0xfaceb002 { #initial_version todo
         negocation_of_version := true;
-    } 
-    else if (~initial_keys_set & retry_client_test -> retry_sent) 
-        | negocation_of_version  { 
+    }
+    else if (~initial_keys_set & retry_client_test -> retry_sent)
+        | negocation_of_version  {
         negocation_of_version := false;
 
         var salt : stream_data := stream_data.empty;
-        
+
         #0xc3 ee f7 12 c7 2e bb 5a 11 a7 d2 43 2b b4 63 65 be f9 f5 02 QUIC-27
-	    if client_initial_version = 0xfaceb002  
-         | client_initial_version = 0xff00001b 
+	    if client_initial_version = 0xfaceb002
+         | client_initial_version = 0xff00001b
          | client_initial_version = 0xff00001c {
             salt := salt.append(0xc3);
             salt := salt.append(0xee);
@@ -573,7 +573,7 @@ after tls_client_initial_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_d
 
         call show_set_initial_keys(ikm);
         call tls_api.upper.set_initial_keys(0,salt,ikm);
-        
+
         initial_keys_set := true;
     }
 }
@@ -707,7 +707,7 @@ after tls_client_retry_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_dat
 
 after tls_client_0rtt_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_data) {
     client.set_ep(src); # TODO: migration?
-    
+
 	var ver := bytes_to_version(spkt.segment(1,5));
     var lens := spkt.value(5);
     var dcil : stream_pos := bfe[0][7](spkt.value(5));
@@ -721,7 +721,7 @@ after tls_client_0rtt_response(src:ip.endpoint,dst:ip.endpoint,spkt: stream_data
     var skm := cid_to_bytes(0,1); # scid
     if(~scil = 0) {
         client_initial_scil := scil;
-		client_non_zero_scil := true;	
+		client_non_zero_scil := true;
 	    skm := spkt.segment(6+dcil+1,6+dcil+1+scil); # scid
     };
 
@@ -762,7 +762,7 @@ import action version_not_found_event
 
 action packet_encryption_level(h:net_prot.header_info_quic) returns (e:quic_packet_type) = {
     e := quic_packet_type.zero_rtt if ~h.hdr_long
-            else (quic_packet_type.initial if h.hdr_type = 0x7f 
+            else (quic_packet_type.initial if h.hdr_type = 0x7f
                   else quic_packet_type.handshake);
 }
 
@@ -813,9 +813,9 @@ action is_random_padding_packet(spkt:stream_data) returns (is_padding:bool) = {
     var h := net_prot.get_header_info(spkt,true);
     var e := packet_encryption_level_up(h);
     if last_packet_type = quic_packet_type.initial & last_packet_length < 1200 {
-	    is_padding := true;	
+	    is_padding := true;
     } else {
-	    is_padding := false;	
+	    is_padding := false;
     };
 }
 
@@ -866,17 +866,17 @@ action seqnum_to_cidseq(c:pkt_num) returns(res:cid_seq) = {
 action dcid_size_cl(cond:bool) returns(res:cid_length) = {
     <<<
     res = 0;
-    if(const char* env_p2 = std::getenv("TEST_TYPE")) { 
+    if(const char* env_p2 = std::getenv("TEST_TYPE")) {
       if(strcmp(env_p2, "client") == 0 || cond) {
          if(const char* env_p3 = std::getenv("TEST_DCIL")) {
             std::cerr << "TEST_DCIL " << env_p3 << "\n";
 	        res = atoi(env_p3);
-         } 
-         else 
+         }
+         else
 	        res = 8;
-      } else 
+      } else
 	  res = 8;
-    } else 
+    } else
       res = 8;
     std::cerr <<  "dcid_size_cl size: " <<  res << "\n";
     >>>
@@ -885,16 +885,16 @@ action dcid_size_cl(cond:bool) returns(res:cid_length) = {
 action scid_size_pos(cond:bool) returns(res:stream_pos) = {
     <<<
     res = 0;
-    if(const char* env_p2 = std::getenv("TEST_TYPE")) { 
+    if(const char* env_p2 = std::getenv("TEST_TYPE")) {
       if(strcmp(env_p2, "server") == 0 || cond) {
          if(const char* env_p3 = std::getenv("TEST_SCIL")) {
             std::cerr << "TEST_SCIL " << env_p3 << "\n";
 	        res = atoi(env_p3);
-         } else 
+         } else
 	   res = 8;
-      } else 
+      } else
 	  res = 8;
-    } else 
+    } else
       res = 8;
     std::cerr <<  "scid_size_pos size: " <<  res << "\n";
     >>>
@@ -903,16 +903,16 @@ action scid_size_pos(cond:bool) returns(res:stream_pos) = {
 action dcid_size_pos(cond:bool) returns(res:stream_pos) = {
     <<<
     res = 0;
-    if(const char* env_p2 = std::getenv("TEST_TYPE")) { 
+    if(const char* env_p2 = std::getenv("TEST_TYPE")) {
       if(strcmp(env_p2, "server") == 0 || cond) {
          if(const char* env_p3 = std::getenv("TEST_DCIL")) {
             std::cerr << "TEST_DCIL " << env_p3 << "\n";
 	        res = atoi(env_p3);
-         } else 
+         } else
 	   res = 8;
-      } else 
+      } else
 	  res = 8;
-    } else 
+    } else
       res = 8;
     std::cerr <<  "dcid_size_pos size: " <<  res << "\n";
     >>>
@@ -962,17 +962,17 @@ action export_length_cid_extension(dcil:stream_pos,scil:stream_pos) = {
     std::cerr <<  "export_length_cid_extension"  << "\n";
 	char str_d[20];
 	sprintf(str_d,"%llu",dcil);
-	if(setenv("TEST_DCIL",str_d,true) != 0) 
+	if(setenv("TEST_DCIL",str_d,true) != 0)
 		fprintf(stderr, "setenv failed\n");
 
 	char str[20];
 	sprintf(str,"%llu",scil);
-	if(setenv("TEST_SCIL",str,true) != 0) 
+	if(setenv("TEST_SCIL",str,true) != 0)
 		fprintf(stderr, "setenv failed\n");
 
     char str_p[20];
 	sprintf(str_p,"%llu",scil);
-	if(setenv("TEST_PCIL",str_p,true) != 0) 
+	if(setenv("TEST_PCIL",str_p,true) != 0)
 		fprintf(stderr, "setenv failed\n");
 
     >>>
@@ -984,4 +984,3 @@ action export_length_cid(dcil:stream_pos,scil:stream_pos) = {
     dcid_h = dcil;
     >>>
 }
-

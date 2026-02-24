@@ -54,7 +54,7 @@ module file(data,cont) = {
             ivy_socket_deser ds(`fildes`,buf);  // initializer deserializer with zero bytes
             try {
                 __deser(ds,d);            // read the message
-            } 
+            }
 
             // If file has bad syntax, something really terrible happened so we give up
 
@@ -80,7 +80,7 @@ module file(data,cont) = {
                     fd = -1;
                     cb(c);
                     ivy->__unlock();
-                }  
+                }
             };
         >>>
         implement sync {
@@ -93,7 +93,7 @@ module file(data,cont) = {
         }
 
     }
-    trusted isolate iso = this 
+    trusted isolate iso = this
 }
 
 object intf = {
@@ -145,7 +145,7 @@ object left_player = {
     implement backup.synced(c:cbtype) {
         call intf.ping;
     }
-    
+
     implement intf.pong {
 	ball := true;
         call backup.write(ball)  # don't sync here, since it's ok to lose ball
@@ -178,7 +178,7 @@ object right_player = {
             call backup.sync(0);  # 0 is an unused callback parameter
 	}
     }
-        
+
     implement backup.synced(c:cbtype) {
 	call intf.pong;
     }

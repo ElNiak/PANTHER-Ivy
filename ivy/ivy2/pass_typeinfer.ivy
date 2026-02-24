@@ -67,12 +67,12 @@ object ivy = { ...
             tc : type_context,
 
 	    # The subtyping relation
-	    
+
             subtype_rel : subtypes
 	}
 
     }
-    
+
     object stmt = { ...
         action typeinfer(s:this,st:typeinferst) returns (res:this,st:typeinferst) = {
             res := s
@@ -188,7 +188,7 @@ object ivy = { ...
 
     # Add an upcast operator to `rhs` if it is subtype of `lhs`. This is
     # used for assignments, and argument passing. This has to work on tuples
-    # to handle multiple assignment. 
+    # to handle multiple assignment.
 
     action make_cast(lhsty:expr,rhs:expr,st:typeinferst) returns (rhs:expr) = {
 	if rhs.is(verb.colon) {
@@ -207,7 +207,7 @@ object ivy = { ...
 
     # After type inference, we can desugar assignments like `var x := y` to
     # `var x : t; x := y`. This makes things a bit eassier on subsequent passes.
-    
+
     action desugar_asgn(s:stmt) returns (varsts:vector[stmt],s:stmt) = {
 	var tlhs := s.get_lhs;
 	var lhs := comma.unfold_left(tlhs);
@@ -251,7 +251,7 @@ object ivy = { ...
 	    (res.rhs,ok) := bottom_up_type(res.rhs,st,ok);
 	    if ok {  # avoid cascading errors
 		var lhs := res.lhs.get_arg(0) if res.lhs.is_typed(verb.varv) else res.lhs;
-                if lhs.is(verb.colon) { 
+                if lhs.is(verb.colon) {
                     res.rhs := make_cast(lhs.get_arg(1),res.rhs,st)  # upcast if needed
                 };
 		(res.lhs,res.rhs) := type_unify_exprs(res.lhs,res.rhs,st.tc.m);
@@ -395,7 +395,7 @@ object ivy = { ...
             res := ty.get_args
         }
     }
-            
+
 
     object vardc = { ...
         instantiate generic_typeinfer(this,decl)
@@ -408,7 +408,7 @@ object ivy = { ...
 	        (res.def,ok) := bottom_up_type(res.def,st,ok);
                 st := setup_formals(prms,false,st);
 	        if ok {  # avoid cascading errors
-                    if res.typing.is(verb.colon) { 
+                    if res.typing.is(verb.colon) {
                         res.def := make_cast(res.typing.get_arg(1),res.def,st)  # upcast if needed
                     };
 		    (res.typing,res.def) := type_unify_exprs(res.typing,res.def,st.tc.m);
@@ -419,21 +419,21 @@ object ivy = { ...
     }
 
     object prog = { ...
-        
+
 
         action typeinfer(p:prog) returns (p:prog) = {
 
 	    var st:typeinferst;
 
 	    # Get the subtype relation
-	    
+
             st.subtype_rel := p.get_subtypes;
 
 	    # Get the global typing as initial typing context
 
 	    var gt := p.get_global_types(false);  # don't curry member types
 	    st.tc.m := gt.type_of;
-	    
+
 	    # TODO: bottom-up inference
 
             # A pass to typeinfer types with Hindley-Milner

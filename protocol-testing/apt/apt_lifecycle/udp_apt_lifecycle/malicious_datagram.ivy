@@ -8,20 +8,20 @@ include apt_datagram
 # ------------------
 
 # This section defines the foged packet datatype. Forged UDP datagram are the basic
-# unit of communication between endpoints and MiM agent. It consist in UDP headers 
+# unit of communication between endpoints and MiM agent. It consist in UDP headers
 # containing QUIC packet as payloads
 # Packet
 
-# The type `datagram` represents forged UDP datagram. 
+# The type `datagram` represents forged UDP datagram.
 
 # The fields are:
 #
 
 
 object datagram = {
-    
+
    ...
-    
+
     object udp_datagram = {
         variant this of datagram = struct {
             src_port : ip.port, # [2]
@@ -57,5 +57,4 @@ action malicious_datagram_event(src:ip.endpoint,dst:ip.endpoint,pkt:datagram) = 
 # Forged datagram protocol state
 # ------------------------------
 
-function malicious_datagram_to_made : datagram 
-
+function malicious_datagram_to_made : datagram

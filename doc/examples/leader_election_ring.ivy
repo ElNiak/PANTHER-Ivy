@@ -44,17 +44,17 @@ isolate node = {
     function pid(X:node) : id          # map each node to an id
 
     axiom [injectivity] pid(X) = pid(Y) -> X = Y
-    
+
     specification {
 
         # We guarantee that nodes are totally ordered.
-        
-        instantiate total_order_properties(this)   
+
+        instantiate total_order_properties(this)
 
         # get_next has the property that either we wrap around (i.e.,
         # the output is the least element and the input the greatest) or
         # the output is the successor of the input (i.e., output is greater
-        # than input and there are no elements between). 
+        # than input and there are no elements between).
 
 	after get_next {
 	    ensure (y <= X & X <= x) | (x < y & ~ (x < Z & Z < y))
@@ -119,7 +119,7 @@ isolate app = {
         implement tick(me:node) {
  	    call trans.send(me,me.get_next,me.pid);
         }
-        
+
         implement trans.recv(me:node,v:id) {
             if v = me.pid {  # Found a leader
                 call elect(me);
@@ -136,12 +136,10 @@ isolate app = {
     #     invariant ~(node.pid(N) < node.pid(P) & trans.sent(node.pid(N),Q) & N < P & P < Q)
     #     invariant ~(node.pid(Q) < node.pid(N) & trans.sent(node.pid(Q),P) & N < P & P < Q)
     # }
-    
+
 } with node, id, trans
 
 import app.elect
 export app.tick
 import trans.send
 export trans.recv
-
-

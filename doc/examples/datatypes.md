@@ -6,7 +6,7 @@ title: Abstract Datatypes
 A simple and effective way to reduce the complexity of reasoning about
 a system is to use abstract datatypes. An abstract datatype uses a
 service specification to hide the implementation of the type and
-provide only properties of the type that we require. 
+provide only properties of the type that we require.
 
 When programming, we often use types provided by a programming
 language, such as integers or lists, without much concern for
@@ -25,7 +25,7 @@ the values. Here is a possible specification of this type in Ivy:
 
     isolate clock = {
         type this
-        
+
         specification {
             property [transitivity] X:this < Y & Y < Z -> X < Z
             property [antisymmetry] ~(X:this < Y & Y < X)
@@ -250,7 +250,7 @@ the full program:
     $ ivy_check pingpongclock.ivy
     ...
     OK
-    
+
 # Is this useful?
 
 Specifying and verifying an abstract datatype might seem to be a lot
@@ -268,4 +268,3 @@ generally speaking fall into decidable fragments.  In this way, we
 obtain more reliable performance from the prover, and also make sure
 that the prover can generate correct counterexamples when we make a
 mistake.
-

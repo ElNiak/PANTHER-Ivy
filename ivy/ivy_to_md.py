@@ -11,7 +11,7 @@ def main():
     inpname = sys.argv[1]
     outname = inpname[:-3]+'md'
 
-    try: 
+    try:
         with open(inpname) as f:
             content = f.readlines()
     except IOError:

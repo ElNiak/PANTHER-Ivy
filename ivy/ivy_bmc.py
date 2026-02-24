@@ -25,7 +25,7 @@ def check_isolate(n_steps,n_unroll=None):
         im.module.actions = dict()
         for actname,action in old_actions.items():
             im.module.actions[actname] = action.unroll_loops(lambda x: n_unroll)
-    
+
     step_action = ia.env_action(None)
 
     conjectures = im.module.conjs

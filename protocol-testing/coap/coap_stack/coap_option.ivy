@@ -34,7 +34,7 @@ object coap_option_type = {
 }
 
 object option_name = {
-    type this 
+    type this
 
     object if_match = { # [1] If-Match
         variant this of option_name = struct {
@@ -137,7 +137,7 @@ object coap_option = {
     }
 
     instance idx : unbounded_sequence
-    instance arr : array(idx, this) 
+    instance arr : array(idx, this)
 
     # More definitions here, such as actions, invariants, etc.
 }

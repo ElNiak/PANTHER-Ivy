@@ -1,6 +1,6 @@
 #lang ivy1.7
 
-# 
+#
 # This is an attempt to build creport on top of window_adt.
 #
 
@@ -94,7 +94,7 @@ module shift_theory(idx) = {
         # other uses of this module. Several of these properties were
         # added in response to counterexamples in verifying the
         # sliding window implementation below.
-        
+
 
 	property r(T,X,Y) & r(T,X,Y1) -> Y = Y1
 	property r(T,X,Y) & r(T,X1,Y) -> X = X1
@@ -114,7 +114,7 @@ module shift_theory(idx) = {
         # propery in the index reversal theory of `list_reverse.ivy`. That is,
         # we first remove the premise of the implication with `introImp`, then
         # we manually witness the existential quantifier. In this case, the witness
-        # is the shifted value of `X`, which is `X-T`. 
+        # is the shifted value of `X`, which is `X-T`.
 
         theorem [total] {property X >= T -> exists Y. r(T,X,Y)}
         proof {
@@ -141,7 +141,7 @@ module shift_theory(idx) = {
     # also easy to give using arithmetic operations. The implmentation
     # hides these arithmetic operators, so we don't have to reason with
     # arithmetic in our window implemenation.
-    
+
     implementation {
         definition r(T,X,Y) = (X = Y + T)
         implement f {
@@ -169,7 +169,7 @@ module shift_theory(idx) = {
 # - `none`  : the special value indicating `out of range`
 
 module window(domain,range,none) = {
-    
+
     type this
 
     # We provde several relations defining the abstract semantics of
@@ -177,7 +177,7 @@ module window(domain,range,none) = {
     # and `end` relations tell us the beginning index (i.e., the
     # offset) and the ending index (i.e., one past the last position
     # in the window).
-    
+
     relation value(S:this,D:domain,R:range)
     relation begin(S:this,D:domain)
     relation end(S:this,D:domain)
@@ -206,7 +206,7 @@ module window(domain,range,none) = {
 
     action getEnd(w:this) returns (i:domain)
 
-    specification {	
+    specification {
 
         around set {
             require v ~= none;
@@ -243,7 +243,7 @@ module window(domain,range,none) = {
         }
 
         after getBegin {
-            ensure begin(w, i); 
+            ensure begin(w, i);
         }
 
         after getEnd {
@@ -266,7 +266,7 @@ module window(domain,range,none) = {
 
         # The implemention uses an array to represent the elements in
         # the window and a number to represent the offset. These two
-        # fields are declared as destructors of the type. 
+        # fields are declared as destructors of the type.
 
         instance shift : shift_theory(slot)
         instance arr : array(domain,range)
@@ -278,7 +278,7 @@ module window(domain,range,none) = {
 #        property shift.r(offset(W),X,Y) & Y >= elems(W).end -> value(W,X,none)
         property value(W, I, V1) & value(W, I, V2) -> V1 = V2
         property value(W, I, V) -> 0 <= I
-            
+
         # We now have to give the definitions of the abstraction
         # functions.  Notice the definition of `value` has an
         # existential quantifier.  That is, we have value `V` at
@@ -313,12 +313,12 @@ module window(domain,range,none) = {
 
         # For `read`, we also check the array index and return `none`
         # if it is out of bounds.
-        
+
         implement read {
             var index := shift.f(offset(w),i);
 	    v := none if (index >= w.elems.end) else w.elems.value(index)
         }
-        
+
         # Trim is a bit tricky. We shift the values down in a loop,
         # then resize the array appropriately and set the new
         # offset. We treat the case where the new offset is beyond the
@@ -378,7 +378,7 @@ module window(domain,range,none) = {
             w.offset := i;
             w.elems := arr.empty
         }
-        
+
         implement getBegin {
             i := w.offset
         }
@@ -401,14 +401,14 @@ module creport(slot,view,operation,none,noneop) = {
     # and `end` relations tell us the beginning index (i.e., the
     # offset) and the ending index (i.e., one past the last position
     # in the window).
-    
+
     relation value(W:this, I:slot, V:view, O:operation)
     relation value_lt(W:this, I:slot, V:view)
     relation value_lte(W:this, I:slot, V:view)
 
     relation begin(W:this, I:slot)
     relation end(W:this, I:slot)
- 
+
     action set(w:this, i:slot, v:view, o:operation) returns (w:this)
     action read(w:this, i:slot) returns (v:view, o:operation)
     action trim(w:this, i:slot) returns (w:this)
@@ -417,7 +417,7 @@ module creport(slot,view,operation,none,noneop) = {
     action getBegin(w:this) returns (i:slot)
     action getEnd(w:this) returns (i:slot)
 
-    specification {	
+    specification {
 
         around set {
             require v ~= none;
@@ -453,7 +453,7 @@ module creport(slot,view,operation,none,noneop) = {
             require forall I. exists V, O. value(w, I, V, O);
             require forall I. exists V, O. value(old max_w, I, V, O);
             ...
-            ensure value(max_w, I, V, O) <-> (value(old max_w, I, V, O) &  value_lte(w, I, V) ) | 
+            ensure value(max_w, I, V, O) <-> (value(old max_w, I, V, O) &  value_lte(w, I, V) ) |
                                              (value(w, I, V, O) & value_lt(old max_w, I, V) );
             ensure value_lt(max_w, I, V) <-> value_lt(old max_w, I, V) & value_lt(old w, I, V);
             ensure value_lte(max_w, I, V) <-> value_lte(old max_w, I, V) & value_lte(old w, I, V);
@@ -473,7 +473,7 @@ module creport(slot,view,operation,none,noneop) = {
             # don't know that the window `w` doesn't contain trailing `none` values.
             # Do we need this property? If so, we have to change the implementation or
             # carry a representation invariant.
-            
+
             # ensure bound(max_w) >= bound(w);
 
             # This is provable, but are you sure you want it as a post-condition? It
@@ -485,7 +485,7 @@ module creport(slot,view,operation,none,noneop) = {
         }
 
         after getBegin {
-            ensure begin(w, i); 
+            ensure begin(w, i);
         }
 
         after getEnd {
@@ -493,7 +493,7 @@ module creport(slot,view,operation,none,noneop) = {
         }
 
         # Trick: adding an empty proof here causes this property to be used as
-        # an assumption when checking the later properties. 
+        # an assumption when checking the later properties.
         property value(W, I, V1, O1) & value(W, I, V2, O2) -> V1 = V2 & O1 = O2
         proof {}
 
@@ -507,7 +507,7 @@ module creport(slot,view,operation,none,noneop) = {
     }
 
     implementation {
-        
+
         type record = struct {
             vw : view,
             op : operation
@@ -521,7 +521,7 @@ module creport(slot,view,operation,none,noneop) = {
 
         property exists R. (vw(R) = none & op(R) = noneop) named nonerec
         proof apply record.constructor
-        
+
         instance win : window(slot,record,nonerec)
 
         destructor rep(W:this) : win
@@ -572,7 +572,7 @@ module creport(slot,view,operation,none,noneop) = {
             var i := beg;
             while i < end
             invariant beg <= i & begin(max_w,beg)
-            invariant I < i -> (value(max_w, I, V, O) <-> (value(old max_w, I, V, O) &  value_lte(w, I, V) ) | 
+            invariant I < i -> (value(max_w, I, V, O) <-> (value(old max_w, I, V, O) &  value_lte(w, I, V) ) |
                                                           (value(w, I, V, O) & value_lt(old max_w, I, V) ))
             invariant i <= I -> (value(max_w, I, V, O) <-> value(old max_w, I, V, O))
             {
@@ -607,7 +607,7 @@ trusted isolate view = {
     var none : this
     property none <= X
 }
-    
+
 type operation
 individual noneop : operation
 

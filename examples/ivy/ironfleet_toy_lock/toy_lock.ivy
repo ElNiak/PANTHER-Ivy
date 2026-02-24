@@ -32,8 +32,8 @@ module counter(t) = {
         assume input < 7;
         output := input + 1
     }
-}        
-    
+}
+
 # Abstract specification of counter. This outputs an arbitrary value
 # greater than the input
 
@@ -42,7 +42,7 @@ module abs_counter(t,c) = {
         assert ~(output <= input)
     }
     mixin incr after c.incr
-}        
+}
 
 module formatter = {
 
@@ -56,7 +56,7 @@ module formatter = {
 
     interpret conc -> concat
 }
-    
+
 module abs_formatter(low) = {
 
     # This is a specification of a packet formatter
@@ -87,11 +87,11 @@ module abs_low_intf(fmt) = {
     relation sent(P:packet)  # the set of sent packets
 
     init ~sent(P)            # initially, no packets sent
-    
+
     action send(p:packet) = {
         sent(p) := true
     }
-    
+
     action recv(dst:node) returns(p:packet) = {
     	assert sent(p) & af.dst(p) = dst
     }
@@ -126,13 +126,13 @@ module net_intf(lower,fmt) = {
 	    e := af.ep(p)
         }
     }
-    
+
     conjecture l.sent(P) -> an.transfer(af.ep(P),af.dst(P))
 
 }
 
 module abs_net_intf(net) = {
-       
+
     # This is a specification of a network interface that
     # allows sending and receiving of messages tagged with epochs.
     # The specification allows messages to be arbitrarily duplicated.
@@ -144,7 +144,7 @@ module abs_net_intf(net) = {
 
     relation transfer(E:epoch, N:node)  # the node is the message destination
     init ~transfer(E, N)
-     
+
     # send a transfer message to destination address
 
     action send_transfer(e:epoch, dst:node) = {
@@ -174,16 +174,16 @@ module proto(cnt,net) = {
 
     # ep(n) is the current epoch of node n
 
-    individual ep(N:node) : epoch 
+    individual ep(N:node) : epoch
 
     # held(n) is true iff the lock is currently held by node n
 
-    relation held(N:node) 
+    relation held(N:node)
 
     # initially exactly one node holds the lock, and all others have epoch zero
 
     individual first:node
- 
+
     init held(X) <-> X=first
     init N ~= first -> ep(N) = 0
     init ~(ep(first) <= 0)
@@ -236,7 +236,7 @@ module proto(cnt,net) = {
     # no two locked at same epoch (as a sanity check)
     conjecture locked(E, N1) & locked(E, N2) -> N1 = N2
 
-    # epochs transfer to at most one node    
+    # epochs transfer to at most one node
     conjecture an.transfer(E, N1) & an.transfer(E, N2) -> N1 = N2
 
     # if a node sent a locked msg, the node's epoch is now higher
@@ -252,7 +252,7 @@ module proto(cnt,net) = {
     conjecture an.transfer(E, N) & ~(E <= ep(N)) -> ~(E <= ep(M))
 
     # pending transfer epoch is higher than any transfer's epoch
-    conjecture an.transfer(E, N) & ~(E <= ep(N)) & an.transfer(F, M) -> (F <= E) 
+    conjecture an.transfer(E, N) & ~(E <= ep(N)) & an.transfer(F, M) -> (F <= E)
 }
 
 # Instantiate the modules to build a system

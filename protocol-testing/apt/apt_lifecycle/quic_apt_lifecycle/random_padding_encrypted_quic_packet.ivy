@@ -22,7 +22,7 @@ object packet = {
         #Hamid
 
         instance idx : unbounded_sequence
-        instance arr : array(idx,this) 
+        instance arr : array(idx,this)
 
     }
 }
@@ -50,7 +50,7 @@ object packet = {
                 # require num_queued_packets(dst,current_forwarding_round(dst)) <= num_packets_received_at_round(dst,current_forwarding_round(dst));
                 require src ~= dst;
             }
-           
+
             ...
             if _generating {
                 call enqueue_packet(src,dst,pkt);
@@ -58,7 +58,7 @@ object packet = {
                 coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
             }
         }
-        
+
         action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet)
         around forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet) {
             # require _generating;
@@ -95,7 +95,7 @@ object packet = {
             call enqueue_packet(src,dst,pkt);
             is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := true;
             coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
-            call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+            call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
         }
 
         action replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet)
@@ -110,7 +110,7 @@ object packet = {
             call enqueue_packet(src,dst,pkt);
             is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := true;
             coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
-            call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+            call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
         }
 
         action modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet)
@@ -125,15 +125,15 @@ object packet = {
             call enqueue_packet(src,dst,pkt);
             is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst))) := false;
             coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) + 1;
-            call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));   
+            call show_num_packets_forwarded_last_round_debug_event(dst,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
         }
     }
 
 }
 
-function random_padding_encrypted_quic_packets_received_last_round(C:ip.endpoint) : packet.random_padding_encrypted_quic_packet.arr 
+function random_padding_encrypted_quic_packets_received_last_round(C:ip.endpoint) : packet.random_padding_encrypted_quic_packet.arr
 function random_padding_encrypted_quic_packet_received_at_round(C:ip.endpoint,P:stream_pos,R:stream_pos) : packet.random_padding_encrypted_quic_packet
-relation is_random_padding_encrypted_quic_packet_received(C:ip.endpoint, P:packet.random_padding_encrypted_quic_packet, P:stream_pos)  
+relation is_random_padding_encrypted_quic_packet_received(C:ip.endpoint, P:packet.random_padding_encrypted_quic_packet, P:stream_pos)
 relation random_padding_encrypted_quic_packet_forwarded(C:ip.endpoint, P:packet.random_padding_encrypted_quic_packet)
 
 after init {
@@ -143,7 +143,7 @@ after init {
 before enqueue_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet) {
     if some(cf:packet.random_padding_encrypted_quic_packet) pkt *> cf  {
         random_padding_encrypted_quic_packet_forwarded(dst,cf) := true;
-    } 
+    }
 }
 
 after receiving_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet, pkt_num: stream_pos) {
@@ -151,7 +151,7 @@ after receiving_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet, pkt_num: stre
         random_padding_encrypted_quic_packet_received_at_round(dst,pkt_num,current_receving_round(dst))  := cf;
         is_random_padding_encrypted_quic_packet_received(dst,cf,pkt_num)       := true;
         random_padding_encrypted_quic_packets_received_last_round(dst)         := random_padding_encrypted_quic_packets_received_last_round(dst).append(cf);
-    } 
+    }
 }
 
 after update_forwarded_packet(src:ip.endpoint,dst:ip.endpoint) {

@@ -54,7 +54,7 @@ with ivy_module.Module():
 #    ui = ui.cti
     cg = ui.current_concept_graph
     cg.show_relation(cg.relation('s'),'+')
-    cg.gather() 
+    cg.gather()
     cg.select_fact(cg.fact('1:client ~= 0'),False)
     cg.select_fact(cg.fact('0:client ~= 1'),False)
     main_ui.answer("OK")
@@ -69,7 +69,5 @@ with ivy_module.Module():
     cg.strengthen()
     main_ui.answer("OK")
     assert ui.check_inductiveness(), "should have been inductive"
-    
+
 #    ui.mainloop()
-
-

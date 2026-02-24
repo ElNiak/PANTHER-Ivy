@@ -3,7 +3,7 @@
 # layout: page
 # title: "Deduction example: array reversal"
 # ---
-# 
+#
 # This is an example of using tactics in Ivy to keep verification conditions
 # decidable.
 #
@@ -89,7 +89,7 @@ instance arr : array(idx,t)
 
 relation arr_rev(A1:arr,A2:arr)
 
-definition [def_arr_rev] 
+definition [def_arr_rev]
     arr_rev(A1:arr,A2:arr) =
         arr.end(A1) = arr.end(A2) & forall X,Y. rev(arr.end(A1),X,Y) -> arr.value(A1,X) = arr.value(A2,Y)
 
@@ -126,7 +126,7 @@ isolate double_reverse1 = {
     #
     #     #     {
     #     #        property 0 <= X & X < arr.end(B) -> exists Y. rev(arr.end(B),X,Y)
-    #     #        property (arr_rev(A,B) & arr_rev(A,C) & 0:idx <= X & X < arr.end(B)) 
+    #     #        property (arr_rev(A,B) & arr_rev(A,C) & 0:idx <= X & X < arr.end(B))
     #     #                     -> arr.value(B,X) = arr.value(C,X)
     #     #     }
     #
@@ -136,7 +136,7 @@ isolate double_reverse1 = {
     # same free variable `X` that was used in the statement of theorem
     # `into`. If we had used, say, `Z` instead, we would have had to
     # say `with X = Z` to get the needed instance of `into`.
-    # 
+    #
     # Now with our lemma, we can prove that `B` and `C` are equal:
 
     property arr_rev(A,B) & arr_rev(A,C) -> B = C
@@ -186,7 +186,7 @@ isolate double_reverse2 = {
     # `arr_rev(A,B) & arr_rev(A,C)` into the assumptions [1]. Then we can
     # apply array extensionality, since its conclusion `X=Y` matches our
     # conclusion `B = C`. Ivy finds this match automatically, so we don't
-    # need a `with` claues [2]. 
+    # need a `with` claues [2].
 
     proof
         apply introImp;  # [1]
@@ -203,14 +203,14 @@ isolate double_reverse2 = {
     # That is, we need to prove a conjunction of two facts: the array lengths are equal and
     # the array contents are equal. We apply the "and introduction" rule to break this into
     # two separate goals [3], and then we use `defergoal` to defer the first case, since the
-    # default tactic can handle it [4]. 
+    # default tactic can handle it [4].
 
         apply introAnd;  # [3]
         defergoal;   # [4]
 
     # Now we need to hand the universal quantifier. We apply the "forall introduction" rule,
     # which require us to prove the quantified fact for a generic `x` [5]. This particular index
-    # `x` in `B` and `C` corresponds to some index in `A`, which we can establish by assuming 
+    # `x` in `B` and `C` corresponds to some index in `A`, which we can establish by assuming
     # the `into` theorem for `x` [6].
 
         apply introA
@@ -230,7 +230,7 @@ isolate double_reverse2 = {
     #        property [prop183] (arr_rev(A,B) & arr_rev(A,C))
     #        property arr.end(B) = arr.end(C)
     #    }
-    # 
+    #
     # The default tactic can handle these, since there are no
     # unstratified quantifier alternations.
 
@@ -258,7 +258,7 @@ isolate my_rev = {
             ensure arr_rev(old x,y);
         }
     }
-    
+
     # The implementation just copies the array backward. The index `xidx` starts from
     # the beginning of the array, while `yidx` starts from the end. Our invariant says
     # that xidx and yidx-1 are reverse of each other and the output array *y* contains
@@ -276,7 +276,7 @@ isolate my_rev = {
             invariant y.begin <= yidx & yidx <= y.end
             invariant y.end = x.end
             invariant idx.succ(Y,yidx) -> rev(x.end,xidx,Y)
-            invariant yidx = 0 -> xidx = x.end 
+            invariant yidx = 0 -> xidx = x.end
             invariant x.begin <= I & I < xidx & rev(x.end,I,J) -> x.value(I) = y.value(J)
             {
                 yidx := yidx.prev;
@@ -301,7 +301,7 @@ isolate my_rev = {
 # it in fact returns its argument.
 
 isolate my_double_rev = {
-    
+
     action reverse2(x:arr) returns (x:arr)
 
     # The specification of reverse2 just says that its output equals its input.
@@ -311,7 +311,7 @@ isolate my_double_rev = {
             ensure x = old x
         }
     }
-    
+
     # The implementation just calls `rev` twice.
 
     implementation {
@@ -349,7 +349,7 @@ isolate my_rev2 = {
             ensure arr_rev(old x,x);
         }
     }
-    
+
     # We swap coresponding elements until the lower index is >= the upper index.
     # The invariant of the loop says that the elements in the rangs `[xidx,yidx)`
     # are unchanged, while the elements outside this range are reversed.
@@ -363,7 +363,7 @@ isolate my_rev2 = {
             invariant x.begin <= yidx & yidx <= x.end
             invariant x.end = (old x).end
             invariant idx.succ(Y,yidx) -> rev(x.end,xidx,Y)
-            invariant yidx = 0 -> xidx = x.end 
+            invariant yidx = 0 -> xidx = x.end
             invariant x.begin <= I & I < xidx & rev(x.end,I,J) -> x.value(I) = (old x).value(J)
             invariant xidx <= I & I < yidx -> x.value(I) = (old x).value(I)
             invariant yidx <= I & I < x.end & rev(x.end,I,J) -> x.value(I) = (old x).value(J)

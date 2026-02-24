@@ -40,7 +40,7 @@ action make_transport_parameters returns (tp:quic_transport_parameters) = {
     var no_migration : disable_active_migration; #TODO update v29
     tp.transport_parameters := tp.transport_parameters.append(no_migration);
 
-    var unk : unknown_ignore; 
+    var unk : unknown_ignore;
     tp.transport_parameters := tp.transport_parameters.append(unk);
 
     var max_streams_bidi : initial_max_stream_id_bidi; #TODO update v29
@@ -64,7 +64,7 @@ after init {
 # Generate connection_close frames only for the environment process(es).
 #
 # Note: requiring the `err_code` is zero on non-generated frames means that
-# we stop the test if the peer reports a protocol error. 
+# we stop the test if the peer reports a protocol error.
 
 before quic_frame.connection_close.handle(f:quic_frame.connection_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
@@ -109,9 +109,6 @@ export tls_recv_event
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require conn_total_data(the_cid) > 0;
 }
-
-
-

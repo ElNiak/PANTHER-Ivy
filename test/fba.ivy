@@ -53,7 +53,7 @@ relation well(N:node)
 function quorum(Q:nset,I:nset) : bool
 
 definition {
-    quorum(Q:nset,I:nset) = 
+    quorum(Q:nset,I:nset) =
     forall P. nset.mem(P,Q) & well(P) ->
           exists Sl. nsetset.mem(Sl,slices(P))
               & forall X. nset.mem(X,Sl) & nset.mem(X,I) -> nset.mem(X,Q)
@@ -63,7 +63,7 @@ definition {
 # definition into an 'if ' and an 'only if'. This is because Ivy can't Skolemize
 # inside an 'iff'.
 
-explicit property [quorum_fwd] 
+explicit property [quorum_fwd]
     quorum(Q,I) -> forall N. (
     nset.mem(N,Q) & well(N) ->
         exists Sl. nsetset.mem(Sl,slices(N))
@@ -73,9 +73,9 @@ proof {
     apply elimIffFwd with prem1 = prem
     apply quorum
 }
-    
-explicit property [quorum_rev] 
-    (forall N. 
+
+explicit property [quorum_rev]
+    (forall N.
          nset.mem(N,Q) & well(N) ->
             exists Sl. nsetset.mem(Sl,slices(N))
                 & forall X. nset.mem(X,Sl) & nset.mem(X,I) -> nset.mem(X,Q))
@@ -85,7 +85,7 @@ proof {
     apply elimIffRev with prem1 = prem
     apply quorum
 }
-    
+
 # Now here are our theorems. In the proof of each theorem, we have to
 # instantiate the definition of 'quorum' manually, since it has a
 # quantifier alternation from `node` to `nset`, which creates a
@@ -126,7 +126,7 @@ theorem [cascade] {
     (forall X. nset.mem(X,inta) -> nset.mem(X,s))
     | exists N. nset.mem(N,inta) & ~nset.mem(N,s) &
         forall Sl. nsetset.mem(Sl,slices(N)) ->
-          exists X. nset.mem(X,Sl) & nset.mem(X,s) & nset.mem(X,inta) 
+          exists X. nset.mem(X,Sl) & nset.mem(X,s) & nset.mem(X,inta)
 }
 proof {
     instantiate nset.comp with p(E) = (nset.mem(E,inta) & ~nset.mem(E,s))

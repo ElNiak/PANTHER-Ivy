@@ -20,10 +20,10 @@ include ivy_bot
 implement quic_net.recv(host:endpoint_id, s: quic_net.socket, src:ip.endpoint, pkts:net_prot.arr) {
     call show_current_time_debug_event(time_api.c_timer.now_millis_last_bp);
     call show_socket_debug_event(s);
-    if host = endpoint_id.server {       
+    if host = endpoint_id.server {
         call host_debug_event(host);
         call server.behavior(host,s,src,pkts);
-    } else if host = endpoint_id.client | host = endpoint_id.client_alt { 
+    } else if host = endpoint_id.client | host = endpoint_id.client_alt {
         call host_debug_event(host);
         call client.behavior(host,s,src,pkts);
     } else if host = endpoint_id.target {
@@ -37,7 +37,7 @@ implement quic_net.recv(host:endpoint_id, s: quic_net.socket, src:ip.endpoint, p
     } else {
         # ERROR
         call undefined_host_error(host,s,src);
-    };    
+    };
 }
 
 import action show_socket_debug_event(s:quic_net.socket)

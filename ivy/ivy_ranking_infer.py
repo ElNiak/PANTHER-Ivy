@@ -32,14 +32,14 @@ from . import ivy_transrel as itr
 from . import ivy_temporal
 from . import ivy_vmt
 from . import ivy_printer
-#from .ivy_ranking import auto_hook 
+#from .ivy_ranking import auto_hook
 #
 # goal: as list of pairs (prog, fmla)
 # goal_conc(goal) is conclusion
 # goal_prem(goal) are premises of goals
-# 
-# sorted_tasks, tasks: 
-# triggers: 
+#
+# sorted_tasks, tasks:
+# triggers:
 #   contain auxilliary relations we put into to the ivy ranking tactic
 #   work_needed, work_progress, etc.
 #
@@ -78,10 +78,10 @@ def instrument(prover, goal, sorted_tasks, triggers, tasks):
         fml = ilg.drop_universals(defn.formula)
         for sym in iu.unique(ilu.symbols_ast(fml.args[1])):
             defn_deps[sym].append(fml.args[0].rep)
-            
+
 
     def dependencies(syms):
-        return iu.reachable(syms,lambda x: defn_deps.get(x) or []) 
+        return iu.reachable(syms,lambda x: defn_deps.get(x) or [])
 
 
     def instr_stmt(stmt,labels):
@@ -106,7 +106,7 @@ def instrument(prover, goal, sorted_tasks, triggers, tasks):
         mods = set(dependencies(stmt.modifies()))
 
         # Now, for every property event, we update the property state (none in this case)
-        # and also assert the property semantic constraint. 
+        # and also assert the property semantic constraint.
         # only the event for r needs to be updated
         pre_events = []
         post_events = []
@@ -114,14 +114,14 @@ def instrument(prover, goal, sorted_tasks, triggers, tasks):
             print('updating .r')
             asgn = AssignAction(rpred(*rdefargs), ilg.Or(rpred(*rdefargs), rdef)) # either current or previous value
             post_events.append(asgn)
-         
+
         res =  iact.prefix_action(res,pre_events)
         res =  iact.postfix_action(res,post_events)
         stmt.copy_formals(res) # HACK: This shouldn't be needed
         return res
 
         # Instrument all the actions
-    
+
     def instr_stmt_toplevel(stmt, labels, name):
         stmt = instr_stmt(stmt, labels)
         if name in model.calls:
@@ -129,20 +129,20 @@ def instrument(prover, goal, sorted_tasks, triggers, tasks):
             return iact.prefix_action(stmt, [asgn])
         else:
             return stmt
-    
+
     idle_action = concat_actions().set_lineno(0)
     idle_action.formal_params = []
     idle_action.formal_returns = []
     model.bindings.append(itm.ActionTermBinding('_idle',itm.ActionTerm([],[],[],idle_action)))
     model.calls.append('_idle')
-  
-    # add model 
+
+    # add model
     # need to clone the bindings
-    model.init = iact.prefix_action(model.init, [AssignAction(rpred(*rdefargs), ilg.Or())]) # initialize r to false initially. 
+    model.init = iact.prefix_action(model.init, [AssignAction(rpred(*rdefargs), ilg.Or())]) # initialize r to false initially.
     model.bindings = [b.clone([b.action.clone([instr_stmt_toplevel(b.action.stmt,b.action.labels, b.name)])])
                       for b in model.bindings]
-  
-    # create new goal 
+
+    # create new goal
     # HACK: reestablish invariant that shouldn't be needed
 
     for b in model.bindings:
@@ -161,9 +161,9 @@ def instrument(prover, goal, sorted_tasks, triggers, tasks):
     goal = ipr.remove_unused_definitions_goal(goal)
 
     # Return the new goal stack
-    return goal 
+    return goal
 
-    
+
 
     # TODO: return a modified goal
 
@@ -193,21 +193,21 @@ def infer(prover, goal, sorted_tasks, triggers, tasks):
     # mod.labeled_axioms = [x for x in mod.labeled_axioms
     #                       if not any(s.name.startswith('work_')
     #                                  for s in ilu.symbols_ast(x.formula))]
-    
+
     ivy_printer.print_module(mod)
-    
+
     # sets mod as current module
     with mod:
         # get sorts and symbols of goal into current signature
 #        vocab = ipr.goal_vocab(goal)
 #        with ilg.WithSymbols(vocab.symbols):
 #            with ilg.WithSorts(vocab.sorts):
-                
+
                 # Extract property in the form GF r -> G (p -> F q)
 
                 sfx = sorted_tasks[0]
-                work_start = triggers[sfx]['work_start'] 
-                rhs = work_start.rhs() 
+                work_start = triggers[sfx]['work_start']
+                rhs = work_start.rhs()
                 assert isinstance(rhs,lg.Not) and isinstance(rhs.args[0],lg.Implies) and isinstance(rhs.args[0].args[1],lg.Eventually)
                 p = rhs.args[0].args[0]
                 q = rhs.args[0].args[1].args[0]

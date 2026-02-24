@@ -40,7 +40,7 @@ class ProofChecker(object):
 
     def __init__(self,axioms,definitions,schemata=None):
         """ A proof checker starts with sets of axioms, definitions and schemata
-    
+
         - axioms is a list of ivy_ast.LabeledFormula
         - definitions is a list of ivy_ast.LabeledFormula
         - schemata is a map from string names to ivy_ast.LabeledFormula
@@ -48,7 +48,7 @@ class ProofChecker(object):
         The schemata argument is optional and is included for backward compatibility
         with ivy_mc.
         """
-    
+
         self.axioms  = [normalize_goal(ax) for ax in axioms]
         self.definitions = dict((d.formula.defines().name,normalize_goal(d)) for d in definitions)
         self.schemata = dict((x,normalize_goal(y)) for x,y in schemata.items()) if schemata is not None else dict()
@@ -68,10 +68,10 @@ class ProofChecker(object):
             self.schemata[ax.name] = ax
 
     def admit_definition(self,defn,proof=None):
-        """ Admits a definition if it is non-recursive or match a definition schema. 
+        """ Admits a definition if it is non-recursive or match a definition schema.
             If a proof is given it is used to match the definition to a schema, else
             default heuristic matching is used.
-        
+
         - defn is an ivy_ast.LabeledFormula
         """
 
@@ -94,14 +94,14 @@ class ProofChecker(object):
             subgoals = []
         self.definitions[sym.name] = defn
         return subgoals
-        
+
     def admit_proposition(self,prop,proof=None,subgoals=None):
         """ Admits a proposition with proof.  If a proof is given it
             is used to match the definition to a schema, else default
             heuristic matching is used. If a list of subgoals is supplied, it is
             assumed that these entail prop and the proof is applied to
             the subgoals.
-        
+
         - prop is an ivy_ast.LabeledFormula
         """
 
@@ -132,7 +132,7 @@ class ProofChecker(object):
         if subgoals is None:
             raise NoMatch(proof,"goal does not match the given schema")
         return subgoals
-        
+
 
     def apply_proof(self,decls,proof):
         """ Apply a proof to a list of goals, producing subgoals, or None if
@@ -190,7 +190,7 @@ class ProofChecker(object):
             raise iu.IvyError(proof,'unknown tactic: {}'.format(tn))
         tactic = registered_tactics[tn]
         return tactic(self,decls,proof)
-    
+
     def compose_proofs(self,decls,proofs):
         for proof in proofs:
             decls = self.apply_proof(decls,proof)
@@ -263,7 +263,7 @@ class ProofChecker(object):
             fmla = lu.substitute_ast(fmla.body,{evar.name:term})
             cut = clone_goal(cut,[],fmla)
             goal = goal_add_prem(goal,ia.ConstantDecl(sym),goal.lineno)
-        
+
         subgoals = [subgoal]
         pf = proof.args[2]
         if not isinstance(pf,ia.NoneAST):
@@ -320,12 +320,12 @@ class ProofChecker(object):
             else:
                 raise ProofError(ast,"No property {} exists in the current context".format(schemaname))
         return schema
-    
+
     def setup_matching(self,decl,proof,allow_witness=False):
         schemaname = proof.schemaname()
         schema = self.lookup_schema(schemaname,decl,proof)
         return self.setup_schema_matching(decl,proof,schema,allow_witness=allow_witness)
-        
+
     def setup_schema_matching(self,decl,proof,schema,allow_witness=False):
         schema = rename_goal(schema,proof.renaming())
         schema = transform_defn_schema(schema,decl)
@@ -461,7 +461,7 @@ class ProofChecker(object):
         conc = lu.witness_ast(False,[],wit_map,conc)
         prems = goal_prems(decl)
         return [clone_goal(decl,prems,conc)] + decls[1:]
- 
+
 
 # A proof goal is a LabeledFormula whose body is either a Formula or a SchemaBody
 
@@ -516,12 +516,12 @@ def goals_subst(goals,subgoals,lineno):
 def fresh_label(goals):
     rn = iu.UniqueRenamer(used=[x.name for x in goals])
     return ia.Atom(rn(),[])
-    
+
 # Add a premise to a goal
 
 def goal_add_prem(goal,prem,lineno):
     return make_goal(lineno,goal.label,goal_prems(goal) + [prem], goal_conc(goal))
-    
+
 
 def goal_remove_prem(goal,prem_name):
     goal = clone_goal(goal,[x for x in goal_prems(goal) if x.name != prem_name],goal_conc(goal))
@@ -649,7 +649,7 @@ def goal_subgoals(schema,goal,lineno):
 
 def fmla_vocab(fmla):
     """ Get the free vocabulary of a formula, including sorts, symbols and variables """
-    
+
     things = lu.used_sorts_ast(fmla)
     things.update(lu.used_symbols_ast(fmla))
     things.update(lu.used_variables_ast(fmla))
@@ -677,7 +677,7 @@ def goal_free(goal):
     return res
 
 # Make sure the free vocabulry of the schema we are about to use is not captured
-# by bindings in the goal. 
+# by bindings in the goal.
 
 def check_schema_capture(schema,goal):
     gvocab = goal_vocab(goal)
@@ -704,7 +704,7 @@ def check_renaming(goal,renaming):
         fwd[l] = r
         fwd[r] = l
     return
-        
+
 def rename_goal(goal,renaming):
     if len(renaming.args) == 0:
         return goal
@@ -723,9 +723,9 @@ def rename_goal(goal,renaming):
         return goal
     res = rec_goal(goal)
     return res
-                
-            
-            
+
+
+
 
 # Compile an expression using a vocabulary. The expression could be a formula or a type.
 
@@ -767,12 +767,12 @@ def remove_vars_match(mat,fmla):
 def show_match(m):
     if m is None:
         print('no match')
-        return 
+        return
     print('match {')
     for x,y in m.items():
         print('{} : {} |-> {}'.format(x,x.sort if hasattr(x,'sort') else 'type',y))
     print('}')
-        
+
 def match_problem(schema,decl):
     """ Creating a matching problem from a schema and a declaration """
     vocab = goal_vocab(schema)
@@ -898,7 +898,7 @@ def compile_match_list(proof_match,left_goal,right_goal,allow_witness=False):
     return [compile_match(d) for d in proof_match]
 
 # A "match" is a map from symbols to lambda terms
-    
+
 def compile_one_match(lhs,rhs,freesyms,constants):
     if il.is_variable(lhs):
         return fo_match(lhs,rhs,freesyms,constants)
@@ -933,8 +933,8 @@ def compile_match(proof_match,prob,decl,allow_witness=False):
     matches = [compile_one_match(m.lhs(),m.rhs(),freesyms,prob.constants) for m in matches]
     res = merge_matches(*matches)
     return res
-        
-        
+
+
     res = dict()
     for m in proof_match:
         if il.is_app(m.lhs()):
@@ -1070,7 +1070,7 @@ def goals_eq_mod_alpha(x,y):
     return il.equal_mod_alpha(goal_conc(x),goal_conc(y))
 
 def apply_match(match,fmla,env = None):
-    """ apply a match to a formula. 
+    """ apply a match to a formula.
 
     In effect, substitute all symbols in the match with the
     corresponding lambda terms and apply beta reduction
@@ -1117,10 +1117,10 @@ def match_get(match,sym,env,default=None):
                 raise_capture(v)
         return val
     return default
-    
+
 
 def apply_match_alt(match,fmla,env = None):
-    """ apply a match to a formula. 
+    """ apply a match to a formula.
 
     In effect, substitute all symbols in the match with the
     corresponding lambda terms and apply beta reduction
@@ -1205,7 +1205,7 @@ def funcs_match(pat,inst,freesyms):
     res = (pat.name == inst.name and len(psorts) == len(isorts)
             and all(x == y for x,y in zip(psorts,isorts) if x not in freesyms))
     return res
-    
+
 def heads_match(pat,inst,freesyms):
     """Returns true if the heads of two terms match. This means they have
     the same top-level operator and same number of
@@ -1216,11 +1216,11 @@ def heads_match(pat,inst,freesyms):
     return (il.is_app(pat) and il.is_app(inst) and funcs_match(pat.rep,inst.rep,freesyms) and pat.rep not in freesyms
         or not il.is_app(pat) and not il.is_quantifier(pat)
            and type(pat) is type(inst) and len(pat.args) == len(inst.args))
-    
+
 def make_distinct_vars(sorts,*asts):
     vars = [il.Variable('V'+str(i),sort) for i,sort in enumerate(sorts)]
     return lu.rename_variables_distinct_asts(vars,asts)
-    
+
 
 def extract_terms(inst,terms):
     """ Returns a lambda term t such that t(terms) = inst and
@@ -1255,8 +1255,8 @@ def fo_match(pat,inst,freesyms,constants):
         res =  merge_matches(*matches)
         return res
     return dict()
-    
-            
+
+
 
 def match(pat,inst,freesyms,constants):
     """ Match an instance to a pattern.
@@ -1282,7 +1282,7 @@ def match(pat,inst,freesyms,constants):
             matches.extend([match_sort(x,y,freesyms) for x,y in zip(term_sorts(pat),lambda_sorts(B))])
             res = merge_matches(*matches)
             return res
-        
+
 
 
 def match_quants(pat,inst,freesyms,constants):
@@ -1388,7 +1388,7 @@ def skolemize_goal(goal,prenex=True):
         subst = list(zip(variables,sks))
         goal = var_subst_goal(goal,subst)
         skfuns += sks
-        
+
     def rec(goal,pos):
         if not isinstance(goal,ia.LabeledFormula):
             return goal
@@ -1456,7 +1456,7 @@ def compile_witness_list(proof,goal):
     the_goal_vocab = goal_vocab(goal)
     the_goal_vocab.variables.extend(list(logic_util.used_variables(goal_conc(goal))))
     return [compile_expr_vocab(d,the_goal_vocab) for d in proof.args]
-    
+
 def compile_with_goal_vocab(expr,goal):
 #    the_goal_vocab = goal_vocab(goal,get_bound_vars=True)
     the_goal_vocab = goal_vocab(goal)
@@ -1525,7 +1525,7 @@ def remove_unused_definitions_goal(goal):
         syms.update(lu.used_symbols_ast(x))
         new_prems.append(x)
     return clone_goal(goal,list(reversed(new_prems)),goal_conc(goal))
-    
+
 def match_from_defn(defn):
     vs = set()
     defn = defn.formula
@@ -1572,7 +1572,7 @@ def goal_apply_to_conc(goal,fn):
     return clone_goal(goal,goal_prems(goal),fn(goal_conc(goal)))
 
 # When instantiating a schema, unmatched free variables occurring only
-# in the conclusion can be universally quantified. 
+# in the conclusion can be universally quantified.
 
 def close_unmatched(goal,match):
     conc = goal_conc(goal)
@@ -1584,7 +1584,7 @@ def close_unmatched(goal,match):
     return clone_goal(goal,goal_prems(goal),conc)
 
 # When instantiating a schema, we drop the premises that supplied in the
-# proof goal. 
+# proof goal.
 
 def drop_supplied_prems(schema,goal,proof_match):
     gprems = goal_prems_by_name(goal)

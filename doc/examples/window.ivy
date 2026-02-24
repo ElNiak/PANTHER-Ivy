@@ -3,7 +3,7 @@
 # layout: page
 # title: "Example: sliding window"
 # ---
-# 
+#
 
 # In this example, we implement a "sliding window". This is an array
 # that stores a range of values from an unbounded sequence. The window
@@ -61,7 +61,7 @@ module shift_theory(idx) = {
 
     relation r(T : idx, X : idx, Y : idx)
     action f(t:idx,x:idx) returns (y:idx)
-    
+
     specification {
 
         # We need the following properties of the `r` relation:
@@ -97,7 +97,7 @@ module shift_theory(idx) = {
             ...
 	   ensure r(t,x,y)
 	}
-        
+
     } # end specification section
 
     # In the implementation section, we give the definition of `r`
@@ -148,7 +148,7 @@ module window(idx,data) = {
     action append(d:data)
     action read(i:idx) returns (d:data)
     action trim(i:idx)
-    
+
     specification {
 
         # Initially, the sequence is empty, so `begin = end = 0`.
@@ -168,7 +168,7 @@ module window(idx,data) = {
 
         # Reading the value of an index in the interval `[begin,end)`
         # returns the sequence value at that index.
-            
+
         around read {
             require begin <= i & i < end;
             ...
@@ -183,7 +183,7 @@ module window(idx,data) = {
             ...
             begin := i;
         }
-        
+
         # The specification maintains a few useful invariants.
 
         invariant begin <= end
@@ -260,7 +260,7 @@ module window(idx,data) = {
     }
 
     # These invariants relate the implementation and specification state.
-    # They are private to this module. 
+    # They are private to this module.
 
     private {
         invariant offset = begin & bound = end
@@ -285,5 +285,3 @@ instance w : window(idx,data)
 export w.append
 export w.read
 export w.trim
-
-

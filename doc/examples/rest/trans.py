@@ -68,7 +68,7 @@ def main():
         for s in things[1].split('&'):
             p,v = s.split('=')
             parms[p] = v
-        
+
     matched = False
     for path,stuff in spec['paths'].items():
         spath = path[1:].split('/')
@@ -77,14 +77,14 @@ def main():
             parms.update(pparms)
             matched = True
             break
-        
+
     if not matched:
         sys.stderr.write('cannot match path {}\n'.format(rpath))
         exit(1)
 
     print(list(parms.items()))
-    
-        
-    
+
+
+
 if __name__ == "__main__":
     main()

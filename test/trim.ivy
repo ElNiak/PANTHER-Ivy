@@ -50,10 +50,10 @@ isolate creport = {
     relation maxo(CR:this, I:slot, OP:operation)
     relation start(CR:this, I: slot)
     relation afterend(CR:this, I: slot)
-    
+
     action emptycr(i: slot) returns (cr:this)
     action trim(cr:this, i: slot) returns (cr2:this)
-    
+
     specification {
 
         after emptycr {
@@ -95,7 +95,7 @@ isolate creport = {
 	object nac = {
             invariant [empty_commit_inv] empty_commit.maxview = none
             invariant [empty_commit_inv2] empty_commit.maxop = noneop
-            after init { empty_commit.maxview := none; 
+            after init { empty_commit.maxview := none;
                          empty_commit.maxop := noneop; }
 	}
 
@@ -104,18 +104,18 @@ isolate creport = {
         destructor begin(CR: this) : slot
         definition getmaxv(CR, I) = maxview(repr(CR).value(I - begin(CR))) if (I >= begin(CR) & I < begin(CR) + repr(CR).end) else none
         definition maxv(CR, I, VI) = getmaxv(CR, I) = VI
-        
+
         definition getmaxo(CR, I) = maxop(repr(CR).value(I - begin(CR))) if (I >= begin(CR) & I < begin(CR) + repr(CR).end) else noneop
-        
+
         definition maxo(CR, I, O) = O = getmaxo(CR, I)
         definition start(CR, I) = begin(CR) = I
         definition getstart(CR) = begin(CR)
         definition afterend(CR, I) = begin(CR) + repr(CR).end = I
-        
+
         implement emptycr {
 	    begin(cr) := i;
 	    repr(cr) := arr.empty;
-	}        
+	}
 
         implement trim {
             cr2 := emptycr(i);
@@ -131,7 +131,7 @@ isolate creport = {
             {
                 repr(cr2) := repr(cr2).set(idx - diff, repr(cr).value(idx));
                 idx := idx + 1;
-            } 
+            }
         }
     }
 }

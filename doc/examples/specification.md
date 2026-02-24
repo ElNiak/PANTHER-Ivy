@@ -4,7 +4,7 @@ title: Specifications
 ---
 
 Formal verification is primarily about establishing relationships
-between specifications at differing levels of abstraction. 
+between specifications at differing levels of abstraction.
 
 Consider, for example, a network protocol, such as the [TCP
 protocol](https://en.wikipedia.org/wiki/Transmission_Control_Protocol)
@@ -41,7 +41,7 @@ execute the TCP protocol according to its specification, then events
 at the application/transport interface should be consistent with the TCP
 service specification. From the point of view of the TCP protocol, we
 say that the IP service specification is an *assumption*, while the
-TCP service specification is a *guarantee*. 
+TCP service specification is a *guarantee*.
 
 Ivy has features that allow us to perform this kind of reasoning. It allows us to:
 
@@ -80,7 +80,7 @@ inteface events based on the history of previous events.
 
 As an example, here is a definition of an interface for a rediculously
 simple network service:
- 
+
     #lang ivy1.7
     type packet
 
@@ -180,7 +180,7 @@ Now, saving this text in the file `trivnet.ivy`, we can check that our
 
     OK
 
-For the moment, ignore the mysterious heading 'Isolate this:'. 
+For the moment, ignore the mysterious heading 'Isolate this:'.
 Ivy checked that the precondition of `intf.recv` is true whenever it
 is called by `intf.send`. We don't even need an inductive invariant in
 this case, because the assertion is true when `intf.send` is executed
@@ -215,7 +215,7 @@ the beginning of these actions, and the `implement` action of
 `protocol` has been used as the body of `intf.send`. Notice also that
 the `require` statement in the monitor has become `assert`. This means
 that when `intf.recv` is called by our implementation, we have to
-*prove* that the condition holds. 
+*prove* that the condition holds.
 
 Of course, we might consider a (slightly) less trivial implementation,
 such as this one that implements the service specification with a
@@ -249,7 +249,7 @@ environment, so we add:
     export async
 
 When `async` is called, if there is a message in the buffer, the message
-is received. 
+is received.
 To verify this implementation, we also need one invariant conjecture:
 
     invariant full -> sent(contents)
@@ -443,7 +443,7 @@ has changed to `assume`.
 This is an example of assume-guarantee reasoning. The left player
 *guarantees* to call `ping` only when the ball is on the
 left. However, it *assumes* that the right player only calls `ping`
-when the ball is on the right. This is a very common situation in protocols. 
+when the ball is on the right. This is a very common situation in protocols.
 Each participant in the protocol guarantees correctness of its outputs,
 but only so long as its inputs are correct.
 
@@ -517,11 +517,11 @@ Now let's look at the other isolate:
     export right_player.hit
 
 This is similar, but now `pong` is verified and `ping` is assumed to be correct.
-The state and actions of the left player are compeltely abstracted away. 
+The state and actions of the left player are compeltely abstracted away.
 
 We can check the whole proof using Ivy like this:
 
-    $ ivy_check pingpong.ivy 
+    $ ivy_check pingpong.ivy
 
     ...
 
@@ -544,7 +544,7 @@ We can check the whole proof using Ivy like this:
                 pingpong.ivy: line 22: guarantee ... PASS
 
     ...
-    
+
     OK
 
 Notice here, the assume/guarantee relation is reversed. We assume the
@@ -589,7 +589,7 @@ is visible to the remaining actions. We will call this condition
 *non-interference*.
 
 Ivy uses a fairly simple analysis to check non-interference. As an example,
-suppose the right player tries to cheat by putting the ball back in 
+suppose the right player tries to cheat by putting the ball back in
 the left player's court without hitting it:
 
     isolate right_player = {
@@ -678,16 +678,3 @@ If all isolates are verified, and if Ivy's non-interference and
 coverage checks succeed, then we can infer that all assertions in the
 program are true at all times in all executions of the program.  In
 this case, `ivy_check` prints `OK`.
-
-
-
-
-
-
-
-
-
-
-
-
-

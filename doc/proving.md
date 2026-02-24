@@ -45,7 +45,7 @@ We can introduce a constant like this:
 ```
 where `n` is new. This judgment can be read as "let `n` be a term of type
 `t`" and is admissible if symbol `n` has not been used up to this point
-in the development.  
+in the development.
 
 Similarly, we can introduce new function and relation symbols:
 
@@ -105,7 +105,7 @@ verification condition is:
     #-   (forall X,Y. r(X,Y) -> r(Y,X)) -> (r(n,X) -> r(X,n))
 
 ```
-That is, it states that axiom `symmetry_r` implies property `myprop`. 
+That is, it states that axiom `symmetry_r` implies property `myprop`.
 IVy checks that this formula is within a logical fragment that Z3 can
 decide, then passes the formula to Z3. If Z3 finds that the formula is
 valid, the property is admitted.
@@ -200,7 +200,7 @@ premises to infer its conclusion.
     }
 
 ```
-The `proof` declaration tells IVy to apply the axiom schema `congruence` to prove the property. 
+The `proof` declaration tells IVy to apply the axiom schema `congruence` to prove the property.
 IVy tries to match the proof goal `prop_n` to the schema's conclusion by picking particular
 values for premises, that is, the types *d*,*r* and function *f*. It also chooses terms for the
 the free variables *X*,*Y* occurring in the schema. In this case, it
@@ -234,7 +234,7 @@ assignment. That is, it must convert *X* to
 *Z*, *Y* to *n* and *f*(*X*) to *X* + 1. Notice that we had to
 explicitly type *X* on the right-hand side of the last equation,
 since its type couldn't be inferred (and in fact it's not the same
-as the type of *X* on the left-hand side, which is *d*). 
+as the type of *X* on the left-hand side, which is *d*).
 
 It's also possible to write constraints that do not allow for any
 assignment. In this case, Ivy complains that the provided match is
@@ -246,7 +246,7 @@ Forward proofs
 In the normal way of writing proofs, we start from a set of premises,
 then proceed to prove a sequence of facts (or lemmata), ending in a
 conclusion. Each fact must be seen to follow from the preceding facts
-by applying a valid schema. 
+by applying a valid schema.
 
 For example, consider the following axiom schema:
 
@@ -284,7 +284,7 @@ We take as a given that Socrates is a man, and prove he is mortal:
 The axiom `mortality_of_man`, requires us supply the premise
 `man(socrates)`.  Fortunately, we have this fact as an axiom.
 To justify the conclusion `mortal(socrates)` we tell Ivy to apply
-axiom `mortality_of_man` with `soc_man` as its premise. 
+axiom `mortality_of_man` with `soc_man` as its premise.
 
 Ivy achieves this proof by *matching* the axiom `mortality_of_man`
 against the provided premise and conclusion. In this process, it
@@ -318,7 +318,7 @@ expressing the transitivity of equality:
 
 
 ```
-We don't need to provide a proof for this Ivy's default tactic using Z3 can handle it. 
+We don't need to provide a proof for this Ivy's default tactic using Z3 can handle it.
 The verification condition that Ivy generates is:
 
 ```
@@ -437,9 +437,9 @@ in writing `right=lem2`.
 Natural deduction
 =================
 
-The above proof is an example of reasoning in a style called 
+The above proof is an example of reasoning in a style called
 [natural deduction](https://en.wikipedia.org/wiki/Natural_deduction).
-In fact, `elimA` is a primitive inference rule in natural deduction. 
+In fact, `elimA` is a primitive inference rule in natural deduction.
 In the natural deduction style, a premise of a theorem is often itself a theorem.
 For example, here is a rule of natural deduction that is used to prove an implication:
 
@@ -478,7 +478,7 @@ from `p & (p->q)`. So here's the start of a proof:
         theorem [lem1] {
             property [p1] p & (p -> q)
             property q
-        } 
+        }
         apply introImp
     }
 
@@ -488,7 +488,7 @@ effectively pass the problem of proving `lem1` on to Z3. With this
 lemma, we can then apply `introImp` to give us our goal. We could also
 have said `with lem=lem1`, but we didn't have to because Ivy can
 figure out the premise needed by `introImp` just by matching the
-conclusions. 
+conclusions.
 
 Now, if we don't want to burden Z3 with the proof of `lem1`, we can
 fill it in. We'll use this rule for eliminating implications:
@@ -519,7 +519,7 @@ proof of `lem1`::
             property q
         } proof {
             property [p2] p
-            property [p3] p -> q 
+            property [p3] p -> q
             apply elimImp with prem1 = p1
         }
         apply introImp
@@ -589,7 +589,7 @@ rules to work backward from conclusions to premises.  When applying a
 rule, Ivy does not require that all premises of the rule be
 immediately supplied.  An unsupplied premise becomes a *subgoal* which
 we must prove later. In effect, the proof of the missing premise is
-"pushed on the stack". 
+"pushed on the stack".
 
 As an example, let's look at an alternative proof of the mortality
 of Socrates:
@@ -608,9 +608,9 @@ necessary premise `man(socrates)`. Ivy is undeterred by this. It simply
 matches the conclusion `mortal(X)` to `mortal(socrates)`, instantiates
 the axiom `mortality_of_man` and pushes the needed premise `man(socrates)`
 on the goal stack. We then discharge this goal using `soc_man`, leaving the
-goal stack empty. Each proof step is applied to the top goal on the stack. 
+goal stack empty. Each proof step is applied to the top goal on the stack.
 As you may have guessed, goals remaining on the stack at the end of the 'proof'
-are passed to Z3. 
+are passed to Z3.
 
 When chaining proof rules backward, it is helpful to be able to see
 the intermediate subgoals, since we do not write them
@@ -658,7 +658,7 @@ Here is one possible proof in the backward style:
 
 ```
 In fact, it is the same proof that we wrote in the forward style, but
-it is now both more succinct and more difficult to understand. 
+it is now both more succinct and more difficult to understand.
 
 As another example, here is our proof of theorem `mp` written in the
 backward style:
@@ -675,13 +675,13 @@ backward style:
 
 ```
 Again, it is much more succinct, but offers no intuition as to *why* the
-theorem is true. 
+theorem is true.
 
 When is a backward proof appropriate? One use case is when we wish to
 make a small transformation to a very complex formula before passing
 the problem to Z3. In this situation, writing out the resulting formula
 as an explicit lemma is probably a waste of effort, since the formula is
-intended to be consumed by an automated tool rather than a human user. 
+intended to be consumed by an automated tool rather than a human user.
 
 Skolemization and instantiation
 ===============================
@@ -905,7 +905,7 @@ adds the non-negative numbers less than or equal to *X* like this:
     }
 
 ```
-Notice that we wrote the definition in curly brackets. This causes Ivy to 
+Notice that we wrote the definition in curly brackets. This causes Ivy to
 treat it as an axiom schema, as opposed to a simple axiom.
 We did this because the definition has a universally quantified variable
 `X` under arithmetic operators, which puts it outside the decidable
@@ -963,7 +963,7 @@ The extended schema matches the definition, with the following assignment:
 This is somewhat as if the functions were "curried", in which case the
 free symbol `fun` would match the partially applied term `sumdiv N`.
 Since Ivy's logic doesn't allow for partial application of functions,
-extended matching provides an alternative. Notice that, 
+extended matching provides an alternative. Notice that,
 to match the recursion schema, a function definition must be
 recursive in its *last* parameter.
 
@@ -987,7 +987,7 @@ an example of such a schema, that works for the non-negative integers:
             property p(x) -> p(x+1)
         }
         #--------------------------
-        property p(X)    
+        property p(X)
     }
 
 ```
@@ -1166,10 +1166,10 @@ function. We could write something like this:
             definition f(X) = X + 1
         }
 
-        theorem [expanding] { 
+        theorem [expanding] {
             property f(X) > X
         }
-        property [transitivity] X:t < Y & Y < Z -> X < Z        
+        property [transitivity] X:t < Y & Y < Z -> X < Z
 
     }
 
@@ -1195,7 +1195,7 @@ Now suppose we want to prove an extra property using `t_theory`:
 ```
     isolate extra = {
 
-        theorem [prop] {  
+        theorem [prop] {
             property Y < Z -> Y < f(Z)
         }
         proof {
@@ -1206,10 +1206,10 @@ Now suppose we want to prove an extra property using `t_theory`:
 
 ```
 The 'with' clause says that the properties in `t_theory` should be
-used by the default tactic within the isolate. In this case, the `transitivity` 
+used by the default tactic within the isolate. In this case, the `transitivity`
 property will be used by default. This pattern is particularly useful when
 we have a collection of properties of an abstract datatype that we wish to
-use widely without explicitly instantiating them. 
+use widely without explicitly instantiating them.
 
 Notice that the default tactic will not use the interpretation of *t* as the
 integers and the definition of *f* as the successor function, since
@@ -1246,14 +1246,14 @@ structured like this:
                 definition f(X) = X + 1
             }
 
-            theorem [expanding] { 
+            theorem [expanding] {
                 property f(X) > X
             }
-            property [transitivity] X:t < Y & Y < Z -> X < Z        
+            property [transitivity] X:t < Y & Y < Z -> X < Z
 
         }
 
-        theorem [prop] {  
+        theorem [prop] {
             property Y < Z -> Y < f(Z)
         }
         proof
@@ -1262,7 +1262,7 @@ structured like this:
     }
 
 ```
-The parent isolate `extra2` uses only the visible parts of the child isolate `t_theory`. 
+The parent isolate `extra2` uses only the visible parts of the child isolate `t_theory`.
 
 Proof ordering and refinement
 =============================
@@ -1293,7 +1293,7 @@ visible properties of the isolates occur textually at the beginning:
         function f(X:t) : t
 
         specification {
-            theorem [prop] {  
+            theorem [prop] {
                 property Y < Z -> Y < f(Z)
             }
             proof
@@ -1303,10 +1303,10 @@ visible properties of the isolates occur textually at the beginning:
         isolate t_theory = {
 
             specification {
-                theorem [expanding] { 
+                theorem [expanding] {
                     property f(X) > X
                 }
-                property [transitivity] X:t < Y & Y < Z -> X < Z        
+                property [transitivity] X:t < Y & Y < Z -> X < Z
             }
 
             implementation {

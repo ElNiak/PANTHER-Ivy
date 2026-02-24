@@ -88,9 +88,9 @@ server implementations, but much work remains to be done in specifying
 all of the protocol features. Second, the specification does not deal
 with quantitative time, meaning certain aspects of the QUIC
 specification relating to transmission rates and timeouts can't be
-stated. 
+stated.
 
-The remainder of this document describes how to use the 
+The remainder of this document describes how to use the
 specification to test implementations.
 
 
@@ -102,7 +102,7 @@ file you are reading (relative to the root of the Ivy tree, it is
 `doc/examples/quic`).
 
 First, Ivy must be installed, as described
-[here](http://microsoft.github.io/ivy/install.html).     
+[here](http://microsoft.github.io/ivy/install.html).
 After you have finished with the Ivy installation, do the following
 steps just one a given machine.
 
@@ -144,21 +144,21 @@ Implementations of QUIC
 Source code and build instructions:
 
     https://github.com/private-octopus/picoquic
-    
+
 To get draft 18 of the QUIC standard, use this commit
 before updating submodules:
 
     git checkout 95dd82f
-    
+
 
 Run a server:
 
     ./picoquicdemo -L -l -
-    
+
 Run a client:
 
     ./picoquicdemo localhost
-    
+
 ### quant
 
 Source code and build instructions:
@@ -168,8 +168,8 @@ Source code and build instructions:
 To run the quant server in "this directory":
 
     $QUANT_DIR/Debug/bin/server -d . -c leaf_cert.pem -k leaf_cert.key -p 4443
-    
-    
+
+
 ### MinQUIC
 
 #### Steps to get started with MinQUIC
@@ -188,7 +188,7 @@ to make sure that the go binary is in your path, and do this:
     $ cd go
     $ mkdir src
     $ export GOPATH=`pwd`
-    $ echo export GOPATH=`pwd` >> ~/.profile 
+    $ echo export GOPATH=`pwd` >> ~/.profile
 
 ##### MinQUIC installation notes
 
@@ -227,7 +227,7 @@ First, set an envionment variable to tell the test script where to find
 your implementations of QUIC:
 
     export QUIC_IMPL_DIR=~
-    
+
 This is assuming you built the QUIC implementations in subdirectories
 of your home directory. If you put them somewhere else, adjust
 accordingly.
@@ -236,7 +236,7 @@ Do this to test the server implementation of picoquic:
 
     $ cd test
     $ python test.py iters=1 server=picoquic test=quic_server_test_stream
-    
+
 You may get output that looks something like this:
 
     output directory: temp/175
@@ -262,7 +262,7 @@ ivy events (extension `.iev`) the standard output from the server
 `.err`). You can use the ivy event viewer to look at the ivy event log:
 
     $ ivy_ev_viewer temp/175/quic_server_test_stream0.iev
-    
+
 If you compiled other testers, you can adjust the `test` parameter of
 the test script.  To test a client, do this:
 
@@ -330,7 +330,7 @@ TODO list
 
 - Generate new connection id, require fresh connection ids to be used if available,
   handle retire_connection id.
-  
+
 - Version negotiation
 
 - Retry and new token
@@ -347,7 +347,7 @@ TODO list
 
     - after sending close, all packets must contain a matching close
     - after receiving close or stateless reset, send at most one close and nothing else
-    
+
 - Stateless reset
 
 - Frame types:
@@ -358,7 +358,7 @@ TODO list
     - STOP_SENDING (implemented, but what to enforce?)
     - ACK (ECN section)
     - NEW_TOKEN (can receive it, but no properties)
-    
+
 - Ack-only packet rules (reinstate)
 
 - Retransmissions (seems to be only liveness properties)
@@ -379,7 +379,7 @@ Ubuntu system with version 14.04 or higher, do the following:
     sudo apt-get install core-network tcpdump libpcap-dev
 
 On Ubuntu 18.04 you have to install from source. Get the source from
-the link above and follow the README. 
+the link above and follow the README.
 
 Note: this is only useful if you want to monitor packets using
 tcpdump, as it helps elimiante background noise. It isn't needed for
@@ -389,7 +389,7 @@ testing purposes.
 
 The testers make use of the `picotls` implementation of TLS. Install
 it according to the instructions
-[here](https://github.com/h2o/picotls). 
+[here](https://github.com/h2o/picotls).
 
 Here are some rough instructions on Ubuntu (YMMV):
 
@@ -419,7 +419,7 @@ copy them to standard locations). Use this command, where
 `PICOTLS_DIR` is the directory in which `picotls` was built:
 
     $ ivy_libs add picotls $PICOTLS_DIR .
-    
+
 Notice the dot in the above, which is essential.
 
 ### Build the Ivy packet monitor
@@ -431,7 +431,7 @@ To build the Ivy monitor, change to "this directory" and compile
 
     ivyc quic_monitor.ivy
 
-This should create a binary file `quic_monitor`. 
+This should create a binary file `quic_monitor`.
 
 Virtual network startup
 =======================
@@ -471,7 +471,7 @@ Change to the directory containing MinQUIC:
 Create three terminals, A, B and C.
 
 Terminal A: run a server in node `n0`:
-    
+
     sudo vcmd -c /tmp/n0.ctl -- `which go` run `pwd`/bin/server/main.go --addr=10.0.0.1:4433 --server-name=10.0.0.1
 
 Terminal B: trace packets with `tcpdump`:
@@ -515,4 +515,3 @@ described in [quic_packet.ivy](quic_packet.md).
 If the specification is violated by the packet trace, the file will
 end with an error message indicating the requirement that was
 violated.
-

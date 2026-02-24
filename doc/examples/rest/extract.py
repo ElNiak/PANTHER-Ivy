@@ -170,7 +170,7 @@ def main():
     except:
         sys.stderr.write('cannot open {} to write\n'.format(outname))
         exit(1)
-        
+
     out.write('#lang ivy1.7\n')
     out.write('\n')
     out.write('# File generated from {}. Do not edit.\n'.format(inpname))
@@ -179,9 +179,9 @@ def main():
     out.write('type string\n')
     out.write('type integer\n')
     out.write('include collections\n')
-    
-    
-    
+
+
+
     if not isinstance(spec,dict):
         format_error(inpname,'top-level not a dictionary')
 
@@ -199,13 +199,13 @@ def main():
                     format_error(inpname,'undefined ref: {}'.format(rf))
             return thing
         format_error(inpname,'undefined ref: {}'.format(rf))
-       
+
     def ref_basename(rf):
         if rf.startswith('#/definitions/'):
             return iname(rf[len('#/definitions/'):])
         else:
             format_error(inpname,'reference {} is not a definition'.format(path,opname,respname))
-        
+
     def_refs = collections.defaultdict(list)
 
     for name,value in defs.items():
@@ -217,7 +217,7 @@ def main():
     order = [(y,x) for x in list(def_refs.keys()) for y in def_refs[x]]
     ordered_names = ivy.ivy_utils.topological_sort(list(defs.keys()),order)
     defs = collections.OrderedDict((x,defs[x]) for x in ordered_names)
-                    
+
     def get_ref_or_type(prop,name,df):
         if not isinstance(df,dict):
             format_error(inpname,'property {} of entry {} not a dictionary'.format(prop,name))
@@ -248,7 +248,7 @@ def main():
 #            name = prop+'_sub_'+str(idx)
 #            emit_type(name,ty)
 #            ty = name
-    
+
 
 
 
@@ -275,7 +275,7 @@ def main():
             out.write('}\n')
 
     paths = spec["paths"]
-        
+
     path_count = 0
     for path,value in paths.items():
         path_count = path_count + 1
@@ -331,12 +331,12 @@ def main():
                         format_error(inpname,'path {} op {} response {} has no schema ref'.format(path,opname,respname))
                 out.write('\n    action {}_response_{}(val:{})\n'.format(iname(opname),respname,ty))
         out.write("}\n")
-    
-                    
-                        
-                
-                    
 
-            
+
+
+
+
+
+
 if __name__ == "__main__":
     main()

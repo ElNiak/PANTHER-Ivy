@@ -35,7 +35,7 @@ global {
             module socket = {
 
                 parameter id : udp.endpoint
-                attribute id.global_parameter = true    
+                attribute id.global_parameter = true
 
                 action send(dst : udp.endpoint, msg : msg_t)
                 action recv(src : udp.endpoint, msg : msg_t)
@@ -93,11 +93,11 @@ global {
                         tail(X,Y) := 0;
                     }
             }
-            
+
             module socket = {
 
                 parameter id : tcp.endpoint
-                attribute id.global_parameter = true    
+                attribute id.global_parameter = true
 
                 action send(dst : tcp.endpoint, msg : msg_t)
                 action recv(src : tcp.endpoint, msg : msg_t)
@@ -125,7 +125,7 @@ global {
                     relation connected_to(X:tcp.endpoint)
                     function dst_socket(X:tcp.endpoint) : intf.socket
                     function socket_src(X:intf.socket) : tcp.endpoint
-                    
+
                     after init {
                         sock := intf.open(id);
                     }
@@ -143,7 +143,7 @@ global {
                         # so we can't maintain message order.
                     }
 
-                    implement intf.accept(s:intf.socket, src:tcp.endpoint) { 
+                    implement intf.accept(s:intf.socket, src:tcp.endpoint) {
                         socket_src(s) := src;
                     }
 
@@ -152,7 +152,7 @@ global {
                     }
                 }
                 trusted isolate iso = this
-                
+
                 attribute test = impl
             }
 
@@ -172,11 +172,11 @@ global {
             specification {
                 relation sent(S:tcp.endpoint,D:tcp.endpoint,M:msg_t)
             }
-            
+
             module socket = {
 
                 parameter id : tcp.endpoint
-                attribute id.global_parameter = true    
+                attribute id.global_parameter = true
 
                 action send(dst : tcp.endpoint, msg : msg_t)
                 action recv(src : tcp.endpoint, msg : msg_t)
@@ -186,7 +186,7 @@ global {
                     after init {
                         net.sent(X,Y,M) := false;
                     }
-                    
+
                     before send {
                         require net.sent(id,dst,M) -> M < msg;
                     }
@@ -209,7 +209,7 @@ global {
                     relation connected_to(X:tcp.endpoint)
                     function dst_socket(X:tcp.endpoint) : intf.socket
                     function socket_src(X:intf.socket) : tcp.endpoint
-                    
+
                     after init {
                         sock := intf.open(id);
                     }
@@ -227,7 +227,7 @@ global {
                         # so we can't maintain message order.
                     }
 
-                    implement intf.accept(s:intf.socket, src:tcp.endpoint) { 
+                    implement intf.accept(s:intf.socket, src:tcp.endpoint) {
                         socket_src(s) := src;
                     }
 
@@ -236,7 +236,7 @@ global {
                     }
                 }
                 trusted isolate iso = this
-                
+
                 attribute test = impl
             }
 
@@ -264,11 +264,11 @@ global {
                     len(S,D) := 0;
                 }
             }
-            
+
             module socket = {
 
                 parameter id : tcp.endpoint
-                attribute id.global_parameter = true    
+                attribute id.global_parameter = true
 
                 action send(dst : tcp.endpoint, msg : msg_t)
                 export action recv(src : tcp.endpoint, msg : msg_t)
@@ -301,7 +301,7 @@ global {
                     relation connected_to(X:tcp.endpoint)
                     function dst_socket(X:tcp.endpoint) : intf.socket
                     function socket_src(X:intf.socket) : tcp.endpoint
-                    
+
                     after init {
                         sock := intf.open(id);
                     }
@@ -319,7 +319,7 @@ global {
                         # so we can't maintain message order.
                     }
 
-                    implement intf.accept(s:intf.socket, src:tcp.endpoint) { 
+                    implement intf.accept(s:intf.socket, src:tcp.endpoint) {
                         socket_src(s) := src;
                     }
 
@@ -337,7 +337,7 @@ global {
     # This is a model of tcp that is useful for finite-state model echecking. It uses
     # queues of bounded size to store channel messages. The model *assumes* that the bounded
     # queue does not overflow. That means that behaviors in which the number of messages in the
-    # channel exceed the queue size are effectively ignored. 
+    # channel exceed the queue size are effectively ignored.
 
     object tcp_bounded = {
 
@@ -351,11 +351,11 @@ global {
                     len(S,D) := 0;
                 }
             }
-            
+
             module socket = {
 
                 parameter id : tcp.endpoint
-                attribute id.global_parameter = true    
+                attribute id.global_parameter = true
 
                 action send(dst : tcp.endpoint, msg : msg_t)
                 export action recv(src : tcp.endpoint, msg : msg_t)

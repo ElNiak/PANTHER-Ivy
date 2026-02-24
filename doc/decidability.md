@@ -80,7 +80,7 @@ be written as:
 
 Since this formula is valid over the natural numbers, meaning it holds
 true for any natural number *x*, we conclude that the program is
-correct. 
+correct.
 
 In fact, we can check the validity of this formula automatically.
 Technically, the way this is done is by *negating* the formula,
@@ -152,7 +152,7 @@ The semantics of the `assume` and `assert` statements are given by:
 That is, we treat `assume Q` as a statement that only terminates if
 *Q* is true, and `assert Q` as a statement that only succeeds if *Q*
 is true (that is, if `Q` is false, it does not even satisfy the
-postcondition `true`). 
+postcondition `true`).
 
 We can compute the wlp of a sequential composition of statements like this:
 
@@ -182,7 +182,7 @@ that the loop body must preserve the invariant if the entry condition
 holds, and that otherwise the invariant implies the postcondition.
 
 Finally a program (or an isolate) maintains its invariant *I* if its
-initializer establishes *I* and if each exported action preserves 
+initializer establishes *I* and if each exported action preserves
 *I*. Thus, the verification condition for a program is:
 
     wlp(init,I)
@@ -200,7 +200,7 @@ messy formulas that are hard to read. Fortunately, from the point of
 view of decidability, we need not be concerned with the exact form of
 the VC. Rather, for each formula occurring in the program or its
 specifications, we will be concerned with whether the formula
-occurs *positively* in the VC, or *negatively* or both. 
+occurs *positively* in the VC, or *negatively* or both.
 
 A positive occurrence is one under an even number of negations,
 while a negative occurrence is under an odd number. For example,
@@ -233,19 +233,19 @@ three formulas:
 
 We can see that the assumption `x > 0` occurs positively, the assignment
 `y = x - 1` occurs positively as an equation, and the guarantee `x < y`
-occurs negatively. 
+occurs negatively.
 
 On the other hand, as noted above, the VC's for a program invariant
 *I* have this form: `I -> wlp(a,I)`. This means that the invariant *I*
 occurs both positively and negatively (or put another way, it is both
-an assumption and a guarantee). 
+an assumption and a guarantee).
 
 Understanding which formulas occur positively and negatively in the negated VC
 will be important in understanding why the VC is or is not in the decidable
 fragment.
 
 The decidable fragment
----------------------- 
+----------------------
 
 IVy defines a subset of first-order formulas as its *decidable
 fragment*. Whether a formula is in the fragment can depend on which
@@ -405,11 +405,11 @@ satisfiable if and only if `forall X. p(X,f(X))` is satisfiable for a
 fresh function symbol *f* called a *Skolem function*. This means that
 we can always eliminate all of the existential quantifiers from the
 negated VC. However, the Skolem functions must also be considered with
-regard to decidability. That is, if the set of all function symbols, 
+regard to decidability. That is, if the set of all function symbols,
 *including* Skolem functions, is stratified, then the formula is in
 the decidable fragment. Another way to think of this is that
 the quantifier sequence  `forall X:t. exists Y:u` induces an arc
-from *t* to *u* in the type graph. 
+from *t* to *u* in the type graph.
 
 In fact, we can be a little more liberal than this. Consider the
 formula:
@@ -426,7 +426,7 @@ the following program is in the decidable fragment:
     require forall X:t. exists Y:u. r(X,Y);
     if f(x) = y {
         r(x,y) := true
-    };       
+    };
     ensure forall X:t. exists Y:u. r(X,Y)
 
 The precondition occurs positively, so in introduces an arc from *t*
@@ -565,7 +565,7 @@ suffice for a formula with interpreted symbols to be in the decidable fragment:
 - Universal variables appear only as arguments of uninterpreted symbols
 
 This set of formulas is called *finite essentially uninterpreted*, or
-FEU. As an example, this set of formulas is in the FEU fragment, 
+FEU. As an example, this set of formulas is in the FEU fragment,
 where *f*, *g* and *h* are functions over integers:
 
     g(X, Y) = 0 | h(Y) = 0
@@ -686,17 +686,3 @@ relations instead of functions. Alternatively, we can use modularity
 to hide a function symbol or theory that is problematic, or we can
 apply proof tactics to transform the property to be proved. We will see
 examples of all of these approaches in the following chapters.
-
-
-
-
-
-
-
-
-
-
-
-
-
-

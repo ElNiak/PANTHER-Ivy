@@ -42,7 +42,7 @@ after init {
 
 before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     if ~_generating {
-        if last_pkt_num(the_cid,quic_packet_type.one_rtt) > 5  & ~slept & handshake_done_send{  # 
+        if last_pkt_num(the_cid,quic_packet_type.one_rtt) > 5  & ~slept & handshake_done_send{  #
             var idle_timeout_forced := max_idle_timeout_used;
             call sleep_event(idle_timeout_forced);
             var force_packet_retransmission_timeout := max_ack_delay_tp;
@@ -51,7 +51,7 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
         }
     }
     # else {
-    #     if last_pkt_num(the_cid,pkt.ptype) = 5  & ~slept {  # 
+    #     if last_pkt_num(the_cid,pkt.ptype) = 5  & ~slept {  #
     #         call sleep_event;
     #         var idle_timeout_forced := max_idle_timeout_used;
     #         var force_packet_retransmission_timeout := max_ack_delay_tp;
@@ -66,9 +66,9 @@ export send_ack_eliciting_initial_packet
 export frame.ping.handle
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require is_no_error;
     require conn_total_data(the_cid) > 0;
     require ~connection_closed; # silent close
-    #call 
+    #call
 }

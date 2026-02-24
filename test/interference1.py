@@ -50,5 +50,3 @@ with im.Module():
         assert "should have raised error"
     except iu.IvyError as e:
         assert str(e) == 'line 18: error: Call to p.a may cause interfering callback to q.c'
-
-

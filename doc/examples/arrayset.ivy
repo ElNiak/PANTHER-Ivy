@@ -11,7 +11,7 @@ module set(elem) = {
     relation contains(X:t,Y:elem)
     action emptyset returns(s:t)
     action add(s:t,e:elem) returns (s:t)
-    
+
     object spec = {
 	after emptyset {
 	    assert ~contains(s,X)
@@ -26,13 +26,13 @@ module set(elem) = {
         instance index : unbounded_sequence
         instance arr : array(index,elem)
         destructor repr(X:t) : arr
-        
+
         definition contains(X:t,y:elem) = exists Z. 0 <= Z & Z < repr(X).end & repr(X).value(Z) = y
-        
+
 	implement emptyset {
 	    repr(s) := arr.create(0,0)
 	}
-	
+
 	implement add {
 	    if ~contains(s,e) {
                 repr(s) := arr.resize(repr(s),index.next(arr.end(repr(s))),e)

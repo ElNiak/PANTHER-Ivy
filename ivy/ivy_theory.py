@@ -9,7 +9,7 @@ from tarjan import tarjan
 from itertools import chain
 
 # Here we have definitions relating to IVy's built-in theories.
-    
+
 theories_1_6 = {
 'int' : """#lang ivy
     schema rec[t] = {
@@ -32,7 +32,7 @@ theories_1_6 = {
             property p(x) -> p(x+1)
         }
         #--------------------------
-        property p(X)    
+        property p(X)
     }
 
 #    schema ind[t] = {
@@ -40,7 +40,7 @@ theories_1_6 = {
 #        property [base] forall X. X <= 0 -> p(X)
 #        property [step] forall X. p(X) -> p(X+1)
 #        #--------------------------
-#        property p(X)    
+#        property p(X)
 #    }
 
     schema lep[t] = {
@@ -73,7 +73,7 @@ theories_1_7 = {
             property p(x) -> p(x+1)
         }
         #--------------------------
-        property p(X)    
+        property p(X)
     }
 
 #    schema ind[t] = {
@@ -81,7 +81,7 @@ theories_1_7 = {
 #        property [base] forall X. X <= 0 -> p(X)
 #        property [step] forall X. p(X) -> p(X+1)
 #        #--------------------------
-#        property p(X)    
+#        property p(X)
 #    }
 
     schema lep[t] = {
@@ -105,19 +105,19 @@ class Theory(object):
         return self.name
     def is_finite(self):
         return False
-    
+
 class IntegerTheory(Theory):
     num_params = 0
     @property
     def schemata():
         return theories()['int']
-    
+
 class NaturalTheory(Theory):
     num_params = 0
     @property
     def schemata():
         return theories()['int']
-    
+
 class BitVectorTheory(Theory):
     num_params = 1
     @property
@@ -128,7 +128,7 @@ class BitVectorTheory(Theory):
         return theories()['int']
     def is_finite(self):
         return True
-    
+
 
 theory_classes = {
     'int' : IntegerTheory,

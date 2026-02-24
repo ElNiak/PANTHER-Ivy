@@ -8,9 +8,8 @@ count = 0
 
 while True:
     tok = ivy_lexer.lexer.token()
-    if not tok: 
+    if not tok:
         break      # No more input
     count += 1
 
 print(count)
-

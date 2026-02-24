@@ -255,5 +255,3 @@ class RunContext(object):
             self.parent.tk.wait_window(dlg)
             return True
         return False # don't block any exceptions
-
-

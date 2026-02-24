@@ -29,7 +29,7 @@ def run_in_terminal(cmd,name):
 #    os.system(xcmd)
     args = ["xterm","-fn",'-adobe-courier-bold-r-normal--18-*-*-*-m-*-iso10646-1',"-T",name,"-e", cmd+'; read -p "--press enter--"']
     return subprocess.Popen(args)
-    
+
 def read_params():
     ps = dict()
     args = sys.argv[1:]
@@ -86,7 +86,7 @@ def main():
         if prm not in legal_params:
             print("unknown parameter: {}".format(prm))
             exit(1)
-    
+
     def get_process_dimensions(process):
         pname = process['name']
         if pname in ps:
@@ -119,7 +119,7 @@ def main():
                 ranges.append(list(range(rng[0],rng[1]+1)))
             dim = list(itertools.product(*ranges))
         return dim
-    
+
     for process in processes:
         pname = process['name']
         dim = get_process_dimensions(process)
@@ -143,7 +143,7 @@ def main():
                         sys.stderr.write("endpoint {} is used by multiple processes".format(param['name']))
                         sys.exit(1)
                     param_vals[param['name']] = '"{}"'.format(ids[0] if len(pdim[0]) == 0 else ('[' + ','.join('[' + ','.join(map(str,d)) + ',' + id + ']' for d,id in zip(pdim,ids)) + ']'))
-                    
+
         ps.update(param_vals)
 
     process_count = 0
@@ -192,7 +192,7 @@ def main():
                             popens.append(subprocess.Popen(' '.join(cmd),shell=True,stdout=file))
                     else:
                         popens.append(subprocess.Popen(' '.join(cmd),shell=True))
-                        
+
         retcodes = []
         for popen in popens:
             retcodes.append(popen.wait())
@@ -211,11 +211,11 @@ def main():
                     file.write('{}\n'.format(counts))
             except:
                 print("error: cannot find log file: {}".format(logfile))
-                
+
         if any(rc != 0 for rc in retcodes):
             if runs > 1:
                 sys.stderr.write("test failed. see log in {}\n".format(logfile))
             exit(1)
-        
+
 if __name__ == "__main__":
     main()

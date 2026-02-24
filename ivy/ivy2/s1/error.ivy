@@ -9,14 +9,14 @@
 include ivylang
 
 object ivy = { ...
-    
+
     object error = {
         type this
         action encode(e:this,b:pretty) returns (b:pretty) = {
             b := b.extend("unknown error")
         }
     }
-    
+
     var errors : vector[error]
 
     # Reports an error and returns
@@ -192,7 +192,7 @@ object ivy = { ...
             b := b.newline;
         }
     }
-    
+
     # - Error `wrong_number_params(n)` indicates that `n` parameters were expected,
     #   but a different number was given.
 
@@ -225,6 +225,6 @@ object ivy = { ...
             b := b.newline;
         }
     }
-    
+
 
 }

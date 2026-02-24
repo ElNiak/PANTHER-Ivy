@@ -31,4 +31,3 @@ Verification - 30th International Confer- ence, CAV 2018, Held as Part
 of the Federated Logic Conference, FloC 2018, Oxford, UK, July 14-17,
 2018, Proceedings, Part I, volume 10981 of Lecture Notes in Computer
 Science, pages 191–208. Springer, 2018.
-

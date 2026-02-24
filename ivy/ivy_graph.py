@@ -34,7 +34,7 @@ def add_domain_concept(concepts,con,kind=None):
     if kind or (1 <= arity and arity <= 2):
         kind = kind or ('node_labels' if arity==1 else 'edges')
         concepts[kind].append(name)
- 
+
 def add_domain_concept_fmla(concepts,fmla,kind=None,vs=None):
     con = concept_from_formula(fmla,vs)
     add_domain_concept(concepts,con,kind)
@@ -52,7 +52,7 @@ def empty_concepts():
 def make_concept_domain(concepts):
     combinations = co.get_standard_combinations() + [('enum','node_necessarily','nodes','enum')]
     return co.ConceptDomain(concepts, co.get_standard_combiners(), combinations)
-    
+
 # This creates the default initial concept graph, with one
 # node for each sort.
 
@@ -64,10 +64,10 @@ def initial_concept_domain(sorts):
     for sort in sorts:
         X = Variable('X', sort)
         add_domain_concept_fmla(concepts,Equals(X,X),kind='nodes')
-        
+
     return make_concept_domain(concepts)
 
-# This is a concept set for t erm of enumerated type. 
+# This is a concept set for t erm of enumerated type.
 
 class enum_concepts(co.ConceptSet,list):
     def __init__(self,name,variables,formula):
@@ -77,7 +77,7 @@ class enum_concepts(co.ConceptSet,list):
         self.formula = formula
         self.sorts = [v.sort for v in variables] if variables != None else []
 
-# This creates concepts and concept sets from the signature. 
+# This creates concepts and concept sets from the signature.
 
 def create_unit_sort(concepts):
     sort = il.UninterpretedSort('unit')
@@ -110,7 +110,7 @@ def concepts_from_sig(symbols,concepts):
                 concepts[ec.name] = enum_concepts(ec.name,vs,c(*vs))
                 for cons in rng.constructors:
                     c1 = add_domain_concept_fmla(concepts,Equals(c(*vs),cons),kind='enum_case',vs=xvs)
-                    concepts[ec.name].append(c1.name)                
+                    concepts[ec.name].append(c1.name)
 
         elif il.is_boolean_sort(rng):
             # TODO: we have no way to display boolean constants
@@ -131,7 +131,7 @@ def concepts_from_sig(symbols,concepts):
                 vs = [Variable(n,s) for n,s in zip(['X','Y','Z'],dom+(rng,))]
                 fmla = Equals(c(*vs[0:-1]),vs[-1])
                 add_domain_concept_fmla(concepts,fmla)
-    
+
 # replace the signature concepts in a concept domain
 
 def replace_concept_domain_vocabulary(concept_domain,symbols):
@@ -295,7 +295,7 @@ def render_concept_graph(widget):
             ] +
             label_lines
         )
-        
+
         cluster = domain.concepts[node].sort.name
 
 
@@ -399,7 +399,7 @@ def node_gt(n1,n2):
 def can_abbreviate_formula(v,fmla):
     return (len(fmla.args) == 1 and fmla.args[0] == v or
             il.is_eq(fmla)
-            and (fmla.args[0] == v or 
+            and (fmla.args[0] == v or
                  len(fmla.args[0].args) ==1 and fmla.args[0].args[0] == v)
             and not any(ilu.variables_ast(fmla.args[1])))
 
@@ -428,7 +428,7 @@ class Graph(object):
         render_concept_graph(self)
 
     def reset(self):
-        
+
         concept_domain = initial_concept_domain(self.sorts)
         self.new_relations = []
         self.concept_session = cis.ConceptInteractiveSession(concept_domain,And(),And(),cache={},recompute=True)
@@ -495,12 +495,12 @@ class Graph(object):
     def nodes(self):
         """ Returns all the concepts that need check-boxes """
         return list(map(self.concept_from_id,self.node_ids))
-    
+
     def node_sort(self,node):
         return node.sorts[0]
 
     # This gives the shorthand name for a concept used in node labels.
-    
+
     def concept_label(self,concept):
         fmla = concept.formula
         if len(concept.variables) == 1:
@@ -557,7 +557,7 @@ class Graph(object):
         if concept.name not in self.concept_domain.concepts:
             add_domain_concept(self.concept_domain.concepts,concept)
             self.new_relations.append(concept)
-            
+
     def state_changed(self,recomp=True):
         cs = self.concept_session
         cs.cache.clear()
@@ -570,11 +570,11 @@ class Graph(object):
             add_domain_concept(self.concept_domain.concepts,concept)
         if recomp:
             self.recompute()
-            
+
 
     def set_state(self,clauses,recomp=True,clear_constraints=False,reset=False):
-        self.state = clauses        
-        
+        self.state = clauses
+
         if clear_constraints:
             self.concept_session.suppose_constraints = []
         if reset:
@@ -637,7 +637,7 @@ class Graph(object):
 
     def get_transitive_reduction(self):
         return [] # TODO: implement
-        
+
     def projection(self,concept_name,concept_class,concept_combiner=None):
 #        print "projection: {} {} {}".format(concept_name,concept_class,concept_combiner)
         if concept_class in ('node_labels','edges','enum'):
@@ -693,7 +693,7 @@ class Graph(object):
             concepts[name].append(c1.name)
         self.concept_session.domain.split(node.name,name)
         self.recompute()
-        
+
 
     def add_constraints(self,cnstrs,recompute=True):
         self.concept_session.suppose_constraints.extend(cnstrs)
@@ -750,7 +750,7 @@ class GraphStack(object):
         self.current = graph
         self.undo_stack = []
         self.redo_stack = []
-        
+
     def can_undo(self):
         return len(self.undo_stack) > 0
 
@@ -779,5 +779,3 @@ def standard_graph(parent_state=None):
     sorts = [s for s in list(il.sig.sorts.values()) if il.is_first_order_sort(s)]
     g = Graph(sorts,parent_state)
     return GraphStack(g)
-    
-

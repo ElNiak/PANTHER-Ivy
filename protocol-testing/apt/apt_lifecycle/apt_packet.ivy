@@ -1,20 +1,20 @@
-#lang ivy1.7 
+#lang ivy1.7
 
 include collections
 include ip
 include apt_byte_stream
 
 object packet = {
-    
-    type this 
+
+    type this
 
     instance idx : unbounded_sequence
-    instance arr : array(idx,this) 
+    instance arr : array(idx,this)
 
     # Normal behavior
 
     action handle(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
-        require false; 
+        require false;
     }
 
     ## Man in the middle
@@ -55,7 +55,7 @@ object packet = {
     action forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.arr)
     around forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.arr) {
         # require _generating;
-        # 
+        #
         if _generating {
             require pkt.end > 0;
             if spoof_client_ip {
@@ -66,7 +66,7 @@ object packet = {
             require mim_agent.nat_configured;
             require src ~= dst;
             # require ~is_receiving(dst) & ~is_receiving(src);
-            
+
             call show_num_queued_packets_debug_event(dst,num_queued_packets(dst,current_forwarding_round(dst)));
             call show_num_packets_received_at_round_debug_event(dst,num_packets_received_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst));
             call show_current_forwarding_round_debug_event(dst,current_forwarding_round(dst));
@@ -87,7 +87,7 @@ object packet = {
     action reflect_to(src:ip.endpoint,dst:ip.endpoint,pkt:packet.arr)
     around reflect_to(src:ip.endpoint,dst:ip.endpoint,pkt:packet.arr) {
         # require _generating;
-        # 
+        #
         if _generating {
             require pkt.end > 0;
             if spoof_client_ip {
@@ -101,12 +101,12 @@ object packet = {
             require mim_agent.nat_configured;
             require src ~= dst;
             # require ~is_receiving(dst) & ~is_receiving(src);
-            
+
             call show_num_queued_packets_debug_event(dst,num_queued_packets(dst,current_forwarding_round(dst)));
             call show_num_packets_received_at_round_debug_event(dst,num_packets_received_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst));
             call show_current_forwarding_round_debug_event(dst,current_forwarding_round(dst));
             call show_current_receving_round_debug_event(dst,current_receving_round(dst));
-            
+
             # require num_queued_packets_to_reflect(dst,current_forwarding_round(dst)) > 0;
             # require num_packets_received_at_round(dst,current_forwarding_round(dst)) > 0;
             require num_queued_packets_to_reflect(dst,current_forwarding_round(dst)) = 1;
@@ -120,63 +120,63 @@ object packet = {
     }
 
     action replay_to(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
-        require false; 
+        require false;
     }
 
     action replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
-        require false; 
+        require false;
     }
 
     action replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
-        require false; 
+        require false;
     }
 
     action drop(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
-        require false; 
+        require false;
     }
 
     action drop_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
-        require false; 
+        require false;
     }
 
     action drop_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
-        require false; 
+        require false;
     }
 
     action modify(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
-        require false; 
+        require false;
     }
 
     action modify_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
-        require false; 
+        require false;
     }
 
     action modify_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
-        require false; 
+        require false;
     }
 
     action delay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
-        require false; 
+        require false;
     }
 
     action delay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
-        require false; 
+        require false;
     }
 
     action duplicate_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
-        require false; 
+        require false;
     }
 
     action duplicate_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
-        require false; 
+        require false;
     }
 
     action reorder_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
-        require false; 
+        require false;
     }
 
     action reorder_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:this) = {
-        require false; 
+        require false;
     }
 
     ## White noise
@@ -184,7 +184,7 @@ object packet = {
     # 1. Denial-of-Service (DoS) Attacks
 
     action flood(src:ip.endpoint,dst:ip.endpoint, pkt:this) = {
-        require false; 
+        require false;
     }
 }
 
@@ -222,8 +222,8 @@ action enqueue_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet)
 before enqueue_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet) {
     call show_enqueued_packets_debug_event(dst,pkt);
     packet_to_forward(dst,current_forwarding_round(dst))    := packet_to_forward(dst,current_forwarding_round(dst)).append(pkt);
-    num_queued_packets(dst,current_forwarding_round(dst))   := packet_to_forward(dst,current_forwarding_round(dst)).end; 
-    
+    num_queued_packets(dst,current_forwarding_round(dst))   := packet_to_forward(dst,current_forwarding_round(dst)).end;
+
     call show_num_queued_packets_debug_event(dst,num_queued_packets(dst,current_forwarding_round(dst)));
     call show_num_packets_received_at_round_debug_event(dst,num_packets_received_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst));
     call show_current_forwarding_round_debug_event(dst,current_forwarding_round(dst));
@@ -235,8 +235,8 @@ action enqueue_packet_reflect(src:ip.endpoint,dst:ip.endpoint,pkt:packet)
 before enqueue_packet_reflect(src:ip.endpoint,dst:ip.endpoint,pkt:packet) {
     call show_enqueued_packets_debug_event(dst,pkt);
     packet_to_reflect(dst,current_forwarding_round(dst))    := packet_to_reflect(dst,current_forwarding_round(dst)).append(pkt);
-    num_queued_packets_to_reflect(dst,current_forwarding_round(dst))   := packet_to_reflect(dst,current_forwarding_round(dst)).end; 
-    
+    num_queued_packets_to_reflect(dst,current_forwarding_round(dst))   := packet_to_reflect(dst,current_forwarding_round(dst)).end;
+
     call show_num_queued_packets_debug_event(dst,num_queued_packets(dst,current_forwarding_round(dst)));
     call show_num_packets_received_at_round_debug_event(dst,num_packets_received_at_round(dst,current_forwarding_round(dst)),current_forwarding_round(dst));
     call show_current_forwarding_round_debug_event(dst,current_forwarding_round(dst));
@@ -248,10 +248,10 @@ after receiving_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet, pkt_num: stre
     call show_receiving_packet_debug_event(dst,pkt);
     packets_received_at_round(dst,current_receving_round(dst))       := packets_received_at_round(dst,current_receving_round(dst)).append(pkt);
     packets_received(dst)                                            := packets_received(dst).append(pkt);
-    
+
     num_packets_received_at_round(dst,current_receving_round(dst))   := packets_received_at_round(dst,current_receving_round(dst)).end;
     num_packets_received(dst)                                        := packets_received(dst).end;
-    
+
     call show_number_of_coalesced_packets_debug_event(dst,pkt_num);
     call show_num_queued_packets_debug_event(dst,num_queued_packets(dst,current_forwarding_round(dst)));
     call show_num_packets_received_at_round_debug_event(dst,num_packets_received_at_round(dst,current_receving_round(dst)),current_receving_round(dst));
@@ -276,7 +276,7 @@ action already_forwarded(src:ip.endpoint,dst:ip.endpoint,pkt:packet) returns (re
     # }
 }
 
-action update_forwarded_packet(src:ip.endpoint,dst:ip.endpoint) 
+action update_forwarded_packet(src:ip.endpoint,dst:ip.endpoint)
 after update_forwarded_packet(src:ip.endpoint,dst:ip.endpoint) {
     call show_update_forwarded_packet_debug_event(dst);
     packet_to_forward(dst,current_forwarding_round(dst))  := packet.arr.empty;
@@ -295,7 +295,7 @@ after update_forwarded_packet(src:ip.endpoint,dst:ip.endpoint) {
     # }
     # num_packets_received_at_round(dst,current_forwarding_round(dst)) := 0;
     # num_packets_received(dst)                                        := packets_received(dst).end;
-    
+
     coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)) := 0;
     packets_received_at_round(dst,current_forwarding_round(dst))      := packet.arr.empty;
 
@@ -307,4 +307,3 @@ import action show_after_queued_packets_debug_event(i:ip.endpoint, num:packet.ar
 import action show_num_queued_packets_debug_event(i:ip.endpoint, num:packet.idx)
 import action show_num_packets_received_at_round_debug_event(i:ip.endpoint, pkt:packet.idx,r:stream_pos)
 import action show_num_packets_forwarded_last_round_debug_event(i:ip.endpoint, pkt:stream_pos)
-

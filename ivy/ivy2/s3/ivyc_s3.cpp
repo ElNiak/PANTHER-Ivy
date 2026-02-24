@@ -2,869 +2,869 @@ struct __bool;
 namespace ivy
 {
     struct cint;
-    
+
 }
 namespace ivy
 {
     struct func;
-    
+
 }
 namespace ivy
 {
     struct size_t;
-    
+
 }
 namespace __char
 {
     struct __t;
-    
+
 }
 namespace __char
 {
     struct kinds;
-    
+
 }
 namespace pos
 {
     struct __t;
-    
+
 }
 namespace str
 {
     struct __t;
-    
+
 }
 namespace pretty
 {
     struct token;
-    
+
 }
 namespace vector__pretty__token
 {
     namespace domain
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__pretty__token
 {
     struct __t;
-    
+
 }
 namespace pretty
 {
     struct state;
-    
+
 }
 namespace vector__pretty__state
 {
     namespace domain
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__pretty__state
 {
     struct __t;
-    
+
 }
 namespace vector__pos
 {
     namespace domain
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__pos
 {
     struct __t;
-    
+
 }
 namespace pretty
 {
     struct __t;
-    
+
 }
 namespace annot
 {
     struct __t;
-    
+
 }
 namespace vector__str
 {
     namespace domain
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__str
 {
     struct __t;
-    
+
 }
 namespace annot_i
 {
     struct __t;
-    
+
 }
 namespace pstate
 {
     struct __t;
-    
+
 }
 namespace priority
 {
     struct __t;
-    
+
 }
 namespace ivy
 {
     namespace verb
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__ivy__ident
 {
     namespace domain
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__ivy__ident
 {
     struct __t;
-    
+
 }
 namespace ivy
 {
     namespace strident
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace numident
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace dotident
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace expr
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace symbol
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__ivy__expr
 {
     namespace domain
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__ivy__expr
 {
     struct __t;
-    
+
 }
 namespace ivy
 {
     namespace app
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace variable
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace pi
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace stmt
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace asgn
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace sequence
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__ivy__stmt
 {
     namespace domain
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__ivy__stmt
 {
     struct __t;
-    
+
 }
 namespace ivy
 {
     namespace skipst
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ifst
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace whilest
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace breakst
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace decl
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace action_kind
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace prototype_argument
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__ivy__prototype_argument
 {
     namespace domain
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__ivy__prototype_argument
 {
     struct __t;
-    
+
 }
 namespace ivy
 {
     namespace prototype
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace actdc
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_set
     {
         struct rec;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_set
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace varst
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace pragmast
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__ivy__decl
 {
     namespace domain
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__ivy__decl
 {
     struct __t;
-    
+
 }
 namespace ivy
 {
     namespace groupdc
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace typespec
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace enumspec
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace structspec
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace typedc
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace vardc
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace header
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace interpdc
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace includedc
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace moduledc
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace instantiatedc
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace objectdc
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace instancedc
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace initdc
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace version
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace prog
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace error
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__ivy__error
 {
     namespace domain
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__ivy__error
 {
     struct __t;
-    
+
 }
 namespace ivy
 {
     namespace type_clash
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace type_conversion
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace untyped
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace not_first_order
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace file_not_found
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace cannot_write
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace undefined
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace redefining
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace wrong_number_params
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace syntax_error
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace bad_syntax
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace prog
     {
         struct readst;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace symeval
     {
         struct rec;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace symeval
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_moduledc
     {
         struct rec;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_moduledc
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_ident
     {
         struct rec;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_ident
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_instantiatedc
     {
         struct rec;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_instantiatedc
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_annot
     {
         struct rec;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_annot
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace flatst
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_exprs
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace subtypes
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace global_types
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace param_map
     {
         struct rec;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace param_map
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace local_info
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace push_pop_locals
     {
         struct undo;
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -873,11 +873,11 @@ namespace ivy
         namespace map_t
         {
             struct rec;
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -886,11 +886,11 @@ namespace ivy
         namespace map_t
         {
             struct __t;
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -899,38 +899,38 @@ namespace ivy
         namespace vec_t
         {
             struct __t;
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace push_pop_locals
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace local_tracker
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace root_mod_ref
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -939,11 +939,11 @@ namespace ivy
         namespace map
         {
             struct rec;
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -952,20 +952,20 @@ namespace ivy
         namespace map
         {
             struct __t;
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace decost
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -974,11 +974,11 @@ namespace ivy
         namespace map
         {
             struct rec;
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -987,434 +987,434 @@ namespace ivy
         namespace map
         {
             struct __t;
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace elidest
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace type_context
     {
         struct stack_entry;
-        
+
     }
-    
+
 }
 namespace vector__ivy__type_context__stack_entry
 {
     namespace domain
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__ivy__type_context__stack_entry
 {
     struct __t;
-    
+
 }
 namespace ivy
 {
     namespace type_context
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace typeinferst
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace verb
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace ident
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__cpp__ident
 {
     namespace domain
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__cpp__ident
 {
     struct __t;
-    
+
 }
 namespace cpp
 {
     namespace strident
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace numident
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace dotident
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace expr
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace symbol
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__cpp__expr
 {
     namespace domain
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__cpp__expr
 {
     struct __t;
-    
+
 }
 namespace cpp
 {
     namespace app
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace variable
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace pi
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace stmt
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace asgn
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace sequence
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__cpp__stmt
 {
     namespace domain
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__cpp__stmt
 {
     struct __t;
-    
+
 }
 namespace cpp
 {
     namespace skipst
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace ifst
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace whilest
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace breakst
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace simpletype
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__cpp__simpletype
 {
     namespace domain
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__cpp__simpletype
 {
     struct __t;
-    
+
 }
 namespace cpp
 {
     namespace functype
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace varst
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace retst
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace decl
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace header
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace typedecl
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace enumdecl
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace vardecl
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace funcdecl
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__cpp__decl
 {
     namespace domain
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__cpp__decl
 {
     struct __t;
-    
+
 }
 namespace cpp
 {
     namespace structdecl
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace namespacedecl
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace groupdc
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace version
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace prog
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace access_path
     {
         struct __t;
-        
+
     }
-    
+
 }
 // A pair consisting of an lvalue and an alias count
 namespace ivy
 {
     struct lvalue_count;
-    
+
 }
 namespace ivy
 {
@@ -1423,11 +1423,11 @@ namespace ivy
         namespace elem
         {
             struct __t;
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -1436,120 +1436,120 @@ namespace ivy
         namespace undo_rec
         {
             struct __t;
-            
+
         }
-        
+
     }
-    
+
 }
 namespace vector__ivy__path_tree__undo_rec
 {
     namespace domain
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__ivy__path_tree__undo_rec
 {
     struct __t;
-    
+
 }
 namespace ivy
 {
     namespace path_tree
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__ivy__access_path
 {
     namespace domain
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__ivy__access_path
 {
     struct __t;
-    
+
 }
 namespace ivy
 {
     namespace borrowing
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_declvec
     {
         struct rec;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_declvec
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_cppclass
     {
         struct rec;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_cppclass
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_prototype
     {
         struct rec;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_prototype
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_borrowing
     {
         struct undo;
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -1558,11 +1558,11 @@ namespace ivy
         namespace map_t
         {
             struct rec;
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -1571,11 +1571,11 @@ namespace ivy
         namespace map_t
         {
             struct __t;
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -1584,29 +1584,29 @@ namespace ivy
         namespace vec_t
         {
             struct __t;
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_borrowing
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace cppident_to_cppexpr
     {
         struct undo;
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -1615,11 +1615,11 @@ namespace ivy
         namespace map_t
         {
             struct rec;
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -1628,11 +1628,11 @@ namespace ivy
         namespace map_t
         {
             struct __t;
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -1641,53 +1641,53 @@ namespace ivy
         namespace vec_t
         {
             struct __t;
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace cppident_to_cppexpr
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__ivy__lvalue_count
 {
     namespace domain
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace vector__ivy__lvalue_count
 {
     struct __t;
-    
+
 }
 namespace ivy
 {
     namespace tocppst
     {
         struct __t;
-        
+
     }
-    
+
 }
 namespace pid
 {
     struct __t;
-    
+
 }
 namespace retcode
 {
     struct __t;
-    
+
 }
 #include "ivy.h"
 struct __bool : ivy::native_bool
@@ -1710,7 +1710,7 @@ namespace ivy
             return (*this);
         }
     };
-    
+
 }
 namespace ivy
 {
@@ -1739,9 +1739,9 @@ namespace ivy
                 return 0;
             }
         };
-        
+
     };
-    
+
 }
 namespace ivy
 {
@@ -1770,32 +1770,32 @@ namespace ivy
                 return 0;
             }
         };
-        
+
     };
-    
+
 }
 namespace __char
 {
     struct __t : ivy::native_int< char >
     {
         __bool is_alphanum () const;
-        
+
         __bool is_bracket () const;
-        
+
         __bool is_white () const;
-        
+
         __char::kinds kind () const;
-        
+
         __bool non_printing () const;
-        
+
         __bool is_digit () const;
-        
+
         __bool is_hex () const;
-        
+
         __bool is_capital () const;
-        
+
         __char::__t downcase () const;
-        
+
          __t () {}
          __t  (long long value) : ivy::native_int< char > (value) {}
          __t  (const ivy::native_int< char > &value) : ivy::native_int< char > (value) {}
@@ -1803,13 +1803,13 @@ namespace __char
             return (*this);
         }
     };
-    
+
 }
 namespace __char
 {
-    
+
     enum __enum_kinds  {alphanum,bracket,punct};
-    
+
     struct kinds : ivy::native_enum< __enum_kinds >
     {
          kinds () {}
@@ -1820,18 +1820,18 @@ namespace __char
             return (*this);
         }
     };
-    
+
 }
 namespace pos
 {
     struct __t : ivy::native_unsigned< size_t >
     {
         pos::__t next () const;
-        
+
         pos::__t prev () const;
-        
+
         str::__t to_str () const;
-        
+
          __t () {}
          __t  (long long value) : ivy::native_unsigned< size_t > (value) {}
          __t  (const ivy::native_unsigned< size_t > &value) : ivy::native_unsigned< size_t > (value)
@@ -1840,71 +1840,71 @@ namespace pos
             return (*this);
         }
     };
-    
+
 }
 namespace str
 {
     struct __t
     {
-        
+
         // We have two destructors (fields) representing the array
         // contents. The `value` field is represented using a dense
         // encoding, which means the C++ type `std::vector<range>`.
-        
+
         ivy::vector< __char::__t,pos::__t > value;
-        
+
         pos::__t end;
-        
-        
+
+
         // The `begin` action always returns 0.
-        
+
         pos::__t begin () const;
-        
-        
+
+
         // The `set` action sets an element of an array
-        
+
         void set  (const pos::__t &i,const __char::__t &v);
-        
-        
+
+
         // The `append` action appends one character `c` to a array.
-        
+
         void append  (const __char::__t &c);
-        
-        
+
+
         // The `extend` action appends a array `x` to a array `s`.
-        
+
         void extend  (const str::__t &x);
-        
-        
-        // The `resize` action sets the end marker of the string. 
-        
+
+
+        // The `resize` action sets the end marker of the string.
+
         void resize  (const pos::__t &end);
-        
-        
+
+
         // The `back` action returns the last element of an array, or zero
         // if the array is empty.
-        
+
         __char::__t back () const;
-        
-        
+
+
         // The `back` action removes he last element of the array, if the
         // array is not empty.
-        
+
         void pop_back ();
-        
-        
+
+
         // The `segment` action gets the segment of an array from index `beg` to
         // index `en-1`.
-        
+
         str::__t segment  (const pos::__t &beg,const pos::__t &en) const;
-        
-        
+
+
         // The `reverse` action reverses an array.
-        
+
         void reverse ();
-        
+
         void encode  (pretty::__t &b) const;
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -1931,28 +1931,28 @@ namespace str
                     pos::__t::__hash() (x . end);
             }
         };
-        
+
     };
-    
+
 }
 // The `empty` action returns an empty array
 namespace str
 {
     str::__t empty ();
-    
+
 }
 namespace pretty
 {
     struct token
     {
         __bool pair;
-        
+
         pos::__t tdepth;
-        
+
         str::__t first;
-        
+
         pos::__t second;
-        
+
          token () {}
          token  (long long value) {}
          operator std::size_t () const {
@@ -1982,9 +1982,9 @@ namespace pretty
                     str::__t::__hash() (x . first) + pos::__t::__hash() (x . second);
             }
         };
-        
+
     };
-    
+
 }
 namespace vector__pretty__token
 {
@@ -1993,9 +1993,9 @@ namespace vector__pretty__token
         struct __t : ivy::native_unsigned< size_t >
         {
             vector__pretty__token::domain::__t next () const;
-            
+
             vector__pretty__token::domain::__t prev () const;
-            
+
              __t () {}
              __t  (long long value) : ivy::native_unsigned< size_t > (value) {}
              __t  (const ivy::native_unsigned< size_t > &value) :
@@ -2004,37 +2004,37 @@ namespace vector__pretty__token
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace vector__pretty__token
 {
     struct __t
     {
         ivy::vector< pretty::token,vector__pretty__token::domain::__t > value;
-        
+
         vector__pretty__token::domain::__t end;
-        
+
         vector__pretty__token::domain::__t begin () const;
-        
+
         void set  (const vector__pretty__token::domain::__t &i,const pretty::token &v);
-        
+
         void append  (const pretty::token &c);
-        
+
         void extend  (const vector__pretty__token::__t &x);
-        
+
         void resize  (const vector__pretty__token::domain::__t &end);
-        
+
         pretty::token back () const;
-        
+
         void pop_back ();
-        
+
         vector__pretty__token::__t segment  (const vector__pretty__token::domain::__t &beg,const
             vector__pretty__token::domain::__t &en) const;
-        
+
         void reverse ();
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -2062,28 +2062,28 @@ namespace vector__pretty__token
                         value) + vector__pretty__token::domain::__t::__hash() (x . end);
             }
         };
-        
+
     };
-    
+
 }
 namespace vector__pretty__token
 {
     vector__pretty__token::__t empty ();
-    
+
 }
 namespace pretty
 {
     vector__pretty__token::__t foo;
-    
+
 }
 namespace pretty
 {
     struct state
     {
         vector__pretty__token::domain::__t begin;
-        
+
         pos::__t total;
-        
+
          state () {}
          state  (long long value) {}
          operator std::size_t () const {
@@ -2110,9 +2110,9 @@ namespace pretty
                     pos::__t::__hash() (x . total);
             }
         };
-        
+
     };
-    
+
 }
 namespace vector__pretty__state
 {
@@ -2121,9 +2121,9 @@ namespace vector__pretty__state
         struct __t : ivy::native_unsigned< size_t >
         {
             vector__pretty__state::domain::__t next () const;
-            
+
             vector__pretty__state::domain::__t prev () const;
-            
+
              __t () {}
              __t  (long long value) : ivy::native_unsigned< size_t > (value) {}
              __t  (const ivy::native_unsigned< size_t > &value) :
@@ -2132,37 +2132,37 @@ namespace vector__pretty__state
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace vector__pretty__state
 {
     struct __t
     {
         ivy::vector< pretty::state,vector__pretty__state::domain::__t > value;
-        
+
         vector__pretty__state::domain::__t end;
-        
+
         vector__pretty__state::domain::__t begin () const;
-        
+
         void set  (const vector__pretty__state::domain::__t &i,const pretty::state &v);
-        
+
         void append  (const pretty::state &c);
-        
+
         void extend  (const vector__pretty__state::__t &x);
-        
+
         void resize  (const vector__pretty__state::domain::__t &end);
-        
+
         pretty::state back () const;
-        
+
         void pop_back ();
-        
+
         vector__pretty__state::__t segment  (const vector__pretty__state::domain::__t &beg,const
             vector__pretty__state::domain::__t &en) const;
-        
+
         void reverse ();
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -2190,14 +2190,14 @@ namespace vector__pretty__state
                         value) + vector__pretty__state::domain::__t::__hash() (x . end);
             }
         };
-        
+
     };
-    
+
 }
 namespace vector__pretty__state
 {
     vector__pretty__state::__t empty ();
-    
+
 }
 namespace vector__pos
 {
@@ -2206,9 +2206,9 @@ namespace vector__pos
         struct __t : ivy::native_unsigned< size_t >
         {
             vector__pos::domain::__t next () const;
-            
+
             vector__pos::domain::__t prev () const;
-            
+
              __t () {}
              __t  (long long value) : ivy::native_unsigned< size_t > (value) {}
              __t  (const ivy::native_unsigned< size_t > &value) :
@@ -2217,37 +2217,37 @@ namespace vector__pos
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace vector__pos
 {
     struct __t
     {
         ivy::vector< pos::__t,vector__pos::domain::__t > value;
-        
+
         vector__pos::domain::__t end;
-        
+
         vector__pos::domain::__t begin () const;
-        
+
         void set  (const vector__pos::domain::__t &i,const pos::__t &v);
-        
+
         void append  (const pos::__t &c);
-        
+
         void extend  (const vector__pos::__t &x);
-        
+
         void resize  (const vector__pos::domain::__t &end);
-        
+
         pos::__t back () const;
-        
+
         void pop_back ();
-        
+
         vector__pos::__t segment  (const vector__pos::domain::__t &beg,const vector__pos::domain::__t
             &en) const;
-        
+
         void reverse ();
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -2274,59 +2274,59 @@ namespace vector__pos
                     vector__pos::domain::__t::__hash() (x . end);
             }
         };
-        
+
     };
-    
+
 }
 namespace vector__pos
 {
     vector__pos::__t empty ();
-    
+
 }
 namespace pretty
 {
     struct __t
     {
         vector__pretty__token::__t tokens;
-        
+
         pretty::state st;
-        
+
         pos::__t maxline;
-        
+
         pos::__t indent;
-        
+
         str::__t whitespace;
-        
+
         vector__pretty__state::__t states;
-        
+
         vector__pos::__t stack;
-        
+
         str::__t output;
-        
+
         pos::__t space;
-        
+
         pos::__t depth;
-        
+
         __bool cppstyle;
-        
+
         ivy::vector< __bool,str::__t,pos::__t > annots;
-        
+
         void do_indent ();
-        
+
         void print  (const pretty::token &tok);
-        
+
         void flush ();
-        
+
         void add_length  (const pos::__t &len,const vector__pretty__token::domain::__t &at);
-        
+
         void extend  (const str::__t &string);
-        
+
         void newline ();
-        
+
         void nest ();
-        
+
         void unnest ();
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -2366,25 +2366,25 @@ namespace pretty
                     ivy::vector< __bool,str::__t,pos::__t >::__hash() (x . annots);
             }
         };
-        
+
     };
-    
+
 }
 namespace pretty
 {
     pretty::__t make  (const pos::__t &maxline,const pos::__t &indent);
-    
+
 }
 namespace annot
 {
     struct __t
     {
         virtual void encode  (pretty::__t &b) const;
-        
+
         virtual ivy::ptr< annot::__t > strip () const;
-        
+
         virtual str::__t to_str () const;
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -2408,13 +2408,13 @@ namespace annot
                 return 0;
             }
         };
-        
+
         virtual ivy::ptr< __t > __upcast () const {
             return (*this);
         }
         virtual  ~__t () {}
     };
-    
+
 }
 namespace vector__str
 {
@@ -2423,9 +2423,9 @@ namespace vector__str
         struct __t : ivy::native_unsigned< size_t >
         {
             vector__str::domain::__t next () const;
-            
+
             vector__str::domain::__t prev () const;
-            
+
              __t () {}
              __t  (long long value) : ivy::native_unsigned< size_t > (value) {}
              __t  (const ivy::native_unsigned< size_t > &value) :
@@ -2434,37 +2434,37 @@ namespace vector__str
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace vector__str
 {
     struct __t
     {
         ivy::vector< str::__t,vector__str::domain::__t > value;
-        
+
         vector__str::domain::__t end;
-        
+
         vector__str::domain::__t begin () const;
-        
+
         void set  (const vector__str::domain::__t &i,const str::__t &v);
-        
+
         void append  (const str::__t &c);
-        
+
         void extend  (const vector__str::__t &x);
-        
+
         void resize  (const vector__str::domain::__t &end);
-        
+
         str::__t back () const;
-        
+
         void pop_back ();
-        
+
         vector__str::__t segment  (const vector__str::domain::__t &beg,const vector__str::domain::__t
             &en) const;
-        
+
         void reverse ();
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -2491,36 +2491,36 @@ namespace vector__str
                     vector__str::domain::__t::__hash() (x . end);
             }
         };
-        
+
     };
-    
+
 }
 namespace vector__str
 {
     vector__str::__t empty ();
-    
+
 }
 namespace annot_i
 {
     struct __t : annot::__t
     {
         vector__str::__t comments;
-        
+
         pos::__t line;
-        
+
         str::__t file;
-        
+
         void encode  (pretty::__t &b) const;
-        
+
         ivy::ptr< annot::__t > strip () const;
-        
-        
+
+
         // Convert an annotation to a string for error reporting
         // purposes. We count line internally from zero, but in messages
         // they start from one.
-        
+
         str::__t to_str () const;
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -2548,31 +2548,31 @@ namespace annot_i
                     str::__t::__hash() (x . file);
             }
         };
-        
+
         virtual ivy::ptr< annot::__t > __upcast () const {
             return (*this);
         }
     };
-    
+
 }
 namespace pstate
 {
     struct __t
     {
         str::__t b;
-        
+
         pos::__t p;
-        
+
         str::__t tok;
-        
+
         annot_i::__t ann;
-        
+
         __bool ok;
-        
+
         void consume ();
-        
+
         void get_ann  (ivy::ptr< annot::__t > &ann);
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -2603,16 +2603,16 @@ namespace pstate
                     __bool::__hash() (x . ok);
             }
         };
-        
+
     };
-    
+
 }
 namespace pstate
 {
     pstate::__t make  (const str::__t &s);
-    
+
 }
-// Lexical analyzer. Read tokens from the input stream 
+// Lexical analyzer. Read tokens from the input stream
 // ---------------------------------------------------
 //
 // A token is one of the following:
@@ -2634,11 +2634,11 @@ namespace pstate
 // - \n : newline character
 //
 // A backslash followed by any other printing character is interpreted
-// as that character. 
+// as that character.
 //
 // Any non-printing character other than carriage return and newline
 // is considered a syntax error.
-// 
+//
 void skip_space  (pstate::__t &st);
 void get_line  (pstate::__t &st,str::__t &line);
 void get_annot  (pstate::__t &st);
@@ -2646,52 +2646,52 @@ void read_string_literal  (pstate::__t &st);
 namespace decimals
 {
     void read  (pstate::__t &st);
-    
+
 }
 namespace hexes
 {
     void read  (pstate::__t &st);
-    
+
 }
 // Parsing numeric literals. A numeric literal has one of these
 // forms:
 //
 // - [0..9]+{\.[0..9]+{[eE]{[+-]}[0..9]+}}
-// - 0[xX][0-9A-Fa-f]+ 
+// - 0[xX][0-9A-Fa-f]+
 //
 // That is, we allow the usual formats for non-negative integers,
-// and floating point numbers, including hex integers. 
+// and floating point numbers, including hex integers.
 void read_numeric_literal  (pstate::__t &st);
 void lex  (pstate::__t &st);
 namespace pos
 {
     pos::__t from_str  (const str::__t &x);
-    
+
 }
 namespace stdio
 {
     void write  (const str::__t &s);
-    
+
 }
 // The `write` action writes a string to standard output followed
 // by newline.
 namespace stdio
 {
     void writeln  (const str::__t &s);
-    
+
 }
 // The `read` action from standard input untio EOF.
 namespace stdio
 {
     str::__t read ();
-    
+
 }
 // The `readln` action reads a line from standard input, returning
 // the line without any terminating newline character.
 namespace stdio
 {
     str::__t readln ();
-    
+
 }
 namespace priority
 {
@@ -2704,16 +2704,16 @@ namespace priority
             return (*this);
         }
     };
-    
+
 }
 void parse_error  (const pos::__t &p,const str::__t &tok);
 namespace ivy
 {
     namespace verb
     {
-        
+
         enum __enum___t  {none,arrow,plus,times,colon,app,empty,dot,__new,numeral,fltnum,castv,boolv,truev,falsev,__and,__or,__not,iff,equals,notequals,lt,leq,gt,geq,minus,div,string,ite,comma,varv,logvar,isav};
-        
+
         struct __t : ivy::native_enum< __enum___t >
         {
              __t () {}
@@ -2724,29 +2724,29 @@ namespace ivy
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     ivy::vector< ivy::verb::__t,str::__t > str_to_verb;
-    
+
 }
 namespace ivy
 {
     ivy::vector< str::__t,ivy::verb::__t > verb_to_str;
-    
+
 }
 namespace ivy
 {
     ivy::vector< priority::__t,ivy::verb::__t > verb_to_prio;
-    
+
 }
 namespace ivy
 {
     ivy::vector< pos::__t,ivy::verb::__t > verb_to_arity;
-    
+
 }
 // Numerals are symbols beginning with a digit. String literals begin
 // with double quotes. Logical variables consist of a capital followed
@@ -2757,12 +2757,12 @@ namespace ivy
 namespace ivy
 {
     __bool is_logvar_name  (const str::__t &name);
-    
+
 }
 namespace ivy
 {
     ivy::verb::__t verb_from_name  (const str::__t &name);
-    
+
 }
 namespace ivy
 {
@@ -2771,27 +2771,27 @@ namespace ivy
         struct __t
         {
             virtual void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             virtual str::__t to_str () const;
-            
+
             virtual ivy::ptr< ivy::ident::__t > get_namesp () const;
-            
+
             virtual ivy::ptr< ivy::ident::__t > get_member () const;
-            
+
             virtual vector__ivy__ident::__t get_subscripts () const;
-            
+
             virtual ivy::ptr< ivy::ident::__t > prefix  (const ivy::ptr< ivy::ident::__t > &pref)
                 const;
-            
+
             virtual ivy::strident::__t get_last () const;
-            
+
             virtual ivy::verb::__t get_verb () const;
-            
+
             virtual ivy::ptr< ivy::ident::__t > flat  (const __bool &rhs,const ivy::flatst::__t &st)
                 const;
-            
+
             virtual ivy::ptr< cpp::ident::__t > to_cpp  (const __bool &native) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -2815,15 +2815,15 @@ namespace ivy
                     return 0;
                 }
             };
-            
+
             virtual ivy::ptr< __t > __upcast () const {
                 return (*this);
             }
             virtual  ~__t () {}
         };
-        
+
     }
-    
+
 }
 namespace vector__ivy__ident
 {
@@ -2832,9 +2832,9 @@ namespace vector__ivy__ident
         struct __t : ivy::native_unsigned< size_t >
         {
             vector__ivy__ident::domain::__t next () const;
-            
+
             vector__ivy__ident::domain::__t prev () const;
-            
+
              __t () {}
              __t  (long long value) : ivy::native_unsigned< size_t > (value) {}
              __t  (const ivy::native_unsigned< size_t > &value) :
@@ -2843,37 +2843,37 @@ namespace vector__ivy__ident
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace vector__ivy__ident
 {
     struct __t
     {
         ivy::vector< ivy::ptr< ivy::ident::__t >,vector__ivy__ident::domain::__t > value;
-        
+
         vector__ivy__ident::domain::__t end;
-        
+
         vector__ivy__ident::domain::__t begin () const;
-        
+
         void set  (const vector__ivy__ident::domain::__t &i,const ivy::ptr< ivy::ident::__t > &v);
-        
+
         void append  (const ivy::ptr< ivy::ident::__t > &c);
-        
+
         void extend  (const vector__ivy__ident::__t &x);
-        
+
         void resize  (const vector__ivy__ident::domain::__t &end);
-        
+
         ivy::ptr< ivy::ident::__t > back () const;
-        
+
         void pop_back ();
-        
+
         vector__ivy__ident::__t segment  (const vector__ivy__ident::domain::__t &beg,const
             vector__ivy__ident::domain::__t &en) const;
-        
+
         void reverse ();
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -2901,14 +2901,14 @@ namespace vector__ivy__ident
                         (x . value) + vector__ivy__ident::domain::__t::__hash() (x . end);
             }
         };
-        
+
     };
-    
+
 }
 namespace vector__ivy__ident
 {
     vector__ivy__ident::__t empty ();
-    
+
 }
 namespace ivy
 {
@@ -2917,23 +2917,23 @@ namespace ivy
         struct __t : ivy::ident::__t
         {
             str::__t val;
-            
+
             vector__ivy__ident::__t subscrs;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             str::__t to_str () const;
-            
+
             ivy::ptr< ivy::ident::__t > prefix  (const ivy::ptr< ivy::ident::__t > &pref) const;
-            
+
             ivy::strident::__t get_last () const;
-            
+
             ivy::verb::__t get_verb () const;
-            
+
             ivy::ptr< ivy::ident::__t > flat  (const __bool &rhs,const ivy::flatst::__t &st) const;
-            
+
             ivy::ptr< cpp::ident::__t > to_cpp  (const __bool &native) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -2960,41 +2960,41 @@ namespace ivy
                         vector__ivy__ident::__t::__hash() (x . subscrs);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::ident::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace strident
     {
         ivy::ptr< ivy::ident::__t > make  (const str::__t &val);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace strident
     {
         ivy::ptr< ivy::ident::__t > make1  (const str::__t &val,const ivy::ptr< ivy::ident::__t > &arg);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace strident
     {
         void parse  (pstate::__t &st,ivy::strident::__t &id);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3003,9 +3003,9 @@ namespace ivy
         struct __t : ivy::ident::__t
         {
             pos::__t val;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -3029,23 +3029,23 @@ namespace ivy
                     return pos::__t::__hash() (x . val);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::ident::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace numident
     {
         ivy::ptr< ivy::ident::__t > make  (const pos::__t &val);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3054,25 +3054,25 @@ namespace ivy
         struct __t : ivy::ident::__t
         {
             ivy::ptr< ivy::ident::__t > namesp;
-            
+
             ivy::strident::__t member;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             str::__t to_str () const;
-            
+
             ivy::ptr< ivy::ident::__t > get_namesp () const;
-            
+
             ivy::ptr< ivy::ident::__t > get_member () const;
-            
+
             ivy::ptr< ivy::ident::__t > prefix  (const ivy::ptr< ivy::ident::__t > &pref) const;
-            
+
             ivy::strident::__t get_last () const;
-            
+
             ivy::ptr< ivy::ident::__t > flat  (const __bool &rhs,const ivy::flatst::__t &st) const;
-            
+
             ivy::ptr< cpp::ident::__t > to_cpp  (const __bool &native) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -3099,14 +3099,14 @@ namespace ivy
                         ivy::strident::__t::__hash() (x . member);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::ident::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3114,9 +3114,9 @@ namespace ivy
     {
         ivy::ptr< ivy::ident::__t > make  (const ivy::ptr< ivy::ident::__t > &namesp,const ivy::strident::__t
             &member);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3125,63 +3125,63 @@ namespace ivy
         struct __t
         {
             virtual void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             virtual str::__t enc () const;
-            
+
             virtual ivy::verb::__t get_verb () const;
-            
+
             virtual ivy::verb::__t get_verb_typed () const;
-            
+
             virtual __bool is  (const ivy::verb::__t &vrb) const;
-            
+
             virtual __bool is_typed  (const ivy::verb::__t &vrb) const;
-            
+
             virtual ivy::ptr< ivy::expr::__t > get_arg  (const vector__ivy__expr::domain::__t &p)
                 const;
-            
+
             virtual ivy::ptr< ivy::ident::__t > get_name () const;
-            
+
             virtual ivy::verb::__t app_verb () const;
-            
+
             virtual ivy::ptr< annot::__t > get_ann () const;
-            
+
             virtual ivy::ptr< ivy::expr::__t > get_func () const;
-            
+
             virtual vector__ivy__expr::__t get_args () const;
-            
+
             virtual ivy::ptr< ivy::expr::__t > prefix  (const ivy::ptr< ivy::ident::__t > &pref)
                 const;
-            
-            
+
+
             // Tests whether two expressions are syntacically equal,
             // leaving aside annotations.
-            
+
             virtual __bool eq  (const ivy::ptr< ivy::expr::__t > &e2) const;
-            
+
             virtual ivy::ptr< ivy::expr::__t > reduce  (const ivy::symeval::__t &smap) const;
-            
+
             virtual __bool occurs  (const ivy::ptr< ivy::ident::__t > &n) const;
-            
+
             virtual __bool has_numident () const;
-            
+
             virtual void flat  (ivy::flatst::__t &st,ivy::ptr< ivy::expr::__t > &res) const;
-            
+
             virtual ivy::ptr< ivy::expr::__t > uncurry () const;
-            
+
             virtual ivy::ptr< ivy::expr::__t > curry () const;
-            
+
             virtual void type_decorate  (ivy::decost::__t &st,const ivy::symeval::__t &m,ivy::ptr< ivy::expr::__t >
                 &res,ivy::ptr< ivy::expr::__t > &ty) const;
-            
+
             virtual void type_fill_in  (ivy::decost::__t &st,ivy::ptr< ivy::expr::__t > &res) const;
-            
+
             virtual void type_elide_int  (const __bool &b,const ivy::symeval::__t &m,ivy::elidest::__t
                 &st,ivy::ptr< ivy::expr::__t > &res) const;
-            
+
             virtual ivy::ptr< ivy::expr::__t > get_type () const;
-            
+
             virtual void to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::expr::__t > &res) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -3205,33 +3205,33 @@ namespace ivy
                     return 0;
                 }
             };
-            
+
             virtual ivy::ptr< __t > __upcast () const {
                 return (*this);
             }
             virtual  ~__t () {}
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace expr
     {
         ivy::ptr< ivy::expr::__t > dec  (const str::__t &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace expr
     {
         str::__t encdec  (const str::__t &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3240,41 +3240,41 @@ namespace ivy
         struct __t : ivy::expr::__t
         {
             ivy::ptr< ivy::ident::__t > name;
-            
+
             ivy::verb::__t vrb;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::verb::__t get_verb () const;
-            
+
             ivy::ptr< ivy::ident::__t > get_name () const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
+
             ivy::ptr< ivy::expr::__t > prefix  (const ivy::ptr< ivy::ident::__t > &pref) const;
-            
+
             ivy::ptr< ivy::expr::__t > reduce  (const ivy::symeval::__t &smap) const;
-            
+
             __bool occurs  (const ivy::ptr< ivy::ident::__t > &n) const;
-            
+
             __bool has_numident () const;
-            
+
             void flat  (ivy::flatst::__t &st,ivy::ptr< ivy::expr::__t > &res) const;
-            
+
             void type_decorate  (ivy::decost::__t &st,const ivy::symeval::__t &m,ivy::ptr< ivy::expr::__t >
                 &res,ivy::ptr< ivy::expr::__t > &ty) const;
-            
+
             void type_fill_in  (ivy::decost::__t &st,ivy::ptr< ivy::expr::__t > &res) const;
-            
+
             void type_elide_int  (const __bool &b,const ivy::symeval::__t &m,ivy::elidest::__t &st,ivy::ptr< ivy::expr::__t >
                 &res) const;
-            
+
             void to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::expr::__t > &res) const;
-            
+
             void to_cpp_int  (ivy::tocppst::__t &st,cpp::symbol::__t &res) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -3303,14 +3303,14 @@ namespace ivy
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::expr::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3318,18 +3318,18 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::ident::__t > &name,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace symbol
     {
         ivy::ptr< ivy::expr::__t > makestr  (const str::__t &name,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3337,27 +3337,27 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > makestr1  (const str::__t &name,const ivy::ptr< ivy::ident::__t >
             &arg,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace symbol
     {
         ivy::ptr< ivy::expr::__t > makenum  (const pos::__t &num,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace symbol
     {
         void parse  (pstate::__t &st,ivy::ptr< ivy::expr::__t > &res);
-        
+
     }
-    
+
 }
 namespace vector__ivy__expr
 {
@@ -3366,9 +3366,9 @@ namespace vector__ivy__expr
         struct __t : ivy::native_unsigned< size_t >
         {
             vector__ivy__expr::domain::__t next () const;
-            
+
             vector__ivy__expr::domain::__t prev () const;
-            
+
              __t () {}
              __t  (long long value) : ivy::native_unsigned< size_t > (value) {}
              __t  (const ivy::native_unsigned< size_t > &value) :
@@ -3377,37 +3377,37 @@ namespace vector__ivy__expr
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace vector__ivy__expr
 {
     struct __t
     {
         ivy::vector< ivy::ptr< ivy::expr::__t >,vector__ivy__expr::domain::__t > value;
-        
+
         vector__ivy__expr::domain::__t end;
-        
+
         vector__ivy__expr::domain::__t begin () const;
-        
+
         void set  (const vector__ivy__expr::domain::__t &i,const ivy::ptr< ivy::expr::__t > &v);
-        
+
         void append  (const ivy::ptr< ivy::expr::__t > &c);
-        
+
         void extend  (const vector__ivy__expr::__t &x);
-        
+
         void resize  (const vector__ivy__expr::domain::__t &end);
-        
+
         ivy::ptr< ivy::expr::__t > back () const;
-        
+
         void pop_back ();
-        
+
         vector__ivy__expr::__t segment  (const vector__ivy__expr::domain::__t &beg,const
             vector__ivy__expr::domain::__t &en) const;
-        
+
         void reverse ();
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -3435,14 +3435,14 @@ namespace vector__ivy__expr
                         (x . value) + vector__ivy__expr::domain::__t::__hash() (x . end);
             }
         };
-        
+
     };
-    
+
 }
 namespace vector__ivy__expr
 {
     vector__ivy__expr::__t empty ();
-    
+
 }
 namespace ivy
 {
@@ -3451,47 +3451,47 @@ namespace ivy
         struct __t : ivy::expr::__t
         {
             ivy::ptr< ivy::expr::__t > func;
-            
+
             vector__ivy__expr::__t args;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             __bool is  (const ivy::verb::__t &vrb) const;
-            
+
             __bool is_typed  (const ivy::verb::__t &vrb) const;
-            
+
             ivy::verb::__t app_verb () const;
-            
+
             ivy::ptr< ivy::expr::__t > get_func () const;
-            
+
             vector__ivy__expr::__t get_args () const;
-            
+
             ivy::ptr< ivy::expr::__t > get_arg  (const vector__ivy__expr::domain::__t &p) const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
+
             ivy::ptr< ivy::expr::__t > reduce  (const ivy::symeval::__t &smap) const;
-            
+
             __bool occurs  (const ivy::ptr< ivy::ident::__t > &n) const;
-            
+
             __bool has_numident () const;
-            
+
             void flat  (ivy::flatst::__t &st,ivy::ptr< ivy::expr::__t > &res) const;
-            
+
             void type_decorate  (ivy::decost::__t &st,const ivy::symeval::__t &m,ivy::ptr< ivy::expr::__t >
                 &res,ivy::ptr< ivy::expr::__t > &ty) const;
-            
+
             void type_fill_in  (ivy::decost::__t &st,ivy::ptr< ivy::expr::__t > &res) const;
-            
+
             void type_elide_int  (const __bool &b0,const ivy::symeval::__t &m,ivy::elidest::__t &st,ivy::ptr< ivy::expr::__t >
                 &res) const;
-            
+
             ivy::ptr< ivy::expr::__t > get_type () const;
-            
+
             void to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::expr::__t > &res) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -3520,14 +3520,14 @@ namespace ivy
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::expr::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3535,9 +3535,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::expr::__t > &func,const
             vector__ivy__expr::__t &args,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3545,9 +3545,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make1  (const ivy::ptr< ivy::expr::__t > &func,const ivy::ptr< ivy::expr::__t >
             &arg0,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3555,9 +3555,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make2  (const ivy::ptr< ivy::expr::__t > &func,const ivy::ptr< ivy::expr::__t >
             &arg0,const ivy::ptr< ivy::expr::__t > &arg1,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3566,9 +3566,9 @@ namespace ivy
         struct __t : ivy::expr::__t
         {
             pos::__t idx;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -3594,23 +3594,23 @@ namespace ivy
                     return pos::__t::__hash() (x . idx) + ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::expr::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace variable
     {
         ivy::ptr< ivy::expr::__t > make  (const pos::__t &idx);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3619,13 +3619,13 @@ namespace ivy
         struct __t : ivy::expr::__t
         {
             vector__ivy__expr::__t vars;
-            
+
             ivy::ptr< ivy::expr::__t > body;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -3654,14 +3654,14 @@ namespace ivy
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::expr::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3669,9 +3669,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const vector__ivy__expr::__t &vars,const ivy::ptr< ivy::expr::__t >
             &body,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3679,9 +3679,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::expr::__t > &lhs,const ivy::ptr< ivy::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 // Translate the vector `[x1,..,xn]` to the expression `x1 * ... *
 // xn`, where `*` is a binary operator that associates to the left.
@@ -3691,9 +3691,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > fold_left  (const vector__ivy__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 // Works for comma and cross product
 // Translate the expression `x1 * ... * xn` to the vector `[x1,..,xn]`,
@@ -3703,9 +3703,9 @@ namespace ivy
     namespace iff
     {
         vector__ivy__expr::__t unfold_left  (const ivy::ptr< ivy::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3713,9 +3713,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::expr::__t > &lhs,const ivy::ptr< ivy::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3723,18 +3723,18 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > fold_left  (const vector__ivy__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace __or
     {
         vector__ivy__expr::__t unfold_left  (const ivy::ptr< ivy::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3742,9 +3742,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::expr::__t > &lhs,const ivy::ptr< ivy::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3752,18 +3752,18 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > fold_left  (const vector__ivy__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace __and
     {
         vector__ivy__expr::__t unfold_left  (const ivy::ptr< ivy::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3771,9 +3771,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::expr::__t > &lhs,const ivy::ptr< ivy::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3781,18 +3781,18 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > fold_left  (const vector__ivy__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace lt
     {
         vector__ivy__expr::__t unfold_left  (const ivy::ptr< ivy::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3800,9 +3800,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::expr::__t > &lhs,const ivy::ptr< ivy::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3810,18 +3810,18 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > fold_left  (const vector__ivy__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace leq
     {
         vector__ivy__expr::__t unfold_left  (const ivy::ptr< ivy::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3829,9 +3829,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::expr::__t > &lhs,const ivy::ptr< ivy::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3839,18 +3839,18 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > fold_left  (const vector__ivy__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace gt
     {
         vector__ivy__expr::__t unfold_left  (const ivy::ptr< ivy::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3858,9 +3858,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::expr::__t > &lhs,const ivy::ptr< ivy::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3868,18 +3868,18 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > fold_left  (const vector__ivy__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace geq
     {
         vector__ivy__expr::__t unfold_left  (const ivy::ptr< ivy::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3887,9 +3887,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::expr::__t > &lhs,const ivy::ptr< ivy::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3897,18 +3897,18 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > fold_left  (const vector__ivy__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace plus
     {
         vector__ivy__expr::__t unfold_left  (const ivy::ptr< ivy::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3916,9 +3916,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::expr::__t > &lhs,const ivy::ptr< ivy::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3926,18 +3926,18 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > fold_left  (const vector__ivy__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace minus
     {
         vector__ivy__expr::__t unfold_left  (const ivy::ptr< ivy::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3945,9 +3945,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::expr::__t > &lhs,const ivy::ptr< ivy::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3955,18 +3955,18 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > fold_left  (const vector__ivy__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace times
     {
         vector__ivy__expr::__t unfold_left  (const ivy::ptr< ivy::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3974,9 +3974,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::expr::__t > &lhs,const ivy::ptr< ivy::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -3984,54 +3984,54 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > fold_left  (const vector__ivy__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace div
     {
         vector__ivy__expr::__t unfold_left  (const ivy::ptr< ivy::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace empty
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace boolv
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace truev
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace falsev
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -4039,9 +4039,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::expr::__t > &lhs,const ivy::ptr< ivy::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -4049,18 +4049,18 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > fold_left  (const vector__ivy__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace comma
     {
         vector__ivy__expr::__t unfold_left  (const ivy::ptr< ivy::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -4068,9 +4068,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::expr::__t > &lhs,const ivy::ptr< ivy::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -4078,27 +4078,27 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > fold_left  (const vector__ivy__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace dot
     {
         vector__ivy__expr::__t unfold_left  (const ivy::ptr< ivy::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace expr
     {
         vector__ivy__expr::__t foo;
-        
+
     }
-    
+
 }
 // workaround
 namespace ivy
@@ -4106,9 +4106,9 @@ namespace ivy
     namespace expr
     {
         void parse  (pstate::__t &st,const priority::__t &prio,ivy::ptr< ivy::expr::__t > &res);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -4117,11 +4117,11 @@ namespace ivy
         namespace tup
         {
             void encode  (const vector__ivy__expr::__t &s,pretty::__t &b,const priority::__t &prio);
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -4130,11 +4130,11 @@ namespace ivy
         namespace tup
         {
             void parse  (pstate::__t &st,const priority::__t &prio,vector__ivy__expr::__t &res);
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -4143,34 +4143,34 @@ namespace ivy
         struct __t
         {
             virtual void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             virtual str::__t enc () const;
-            
+
             virtual ivy::ptr< ivy::expr::__t > get_expr () const;
-            
+
             virtual ivy::ptr< ivy::expr::__t > get_lhs () const;
-            
+
             virtual ivy::ptr< ivy::expr::__t > get_rhs () const;
-            
+
             virtual ivy::ptr< annot::__t > get_ann () const;
-            
+
             virtual void flat  (ivy::flatst::__t &st,ivy::ptr< ivy::stmt::__t > &res) const;
-            
+
             virtual ivy::ptr< ivy::ident::__t > get_ident () const;
-            
-            
+
+
             // Get just the roots that are modified by a statement
-            
+
             virtual void mod_roots  (ivy::root_mod_ref::__t &st) const;
-            
+
             virtual void typeinfer  (ivy::typeinferst::__t &st,ivy::ptr< ivy::stmt::__t > &res)
                 const;
-            
+
             virtual void typeinfer_desugar  (const __bool &desugar,ivy::typeinferst::__t &st,ivy::ptr< ivy::stmt::__t >
                 &ress) const;
-            
+
             virtual void to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::stmt::__t > &res) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -4194,33 +4194,33 @@ namespace ivy
                     return 0;
                 }
             };
-            
+
             virtual ivy::ptr< __t > __upcast () const {
                 return (*this);
             }
             virtual  ~__t () {}
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace stmt
     {
         ivy::ptr< ivy::stmt::__t > dec  (const str::__t &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace stmt
     {
         str::__t encdec  (const str::__t &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -4229,40 +4229,40 @@ namespace ivy
         struct __t : ivy::stmt::__t
         {
             ivy::ptr< ivy::expr::__t > lhs;
-            
+
             ivy::ptr< ivy::expr::__t > rhs;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void encode_int  (pretty::__t &b,const priority::__t &prio) const;
-            
-            
+
+
             // This gets the lhs of the assignment
-            
+
             ivy::ptr< ivy::expr::__t > get_lhs () const;
-            
-            
+
+
             // This gets the rhs of the assignment
-            
+
             ivy::ptr< ivy::expr::__t > get_rhs () const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
+
             void flat  (ivy::flatst::__t &st,ivy::ptr< ivy::stmt::__t > &res) const;
-            
+
             void flat_int  (ivy::flatst::__t &st,ivy::asgn::__t &res) const;
-            
+
             void mod_roots  (ivy::root_mod_ref::__t &st) const;
-            
+
             void typeinfer_desugar  (const __bool &desugar,ivy::typeinferst::__t &st,ivy::ptr< ivy::stmt::__t >
                 &ress) const;
-            
+
             void typeinfer  (ivy::typeinferst::__t &st,ivy::ptr< ivy::stmt::__t > &ress) const;
-            
+
             void to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::stmt::__t > &resd) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -4291,14 +4291,14 @@ namespace ivy
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::stmt::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -4306,9 +4306,9 @@ namespace ivy
     {
         ivy::ptr< ivy::stmt::__t > make  (const ivy::ptr< ivy::expr::__t > &x,const ivy::ptr< ivy::expr::__t >
             &y,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -4317,27 +4317,27 @@ namespace ivy
         struct __t : ivy::stmt::__t
         {
             ivy::ptr< ivy::stmt::__t > lhs;
-            
+
             ivy::ptr< ivy::stmt::__t > rhs;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void encode_int  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
+
             void flat  (ivy::flatst::__t &st,ivy::ptr< ivy::stmt::__t > &res) const;
-            
+
             void flat_int  (ivy::flatst::__t &st,ivy::sequence::__t &res) const;
-            
+
             void mod_roots  (ivy::root_mod_ref::__t &st) const;
-            
+
             void typeinfer  (ivy::typeinferst::__t &st,ivy::ptr< ivy::stmt::__t > &ress) const;
-            
+
             void to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::stmt::__t > &resd) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -4366,14 +4366,14 @@ namespace ivy
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::stmt::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -4381,9 +4381,9 @@ namespace ivy
     {
         ivy::ptr< ivy::stmt::__t > make  (const ivy::ptr< ivy::stmt::__t > &x,const ivy::ptr< ivy::stmt::__t >
             &y,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace vector__ivy__stmt
 {
@@ -4392,9 +4392,9 @@ namespace vector__ivy__stmt
         struct __t : ivy::native_unsigned< size_t >
         {
             vector__ivy__stmt::domain::__t next () const;
-            
+
             vector__ivy__stmt::domain::__t prev () const;
-            
+
              __t () {}
              __t  (long long value) : ivy::native_unsigned< size_t > (value) {}
              __t  (const ivy::native_unsigned< size_t > &value) :
@@ -4403,37 +4403,37 @@ namespace vector__ivy__stmt
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace vector__ivy__stmt
 {
     struct __t
     {
         ivy::vector< ivy::ptr< ivy::stmt::__t >,vector__ivy__stmt::domain::__t > value;
-        
+
         vector__ivy__stmt::domain::__t end;
-        
+
         vector__ivy__stmt::domain::__t begin () const;
-        
+
         void set  (const vector__ivy__stmt::domain::__t &i,const ivy::ptr< ivy::stmt::__t > &v);
-        
+
         void append  (const ivy::ptr< ivy::stmt::__t > &c);
-        
+
         void extend  (const vector__ivy__stmt::__t &x);
-        
+
         void resize  (const vector__ivy__stmt::domain::__t &end);
-        
+
         ivy::ptr< ivy::stmt::__t > back () const;
-        
+
         void pop_back ();
-        
+
         vector__ivy__stmt::__t segment  (const vector__ivy__stmt::domain::__t &beg,const
             vector__ivy__stmt::domain::__t &en) const;
-        
+
         void reverse ();
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -4461,23 +4461,23 @@ namespace vector__ivy__stmt
                         (x . value) + vector__ivy__stmt::domain::__t::__hash() (x . end);
             }
         };
-        
+
     };
-    
+
 }
 namespace vector__ivy__stmt
 {
     vector__ivy__stmt::__t empty ();
-    
+
 }
 namespace ivy
 {
     namespace sequence
     {
         vector__ivy__stmt::__t dummy;
-        
+
     }
-    
+
 }
 // workaround
 // Translate the vector `[x1,..,xn]` to the expression `x1 * ... *
@@ -4488,9 +4488,9 @@ namespace ivy
     {
         ivy::ptr< ivy::stmt::__t > fold_right  (const vector__ivy__stmt::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -4499,16 +4499,16 @@ namespace ivy
         struct __t : ivy::stmt::__t
         {
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
-            
+
+
             //        instantiate generic_to_cpp(skipst,cpp.skipst,cpp.stmt)
-            
+
             void to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::stmt::__t > &res) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -4533,23 +4533,23 @@ namespace ivy
                     return ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::stmt::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace skipst
     {
         ivy::ptr< ivy::stmt::__t > make  (const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -4558,31 +4558,31 @@ namespace ivy
         struct __t : ivy::stmt::__t
         {
             ivy::ptr< ivy::expr::__t > cond;
-            
+
             ivy::ptr< ivy::stmt::__t > thenst;
-            
+
             ivy::ptr< ivy::stmt::__t > elsest;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void encode_int  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
+
             void flat  (ivy::flatst::__t &st,ivy::ptr< ivy::stmt::__t > &res) const;
-            
+
             void flat_int  (ivy::flatst::__t &st,ivy::ifst::__t &res) const;
-            
+
             void mod_roots  (ivy::root_mod_ref::__t &st) const;
-            
+
             void typeinfer  (ivy::typeinferst::__t &st,ivy::ptr< ivy::stmt::__t > &res) const;
-            
+
             void typeinfer_int  (ivy::typeinferst::__t &st,ivy::ifst::__t &res) const;
-            
+
             void to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::stmt::__t > &resd) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -4614,14 +4614,14 @@ namespace ivy
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::stmt::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -4629,9 +4629,9 @@ namespace ivy
     {
         ivy::ptr< ivy::stmt::__t > make  (const ivy::ptr< ivy::expr::__t > &cond,const ivy::ptr< ivy::stmt::__t >
             &thenst,const ivy::ptr< ivy::stmt::__t > &elsest,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -4640,29 +4640,29 @@ namespace ivy
         struct __t : ivy::stmt::__t
         {
             ivy::ptr< ivy::expr::__t > cond;
-            
+
             ivy::ptr< ivy::stmt::__t > body;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void encode_int  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
+
             void flat  (ivy::flatst::__t &st,ivy::ptr< ivy::stmt::__t > &res) const;
-            
+
             void flat_int  (ivy::flatst::__t &st,ivy::whilest::__t &res) const;
-            
+
             void mod_roots  (ivy::root_mod_ref::__t &st) const;
-            
+
             void typeinfer  (ivy::typeinferst::__t &st,ivy::ptr< ivy::stmt::__t > &res) const;
-            
+
             void typeinfer_int  (ivy::typeinferst::__t &st,ivy::whilest::__t &res) const;
-            
+
             void to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::stmt::__t > &resd) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -4691,14 +4691,14 @@ namespace ivy
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::stmt::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -4706,9 +4706,9 @@ namespace ivy
     {
         ivy::ptr< ivy::stmt::__t > make  (const ivy::ptr< ivy::expr::__t > &cond,const ivy::ptr< ivy::stmt::__t >
             &body,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -4717,13 +4717,13 @@ namespace ivy
         struct __t : ivy::stmt::__t
         {
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void encode_int  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -4748,32 +4748,32 @@ namespace ivy
                     return ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::stmt::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace breakst
     {
         ivy::ptr< ivy::stmt::__t > make  (const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace stmt
     {
         void parse  (pstate::__t &st,const priority::__t &prio,ivy::ptr< ivy::stmt::__t > &res);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -4782,38 +4782,38 @@ namespace ivy
         struct __t
         {
             virtual void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             virtual str::__t enc () const;
-            
+
             virtual ivy::ptr< ivy::expr::__t > get_expr () const;
-            
+
             virtual ivy::ptr< annot::__t > get_ann () const;
-            
+
             virtual ivy::ptr< ivy::stmt::__t > get_body () const;
-            
+
             virtual void flat  (ivy::flatst::__t &st) const;
-            
+
             virtual void defd  (ivy::flatst::__t &st) const;
-            
+
             virtual void build_subtypes  (ivy::subtypes::__t &st) const;
-            
+
             virtual void build_global_types  (ivy::global_types::__t &st) const;
-            
+
             virtual void typeinfer  (ivy::typeinferst::__t &st,ivy::ptr< ivy::decl::__t > &res)
                 const;
-            
+
             virtual void to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::decl::__t > &res) const;
-            
+
             virtual void reg_member  (ivy::tocppst::__t &st) const;
-            
+
             virtual __bool emitted  (const ivy::tocppst::__t &st) const;
-            
+
             virtual void record_prototypes  (ivy::tocppst::__t &st) const;
-            
+
             virtual ivy::ptr< ivy::decl::__t > func_to_action () const;
-            
+
             virtual ivy::ptr< ivy::decl::__t > fix_action  (const ivy::tocppst::__t &st) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -4837,41 +4837,41 @@ namespace ivy
                     return 0;
                 }
             };
-            
+
             virtual ivy::ptr< __t > __upcast () const {
                 return (*this);
             }
             virtual  ~__t () {}
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace decl
     {
         ivy::ptr< ivy::decl::__t > dec  (const str::__t &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace decl
     {
         str::__t encdec  (const str::__t &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace action_kind
     {
-        
+
         enum __enum___t  {internal,external,imported,exported};
-        
+
         struct __t : ivy::native_enum< __enum___t >
         {
              __t () {}
@@ -4882,9 +4882,9 @@ namespace ivy
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -4893,21 +4893,21 @@ namespace ivy
         struct __t
         {
             ivy::ptr< ivy::expr::__t > name;
-            
+
             __bool is_input;
-            
+
             vector__ivy__expr::domain::__t inpos;
-            
+
             __bool is_output;
-            
+
             vector__ivy__expr::domain::__t outpos;
-            
+
             __bool is_ref;
-            
+
             __bool is_const;
-            
+
             __bool is_copy;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -4944,11 +4944,11 @@ namespace ivy
                         __bool::__hash() (x . is_copy);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace vector__ivy__prototype_argument
 {
@@ -4957,9 +4957,9 @@ namespace vector__ivy__prototype_argument
         struct __t : ivy::native_unsigned< size_t >
         {
             vector__ivy__prototype_argument::domain::__t next () const;
-            
+
             vector__ivy__prototype_argument::domain::__t prev () const;
-            
+
              __t () {}
              __t  (long long value) : ivy::native_unsigned< size_t > (value) {}
              __t  (const ivy::native_unsigned< size_t > &value) :
@@ -4968,9 +4968,9 @@ namespace vector__ivy__prototype_argument
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace vector__ivy__prototype_argument
 {
@@ -4978,29 +4978,29 @@ namespace vector__ivy__prototype_argument
     {
         ivy::vector< ivy::prototype_argument::__t,vector__ivy__prototype_argument::domain::__t >
             value;
-        
+
         vector__ivy__prototype_argument::domain::__t end;
-        
+
         vector__ivy__prototype_argument::domain::__t begin () const;
-        
+
         void set  (const vector__ivy__prototype_argument::domain::__t &i,const ivy::prototype_argument::__t
             &v);
-        
+
         void append  (const ivy::prototype_argument::__t &c);
-        
+
         void extend  (const vector__ivy__prototype_argument::__t &x);
-        
+
         void resize  (const vector__ivy__prototype_argument::domain::__t &end);
-        
+
         ivy::prototype_argument::__t back () const;
-        
+
         void pop_back ();
-        
+
         vector__ivy__prototype_argument::__t segment  (const vector__ivy__prototype_argument::domain::__t
             &beg,const vector__ivy__prototype_argument::domain::__t &en) const;
-        
+
         void reverse ();
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -5029,14 +5029,14 @@ namespace vector__ivy__prototype_argument
                     vector__ivy__prototype_argument::domain::__t::__hash() (x . end);
             }
         };
-        
+
     };
-    
+
 }
 namespace vector__ivy__prototype_argument
 {
     vector__ivy__prototype_argument::__t empty ();
-    
+
 }
 namespace ivy
 {
@@ -5045,13 +5045,13 @@ namespace ivy
         struct __t
         {
             vector__ivy__prototype_argument::__t args;
-            
+
             __bool has_ret;
-            
+
             ivy::prototype_argument::__t ret;
-            
+
             __bool any_non_const_ref () const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -5080,11 +5080,11 @@ namespace ivy
                         ivy::prototype_argument::__t::__hash() (x . ret);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5093,75 +5093,75 @@ namespace ivy
         struct __t : ivy::decl::__t
         {
             ivy::ptr< ivy::expr::__t > name;
-            
+
             ivy::action_kind::__t kind;
-            
+
             vector__ivy__expr::__t inputs;
-            
+
             vector__ivy__expr::__t outputs;
-            
+
             __bool has_body;
-            
+
             ivy::ptr< ivy::stmt::__t > body;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             __bool has_proto;
-            
+
             ivy::prototype::__t proto;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
-            
+
+
             // A member is a action of the form `action type.member(x:type,...)`
-            
+
             __bool is_member () const;
-            
-            
+
+
             // If this is a member action, return the type it is a member of.
-            
+
             ivy::ptr< ivy::ident::__t > member_type () const;
-            
+
             ivy::ptr< ivy::stmt::__t > get_body () const;
-            
+
             void flat  (ivy::flatst::__t &st) const;
-            
+
             void flat_int  (ivy::flatst::__t &st,ivy::actdc::__t &res) const;
-            
+
             void defd  (ivy::flatst::__t &st) const;
-            
+
             void build_global_types  (ivy::global_types::__t &st) const;
-            
+
             ivy::prototype::__t get_proto  (const ivy::global_types::__t &gl,const ivy::subtypes::__t
                 &st) const;
-            
+
             void typeinfer  (ivy::typeinferst::__t &st,ivy::ptr< ivy::decl::__t > &res) const;
-            
+
             void typeinfer_int  (ivy::typeinferst::__t &st,ivy::actdc::__t &res) const;
-            
+
             void record_prototypes  (ivy::tocppst::__t &st) const;
-            
-            
+
+
             // Here, we translate an Ivy action declaration to a C++
             // function declaration. The C++ function declarations depends
             // on the action prototype.  If the action is a member action,
             // we drop the first input and replace it with `*this`.
-            
+
             void to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::decl::__t > &resd) const;
-            
-            
+
+
             // Here, we register actions as members of types. These will be emitted
-            // as members of the corresponding C++ class. 
-            
+            // as members of the corresponding C++ class.
+
             void reg_member  (ivy::tocppst::__t &st) const;
-            
-            
+
+
             // An action declaration is not emitted if it is a member and
             // does not have a body. External actions are never emitted.
-            
+
             __bool emitted  (const ivy::tocppst::__t &st) const;
-            
-            
+
+
             // If a virtual action has `this` as an in-out parameter, we don't have an appropriate
             // prototype. The easiest way to handle this is to eliminate the in-out parameter by
             // replacing the output parameter with a fresh name and copying the value. For example,
@@ -5176,9 +5176,9 @@ namespace ivy
             // This results in a copy of `s` that might be unnecessary if its value is dead. However,
             // it gets us aroud the problem that assigning a value of a subtype to `*this` will result
             // in the value being sliced.
-            
+
             ivy::ptr< ivy::decl::__t > fix_action  (const ivy::tocppst::__t &st) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -5216,14 +5216,14 @@ namespace ivy
                         __bool::__hash() (x . has_proto) + ivy::prototype::__t::__hash() (x . proto);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::decl::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5232,9 +5232,9 @@ namespace ivy
         ivy::ptr< ivy::decl::__t > make  (const ivy::ptr< ivy::expr::__t > &name,const
             vector__ivy__expr::__t &inputs,const vector__ivy__expr::__t &outputs,const __bool &has_body,const
             ivy::ptr< ivy::stmt::__t > &body);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5243,9 +5243,9 @@ namespace ivy
         struct rec
         {
             __bool full;
-            
+
             __bool val;
-            
+
              rec () {}
              rec  (long long value) {}
              operator std::size_t () const {
@@ -5271,11 +5271,11 @@ namespace ivy
                     return __bool::__hash() (x . full) + __bool::__hash() (x . val);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5284,30 +5284,30 @@ namespace ivy
         struct __t
         {
             ivy::vector< ivy::ident_set::rec,ivy::ptr< ivy::ident::__t > > map;
-            
-            
+
+
             // mutate a map a so that x in maps to y
-            
+
             void set  (const ivy::ptr< ivy::ident::__t > &x,const __bool &y);
-            
-            
+
+
             // get the value y such that x maps to z in a, else
             // leave y unchanged.
-            
+
             void get  (const ivy::ptr< ivy::ident::__t > &x,__bool &y) const;
-            
-            
+
+
             // return true if x maps to some value
-            
+
             __bool mem  (const ivy::ptr< ivy::ident::__t > &x) const;
-            
-            
+
+
             // remove a key x from the map
-            
+
             void remove  (const ivy::ptr< ivy::ident::__t > &x);
-            
+
             __bool value  (const ivy::ptr< ivy::ident::__t > &x) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -5334,11 +5334,11 @@ namespace ivy
                             . map);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 // return an empty map
 namespace ivy
@@ -5346,9 +5346,9 @@ namespace ivy
     namespace ident_set
     {
         ivy::ident_set::__t empty ();
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5356,9 +5356,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::expr::__t > &lhs,const ivy::ptr< ivy::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5366,18 +5366,18 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > fold_left  (const vector__ivy__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace colon
     {
         vector__ivy__expr::__t unfold_left  (const ivy::ptr< ivy::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5385,9 +5385,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::expr::__t > &lhs,const ivy::ptr< ivy::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5395,18 +5395,18 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > fold_left  (const vector__ivy__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace arrow
     {
         vector__ivy__expr::__t unfold_left  (const ivy::ptr< ivy::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5414,9 +5414,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::expr::__t > &arg,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5424,9 +5424,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::expr::__t > &lhs,const ivy::ptr< ivy::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5434,18 +5434,18 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > fold_left  (const vector__ivy__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace equals
     {
         vector__ivy__expr::__t unfold_left  (const ivy::ptr< ivy::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5453,9 +5453,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::expr::__t > &lhs,const ivy::ptr< ivy::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5463,18 +5463,18 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > fold_left  (const vector__ivy__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace notequals
     {
         vector__ivy__expr::__t unfold_left  (const ivy::ptr< ivy::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5482,9 +5482,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::expr::__t > &arg,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5492,9 +5492,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::expr::__t > &arg0,const ivy::ptr< ivy::expr::__t >
             &arg1,const ivy::ptr< ivy::expr::__t > &arg2,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5502,9 +5502,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::expr::__t > &arg,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5512,9 +5512,9 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > make  (const ivy::ptr< ivy::expr::__t > &lhs,const ivy::ptr< ivy::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5522,18 +5522,18 @@ namespace ivy
     {
         ivy::ptr< ivy::expr::__t > fold_left  (const vector__ivy__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace isaop
     {
         vector__ivy__expr::__t unfold_left  (const ivy::ptr< ivy::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5542,26 +5542,26 @@ namespace ivy
         struct __t : ivy::stmt::__t
         {
             ivy::ptr< ivy::expr::__t > name;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void encode_int  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::ptr< ivy::expr::__t > get_expr () const;
-            
+
             void flat  (ivy::flatst::__t &st,ivy::ptr< ivy::stmt::__t > &res) const;
-            
+
             void flat_int  (ivy::flatst::__t &st,ivy::varst::__t &res) const;
-            
+
             ivy::ptr< ivy::ident::__t > get_ident () const;
-            
-            
+
+
             //        instantiate generic_to_cpp(ivy.varst,cpp.varst,cpp.stmt)
-            
+
             void to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::stmt::__t > &resd) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -5588,14 +5588,14 @@ namespace ivy
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::stmt::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5603,9 +5603,9 @@ namespace ivy
     {
         ivy::ptr< ivy::stmt::__t > make  (const ivy::ptr< ivy::expr::__t > &name,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5614,15 +5614,15 @@ namespace ivy
         struct __t : ivy::stmt::__t
         {
             ivy::ptr< ivy::expr::__t > prg;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void encode_int  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::ptr< ivy::expr::__t > get_expr () const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -5649,14 +5649,14 @@ namespace ivy
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::stmt::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5664,18 +5664,18 @@ namespace ivy
     {
         ivy::ptr< ivy::stmt::__t > make  (const ivy::ptr< ivy::expr::__t > &prg,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace stmt
     {
         void parse_stmt_term  (pstate::__t &st);
-        
+
     }
-    
+
 }
 // allow to omit final semicolon
 namespace ivy
@@ -5684,9 +5684,9 @@ namespace ivy
     {
         void parse_lang_stmt  (pstate::__t &st,const priority::__t &prio,ivy::ptr< ivy::stmt::__t >
             &res);
-        
+
     }
-    
+
 }
 namespace vector__ivy__decl
 {
@@ -5695,9 +5695,9 @@ namespace vector__ivy__decl
         struct __t : ivy::native_unsigned< size_t >
         {
             vector__ivy__decl::domain::__t next () const;
-            
+
             vector__ivy__decl::domain::__t prev () const;
-            
+
              __t () {}
              __t  (long long value) : ivy::native_unsigned< size_t > (value) {}
              __t  (const ivy::native_unsigned< size_t > &value) :
@@ -5706,37 +5706,37 @@ namespace vector__ivy__decl
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace vector__ivy__decl
 {
     struct __t
     {
         ivy::vector< ivy::ptr< ivy::decl::__t >,vector__ivy__decl::domain::__t > value;
-        
+
         vector__ivy__decl::domain::__t end;
-        
+
         vector__ivy__decl::domain::__t begin () const;
-        
+
         void set  (const vector__ivy__decl::domain::__t &i,const ivy::ptr< ivy::decl::__t > &v);
-        
+
         void append  (const ivy::ptr< ivy::decl::__t > &c);
-        
+
         void extend  (const vector__ivy__decl::__t &x);
-        
+
         void resize  (const vector__ivy__decl::domain::__t &end);
-        
+
         ivy::ptr< ivy::decl::__t > back () const;
-        
+
         void pop_back ();
-        
+
         vector__ivy__decl::__t segment  (const vector__ivy__decl::domain::__t &beg,const
             vector__ivy__decl::domain::__t &en) const;
-        
+
         void reverse ();
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -5764,14 +5764,14 @@ namespace vector__ivy__decl
                         (x . value) + vector__ivy__decl::domain::__t::__hash() (x . end);
             }
         };
-        
+
     };
-    
+
 }
 namespace vector__ivy__decl
 {
     vector__ivy__decl::__t empty ();
-    
+
 }
 namespace ivy
 {
@@ -5780,15 +5780,15 @@ namespace ivy
         struct __t : ivy::decl::__t
         {
             vector__ivy__decl::__t decls;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void flat  (ivy::flatst::__t &st) const;
-            
+
             void defd  (ivy::flatst::__t &st) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -5815,23 +5815,23 @@ namespace ivy
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::decl::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace groupdc
     {
         ivy::ptr< ivy::decl::__t > make  (const vector__ivy__decl::__t &decls);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5840,19 +5840,19 @@ namespace ivy
         struct __t
         {
             virtual void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             virtual vector__ivy__expr::__t get_elems () const;
-            
+
             virtual void flat  (ivy::flatst::__t &st,ivy::ptr< ivy::typespec::__t > &res) const;
-            
+
             virtual void defd  (ivy::flatst::__t &st,const ivy::ptr< ivy::ident::__t > &id) const;
-            
+
             virtual void to_destrs  (ivy::flatst::__t &st,const ivy::ptr< ivy::expr::__t > &ty)
                 const;
-            
+
             virtual void auto_flat_spec  (ivy::flatst::__t &st,const ivy::ptr< ivy::expr::__t > &ty)
                 const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -5876,42 +5876,42 @@ namespace ivy
                     return 0;
                 }
             };
-            
+
             virtual ivy::ptr< __t > __upcast () const {
                 return (*this);
             }
             virtual  ~__t () {}
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace typespec
     {
         void parse  (pstate::__t &st,const priority::__t &prio,ivy::ptr< ivy::typespec::__t > &res);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace curly_tup
     {
         void encode  (const vector__ivy__expr::__t &s,pretty::__t &b,const priority::__t &prio);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace curly_tup
     {
         void parse  (pstate::__t &st,const priority::__t &prio,vector__ivy__expr::__t &res);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5920,17 +5920,17 @@ namespace ivy
         struct __t : ivy::typespec::__t
         {
             vector__ivy__expr::__t constructors;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             vector__ivy__expr::__t get_elems () const;
-            
+
             void flat  (ivy::flatst::__t &st,ivy::ptr< ivy::typespec::__t > &res) const;
-            
+
             void defd  (ivy::flatst::__t &st,const ivy::ptr< ivy::ident::__t > &id) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -5957,14 +5957,14 @@ namespace ivy
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::typespec::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -5973,19 +5973,19 @@ namespace ivy
         struct __t : ivy::typespec::__t
         {
             vector__ivy__expr::__t destructors;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             vector__ivy__expr::__t get_elems () const;
-            
+
             void defd  (ivy::flatst::__t &st,const ivy::ptr< ivy::ident::__t > &id) const;
-            
+
             void auto_flat_spec  (ivy::flatst::__t &st,const ivy::ptr< ivy::expr::__t > &ty) const;
-            
+
             void to_destrs  (ivy::flatst::__t &st,const ivy::ptr< ivy::expr::__t > &ty) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -6012,14 +6012,14 @@ namespace ivy
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::typespec::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -6028,31 +6028,31 @@ namespace ivy
         struct __t : ivy::decl::__t
         {
             ivy::ptr< ivy::expr::__t > sort;
-            
+
             __bool has_super;
-            
+
             ivy::ptr< ivy::expr::__t > super;
-            
+
             __bool has_spec;
-            
+
             ivy::ptr< ivy::typespec::__t > spec;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void flat  (ivy::flatst::__t &st) const;
-            
+
             void defd  (ivy::flatst::__t &st) const;
-            
+
             void build_subtypes  (ivy::subtypes::__t &st) const;
-            
+
             void build_global_types  (ivy::global_types::__t &st) const;
-            
+
             void to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::decl::__t > &resd) const;
-            
+
             void reg_member  (ivy::tocppst::__t &st) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -6086,23 +6086,23 @@ namespace ivy
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::decl::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace typedc
     {
         ivy::ptr< ivy::decl::__t > make  (const ivy::ptr< ivy::expr::__t > &sort);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -6111,43 +6111,43 @@ namespace ivy
         struct __t : ivy::decl::__t
         {
             ivy::ptr< ivy::expr::__t > typing;
-            
+
             __bool is_destructor;
-            
+
             __bool has_def;
-            
+
             ivy::ptr< ivy::expr::__t > def;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void flat  (ivy::flatst::__t &st) const;
-            
+
             void flat_int  (ivy::flatst::__t &st,ivy::vardc::__t &res) const;
-            
+
             void defd  (ivy::flatst::__t &st) const;
-            
+
             void build_global_types  (ivy::global_types::__t &st) const;
-            
+
             void typeinfer  (ivy::typeinferst::__t &st,ivy::ptr< ivy::decl::__t > &res) const;
-            
+
             void typeinfer_int  (ivy::typeinferst::__t &st,ivy::vardc::__t &res) const;
-            
+
             ivy::ptr< ivy::decl::__t > func_to_action () const;
-            
+
             void to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::decl::__t > &resd) const;
-            
-            
+
+
             // A type destructor is translated to a data member of the class;
-            
+
             void reg_member  (ivy::tocppst::__t &st) const;
-            
-            
+
+
             // An variable declaration is not emitted if it is a destructor.
-            
+
             __bool emitted  (const ivy::tocppst::__t &st) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -6179,14 +6179,14 @@ namespace ivy
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::decl::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -6194,9 +6194,9 @@ namespace ivy
     {
         ivy::ptr< ivy::decl::__t > make  (const ivy::ptr< ivy::expr::__t > &typing,const __bool &is_destructor,const
             ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -6205,19 +6205,19 @@ namespace ivy
         struct __t : ivy::decl::__t
         {
             str::__t filename;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void flat  (ivy::flatst::__t &st) const;
-            
+
             void flat_int  (ivy::flatst::__t &st,ivy::header::__t &res) const;
-            
+
             void to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::decl::__t > &res) const;
-            
+
             void to_cpp_int  (ivy::tocppst::__t &st,cpp::header::__t &res) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -6244,23 +6244,23 @@ namespace ivy
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::decl::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace header
     {
         ivy::ptr< ivy::decl::__t > make  (const str::__t &filename);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -6269,27 +6269,27 @@ namespace ivy
         struct __t : ivy::decl::__t
         {
             ivy::ptr< ivy::expr::__t > itype;
-            
+
             ivy::ptr< ivy::expr::__t > ctype;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void flat  (ivy::flatst::__t &st) const;
-            
+
             void flat_int  (ivy::flatst::__t &st,ivy::interpdc::__t &res) const;
-            
-            
+
+
             // An interpret declararation determines the C++ superclass of the type.
-            
+
             void reg_member  (ivy::tocppst::__t &st) const;
-            
-            
+
+
             // Interpret declarations are never emitted
-            
+
             __bool emitted  (const ivy::tocppst::__t &st) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -6318,14 +6318,14 @@ namespace ivy
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::decl::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -6333,9 +6333,9 @@ namespace ivy
     {
         ivy::ptr< ivy::decl::__t > make  (const ivy::ptr< ivy::expr::__t > &itype,const ivy::ptr< ivy::expr::__t >
             &ctype,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -6344,15 +6344,15 @@ namespace ivy
         struct __t : ivy::decl::__t
         {
             ivy::ptr< ivy::expr::__t > file;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::ptr< ivy::expr::__t > get_expr () const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -6379,14 +6379,14 @@ namespace ivy
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::decl::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -6394,9 +6394,9 @@ namespace ivy
     {
         ivy::ptr< ivy::decl::__t > make  (const ivy::ptr< ivy::expr::__t > &file,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -6405,17 +6405,17 @@ namespace ivy
         struct __t : ivy::decl::__t
         {
             ivy::ptr< ivy::expr::__t > name;
-            
+
             vector__ivy__expr::__t prms;
-            
+
             ivy::ptr< ivy::decl::__t > body;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void defd  (ivy::flatst::__t &st) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -6447,14 +6447,14 @@ namespace ivy
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::decl::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -6462,9 +6462,9 @@ namespace ivy
     {
         ivy::ptr< ivy::decl::__t > make  (const ivy::ptr< ivy::expr::__t > &name,const
             vector__ivy__expr::__t &prms,const ivy::ptr< ivy::decl::__t > &body);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -6473,19 +6473,19 @@ namespace ivy
         struct __t : ivy::decl::__t
         {
             ivy::ptr< ivy::expr::__t > name;
-            
+
             vector__ivy__expr::__t prms;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void setup  (ivy::flatst::__t &st,const __bool &check,ivy::moduledc::__t &mod) const;
-            
+
             void flat  (ivy::flatst::__t &st) const;
-            
+
             void defd  (ivy::flatst::__t &st) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -6514,14 +6514,14 @@ namespace ivy
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::decl::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -6529,9 +6529,9 @@ namespace ivy
     {
         ivy::ptr< ivy::decl::__t > make  (const ivy::ptr< ivy::expr::__t > &name,const
             vector__ivy__expr::__t &prms,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -6540,30 +6540,30 @@ namespace ivy
         struct __t : ivy::decl::__t
         {
             ivy::ptr< ivy::expr::__t > name;
-            
+
             ivy::ptr< ivy::decl::__t > body;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void flat  (ivy::flatst::__t &st) const;
-            
+
             void defd  (ivy::flatst::__t &st) const;
-            
-            
+
+
             // An object declaration corresponds to a namespace in C++. However,
             // we emit namespace declarations for the object members, not here.
             // Here, we just record the object identifiers, so we know when they
             // clash with type identifiers.
-            
+
             void reg_member  (ivy::tocppst::__t &st) const;
-            
-            
+
+
             // Object declarations are never emitted
-            
+
             __bool emitted  (const ivy::tocppst::__t &st) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -6592,14 +6592,14 @@ namespace ivy
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::decl::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -6607,9 +6607,9 @@ namespace ivy
     {
         ivy::ptr< ivy::decl::__t > make  (const ivy::ptr< ivy::expr::__t > &name,const ivy::ptr< ivy::decl::__t >
             &body,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -6618,23 +6618,23 @@ namespace ivy
         struct __t : ivy::decl::__t
         {
             ivy::ptr< ivy::expr::__t > objname;
-            
+
             ivy::ptr< ivy::expr::__t > modname;
-            
+
             vector__ivy__expr::__t prms;
-            
+
             __bool is_auto;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::ptr< ivy::decl::__t > desugar () const;
-            
+
             void flat  (ivy::flatst::__t &st) const;
-            
+
             void defd  (ivy::flatst::__t &st) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -6666,14 +6666,14 @@ namespace ivy
                         + ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::decl::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -6681,9 +6681,9 @@ namespace ivy
     {
         ivy::ptr< ivy::decl::__t > make  (const ivy::ptr< ivy::expr::__t > &objname,const ivy::ptr< ivy::expr::__t >
             &modname,const vector__ivy__expr::__t &prms);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -6692,23 +6692,23 @@ namespace ivy
         struct __t : ivy::decl::__t
         {
             ivy::ptr< ivy::stmt::__t > body;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::ptr< ivy::stmt::__t > get_body () const;
-            
+
             void flat  (ivy::flatst::__t &st) const;
-            
+
             void flat_int  (ivy::flatst::__t &st,ivy::initdc::__t &res) const;
-            
+
             void typeinfer  (ivy::typeinferst::__t &st,ivy::ptr< ivy::decl::__t > &res) const;
-            
+
             void typeinfer_int  (ivy::typeinferst::__t &st,ivy::initdc::__t &res) const;
-            
+
             __bool emitted  (const ivy::tocppst::__t &st) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -6735,38 +6735,38 @@ namespace ivy
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::decl::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     void parse_action  (pstate::__t &st,const priority::__t &prio,const ivy::action_kind::__t &kind,ivy::ptr< ivy::decl::__t >
         &res);
-    
+
 }
 namespace ivy
 {
     namespace decl
     {
         void parse  (pstate::__t &st,const priority::__t &prio,ivy::ptr< ivy::decl::__t > &res);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace decl
     {
         void parse_list  (pstate::__t &st,const priority::__t &prio,vector__ivy__decl::__t &res);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -6775,9 +6775,9 @@ namespace ivy
         struct __t
         {
             vector__pos::__t nums;
-            
+
             void encode  (pretty::__t &b) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -6802,20 +6802,20 @@ namespace ivy
                     return vector__pos::__t::__hash() (x . nums);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace version
     {
         void parse  (pstate::__t &st,const priority::__t &prio,ivy::version::__t &res);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -6824,23 +6824,23 @@ namespace ivy
         struct __t
         {
             ivy::version::__t vers;
-            
+
             vector__ivy__decl::__t decls;
-            
+
             str::__t enc () const;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void flat ();
-            
+
             ivy::subtypes::__t get_subtypes () const;
-            
+
             ivy::global_types::__t get_global_types  (const __bool &curried) const;
-            
+
             void typeinfer ();
-            
+
             cpp::prog::__t to_cpp () const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -6867,38 +6867,38 @@ namespace ivy
                         vector__ivy__decl::__t::__hash() (x . decls);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace prog
     {
         ivy::prog::__t dec  (const str::__t &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace prog
     {
         str::__t encdec  (const str::__t &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace prog
     {
         ivy::prog::__t make  (const vector__ivy__decl::__t &decls);
-        
+
     }
-    
+
 }
 // Note, the Ivy verison number is encoded in the first comment line
 namespace ivy
@@ -6906,18 +6906,18 @@ namespace ivy
     namespace prog
     {
         void parse_to  (pstate::__t &st,const priority::__t &prio,ivy::prog::__t &res);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace prog
     {
         void parse  (pstate::__t &st,const priority::__t &prio,ivy::prog::__t &res);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -6926,7 +6926,7 @@ namespace ivy
         struct __t
         {
             virtual void encode  (pretty::__t &b) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -6950,15 +6950,15 @@ namespace ivy
                     return 0;
                 }
             };
-            
+
             virtual ivy::ptr< __t > __upcast () const {
                 return (*this);
             }
             virtual  ~__t () {}
         };
-        
+
     }
-    
+
 }
 namespace vector__ivy__error
 {
@@ -6967,9 +6967,9 @@ namespace vector__ivy__error
         struct __t : ivy::native_unsigned< size_t >
         {
             vector__ivy__error::domain::__t next () const;
-            
+
             vector__ivy__error::domain::__t prev () const;
-            
+
              __t () {}
              __t  (long long value) : ivy::native_unsigned< size_t > (value) {}
              __t  (const ivy::native_unsigned< size_t > &value) :
@@ -6978,37 +6978,37 @@ namespace vector__ivy__error
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace vector__ivy__error
 {
     struct __t
     {
         ivy::vector< ivy::ptr< ivy::error::__t >,vector__ivy__error::domain::__t > value;
-        
+
         vector__ivy__error::domain::__t end;
-        
+
         vector__ivy__error::domain::__t begin () const;
-        
+
         void set  (const vector__ivy__error::domain::__t &i,const ivy::ptr< ivy::error::__t > &v);
-        
+
         void append  (const ivy::ptr< ivy::error::__t > &c);
-        
+
         void extend  (const vector__ivy__error::__t &x);
-        
+
         void resize  (const vector__ivy__error::domain::__t &end);
-        
+
         ivy::ptr< ivy::error::__t > back () const;
-        
+
         void pop_back ();
-        
+
         vector__ivy__error::__t segment  (const vector__ivy__error::domain::__t &beg,const
             vector__ivy__error::domain::__t &en) const;
-        
+
         void reverse ();
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -7036,25 +7036,25 @@ namespace vector__ivy__error
                         (x . value) + vector__ivy__error::domain::__t::__hash() (x . end);
             }
         };
-        
+
     };
-    
+
 }
 namespace vector__ivy__error
 {
     vector__ivy__error::__t empty ();
-    
+
 }
 namespace ivy
 {
     vector__ivy__error::__t errors;
-    
+
 }
 // Reports an error and returns
 namespace ivy
 {
     void report_error  (const ivy::ptr< ivy::error::__t > &e,const ivy::ptr< annot::__t > &ann);
-    
+
 }
 namespace ivy
 {
@@ -7063,13 +7063,13 @@ namespace ivy
         struct __t : ivy::error::__t
         {
             ivy::ptr< ivy::expr::__t > e;
-            
+
             ivy::ptr< ivy::expr::__t > t1;
-            
+
             ivy::ptr< ivy::expr::__t > t2;
-            
+
             void encode  (pretty::__t &b) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -7097,14 +7097,14 @@ namespace ivy
                         ivy::ptr< ivy::expr::__t >::__hash() (x . t2);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::error::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -7112,9 +7112,9 @@ namespace ivy
     {
         ivy::type_clash::__t make  (const ivy::ptr< ivy::expr::__t > &e,const ivy::ptr< ivy::expr::__t >
             &t1,const ivy::ptr< ivy::expr::__t > &t2);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -7123,13 +7123,13 @@ namespace ivy
         struct __t : ivy::error::__t
         {
             ivy::ptr< ivy::expr::__t > e;
-            
+
             ivy::ptr< ivy::expr::__t > t1;
-            
+
             ivy::ptr< ivy::expr::__t > t2;
-            
+
             void encode  (pretty::__t &b) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -7157,14 +7157,14 @@ namespace ivy
                         ivy::ptr< ivy::expr::__t >::__hash() (x . t2);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::error::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -7172,9 +7172,9 @@ namespace ivy
     {
         ivy::type_conversion::__t make  (const ivy::ptr< ivy::expr::__t > &e,const ivy::ptr< ivy::expr::__t >
             &t1,const ivy::ptr< ivy::expr::__t > &t2);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -7183,11 +7183,11 @@ namespace ivy
         struct __t : ivy::error::__t
         {
             ivy::ptr< ivy::expr::__t > e;
-            
+
             ivy::ptr< ivy::expr::__t > t1;
-            
+
             void encode  (pretty::__t &b) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -7214,14 +7214,14 @@ namespace ivy
                         ivy::ptr< ivy::expr::__t >::__hash() (x . t1);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::error::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -7229,9 +7229,9 @@ namespace ivy
     {
         ivy::untyped::__t make  (const ivy::ptr< ivy::expr::__t > &e,const ivy::ptr< ivy::expr::__t >
             &t1);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -7240,11 +7240,11 @@ namespace ivy
         struct __t : ivy::error::__t
         {
             ivy::ptr< ivy::expr::__t > e;
-            
+
             ivy::ptr< ivy::expr::__t > t1;
-            
+
             void encode  (pretty::__t &b) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -7271,14 +7271,14 @@ namespace ivy
                         ivy::ptr< ivy::expr::__t >::__hash() (x . t1);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::error::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -7286,9 +7286,9 @@ namespace ivy
     {
         ivy::not_first_order::__t make  (const ivy::ptr< ivy::expr::__t > &e,const ivy::ptr< ivy::expr::__t >
             &t1);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -7297,9 +7297,9 @@ namespace ivy
         struct __t : ivy::error::__t
         {
             str::__t n;
-            
+
             void encode  (pretty::__t &b) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -7323,23 +7323,23 @@ namespace ivy
                     return str::__t::__hash() (x . n);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::error::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace file_not_found
     {
         ivy::file_not_found::__t make  (const str::__t &n);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -7348,9 +7348,9 @@ namespace ivy
         struct __t : ivy::error::__t
         {
             str::__t n;
-            
+
             void encode  (pretty::__t &b) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -7374,23 +7374,23 @@ namespace ivy
                     return str::__t::__hash() (x . n);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::error::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace cannot_write
     {
         ivy::cannot_write::__t make  (const str::__t &n);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -7399,9 +7399,9 @@ namespace ivy
         struct __t : ivy::error::__t
         {
             ivy::ptr< ivy::ident::__t > n;
-            
+
             void encode  (pretty::__t &b) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -7426,23 +7426,23 @@ namespace ivy
                     return ivy::ptr< ivy::ident::__t >::__hash() (x . n);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::error::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace undefined
     {
         ivy::undefined::__t make  (const ivy::ptr< ivy::ident::__t > &n);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -7451,11 +7451,11 @@ namespace ivy
         struct __t : ivy::error::__t
         {
             ivy::ptr< ivy::ident::__t > n;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -7482,14 +7482,14 @@ namespace ivy
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::error::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -7497,9 +7497,9 @@ namespace ivy
     {
         ivy::redefining::__t make  (const ivy::ptr< ivy::ident::__t > &n,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -7508,9 +7508,9 @@ namespace ivy
         struct __t : ivy::error::__t
         {
             vector__ivy__expr::domain::__t n;
-            
+
             void encode  (pretty::__t &b) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -7535,23 +7535,23 @@ namespace ivy
                     return vector__ivy__expr::domain::__t::__hash() (x . n);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::error::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace wrong_number_params
     {
         ivy::wrong_number_params::__t make  (const vector__ivy__expr::domain::__t &n);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -7560,9 +7560,9 @@ namespace ivy
         struct __t : ivy::error::__t
         {
             str::__t tok;
-            
+
             void encode  (pretty::__t &b) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -7586,23 +7586,23 @@ namespace ivy
                     return str::__t::__hash() (x . tok);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::error::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace syntax_error
     {
         ivy::syntax_error::__t make  (const str::__t &tok);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -7611,9 +7611,9 @@ namespace ivy
         struct __t : ivy::error::__t
         {
             ivy::ptr< ivy::expr::__t > e;
-            
+
             void encode  (pretty::__t &b) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -7638,65 +7638,65 @@ namespace ivy
                     return ivy::ptr< ivy::expr::__t >::__hash() (x . e);
                 }
             };
-            
+
             virtual ivy::ptr< ivy::error::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace bad_syntax
     {
         ivy::bad_syntax::__t make  (const ivy::ptr< ivy::expr::__t > &e);
-        
+
     }
-    
+
 }
 namespace env
 {
     str::__t get  (const str::__t &name);
-    
+
 }
 namespace ivy
 {
     namespace file
     {
         void read  (const str::__t &fname,str::__t &b,__bool &ok);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace file
     {
         __bool write  (const str::__t &fname,const str::__t &b);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace file
     {
         __bool exist  (const str::__t &fname);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     void write_file  (const str::__t &name,const str::__t &buf);
-    
+
 }
 namespace ivy
 {
     vector__str::__t include_path;
-    
+
 }
 namespace ivy
 {
@@ -7705,7 +7705,7 @@ namespace ivy
         struct readst
         {
             ivy::ident_set::__t have_read;
-            
+
              readst () {}
              readst  (long long value) {}
              operator std::size_t () const {
@@ -7731,20 +7731,20 @@ namespace ivy
                     return ivy::ident_set::__t::__hash() (x . have_read);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace prog
     {
         void find_include  (str::__t &name);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -7752,9 +7752,9 @@ namespace ivy
     {
         void read_file_int  (const str::__t &name,const ivy::ptr< annot::__t > &ann,ivy::prog::__t &p,ivy::prog::readst
             &rst);
-        
+
     }
-    
+
 }
 // Read the main file, named `name`. We prepend `include ivy`
 // to the file, to cause the standard preamble to be read.
@@ -7763,36 +7763,36 @@ namespace ivy
     namespace prog
     {
         ivy::prog::__t read_file  (const str::__t &name);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace path
     {
         void change_extension  (str::__t &path,const str::__t &ext);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace path
     {
         void drop_extension  (str::__t &path);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace path
     {
         void concat  (str::__t &path1,const str::__t &path2);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -7801,9 +7801,9 @@ namespace ivy
         struct rec
         {
             __bool full;
-            
+
             ivy::ptr< ivy::expr::__t > val;
-            
+
              rec () {}
              rec  (long long value) {}
              operator std::size_t () const {
@@ -7830,11 +7830,11 @@ namespace ivy
                         ivy::ptr< ivy::expr::__t >::__hash() (x . val);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -7843,17 +7843,17 @@ namespace ivy
         struct __t
         {
             ivy::vector< ivy::symeval::rec,ivy::ptr< ivy::ident::__t > > map;
-            
+
             void set  (const ivy::ptr< ivy::ident::__t > &x,const ivy::ptr< ivy::expr::__t > &y);
-            
+
             void get  (const ivy::ptr< ivy::ident::__t > &x,ivy::ptr< ivy::expr::__t > &y) const;
-            
+
             __bool mem  (const ivy::ptr< ivy::ident::__t > &x) const;
-            
+
             void remove  (const ivy::ptr< ivy::ident::__t > &x);
-            
+
             ivy::ptr< ivy::expr::__t > value  (const ivy::ptr< ivy::ident::__t > &x) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -7880,25 +7880,25 @@ namespace ivy
                             map);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace symeval
     {
         ivy::symeval::__t empty ();
-        
+
     }
-    
+
 }
 namespace ivy
 {
     void subst_vector  (vector__ivy__expr::__t &v,const ivy::symeval::__t &smap);
-    
+
 }
 namespace ivy
 {
@@ -7907,9 +7907,9 @@ namespace ivy
         struct rec
         {
             __bool full;
-            
+
             ivy::moduledc::__t val;
-            
+
              rec () {}
              rec  (long long value) {}
              operator std::size_t () const {
@@ -7935,11 +7935,11 @@ namespace ivy
                     return __bool::__hash() (x . full) + ivy::moduledc::__t::__hash() (x . val);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -7948,20 +7948,20 @@ namespace ivy
         struct __t
         {
             ivy::vector< ivy::ident_to_moduledc::rec,ivy::ptr< ivy::ident::__t > > map;
-            
+
             void set  (const ivy::ptr< ivy::ident::__t > &x,const ivy::moduledc::__t &y);
-            
+
             void get  (const ivy::ptr< ivy::ident::__t > &x,ivy::moduledc::__t &y) const;
-            
+
             __bool mem  (const ivy::ptr< ivy::ident::__t > &x) const;
-            
+
             void remove  (const ivy::ptr< ivy::ident::__t > &x);
-            
+
             ivy::moduledc::__t value  (const ivy::ptr< ivy::ident::__t > &x) const;
-            
+
             ivy::moduledc::__t get_def  (const ivy::ptr< ivy::ident::__t > &x,const ivy::ptr< annot::__t >
                 &ann) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -7988,20 +7988,20 @@ namespace ivy
                             (x . map);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_moduledc
     {
         ivy::ident_to_moduledc::__t empty ();
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -8010,9 +8010,9 @@ namespace ivy
         struct rec
         {
             __bool full;
-            
+
             ivy::ptr< ivy::ident::__t > val;
-            
+
              rec () {}
              rec  (long long value) {}
              operator std::size_t () const {
@@ -8039,11 +8039,11 @@ namespace ivy
                         ivy::ptr< ivy::ident::__t >::__hash() (x . val);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -8052,17 +8052,17 @@ namespace ivy
         struct __t
         {
             ivy::vector< ivy::ident_to_ident::rec,ivy::ptr< ivy::ident::__t > > map;
-            
+
             void set  (const ivy::ptr< ivy::ident::__t > &x,const ivy::ptr< ivy::ident::__t > &y);
-            
+
             void get  (const ivy::ptr< ivy::ident::__t > &x,ivy::ptr< ivy::ident::__t > &y) const;
-            
+
             __bool mem  (const ivy::ptr< ivy::ident::__t > &x) const;
-            
+
             void remove  (const ivy::ptr< ivy::ident::__t > &x);
-            
+
             ivy::ptr< ivy::ident::__t > value  (const ivy::ptr< ivy::ident::__t > &x) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -8089,20 +8089,20 @@ namespace ivy
                             (x . map);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_ident
     {
         ivy::ident_to_ident::__t empty ();
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -8111,9 +8111,9 @@ namespace ivy
         struct rec
         {
             __bool full;
-            
+
             ivy::instantiatedc::__t val;
-            
+
              rec () {}
              rec  (long long value) {}
              operator std::size_t () const {
@@ -8139,11 +8139,11 @@ namespace ivy
                     return __bool::__hash() (x . full) + ivy::instantiatedc::__t::__hash() (x . val);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -8152,17 +8152,17 @@ namespace ivy
         struct __t
         {
             ivy::vector< ivy::ident_to_instantiatedc::rec,ivy::ptr< ivy::ident::__t > > map;
-            
+
             void set  (const ivy::ptr< ivy::ident::__t > &x,const ivy::instantiatedc::__t &y);
-            
+
             void get  (const ivy::ptr< ivy::ident::__t > &x,ivy::instantiatedc::__t &y) const;
-            
+
             __bool mem  (const ivy::ptr< ivy::ident::__t > &x) const;
-            
+
             void remove  (const ivy::ptr< ivy::ident::__t > &x);
-            
+
             ivy::instantiatedc::__t value  (const ivy::ptr< ivy::ident::__t > &x) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -8189,20 +8189,20 @@ namespace ivy
                             (x . map);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_instantiatedc
     {
         ivy::ident_to_instantiatedc::__t empty ();
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -8211,9 +8211,9 @@ namespace ivy
         struct rec
         {
             __bool full;
-            
+
             ivy::ptr< annot::__t > val;
-            
+
              rec () {}
              rec  (long long value) {}
              operator std::size_t () const {
@@ -8239,11 +8239,11 @@ namespace ivy
                     return __bool::__hash() (x . full) + ivy::ptr< annot::__t >::__hash() (x . val);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -8252,17 +8252,17 @@ namespace ivy
         struct __t
         {
             ivy::vector< ivy::ident_to_annot::rec,ivy::ptr< ivy::ident::__t > > map;
-            
+
             void set  (const ivy::ptr< ivy::ident::__t > &x,const ivy::ptr< annot::__t > &y);
-            
+
             void get  (const ivy::ptr< ivy::ident::__t > &x,ivy::ptr< annot::__t > &y) const;
-            
+
             __bool mem  (const ivy::ptr< ivy::ident::__t > &x) const;
-            
+
             void remove  (const ivy::ptr< ivy::ident::__t > &x);
-            
+
             ivy::ptr< annot::__t > value  (const ivy::ptr< ivy::ident::__t > &x) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -8289,20 +8289,20 @@ namespace ivy
                             (x . map);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_annot
     {
         ivy::ident_to_annot::__t empty ();
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -8310,81 +8310,81 @@ namespace ivy
     {
         struct __t
         {
-            
+
             // Accumulated declarations
-            
+
             vector__ivy__decl::__t decls;
-            
-            
+
+
             // The module parameter valuations
-            
+
             ivy::ident_to_ident::__t prmvals;
-            
-            
+
+
             // The module declarations, by name
-            
+
             ivy::ident_to_moduledc::__t moddecls;
-            
-            
+
+
             // The set of defined identifiers
-            
+
             ivy::ident_set::__t defs;
-            
-            
+
+
             // The locations of definitions of traits (non-objects)
-            
+
             ivy::ident_to_annot::__t non_objects;
-            
-            
+
+
             // True if the hierarchy root is set
-            
+
             __bool has_root;
-            
-            
+
+
             // The current hierarchy root
-            
+
             ivy::ptr< ivy::ident::__t > root;
-            
-            
+
+
             // The current local variables as a set
-            
+
             ivy::ident_set::__t locals;
-            
-            
+
+
             // The set of global variables
-            
+
             ivy::ident_set::__t globals;
-            
-            
+
+
             // True if we are defining an identifier
-            
+
             __bool defining;
-            
-            
+
+
             // True if we are on an absolute identifier
-            
+
             __bool absolute;
-            
-            
+
+
             // True if we are on rhs of a dot operator
-            
+
             __bool dot_rhs;
-            
-            
+
+
             // Maps autoinstance keys to instantiations
-            
+
             ivy::ident_to_instantiatedc::__t autodefs;
-            
-            
+
+
             // Auto instantiations that are pending
-            
+
             ivy::ident_set::__t autos_pending;
-            
-            
+
+
             // True if we don't want to check undefined
-            
+
             __bool no_undefined;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -8434,17 +8434,17 @@ namespace ivy
                         __bool::__hash() (x . no_undefined);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     ivy::ident_to_ident::__t prm_map  (const vector__ivy__expr::__t &fml,const vector__ivy__expr::__t
         &act,const ivy::ptr< annot::__t > &ann);
-    
+
 }
 // A dot operator has two possible interpretations: it indicates a
 // member of an object, or an application of a destructor or member
@@ -8455,110 +8455,110 @@ namespace ivy
 {
     ivy::ptr< ivy::expr::__t > applydot  (const ivy::ptr< ivy::expr::__t > &arg,const ivy::ptr< ivy::ident::__t >
         &member,const ivy::ptr< annot::__t > &ann,const ivy::flatst::__t &st);
-    
+
 }
 namespace ivy
 {
     void find_ident  (const ivy::ptr< ivy::ident::__t > &root,ivy::ptr< ivy::ident::__t > &s,const
         ivy::flatst::__t &st);
-    
+
 }
 namespace ivy
 {
     void add_def_id  (const ivy::ptr< ivy::ident::__t > &id,ivy::flatst::__t &st,const __bool &is_global,const
         __bool &is_object,const ivy::ptr< annot::__t > &ann);
-    
+
 }
 namespace ivy
 {
     void add_def  (const ivy::ptr< ivy::expr::__t > &s,ivy::flatst::__t &st,const __bool &is_global,const
         __bool &is_object);
-    
+
 }
 namespace ivy
 {
     void check_defined  (const ivy::ptr< ivy::ident::__t > &name,const ivy::flatst::__t &st,const
         ivy::ptr< annot::__t > &ann);
-    
+
 }
 namespace ivy
 {
     void setup_local_vars  (const ivy::ptr< ivy::stmt::__t > &s,ivy::flatst::__t &st,vector__ivy__ident::__t
         &del);
-    
+
 }
 namespace ivy
 {
     void remove_local_vars  (const vector__ivy__ident::__t &del,ivy::flatst::__t &st);
-    
+
 }
 namespace ivy
 {
     void flat_formal  (const ivy::ptr< ivy::expr::__t > &s,ivy::flatst::__t &st,ivy::ptr< ivy::expr::__t >
         &res);
-    
+
 }
 namespace ivy
 {
     ivy::ptr< ivy::ident::__t > formal_ident  (const ivy::ptr< ivy::expr::__t > &s);
-    
+
 }
 namespace ivy
 {
     void flat_exprvec  (vector__ivy__expr::__t &es,ivy::flatst::__t &st);
-    
+
 }
 namespace ivy
 {
     void flat_formalvec  (vector__ivy__expr::__t &es,ivy::flatst::__t &st);
-    
+
 }
 namespace ivy
 {
     void local_vec  (const vector__ivy__expr::__t &es,const __bool &val,ivy::flatst::__t &st);
-    
+
 }
 namespace ivy
 {
     void canon_typing  (ivy::ptr< ivy::expr::__t > &typing);
-    
+
 }
 namespace ivy
 {
     void make_auto_key  (const ivy::ptr< ivy::ident::__t > &id,const __bool &rev,ivy::ptr< ivy::ident::__t >
         &key,ivy::symeval::__t &pmap);
-    
+
 }
 namespace ivy
 {
     void find_auto_inst  (const ivy::ptr< ivy::ident::__t > &id,const ivy::flatst::__t &st,ivy::instantiatedc::__t
         &idc,__bool &ok);
-    
+
 }
 namespace ivy
 {
     void auto_defd_rec  (const ivy::ptr< ivy::expr::__t > &s,ivy::flatst::__t &st);
-    
+
 }
 namespace ivy
 {
     void auto_defd  (const ivy::ptr< ivy::expr::__t > &s,ivy::flatst::__t &st);
-    
+
 }
 namespace ivy
 {
     void auto_flat_rec  (const ivy::ptr< ivy::expr::__t > &s,ivy::flatst::__t &st);
-    
+
 }
 namespace ivy
 {
     void auto_flat  (const ivy::ptr< ivy::expr::__t > &s,ivy::flatst::__t &st);
-    
+
 }
 namespace ivy
 {
     void check_syntax_symbol  (const ivy::ptr< ivy::expr::__t > &e);
-    
+
 }
 // Get the symbol that is typed in a typing. Examples:
 //
@@ -8568,39 +8568,39 @@ namespace ivy
 namespace ivy
 {
     ivy::ptr< ivy::expr::__t > get_typed_symbol  (const ivy::ptr< ivy::expr::__t > &typing);
-    
+
 }
 namespace ivy
 {
     void is_typing_lhs_syntax  (const ivy::ptr< ivy::expr::__t > &lhs,__bool &res,ivy::ptr< ivy::expr::__t >
         &bad);
-    
+
 }
 namespace ivy
 {
     void is_typing_rhs_syntax  (const ivy::ptr< ivy::expr::__t > &rhs,__bool &res,ivy::ptr< ivy::expr::__t >
         &bad);
-    
+
 }
 namespace ivy
 {
     void check_syntax_typing  (const ivy::ptr< ivy::expr::__t > &typing,const __bool &has_def);
-    
+
 }
 namespace ivy
 {
     void check_syntax_symbol_vec  (const vector__ivy__expr::__t &s);
-    
+
 }
 namespace ivy
 {
     void set_root  (ivy::flatst::__t &st,const ivy::ptr< ivy::expr::__t > &s);
-    
+
 }
 namespace ivy
 {
     void auto_instance_defd  (const ivy::instancedc::__t &s,ivy::flatst::__t &st);
-    
+
 }
 namespace ivy
 {
@@ -8609,22 +8609,22 @@ namespace ivy
         struct __t
         {
             ivy::vector< vector__ivy__expr::__t,ivy::ptr< ivy::ident::__t > > value;
-            
-            
+
+
             // mutate a relation map a so that x is related to y
-            
+
             void add  (const ivy::ptr< ivy::ident::__t > &x,const ivy::ptr< ivy::expr::__t > &y);
-            
-            
+
+
             // get a vector of values y such that x maps to y in a
-            
+
             vector__ivy__expr::__t get  (const ivy::ptr< ivy::ident::__t > &x) const;
-            
-            
+
+
             // return true if x maps to some value
-            
+
             __bool mem  (const ivy::ptr< ivy::ident::__t > &x) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -8651,11 +8651,11 @@ namespace ivy
                             (x . value);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 // return an empty map
 namespace ivy
@@ -8663,9 +8663,9 @@ namespace ivy
     namespace ident_to_exprs
     {
         ivy::ident_to_exprs::__t empty ();
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -8674,12 +8674,12 @@ namespace ivy
         struct __t
         {
             ivy::ident_to_exprs::__t subtypes_of;
-            
+
             ivy::symeval::__t supertype_of;
-            
+
             __bool is_subtype  (const ivy::ptr< ivy::expr::__t > &sub,const ivy::ptr< ivy::expr::__t >
                 &super) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -8706,11 +8706,11 @@ namespace ivy
                         ivy::symeval::__t::__hash() (x . supertype_of);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -8719,13 +8719,13 @@ namespace ivy
         struct __t
         {
             ivy::symeval::__t type_of;
-            
+
             ivy::ident_set::__t is_action;
-            
+
             ivy::vector< __bool,ivy::ptr< ivy::ident::__t > > is_destructor;
-            
+
             __bool curried;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -8757,11 +8757,11 @@ namespace ivy
                             is_destructor) + __bool::__hash() (x . curried);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 // A complete typing looks like one of these:
 //
@@ -8773,13 +8773,13 @@ namespace ivy
 namespace ivy
 {
     __bool is_typing_complete  (const ivy::ptr< ivy::expr::__t > &typing);
-    
+
 }
 namespace ivy
 {
     ivy::ptr< ivy::expr::__t > get_formal_type  (const vector__ivy__expr::__t &typings,const ivy::ptr< annot::__t >
         &ann);
-    
+
 }
 // Returns true is an action is virtual. A virtual action is one that
 // overrides an action of a superclass or is overridden by an action of
@@ -8788,7 +8788,7 @@ namespace ivy
 {
     __bool is_virtual_action  (const ivy::actdc::__t &s,const ivy::global_types::__t &gl,const ivy::subtypes::__t
         &st);
-    
+
 }
 namespace ivy
 {
@@ -8797,9 +8797,9 @@ namespace ivy
         struct rec
         {
             __bool full;
-            
+
             vector__ivy__expr::domain::__t val;
-            
+
              rec () {}
              rec  (long long value) {}
              operator std::size_t () const {
@@ -8826,11 +8826,11 @@ namespace ivy
                         vector__ivy__expr::domain::__t::__hash() (x . val);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -8839,17 +8839,17 @@ namespace ivy
         struct __t
         {
             ivy::vector< ivy::param_map::rec,ivy::ptr< ivy::ident::__t > > map;
-            
+
             void set  (const ivy::ptr< ivy::ident::__t > &x,const vector__ivy__expr::domain::__t &y);
-            
+
             void get  (const ivy::ptr< ivy::ident::__t > &x,vector__ivy__expr::domain::__t &y) const;
-            
+
             __bool mem  (const ivy::ptr< ivy::ident::__t > &x) const;
-            
+
             void remove  (const ivy::ptr< ivy::ident::__t > &x);
-            
+
             vector__ivy__expr::domain::__t value  (const ivy::ptr< ivy::ident::__t > &x) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -8876,37 +8876,37 @@ namespace ivy
                             . map);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace param_map
     {
         ivy::param_map::__t empty ();
-        
+
     }
-    
+
 }
 namespace ivy
 {
     ivy::param_map::__t param_set  (const vector__ivy__expr::__t &ps);
-    
+
 }
 // Uncurry a function. This converts `f : t -> (... -> u)` to `t.f : (t * ... -> u)`.
 namespace ivy
 {
     ivy::ptr< ivy::expr::__t > uncurry_func  (const ivy::ptr< ivy::expr::__t > &func);
-    
+
 }
 // Given a function type `ty = (t * ... -> u)`, return `t`.
 namespace ivy
 {
     ivy::ptr< ivy::expr::__t > get_dom0  (const ivy::ptr< ivy::expr::__t > &ty);
-    
+
 }
 // Test whether a type-decorated function is a member
 // function. That is, it returns true if `func` has the form
@@ -8914,7 +8914,7 @@ namespace ivy
 namespace ivy
 {
     __bool func_is_member  (const ivy::ptr< ivy::expr::__t > &func);
-    
+
 }
 // A function application can be in several forms
 //
@@ -8929,21 +8929,21 @@ namespace ivy
 {
     void get_app  (const ivy::ptr< ivy::expr::__t > &s,ivy::ptr< ivy::expr::__t > &func,vector__ivy__expr::__t
         &args);
-    
+
 }
 // Returns true if the term `s` is functional, meaning it contains
 // no action calls.
 namespace ivy
 {
     __bool is_functional  (const ivy::ptr< ivy::expr::__t > &s,const ivy::global_types::__t &gl);
-    
+
 }
 // Canonize a function application. If it is in member style,
 // convert it to an ordinary function call.
 namespace ivy
 {
     void canon_app  (ivy::ptr< ivy::expr::__t > &s);
-    
+
 }
 namespace ivy
 {
@@ -8952,11 +8952,11 @@ namespace ivy
         struct __t
         {
             __bool is_live;
-            
+
             __bool is_ref;
-            
+
             pos::__t loop_nesting;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -8985,11 +8985,11 @@ namespace ivy
                         pos::__t::__hash() (x . loop_nesting);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -8998,11 +8998,11 @@ namespace ivy
         struct undo
         {
             ivy::ptr< ivy::ident::__t > id;
-            
+
             __bool present;
-            
+
             ivy::local_info::__t value;
-            
+
              undo () {}
              undo  (long long value) {}
              operator std::size_t () const {
@@ -9030,11 +9030,11 @@ namespace ivy
                         __bool::__hash() (x . present) + ivy::local_info::__t::__hash() (x . value);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -9045,9 +9045,9 @@ namespace ivy
             struct rec
             {
                 __bool full;
-                
+
                 ivy::local_info::__t val;
-                
+
                  rec () {}
                  rec  (long long value) {}
                  operator std::size_t () const {
@@ -9074,13 +9074,13 @@ namespace ivy
                             ivy::local_info::__t::__hash() (x . val);
                     }
                 };
-                
+
             };
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -9091,17 +9091,17 @@ namespace ivy
             struct __t
             {
                 ivy::vector< ivy::push_pop_locals::map_t::rec,ivy::ptr< ivy::ident::__t > > map;
-                
+
                 void set  (const ivy::ptr< ivy::ident::__t > &x,const ivy::local_info::__t &y);
-                
+
                 void get  (const ivy::ptr< ivy::ident::__t > &x,ivy::local_info::__t &y) const;
-                
+
                 __bool mem  (const ivy::ptr< ivy::ident::__t > &x) const;
-                
+
                 void remove  (const ivy::ptr< ivy::ident::__t > &x);
-                
+
                 ivy::local_info::__t value  (const ivy::ptr< ivy::ident::__t > &x) const;
-                
+
                  __t () {}
                  __t  (long long value) {}
                  operator std::size_t () const {
@@ -9128,13 +9128,13 @@ namespace ivy
                                 (x . map);
                     }
                 };
-                
+
             };
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -9143,11 +9143,11 @@ namespace ivy
         namespace map_t
         {
             ivy::push_pop_locals::map_t::__t empty ();
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -9158,28 +9158,28 @@ namespace ivy
             struct __t
             {
                 ivy::vector< ivy::push_pop_locals::undo,pos::__t > value;
-                
+
                 pos::__t end;
-                
+
                 pos::__t begin () const;
-                
+
                 void set  (const pos::__t &i,const ivy::push_pop_locals::undo &v);
-                
+
                 void append  (const ivy::push_pop_locals::undo &c);
-                
+
                 void extend  (const ivy::push_pop_locals::vec_t::__t &x);
-                
+
                 void resize  (const pos::__t &end);
-                
+
                 ivy::push_pop_locals::undo back () const;
-                
+
                 void pop_back ();
-                
+
                 ivy::push_pop_locals::vec_t::__t segment  (const pos::__t &beg,const pos::__t &en)
                     const;
-                
+
                 void reverse ();
-                
+
                  __t () {}
                  __t  (long long value) {}
                  operator std::size_t () const {
@@ -9207,13 +9207,13 @@ namespace ivy
                             + pos::__t::__hash() (x . end);
                     }
                 };
-                
+
             };
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -9222,11 +9222,11 @@ namespace ivy
         namespace vec_t
         {
             ivy::push_pop_locals::vec_t::__t empty ();
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -9235,21 +9235,21 @@ namespace ivy
         struct __t
         {
             ivy::push_pop_locals::map_t::__t map;
-            
+
             ivy::push_pop_locals::vec_t::__t del;
-            
+
             vector__pos::__t stack;
-            
+
             void set  (const ivy::ptr< ivy::ident::__t > &id,const ivy::local_info::__t &v);
-            
+
             __bool mem  (const ivy::ptr< ivy::ident::__t > &id) const;
-            
+
             ivy::local_info::__t value  (const ivy::ptr< ivy::ident::__t > &id) const;
-            
+
             void push ();
-            
+
             void pop ();
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -9278,11 +9278,11 @@ namespace ivy
                         vector__pos::__t::__hash() (x . stack);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -9291,24 +9291,24 @@ namespace ivy
         struct __t
         {
             ivy::push_pop_locals::__t map;
-            
+
             void push ();
-            
+
             void add_var  (const ivy::ptr< ivy::expr::__t > &typing,const __bool &is_ref,const pos::__t
                 &loop_nesting);
-            
+
             void push_vars  (const vector__ivy__expr::__t &typings);
-            
+
             void push_stmt  (const ivy::ptr< ivy::stmt::__t > &stm,const pos::__t &loop_nesting);
-            
+
             void pop ();
-            
+
             __bool mem  (const ivy::ptr< ivy::ident::__t > &id) const;
-            
+
             ivy::local_info::__t value  (const ivy::ptr< ivy::ident::__t > &id) const;
-            
+
             void set  (const ivy::ptr< ivy::ident::__t > &id,const ivy::local_info::__t &value);
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -9333,11 +9333,11 @@ namespace ivy
                     return ivy::push_pop_locals::__t::__hash() (x . map);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -9346,11 +9346,11 @@ namespace ivy
         struct __t
         {
             ivy::ident_set::__t mod;
-            
+
             ivy::ident_set::__t ref;
-            
+
             ivy::local_tracker::__t ignore;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -9379,16 +9379,16 @@ namespace ivy
                         ivy::local_tracker::__t::__hash() (x . ignore);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 // Get the root modset of an assignment, given its lhs. There are several cases:
 //
 // - `x:...`: `x` is a root
-// - `x:...,y:...`: both `x` and `y` are roots    
+// - `x:...,y:...`: both `x` and `y` are roots
 // - `(x:...).(f:...)(...)`: `x` is a root (and `f` must be a destructor)
 // - `(f:...)(...)` where `f` is *not* a destructor: `f` is the root
 //
@@ -9399,13 +9399,13 @@ namespace ivy
 namespace ivy
 {
     void get_lhs_roots  (const ivy::ptr< ivy::expr::__t > &s,ivy::root_mod_ref::__t &st);
-    
+
 }
 // This function gives the types of the builtin-in symbols
 namespace ivy
 {
     ivy::vector< ivy::ptr< ivy::expr::__t >,ivy::verb::__t > optypes;
-    
+
 }
 // The predicates determine for a given verb what type inferences we can
 // rely on when eliding type decorations:
@@ -9414,38 +9414,38 @@ namespace ivy
 namespace ivy
 {
     ivy::vector< __bool,ivy::verb::__t > verb_mono;
-    
+
 }
 // Input types determine output types:
 namespace ivy
 {
     ivy::vector< __bool,ivy::verb::__t > verb_in_to_out;
-    
+
 }
 // Output type determines input types:
 namespace ivy
 {
     ivy::vector< __bool,ivy::verb::__t > verb_out_to_in;
-    
+
 }
 // First input type determines all:
 namespace ivy
 {
     ivy::vector< __bool,ivy::verb::__t > verb_first_to_in;
-    
+
 }
 namespace ivy
 {
     void set_built_in_type  (const ivy::verb::__t &vrb,const str::__t &ty,const __bool &m,const
         __bool &io,const __bool &oi,const __bool &fi);
-    
+
 }
 // Returns `true` if the type of a the first input of a given verb determines
 // the type of the remaining inputs.
 namespace ivy
 {
     __bool verb_det_type  (const ivy::verb::__t &vrb);
-    
+
 }
 namespace ivy
 {
@@ -9456,9 +9456,9 @@ namespace ivy
             struct rec
             {
                 __bool full;
-                
+
                 ivy::ptr< ivy::expr::__t > val;
-                
+
                  rec () {}
                  rec  (long long value) {}
                  operator std::size_t () const {
@@ -9485,13 +9485,13 @@ namespace ivy
                             ivy::ptr< ivy::expr::__t >::__hash() (x . val);
                     }
                 };
-                
+
             };
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -9502,17 +9502,17 @@ namespace ivy
             struct __t
             {
                 ivy::vector< ivy::decost::map::rec,ivy::ptr< ivy::ident::__t > > map;
-                
+
                 void set  (const ivy::ptr< ivy::ident::__t > &x,const ivy::ptr< ivy::expr::__t > &y);
-                
+
                 void get  (const ivy::ptr< ivy::ident::__t > &x,ivy::ptr< ivy::expr::__t > &y) const;
-                
+
                 __bool mem  (const ivy::ptr< ivy::ident::__t > &x) const;
-                
+
                 void remove  (const ivy::ptr< ivy::ident::__t > &x);
-                
+
                 ivy::ptr< ivy::expr::__t > value  (const ivy::ptr< ivy::ident::__t > &x) const;
-                
+
                  __t () {}
                  __t  (long long value) {}
                  operator std::size_t () const {
@@ -9539,13 +9539,13 @@ namespace ivy
                                 (x . map);
                     }
                 };
-                
+
             };
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -9554,11 +9554,11 @@ namespace ivy
         namespace map
         {
             ivy::decost::map::__t empty ();
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -9566,61 +9566,61 @@ namespace ivy
     {
         struct __t
         {
-            
+
             // A counter for creating type variables
-            
+
             pos::__t counter;
-            
-            
+
+
             // Maps types and type variables to their representatives
-            
+
             ivy::decost::map::__t m;
-            
-            
+
+
             // Maps identifiers of symbols to their types
-            
+
             ivy::symeval::__t ty;
-            
-            
+
+
             // True if we are typing a member function
-            
+
             __bool member;
-            
-            
+
+
             // False if there has been a type error
-            
+
             __bool ok;
-            
-            
+
+
             // Types that we failed to unify
-            
+
             vector__ivy__expr::__t failed;
-            
-            
+
+
             // Error has been reported
-            
+
             __bool error_reported;
-            
-            
+
+
             // Make a new type variable
-            
+
             void newvar  (const ivy::ptr< annot::__t > &ann,ivy::ptr< ivy::expr::__t > &res);
-            
-            
+
+
             // Find the representative of an expression. This has the
             // side effect of shortening the path to the representative
             // as in classic union/find.
-            
+
             void find  (const ivy::ptr< ivy::expr::__t > &x,ivy::ptr< ivy::expr::__t > &res);
-            
-            
+
+
             // Record failure of type unification
-            
+
             void unification_failed  (const ivy::ptr< ivy::expr::__t > &x,const ivy::ptr< ivy::expr::__t >
                 &y);
-            
+
             void unify  (const ivy::ptr< ivy::expr::__t > &x0,const ivy::ptr< ivy::expr::__t > &y0);
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -9655,11 +9655,11 @@ namespace ivy
                         __bool::__hash() (x . error_reported);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 // Make a new type decorator state
 namespace ivy
@@ -9667,18 +9667,18 @@ namespace ivy
     namespace decost
     {
         ivy::decost::__t make ();
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace decost
     {
         void typeinf_show_str  (const str::__t &s);
-        
+
     }
-    
+
 }
 // Unify a pair of types. Sets ok to false if the types cannot
 // be unified.
@@ -9687,18 +9687,18 @@ namespace ivy
     namespace decost
     {
         void show_unifying  (const str::__t &x,const str::__t &y);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace decost
     {
         void show_ok  (const __bool &res);
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -9709,9 +9709,9 @@ namespace ivy
             struct rec
             {
                 __bool full;
-                
+
                 __bool val;
-                
+
                  rec () {}
                  rec  (long long value) {}
                  operator std::size_t () const {
@@ -9737,13 +9737,13 @@ namespace ivy
                         return __bool::__hash() (x . full) + __bool::__hash() (x . val);
                     }
                 };
-                
+
             };
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -9754,17 +9754,17 @@ namespace ivy
             struct __t
             {
                 ivy::vector< ivy::elidest::map::rec,ivy::ptr< ivy::ident::__t > > map;
-                
+
                 void set  (const ivy::ptr< ivy::ident::__t > &x,const __bool &y);
-                
+
                 void get  (const ivy::ptr< ivy::ident::__t > &x,__bool &y) const;
-                
+
                 __bool mem  (const ivy::ptr< ivy::ident::__t > &x) const;
-                
+
                 void remove  (const ivy::ptr< ivy::ident::__t > &x);
-                
+
                 __bool value  (const ivy::ptr< ivy::ident::__t > &x) const;
-                
+
                  __t () {}
                  __t  (long long value) {}
                  operator std::size_t () const {
@@ -9791,13 +9791,13 @@ namespace ivy
                                 (x . map);
                     }
                 };
-                
+
             };
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -9806,11 +9806,11 @@ namespace ivy
         namespace map
         {
             ivy::elidest::map::__t empty ();
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -9819,7 +9819,7 @@ namespace ivy
         struct __t
         {
             ivy::elidest::map::__t seen;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -9844,52 +9844,52 @@ namespace ivy
                     return ivy::elidest::map::__t::__hash() (x . seen);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
-// Called in case of an error typing expression `e`. 
+// Called in case of an error typing expression `e`.
 namespace ivy
 {
     void type_error  (const ivy::ptr< ivy::expr::__t > &e,ivy::decost::__t &st);
-    
+
 }
 namespace ivy
 {
     void cannot_infer  (const ivy::ptr< ivy::expr::__t > &e,const ivy::ptr< ivy::expr::__t > &t);
-    
+
 }
 namespace ivy
 {
     void report_cannot_infer  (const str::__t &s1,const str::__t &s2);
-    
+
 }
 // This takes a vector of expressions and a type context, returning
 // the expressions with types inferred.
 namespace ivy
 {
     void type_infer_vec  (vector__ivy__expr::__t &es,const ivy::symeval::__t &tc);
-    
+
 }
 namespace ivy
 {
     void type_infer_known  (ivy::ptr< ivy::expr::__t > &e,const ivy::ptr< ivy::expr::__t > &ty,const
         ivy::symeval::__t &tc);
-    
+
 }
 // Unify the types of two expressions
 namespace ivy
 {
     void type_unify_exprs  (ivy::ptr< ivy::expr::__t > &e1,ivy::ptr< ivy::expr::__t > &e2,const ivy::symeval::__t
         &tc);
-    
+
 }
 namespace ivy
 {
     void range_type  (ivy::ptr< ivy::expr::__t > &s);
-    
+
 }
 namespace ivy
 {
@@ -9898,11 +9898,11 @@ namespace ivy
         struct stack_entry
         {
             ivy::ptr< ivy::ident::__t > id;
-            
+
             __bool any;
-            
+
             ivy::ptr< ivy::expr::__t > val;
-            
+
              stack_entry () {}
              stack_entry  (long long value) {}
              operator std::size_t () const {
@@ -9931,11 +9931,11 @@ namespace ivy
                         __bool::__hash() (x . any) + ivy::ptr< ivy::expr::__t >::__hash() (x . val);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace vector__ivy__type_context__stack_entry
 {
@@ -9944,9 +9944,9 @@ namespace vector__ivy__type_context__stack_entry
         struct __t : ivy::native_unsigned< size_t >
         {
             vector__ivy__type_context__stack_entry::domain::__t next () const;
-            
+
             vector__ivy__type_context__stack_entry::domain::__t prev () const;
-            
+
              __t () {}
              __t  (long long value) : ivy::native_unsigned< size_t > (value) {}
              __t  (const ivy::native_unsigned< size_t > &value) :
@@ -9955,9 +9955,9 @@ namespace vector__ivy__type_context__stack_entry
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace vector__ivy__type_context__stack_entry
 {
@@ -9965,30 +9965,30 @@ namespace vector__ivy__type_context__stack_entry
     {
         ivy::vector< ivy::type_context::stack_entry,vector__ivy__type_context__stack_entry::domain::__t >
             value;
-        
+
         vector__ivy__type_context__stack_entry::domain::__t end;
-        
+
         vector__ivy__type_context__stack_entry::domain::__t begin () const;
-        
+
         void set  (const vector__ivy__type_context__stack_entry::domain::__t &i,const ivy::type_context::stack_entry
             &v);
-        
+
         void append  (const ivy::type_context::stack_entry &c);
-        
+
         void extend  (const vector__ivy__type_context__stack_entry::__t &x);
-        
+
         void resize  (const vector__ivy__type_context__stack_entry::domain::__t &end);
-        
+
         ivy::type_context::stack_entry back () const;
-        
+
         void pop_back ();
-        
+
         vector__ivy__type_context__stack_entry::__t segment  (const
             vector__ivy__type_context__stack_entry::domain::__t &beg,const
             vector__ivy__type_context__stack_entry::domain::__t &en) const;
-        
+
         void reverse ();
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -10017,14 +10017,14 @@ namespace vector__ivy__type_context__stack_entry
                     vector__ivy__type_context__stack_entry::domain::__t::__hash() (x . end);
             }
         };
-        
+
     };
-    
+
 }
 namespace vector__ivy__type_context__stack_entry
 {
     vector__ivy__type_context__stack_entry::__t empty ();
-    
+
 }
 namespace ivy
 {
@@ -10033,15 +10033,15 @@ namespace ivy
         struct __t
         {
             ivy::symeval::__t m;
-            
+
             vector__ivy__type_context__stack_entry::__t stack;
-            
+
             void set  (const ivy::ptr< ivy::expr::__t > &typing);
-            
+
             void push  (const ivy::ptr< ivy::expr::__t > &typing);
-            
+
             void pop ();
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -10068,11 +10068,11 @@ namespace ivy
                         vector__ivy__type_context__stack_entry::__t::__hash() (x . stack);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -10080,16 +10080,16 @@ namespace ivy
     {
         struct __t
         {
-            
+
             // Type context
-            
+
             ivy::type_context::__t tc;
-            
-            
+
+
             // The subtyping relation
-            
+
             ivy::subtypes::__t subtype_rel;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -10116,17 +10116,17 @@ namespace ivy
                         ivy::subtypes::__t::__hash() (x . subtype_rel);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 // Bottom up type inference
 namespace ivy
 {
     void bottom_up_type  (ivy::ptr< ivy::expr::__t > &e,const ivy::typeinferst::__t &st,__bool &ok);
-    
+
 }
 // Bottom-up type inference for a vector of arguments `es` of a
 // function `func`.  If `func` has a type, then we upcast the
@@ -10137,48 +10137,48 @@ namespace ivy
 {
     void bottom_up_types  (vector__ivy__expr::__t &es,const ivy::ptr< ivy::expr::__t > &func,const
         ivy::typeinferst::__t &st,__bool &ok);
-    
+
 }
 // Check if type `rhsty` is a subtype of `lhsty`.
 namespace ivy
 {
     __bool is_subtype  (const ivy::ptr< ivy::expr::__t > &rhsty,const ivy::ptr< ivy::expr::__t > &lhsty,const
         ivy::typeinferst::__t &st);
-    
+
 }
 // Add an upcast operator to `rhs` if it is subtype of `lhs`. This is
 // used for assignments, and argument passing. This has to work on tuples
-// to handle multiple assignment. 
+// to handle multiple assignment.
 namespace ivy
 {
     void make_cast  (const ivy::ptr< ivy::expr::__t > &lhsty,ivy::ptr< ivy::expr::__t > &rhs,const
         ivy::typeinferst::__t &st);
-    
+
 }
 // After type inference, we can desugar assignments like `var x := y` to
 // `var x : t; x := y`. This makes things a bit eassier on subsequent passes.
 namespace ivy
 {
     void desugar_asgn  (ivy::ptr< ivy::stmt::__t > &s,vector__ivy__stmt::__t &varsts);
-    
+
 }
 namespace ivy
 {
     void setup_formals  (const vector__ivy__expr::__t &es,const __bool &val,ivy::typeinferst::__t &st);
-    
+
 }
 namespace ivy
 {
     vector__ivy__expr::__t get_func_params  (const ivy::ptr< ivy::expr::__t > &typing);
-    
+
 }
 namespace cpp
 {
     namespace verb
     {
-        
+
         enum __enum___t  {none,arrow,plus,times,colon,app,empty,dot,__new,numeral,fltnum,castv,boolv,truev,falsev,__and,__or,__not,iff,equals,notequals,lt,leq,gt,geq,minus,div,string,ite,comma,varv,logvar,isav};
-        
+
         struct __t : ivy::native_enum< __enum___t >
         {
              __t () {}
@@ -10189,39 +10189,39 @@ namespace cpp
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
     ivy::vector< cpp::verb::__t,str::__t > str_to_verb;
-    
+
 }
 namespace cpp
 {
     ivy::vector< str::__t,cpp::verb::__t > verb_to_str;
-    
+
 }
 namespace cpp
 {
     ivy::vector< priority::__t,cpp::verb::__t > verb_to_prio;
-    
+
 }
 namespace cpp
 {
     ivy::vector< pos::__t,cpp::verb::__t > verb_to_arity;
-    
+
 }
 namespace cpp
 {
     __bool is_logvar_name  (const str::__t &name);
-    
+
 }
 namespace cpp
 {
     cpp::verb::__t verb_from_name  (const str::__t &name);
-    
+
 }
 namespace cpp
 {
@@ -10230,22 +10230,22 @@ namespace cpp
         struct __t
         {
             virtual void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             virtual str::__t to_str () const;
-            
+
             virtual ivy::ptr< cpp::ident::__t > get_namesp () const;
-            
+
             virtual ivy::ptr< cpp::ident::__t > get_member () const;
-            
+
             virtual vector__cpp__ident::__t get_subscripts () const;
-            
+
             virtual ivy::ptr< cpp::ident::__t > prefix  (const ivy::ptr< cpp::ident::__t > &pref)
                 const;
-            
+
             virtual cpp::strident::__t get_last () const;
-            
+
             virtual cpp::verb::__t get_verb () const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -10269,15 +10269,15 @@ namespace cpp
                     return 0;
                 }
             };
-            
+
             virtual ivy::ptr< __t > __upcast () const {
                 return (*this);
             }
             virtual  ~__t () {}
         };
-        
+
     }
-    
+
 }
 namespace vector__cpp__ident
 {
@@ -10286,9 +10286,9 @@ namespace vector__cpp__ident
         struct __t : ivy::native_unsigned< size_t >
         {
             vector__cpp__ident::domain::__t next () const;
-            
+
             vector__cpp__ident::domain::__t prev () const;
-            
+
              __t () {}
              __t  (long long value) : ivy::native_unsigned< size_t > (value) {}
              __t  (const ivy::native_unsigned< size_t > &value) :
@@ -10297,37 +10297,37 @@ namespace vector__cpp__ident
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace vector__cpp__ident
 {
     struct __t
     {
         ivy::vector< ivy::ptr< cpp::ident::__t >,vector__cpp__ident::domain::__t > value;
-        
+
         vector__cpp__ident::domain::__t end;
-        
+
         vector__cpp__ident::domain::__t begin () const;
-        
+
         void set  (const vector__cpp__ident::domain::__t &i,const ivy::ptr< cpp::ident::__t > &v);
-        
+
         void append  (const ivy::ptr< cpp::ident::__t > &c);
-        
+
         void extend  (const vector__cpp__ident::__t &x);
-        
+
         void resize  (const vector__cpp__ident::domain::__t &end);
-        
+
         ivy::ptr< cpp::ident::__t > back () const;
-        
+
         void pop_back ();
-        
+
         vector__cpp__ident::__t segment  (const vector__cpp__ident::domain::__t &beg,const
             vector__cpp__ident::domain::__t &en) const;
-        
+
         void reverse ();
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -10355,14 +10355,14 @@ namespace vector__cpp__ident
                         (x . value) + vector__cpp__ident::domain::__t::__hash() (x . end);
             }
         };
-        
+
     };
-    
+
 }
 namespace vector__cpp__ident
 {
     vector__cpp__ident::__t empty ();
-    
+
 }
 namespace cpp
 {
@@ -10371,19 +10371,19 @@ namespace cpp
         struct __t : cpp::ident::__t
         {
             str::__t val;
-            
+
             vector__cpp__ident::__t subscrs;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             str::__t to_str () const;
-            
+
             ivy::ptr< cpp::ident::__t > prefix  (const ivy::ptr< cpp::ident::__t > &pref) const;
-            
+
             cpp::strident::__t get_last () const;
-            
+
             cpp::verb::__t get_verb () const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -10410,41 +10410,41 @@ namespace cpp
                         vector__cpp__ident::__t::__hash() (x . subscrs);
                 }
             };
-            
+
             virtual ivy::ptr< cpp::ident::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace strident
     {
         ivy::ptr< cpp::ident::__t > make  (const str::__t &val);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace strident
     {
         ivy::ptr< cpp::ident::__t > make1  (const str::__t &val,const ivy::ptr< cpp::ident::__t > &arg);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace strident
     {
         void parse  (pstate::__t &st,cpp::strident::__t &id);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -10453,9 +10453,9 @@ namespace cpp
         struct __t : cpp::ident::__t
         {
             pos::__t val;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -10479,23 +10479,23 @@ namespace cpp
                     return pos::__t::__hash() (x . val);
                 }
             };
-            
+
             virtual ivy::ptr< cpp::ident::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace numident
     {
         ivy::ptr< cpp::ident::__t > make  (const pos::__t &val);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -10504,21 +10504,21 @@ namespace cpp
         struct __t : cpp::ident::__t
         {
             ivy::ptr< cpp::ident::__t > namesp;
-            
+
             cpp::strident::__t member;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             str::__t to_str () const;
-            
+
             ivy::ptr< cpp::ident::__t > get_namesp () const;
-            
+
             ivy::ptr< cpp::ident::__t > get_member () const;
-            
+
             ivy::ptr< cpp::ident::__t > prefix  (const ivy::ptr< cpp::ident::__t > &pref) const;
-            
+
             cpp::strident::__t get_last () const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -10545,14 +10545,14 @@ namespace cpp
                         cpp::strident::__t::__hash() (x . member);
                 }
             };
-            
+
             virtual ivy::ptr< cpp::ident::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -10560,9 +10560,9 @@ namespace cpp
     {
         ivy::ptr< cpp::ident::__t > make  (const ivy::ptr< cpp::ident::__t > &namesp,const cpp::strident::__t
             &member);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -10571,35 +10571,35 @@ namespace cpp
         struct __t
         {
             virtual void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             virtual str::__t enc () const;
-            
+
             virtual cpp::verb::__t get_verb () const;
-            
+
             virtual cpp::verb::__t get_verb_typed () const;
-            
+
             virtual __bool is  (const cpp::verb::__t &vrb) const;
-            
+
             virtual __bool is_typed  (const cpp::verb::__t &vrb) const;
-            
+
             virtual ivy::ptr< cpp::expr::__t > get_arg  (const vector__cpp__expr::domain::__t &p)
                 const;
-            
+
             virtual ivy::ptr< cpp::ident::__t > get_name () const;
-            
+
             virtual cpp::verb::__t app_verb () const;
-            
+
             virtual ivy::ptr< annot::__t > get_ann () const;
-            
+
             virtual ivy::ptr< cpp::expr::__t > get_func () const;
-            
+
             virtual vector__cpp__expr::__t get_args () const;
-            
+
             virtual ivy::ptr< cpp::expr::__t > prefix  (const ivy::ptr< cpp::ident::__t > &pref)
                 const;
-            
+
             virtual __bool eq  (const ivy::ptr< cpp::expr::__t > &e2) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -10623,33 +10623,33 @@ namespace cpp
                     return 0;
                 }
             };
-            
+
             virtual ivy::ptr< __t > __upcast () const {
                 return (*this);
             }
             virtual  ~__t () {}
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace expr
     {
         ivy::ptr< cpp::expr::__t > dec  (const str::__t &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace expr
     {
         str::__t encdec  (const str::__t &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -10658,21 +10658,21 @@ namespace cpp
         struct __t : cpp::expr::__t
         {
             ivy::ptr< cpp::ident::__t > name;
-            
+
             cpp::verb::__t vrb;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             cpp::verb::__t get_verb () const;
-            
+
             ivy::ptr< cpp::ident::__t > get_name () const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
+
             ivy::ptr< cpp::expr::__t > prefix  (const ivy::ptr< cpp::ident::__t > &pref) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -10701,14 +10701,14 @@ namespace cpp
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< cpp::expr::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -10716,18 +10716,18 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< cpp::ident::__t > &name,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace symbol
     {
         ivy::ptr< cpp::expr::__t > makestr  (const str::__t &name,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -10735,27 +10735,27 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > makestr1  (const str::__t &name,const ivy::ptr< cpp::ident::__t >
             &arg,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace symbol
     {
         ivy::ptr< cpp::expr::__t > makenum  (const pos::__t &num,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace symbol
     {
         void parse  (pstate::__t &st,ivy::ptr< cpp::expr::__t > &res);
-        
+
     }
-    
+
 }
 namespace vector__cpp__expr
 {
@@ -10764,9 +10764,9 @@ namespace vector__cpp__expr
         struct __t : ivy::native_unsigned< size_t >
         {
             vector__cpp__expr::domain::__t next () const;
-            
+
             vector__cpp__expr::domain::__t prev () const;
-            
+
              __t () {}
              __t  (long long value) : ivy::native_unsigned< size_t > (value) {}
              __t  (const ivy::native_unsigned< size_t > &value) :
@@ -10775,37 +10775,37 @@ namespace vector__cpp__expr
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace vector__cpp__expr
 {
     struct __t
     {
         ivy::vector< ivy::ptr< cpp::expr::__t >,vector__cpp__expr::domain::__t > value;
-        
+
         vector__cpp__expr::domain::__t end;
-        
+
         vector__cpp__expr::domain::__t begin () const;
-        
+
         void set  (const vector__cpp__expr::domain::__t &i,const ivy::ptr< cpp::expr::__t > &v);
-        
+
         void append  (const ivy::ptr< cpp::expr::__t > &c);
-        
+
         void extend  (const vector__cpp__expr::__t &x);
-        
+
         void resize  (const vector__cpp__expr::domain::__t &end);
-        
+
         ivy::ptr< cpp::expr::__t > back () const;
-        
+
         void pop_back ();
-        
+
         vector__cpp__expr::__t segment  (const vector__cpp__expr::domain::__t &beg,const
             vector__cpp__expr::domain::__t &en) const;
-        
+
         void reverse ();
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -10833,14 +10833,14 @@ namespace vector__cpp__expr
                         (x . value) + vector__cpp__expr::domain::__t::__hash() (x . end);
             }
         };
-        
+
     };
-    
+
 }
 namespace vector__cpp__expr
 {
     vector__cpp__expr::__t empty ();
-    
+
 }
 namespace cpp
 {
@@ -10849,27 +10849,27 @@ namespace cpp
         struct __t : cpp::expr::__t
         {
             ivy::ptr< cpp::expr::__t > func;
-            
+
             vector__cpp__expr::__t args;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             __bool is  (const cpp::verb::__t &vrb) const;
-            
+
             __bool is_typed  (const cpp::verb::__t &vrb) const;
-            
+
             cpp::verb::__t app_verb () const;
-            
+
             ivy::ptr< cpp::expr::__t > get_func () const;
-            
+
             vector__cpp__expr::__t get_args () const;
-            
+
             ivy::ptr< cpp::expr::__t > get_arg  (const vector__cpp__expr::domain::__t &p) const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -10898,14 +10898,14 @@ namespace cpp
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< cpp::expr::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -10913,9 +10913,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< cpp::expr::__t > &func,const
             vector__cpp__expr::__t &args,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -10923,9 +10923,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make1  (const ivy::ptr< cpp::expr::__t > &func,const ivy::ptr< cpp::expr::__t >
             &arg0,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -10933,9 +10933,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make2  (const ivy::ptr< cpp::expr::__t > &func,const ivy::ptr< cpp::expr::__t >
             &arg0,const ivy::ptr< cpp::expr::__t > &arg1,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -10944,9 +10944,9 @@ namespace cpp
         struct __t : cpp::expr::__t
         {
             pos::__t idx;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -10972,23 +10972,23 @@ namespace cpp
                     return pos::__t::__hash() (x . idx) + ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< cpp::expr::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace variable
     {
         ivy::ptr< cpp::expr::__t > make  (const pos::__t &idx);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -10997,13 +10997,13 @@ namespace cpp
         struct __t : cpp::expr::__t
         {
             vector__cpp__expr::__t vars;
-            
+
             ivy::ptr< cpp::expr::__t > body;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -11032,14 +11032,14 @@ namespace cpp
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< cpp::expr::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11047,9 +11047,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make  (const vector__cpp__expr::__t &vars,const ivy::ptr< cpp::expr::__t >
             &body,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11057,9 +11057,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< cpp::expr::__t > &lhs,const ivy::ptr< cpp::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11067,18 +11067,18 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > fold_left  (const vector__cpp__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace iff
     {
         vector__cpp__expr::__t unfold_left  (const ivy::ptr< cpp::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11086,9 +11086,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< cpp::expr::__t > &lhs,const ivy::ptr< cpp::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11096,18 +11096,18 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > fold_left  (const vector__cpp__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace __or
     {
         vector__cpp__expr::__t unfold_left  (const ivy::ptr< cpp::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11115,9 +11115,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< cpp::expr::__t > &lhs,const ivy::ptr< cpp::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11125,18 +11125,18 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > fold_left  (const vector__cpp__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace __and
     {
         vector__cpp__expr::__t unfold_left  (const ivy::ptr< cpp::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11144,9 +11144,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< cpp::expr::__t > &lhs,const ivy::ptr< cpp::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11154,18 +11154,18 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > fold_left  (const vector__cpp__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace lt
     {
         vector__cpp__expr::__t unfold_left  (const ivy::ptr< cpp::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11173,9 +11173,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< cpp::expr::__t > &lhs,const ivy::ptr< cpp::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11183,18 +11183,18 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > fold_left  (const vector__cpp__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace leq
     {
         vector__cpp__expr::__t unfold_left  (const ivy::ptr< cpp::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11202,9 +11202,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< cpp::expr::__t > &lhs,const ivy::ptr< cpp::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11212,18 +11212,18 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > fold_left  (const vector__cpp__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace gt
     {
         vector__cpp__expr::__t unfold_left  (const ivy::ptr< cpp::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11231,9 +11231,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< cpp::expr::__t > &lhs,const ivy::ptr< cpp::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11241,18 +11241,18 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > fold_left  (const vector__cpp__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace geq
     {
         vector__cpp__expr::__t unfold_left  (const ivy::ptr< cpp::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11260,9 +11260,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< cpp::expr::__t > &lhs,const ivy::ptr< cpp::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11270,18 +11270,18 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > fold_left  (const vector__cpp__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace plus
     {
         vector__cpp__expr::__t unfold_left  (const ivy::ptr< cpp::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11289,9 +11289,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< cpp::expr::__t > &lhs,const ivy::ptr< cpp::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11299,18 +11299,18 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > fold_left  (const vector__cpp__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace minus
     {
         vector__cpp__expr::__t unfold_left  (const ivy::ptr< cpp::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11318,9 +11318,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< cpp::expr::__t > &lhs,const ivy::ptr< cpp::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11328,18 +11328,18 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > fold_left  (const vector__cpp__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace times
     {
         vector__cpp__expr::__t unfold_left  (const ivy::ptr< cpp::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11347,9 +11347,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< cpp::expr::__t > &lhs,const ivy::ptr< cpp::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11357,54 +11357,54 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > fold_left  (const vector__cpp__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace div
     {
         vector__cpp__expr::__t unfold_left  (const ivy::ptr< cpp::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace empty
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace boolv
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace truev
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace falsev
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11412,9 +11412,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< cpp::expr::__t > &lhs,const ivy::ptr< cpp::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11422,18 +11422,18 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > fold_left  (const vector__cpp__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace comma
     {
         vector__cpp__expr::__t unfold_left  (const ivy::ptr< cpp::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11441,9 +11441,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< cpp::expr::__t > &lhs,const ivy::ptr< cpp::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11451,36 +11451,36 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > fold_left  (const vector__cpp__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace dot
     {
         vector__cpp__expr::__t unfold_left  (const ivy::ptr< cpp::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace expr
     {
         vector__cpp__expr::__t foo;
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace expr
     {
         void parse  (pstate::__t &st,const priority::__t &prio,ivy::ptr< cpp::expr::__t > &res);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11489,11 +11489,11 @@ namespace cpp
         namespace tup
         {
             void encode  (const vector__cpp__expr::__t &s,pretty::__t &b,const priority::__t &prio);
-            
+
         }
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11502,11 +11502,11 @@ namespace cpp
         namespace tup
         {
             void parse  (pstate::__t &st,const priority::__t &prio,vector__cpp__expr::__t &res);
-            
+
         }
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11515,21 +11515,21 @@ namespace cpp
         struct __t
         {
             virtual void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             virtual str::__t enc () const;
-            
+
             virtual ivy::ptr< cpp::expr::__t > get_expr () const;
-            
+
             virtual ivy::ptr< cpp::expr::__t > get_lhs () const;
-            
+
             virtual ivy::ptr< cpp::expr::__t > get_rhs () const;
-            
+
             virtual ivy::ptr< annot::__t > get_ann () const;
-            
+
             virtual void fix_borrow  (ivy::tocppst::__t &st,ivy::ptr< cpp::stmt::__t > &res) const;
-            
+
             virtual void setup_fix_borrow  (ivy::tocppst::__t &st,__bool &ok) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -11553,33 +11553,33 @@ namespace cpp
                     return 0;
                 }
             };
-            
+
             virtual ivy::ptr< __t > __upcast () const {
                 return (*this);
             }
             virtual  ~__t () {}
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace stmt
     {
         ivy::ptr< cpp::stmt::__t > dec  (const str::__t &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace stmt
     {
         str::__t encdec  (const str::__t &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11588,23 +11588,23 @@ namespace cpp
         struct __t : cpp::stmt::__t
         {
             ivy::ptr< cpp::expr::__t > lhs;
-            
+
             ivy::ptr< cpp::expr::__t > rhs;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void encode_int  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::ptr< cpp::expr::__t > get_lhs () const;
-            
+
             ivy::ptr< cpp::expr::__t > get_rhs () const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
+
             void fix_borrow  (ivy::tocppst::__t &st,ivy::ptr< cpp::stmt::__t > &res) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -11633,14 +11633,14 @@ namespace cpp
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< cpp::stmt::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11648,9 +11648,9 @@ namespace cpp
     {
         ivy::ptr< cpp::stmt::__t > make  (const ivy::ptr< cpp::expr::__t > &x,const ivy::ptr< cpp::expr::__t >
             &y,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11659,19 +11659,19 @@ namespace cpp
         struct __t : cpp::stmt::__t
         {
             ivy::ptr< cpp::stmt::__t > lhs;
-            
+
             ivy::ptr< cpp::stmt::__t > rhs;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void encode_int  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
+
             void fix_borrow  (ivy::tocppst::__t &st,ivy::ptr< cpp::stmt::__t > &resd) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -11700,14 +11700,14 @@ namespace cpp
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< cpp::stmt::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11715,9 +11715,9 @@ namespace cpp
     {
         ivy::ptr< cpp::stmt::__t > make  (const ivy::ptr< cpp::stmt::__t > &x,const ivy::ptr< cpp::stmt::__t >
             &y,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace vector__cpp__stmt
 {
@@ -11726,9 +11726,9 @@ namespace vector__cpp__stmt
         struct __t : ivy::native_unsigned< size_t >
         {
             vector__cpp__stmt::domain::__t next () const;
-            
+
             vector__cpp__stmt::domain::__t prev () const;
-            
+
              __t () {}
              __t  (long long value) : ivy::native_unsigned< size_t > (value) {}
              __t  (const ivy::native_unsigned< size_t > &value) :
@@ -11737,37 +11737,37 @@ namespace vector__cpp__stmt
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace vector__cpp__stmt
 {
     struct __t
     {
         ivy::vector< ivy::ptr< cpp::stmt::__t >,vector__cpp__stmt::domain::__t > value;
-        
+
         vector__cpp__stmt::domain::__t end;
-        
+
         vector__cpp__stmt::domain::__t begin () const;
-        
+
         void set  (const vector__cpp__stmt::domain::__t &i,const ivy::ptr< cpp::stmt::__t > &v);
-        
+
         void append  (const ivy::ptr< cpp::stmt::__t > &c);
-        
+
         void extend  (const vector__cpp__stmt::__t &x);
-        
+
         void resize  (const vector__cpp__stmt::domain::__t &end);
-        
+
         ivy::ptr< cpp::stmt::__t > back () const;
-        
+
         void pop_back ();
-        
+
         vector__cpp__stmt::__t segment  (const vector__cpp__stmt::domain::__t &beg,const
             vector__cpp__stmt::domain::__t &en) const;
-        
+
         void reverse ();
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -11795,23 +11795,23 @@ namespace vector__cpp__stmt
                         (x . value) + vector__cpp__stmt::domain::__t::__hash() (x . end);
             }
         };
-        
+
     };
-    
+
 }
 namespace vector__cpp__stmt
 {
     vector__cpp__stmt::__t empty ();
-    
+
 }
 namespace cpp
 {
     namespace sequence
     {
         vector__cpp__stmt::__t dummy;
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11819,9 +11819,9 @@ namespace cpp
     {
         ivy::ptr< cpp::stmt::__t > fold_right  (const vector__cpp__stmt::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11830,11 +11830,11 @@ namespace cpp
         struct __t : cpp::stmt::__t
         {
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -11859,23 +11859,23 @@ namespace cpp
                     return ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< cpp::stmt::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace skipst
     {
         ivy::ptr< cpp::stmt::__t > make  (const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11884,21 +11884,21 @@ namespace cpp
         struct __t : cpp::stmt::__t
         {
             ivy::ptr< cpp::expr::__t > cond;
-            
+
             ivy::ptr< cpp::stmt::__t > thenst;
-            
+
             ivy::ptr< cpp::stmt::__t > elsest;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void encode_int  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
+
             void fix_borrow  (ivy::tocppst::__t &st,ivy::ptr< cpp::stmt::__t > &resd) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -11930,14 +11930,14 @@ namespace cpp
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< cpp::stmt::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11945,9 +11945,9 @@ namespace cpp
     {
         ivy::ptr< cpp::stmt::__t > make  (const ivy::ptr< cpp::expr::__t > &cond,const ivy::ptr< cpp::stmt::__t >
             &thenst,const ivy::ptr< cpp::stmt::__t > &elsest,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -11956,19 +11956,19 @@ namespace cpp
         struct __t : cpp::stmt::__t
         {
             ivy::ptr< cpp::expr::__t > cond;
-            
+
             ivy::ptr< cpp::stmt::__t > body;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void encode_int  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
+
             void fix_borrow  (ivy::tocppst::__t &st,ivy::ptr< cpp::stmt::__t > &resd) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -11997,14 +11997,14 @@ namespace cpp
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< cpp::stmt::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12012,9 +12012,9 @@ namespace cpp
     {
         ivy::ptr< cpp::stmt::__t > make  (const ivy::ptr< cpp::expr::__t > &cond,const ivy::ptr< cpp::stmt::__t >
             &body,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12023,13 +12023,13 @@ namespace cpp
         struct __t : cpp::stmt::__t
         {
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void encode_int  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -12054,32 +12054,32 @@ namespace cpp
                     return ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< cpp::stmt::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace breakst
     {
         ivy::ptr< cpp::stmt::__t > make  (const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace stmt
     {
         void parse  (pstate::__t &st,const priority::__t &prio,ivy::ptr< cpp::stmt::__t > &res);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12087,9 +12087,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< cpp::expr::__t > &arg,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12097,9 +12097,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< cpp::expr::__t > &lhs,const ivy::ptr< cpp::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12107,18 +12107,18 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > fold_left  (const vector__cpp__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace arrow
     {
         vector__cpp__expr::__t unfold_left  (const ivy::ptr< cpp::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12126,9 +12126,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< cpp::expr::__t > &lhs,const ivy::ptr< cpp::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12136,18 +12136,18 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > fold_left  (const vector__cpp__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace equals
     {
         vector__cpp__expr::__t unfold_left  (const ivy::ptr< cpp::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12155,9 +12155,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< cpp::expr::__t > &lhs,const ivy::ptr< cpp::expr::__t >
             &rhs,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12165,18 +12165,18 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > fold_left  (const vector__cpp__expr::__t &args,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace notequals
     {
         vector__cpp__expr::__t unfold_left  (const ivy::ptr< cpp::expr::__t > &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12184,9 +12184,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< cpp::expr::__t > &arg,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12194,9 +12194,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make  (const ivy::ptr< cpp::expr::__t > &arg0,const ivy::ptr< cpp::expr::__t >
             &arg1,const ivy::ptr< cpp::expr::__t > &arg2,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12204,9 +12204,9 @@ namespace cpp
     {
         ivy::ptr< cpp::expr::__t > make0  (const ivy::ptr< cpp::expr::__t > &func,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12215,19 +12215,19 @@ namespace cpp
         struct __t
         {
             ivy::ptr< cpp::expr::__t > _type;
-            
+
             ivy::ptr< cpp::expr::__t > name;
-            
+
             __bool is_const;
-            
+
             __bool is_ref;
-            
+
             __bool is_rvalue;
-            
+
             __bool is_borrow;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -12260,11 +12260,11 @@ namespace cpp
                         __bool::__hash() (x . is_rvalue) + __bool::__hash() (x . is_borrow);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12273,11 +12273,11 @@ namespace cpp
         namespace tup
         {
             void encode  (const vector__cpp__simpletype::__t &s,pretty::__t &b,const priority::__t &prio);
-            
+
         }
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12286,20 +12286,20 @@ namespace cpp
         namespace tup
         {
             void parse  (pstate::__t &st,const priority::__t &prio,vector__cpp__simpletype::__t &res);
-            
+
         }
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace simpletype
     {
         void parse  (pstate::__t &st,const priority::__t &prio,cpp::simpletype::__t &res);
-        
+
     }
-    
+
 }
 namespace vector__cpp__simpletype
 {
@@ -12308,9 +12308,9 @@ namespace vector__cpp__simpletype
         struct __t : ivy::native_unsigned< size_t >
         {
             vector__cpp__simpletype::domain::__t next () const;
-            
+
             vector__cpp__simpletype::domain::__t prev () const;
-            
+
              __t () {}
              __t  (long long value) : ivy::native_unsigned< size_t > (value) {}
              __t  (const ivy::native_unsigned< size_t > &value) :
@@ -12319,37 +12319,37 @@ namespace vector__cpp__simpletype
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace vector__cpp__simpletype
 {
     struct __t
     {
         ivy::vector< cpp::simpletype::__t,vector__cpp__simpletype::domain::__t > value;
-        
+
         vector__cpp__simpletype::domain::__t end;
-        
+
         vector__cpp__simpletype::domain::__t begin () const;
-        
+
         void set  (const vector__cpp__simpletype::domain::__t &i,const cpp::simpletype::__t &v);
-        
+
         void append  (const cpp::simpletype::__t &c);
-        
+
         void extend  (const vector__cpp__simpletype::__t &x);
-        
+
         void resize  (const vector__cpp__simpletype::domain::__t &end);
-        
+
         cpp::simpletype::__t back () const;
-        
+
         void pop_back ();
-        
+
         vector__cpp__simpletype::__t segment  (const vector__cpp__simpletype::domain::__t &beg,const
             vector__cpp__simpletype::domain::__t &en) const;
-        
+
         void reverse ();
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -12377,14 +12377,14 @@ namespace vector__cpp__simpletype
                         (x . value) + vector__cpp__simpletype::domain::__t::__hash() (x . end);
             }
         };
-        
+
     };
-    
+
 }
 namespace vector__cpp__simpletype
 {
     vector__cpp__simpletype::__t empty ();
-    
+
 }
 namespace cpp
 {
@@ -12393,17 +12393,17 @@ namespace cpp
         struct __t
         {
             cpp::simpletype::__t base;
-            
+
             vector__cpp__simpletype::__t args;
-            
+
             __bool is_const;
-            
+
             __bool has_initializer;
-            
+
             ivy::ptr< cpp::expr::__t > initializer;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -12435,11 +12435,11 @@ namespace cpp
                         ivy::ptr< cpp::expr::__t >::__hash() (x . initializer);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12447,9 +12447,9 @@ namespace cpp
     {
         void parse  (pstate::__t &st,const cpp::simpletype::__t &base,const priority::__t &prio,cpp::functype::__t
             &res);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12458,19 +12458,19 @@ namespace cpp
         struct __t : cpp::stmt::__t
         {
             cpp::simpletype::__t vtype;
-            
+
             __bool has_initval;
-            
+
             ivy::ptr< cpp::expr::__t > initval;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void encode_int  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void setup_fix_borrow  (ivy::tocppst::__t &st,__bool &ok) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -12502,14 +12502,14 @@ namespace cpp
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< cpp::stmt::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12517,9 +12517,9 @@ namespace cpp
     {
         ivy::ptr< cpp::stmt::__t > make  (const ivy::ptr< cpp::expr::__t > &_type,const ivy::ptr< cpp::expr::__t >
             &name,const ivy::ptr< annot::__t > &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12528,13 +12528,13 @@ namespace cpp
         struct __t : cpp::stmt::__t
         {
             ivy::ptr< cpp::expr::__t > val;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             void encode_int  (pretty::__t &b,const priority::__t &prio) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -12561,14 +12561,14 @@ namespace cpp
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< cpp::stmt::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12576,9 +12576,9 @@ namespace cpp
     {
         ivy::ptr< cpp::stmt::__t > make  (const ivy::ptr< cpp::expr::__t > &val,const ivy::ptr< annot::__t >
             &ann);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12586,9 +12586,9 @@ namespace cpp
     {
         void parse_lang_stmt  (pstate::__t &st,const priority::__t &prio,ivy::ptr< cpp::stmt::__t >
             &res);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12597,15 +12597,15 @@ namespace cpp
         struct __t
         {
             virtual void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             virtual str::__t enc () const;
-            
+
             virtual ivy::ptr< annot::__t > get_ann () const;
-            
+
             virtual ivy::ptr< cpp::expr::__t > get_name () const;
-            
+
             virtual ivy::ptr< cpp::expr::__t > get_type () const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -12629,33 +12629,33 @@ namespace cpp
                     return 0;
                 }
             };
-            
+
             virtual ivy::ptr< __t > __upcast () const {
                 return (*this);
             }
             virtual  ~__t () {}
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace decl
     {
         ivy::ptr< cpp::decl::__t > dec  (const str::__t &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace decl
     {
         str::__t encdec  (const str::__t &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12664,13 +12664,13 @@ namespace cpp
         struct __t : cpp::decl::__t
         {
             str::__t filename;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -12697,23 +12697,23 @@ namespace cpp
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< cpp::decl::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace header
     {
         ivy::ptr< cpp::decl::__t > make  (const str::__t &filename);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12722,13 +12722,13 @@ namespace cpp
         struct __t : cpp::decl::__t
         {
             cpp::simpletype::__t ttype;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -12755,32 +12755,32 @@ namespace cpp
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< cpp::decl::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace curly_tup
     {
         void encode  (const vector__cpp__expr::__t &s,pretty::__t &b,const priority::__t &prio);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace curly_tup
     {
         void parse  (pstate::__t &st,const priority::__t &prio,vector__cpp__expr::__t &res);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12789,15 +12789,15 @@ namespace cpp
         struct __t : cpp::decl::__t
         {
             ivy::ptr< cpp::expr::__t > name;
-            
+
             vector__cpp__expr::__t elems;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -12826,14 +12826,14 @@ namespace cpp
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< cpp::decl::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12842,21 +12842,21 @@ namespace cpp
         struct __t : cpp::decl::__t
         {
             cpp::simpletype::__t vtype;
-            
+
             __bool has_initval;
-            
+
             ivy::ptr< cpp::expr::__t > initval;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
+
             ivy::ptr< cpp::expr::__t > get_name () const;
-            
+
             ivy::ptr< cpp::expr::__t > get_type () const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -12888,14 +12888,14 @@ namespace cpp
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< cpp::decl::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -12904,23 +12904,23 @@ namespace cpp
         struct __t : cpp::decl::__t
         {
             cpp::functype::__t ftype;
-            
+
             __bool has_body;
-            
+
             ivy::ptr< cpp::stmt::__t > body;
-            
+
             __bool is_static;
-            
+
             __bool is_virtual;
-            
+
             __bool is_default;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -12956,14 +12956,14 @@ namespace cpp
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< cpp::decl::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace vector__cpp__decl
 {
@@ -12972,9 +12972,9 @@ namespace vector__cpp__decl
         struct __t : ivy::native_unsigned< size_t >
         {
             vector__cpp__decl::domain::__t next () const;
-            
+
             vector__cpp__decl::domain::__t prev () const;
-            
+
              __t () {}
              __t  (long long value) : ivy::native_unsigned< size_t > (value) {}
              __t  (const ivy::native_unsigned< size_t > &value) :
@@ -12983,37 +12983,37 @@ namespace vector__cpp__decl
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace vector__cpp__decl
 {
     struct __t
     {
         ivy::vector< ivy::ptr< cpp::decl::__t >,vector__cpp__decl::domain::__t > value;
-        
+
         vector__cpp__decl::domain::__t end;
-        
+
         vector__cpp__decl::domain::__t begin () const;
-        
+
         void set  (const vector__cpp__decl::domain::__t &i,const ivy::ptr< cpp::decl::__t > &v);
-        
+
         void append  (const ivy::ptr< cpp::decl::__t > &c);
-        
+
         void extend  (const vector__cpp__decl::__t &x);
-        
+
         void resize  (const vector__cpp__decl::domain::__t &end);
-        
+
         ivy::ptr< cpp::decl::__t > back () const;
-        
+
         void pop_back ();
-        
+
         vector__cpp__decl::__t segment  (const vector__cpp__decl::domain::__t &beg,const
             vector__cpp__decl::domain::__t &en) const;
-        
+
         void reverse ();
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -13041,14 +13041,14 @@ namespace vector__cpp__decl
                         (x . value) + vector__cpp__decl::domain::__t::__hash() (x . end);
             }
         };
-        
+
     };
-    
+
 }
 namespace vector__cpp__decl
 {
     vector__cpp__decl::__t empty ();
-    
+
 }
 namespace cpp
 {
@@ -13057,21 +13057,21 @@ namespace cpp
         struct __t : cpp::decl::__t
         {
             ivy::ptr< cpp::expr::__t > name;
-            
+
             __bool has_super;
-            
+
             ivy::ptr< cpp::expr::__t > super;
-            
+
             __bool has_members;
-            
+
             vector__cpp__decl::__t members;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -13106,14 +13106,14 @@ namespace cpp
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< cpp::decl::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -13122,15 +13122,15 @@ namespace cpp
         struct __t : cpp::decl::__t
         {
             ivy::ptr< cpp::expr::__t > name;
-            
+
             vector__cpp__decl::__t members;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
             ivy::ptr< annot::__t > get_ann () const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -13159,14 +13159,14 @@ namespace cpp
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< cpp::decl::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -13175,11 +13175,11 @@ namespace cpp
         struct __t : cpp::decl::__t
         {
             vector__cpp__decl::__t decls;
-            
+
             ivy::ptr< annot::__t > ann;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -13206,32 +13206,32 @@ namespace cpp
                         ivy::ptr< annot::__t >::__hash() (x . ann);
                 }
             };
-            
+
             virtual ivy::ptr< cpp::decl::__t > __upcast () const {
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace decl
     {
         void parse  (pstate::__t &st,const priority::__t &prio,ivy::ptr< cpp::decl::__t > &res);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace decl
     {
         vector__cpp__decl::__t foo;
-        
+
     }
-    
+
 }
 // workaround
 namespace cpp
@@ -13239,9 +13239,9 @@ namespace cpp
     namespace decl
     {
         void parse_list  (pstate::__t &st,const priority::__t &prio,vector__cpp__decl::__t &res);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -13250,9 +13250,9 @@ namespace cpp
         struct __t
         {
             vector__pos::__t nums;
-            
+
             void encode  (pretty::__t &b) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -13277,20 +13277,20 @@ namespace cpp
                     return vector__pos::__t::__hash() (x . nums);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace version
     {
         void parse  (pstate::__t &st,const priority::__t &prio,cpp::version::__t &res);
-        
+
     }
-    
+
 }
 namespace cpp
 {
@@ -13299,13 +13299,13 @@ namespace cpp
         struct __t
         {
             cpp::version::__t vers;
-            
+
             vector__cpp__decl::__t decls;
-            
+
             str::__t enc () const;
-            
+
             void encode  (pretty::__t &b,const priority::__t &prio) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -13332,79 +13332,79 @@ namespace cpp
                         vector__cpp__decl::__t::__hash() (x . decls);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace prog
     {
         cpp::prog::__t dec  (const str::__t &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace prog
     {
         str::__t encdec  (const str::__t &s);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace prog
     {
         cpp::prog::__t make  (const vector__cpp__decl::__t &decls);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace prog
     {
         void parse_to  (pstate::__t &st,const priority::__t &prio,cpp::prog::__t &res);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     namespace prog
     {
         void parse  (pstate::__t &st,const priority::__t &prio,cpp::prog::__t &res);
-        
+
     }
-    
+
 }
 namespace cpp
 {
     ivy::ptr< cpp::expr::__t > namedtype  (const ivy::ptr< cpp::ident::__t > &name,const ivy::ptr< annot::__t >
         &ann);
-    
+
 }
 namespace cpp
 {
     ivy::ptr< cpp::expr::__t > inttype  (const ivy::ptr< annot::__t > &ann);
-    
+
 }
 namespace cpp
 {
     ivy::ptr< cpp::expr::__t > voidtype  (const ivy::ptr< annot::__t > &ann);
-    
+
 }
 // The set of names reserved by C++. Ivy names that clash with these
 // have to be changed.
 namespace ivy
 {
     ivy::vector< __bool,str::__t > cpp_reserved_word;
-    
+
 }
 namespace ivy
 {
@@ -13413,7 +13413,7 @@ namespace ivy
         struct __t
         {
             vector__ivy__ident::__t elems;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -13438,28 +13438,28 @@ namespace ivy
                     return vector__ivy__ident::__t::__hash() (x . elems);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 // Two paths may alias if one is a prefix of the other
 namespace ivy
 {
     __bool path_may_alias  (const ivy::access_path::__t &v,const ivy::access_path::__t &w);
-    
+
 }
 namespace ivy
 {
     struct lvalue_count
     {
         ivy::ptr< cpp::expr::__t > lvalue;
-        
+
         ivy::access_path::__t path;
-        
+
         pos::__t cnt;
-        
+
          lvalue_count () {}
          lvalue_count  (long long value) {}
          operator std::size_t () const {
@@ -13488,9 +13488,9 @@ namespace ivy
                     ivy::access_path::__t::__hash() (x . path) + pos::__t::__hash() (x . cnt);
             }
         };
-        
+
     };
-    
+
 }
 namespace ivy
 {
@@ -13501,11 +13501,11 @@ namespace ivy
             struct __t
             {
                 __bool present;
-                
+
                 vector__ivy__ident::__t children;
-                
+
                 vector__ivy__ident::__t leaves;
-                
+
                  __t () {}
                  __t  (long long value) {}
                  operator std::size_t () const {
@@ -13535,13 +13535,13 @@ namespace ivy
                             vector__ivy__ident::__t::__hash() (x . leaves);
                     }
                 };
-                
+
             };
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -13552,9 +13552,9 @@ namespace ivy
             struct __t
             {
                 vector__ivy__ident::__t children;
-                
+
                 ivy::ptr< ivy::ident::__t > leaf;
-                
+
                  __t () {}
                  __t  (long long value) {}
                  operator std::size_t () const {
@@ -13581,13 +13581,13 @@ namespace ivy
                             ivy::ptr< ivy::ident::__t >::__hash() (x . leaf);
                     }
                 };
-                
+
             };
-            
+
         }
-        
+
     }
-    
+
 }
 namespace vector__ivy__path_tree__undo_rec
 {
@@ -13596,9 +13596,9 @@ namespace vector__ivy__path_tree__undo_rec
         struct __t : ivy::native_unsigned< size_t >
         {
             vector__ivy__path_tree__undo_rec::domain::__t next () const;
-            
+
             vector__ivy__path_tree__undo_rec::domain::__t prev () const;
-            
+
              __t () {}
              __t  (long long value) : ivy::native_unsigned< size_t > (value) {}
              __t  (const ivy::native_unsigned< size_t > &value) :
@@ -13607,9 +13607,9 @@ namespace vector__ivy__path_tree__undo_rec
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace vector__ivy__path_tree__undo_rec
 {
@@ -13617,29 +13617,29 @@ namespace vector__ivy__path_tree__undo_rec
     {
         ivy::vector< ivy::path_tree::undo_rec::__t,vector__ivy__path_tree__undo_rec::domain::__t >
             value;
-        
+
         vector__ivy__path_tree__undo_rec::domain::__t end;
-        
+
         vector__ivy__path_tree__undo_rec::domain::__t begin () const;
-        
+
         void set  (const vector__ivy__path_tree__undo_rec::domain::__t &i,const ivy::path_tree::undo_rec::__t
             &v);
-        
+
         void append  (const ivy::path_tree::undo_rec::__t &c);
-        
+
         void extend  (const vector__ivy__path_tree__undo_rec::__t &x);
-        
+
         void resize  (const vector__ivy__path_tree__undo_rec::domain::__t &end);
-        
+
         ivy::path_tree::undo_rec::__t back () const;
-        
+
         void pop_back ();
-        
+
         vector__ivy__path_tree__undo_rec::__t segment  (const vector__ivy__path_tree__undo_rec::domain::__t
             &beg,const vector__ivy__path_tree__undo_rec::domain::__t &en) const;
-        
+
         void reverse ();
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -13668,23 +13668,23 @@ namespace vector__ivy__path_tree__undo_rec
                     vector__ivy__path_tree__undo_rec::domain::__t::__hash() (x . end);
             }
         };
-        
+
     };
-    
+
 }
 namespace vector__ivy__path_tree__undo_rec
 {
     vector__ivy__path_tree__undo_rec::__t empty ();
-    
+
 }
 namespace ivy
 {
     namespace path_tree
     {
         vector__ivy__path_tree__undo_rec::__t v;
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -13693,27 +13693,27 @@ namespace ivy
         struct __t
         {
             ivy::vector< ivy::path_tree::elem::__t,ivy::ptr< ivy::ident::__t > > value;
-            
+
             vector__ivy__path_tree__undo_rec::__t undos;
-            
-            
+
+
             // Add an item to the list for a given path
-            
+
             void add  (const ivy::access_path::__t &path,const ivy::ptr< ivy::ident::__t > &item);
-            
-            
+
+
             // Undo the last addition of an item
-            
+
             void undo ();
-            
-            
+
+
             // Collect a list of all items for paths that may alias with the given path.
-            
+
             vector__ivy__ident::__t collect  (const ivy::access_path::__t &path) const;
-            
+
             void collect_rec  (const ivy::ptr< ivy::ident::__t > &id,vector__ivy__ident::__t &res)
                 const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -13742,11 +13742,11 @@ namespace ivy
                         vector__ivy__path_tree__undo_rec::__t::__hash() (x . undos);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace vector__ivy__access_path
 {
@@ -13755,9 +13755,9 @@ namespace vector__ivy__access_path
         struct __t : ivy::native_unsigned< size_t >
         {
             vector__ivy__access_path::domain::__t next () const;
-            
+
             vector__ivy__access_path::domain::__t prev () const;
-            
+
              __t () {}
              __t  (long long value) : ivy::native_unsigned< size_t > (value) {}
              __t  (const ivy::native_unsigned< size_t > &value) :
@@ -13766,37 +13766,37 @@ namespace vector__ivy__access_path
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace vector__ivy__access_path
 {
     struct __t
     {
         ivy::vector< ivy::access_path::__t,vector__ivy__access_path::domain::__t > value;
-        
+
         vector__ivy__access_path::domain::__t end;
-        
+
         vector__ivy__access_path::domain::__t begin () const;
-        
+
         void set  (const vector__ivy__access_path::domain::__t &i,const ivy::access_path::__t &v);
-        
+
         void append  (const ivy::access_path::__t &c);
-        
+
         void extend  (const vector__ivy__access_path::__t &x);
-        
+
         void resize  (const vector__ivy__access_path::domain::__t &end);
-        
+
         ivy::access_path::__t back () const;
-        
+
         void pop_back ();
-        
+
         vector__ivy__access_path::__t segment  (const vector__ivy__access_path::domain::__t &beg,const
             vector__ivy__access_path::domain::__t &en) const;
-        
+
         void reverse ();
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -13824,14 +13824,14 @@ namespace vector__ivy__access_path
                         (x . value) + vector__ivy__access_path::domain::__t::__hash() (x . end);
             }
         };
-        
+
     };
-    
+
 }
 namespace vector__ivy__access_path
 {
     vector__ivy__access_path::__t empty ();
-    
+
 }
 namespace ivy
 {
@@ -13840,21 +13840,21 @@ namespace ivy
         struct __t
         {
             ivy::ptr< ivy::expr::__t > lvalue;
-            
+
             vector__ivy__access_path::domain::__t num_paths;
-            
+
             __bool returned;
-            
+
             __bool saw_ref;
-            
+
             __bool saw_mod;
-            
+
             __bool cancel_const;
-            
+
             __bool cancel_non_const;
-            
+
             pos::__t cond_nesting;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -13891,11 +13891,11 @@ namespace ivy
                         pos::__t::__hash() (x . cond_nesting);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -13904,9 +13904,9 @@ namespace ivy
         struct rec
         {
             __bool full;
-            
+
             vector__ivy__decl::__t val;
-            
+
              rec () {}
              rec  (long long value) {}
              operator std::size_t () const {
@@ -13932,11 +13932,11 @@ namespace ivy
                     return __bool::__hash() (x . full) + vector__ivy__decl::__t::__hash() (x . val);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -13945,17 +13945,17 @@ namespace ivy
         struct __t
         {
             ivy::vector< ivy::ident_to_declvec::rec,ivy::ptr< ivy::ident::__t > > map;
-            
+
             void set  (const ivy::ptr< ivy::ident::__t > &x,const vector__ivy__decl::__t &y);
-            
+
             void get  (const ivy::ptr< ivy::ident::__t > &x,vector__ivy__decl::__t &y) const;
-            
+
             __bool mem  (const ivy::ptr< ivy::ident::__t > &x) const;
-            
+
             void remove  (const ivy::ptr< ivy::ident::__t > &x);
-            
+
             vector__ivy__decl::__t value  (const ivy::ptr< ivy::ident::__t > &x) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -13982,20 +13982,20 @@ namespace ivy
                             (x . map);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_declvec
     {
         ivy::ident_to_declvec::__t empty ();
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -14004,9 +14004,9 @@ namespace ivy
         struct rec
         {
             __bool full;
-            
+
             ivy::ptr< ivy::expr::__t > val;
-            
+
              rec () {}
              rec  (long long value) {}
              operator std::size_t () const {
@@ -14033,11 +14033,11 @@ namespace ivy
                         ivy::ptr< ivy::expr::__t >::__hash() (x . val);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -14046,17 +14046,17 @@ namespace ivy
         struct __t
         {
             ivy::vector< ivy::ident_to_cppclass::rec,ivy::ptr< ivy::ident::__t > > map;
-            
+
             void set  (const ivy::ptr< ivy::ident::__t > &x,const ivy::ptr< ivy::expr::__t > &y);
-            
+
             void get  (const ivy::ptr< ivy::ident::__t > &x,ivy::ptr< ivy::expr::__t > &y) const;
-            
+
             __bool mem  (const ivy::ptr< ivy::ident::__t > &x) const;
-            
+
             void remove  (const ivy::ptr< ivy::ident::__t > &x);
-            
+
             ivy::ptr< ivy::expr::__t > value  (const ivy::ptr< ivy::ident::__t > &x) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -14083,20 +14083,20 @@ namespace ivy
                             (x . map);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_cppclass
     {
         ivy::ident_to_cppclass::__t empty ();
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -14105,9 +14105,9 @@ namespace ivy
         struct rec
         {
             __bool full;
-            
+
             ivy::prototype::__t val;
-            
+
              rec () {}
              rec  (long long value) {}
              operator std::size_t () const {
@@ -14133,11 +14133,11 @@ namespace ivy
                     return __bool::__hash() (x . full) + ivy::prototype::__t::__hash() (x . val);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -14146,17 +14146,17 @@ namespace ivy
         struct __t
         {
             ivy::vector< ivy::ident_to_prototype::rec,ivy::ptr< ivy::ident::__t > > map;
-            
+
             void set  (const ivy::ptr< ivy::ident::__t > &x,const ivy::prototype::__t &y);
-            
+
             void get  (const ivy::ptr< ivy::ident::__t > &x,ivy::prototype::__t &y) const;
-            
+
             __bool mem  (const ivy::ptr< ivy::ident::__t > &x) const;
-            
+
             void remove  (const ivy::ptr< ivy::ident::__t > &x);
-            
+
             ivy::prototype::__t value  (const ivy::ptr< ivy::ident::__t > &x) const;
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -14183,20 +14183,20 @@ namespace ivy
                             (x . map);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace ident_to_prototype
     {
         ivy::ident_to_prototype::__t empty ();
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -14205,11 +14205,11 @@ namespace ivy
         struct undo
         {
             ivy::ptr< ivy::ident::__t > id;
-            
+
             __bool present;
-            
+
             ivy::borrowing::__t value;
-            
+
              undo () {}
              undo  (long long value) {}
              operator std::size_t () const {
@@ -14237,11 +14237,11 @@ namespace ivy
                         __bool::__hash() (x . present) + ivy::borrowing::__t::__hash() (x . value);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -14252,9 +14252,9 @@ namespace ivy
             struct rec
             {
                 __bool full;
-                
+
                 ivy::borrowing::__t val;
-                
+
                  rec () {}
                  rec  (long long value) {}
                  operator std::size_t () const {
@@ -14280,13 +14280,13 @@ namespace ivy
                         return __bool::__hash() (x . full) + ivy::borrowing::__t::__hash() (x . val);
                     }
                 };
-                
+
             };
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -14297,17 +14297,17 @@ namespace ivy
             struct __t
             {
                 ivy::vector< ivy::ident_to_borrowing::map_t::rec,ivy::ptr< ivy::ident::__t > > map;
-                
+
                 void set  (const ivy::ptr< ivy::ident::__t > &x,const ivy::borrowing::__t &y);
-                
+
                 void get  (const ivy::ptr< ivy::ident::__t > &x,ivy::borrowing::__t &y) const;
-                
+
                 __bool mem  (const ivy::ptr< ivy::ident::__t > &x) const;
-                
+
                 void remove  (const ivy::ptr< ivy::ident::__t > &x);
-                
+
                 ivy::borrowing::__t value  (const ivy::ptr< ivy::ident::__t > &x) const;
-                
+
                  __t () {}
                  __t  (long long value) {}
                  operator std::size_t () const {
@@ -14334,13 +14334,13 @@ namespace ivy
                                 (x . map);
                     }
                 };
-                
+
             };
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -14349,11 +14349,11 @@ namespace ivy
         namespace map_t
         {
             ivy::ident_to_borrowing::map_t::__t empty ();
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -14364,28 +14364,28 @@ namespace ivy
             struct __t
             {
                 ivy::vector< ivy::ident_to_borrowing::undo,pos::__t > value;
-                
+
                 pos::__t end;
-                
+
                 pos::__t begin () const;
-                
+
                 void set  (const pos::__t &i,const ivy::ident_to_borrowing::undo &v);
-                
+
                 void append  (const ivy::ident_to_borrowing::undo &c);
-                
+
                 void extend  (const ivy::ident_to_borrowing::vec_t::__t &x);
-                
+
                 void resize  (const pos::__t &end);
-                
+
                 ivy::ident_to_borrowing::undo back () const;
-                
+
                 void pop_back ();
-                
+
                 ivy::ident_to_borrowing::vec_t::__t segment  (const pos::__t &beg,const pos::__t &en)
                     const;
-                
+
                 void reverse ();
-                
+
                  __t () {}
                  __t  (long long value) {}
                  operator std::size_t () const {
@@ -14413,13 +14413,13 @@ namespace ivy
                                 value) + pos::__t::__hash() (x . end);
                     }
                 };
-                
+
             };
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -14428,11 +14428,11 @@ namespace ivy
         namespace vec_t
         {
             ivy::ident_to_borrowing::vec_t::__t empty ();
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -14441,21 +14441,21 @@ namespace ivy
         struct __t
         {
             ivy::ident_to_borrowing::map_t::__t map;
-            
+
             ivy::ident_to_borrowing::vec_t::__t del;
-            
+
             vector__pos::__t stack;
-            
+
             void set  (const ivy::ptr< ivy::ident::__t > &id,const ivy::borrowing::__t &v);
-            
+
             __bool mem  (const ivy::ptr< ivy::ident::__t > &id) const;
-            
+
             ivy::borrowing::__t value  (const ivy::ptr< ivy::ident::__t > &id) const;
-            
+
             void push ();
-            
+
             void pop ();
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -14484,11 +14484,11 @@ namespace ivy
                         vector__pos::__t::__hash() (x . stack);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -14497,11 +14497,11 @@ namespace ivy
         struct undo
         {
             ivy::ptr< cpp::ident::__t > id;
-            
+
             __bool present;
-            
+
             ivy::ptr< cpp::expr::__t > value;
-            
+
              undo () {}
              undo  (long long value) {}
              operator std::size_t () const {
@@ -14530,11 +14530,11 @@ namespace ivy
                         ivy::ptr< cpp::expr::__t >::__hash() (x . value);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -14545,9 +14545,9 @@ namespace ivy
             struct rec
             {
                 __bool full;
-                
+
                 ivy::ptr< cpp::expr::__t > val;
-                
+
                  rec () {}
                  rec  (long long value) {}
                  operator std::size_t () const {
@@ -14574,13 +14574,13 @@ namespace ivy
                             ivy::ptr< cpp::expr::__t >::__hash() (x . val);
                     }
                 };
-                
+
             };
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -14591,17 +14591,17 @@ namespace ivy
             struct __t
             {
                 ivy::vector< ivy::cppident_to_cppexpr::map_t::rec,ivy::ptr< cpp::ident::__t > > map;
-                
+
                 void set  (const ivy::ptr< cpp::ident::__t > &x,const ivy::ptr< cpp::expr::__t > &y);
-                
+
                 void get  (const ivy::ptr< cpp::ident::__t > &x,ivy::ptr< cpp::expr::__t > &y) const;
-                
+
                 __bool mem  (const ivy::ptr< cpp::ident::__t > &x) const;
-                
+
                 void remove  (const ivy::ptr< cpp::ident::__t > &x);
-                
+
                 ivy::ptr< cpp::expr::__t > value  (const ivy::ptr< cpp::ident::__t > &x) const;
-                
+
                  __t () {}
                  __t  (long long value) {}
                  operator std::size_t () const {
@@ -14628,13 +14628,13 @@ namespace ivy
                                 (x . map);
                     }
                 };
-                
+
             };
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -14643,11 +14643,11 @@ namespace ivy
         namespace map_t
         {
             ivy::cppident_to_cppexpr::map_t::__t empty ();
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -14658,28 +14658,28 @@ namespace ivy
             struct __t
             {
                 ivy::vector< ivy::cppident_to_cppexpr::undo,pos::__t > value;
-                
+
                 pos::__t end;
-                
+
                 pos::__t begin () const;
-                
+
                 void set  (const pos::__t &i,const ivy::cppident_to_cppexpr::undo &v);
-                
+
                 void append  (const ivy::cppident_to_cppexpr::undo &c);
-                
+
                 void extend  (const ivy::cppident_to_cppexpr::vec_t::__t &x);
-                
+
                 void resize  (const pos::__t &end);
-                
+
                 ivy::cppident_to_cppexpr::undo back () const;
-                
+
                 void pop_back ();
-                
+
                 ivy::cppident_to_cppexpr::vec_t::__t segment  (const pos::__t &beg,const pos::__t &en)
                     const;
-                
+
                 void reverse ();
-                
+
                  __t () {}
                  __t  (long long value) {}
                  operator std::size_t () const {
@@ -14707,13 +14707,13 @@ namespace ivy
                                 value) + pos::__t::__hash() (x . end);
                     }
                 };
-                
+
             };
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -14722,11 +14722,11 @@ namespace ivy
         namespace vec_t
         {
             ivy::cppident_to_cppexpr::vec_t::__t empty ();
-            
+
         }
-        
+
     }
-    
+
 }
 namespace ivy
 {
@@ -14735,21 +14735,21 @@ namespace ivy
         struct __t
         {
             ivy::cppident_to_cppexpr::map_t::__t map;
-            
+
             ivy::cppident_to_cppexpr::vec_t::__t del;
-            
+
             vector__pos::__t stack;
-            
+
             void set  (const ivy::ptr< cpp::ident::__t > &id,const ivy::ptr< cpp::expr::__t > &v);
-            
+
             __bool mem  (const ivy::ptr< cpp::ident::__t > &id) const;
-            
+
             ivy::ptr< cpp::expr::__t > value  (const ivy::ptr< cpp::ident::__t > &id) const;
-            
+
             void push ();
-            
+
             void pop ();
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -14778,11 +14778,11 @@ namespace ivy
                         vector__pos::__t::__hash() (x . stack);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 namespace vector__ivy__lvalue_count
 {
@@ -14791,9 +14791,9 @@ namespace vector__ivy__lvalue_count
         struct __t : ivy::native_unsigned< size_t >
         {
             vector__ivy__lvalue_count::domain::__t next () const;
-            
+
             vector__ivy__lvalue_count::domain::__t prev () const;
-            
+
              __t () {}
              __t  (long long value) : ivy::native_unsigned< size_t > (value) {}
              __t  (const ivy::native_unsigned< size_t > &value) :
@@ -14802,37 +14802,37 @@ namespace vector__ivy__lvalue_count
                 return (*this);
             }
         };
-        
+
     }
-    
+
 }
 namespace vector__ivy__lvalue_count
 {
     struct __t
     {
         ivy::vector< ivy::lvalue_count,vector__ivy__lvalue_count::domain::__t > value;
-        
+
         vector__ivy__lvalue_count::domain::__t end;
-        
+
         vector__ivy__lvalue_count::domain::__t begin () const;
-        
+
         void set  (const vector__ivy__lvalue_count::domain::__t &i,const ivy::lvalue_count &v);
-        
+
         void append  (const ivy::lvalue_count &c);
-        
+
         void extend  (const vector__ivy__lvalue_count::__t &x);
-        
+
         void resize  (const vector__ivy__lvalue_count::domain::__t &end);
-        
+
         ivy::lvalue_count back () const;
-        
+
         void pop_back ();
-        
+
         vector__ivy__lvalue_count::__t segment  (const vector__ivy__lvalue_count::domain::__t &beg,const
             vector__ivy__lvalue_count::domain::__t &en) const;
-        
+
         void reverse ();
-        
+
          __t () {}
          __t  (long long value) {}
          operator std::size_t () const {
@@ -14860,14 +14860,14 @@ namespace vector__ivy__lvalue_count
                         (x . value) + vector__ivy__lvalue_count::domain::__t::__hash() (x . end);
             }
         };
-        
+
     };
-    
+
 }
 namespace vector__ivy__lvalue_count
 {
     vector__ivy__lvalue_count::__t empty ();
-    
+
 }
 namespace ivy
 {
@@ -14875,161 +14875,161 @@ namespace ivy
     {
         struct __t
         {
-            
+
             // Maps types to their members, which includes destructors and
             // member actions.
-            
+
             ivy::ident_to_declvec::__t members;
-            
-            
+
+
             // Maps types to their C++ superclasses
-            
+
             ivy::ident_to_cppclass::__t cppclasses;
-            
-            
+
+
             // Identifiers of all objects
-            
+
             ivy::ident_set::__t objects;
-            
-            
+
+
             // Types of global actions and variables
-            
+
             ivy::global_types::__t globals;
-            
-            
+
+
             // True if we are emitting a member action
-            
+
             __bool is_member;
-            
-            
+
+
             // The name of the "this" parameter in a member
-            
+
             ivy::ptr< ivy::ident::__t > this_ident;
-            
-            
+
+
             // True if we are in a class declaration
-            
+
             __bool in_class;
-            
-            
+
+
             // True if we are only emitting prototypes
-            
+
             __bool proto_only;
-            
-            
+
+
             // The subtyping relation
-            
+
             ivy::subtypes::__t subtype_rel;
-            
-            
+
+
             // True if we are emitting a native C++ name
-            
+
             __bool native;
-            
-            
+
+
             // True if we are emitting forward declarations
-            
+
             __bool forward;
-            
-            
+
+
             // Current outputs (lvalues to which expression value will be assigned).
-            
+
             vector__ivy__expr::__t outputs;
-            
-            
+
+
             // Code to be emitted before the current statement
-            
+
             vector__cpp__stmt::__t code;
-            
-            
+
+
             // Counter for temporary variables
-            
+
             pos::__t counter;
-            
-            
+
+
             // Map from action names to action prototypes
-            
+
             ivy::ident_to_prototype::__t protos;
-            
-            
+
+
             // The dead list of the current context. If an lvalue is on
             // this list, then any occurrence is the last reference to
             // the value.
-            
+
             vector__ivy__lvalue_count::__t dead;
-            
-            
+
+
             // Tracks the local variables in scope
-            
+
             ivy::local_tracker::__t locals;
-            
-            
+
+
             // The set of constructor functions
-            
+
             ivy::ident_set::__t constructors;
-            
-            
+
+
             // True is compiling rhs of a dot operator
-            
+
             __bool dot_rhs;
-            
-            
+
+
             // Path tree giving path conflicts
-            
+
             ivy::path_tree::__t conflicts;
-            
-            
+
+
             // States of each current borrowing
-            
+
             ivy::ident_to_borrowing::__t borrowings;
-            
-            
+
+
             // Number of borrowins in above
-            
+
             pos::__t num_borrowings;
-            
-            
+
+
             // Map from local variables to borrowed lvalues
-            
+
             ivy::cppident_to_cppexpr::__t fix_borrow_map;
-            
-            
+
+
             // Depth of nesting of conditionals
-            
+
             pos::__t cond_nesting;
-            
-            
+
+
             // Depth of nesting of loops
-            
+
             pos::__t loop_nesting;
-            
-            
+
+
             // Annotation of current assignment
-            
+
             ivy::ptr< annot::__t > asgn_ann;
-            
-            
+
+
             // Depth of nesting of "inbounds" pragma
-            
+
             pos::__t inbounds_nesting;
-            
+
             void add_member  (const ivy::ptr< ivy::ident::__t > &namesp,const ivy::ptr< ivy::decl::__t >
                 &member);
-            
+
             void add_stmt  (const ivy::ptr< cpp::stmt::__t > &code);
-            
-            
+
+
             // Get the added code and clear it.
-            
+
             void get_code  (const ivy::ptr< annot::__t > &ann,ivy::ptr< cpp::stmt::__t > &res);
-            
-            
+
+
             // This adds a statement to the end of the current code, clears
             // the code and returns the result.
-            
+
             void wrap_stmt  (const ivy::ptr< cpp::stmt::__t > &code,const ivy::ptr< annot::__t > &ann,ivy::ptr< cpp::stmt::__t >
                 &res);
-            
+
              __t () {}
              __t  (long long value) {}
              operator std::size_t () const {
@@ -15100,18 +15100,18 @@ namespace ivy
                         pos::__t::__hash() (x . inbounds_nesting);
                 }
             };
-            
+
         };
-        
+
     }
-    
+
 }
 // Generate a temporay symbol name
 namespace ivy
 {
     void temp_sym  (ivy::tocppst::__t &s,const ivy::ptr< annot::__t > &ann,ivy::ptr< cpp::expr::__t >
         &res);
-    
+
 }
 // This declares a temporary variable in the current code
 // context and returns it.
@@ -15119,7 +15119,7 @@ namespace ivy
 {
     void make_temp  (ivy::tocppst::__t &s,const ivy::ptr< ivy::expr::__t > &ty,const ivy::ptr< annot::__t >
         &ann,ivy::ptr< cpp::expr::__t > &res);
-    
+
 }
 // Given a C++ lvalue, this returns its "path". The path is an identifier
 // that gives the name of the variable, with a sequence of field references
@@ -15129,13 +15129,13 @@ namespace ivy
 namespace ivy
 {
     void lvalue_path  (const ivy::ptr< ivy::expr::__t > &s,ivy::access_path::__t &path,__bool &ok);
-    
+
 }
 // Workaround
 namespace ivy
 {
     vector__ivy__access_path::__t dummy_vector_access_path;
-    
+
 }
 // Get a list of all of the lvalue paths occurring in a C++
 // expression. The boolean parameters are:
@@ -15146,28 +15146,28 @@ namespace ivy
 {
     void lvalue_paths  (const ivy::ptr< ivy::expr::__t > &s,vector__ivy__access_path::__t &paths,const
         __bool &ao,const __bool &ro);
-    
+
 }
 // This determines whether a C++ lvalue is dead in current context
 namespace ivy
 {
     __bool is_dead  (const ivy::ptr< cpp::expr::__t > &e,const ivy::tocppst::__t &st,const pos::__t
         &cnt);
-    
+
 }
 // In context of class declarations, identifiers are declared
 // without their namespaces.
 namespace ivy
 {
     void name_in_context  (ivy::ptr< ivy::expr::__t > &name,const ivy::tocppst::__t &st);
-    
+
 }
 // Mangle a C++ identifier. This turns `x::y` into `x__y`, which is
 // needed for name subscripts to make legal C++ identifiers.
 namespace ivy
 {
     str::__t mangle  (const ivy::ptr< cpp::ident::__t > &s);
-    
+
 }
 // In translating Ivy names to C++, we have to avoid clashes with C++
 // reserved words like "char" and "bool". We do this by prepending "__".
@@ -15178,7 +15178,7 @@ namespace ivy
 namespace ivy
 {
     cpp::strident::__t strident_to_cpp  (const ivy::strident::__t &s,const __bool &native);
-    
+
 }
 // When translating symbols to C++, we need to take care of name clashes between
 // namespaces (Ivy objects) and classes (Ivy types). If a type has the same identifier as
@@ -15186,24 +15186,24 @@ namespace ivy
 namespace ivy
 {
     void fix_object_clash  (ivy::ptr< ivy::ident::__t > &id,const ivy::tocppst::__t &st);
-    
+
 }
 namespace ivy
 {
     void make_vector_type  (ivy::ptr< ivy::expr::__t > &ty);
-    
+
 }
 namespace ivy
 {
     void fix_tpl_param  (const ivy::ptr< ivy::expr::__t > &s,ivy::tocppst::__t &st,ivy::ptr< cpp::expr::__t >
         &res);
-    
+
 }
 namespace ivy
 {
     void make_md_vector_type  (const vector__ivy__expr::__t &dom,const ivy::ptr< ivy::expr::__t > &rng,ivy::tocppst::__t
         &st,ivy::ptr< cpp::expr::__t > &res);
-    
+
 }
 // Function types are handled specially, using C++ templates in the
 // standard header. For now we have only a dense representation
@@ -15214,28 +15214,28 @@ namespace ivy
 {
     void function_type  (const ivy::ptr< ivy::expr::__t > &ty,ivy::tocppst::__t &st,ivy::ptr< cpp::expr::__t >
         &res);
-    
+
 }
 // Make a C++ expression of the form `ivy::from_str<ty>(arg)`
 namespace ivy
 {
     ivy::ptr< cpp::expr::__t > make_from_string  (const ivy::ptr< cpp::expr::__t > &ty,const ivy::ptr< cpp::expr::__t >
         &arg,const ivy::ptr< annot::__t > &ann);
-    
+
 }
 // Make a C++ expression of the form `ivy::from_flt<ty>(arg)`
 namespace ivy
 {
     ivy::ptr< cpp::expr::__t > make_from_float  (const ivy::ptr< cpp::expr::__t > &ty,const ivy::ptr< cpp::expr::__t >
         &arg,const ivy::ptr< annot::__t > &ann);
-    
+
 }
 // Returns true if the C++ express is `*this`. This case requires special
-// handling for indirect calls. 
+// handling for indirect calls.
 namespace ivy
 {
     __bool is_cpp_this  (const ivy::ptr< cpp::expr::__t > &s);
-    
+
 }
 // Make a C++ function call. There are four cases here:
 //
@@ -15247,13 +15247,13 @@ namespace ivy
 // The last two cases are used if `f : (t * ... -> u)` is a member function where
 // type `t` is a variant type. However, if the first argument is `(*this)` we
 // do *not* use this form, as `this` is a normal C++ pointer, not a special
-// Ivy variant pointer. 
+// Ivy variant pointer.
 namespace ivy
 {
     void make_cpp_call  (const ivy::ptr< ivy::expr::__t > &func,const vector__cpp__expr::__t &args,const
         ivy::ptr< annot::__t > &ann,ivy::tocppst::__t &st,const ivy::prototype::__t &proto,ivy::ptr< cpp::expr::__t >
         &res);
-    
+
 }
 // After executing a function call, the call gives up ownership of
 // its arguments, possibly allowing the arguments to be
@@ -15268,14 +15268,14 @@ namespace ivy
 namespace ivy
 {
     void unown_func_args  (const vector__ivy__expr::__t &args,ivy::tocppst::__t &st);
-    
+
 }
 // A dead lvalue can be converted to an rvalue, which may allow the
 // C++ compiler to use a move rather than a copy.
 namespace ivy
 {
     void make_rvalue_if_dead  (const ivy::tocppst::__t &st,ivy::ptr< cpp::expr::__t > &inp);
-    
+
 }
 // Translate an action call to C++. This is complicated, because we have
 // to apply the action prototype and deal with call-by-reference.
@@ -15310,34 +15310,34 @@ namespace ivy
 {
     void call_to_cpp  (const ivy::ptr< ivy::expr::__t > &func,const vector__ivy__expr::__t &inputs,const
         ivy::ptr< annot::__t > &ann,ivy::tocppst::__t &st,ivy::ptr< cpp::expr::__t > &res);
-    
+
 }
 namespace ivy
 {
     void make_cast_to_bool  (ivy::ptr< cpp::expr::__t > &s);
-    
+
 }
 namespace ivy
 {
     void make_isa  (ivy::ptr< cpp::expr::__t > &s,const ivy::ptr< cpp::expr::__t > &ty);
-    
+
 }
 namespace ivy
 {
     void upcast  (const ivy::ptr< ivy::expr::__t > &lhsty,const ivy::ptr< ivy::expr::__t > &rhs,ivy::tocppst::__t
         &st,ivy::ptr< cpp::expr::__t > &res);
-    
+
 }
 namespace ivy
 {
     void unown_path  (const ivy::access_path::__t &path,ivy::tocppst::__t &st);
-    
+
 }
 namespace ivy
 {
     void kill_lvalue  (const ivy::ptr< ivy::expr::__t > &e,ivy::tocppst::__t &st,const
         vector__ivy__access_path::__t &paths);
-    
+
 }
 // Here, we find all of the lvalues that are dead after evaluation
 // of an expression that references a given list of access paths.  The
@@ -15360,7 +15360,7 @@ namespace ivy
 {
     void kill_lvalues  (const vector__ivy__expr::__t &es,ivy::tocppst::__t &st,const
         vector__ivy__access_path::__t &paths);
-    
+
 }
 // If the "this" argument of a member function is assign to a
 // variable or passed as an argument, and if "this" is of a
@@ -15371,20 +15371,20 @@ namespace ivy
 {
     void fix_variant_arg  (const ivy::ptr< ivy::expr::__t > &s,ivy::ptr< cpp::expr::__t > &rhs,const
         ivy::tocppst::__t &st);
-    
+
 }
 // Given a list of referenced paths, update the live locals.
 namespace ivy
 {
     void update_live  (const vector__ivy__access_path::__t &paths,ivy::tocppst::__t &st);
-    
+
 }
 // When borrowing, we sometimes need to strip off "std::move", indicating
 // that an expression should be treated as an lvalue.
 namespace ivy
 {
     void strip_move  (ivy::ptr< cpp::expr::__t > &s);
-    
+
 }
 // Set up to borrow an lvalue. A potential borrowing is an
 // assignment of the form `x := y`, where `x` is a local and `y` is
@@ -15407,19 +15407,19 @@ namespace ivy
 // at the beginning of the next iteration and we do not track this. It might actually
 // be dead (i.e., if the first reference in the loop is always a full assignment)
 // but in this case the programmer can be punished for not declaring the variable
-// inside the loop. 
+// inside the loop.
 namespace ivy
 {
     void setup_borrowing  (const ivy::ptr< ivy::stmt::__t > &s,ivy::tocppst::__t &st,__bool &ok,ivy::ptr< ivy::ident::__t >
         &id);
-    
+
 }
 // This undoes the effect of `setup_borrowing`, where `id` is the identifier returned
 // by `setup_borrowing`.
 namespace ivy
 {
     void unsetup_borrowing  (const ivy::ptr< ivy::ident::__t > &id,ivy::tocppst::__t &st);
-    
+
 }
 // Whenver we access paths, we update the state of any conflicting
 // borrowings.  We note in the state of any conficting borrowings
@@ -15433,7 +15433,7 @@ namespace ivy
 {
     void update_borrowings  (const vector__ivy__access_path::__t &paths,const __bool &is_mod,ivy::tocppst::__t
         &st);
-    
+
 }
 // When we see an assignment `y := x`, we look to see if `x` is
 // borrowing `y`. If so, we mark `x` unassigned. This means that
@@ -15444,14 +15444,14 @@ namespace ivy
 namespace ivy
 {
     void check_borrowing_return  (const ivy::asgn::__t &s,ivy::tocppst::__t &st);
-    
+
 }
 // Turn a local assignment into a reference
 namespace ivy
 {
     void make_local_ref  (const ivy::ptr< ivy::expr::__t > &typing,const ivy::ptr< cpp::stmt::__t >
         &lhs,const __bool &is_const,ivy::tocppst::__t &st,ivy::ptr< cpp::stmt::__t > &res);
-    
+
 }
 // Open or close scope of a pragma. Pragmas:
 //
@@ -15460,7 +15460,7 @@ namespace ivy
 namespace ivy
 {
     void pragma_stmt  (const ivy::ptr< ivy::stmt::__t > &s,const __bool &start,ivy::tocppst::__t &st);
-    
+
 }
 // The full name of a C++ function depends on whether it is a member function.
 // If so, we find take the full name of the class and append the member name.
@@ -15470,34 +15470,34 @@ namespace ivy
 {
     void full_action_name  (const ivy::ptr< ivy::expr::__t > &name,const __bool &is_member,ivy::tocppst::__t
         &st,ivy::ptr< cpp::expr::__t > &res);
-    
+
 }
 namespace ivy
 {
     __bool is_input_param  (const ivy::actdc::__t &s,const ivy::ptr< ivy::expr::__t > &p);
-    
+
 }
 // Make a variable declaration with an initializer
 namespace ivy
 {
     void make_initializer  (const ivy::ptr< ivy::expr::__t > &typing,const ivy::ptr< cpp::expr::__t >
         &initval,ivy::tocppst::__t &st,ivy::ptr< cpp::stmt::__t > &res);
-    
+
 }
 namespace ivy
 {
     void add_namespaces_rec  (ivy::ptr< cpp::decl::__t > &d,const ivy::ptr< ivy::ident::__t > &id);
-    
+
 }
 namespace ivy
 {
     void add_namespaces  (ivy::ptr< cpp::decl::__t > &d,const ivy::ptr< ivy::ident::__t > &id);
-    
+
 }
 namespace ivy
 {
     void member_name  (ivy::ptr< cpp::expr::__t > &s);
-    
+
 }
 // Instantiate a standard template. This produces a type name of
 // the form `ivy.tpl[ty]`.
@@ -15505,14 +15505,14 @@ namespace ivy
 {
     ivy::ptr< cpp::expr::__t > make_std_tpl  (const str::__t &tpl,const str::__t &ty,const ivy::ptr< annot::__t >
         &ann);
-    
+
 }
 // Make the name of the C++ enum that corresponds to an Ivy enumerated
 // type. The name is `__enum_name` where `name is the Ivy name.
 namespace ivy
 {
     str::__t enum_name  (const ivy::ptr< cpp::expr::__t > &name);
-    
+
 }
 // Unfortunately, enumerated types can't be classes in C++.  To
 // represent one an enumerated type `t`, we declared a C++ enum
@@ -15525,7 +15525,7 @@ namespace ivy
 //
 //     struct name : ivy::native_enum< __enum_name > {
 //         name() : ivy::native_enum< __enum_name >() {}
-//         name(long long value) : 
+//         name(long long value) :
 //         name(__enum_name value) : ivy::native_enum< __enum_name >(value) {}
 //     };
 //
@@ -15536,7 +15536,7 @@ namespace ivy
 {
     void enum_to_cpp  (const ivy::ptr< cpp::expr::__t > &name,const ivy::ptr< ivy::typespec::__t > &spec,const
         ivy::ptr< cpp::decl::__t > &sd,ivy::tocppst::__t &st,ivy::ptr< cpp::decl::__t > &res);
-    
+
 }
 // All the delcared classes have to have certain standard traits.
 // These are:
@@ -15559,17 +15559,17 @@ namespace ivy
 namespace ivy
 {
     cpp::funcdecl::__t make_cpp_cons  (const cpp::structdecl::__t &t);
-    
+
 }
 namespace ivy
 {
     cpp::funcdecl::__t make_virt_destr  (const cpp::structdecl::__t &t);
-    
+
 }
 namespace ivy
 {
     cpp::funcdecl::__t make_upcast_method  (const cpp::structdecl::__t &t);
-    
+
 }
 // Add a default constructor to a class. The default constructor looks
 // like this:
@@ -15578,7 +15578,7 @@ namespace ivy
 namespace ivy
 {
     void add_default_cons  (cpp::structdecl::__t &s,const __bool &is_const,const __bool &is_rvalue);
-    
+
 }
 // Add a default assignment operator to a class. The default operator looks
 // like this:
@@ -15587,72 +15587,72 @@ namespace ivy
 namespace ivy
 {
     void add_default_asgn  (cpp::structdecl::__t &s,const __bool &is_const,const __bool &is_rvalue);
-    
+
 }
 // Numeric constructor does nothing (so that 0 gives default value):
 //     name(long long) {};
 namespace ivy
 {
     void add_numeric_cons  (cpp::structdecl::__t &s);
-    
+
 }
 // Conversion to size_t returns zero:
 //     operator size_t() const { return 0; }
 namespace ivy
 {
     void add_sizet_conv  (cpp::structdecl::__t &s);
-    
+
 }
 // __is_seq returns zero:
 //     static bool __is_seq() {return false;}
 namespace ivy
 {
     void add_is_seq_pred  (cpp::structdecl::__t &s);
-    
+
 }
-// Equality comparison yields member-wise equality: 
+// Equality comparison yields member-wise equality:
 //     bool operator==(const name &other) const { return f1==other.f1 & ...; }
 namespace ivy
 {
     void add_eq_pred  (cpp::structdecl::__t &s);
-    
+
 }
 // Disequality is just negation of equality
 //     bool operator!=(const name &other) const { return !((*this)==other); }
 namespace ivy
 {
     void add_diseq_pred  (cpp::structdecl::__t &s);
-    
+
 }
 // __is_zero is conjunction of __is_zero for members.
 //    bool __is_zero() const { return f1.is_zero() & ...; }
 namespace ivy
 {
     void add_is_zero_pred  (cpp::structdecl::__t &s);
-    
+
 }
 namespace ivy
 {
     void add_hasher  (cpp::structdecl::__t &s);
-    
+
 }
 // Add the standard traits to a struct.
 namespace ivy
 {
     void add_standard_traits  (cpp::structdecl::__t &s);
-    
+
 }
 // Add a virtual upcast and destructor to a base class.
 namespace ivy
 {
     void add_virtual_destructor  (cpp::structdecl::__t &s);
-    
+
 }
 // Add an virtual upcast derived class.
 namespace ivy
 {
     void add_upcast_method  (cpp::structdecl::__t &s);
-    
+
 }
 // Add a constructor that uses the base class constructor.
 //
@@ -15664,7 +15664,7 @@ namespace ivy
 {
     void add_derived_cons  (cpp::structdecl::__t &s,const ivy::ptr< cpp::expr::__t > &t,const __bool
         &constref);
-    
+
 }
 // Add a conversion of a derived struct to its base struct
 //
@@ -15673,7 +15673,7 @@ namespace ivy
 namespace ivy
 {
     void add_base_conversion  (cpp::structdecl::__t &s);
-    
+
 }
 // Subclasses of native c++ classes inherit the standard traits from those classes.
 // In order to allow them to use the overloads of the native classes, we add this
@@ -15693,7 +15693,7 @@ namespace ivy
 namespace ivy
 {
     void add_derived_traits  (cpp::structdecl::__t &s);
-    
+
 }
 // Native types occur on the right-hand side of `interpret` declarations.
 // They need special processing, because we do *not* want to avoid clashes
@@ -15702,7 +15702,7 @@ namespace ivy
 {
     void native_type_to_cpp  (const ivy::ptr< ivy::expr::__t > &ty,ivy::tocppst::__t &st,ivy::ptr< cpp::expr::__t >
         &res);
-    
+
 }
 // Here, we register the constructors of enumerated types
 namespace ivy
@@ -15710,14 +15710,14 @@ namespace ivy
     namespace typedc
     {
         void tocpp_show_str  (const str::__t &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     __bool is_variant_type  (const ivy::ptr< ivy::expr::__t > &t,const ivy::tocppst::__t &st);
-    
+
 }
 // When storing values of variant types we use smart pointers. That is,
 // type `t` becomes `ivy.ptr<t>`.
@@ -15725,35 +15725,35 @@ namespace ivy
 {
     void fix_variant_type  (const ivy::ptr< ivy::expr::__t > &t,ivy::tocppst::__t &st,ivy::ptr< cpp::expr::__t >
         &res);
-    
+
 }
 namespace ivy
 {
     namespace prog
     {
         void show_prog  (const str::__t &s);
-        
+
     }
-    
+
 }
 namespace ivy
 {
     namespace prog
     {
         void file_to_cpp  (const str::__t &name);
-        
+
     }
-    
+
 }
 namespace argv
 {
     pos::__t end ();
-    
+
 }
 namespace argv
 {
     str::__t value  (const pos::__t &idx);
-    
+
 }
 namespace pid
 {
@@ -15766,7 +15766,7 @@ namespace pid
             return (*this);
         }
     };
-    
+
 }
 namespace retcode
 {
@@ -15779,32 +15779,32 @@ namespace retcode
             return (*this);
         }
     };
-    
+
 }
 namespace cmd
 {
     pid::__t command  (const vector__str::__t &s);
-    
+
 }
 namespace cmd
 {
     retcode::__t wait  (const pid::__t &s);
-    
+
 }
 namespace ivy
 {
     void show_expr  (const ivy::ptr< ivy::expr::__t > &e);
-    
+
 }
 namespace ivy
 {
     void show_ident  (const ivy::ptr< ivy::ident::__t > &id);
-    
+
 }
 namespace cpp
 {
     void show_expr  (const ivy::ptr< cpp::expr::__t > &e);
-    
+
 }
 void usage ();
 __bool __char::__t::is_alphanum () const
@@ -16257,17 +16257,17 @@ pretty::__t pretty::make  (const pos::__t &maxline,const pos::__t &indent)
 void pretty::__t::do_indent ()
 {
     (*this) . output . append (__char::__t (10));
-    
+
     // newline
-    
+
     pos::__t idx;
     idx = (*this) . maxline - (*this) . space;
     while (idx > pos::__t (0))
     {
         (*this) . output . append (__char::__t (32));
-        
+
         // space
-        
+
         idx = idx . prev();
     }
 }
@@ -16325,9 +16325,9 @@ void pretty::__t::extend  (const str::__t &string)
     tok . first = string;
     if (ivy::native_bool (true) & string == (*this) . whitespace)
     {
-        
+
         // true = breakable
-        
+
         tok . pair = ivy::native_bool (true);
         tok . second = string . end;
     } else {
@@ -16533,7 +16533,7 @@ void pstate::__t::get_ann  (ivy::ptr< annot::__t > &ann)
     ann = (*this) . ann;
     (*this) . ann . comments = vector__str::empty();
 }
-void skip_space  (pstate::__t &st) 
+void skip_space  (pstate::__t &st)
 // Skip space, tab, carriage return and newline characters
 {
     while (st . p < st . b . end & st . b . value (st . p) . is_white())
@@ -16545,14 +16545,14 @@ void skip_space  (pstate::__t &st)
         st . p = st . p . next();
     }
 }
-void get_line  (pstate::__t &st,str::__t &line) 
+void get_line  (pstate::__t &st,str::__t &line)
 // Read until a newline or end of input.
 {
     pos::__t start;
     start = st . p;
-    while (st . p < st . b . end & st . b . value (st . p) != __char::__t (10)) 
+    while (st . p < st . b . end & st . b . value (st . p) != __char::__t (10))
     // newline
-    
+
     {
         st . p = st . p . next();
     }
@@ -16568,13 +16568,13 @@ void get_annot  (pstate::__t &st)
     skip_space (st);
     while (st . p < st . b . end & st . b . value (st . p) == __char::__t (35))
     {
-        
+
         // hash sign
-        
+
         st . p = st . p . next();
-        
+
         // skip the hash sign
-        
+
         str::__t comment;
         get_line (st,comment);
         st . ann . comments . append (comment);
@@ -16585,9 +16585,9 @@ void read_string_literal  (pstate::__t &st)
 {
     st . tok = ivy::from_str< str::__t > ("");
     st . tok . append (__char::__t (34));
-    
+
     // workaround
-    
+
     st . p = st . p . next();
     while (st . ok & st . p < st . b . end & st . b . value (st . p) != __char::__t (34))
     {
@@ -16603,9 +16603,9 @@ void read_string_literal  (pstate::__t &st)
                 if (! chr . non_printing())
                 {
                     st . tok . append (chr);
-                    
+
                     // newline
-                    
+
                     st . p = st . p . next();
                 } else {
                     st . ok = ivy::native_bool (false);
@@ -16627,9 +16627,9 @@ void read_string_literal  (pstate::__t &st)
     if (st . ok & st . p < st . b . end)
     {
         st . tok . append (__char::__t (34));
-        
+
         // double quote
-        
+
         st . p = st . p . next();
     } else {
         st . ok = ivy::native_bool (false);
@@ -16745,9 +16745,9 @@ str::__t pos::__t::to_str () const
             {
                 pos::__t y;
                 y = x - x / pos::__t (10) * pos::__t (10);
-                
+
                 // workaround: v1.7 compiler can't cast between numeric types
-                
+
                 __char::__t digit;
                 digit = __char::__t (48);
                 while (y > pos::__t (0)) {
@@ -16785,9 +16785,9 @@ pos::__t pos::from_str  (const str::__t &x)
             res = res * pos::__t (10);
             __char::__t digit;
             digit = x . value (idx);
-            
+
             // workaround: v1.7 compiler can't cast between numeric types
-            
+
             while (digit > __char::__t (48))
             {
                 digit = digit - __char::__t (1);
@@ -16870,9 +16870,9 @@ ivy::verb::__t ivy::verb_from_name  (const str::__t &name)
         }
     } else
     {
-        if (name . value (pos::__t (0)) == __char::__t (34)) 
+        if (name . value (pos::__t (0)) == __char::__t (34))
         // double quote character
-        
+
         {
             vrb = ivy::verb::__t (ivy::verb::string);
         } else
@@ -17780,9 +17780,9 @@ vector__ivy__expr::__t ivy::iff::unfold_left  (const ivy::ptr< ivy::expr::__t > 
         e = s;
         __bool b;
         b = e -> is_typed (ivy::verb::__t (ivy::verb::iff));
-        
+
         // workaround
-        
+
         while (b)
         {
             args . append (e -> get_arg (vector__ivy__expr::domain::__t (1)));
@@ -19033,9 +19033,9 @@ void ivy::stmt::parse  (pstate::__t &st,const priority::__t &prio,ivy::ptr< ivy:
                 } else
                 {
                     ivy::ptr< annot::__t > ann;
-                    
+
                     // missing else doesn't print, so don't annotate
-                    
+
                     s . elsest = ivy::skipst::make (ann);
                 }
             } else {
@@ -19797,9 +19797,9 @@ void ivy::stmt::parse_lang_stmt  (pstate::__t &st,const priority::__t &prio,ivy:
             {
                 s . rhs = s . lhs;
                 s . lhs = ivy::empty::make (s . ann -> strip());
-                
+
                 // just an expression -- assign to ()
-                
+
                 res = s;
             }
         }
@@ -20299,9 +20299,9 @@ void ivy::parse_action  (pstate::__t &st,const priority::__t &prio,const ivy::ac
         {
             ivy::expr::tup::parse (st,priority::__t (1),s . inputs);
         }
-        
+
         // 1 = prio of ","
-        
+
         if (st . ok & st . tok == ivy::from_str< str::__t > ("returns"))
         {
             st . consume();
@@ -20389,9 +20389,9 @@ void ivy::decl::parse  (pstate::__t &st,const priority::__t &prio,ivy::ptr< ivy:
                         if (st . ok & st . tok . end > pos::__t (0) &
                         st . tok . value (pos::__t (0)) == __char::__t (34))
                         {
-                            
+
                             // double quote
-                            
+
                             s . filename = st . tok;
                             st . consume();
                         } else {
@@ -20438,9 +20438,9 @@ void ivy::decl::parse  (pstate::__t &st,const priority::__t &prio,ivy::ptr< ivy:
                                     st . get_ann (s . ann);
                                     st . consume();
                                     ivy::expr::parse (st,priority::__t (99),s . name);
-                                    
+
                                     // allow dot operator, not application
-                                    
+
                                     if (st . ok & st . tok == ivy::from_str< str::__t > ("("))
                                     {
                                         ivy::expr::tup::parse (st,priority::__t (1),s . prms);
@@ -21214,9 +21214,9 @@ void ivy::path::change_extension  (str::__t &path,const str::__t &ext)
     {
         pos::__t idx;
         idx = path . end . prev();
-        while (idx > pos::__t (0) & path . value (idx) != __char::__t (46)) 
+        while (idx > pos::__t (0) & path . value (idx) != __char::__t (46))
         // dot
-        
+
         {
             idx = idx . prev();
         }
@@ -21234,9 +21234,9 @@ void ivy::path::drop_extension  (str::__t &path)
     {
         pos::__t idx;
         idx = path . end . prev();
-        while (idx > pos::__t (0) & path . value (idx) != __char::__t (46)) 
+        while (idx > pos::__t (0) & path . value (idx) != __char::__t (46))
         // dot
-        
+
         {
             idx = idx . prev();
         }
@@ -21617,9 +21617,9 @@ ivy::ptr< ivy::ident::__t > ivy::strident::__t::flat  (const __bool &rhs,const i
     {
         ivy::strident::__t s2;
         s2 = (*this);
-        
+
         // workaround
-        
+
         vector__ivy__ident::domain::__t idx;
         idx = s2 . subscrs . begin();
         while (idx < s2 . subscrs . end)
@@ -21686,9 +21686,9 @@ void ivy::add_def  (const ivy::ptr< ivy::expr::__t > &s,ivy::flatst::__t &st,con
     __bool &is_object)
 {
     st . defining = ivy::native_bool (true);
-    
+
     //        var id := s.get_name.flat(false,st);
-    
+
     ivy::ptr< ivy::expr::__t > e;
     s -> flat (st,e);
     st . defining = ivy::native_bool (false);
@@ -21715,9 +21715,9 @@ void ivy::symbol::__t::flat  (ivy::flatst::__t &st,ivy::ptr< ivy::expr::__t > &r
         {
             f . name = f . name -> flat (ivy::native_bool (false),st);
             f . vrb = f . name -> get_verb();
-            
+
             // name subst could change verb
-            
+
             if (f . vrb == ivy::verb::__t (ivy::verb::none))
             {
                 ivy::check_defined (f . name,st,(*this) . ann);
@@ -22729,12 +22729,12 @@ void ivy::groupdc::__t::defd  (ivy::flatst::__t &st) const
 void ivy::prog::__t::flat ()
 {
     ivy::flatst::__t st;
-    
+
     // A pass to record all the defined identifiers, We need to
     // know which identifiers are defined to determine the
     // scope of an object reference and to disambiguate
     // hierarchical names from "dot" operators.
-    
+
     vector__ivy__decl::domain::__t idx;
     idx = (*this) . decls . begin();
     while (idx < (*this) . decls . end)
@@ -22742,12 +22742,12 @@ void ivy::prog::__t::flat ()
         (*this) . decls . value (idx) -> defd (st);
         idx = idx . next();
     }
-    
+
     // A pass to flatten. This pass expands module
     // instantiations and expands hieracharical names of object
     // members, so that all declarations are in global scope.
     // Object declarations remain, but their bodies are empty.
-    
+
     idx = (*this) . decls . begin();
     while (idx < (*this) . decls . end)
     {
@@ -23824,9 +23824,9 @@ void ivy::symbol::__t::type_fill_in  (ivy::decost::__t &st,ivy::ptr< ivy::expr::
     ivy::ptr< ivy::expr::__t > ee;
     ee = (*this);
     st . find (ee,res);
-    
+
     // workaround
-    
+
     if (res != ee) {
         ivy::ptr< ivy::expr::__t > __tmp9;
         res -> type_fill_in (st,__tmp9);
@@ -23854,9 +23854,9 @@ void ivy::app::__t::type_decorate  (ivy::decost::__t &st,const ivy::symeval::__t
     {
         if ((*this) . is (ivy::verb::__t (ivy::verb::dot)))
         {
-            
+
             // dot operator acts like curried function application
-            
+
             ivy::ptr< ivy::expr::__t > argty;
             ivy::ptr< ivy::expr::__t > arg;
             (*this) . get_arg (vector__ivy__expr::domain::__t (0)) -> type_decorate (st,m,arg,argty);
@@ -24002,9 +24002,9 @@ void ivy::type_infer_vec  (vector__ivy__expr::__t &es,const ivy::symeval::__t &t
         ivy::ptr< ivy::expr::__t > e;
         e = es . value (idx);
         ivy::ptr< ivy::expr::__t > ty;
-        
+
         // ignored
-        
+
         {
             ivy::ptr< ivy::expr::__t > __tmp11;
             e -> type_decorate (st,tc,__tmp11,ty);
@@ -24033,9 +24033,9 @@ void ivy::type_infer_known  (ivy::ptr< ivy::expr::__t > &e,const ivy::ptr< ivy::
     ivy::decost::__t st;
     st = ivy::decost::make();
     ivy::ptr< ivy::expr::__t > ty2;
-    
+
     // ignored
-    
+
     {
         ivy::ptr< ivy::expr::__t > __tmp13;
         e -> type_decorate (st,tc,__tmp13,ty2);
@@ -24264,12 +24264,12 @@ void ivy::bottom_up_type  (ivy::ptr< ivy::expr::__t > &e,const ivy::typeinferst:
             {
                 e = ivy::colon::make (e,st . tc . m . value (name),e -> get_ann());
             }
-        } else 
+        } else
         //                else {
         //		    call report_error(undefined.make(name),e.get_ann);
         //		    ok := false;
         //		}
-        
+
         {
             if (e -> get_verb() == ivy::verb::__t (ivy::verb::empty))
             {
@@ -24494,9 +24494,9 @@ void ivy::asgn::__t::typeinfer_desugar  (const __bool &desugar,ivy::typeinferst:
     ok = ivy::native_bool (true);
     ivy::bottom_up_type (res . lhs,st,ok);
     ivy::bottom_up_type (res . rhs,st,ok);
-    if (ok) 
+    if (ok)
     // avoid cascading errors
-    
+
     {
         ivy::ptr< ivy::expr::__t > lhs;
         lhs = res . lhs -> is_typed (ivy::verb::__t (ivy::verb::varv)) ?
@@ -24705,9 +24705,9 @@ void ivy::vardc::__t::typeinfer_int  (ivy::typeinferst::__t &st,ivy::vardc::__t 
         ivy::setup_formals (prms,ivy::native_bool (false),st);
         if (ok)
         {
-            
+
             // avoid cascading errors
-            
+
             if (res . typing -> is (ivy::verb::__t (ivy::verb::colon)))
             {
                 ivy::make_cast (res . typing -> get_arg (vector__ivy__expr::domain::__t (1)),res .
@@ -24724,23 +24724,23 @@ void ivy::vardc::__t::typeinfer_int  (ivy::typeinferst::__t &st,ivy::vardc::__t 
 void ivy::prog::__t::typeinfer ()
 {
     ivy::typeinferst::__t st;
-    
+
     // Get the subtype relation
-    
+
     st . subtype_rel = (*this) . get_subtypes();
-    
+
     // Get the global typing as initial typing context
-    
+
     ivy::global_types::__t gt;
     gt = (*this) . get_global_types (ivy::native_bool (false));
-    
+
     // don't curry member types
-    
+
     st . tc . m = gt . type_of;
-    
+
     // TODO: bottom-up inference
     // A pass to typeinfer types with Hindley-Milner
-    
+
     vector__ivy__decl::domain::__t idx;
     idx = (*this) . decls . begin();
     while (idx < (*this) . decls . end)
@@ -27496,9 +27496,9 @@ void cpp::stmt::parse_lang_stmt  (pstate::__t &st,const priority::__t &prio,ivy:
         res = s;
     } else
     {
-        
+
         // if not assignment, could be variable declaration
-        
+
         ivy::ptr< cpp::expr::__t > name;
         cpp::symbol::parse (st,name);
         if (st . ok)
@@ -28021,9 +28021,9 @@ void cpp::decl::parse  (pstate::__t &st,const priority::__t &prio,ivy::ptr< cpp:
                             if (st . ok & st . tok . end > pos::__t (0) &
                             st . tok . value (pos::__t (0)) == __char::__t (34))
                             {
-                                
+
                                 // double quote
-                                
+
                                 s . filename = st . tok;
                                 st . consume();
                             } else {
@@ -29298,9 +29298,9 @@ ivy::ptr< cpp::ident::__t > ivy::strident::__t::to_cpp  (const __bool &native) c
     {
         cpp::strident::__t x;
         x = ivy::strident_to_cpp ((*this),native);
-        
+
         // workaround
-        
+
         ivy::ptr< cpp::ident::__t > y;
         y = x;
         res = y;
@@ -29532,9 +29532,9 @@ void ivy::call_to_cpp  (const ivy::ptr< ivy::expr::__t > &func,const vector__ivy
 {
     ivy::prototype::__t proto;
     proto = st . protos . value (func -> get_arg (vector__ivy__expr::domain::__t (0)) -> get_name());
-    
+
     // First evaluate all of the inputs.
-    
+
     vector__cpp__expr::__t inpvals;
     vector__ivy__prototype_argument::domain::__t idx;
     idx = proto . args . begin();
@@ -29554,9 +29554,9 @@ void ivy::call_to_cpp  (const ivy::ptr< ivy::expr::__t > &func,const vector__ivy
         inpvals . append (inp);
         idx = idx . next();
     }
-    
+
     // Evaluate all of the arguments
-    
+
     vector__cpp__expr::__t args;
     idx = proto . args . begin();
     vector__cpp__stmt::__t rets;
@@ -29643,7 +29643,7 @@ void ivy::make_isa  (ivy::ptr< cpp::expr::__t > &s,const ivy::ptr< cpp::expr::__
 }
 void ivy::app::__t::to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::expr::__t > &res) const
 {
-    if ((*this) . is (ivy::verb::__t (ivy::verb::colon))) 
+    if ((*this) . is (ivy::verb::__t (ivy::verb::colon)))
     // Generally, type decorations are not emitted to
     // C++. However, in case of a numeral, we need to cast
     // the numeral to the appropriate type. If a string
@@ -29652,7 +29652,7 @@ void ivy::app::__t::to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::expr::__t > &r
     //
     // If a symbol is an action and its type is not a
     // function type, we have to add () for C++.
-    
+
     {
         ivy::ptr< ivy::expr::__t > arg;
         arg = (*this) . args . value (vector__ivy__expr::domain::__t (0));
@@ -29706,9 +29706,9 @@ void ivy::app::__t::to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::expr::__t > &r
         }
     } else
     {
-        if ((*this) . is (ivy::verb::__t (ivy::verb::arrow))) 
+        if ((*this) . is (ivy::verb::__t (ivy::verb::arrow)))
         // Function types need special translation to C++
-        
+
         {
             ivy::ptr< ivy::expr::__t > tmp;
             tmp = (*this);
@@ -29717,9 +29717,9 @@ void ivy::app::__t::to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::expr::__t > &r
         {
             if ((*this) . is (ivy::verb::__t (ivy::verb::isav)))
             {
-                
+
                 // `x isa t` is translated to `x.isa<t>()`
-                
+
                 ivy::ptr< cpp::expr::__t > arg0;
                 ivy::ptr< cpp::expr::__t > arg1;
                 (*this) . args . value (vector__ivy__expr::domain::__t (0)) -> to_cpp (st,arg0);
@@ -29742,10 +29742,10 @@ void ivy::app::__t::to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::expr::__t > &r
             {
                 if ((*this) . func -> is (ivy::verb::__t (ivy::verb::colon)) &
                 (*this) . func -> get_arg (vector__ivy__expr::domain::__t (0)) -> get_verb() ==
-                ivy::verb::__t (ivy::verb::castv)) 
+                ivy::verb::__t (ivy::verb::castv))
                 // A cast operator looks like (cast : (t->u))(x). This may indicate
-                // a need for an upcast in C++. 
-                
+                // a need for an upcast in C++.
+
                 {
                     ivy::ptr< ivy::expr::__t > ty;
                     ty =
@@ -29754,9 +29754,9 @@ void ivy::app::__t::to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::expr::__t > &r
                     ivy::upcast (ty,(*this) . args . value (vector__ivy__expr::domain::__t (0)),st,res);
                 } else
                 {
-                    
+
                     // Detect whether a function application is an action call.
-                    
+
                     ivy::ptr< ivy::expr::__t > func;
                     vector__ivy__expr::__t args;
                     ivy::get_app ((*this),func,args);
@@ -29766,11 +29766,11 @@ void ivy::app::__t::to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::expr::__t > &r
                         ivy::call_to_cpp (func,args,(*this) . ann,st,res);
                     } else
                     {
-                        
+
                         // This is the normal case of function application. We
                         // translate the function and all the arguments and
                         // then apply.
-                        
+
                         cpp::app::__t capp;
                         (*this) . func -> to_cpp (st,capp . func);
                         {
@@ -29793,9 +29793,9 @@ void ivy::app::__t::to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::expr::__t > &r
                                 idx = idx . next();
                             }
                             st . outputs = save_outputs;
-                            
+
                             // For ternary operators, we need to permute the arguments
-                            
+
                             if (capp . is (cpp::verb::__t (cpp::verb::ite)))
                             {
                                 ivy::ptr< cpp::expr::__t > tmp;
@@ -29804,12 +29804,12 @@ void ivy::app::__t::to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::expr::__t > &r
                                             value (vector__cpp__expr::domain::__t (1)));
                                 capp . args . set (vector__cpp__expr::domain::__t (1),tmp);
                             }
-                            
+
                             // For inbounds array accesses, we use the
                             // member function __inp rather than
                             // operator(). This does an ordinary unchecked
                             // vector access.
-                            
+
                             if (st . inbounds_nesting > pos::__t (0))
                             {
                                 __bool is_data;
@@ -29831,11 +29831,11 @@ void ivy::app::__t::to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::expr::__t > &r
                                     capp . func = cpp::dot::make (capp . func,inb,(*this) . ann);
                                 }
                             }
-                            
+
                             // If of the form (x:t).f, where t is a variant
                             // type, convert to x->f, since variant types are
                             // represented with smart pointers.
-                            
+
                             if ((*this) . func -> get_verb() == ivy::verb::__t (ivy::verb::dot))
                             {
                                 ivy::ptr< ivy::expr::__t > lhs;
@@ -30316,9 +30316,9 @@ void ivy::ifst::__t::to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::stmt::__t > &
     (*this) . cond -> to_cpp (st,res . cond);
     vector__cpp__stmt::__t code;
     code = st . code;
-    
+
     // side effects of cond evaluation
-    
+
     st . code = vector__cpp__stmt::empty();
     st . cond_nesting = st . cond_nesting . next();
     (*this) . thenst -> to_cpp (st,res . thenst);
@@ -30355,9 +30355,9 @@ void ivy::whilest::__t::to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::stmt::__t 
     (*this) . cond -> to_cpp (st,res . cond);
     vector__cpp__stmt::__t code;
     code = st . code;
-    
+
     // side effects of cond evaluation
-    
+
     st . code = vector__cpp__stmt::empty();
     st . cond_nesting = st . cond_nesting . next();
     st . loop_nesting = st . loop_nesting . next();
@@ -30506,9 +30506,9 @@ void ivy::actdc::__t::to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::decl::__t > 
     if (st . is_member)
     {
         idx = idx . next();
-        
+
         // skip the first input "this" if a member
-        
+
         ivy::prototype_argument::__t parg;
         parg = proto . args . value (vector__ivy__prototype_argument::domain::__t (0));
         if (! cprot & parg . is_copy)
@@ -30723,9 +30723,9 @@ str::__t ivy::enum_name  (const ivy::ptr< cpp::expr::__t > &name)
 void ivy::enum_to_cpp  (const ivy::ptr< cpp::expr::__t > &name,const ivy::ptr< ivy::typespec::__t >
     &spec,const ivy::ptr< cpp::decl::__t > &sd,ivy::tocppst::__t &st,ivy::ptr< cpp::decl::__t > &res)
 {
-    
+
     // Delcare the enum `__enum_t`.
-    
+
     cpp::enumdecl::__t ed;
     ed . ann = name -> get_ann();
     ed . name = cpp::symbol::makestr (ivy::enum_name (name),ed . ann);
@@ -30961,10 +30961,10 @@ void ivy::add_is_zero_pred  (cpp::structdecl::__t &s)
 }
 void ivy::add_hasher  (cpp::structdecl::__t &s)
 {
-    
+
     // Hash function adds hashes of members:
     //     struct __hash { size_t operator()(const name &x) {returns t1::__hash(f1) + ...; } };
-    
+
     cpp::structdecl::__t hashstr;
     hashstr . ann = s . ann;
     hashstr . name = cpp::symbol::makestr (ivy::from_str< str::__t > ("__hash"),s . ann);
@@ -31117,9 +31117,9 @@ void ivy::typedc::__t::to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::decl::__t >
             }
         }
         res . has_members = ivy::native_bool (true);
-        
+
         // This is not a forward declaration
-        
+
         vector__ivy__decl::__t members;
         {
             members = vector__ivy__decl::empty();
@@ -31280,9 +31280,9 @@ void ivy::vardc::__t::to_cpp  (ivy::tocppst::__t &st,ivy::ptr< cpp::decl::__t > 
         ivy::member_name (res . vtype . name);
     }
     resd = res;
-    
+
     // workaround
-    
+
     if (! st . in_class)
     {
         ivy::add_namespaces (resd,(*this) . typing -> get_arg (vector__ivy__expr::domain::__t (0))
@@ -31345,17 +31345,17 @@ cpp::prog::__t ivy::prog::__t::to_cpp () const
     {
         ivy::prog::__t s;
         s = (*this);
-        
+
         // workaround
-        
+
         ivy::tocppst::__t st;
-        
+
         // Get the subtyping relation
-        
+
         st . subtype_rel = s . get_subtypes();
-        
+
         // A pass to convert function defs to actions
-        
+
         vector__ivy__decl::domain::__t idx;
         idx = s . decls . begin();
         while (idx < s . decls . end)
@@ -31365,22 +31365,22 @@ cpp::prog::__t ivy::prog::__t::to_cpp () const
             s . decls . set (idx,d);
             idx = idx . next();
         }
-        
+
         // Get the global typing
-        
+
         st . globals = s . get_global_types (ivy::native_bool (true));
-        
+
         // A pass to register all of the type members
-        
+
         idx = s . decls . begin();
         while (idx < s . decls . end)
         {
             s . decls . value (idx) -> reg_member (st);
             idx = idx . next();
         }
-        
+
         // A pass to emit the forward declarations of classes
-        
+
         st . forward = ivy::native_bool (true);
         idx = s . decls . begin();
         while (idx < s . decls . end)
@@ -31396,9 +31396,9 @@ cpp::prog::__t ivy::prog::__t::to_cpp () const
             idx = idx . next();
         }
         st . forward = ivy::native_bool (false);
-        
+
         // A pass to rewrite actions with problematic signatures
-        
+
         idx = s . decls . begin();
         while (idx < s . decls . end)
         {
@@ -31407,18 +31407,18 @@ cpp::prog::__t ivy::prog::__t::to_cpp () const
             s . decls . set (idx,d);
             idx = idx . next();
         }
-        
+
         // A pass to record all of the C++ function prototypes
-        
+
         idx = s . decls . begin();
         while (idx < s . decls . end)
         {
             s . decls . value (idx) -> record_prototypes (st);
             idx = idx . next();
         }
-        
+
         // A pass to emit the C++ prototypes and class declarations
-        
+
         st . proto_only = ivy::native_bool (true);
         idx = s . decls . begin();
         while (idx < s . decls . end)
@@ -31431,9 +31431,9 @@ cpp::prog::__t ivy::prog::__t::to_cpp () const
             }
             idx = idx . next();
         }
-        
+
         // A pass to emit the C++ function implementations
-        
+
         st . proto_only = ivy::native_bool (false);
         idx = s . decls . begin();
         while (idx < s . decls . end)
@@ -31448,10 +31448,10 @@ cpp::prog::__t ivy::prog::__t::to_cpp () const
             }
             idx = idx . next();
         }
-        
+
         // Emit a main function by concatenating the init
         // declaration bodies.
-        
+
         cpp::funcdecl::__t main;
         main . ftype . base . _type = cpp::inttype (main . ann);
         main . ftype . base . name =
@@ -31498,35 +31498,35 @@ cpp::prog::__t ivy::prog::__t::to_cpp () const
     return res;
 }
 void ivy::prog::show_prog  (const str::__t &s) {}
-void ivy::prog::file_to_cpp  (const str::__t &name) 
+void ivy::prog::file_to_cpp  (const str::__t &name)
 // Read the program
 {
     ivy::prog::__t p;
     p = ivy::prog::read_file (name);
-    
+
     //	    var p := prog.dec(name);
     // Flattening pass
-    
+
     if (ivy::errors . end == vector__ivy__error::domain::__t (0)) {
         p . flat();
     }
-    
+
     //	    call show_prog(p.enc);
     // Type inference pass
-    
+
     if (ivy::errors . end == vector__ivy__error::domain::__t (0)) {
         p . typeinfer();
     }
-    
+
     // Translate to C++
-    
+
     cpp::prog::__t cpp_prog;
     if (ivy::errors . end == vector__ivy__error::domain::__t (0)) {
         cpp_prog = p . to_cpp();
     }
-    
+
     // Pretty-print the C++
-    
+
     if (ivy::errors . end == vector__ivy__error::domain::__t (0))
     {
         str::__t cpp_name;
@@ -31574,9 +31574,9 @@ int main  (int argc,char ** argv)
     ivy::__argc = argc;
     ivy::__argv = argv;
     {
-        
+
         //        str_to_verb(X) := verb.none;
-        
+
         ivy::verb_to_arity (ivy::verb::__t (ivy::verb::numeral)) = pos::__t (0);
         ivy::verb_to_arity (ivy::verb::__t (ivy::verb::fltnum)) = pos::__t (0);
         ivy::verb_to_arity (ivy::verb::__t (ivy::verb::string)) = pos::__t (0);
@@ -31755,9 +31755,9 @@ int main  (int argc,char ** argv)
         {
             if (inc . value (idx) == __char::__t (58))
             {
-                
+
                 // colon
-                
+
                 if (idx > start) {
                     ivy::include_path . append (inc . segment (start,idx));
                 }

@@ -58,7 +58,7 @@ class TkUI(object):
         # pre-compile the default AnalysysGraphUI
         self.analysisGraphWidgetClass = self.wrap_art_ui(self.AGUI())
 
-        
+
     # Wrap a subclass of  AnaysisGraphiUI class in a Tk interface.
 
     def wrap_art_ui(self,ag_ui):
@@ -87,7 +87,7 @@ class TkUI(object):
         nb = self.notebook
         if not hasattr(art,'state_graphs'):
             art.state_graphs = []
-        tab = nb.add(name,label=label) 
+        tab = nb.add(name,label=label)
         pw=tkinter.tix.PanedWindow(tab,orientation='horizontal')
         pw.pack(fill=BOTH,expand=1)
         frame=pw.add('f1',min=50)
@@ -207,7 +207,7 @@ class TkUI(object):
 
     def getans(self):
         return self.answers.pop() if self.answers else None
-        
+
 
 class TkAnalysisGraphWidget(tk_cy.TkCyCanvas,uu.WithMenuBar):
 
@@ -235,8 +235,8 @@ class TkAnalysisGraphWidget(tk_cy.TkCyCanvas,uu.WithMenuBar):
         res['fill'] = 'black' if get_classes(elem) == 'bottom_state' else ''
         res['outline'] = 'black'
         return res
-        
-            
+
+
     # Get styles for edges
 
     def get_edge_styles(self,elem):
@@ -256,9 +256,9 @@ class TkAnalysisGraphWidget(tk_cy.TkCyCanvas,uu.WithMenuBar):
         self.create_elements(self.g.as_cy_elements(dot_layout))
 
         # set the scroll region
-        
+
         self.config(scrollregion=self.bbox(ALL))
-        
+
         # fix the digraphs in edge labels
 
         items = self.find_withtag('edge_label')
@@ -313,7 +313,7 @@ def new_ui(ui_class = None):
     tkui_class = type('TkUImixed',(TkUI,ui_class),{})
     ivy_ui.ui = tkui_class()
     return ivy_ui.ui
-    
+
 def ui_main_loop(art):
     new_ui()
     ivy_ui.ui.add(art)

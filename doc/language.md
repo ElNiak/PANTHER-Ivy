@@ -87,7 +87,7 @@ relation `link` like this:
 
 This says that `node` is a POD type, but tells us nothing yet about
 how values of type `node` are represented. At this point, we say that
-`node` is an *uninterpreted* type. Further, we declared 
+`node` is an *uninterpreted* type. Further, we declared
 that `link` is a set of pairs (*X*,*Y*) where *X* and *Y*
 are nodes.
 
@@ -211,7 +211,7 @@ We could also have written `connect_unique` by *calling* `clear` and `connect`:
         call clear(a);
         call connect(a,b)
     }
-    
+
 Ivy uses the
 [call-by-value][cbv] convention. That is, when we call `clear(a)` a
 local variable *x* is created during the execution of `clear` and
@@ -241,13 +241,13 @@ executed in left-to-right order. Calls inside conditional operators
 occur whether or not the condition is true. For example, the statement:
 
     x := sqrt(y) if c else z
-    
+
 is equivalent to:
 
     call temp := sqrt(y);
     x := temp if c else z
 
-Parentheses are not used when calling an action with no parameters. 
+Parentheses are not used when calling an action with no parameters.
 For example, if we have:
 
     action next returns (val:t) = {
@@ -298,7 +298,7 @@ satisfies some condition:
     }
     else {
         z := y
-    }        
+    }
 
 Here, if there is any value `x` of type `t` such that `f(x) = y`, then
 such a value is assigned to `x` and the assignment `z := x + y` is
@@ -306,7 +306,7 @@ executed. If there is more than one such value, the choice is
 non-deterministic. If there is no such value, the `else` clause is
 executed. The symbol `x` is only in scope in the `if` clause. It acts
 like a local variable and is distinct from any `x` declared in an
-outer scope. 
+outer scope.
 
 It is also possible to choose a value of `x` minimizing some function
 of `x`. For example, we can find an element of a set `s` with the least key like this:
@@ -330,7 +330,7 @@ efficiently compiled and is easier for Ivy to reason about (see the
 ### Loops
 
 Loops are discouraged in Ivy. Often, the effect of a loop can be
-described using an assignment or an `if some` conditional. 
+described using an assignment or an `if some` conditional.
 
 For example, instead of something like this:
 
@@ -565,7 +565,7 @@ synchronous hypothesis in practice. Instead, we will consider how to
 use the synchronous IVY language to model a distributed protocol at an
 abstract level using *interleaving* concurrency. In an interleaving
 model, processes take turns executing actions in isolation (that is,
-in apparently zero time) in a non-deterministic order. 
+in apparently zero time) in a non-deterministic order.
 
 An Ivy program exports a set of actions to its environment. Each of
 these actions can be used to model a single isolated step of a
@@ -628,7 +628,7 @@ the stated requirements.
 ## Safety and invariants
 
 A program is *safe* if it cannot fail, so long as in the past all
-requirements of the environment have been satisfied (that is, it is safe if 
+requirements of the environment have been satisfied (that is, it is safe if
 any failure of the program can be blamed on the environment).
 
 There are various ways to use assertions to specify desired safety
@@ -681,14 +681,14 @@ ordered set.
 
 Ivy allows us to introduce background theories in the form of logical
 axioms. This in turn allows us to avoid using unnecessarily powerful
-theories. As an example, consider defining an ordering relation over 
+theories. As an example, consider defining an ordering relation over
 our node ID's:
 
     relation (I:id < J:id)
 
 This is an example of an *infix* symbol. The symbol `<` is no
 different than other relational symbols, except that Ivy pre-defines
-it as having infix syntax. 
+it as having infix syntax.
 
 We can ensure that `<` is a total order by writing axioms:
 
@@ -700,7 +700,7 @@ These axioms say, respectively, that `<` is
 [transitive](https://en.wikipedia.org/wiki/Transitive_relation),
 [anti-symmetric](https://en.wikipedia.org/wiki/Antisymmetric_relation)
 and [total](https://en.wikipedia.org/wiki/Total_relation). As in other
-cases, the free variables are universally quantified. 
+cases, the free variables are universally quantified.
 
 Of course, axioms are assumptions and assumptions are dangerous.  We
 want to make sure that our axioms are consistent, that is, that they
@@ -716,7 +716,7 @@ equality operator pre-declared for each type, but that we use `=` as a
 short-hand for all of them. It is useful to be able to declare other
 such overloaded operators to avoid, for example, having to invent a
 new "less than" symbol for every ordered type, or adding type
-annotations to operators. 
+annotations to operators.
 
 Ivy provides for this in a limited way. Certain symbols, such as `<`,
 `+` and `0` are always overloaded. This allows use the same symbol
@@ -751,7 +751,7 @@ specific meanings.
 A quoted symbol is a possibly-empty sequence of characters enclosed in
 double quote characters (and not containing a double quote character).
 An example would be `"ab$c"`. Quoted symbols are similar to numerals:
-their type is inferred from context. 
+their type is inferred from context.
 
 ## Modules
 
@@ -791,7 +791,7 @@ counter value `val`. We can create an instance of the module like this:
      instance c : counter(foo)
 
 This creates an *object* `c` with members `c.val`, `c.up`, `c.down`
-and `c.is_zero`. 
+and `c.is_zero`.
 
 Any Ivy declaration can be contained in a module. This includes
 axioms, invariants, instances and modules. As an example, here is a
@@ -865,7 +865,7 @@ or module. For example:
             this.bit := false
         }
     }
-    
+
 Here `this.bit` refers to `foo.bit`. In the outermost scope `this`
 refers to the root object, which contains the entire program.
 
@@ -879,7 +879,7 @@ to define types with *traits*. For example:
         function next(N:this) : this
         function plus(X:this,Y:this) : this
     }
-    
+
 This declares a type `num` and also a function `num.next` from type
 `num` to type `num` and am  function `plus` that takes two arguments of type `num`
 and returns a `num`. The function `num.next` can be applied using
@@ -893,8 +893,8 @@ for `num.next(x,y)`. Actions can similary be traits of types. For example:
             z := x + y;
         }
     }
-    
-In this case, `x.plus(y)` is a shorthand for the action call `num.plus(x,y)`. 
+
+In this case, `x.plus(y)` is a shorthand for the action call `num.plus(x,y)`.
 
 
 ### Parameterized objects
@@ -977,7 +977,7 @@ down. We could express this property as a monitor like this:
     object mon = {
         action pre_connect(x:client,y:server) = {
             require semaphore(y)
-        }        
+        }
         execute pre_connect before connect
     }
 
@@ -1011,7 +1011,7 @@ Similarly, we can write:
 
     before connect(x:client,y:server) {
         require semaphore(y)
-    }        
+    }
 
 If we drop the input or output parameters, they are inherited from the monitored action.
 For example:
@@ -1049,7 +1049,7 @@ need to use `old` in after monitors.
 ### Monitor state
 
 Usually, monitors contain state components that allow them to remember
-some of the history of past events. For example, here is a monitor specifying a 
+some of the history of past events. For example, here is a monitor specifying a
 property of `counter` objects. It requires that immediately after a call to `up`,
 the `is_zero` action cannot return true:
 
@@ -1081,7 +1081,7 @@ synchronize with actions of counter `c` (in this case it doesn't make
 any difference whether it is before or after). The action `is_zero`
 executes after calls for the counter's `is_zero` action and asserts a
 fact about the return value: if the last action was `up` the result
-cannot be true. 
+cannot be true.
 
 
 ## Action implementations
@@ -1186,7 +1186,7 @@ However, definitions have several advantages. Primarily, they are safer,
 since definitions are guaranteed to be consistent. In addition they can be
 computed. If we use an axiom, the only way that Ivy can compile the
 function `square` is to compile a table of squares. On the other hand,
-Ivy can compile the definition of `square` into a procedure. 
+Ivy can compile the definition of `square` into a procedure.
 
 Ivy doesn't (currently) allow recursive definitions. So, for example,
 this is not allowed:
@@ -1281,7 +1281,7 @@ which is alternation-free.
 The normal way of using Ivy is to declare uninterpreted types and to
 give the necessary axioms over those types to prove desired properties
 of a system. However, it is also possible in Ivy to associate types
-with sorts that are interpreted in the underlying theorem prover. 
+with sorts that are interpreted in the underlying theorem prover.
 
 For example:
 
@@ -1312,7 +1312,7 @@ are:
 - bv[*N*]: bit vectors of length *N*, where *N* > 0
 
 Arithmetic on `nat` is saturating. That is, any operation that would yield
-a neagtive number instead gives zero. 
+a neagtive number instead gives zero.
 
 An arbitrary function or relation symbol can be interpreted. This is useful
 for symbols of the theory that have no pre-defined overloaded symbol in Ivy.
@@ -1321,7 +1321,7 @@ For example:
     type t
     type s
     function extract_lo(X:t) : s
-    
+
     interpret t -> bv[8]
     interpret s -> bv[4]
     interpret extract_lo -> bfe[3][0]
@@ -1353,7 +1353,7 @@ the environment. For example:
 
     action callback(x:nat) returns (y:nat)
     import callback
-    
+
 or simply:
 
     import action callback(x:nat) returns (y:nat)
@@ -1364,11 +1364,11 @@ postconditions.  For example:
     before callback {
         require x > 0;
     }
-    
+
     after callback {
         ensure y = x - 1;
     }
-    
+
 The `require` in this case is guarantee for the program and an
 assumption for the environment. Similarly, the `ensure` is an
 assumption for the program and a guarantee for the environment.  The
@@ -1380,7 +1380,7 @@ An imported action may not be implemented by the program.
 
 Ivy doesn't require us to prove all at once that a program is safe.
 Instead, we can break the proof down into smaller proofs using the
-*assume/guarantee* approach. 
+*assume/guarantee* approach.
 
 For example, suppose we have the following program with two objects:
 
@@ -1648,7 +1648,7 @@ for actions in the isolate.
 
 ### New in version 1.5
 
-- Keywords: function, class, object, method, execute, destructor, 
+- Keywords: function, class, object, method, execute, destructor,
   some, maximizing, maximizing, private, implement, using, property, while, invariant,
   struct, definition, ghost, alias, trusted, this, var, attribute, scenario, proof, named, fresh
 
@@ -1666,5 +1666,3 @@ to declare a type that is finite and iterable, and whose size is a parameter.
 ### Deprecated in version 1.7
 
 - The init declation (only 'after init' is now supported for initialization)
-
-

@@ -11,7 +11,7 @@ module segment(domain,range,arr) = {
     # - Type `arr` must be an array type over (`domain`,`range`).
 
     # This is a type of segments over `arr`
-    
+
     type this
 
     # We say segment_of(X,Y) if X is a segment of array Y from
@@ -24,7 +24,7 @@ module segment(domain,range,arr) = {
 
     action make(data:arr, begin:domain, end:domain) returns (seg:this)
 
-    # Get element `n` of the segment. 
+    # Get element `n` of the segment.
 
 #    action get(seg:this, n:domain)
 
@@ -47,12 +47,12 @@ module segment(domain,range,arr) = {
             segment_of(seg,data,begin,end) := true
         }
     }
-        
+
     implementation {
-        
+
         destructor offset(X:this) : domain
         destructor elems(X:this) : arr
-        
+
         definition value(X,N) = elems(X).value(N + offset(X))
 
         after init {
@@ -73,7 +73,7 @@ module segment(domain,range,arr) = {
             };
         }
     }
-    
+
     isolate iso = this with domain.impl,arr
 
 }
@@ -85,6 +85,3 @@ instance arr : array(dom,rng)
 instance s : segment(dom,rng,arr)
 
 export s.make
-
-
- 

@@ -26,7 +26,7 @@ spontaneously prints a message. Here is an approximation:
 
     export hello
     import world
-    
+
 This program provides an action `hello` that calls action `world`
 provided by the environment. Let's try compiling and running this program:
 
@@ -49,7 +49,7 @@ The prompt `>` tells us we're in the REPL. We can now call an exported action:
     > hello
     world
 
-When we call `hello` the program calls `world`. 
+When we call `hello` the program calls `world`.
 
 # Input and output
 
@@ -88,10 +88,10 @@ Let's try to generate a REPL for this program:
 
     $ ivy_to_cpp target=repl account.ivy
     error: cannot compile "+" because type money is uninterpreted
-   
+
 IVy has a point here. We can formally verify programs that use
 abstract types like `money`, but it's hard to actually execute them.
-We need to make `money` an interpreted type so IVy will know how to add two 
+We need to make `money` an interpreted type so IVy will know how to add two
 values of this type. For example, we can use 16-bit binary numbers to
 represent `money`, using this declaration:
 
@@ -116,7 +116,7 @@ We can run a few transactions using the REPL:
     > account.withdraw(4)
     > account.get_balance
     65535
-    > 
+    >
 
 That last one is a bit surprising. Perhaps we expected the answer
 `-1`, but the REPL doesn't know that we intended `balance` to
@@ -149,7 +149,7 @@ Let's give it a try:
     $
 
 What happened here was that a specification was violated by the
-environment (namely us). 
+environment (namely us).
 
 We've seen how to call an exported action from the REPL. What happens
 if the IVy program calls an imported action? Here, we define an imported action `ask` that returns an amount, and an exported action `ask_and_check_balance` that calls `ask` to get an amount and checks whether that amount can be safely withdrawn:
@@ -171,7 +171,7 @@ Here is an example run:
     ask
     ? 6
     false
-    > 
+    >
 
 When Ivy calls `ask`, the REPL prompts us for a return value with `?`.
 
@@ -190,7 +190,7 @@ and two id's. Here are the implementations:
         interpret node.t -> bv[1]
 
         implement node.get_next {
-            y := x + 1 
+            y := x + 1
        }
     }
 
@@ -225,7 +225,7 @@ Now that we have concrete datatypes, we should be able to execute the
 program. We compile the program and run the REPL like this:
 
     $ ivy_to_cpp target=repl leader_election_ring_repl.ivy
-    $ g++ -o leader_election_ring_repl leader_election_ring_repl.cpp 
+    $ g++ -o leader_election_ring_repl leader_election_ring_repl.cpp
     $ ./leader_election_ring_repl
     >
 
@@ -257,7 +257,7 @@ example, deliver this message:
 
     > trans.recv(0,1)
     serv.elect(0)
-    > 
+    >
 
 Node 0 sees its own id and elects itself leader, as it should.
 
@@ -300,7 +300,7 @@ be true in the extract because of this. To fix this, we include `asgn` in the ex
 Let's try again:
 
     $ ivy_to_cpp target=repl isolate=iso_impl leader_election_ring_repl.ivy
-    $ g++ -o leader_election_ring_repl leader_election_ring_repl.cpp 
+    $ g++ -o leader_election_ring_repl leader_election_ring_repl.cpp
     $ ./leader_election_ring_repl
     >
 

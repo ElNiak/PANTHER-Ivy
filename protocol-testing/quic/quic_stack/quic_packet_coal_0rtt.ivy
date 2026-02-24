@@ -34,7 +34,7 @@ include byte_stream
 
 # ### Packet
 
-# The type `quic_packet` represents packet. 
+# The type `quic_packet` represents packet.
 
 # The fields are:
 #
@@ -116,13 +116,13 @@ action packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_co
 # --------------------------
 
 
-around packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_coal_0rtt) {    
+around packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_coal_0rtt) {
     # Extract the source and destination cid's and packet number from the packet.
 
     require pkt.src_cid = pkt.src_cid_i; #[B:2]
     require pkt.dst_cid = pkt.dst_cid_i;
     require pkt.seq_num = pkt.seq_num_i;
-    
+
     var dcid_i := pkt.dst_cid_i;
     var scid_i := pkt.src_cid_i;
     if cid_mapped(dcid_i) {
@@ -216,7 +216,7 @@ around packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_co
     require conn_seen(scid) & pkt.long & is_client(scid) -> conn_requested(src,dst,scid);
 
     # Packet must be sent to the endpoint from which the highest numbered
-    # packet has been received. ~queued_challenge(dcid) & 
+    # packet has been received. ~queued_challenge(dcid) &
     # call show_probing(dcid ,hi_non_probing(dcid));
     # require  conn_seen(dcid) -> hi_non_probing_endpoint(dcid,dst);  # [10]
 
@@ -262,7 +262,7 @@ around packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_co
         conn_requested(src,dst,dcid) := false;
         connected(dcid) :=  false;
         connected(scid) :=  false;
-        
+
         conn_seen(dcid) := false;
         conn_seen(scid) := false;
         conn_seen(server_cid) := false;
@@ -278,7 +278,7 @@ around packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_co
         extns := extns.append(make_transport_parameters);
         call tls_api.upper.create(0,true,extns);  # false means this instance of tls is not a server
         #call show_initial_request_retry;
-        #call tls_client_initial_request(src,dst,server_cid,final_version); #TODO 
+        #call tls_client_initial_request(src,dst,server_cid,final_version); #TODO
         #call tls_client_initial_response(src,dst,spkt);
         conn_requested(src,dst,the_cid) := true;
     };
@@ -371,7 +371,7 @@ around packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_co
     #call show_connected(connected(the_cid), connected_to(the_cid));
 
     # The queued frames are deleted
-    
+
     queued_frames(scid_i) := frame.arr.empty;
     queued_non_probing(scid_i) := false;
     queued_non_ack(scid_i) := false;
@@ -381,6 +381,3 @@ around packet_event_coal_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_co
     queued_ack_eliciting(scid_i) := false;
 #Hamid
 }
-
-
-

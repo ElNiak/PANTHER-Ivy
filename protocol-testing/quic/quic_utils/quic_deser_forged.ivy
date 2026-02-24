@@ -54,7 +54,7 @@ object quic_deser_forged = {}
         int token_count = 0;
         int token_len = 0;
 
-    
+
     public:
         quic_deser_forged(const std::vector<char> &inp) : ivy_binary_deser_128(inp),state(quic_s_init) {
         //quic_deser_forged(const std::vector<char> &inp) : ivy_binary_deser(inp),state(quic_s_init) {
@@ -88,7 +88,7 @@ object quic_deser_forged = {}
             }
             break;
             case quic_s_dcid:
-            {   
+            {
                 if (long_format) {
                     int128_t cil;
                     //long long cil;
@@ -110,10 +110,10 @@ object quic_deser_forged = {}
                     int128_t cil;
                     //long long cil;
                     getn(cil,1);
-                    std::cerr << "sourceID size " << cil << "\n";  
+                    std::cerr << "sourceID size " << cil << "\n";
                     if(cil > 0)
                         have_scid = true;
-                    else 
+                    else
                         have_scid = false;
                     scil = cil;
                     scid_mim = cil;
@@ -141,7 +141,7 @@ object quic_deser_forged = {}
 		        //std::cerr << "sourceID quic_s_retry_token 1 " <<  std::hex <<  res << "\n";
                 ivy_binary_deser_128::getn(res,1);
                 //ivy_binary_deser::getn(res,1);
-                
+
                 /*if(const char* env_p3 = std::getenv("RETRY_TOKEN_LENGTH")) {
                         std::cerr << "RETRY_TOKEN_LENGTH " << env_p3 << "\n";
                         token_len = atoi(env_p3);
@@ -150,9 +150,9 @@ object quic_deser_forged = {}
                         token_len = token_length;
 
                     std::cerr << "token_count " << token_count << "\n";
-                    
+
                     if(token_count < token_len){
-                        getn(res,1);    
+                        getn(res,1);
                         token_count += 1;
                         if(token_count == token_len) {
                             fence = 0;
@@ -166,7 +166,7 @@ object quic_deser_forged = {}
                         else
                         state = quic_s_retry_token; //useless ?
                     }
-                    else 
+                    else
                         state = quic_s_pkt_num;*/
 		       // std::cerr << "sourceID quic_s_retry_token 2" << std::hex << res << "\n";
             }
@@ -182,7 +182,7 @@ object quic_deser_forged = {}
             }
             break;
             default:
-                std::cerr << "quic_deser_forged 3\n";  
+                std::cerr << "quic_deser_forged 3\n";
                 throw deser_err();
             }
         }
@@ -221,29 +221,29 @@ object quic_deser_forged = {}
         }
 
         virtual int open_tag(const std::vector<std::string> &tags) {
-            std::cerr << "state          = " << state << "\n";  
+            std::cerr << "state          = " << state << "\n";
             std::cerr << "quic_s_payload = " << quic_s_payload << "\n";
             std::cerr << "quic_s_payload == " << (quic_s_payload == state) << "\n";
-            std::cerr << "quic_deser_forged 2\n";  
+            std::cerr << "quic_deser_forged 2\n";
             throw deser_err();
         }
 
         virtual bool open_list_elem() {
             if (state == quic_s_payload)
                 return payload_length-->  0;
-            
+
             if (state == quic_s_retry_token)
                 return data_remaining-->  0;
-        
+
             if (state == quic_s_init)
                 return more(1);
 
-            std::cerr << "quic_deser_forged 1\n";  
+            std::cerr << "quic_deser_forged 1\n";
             throw deser_err();
         }
 
         void open_list() {
-            
+
         }
         void close_list() {
             if (state == quic_s_payload) {
@@ -259,7 +259,7 @@ object quic_deser_forged = {}
                     len = 0;
                 }
                 payload_length = len;
-                std::cerr << "quic_deser_forged  payload_length 1" << payload_length << "\n";  
+                std::cerr << "quic_deser_forged  payload_length 1" << payload_length << "\n";
                 if (payload_length > 0) {
                     fence = pos + payload_length - QUIC_DESER_FAKE_CHECKSUM_LENGTH;
                 } else {
@@ -278,4 +278,3 @@ object quic_deser_forged = {}
     };
 
 >>>
-

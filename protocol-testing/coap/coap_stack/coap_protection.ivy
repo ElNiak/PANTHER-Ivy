@@ -26,9 +26,9 @@ module coap_protection(tls_id, tls) = {
         payload    : stream_data         # [8]
     }
 
-    action encrypt(c:tls_id,seq:pkt_num,pkt:stream_data) returns (pkt:stream_data) 
+    action encrypt(c:tls_id,seq:pkt_num,pkt:stream_data) returns (pkt:stream_data)
     action decrypt(c:tls_id,seq:pkt_num,pkt:stream_data) returns (res:tls.decrypt_result)
-    
+
 }
 
 object coap_prot_ser = {}
@@ -49,7 +49,7 @@ object coap_prot_ser = {}
 
         virtual void  set(int128_t res) {
             setn(res,1);
-        }    
+        }
     };
 
 >>>
@@ -73,12 +73,12 @@ object coap_prot_deser = {}
 
         void  get(int128_t &res) {
             getn(res,1);
-        }    
+        }
 
         unsigned char peek(unsigned p) {
             return more(p-pos+1) ? inp[p] : 0;
         }
-            
+
         void open_list() {
             return;
         }

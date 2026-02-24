@@ -192,18 +192,18 @@ namespace hash_space {
 
         typedef Value &reference;
         typedef const Value &const_reference;
-    
+
         struct Entry
         {
             Entry* next;
             Value val;
-      
+
         Entry(const Value &_val) : val(_val) {next = 0;}
         };
-    
+
 
         struct iterator
-        {      
+        {
             Entry* ent;
             hashtable* tab;
 
@@ -240,7 +240,7 @@ namespace hash_space {
             }
 
 
-            bool operator==(const iterator& it) const { 
+            bool operator==(const iterator& it) const {
                 return ent == it.ent;
             }
 
@@ -250,7 +250,7 @@ namespace hash_space {
         };
 
         struct const_iterator
-        {      
+        {
             const Entry* ent;
             const hashtable* tab;
 
@@ -287,7 +287,7 @@ namespace hash_space {
             }
 
 
-            bool operator==(const const_iterator& it) const { 
+            bool operator==(const const_iterator& it) const {
                 return ent == it.ent;
             }
 
@@ -305,13 +305,13 @@ namespace hash_space {
         HashFun hash_fun ;
         GetKey get_key;
         KeyEqFun key_eq_fun;
-    
+
     public:
 
     hashtable(size_t init_size) : buckets(init_size,(Entry *)0) {
             entries = 0;
         }
-    
+
         hashtable(const hashtable& other) {
             dup(other);
         }
@@ -326,11 +326,11 @@ namespace hash_space {
             clear();
         }
 
-        size_t size() const { 
+        size_t size() const {
             return entries;
         }
 
-        bool empty() const { 
+        bool empty() const {
             return size() == 0;
         }
 
@@ -338,15 +338,15 @@ namespace hash_space {
             buckets.swap(other.buckets);
             std::swap(entries, other.entries);
         }
-    
+
         iterator begin() {
             for (size_t i = 0; i < buckets.size(); ++i)
                 if (buckets[i])
                     return iterator(buckets[i], this);
             return end();
         }
-    
-        iterator end() { 
+
+        iterator end() {
             return iterator(0, this);
         }
 
@@ -356,15 +356,15 @@ namespace hash_space {
                     return const_iterator(buckets[i], this);
             return end();
         }
-    
-        const_iterator end() const { 
+
+        const_iterator end() const {
             return const_iterator(0, this);
         }
-    
+
         size_t get_bucket(const Value& val, size_t n) const {
             return hash_fun(get_key(val)) % n;
         }
-    
+
         size_t get_key_bucket(const Key& key) const {
             return hash_fun(key) % buckets.size();
         }
@@ -379,11 +379,11 @@ namespace hash_space {
 
             size_t n = get_bucket(val);
             Entry* from = buckets[n];
-      
+
             for (Entry* ent = from; ent; ent = ent->next)
                 if (key_eq_fun(get_key(ent->val), get_key(val)))
                     return ent;
-      
+
             if(!ins) return 0;
 
             Entry* tmp = new Entry(val);
@@ -397,11 +397,11 @@ namespace hash_space {
         {
             size_t n = get_key_bucket(key);
             Entry* from = buckets[n];
-      
+
             for (Entry* ent = from; ent; ent = ent->next)
                 if (key_eq_fun(get_key(ent->val), key))
                     return ent;
-      
+
             return 0;
         }
 
@@ -418,7 +418,7 @@ namespace hash_space {
             Entry *ent = lookup(val,true);
             return std::pair<iterator,bool>(iterator(ent,this),entries > old_entries);
         }
-    
+
         iterator insert(const iterator &it, const Value& val){
             Entry *ent = lookup(val,true);
             return iterator(ent,this);
@@ -460,7 +460,7 @@ namespace hash_space {
             }
             buckets.swap(tmp);
         }
-    
+
         void clear()
         {
             for (size_t i = 0; i < buckets.size(); ++i) {
@@ -487,7 +487,7 @@ namespace hash_space {
         }
     };
 
-    template <typename T> 
+    template <typename T>
         class equal {
     public:
         bool operator()(const T& x, const T &y) const {
@@ -511,7 +511,7 @@ namespace hash_space {
         }
     };
 
-    template <typename Element, class HashFun = hash<Element>, 
+    template <typename Element, class HashFun = hash<Element>,
         class EqFun = equal<Element> >
         class hash_set
         : public hashtable<Element,Element,HashFun,identity<Element>,EqFun> {
@@ -524,7 +524,7 @@ namespace hash_space {
     : hashtable<Element,Element,HashFun,identity<Element>,EqFun>(7) {}
     };
 
-    template <typename Key, typename Value, class HashFun = hash<Key>, 
+    template <typename Key, typename Value, class HashFun = hash<Key>,
         class EqFun = equal<Key> >
         class hash_map
         : public hashtable<std::pair<Key,Value>,Key,HashFun,proj1<Key,Value>,EqFun> {
@@ -536,7 +536,7 @@ namespace hash_space {
 
     Value &operator[](const Key& key) {
 	std::pair<Key,Value> kvp(key,Value());
-	return 
+	return
 	hashtable<std::pair<Key,Value>,Key,HashFun,proj1<Key,Value>,EqFun>::
         lookup(kvp,true)->val.second;
     }
@@ -549,7 +549,7 @@ namespace hash_space {
             hash<D > h1;
             hash<R > h2;
             size_t res = 0;
-            
+
             for (typename hash_map<D,R>::const_iterator it=p.begin(), en=p.end(); it!=en; ++it)
                 res += (h1(it->first)+h2(it->second));
             return res;
@@ -578,7 +578,7 @@ void __ivy_exit(int);
 typedef __int128_t int128_t;
 typedef __uint128_t uint128_t;
 #include <signal.h>
-#include <chrono> 
+#include <chrono>
 int call_generating = 1;
 
 template <typename D, typename R>
@@ -617,7 +617,7 @@ struct hash_thunk {
         class ivy_binary_ser;
         class ivy_binary_deser;
 
-    
+
     extern "C" {
     #ifdef _WIN32
     #include "picotls/wincompat.h"
@@ -669,14 +669,14 @@ struct hash_thunk {
 
 	class CTimeMeasuring;
 
-	
+
 	#include <chrono>
 	#include <unordered_map>
 	using namespace std::chrono;
 
 	class ChronoTimeMeasuring;
 
-	
+
 
     class reader;
     class timer;
@@ -688,31 +688,31 @@ struct hash_thunk {
             int128_t val;
             int128_t __hash() const {return val;}
         };
-        
+
 	std::ostream& operator<<(std::ostream&s, const LongClass &v) {
-		std::ostream::sentry ss( s ); 
-		if ( ss ) { 
-		   __int128_t value = v.val; 
-		   //https://stackoverflow.com/questions/25114597/how-to-print-int128-in-g 
-		   __uint128_t tmp = value < 0 ? -value : value; 
-		   char buffer[ 128 ]; 
-		   char* d = std::end( buffer ); 
-		   do 
-		   { 
-		     -- d; 
-		     *d = "0123456789"[ tmp % 10 ]; 
-		     tmp /= 10; 
-		   } while ( tmp != 0 ); 
-		   if ( value < 0 ) { 
-		      -- d; 
-		      *d = '-'; 
-		   } 
-		   int len = std::end( buffer ) - d; 
-		   if ( s.rdbuf()->sputn( d, len ) != len ) { 
-		      s.setstate( std::ios_base::badbit ); 
-		    } 
-	    } 
-	    return s; 
+		std::ostream::sentry ss( s );
+		if ( ss ) {
+		   __int128_t value = v.val;
+		   //https://stackoverflow.com/questions/25114597/how-to-print-int128-in-g
+		   __uint128_t tmp = value < 0 ? -value : value;
+		   char buffer[ 128 ];
+		   char* d = std::end( buffer );
+		   do
+		   {
+		     -- d;
+		     *d = "0123456789"[ tmp % 10 ];
+		     tmp /= 10;
+		   } while ( tmp != 0 );
+		   if ( value < 0 ) {
+		      -- d;
+		      *d = '-';
+		   }
+		   int len = std::end( buffer ) - d;
+		   if ( s.rdbuf()->sputn( d, len ) != len ) {
+		      s.setstate( std::ios_base::badbit );
+		    }
+	    }
+	    return s;
 	}
     std::istream& operator>>(std::istream& is, LongClass& x) {
         x.val = 0;
@@ -758,7 +758,7 @@ class quic_client_test_max {
     virtual void ivy_check_progress(int,int){}
 class cid : public LongClass {
 public:
-    
+
     cid(){}
     cid(const LongClass &s) : LongClass(s) {}
     cid(int128_t v) : LongClass(v) {}
@@ -778,7 +778,7 @@ public:
                     bv_to_x_hash[next_bv] = s;
     		//std::cerr << "bv_to_x_hash[next_bv]" << s << std::endl;
                     return next_bv++;
-                } 
+                }
             }
             std::cerr << "Ran out of values for type cid" << std::endl;
             __ivy_out << "out_of_values(cid,\"" << s << "\")" << std::endl;
@@ -817,7 +817,7 @@ public:
     #endif
 };class itoken : public LongClass {
 public:
-    
+
     itoken(){}
     itoken(const LongClass &s) : LongClass(s) {}
     itoken(int128_t v) : LongClass(v) {}
@@ -837,7 +837,7 @@ public:
                     bv_to_x_hash[next_bv] = s;
     		//std::cerr << "bv_to_x_hash[next_bv]" << s << std::endl;
                     return next_bv++;
-                } 
+                }
             }
             std::cerr << "Ran out of values for type itoken" << std::endl;
             __ivy_out << "out_of_values(itoken,\"" << s << "\")" << std::endl;
@@ -886,195 +886,195 @@ public:
 class tls__handshake{
 public:
     struct wrap {
-    
+
         virtual wrap *dup() = 0;
         virtual bool deref() = 0;
         virtual ~wrap() {}
     };
-    
+
     template <typename T> struct twrap : public wrap {
-    
+
         unsigned refs;
-    
+
         T item;
-    
+
         twrap(const T &item) : refs(1), item(item) {}
-    
+
         virtual wrap *dup() {refs++; return this;}
-    
+
         virtual bool deref() {return (--refs) != 0;}
-    
+
     };
-    
+
     int tag;
-    
+
     wrap *ptr;
-    
+
     tls__handshake(){
     tag=-1;
     ptr=0;
     }
-    
+
     tls__handshake(int tag,wrap *ptr) : tag(tag),ptr(ptr) {}
-    
+
     tls__handshake(const tls__handshake&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
     };
-    
+
     tls__handshake& operator=(const tls__handshake&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
         return *this;
     };
-    
+
     ~tls__handshake(){if(ptr){if (!ptr->deref()) delete ptr;}}
-    
+
     static int temp_counter;
-    
+
     static void prepare() {temp_counter = 0;}
-    
+
     static void cleanup() {}
-    
+
     size_t __hash() const {
-    
+
         switch(tag) {
-    
+
             case 0: return 0 + hash_space::hash<quic_client_test_max::tls__client_hello>()(quic_client_test_max::tls__handshake::unwrap< quic_client_test_max::tls__client_hello >((*this)));
-    
+
             case 1: return 1 + hash_space::hash<quic_client_test_max::tls__server_hello>()(quic_client_test_max::tls__handshake::unwrap< quic_client_test_max::tls__server_hello >((*this)));
-    
+
             case 2: return 2 + hash_space::hash<quic_client_test_max::tls__new_session_ticket>()(quic_client_test_max::tls__handshake::unwrap< quic_client_test_max::tls__new_session_ticket >((*this)));
-    
+
             case 3: return 3 + hash_space::hash<quic_client_test_max::tls__encrypted_extensions>()(quic_client_test_max::tls__handshake::unwrap< quic_client_test_max::tls__encrypted_extensions >((*this)));
-    
+
             case 4: return 4 + hash_space::hash<quic_client_test_max::tls__unknown_message>()(quic_client_test_max::tls__handshake::unwrap< quic_client_test_max::tls__unknown_message >((*this)));
-    
+
             case 5: return 5 + hash_space::hash<quic_client_test_max::tls__finished>()(quic_client_test_max::tls__handshake::unwrap< quic_client_test_max::tls__finished >((*this)));
-    
+
         }
-    
+
         return 0;
-    
+
     }
-    
+
     template <typename T> static const T &unwrap(const tls__handshake &x) {
-    
+
         return ((static_cast<const twrap<T> *>(x.ptr))->item);
-    
+
     }
-    
+
     template <typename T> static T &unwrap(tls__handshake &x) {
-    
+
          twrap<T> *p = static_cast<twrap<T> *>(x.ptr);
-    
+
          if (p->refs > 1) {
-    
+
              p = new twrap<T> (p->item);
-    
+
          }
-    
+
          return ((static_cast<twrap<T> *>(p))->item);
-    
+
     }
-    
+
 };class tls__extension{
 public:
     struct wrap {
-    
+
         virtual wrap *dup() = 0;
         virtual bool deref() = 0;
         virtual ~wrap() {}
     };
-    
+
     template <typename T> struct twrap : public wrap {
-    
+
         unsigned refs;
-    
+
         T item;
-    
+
         twrap(const T &item) : refs(1), item(item) {}
-    
+
         virtual wrap *dup() {refs++; return this;}
-    
+
         virtual bool deref() {return (--refs) != 0;}
-    
+
     };
-    
+
     int tag;
-    
+
     wrap *ptr;
-    
+
     tls__extension(){
     tag=-1;
     ptr=0;
     }
-    
+
     tls__extension(int tag,wrap *ptr) : tag(tag),ptr(ptr) {}
-    
+
     tls__extension(const tls__extension&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
     };
-    
+
     tls__extension& operator=(const tls__extension&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
         return *this;
     };
-    
+
     ~tls__extension(){if(ptr){if (!ptr->deref()) delete ptr;}}
-    
+
     static int temp_counter;
-    
+
     static void prepare() {temp_counter = 0;}
-    
+
     static void cleanup() {}
-    
+
     size_t __hash() const {
-    
+
         switch(tag) {
-    
+
             case 0: return 0 + hash_space::hash<quic_client_test_max::tls__unknown_extension>()(quic_client_test_max::tls__extension::unwrap< quic_client_test_max::tls__unknown_extension >((*this)));
-    
+
             case 1: return 1 + hash_space::hash<quic_client_test_max::tls__early_data>()(quic_client_test_max::tls__extension::unwrap< quic_client_test_max::tls__early_data >((*this)));
-    
+
             case 2: return 2 + hash_space::hash<quic_client_test_max::tls__end_of_early_data>()(quic_client_test_max::tls__extension::unwrap< quic_client_test_max::tls__end_of_early_data >((*this)));
-    
+
             case 3: return 3 + hash_space::hash<quic_client_test_max::tls__psk_key_exchange_modes>()(quic_client_test_max::tls__extension::unwrap< quic_client_test_max::tls__psk_key_exchange_modes >((*this)));
-    
+
             case 4: return 4 + hash_space::hash<quic_client_test_max::tls__pre_shared_key_client>()(quic_client_test_max::tls__extension::unwrap< quic_client_test_max::tls__pre_shared_key_client >((*this)));
-    
+
             case 5: return 5 + hash_space::hash<quic_client_test_max::tls__pre_shared_key_server>()(quic_client_test_max::tls__extension::unwrap< quic_client_test_max::tls__pre_shared_key_server >((*this)));
-    
+
             case 6: return 6 + hash_space::hash<quic_client_test_max::quic_transport_parameters>()(quic_client_test_max::tls__extension::unwrap< quic_client_test_max::quic_transport_parameters >((*this)));
-    
+
         }
-    
+
         return 0;
-    
+
     }
-    
+
     template <typename T> static const T &unwrap(const tls__extension &x) {
-    
+
         return ((static_cast<const twrap<T> *>(x.ptr))->item);
-    
+
     }
-    
+
     template <typename T> static T &unwrap(tls__extension &x) {
-    
+
          twrap<T> *p = static_cast<twrap<T> *>(x.ptr);
-    
+
          if (p->refs > 1) {
-    
+
              p = new twrap<T> (p->item);
-    
+
          }
-    
+
          return ((static_cast<twrap<T> *>(p))->item);
-    
+
     }
-    
+
 };    struct tls__unknown_extension {
     unsigned etype;
     stream_data content;
@@ -1256,140 +1256,140 @@ return hv;
 class frame{
 public:
     struct wrap {
-    
+
         virtual wrap *dup() = 0;
         virtual bool deref() = 0;
         virtual ~wrap() {}
     };
-    
+
     template <typename T> struct twrap : public wrap {
-    
+
         unsigned refs;
-    
+
         T item;
-    
+
         twrap(const T &item) : refs(1), item(item) {}
-    
+
         virtual wrap *dup() {refs++; return this;}
-    
+
         virtual bool deref() {return (--refs) != 0;}
-    
+
     };
-    
+
     int tag;
-    
+
     wrap *ptr;
-    
+
     frame(){
     tag=-1;
     ptr=0;
     }
-    
+
     frame(int tag,wrap *ptr) : tag(tag),ptr(ptr) {}
-    
+
     frame(const frame&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
     };
-    
+
     frame& operator=(const frame&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
         return *this;
     };
-    
+
     ~frame(){if(ptr){if (!ptr->deref()) delete ptr;}}
-    
+
     static int temp_counter;
-    
+
     static void prepare() {temp_counter = 0;}
-    
+
     static void cleanup() {}
-    
+
     size_t __hash() const {
-    
+
         switch(tag) {
-    
+
             case 0: return 0 + hash_space::hash<quic_client_test_max::frame__ping>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__ping >((*this)));
-    
+
             case 1: return 1 + hash_space::hash<quic_client_test_max::frame__ack>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__ack >((*this)));
-    
+
             case 2: return 2 + hash_space::hash<quic_client_test_max::frame__ack_ecn>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__ack_ecn >((*this)));
-    
+
             case 3: return 3 + hash_space::hash<quic_client_test_max::frame__rst_stream>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__rst_stream >((*this)));
-    
+
             case 4: return 4 + hash_space::hash<quic_client_test_max::frame__stop_sending>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__stop_sending >((*this)));
-    
+
             case 5: return 5 + hash_space::hash<quic_client_test_max::frame__crypto>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__crypto >((*this)));
-    
+
             case 6: return 6 + hash_space::hash<quic_client_test_max::frame__new_token>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__new_token >((*this)));
-    
+
             case 7: return 7 + hash_space::hash<quic_client_test_max::frame__stream>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__stream >((*this)));
-    
+
             case 8: return 8 + hash_space::hash<quic_client_test_max::frame__max_data>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__max_data >((*this)));
-    
+
             case 9: return 9 + hash_space::hash<quic_client_test_max::frame__max_stream_data>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__max_stream_data >((*this)));
-    
+
             case 10: return 10 + hash_space::hash<quic_client_test_max::frame__max_streams>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__max_streams >((*this)));
-    
+
             case 11: return 11 + hash_space::hash<quic_client_test_max::frame__max_streams_bidi>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__max_streams_bidi >((*this)));
-    
+
             case 12: return 12 + hash_space::hash<quic_client_test_max::frame__data_blocked>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__data_blocked >((*this)));
-    
+
             case 13: return 13 + hash_space::hash<quic_client_test_max::frame__stream_data_blocked>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__stream_data_blocked >((*this)));
-    
+
             case 14: return 14 + hash_space::hash<quic_client_test_max::frame__streams_blocked>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__streams_blocked >((*this)));
-    
+
             case 15: return 15 + hash_space::hash<quic_client_test_max::frame__streams_blocked_bidi>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__streams_blocked_bidi >((*this)));
-    
+
             case 16: return 16 + hash_space::hash<quic_client_test_max::frame__new_connection_id>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__new_connection_id >((*this)));
-    
+
             case 17: return 17 + hash_space::hash<quic_client_test_max::frame__retire_connection_id>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__retire_connection_id >((*this)));
-    
+
             case 18: return 18 + hash_space::hash<quic_client_test_max::frame__path_challenge>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__path_challenge >((*this)));
-    
+
             case 19: return 19 + hash_space::hash<quic_client_test_max::frame__path_response>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__path_response >((*this)));
-    
+
             case 20: return 20 + hash_space::hash<quic_client_test_max::frame__connection_close>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__connection_close >((*this)));
-    
+
             case 21: return 21 + hash_space::hash<quic_client_test_max::frame__application_close>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__application_close >((*this)));
-    
+
             case 22: return 22 + hash_space::hash<quic_client_test_max::frame__handshake_done>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__handshake_done >((*this)));
-    
+
             case 23: return 23 + hash_space::hash<quic_client_test_max::frame__ack_frequency>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__ack_frequency >((*this)));
-    
+
             case 24: return 24 + hash_space::hash<quic_client_test_max::frame__immediate_ack>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__immediate_ack >((*this)));
-    
+
             case 25: return 25 + hash_space::hash<quic_client_test_max::frame__unknown_frame>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__unknown_frame >((*this)));
-    
+
             case 26: return 26 + hash_space::hash<quic_client_test_max::frame__malicious_frame>()(quic_client_test_max::frame::unwrap< quic_client_test_max::frame__malicious_frame >((*this)));
-    
+
         }
-    
+
         return 0;
-    
+
     }
-    
+
     template <typename T> static const T &unwrap(const frame &x) {
-    
+
         return ((static_cast<const twrap<T> *>(x.ptr))->item);
-    
+
     }
-    
+
     template <typename T> static T &unwrap(frame &x) {
-    
+
          twrap<T> *p = static_cast<twrap<T> *>(x.ptr);
-    
+
          if (p->refs > 1) {
-    
+
              p = new twrap<T> (p->item);
-    
+
          }
-    
+
          return ((static_cast<twrap<T> *>(p))->item);
-    
+
     }
-    
+
 };    struct frame__ping {
         size_t __hash() const { size_t hv = 0;
 return hv;
@@ -1692,7 +1692,7 @@ return hv;
     };
 class ipv6__addr : public LongClass {
 public:
-    
+
     ipv6__addr(){}
     ipv6__addr(const LongClass &s) : LongClass(s) {}
     ipv6__addr(int128_t v) : LongClass(v) {}
@@ -1712,7 +1712,7 @@ public:
                     bv_to_x_hash[next_bv] = s;
     		//std::cerr << "bv_to_x_hash[next_bv]" << s << std::endl;
                     return next_bv++;
-                } 
+                }
             }
             std::cerr << "Ran out of values for type ipv6__addr" << std::endl;
             __ivy_out << "out_of_values(ipv6__addr,\"" << s << "\")" << std::endl;
@@ -1752,134 +1752,134 @@ public:
 };class transport_parameter{
 public:
     struct wrap {
-    
+
         virtual wrap *dup() = 0;
         virtual bool deref() = 0;
         virtual ~wrap() {}
     };
-    
+
     template <typename T> struct twrap : public wrap {
-    
+
         unsigned refs;
-    
+
         T item;
-    
+
         twrap(const T &item) : refs(1), item(item) {}
-    
+
         virtual wrap *dup() {refs++; return this;}
-    
+
         virtual bool deref() {return (--refs) != 0;}
-    
+
     };
-    
+
     int tag;
-    
+
     wrap *ptr;
-    
+
     transport_parameter(){
     tag=-1;
     ptr=0;
     }
-    
+
     transport_parameter(int tag,wrap *ptr) : tag(tag),ptr(ptr) {}
-    
+
     transport_parameter(const transport_parameter&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
     };
-    
+
     transport_parameter& operator=(const transport_parameter&other){
         tag=other.tag;
         ptr = other.ptr ? other.ptr->dup() : 0;
         return *this;
     };
-    
+
     ~transport_parameter(){if(ptr){if (!ptr->deref()) delete ptr;}}
-    
+
     static int temp_counter;
-    
+
     static void prepare() {temp_counter = 0;}
-    
+
     static void cleanup() {}
-    
+
     size_t __hash() const {
-    
+
         switch(tag) {
-    
+
             case 0: return 0 + hash_space::hash<quic_client_test_max::original_destination_connection_id>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::original_destination_connection_id >((*this)));
-    
+
             case 1: return 1 + hash_space::hash<quic_client_test_max::initial_max_stream_data_bidi_local>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::initial_max_stream_data_bidi_local >((*this)));
-    
+
             case 2: return 2 + hash_space::hash<quic_client_test_max::initial_max_data>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::initial_max_data >((*this)));
-    
+
             case 3: return 3 + hash_space::hash<quic_client_test_max::initial_max_stream_id_bidi>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::initial_max_stream_id_bidi >((*this)));
-    
+
             case 4: return 4 + hash_space::hash<quic_client_test_max::max_idle_timeout>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::max_idle_timeout >((*this)));
-    
+
             case 5: return 5 + hash_space::hash<quic_client_test_max::preferred_address>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::preferred_address >((*this)));
-    
+
             case 6: return 6 + hash_space::hash<quic_client_test_max::max_packet_size>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::max_packet_size >((*this)));
-    
+
             case 7: return 7 + hash_space::hash<quic_client_test_max::stateless_reset_token>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::stateless_reset_token >((*this)));
-    
+
             case 8: return 8 + hash_space::hash<quic_client_test_max::ack_delay_exponent>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::ack_delay_exponent >((*this)));
-    
+
             case 9: return 9 + hash_space::hash<quic_client_test_max::initial_max_stream_id_uni>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::initial_max_stream_id_uni >((*this)));
-    
+
             case 10: return 10 + hash_space::hash<quic_client_test_max::disable_active_migration>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::disable_active_migration >((*this)));
-    
+
             case 11: return 11 + hash_space::hash<quic_client_test_max::initial_max_stream_data_bidi_remote>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::initial_max_stream_data_bidi_remote >((*this)));
-    
+
             case 12: return 12 + hash_space::hash<quic_client_test_max::initial_max_stream_data_uni>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::initial_max_stream_data_uni >((*this)));
-    
+
             case 13: return 13 + hash_space::hash<quic_client_test_max::max_ack_delay>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::max_ack_delay >((*this)));
-    
+
             case 14: return 14 + hash_space::hash<quic_client_test_max::active_connection_id_limit>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::active_connection_id_limit >((*this)));
-    
+
             case 15: return 15 + hash_space::hash<quic_client_test_max::initial_source_connection_id>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::initial_source_connection_id >((*this)));
-    
+
             case 16: return 16 + hash_space::hash<quic_client_test_max::retry_source_connection_id>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::retry_source_connection_id >((*this)));
-    
+
             case 17: return 17 + hash_space::hash<quic_client_test_max::loss_bits>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::loss_bits >((*this)));
-    
+
             case 18: return 18 + hash_space::hash<quic_client_test_max::grease_quic_bit>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::grease_quic_bit >((*this)));
-    
+
             case 19: return 19 + hash_space::hash<quic_client_test_max::enable_time_stamp>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::enable_time_stamp >((*this)));
-    
+
             case 20: return 20 + hash_space::hash<quic_client_test_max::min_ack_delay>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::min_ack_delay >((*this)));
-    
+
             case 21: return 21 + hash_space::hash<quic_client_test_max::version_information>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::version_information >((*this)));
-    
+
             case 22: return 22 + hash_space::hash<quic_client_test_max::unknown_ignore>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::unknown_ignore >((*this)));
-    
+
             case 23: return 23 + hash_space::hash<quic_client_test_max::unknown_transport_parameter>()(quic_client_test_max::transport_parameter::unwrap< quic_client_test_max::unknown_transport_parameter >((*this)));
-    
+
         }
-    
+
         return 0;
-    
+
     }
-    
+
     template <typename T> static const T &unwrap(const transport_parameter &x) {
-    
+
         return ((static_cast<const twrap<T> *>(x.ptr))->item);
-    
+
     }
-    
+
     template <typename T> static T &unwrap(transport_parameter &x) {
-    
+
          twrap<T> *p = static_cast<twrap<T> *>(x.ptr);
-    
+
          if (p->refs > 1) {
-    
+
              p = new twrap<T> (p->item);
-    
+
          }
-    
+
          return ((static_cast<twrap<T> *>(p))->item);
-    
+
     }
-    
+
 };    struct original_destination_connection_id {
     cid dcid;
         size_t __hash() const { size_t hv = 0;
@@ -2425,7 +2425,7 @@ return hv;
     };
 class tls_api__id : public LongClass {
 public:
-    
+
     tls_api__id(){}
     tls_api__id(const LongClass &s) : LongClass(s) {}
     tls_api__id(int128_t v) : LongClass(v) {}
@@ -2445,7 +2445,7 @@ public:
                     bv_to_x_hash[next_bv] = s;
     		//std::cerr << "bv_to_x_hash[next_bv]" << s << std::endl;
                     return next_bv++;
-                } 
+                }
             }
             std::cerr << "Ran out of values for type tls_api__id" << std::endl;
             __ivy_out << "out_of_values(tls_api__id,\"" << s << "\")" << std::endl;
@@ -3147,7 +3147,7 @@ class hash____tup__quic_packet_type__unsigned {
         typedef ivy_binary_ser std_serdes__serializer;
         typedef ivy_binary_deser std_serdes__deserializer;
 
-    
+
     class quic_deser;
 
 
@@ -3192,12 +3192,12 @@ class hash____tup__quic_packet_type__unsigned {
 	bool is_vnet = false;
 
                 int http_response_file__fildes;
-        		
+
 	struct timeval start;
 	std::unordered_map<std::string, struct timeval> breakpoints;
 	CTimeMeasuring * time_api__c_timer__impl__measures;
 
-	
+
 	std::chrono::high_resolution_clock::time_point chrono_start;
 	std::unordered_map<std::string, std::chrono::high_resolution_clock::time_point> chrono_breakpoints;
 	ChronoTimeMeasuring * time_api__chrono_timer__impl__measures;

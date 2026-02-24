@@ -51,4 +51,3 @@ execute the entire system to test it compositionally.
 In the next few sections, we'll run through the same examples we
 looked at with [compositional formal verification](../specification.html), but instead we'll
 use compositional testing.
-

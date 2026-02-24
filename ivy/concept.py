@@ -62,7 +62,7 @@ class Concept(record('Concept', ['name', 'variables', 'formula'])):
 class ConceptSet(object):
     """ A concept set is an object that can be iterated to produce
     concepts names """
-    pass 
+    pass
 
 class ConceptDict(OrderedDict):
     """ A collection of concepts, allowing to look up concepts or
@@ -219,7 +219,7 @@ class ConceptDomain(object):
             name not in nodes
         ]
 
-                
+
     # TODO: this ignores projection
 
     def get_comb_facts(self,combination_name, combiner_class, concept_names, facts):
@@ -240,7 +240,7 @@ class ConceptDomain(object):
                 else:
                     tag = (combination_name, combiner_name) + concept_combo
                     facts.append((tag, formula))
-                    
+
     def get_facts(self,projection = None):
         """
         Return a list of pairs of the form:
@@ -266,7 +266,7 @@ class ConceptDomain(object):
         nodes_by_sort_name = defaultdict(list)
         for n in self.concepts['nodes']:
             nodes_by_sort_name[self.concepts[n].sorts[0].name].append(n)
-            
+
         for combination in self.combinations:
             combination_name = combination[0]
 

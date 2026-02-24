@@ -16,7 +16,7 @@ class CongClos(object):
     Congruence closure structure. For now we have no function symbols
     so this is just union-find. Representative terms are minimal in
     term order, which for the moment is ascii sorting order.
-    
+
     >>> c = CongClos()
     >>> c.union(to_term("v"),to_term("w"))
     >>> c.find(to_term("w"))
@@ -47,7 +47,7 @@ class CongClos(object):
             node.append(term)
             node.append(None)
         return self.get_rep_rec(node)
-            
+
     def find(self,term):
         return self.get_rep_node(term)[0]
 
@@ -96,7 +96,7 @@ class CongClos(object):
         new_len = self.pushes.pop()
         while len(self.trail) > new_len:
             self.trail.pop().undoit()
-        
+
 
 if __name__ == "__main__":
     c = CongClos()

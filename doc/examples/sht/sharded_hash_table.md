@@ -39,9 +39,3 @@ service specification and an implementation:
 
 These modularly verified objects are assembled to produce the [sharded
 hash table system](sht.html), which we can then compile and execute.
-
-
-
-
-
-

@@ -18,7 +18,7 @@ object quic_ser_short_enc_server = {}
     #define QUOTEME_1(x) #x
     #define QUIC_SER_DESER_HEADER_PATH PANTHER_IVY_BASE_DIR/quic_utils/quic_ser_deser.h
     #include QUOTEME(QUIC_SER_DESER_HEADER_PATH)
-    
+
     class `quic_ser_short_enc_server` : public ivy_binary_ser_128 {
     //class `quic_ser_short_enc_server` : public ivy_binary_ser {
         enum {quic_s_init,
@@ -112,14 +112,14 @@ object quic_ser_short_enc_server = {}
                     setn(res, 1);
                     state = quic_s_dcid;
                 }
-                break;  
+                break;
                 case quic_s_dcid:
                 {
                     if((res != 0 && res != 1) || scid_h_server == 0) {
                         setn(res,scid_h_server); //scid_h_server
                     }
                     else {
-                        setn(res,8); 
+                        setn(res,8);
                     }
                     std::cerr << "ser short res dcid 2 " << res << "\n";
                     state = quic_s_payload;
@@ -131,7 +131,7 @@ object quic_ser_short_enc_server = {}
                 }
                 break;
                 default:
-                    //std::cerr << "quic_ser_short_enc_server 2\n";  
+                    //std::cerr << "quic_ser_short_enc_server 2\n";
                     throw deser_err();
             }
         }
@@ -139,7 +139,7 @@ object quic_ser_short_enc_server = {}
         int set_var_int(int128_t res) {
             int128_t val = res & 0x3fffffffffffffff; //TODO modify with 16 bytes mask ?
         //void set_var_int(long long res) {
-        //    long long val = res & 0x3fffffffffffffff; 
+        //    long long val = res & 0x3fffffffffffffff;
             int bytecode = res <= 0x3f ? 0 : res <= 0x3fff ? 1 : res <= 0x3fffffff ? 2 : 3;
             int bytes = 1 << bytecode;
             val |= bytecode << ((bytes << 3) - 2);
@@ -154,9 +154,9 @@ object quic_ser_short_enc_server = {}
 
         virtual void open_tag(int tag, const std::string &) {
             if (state == quic_s_payload) {
-                
+
             }
-            //std::cerr << "quic_ser_short_enc_server 1\n";  
+            //std::cerr << "quic_ser_short_enc_server 1\n";
             throw deser_err();
         }
 
@@ -169,7 +169,7 @@ object quic_ser_short_enc_server = {}
         }
 
         void open_list(int len) {
- 
+
         }
 
         void close_list() {

@@ -19,11 +19,11 @@ object cpp = {
     instance new : built_in_unary("new",verb.new,100)
 
     # Dereference arrow (same precedence as dot)
-    
+
     instance arrow : built_in_binary("->",verb.arrow,100)
 
     # The `=` and `~=` verbs are spelled differently in Ivy and C++
-    
+
     instance equals : built_in_binary("==",verb.equals,5)
     instance notequals : built_in_binary("!=",verb.notequals,5)
     instance not : built_in_unary("!",verb.not,15)
@@ -45,7 +45,7 @@ object cpp = {
 
 
     # Here, we parse statements specific to C++
-    
+
     object simpletype = {
         type this = struct {
             _type : expr,
@@ -68,7 +68,7 @@ object cpp = {
             };
             b := s.name.encode(b,99);
         }
-        
+
         action parse(st : pstate, prio:priority) returns(st : pstate, res:simpletype) = {
             (st,res._type) := symbol.parse(st);
             if st.ok {
@@ -135,7 +135,7 @@ object cpp = {
             s.ann := ann;
             res := s;
         }
-       
+
 
         action encode_int(s:this,b:pretty,prio:priority) returns (b:pretty) = {
             b := b.nest;
@@ -172,7 +172,7 @@ object cpp = {
 
     object stmt = { ...
 
-        
+
         action parse_lang_stmt(st : pstate, prio:priority) returns(st : pstate, res:stmt) = {
             var lhs : expr;
             var ann : annot;
@@ -215,7 +215,7 @@ object cpp = {
         action get_ann(d:this) returns (res:annot)
         action get_name(d:this) returns (res:expr)
         action get_type(d:this) returns (res:expr)
-    }        
+    }
 
 
     object header = {
@@ -236,7 +236,7 @@ object cpp = {
             b := b.extend(s.filename);
             b := b.unnest;
             b := b.newline;
-        }	    
+        }
         action get_ann(d:this) returns (res:annot) = {
             res := d.ann
         }
@@ -395,7 +395,7 @@ object cpp = {
             res := d.ann
         }
     }
-        
+
     object namespacedecl = {
         variant this of decl = struct {
             name : expr,
@@ -428,14 +428,14 @@ object cpp = {
             res := d.ann
         }
     }
-        
+
 
     object groupdc = {
         variant this of decl = struct {
             decls : vector[decl],
             ann : annot
         }
-        
+
         action encode(s:this,b:pretty,prio:priority) returns (b:pretty) = {
             var idx := s.decls.begin;
             while idx < s.decls.end {
@@ -443,7 +443,7 @@ object cpp = {
                 b := s.decls.value(idx).encode(b,0);
                 idx := idx.next;
             };
-        }	    
+        }
     }
 
     object decl = { ...
@@ -588,6 +588,3 @@ object cpp = {
     }
 
 }
-
-
-

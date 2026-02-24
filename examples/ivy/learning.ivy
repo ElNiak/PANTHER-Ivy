@@ -6,7 +6,7 @@
 # calling the "set" action. This has preconditions that enforce the required
 # invariants. The function can be accessed using "dom" to query if an element is
 # in the domain of the function, and "get" to get its value. The "get" action
-# has a precondition that the given element must be in the domain. 
+# has a precondition that the given element must be in the domain.
 #
 # Because of the invariant that the relation re construct by "set" is an acyclic
 # partial function, we can represent it by its transitive closure "tc", while
@@ -29,7 +29,7 @@ module inverse_forest(carrier) = {
     action set(x:carrier,y:carrier) = {
        assert ~tc(y,x);                # can't create a cycle
        assert ~dom(x);                 # can't remove links
-       dom(x) := true;              
+       dom(x) := true;
        tc(X, Y) := tc(X, Y) | tc(X, x) &  tc(y, Y)
     }
 
@@ -49,7 +49,7 @@ module inverse_forest(carrier) = {
 type packet
 type host
 
-relation pending(P:packet, S:host, T:host) 
+relation pending(P:packet, S:host, T:host)
 individual src(P:packet) : host
 individual dst(P:packet) : host
 relation link(S:host, T:host)
@@ -67,7 +67,7 @@ init ~pending(P,S,T)
 # Protocol description
 #
 # There is just one action describing the receipt of a pending message
-# by some host. 
+# by some host.
 #
 ################################################################################
 
@@ -75,7 +75,7 @@ action receive = {
   local p0:packet, sw0:host, sw1:host, sw2:host, s0:host, t0:host {
 
        ########################################
-       # The action's guard. 
+       # The action's guard.
 
        t0 := dst(p0);
        s0 := src(p0);
@@ -87,13 +87,13 @@ action receive = {
        if (pending(p0,sw0, sw1)) {
            pending(p0, sw0, sw1) := *
        };
-  
+
        ########################################
        # learn: if no route from receiving switch back to source...
        if (~route(s0).dom(sw1) & sw0 ~= sw1 & s0 ~= sw1) {
            call route(s0).set(sw1,sw0)   # create new route
        };
-   
+
        ########################################
        # forward the packet if dest is not self
        if t0 ~= sw1 {
@@ -111,7 +111,7 @@ action receive = {
 }
 
 export receive
- 
+
 conjecture ~(route(S).dom(V0) & ~route(S).tc(V0, S))
 conjecture ~route(V0).dom(V0)
 conjecture ~(pending(P, V0, V1) & dst(P) = V0)
@@ -121,4 +121,3 @@ conjecture ~(route(S).tc(V0, V1) & ~V0 = V1 & S ~= V1 & ~route(S).dom(V1)) # TOD
 conjecture ~(~V0 = S & route(S).tc(S, V0))
 
 #conjecture ~(pending(P, V0, V1) & src(P,S) & ~route(S).dom(V0))
-

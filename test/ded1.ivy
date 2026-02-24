@@ -14,7 +14,7 @@ theorem [symm] {
     property X:t = Y
     property Y:t = X
 }
-proof { 
+proof {
     apply introEq;
     apply elimEq with x = X, y = Y
 }
@@ -47,7 +47,7 @@ proof {
 }
 
 theorem [cong2] {
-    type t1 
+    type t1
     type t2
     type u
     function f(X1:t1,X2:t2) : u
@@ -64,7 +64,7 @@ proof {
 }
 
 theorem [cong3] {
-    type t1 
+    type t1
     type t2
     type t3
     type u
@@ -217,7 +217,7 @@ theorem [thm5] {
     relation p
     relation q
     relation r
-    property p & q -> r 
+    property p & q -> r
     property p -> (q -> r)
 }
 proof {
@@ -232,7 +232,7 @@ theorem [thm6] {
     relation a
     relation b
     relation c
-    property b -> c 
+    property b -> c
     property a | b -> a | c
 }
 proof {
@@ -344,7 +344,7 @@ proof {
 
 theorem [pbc] {
     function p : bool
-    property [absurd] { 
+    property [absurd] {
         property ~p
         property false
     }
@@ -366,7 +366,7 @@ theorem [thm11] {
     property (x + 1) > 1 -> (x + 1) > 0
     property (1 + x) > 1 -> (1 + x) > 0
 }
-proof { 
+proof {
     apply elimEq with x = 1 + x, y = x + 1;
     apply symm
 }
@@ -420,7 +420,7 @@ theorem [thm15] {
     property exists X. p(X)
     property exists X. q(X)
 }
-proof { 
+proof {
     apply elimE with p(X) = p(X);
     apply introE with witness = x;
     apply elimImp with p = p(x);

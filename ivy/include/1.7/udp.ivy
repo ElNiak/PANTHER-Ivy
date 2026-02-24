@@ -46,7 +46,7 @@ module udp_wrapper(addr,pkt,me,port_base) = {
                 }
                 bound = true;
             }
-                    
+
 	    virtual void bind() {
 	        ivy -> __lock();  // can be asynchronous, so must lock ivy!
                 bind_int();
@@ -97,9 +97,9 @@ module udp_wrapper(addr,pkt,me,port_base) = {
 		    	ivy_binary_deser_128 ds(buf);
 		    	__deser(ds,pkt);
 	            if (ds.pos < buf.size()){
-					std::cerr << buf.size() << std::endl; 
-					std::cerr << ds.pos << std::endl; 
-					 std::cout << "udp" << std::endl; 
+					std::cerr << buf.size() << std::endl;
+					std::cerr << ds.pos << std::endl;
+					 std::cout << "udp" << std::endl;
 					 throw deser_err();
 				}
             } catch (deser_err &){
@@ -118,7 +118,7 @@ module udp_wrapper(addr,pkt,me,port_base) = {
 		ivy_binary_ser_128 sr;
 	        __ser(sr,pkt);
 		//std::cout << "SENDING\n";
-		if (sendto(sock,&sr.res[0],sr.res.size(),0,(sockaddr *)&dstaddr,sizeof(sockaddr_in)) < 0) 
+		if (sendto(sock,&sr.res[0],sr.res.size(),0,(sockaddr *)&dstaddr,sizeof(sockaddr_in)) < 0)
 #ifdef _WIN32
 		     { std::cerr << "sendto failed " << WSAGetLastError() << "\n"; exit(1); }
 #else
@@ -130,12 +130,12 @@ module udp_wrapper(addr,pkt,me,port_base) = {
     <<< member
 		udp_reader *`rdr`;
 
-        udp_config *the_udp_config;        
+        udp_config *the_udp_config;
 
         udp_config *get_udp_config() {
-	    if (!the_udp_config) 
+	    if (!the_udp_config)
 	        the_udp_config = new udp_config();
-	    return the_udp_config; 
+	    return the_udp_config;
 	}
 
         void set_udp_config(udp_config *conf) {
@@ -169,7 +169,7 @@ module udp_simple(addr,pkt) = {
         after init {
 	    sent(V, N) := false
 	}
-    
+
 	before send {
 	    sent(v,dst) := true
 	}
@@ -193,7 +193,7 @@ module udp_simple2(addr,pkt) = {
         after init {
 	    sent(V, N) := false
 	}
-    
+
 	before send {
 	    sent(v,dst) := true
 	}
@@ -217,7 +217,7 @@ module nondup_endpoint(port,pkt) = {
         after init {
 	    sent(V) := false
 	}
-    
+
 	before send {
 	    assert ~sent(v);
 	    sent(v) := true
@@ -243,7 +243,7 @@ module nondup_endpoint(port,pkt) = {
 
 
 module nondup_endpoint_set(addr,port_base,pkt) = {
-    
+
     action recv(dst:addr,v:pkt)
     action send(dst:addr,v:pkt)
 
@@ -253,7 +253,7 @@ module nondup_endpoint_set(addr,port_base,pkt) = {
         after init {
 	    sent(V, N) := false
 	}
-    
+
 	before send {
 	    assert ~sent(v,dst);
 	    sent(v,dst) := true
@@ -295,7 +295,7 @@ module udp_network(host,pkt) = {
 
     var bound(H:host,S:socket,A:ip.endpoint) : bool
     var sent(S:ip.endpoint,D:ip.endpoint,P:pkt) : bool
-        
+
     object spec =  {
 
 
@@ -322,7 +322,7 @@ module udp_network(host,pkt) = {
         before recv {
             require bound(self,s,dst);
             require sent(src,dst,p);
-        }            
+        }
 
         around close {
             require exists A. bound(self,s,A);
@@ -332,7 +332,7 @@ module udp_network(host,pkt) = {
 
     }
 
-    
+
     implementation {
         instance impl(X:addr) : udp_impl(host,pkt)
     }

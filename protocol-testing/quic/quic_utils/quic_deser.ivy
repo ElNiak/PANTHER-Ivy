@@ -18,7 +18,7 @@ object quic_deser = {}
     } *transport_error_struct_ptr;
 
     struct transport_error_map : hash_space::hash_map<std::string,int> {};
-    
+
     struct transport_error_struct transport_error_codes[17] = {
         {"no_error",0x0},
         {"internal_error",0x1},
@@ -131,7 +131,7 @@ object quic_deser = {}
         int token_count = 0;
         int token_len = 0;
 
-    
+
     public:
         quic_deser(const std::vector<char> &inp) : ivy_binary_deser_128(inp),state(quic_s_init) {
         //quic_deser(const std::vector<char> &inp) : ivy_binary_deser(inp),state(quic_s_init) {
@@ -165,7 +165,7 @@ object quic_deser = {}
             }
             break;
             case quic_s_dcid:
-            {   
+            {
                 if (long_format) {
                     int128_t cil;
                     //long long cil;
@@ -187,10 +187,10 @@ object quic_deser = {}
                     int128_t cil;
                     //long long cil;
                     getn(cil,1);
-                    std::cerr << "sourceID size " << cil << "\n";  
+                    std::cerr << "sourceID size " << cil << "\n";
                     if(cil > 0)
                         have_scid = true;
-                    else 
+                    else
                         have_scid = false;
                     scil = cil;
                     scid_h = cil;
@@ -304,16 +304,16 @@ object quic_deser = {}
                         token_len = token_length;
 
                     std::cerr << "token_count " << token_count << "\n";
-                    
+
                     if(token_count < token_len){
-                        getn(res,1);    
+                        getn(res,1);
                         token_count += 1;
                         if(token_count == token_len)
                         state = quic_s_pkt_num;
                         else
                         state = quic_s_retry_token; //useless ?
                     }
-                    else 
+                    else
                         state = quic_s_pkt_num;*/
 		       // std::cerr << "sourceID quic_s_retry_token 2" << std::hex << res << "\n";
             }
@@ -443,33 +443,33 @@ object quic_deser = {}
             case quic_ack_frequency: //TODO
             {
                 get_var_int(res);
-		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency\n"; 
+		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency\n";
                 state = quic_ack_frequency_ack_eliciting_threshold;
             }
             break;
-            case quic_ack_frequency_ack_eliciting_threshold: 
+            case quic_ack_frequency_ack_eliciting_threshold:
             {
                 get_var_int(res);
-		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency_ack_eliciting_threshold\n"; 
+		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency_ack_eliciting_threshold\n";
                 state = quic_ack_frequency_request_max_ack_delay;
             }
             break;
-            case quic_ack_frequency_request_max_ack_delay: 
+            case quic_ack_frequency_request_max_ack_delay:
             {
                 get_var_int(res);
-		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency_request_max_ack_delay\n"; 
+		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency_request_max_ack_delay\n";
                 state = quic_ack_frequency_reordering_threshold;
             }
             break;
             case quic_ack_frequency_reordering_threshold:
             {
-		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency_reordering_threshold\n"; 
+		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency_reordering_threshold\n";
                 //getn(res,1);
                 get_var_int(res);
             }
             break;
             default:
-                std::cerr << "quic_deser 3\n";  
+                std::cerr << "quic_deser 3\n";
                 throw deser_err();
             }
         }
@@ -514,8 +514,8 @@ object quic_deser = {}
                 //long long ft;
                 //ivy_binary_deser::getn(ft,1); // could be bigger
 
-                /* 
-                TODO we should get varint and then parse in consequence like in tls_deser_ser 
+                /*
+                TODO we should get varint and then parse in consequence like in tls_deser_ser
                 */
 
                 frame_type = ft;
@@ -566,7 +566,7 @@ object quic_deser = {}
                     state = quic_reset_stream_id; // max_stream_id state equivalent to this
                     return 10;
                 }
-                if (frame_type == 0x13) { 
+                if (frame_type == 0x13) {
                     state = quic_reset_stream_id; // max_stream_id state equivalent to this
                     return 11;
                 }
@@ -638,19 +638,19 @@ object quic_deser = {}
                     state = quic_padding;
                     return 25;
                 }*/
-                std::cerr << "saw tag " << ft << "\n";  
+                std::cerr << "saw tag " << ft << "\n";
             }
-            std::cerr << "state          = " << state << "\n";  
+            std::cerr << "state          = " << state << "\n";
             std::cerr << "quic_s_payload = " << quic_s_payload << "\n";
             std::cerr << "quic_s_payload == " << (quic_s_payload == state) << "\n";
-            std::cerr << "quic_deser 2\n";  
+            std::cerr << "quic_deser 2\n";
             throw deser_err();
         }
 
         virtual bool open_list_elem() {
             if (state == quic_s_payload) {
                 // We must use/take in count the padding frame since Picoquic client sometimes send packet
-                // only with 1 padding frame which make fails the requirement saying that a 
+                // only with 1 padding frame which make fails the requirement saying that a
                 // packet cannot be empty
                while ((fence == 0 || pos < fence) && more(1) && inp[pos] == 0)
                    pos++;  // skip padding frames
@@ -667,7 +667,7 @@ object quic_deser = {}
                 return data_remaining-->  0;
             //if (state == quic_s_retry_token) {
                 // We must use/take in count the padding frame since Picoquic client sometimes send packet
-                // only with 1 padding frame which make fails the requirement saying that a 
+                // only with 1 padding frame which make fails the requirement saying that a
                 // packet cannot be empty
                /*while ((fence == 0 || pos < fence) && more(1) && inp[pos] == 0)
                    pos++;  // skip padding frames
@@ -692,7 +692,7 @@ object quic_deser = {}
                     return data_remaining-->  0;
 
 
-            std::cerr << "quic_deser 1\n";  
+            std::cerr << "quic_deser 1\n";
             throw deser_err();
         }
 
@@ -734,7 +734,7 @@ object quic_deser = {}
 
 
 <<< init
-    
+
     transport_error_name_map(transport_error_codes,transport_error_codes_map);
 
 >>>

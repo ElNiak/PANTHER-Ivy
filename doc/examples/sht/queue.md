@@ -73,7 +73,7 @@ Here is the specification of the interface:
 		contents(M) := contents(M) & ~(net_msg.num(M) <= seq)
 	    }
 	}
-    
+
 Nootice the the `contents` predicate is updated in the *after*
 specification of `enqueue`. This is because the update depends on the
 return value `ok`.  Also, we are not allow to enqueue a message with
@@ -96,7 +96,7 @@ messages:
 	implement empty {
 	    res := seq_num.iter.is_end(imap.lub(seq_num.iter.create(0)))
 	}
-	
+
 	implement delete_all(seq:seq_num.t) {
 	    call imap.erase(seq_num.iter.create(0),seq_num.iter.create(seq_num.next(seq)))
 	}
@@ -124,5 +124,3 @@ implementation. The first says that sequence number `X` always maps to
 a message with number `X`.  The second is essentially the
 representation function. It says that the contents of the queue is the
 set of message such that are mapped to by their sequence number.
-
-

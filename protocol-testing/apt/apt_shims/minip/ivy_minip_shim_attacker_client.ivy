@@ -2,7 +2,7 @@
 
 include ping_packet
 include ping_shim
-include quic_shim 
+include quic_shim
 include apt_shim
 include malicious_stream_data
 
@@ -44,7 +44,7 @@ after init {
 }
 
 after ping_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
-    if _generating {  
+    if _generating {
         var spkt := ping_packet_serdes.to_bytes(pkt);
         var tls_id := src_tls_id(src);
         var pkts := net_prot.arr.empty;
@@ -54,7 +54,7 @@ after ping_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) 
 }
 
 after ping_packet_event_malicious(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
-    if _generating {  
+    if _generating {
         var spkt := ping_packet_serdes.to_bytes(pkt);
         var tls_id := src_tls_id(src);
         var pkts := net_prot.arr.empty;
@@ -62,4 +62,3 @@ after ping_packet_event_malicious(src:ip.endpoint,dst:ip.endpoint,pkt:packet.pin
         call quic_net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
     }
 }
-

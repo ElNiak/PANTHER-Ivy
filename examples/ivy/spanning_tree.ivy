@@ -32,7 +32,7 @@ action act1 = {
   b := *
 }
 
-action error = {       
+action error = {
 #  assume (treestar(u,v) & treestar(v,w) & ~treestar(u,w) | tree(u,v) & ~treestar(u,v))
 #  assume tree(u,v) & ~treestar(u,v)
 
@@ -41,5 +41,3 @@ action error = {
          | treestar(u,v) & treestar(v,w) & ~treestar(u,w)
  	 | treestar(u,v) & treestar(v,u) & u ~= v)
 }
-
-

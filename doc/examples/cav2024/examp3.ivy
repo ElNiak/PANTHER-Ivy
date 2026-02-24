@@ -60,7 +60,7 @@ module isolate unbounded_queue with time = {
     specification {
         var latest : time
         var pending(X:time) : bool
-        
+
         after init {
             latest := 0;
             pending(X) := false;
@@ -133,14 +133,14 @@ isolate m = {
         }
     }
 
-    # We need invariants to guarantee the 
+    # We need invariants to guarantee the
     invariant forall X. q1.pending(X) -> X > q2.latest
     invariant q2.latest <= q1.latest
 
     # This is a system property we want to prove. That is, if we infinitely often poll
     # both q1 and q2, then every message X sent on q1 should eventually be received on q2.
     #
-    
+
     temporal property
     forall X. ((globally eventually q1.trying.now)
                & (globally eventually q2.trying.now)
@@ -168,4 +168,3 @@ isolate m = {
 export m.q1.send
 export m.poll
 export m.q2.recv
-

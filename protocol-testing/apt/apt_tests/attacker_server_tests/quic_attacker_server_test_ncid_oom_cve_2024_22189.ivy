@@ -40,7 +40,7 @@ after init {
     sock := quic_net.open(endpoint_id.client,client.ep);
     sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
     sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
-    
+
     client.set_tls_id(1);
     server.set_tls_id(0);
 
@@ -65,12 +65,12 @@ after init {
 
     call show_cid_event(the_cid);
     call show_cid_event(server_cid);
-    
+
     tls_id_map_ep(server.tls_id)       := server.ep;
     other_tls_id_map_ep(server.tls_id) := client.ep;
     ep_map_tls_id(server.ep)           := server.tls_id;
     # ep_map_cid(server.ep)              := the_cid;
-   
+
     var extns := tls_extensions.empty;
     extns := extns.append(make_transport_parameters);
     call tls_api.upper.create(client.tls_id,false,extns);  # false means this instance of tls is not a server
@@ -105,11 +105,11 @@ before quic_frame.retire_connection_id.handle(f:quic_frame.retire_connection_id,
 
 # quic-go is an implementation of the QUIC protocol in Go. Prior to version 0.42.0, an attacker can
 # cause its peer to run out of memory sending a large number of `NEW_CONNECTION_ID` frames that
-# retire old connection IDs. The receiver is supposed to respond to each retirement frame with a 
-#`RETIRE_CONNECTION_ID` frame. 
+# retire old connection IDs. The receiver is supposed to respond to each retirement frame with a
+#`RETIRE_CONNECTION_ID` frame.
 
 # The attacker can prevent the receiver from sending out (the vast majority
-# of) these `RETIRE_CONNECTION_ID` frames by collapsing the peers congestion window (by selectively 
+# of) these `RETIRE_CONNECTION_ID` frames by collapsing the peers congestion window (by selectively
 # acknowledging received packets) and by manipulating the peer's RTT estimate. Version 0.42.0 contains
 #  a patch for the issue. No known workarounds are available.
 
@@ -131,7 +131,7 @@ require src.port = client.ep.port;
         require src.interface = ip.veth_ivy;
         require src.addr = client.ep.addr;
 	    require ep_present(src) &  scid = ep_map_cid(src);
-        
+
         require f.length          = 8; #[1]
         require f.retire_prior_to < f.seq_num; #[4]
         require f.seq_num         = last_cid_seq(scid) + 0x1;
@@ -179,8 +179,6 @@ export quic_frame.new_connection_id.handle_maliciously
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require conn_total_data(the_cid) > 0;
 }
-
-

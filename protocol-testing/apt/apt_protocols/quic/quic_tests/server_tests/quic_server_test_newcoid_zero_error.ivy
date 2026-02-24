@@ -46,7 +46,7 @@ before quic_frame.new_connection_id.handle(f:quic_frame.new_connection_id,scid:c
 # Generate connection_close frames only for the environment process(es).
 #
 # Note: requiring the `err_code` is zero on non-generated frames means that
-# we stop the test if the peer reports a protocol error. 
+# we stop the test if the peer reports a protocol error.
 
 before quic_frame.connection_close.handle(f:quic_frame.connection_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
     if _generating {
@@ -93,8 +93,6 @@ export quic_frame.new_connection_id.handle
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require is_protocol_violation
 }
-
-

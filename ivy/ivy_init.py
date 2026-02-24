@@ -64,8 +64,8 @@ def read_params():
 #         e.filename = fn
 #         print repr(e)
 #         sys.exit(1)
-    
-    
+
+
 def source_file(fn,f,**kwargs):
     try:
         with iu.SourceFile(fn):
@@ -107,7 +107,7 @@ def ivy_init(**kwargs):
 
         if ag:
             ag.update_module()
-        else: 
+        else:
             ag = ivy_new()
 
     return ag

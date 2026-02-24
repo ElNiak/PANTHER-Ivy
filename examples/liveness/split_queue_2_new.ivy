@@ -97,12 +97,12 @@ module isolate split_queue2(nat) with nat = {
 
     implementation {
         # prophecy variable telling us the next element to mark as done.
-        var firstq : nat 
+        var firstq : nat
 
         after init {
             firstq := 0;
         }
-        
+
         implement send {
             if some y:nat. ~done(y) & begun(y) minimizing y {
                 firstq := y;
@@ -120,7 +120,7 @@ module isolate split_queue2(nat) with nat = {
         }
 
         invariant (begun(firstq) & ~done(firstq)) -> forall X. (X<firstq -> ~begun(X) | done(X))
-        invariant forall X. (begun(X) & ~done(X)) -> (begun(firstq) & ~done(firstq)) 
+        invariant forall X. (begun(X) & ~done(X)) -> (begun(firstq) & ~done(firstq))
     }
 
 
@@ -131,14 +131,14 @@ module isolate split_queue2(nat) with nat = {
     # Also, we state the obvious (that there are no nats less than 0)
     # to help the model checker, without adding 0 to the list of
     # skolem symbols in the model checker. These invariants are proved
-    # by Z3, not by the model checker. 
+    # by Z3, not by the model checker.
 
     # invariant lastq < X & begun(X) -> false
     # invariant begun(X) -> begun(lastq)
     invariant begun(X) & done(X) & Y < X & begun(Y) -> done(Y)
     invariant done(X) -> begun(X)
     invariant ~(X:nat < 0)
-    
+
     # Now we can prove liveness with the model checker. We concretize the
     # following individuals:
     #
@@ -159,7 +159,7 @@ module isolate split_queue2(nat) with nat = {
     # Note, we could have done the proof by induction on X (using the least
     # element principle of ltime) but doing it by induction in time is simpler with
     # the model checker.
-    
+
 
     explicit temporal property [lemma1]
     (globally eventually trying1.now) &
@@ -175,15 +175,15 @@ module isolate split_queue2(nat) with nat = {
             definition work_invar[0] = begun(_X) & ~done(_X)
             definition work_invar[1] = begun(_X) & ~done(_X)
             definition work_progress[0] = trying1.now
-            definition work_progress[1] = trying2.now 
+            definition work_progress[1] = trying2.now
             definition work_helpful[0] = queue(firstq)
-            definition work_helpful[1] = ~queue(firstq) 
+            definition work_helpful[1] = ~queue(firstq)
         }
     }
-} 
+}
 
 instance m : split_queue2(lclock)
 
 export m.send
-export m.recv1 
-export m.recv2 
+export m.recv1
+export m.recv2

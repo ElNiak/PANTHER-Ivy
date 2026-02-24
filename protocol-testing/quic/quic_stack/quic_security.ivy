@@ -104,7 +104,7 @@ action tls_client_initial_response(src:ip.endpoint,dst:ip.endpoint,ppkt:stream_d
 # ============================
 #
 # This event occurs when a client transmits in version request to open
-# a inform about the version of quic supported. 
+# a inform about the version of quic supported.
 # This results in the creation of a TLS instance that
 # generates the initial handshake message.
 
@@ -247,14 +247,14 @@ after init {
 # TODO: TLS extension events are inferred here by parsing the TLS messages
 # as they are sent. The extensions should probably be obtained instead from the TLS
 # API. Also, here we are parsing the TLS message stream into individual messages,
-# That should also probably happen somewhere else. 
+# That should also probably happen somewhere else.
 
 import action show_test
 
 before tls_send_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, data : stream_data, pos : stream_pos, e:quic_packet_type, tls_id:tls_api.id) {
     # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
     # if _generating {
-        
+
     # };
     var jdx := data.begin;
     if retry_sent(scid) & ~crypto_reset(dcid) { # TODO retest
@@ -323,7 +323,7 @@ before tls_send_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, data
 around tls_recv_event {
     require connected(dcid) & connected_to(dcid) = scid;  # [1]
     require lo < hi & lo = crypto_pos(dcid,e) & hi <= crypto_length(scid,e);  # [2]
-    ... 
+    ...
     crypto_pos(dcid,e) := hi;  # [3]
 }
 
@@ -349,7 +349,7 @@ after tls_keys_established_event {
     } else if e = quic_packet_type.one_rtt {
         call on_pn_space_discarded(dst_endpoint,scid,e);
         established_1rtt_keys(scid) := true
-    } 
+    }
 }
 
 import action show_tls_keys_established_event(scid:cid,e:quic_packet_type)

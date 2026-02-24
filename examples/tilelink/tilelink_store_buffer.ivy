@@ -15,7 +15,7 @@ type msg_id
 
 ################################################################################
 #
-# Message format for the store buffer 
+# Message format for the store buffer
 #
 ################################################################################
 
@@ -96,7 +96,7 @@ module snoopy(id,clnt,mngr,ref) = {
     #
     # This may seems a little strange. Rather than setting the fields of
     # the message, we non-deterministically choose an existing message
-    # that has the right field values. 
+    # that has the right field values.
     #
     # TODO: should be marked private
 
@@ -210,7 +210,7 @@ module snoopy(id,clnt,mngr,ref) = {
 	  local mid:msg_id, mid1:msg_id, st:time, st1:time, a:addr, d:data, lt:ltime, lt1:ltime {
 
 	      # two distinct enqueued messages, both requests, same address, one read, one write
-	      assume mrec(mid) & mrec(mid1) & mid1 ~= mid; 
+	      assume mrec(mid) & mrec(mid1) & mid1 ~= mid;
 	      assume msg(mid).type_ = request_t & msg(mid1).type_ = request_t;
 	      assume msg(mid).addr_(a) & msg(mid1).addr_(a);
 	      assume msg(mid).op = read;
@@ -236,7 +236,7 @@ module snoopy(id,clnt,mngr,ref) = {
 	      call clnt.response(a,d,msg(mid).op,lt)
           }
        }
-    } 
+    }
 }
 
 ################################################################################
@@ -250,9 +250,7 @@ include tilelink_two_port_test_bench
 # The buffer makes two assumptions about the system configuration:
 
 # 1) supports only one client
-axiom fside(I) = client & fside(J) = client -> I = J  
+axiom fside(I) = client & fside(J) = client -> I = J
 
 # 2) The cached address set on front and back is the same.
 axiom front.cached(A) <-> back.cached(A)
-
-

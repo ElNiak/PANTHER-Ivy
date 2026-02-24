@@ -24,11 +24,11 @@ module total_non_strict_order(carrier) = {
 
 ################################################################################
 #
-# Maps. 
+# Maps.
 #
 # This module provides a relational model of a function from a type
 # dom to a type rng. Initially, everything is mapped to the element zero.
-# 
+#
 # The key invariant of a map is that it is a function, i.e., for every
 # X there exists a Y such that map(X,Y). The module does not state
 # this invariant, however, since the quantifier alternation could
@@ -78,7 +78,7 @@ module map(dom,rng,zero) = {
 # with a least element 0.  They provide insertion of elements (in log
 # time), deletion of ranges (in n log(n) time) and finding greatest
 # lower bounds (log n).
-# 
+#
 # For help with proofs, this module also provides an auxiliary map
 # "succ" that gives the successor of every element in the set. The
 # "successor" of the maximal element in the set is 0.
@@ -109,7 +109,7 @@ module ordered_set(key) = {
 	    call succ.set_(glb,nkey)
 	}
     }
-    
+
     # erase elements in a closed interval
     action erase(lo:key,hi:key) = {
 	s(K) := s(K) & ~(lo <= K & K <= hi)

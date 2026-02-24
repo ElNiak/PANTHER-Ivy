@@ -301,7 +301,7 @@ offset is updated to the requested value.
 
 ```
 These invariants relate the implementation and specification state.
-They are private to this module. 
+They are private to this module.
 
 ```
     private {

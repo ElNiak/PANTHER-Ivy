@@ -9,7 +9,7 @@ object endpoint = {
     object client_endpoint = {
         ...
 
-        module client_quic_ep(address:ip.addr,port:ip.port) = { 
+        module client_quic_ep(address:ip.addr,port:ip.port) = {
             #variant endpoint of client_endpoint = struct { }
             individual ep        : ip.endpoint
             individual tls_id    : tls_api.id
@@ -19,7 +19,7 @@ object endpoint = {
                 ep.addr := address;
                 ep.port := port;
             }
-            
+
             action set_ep(e:ip.endpoint) = {
                 ep := e;
             }
@@ -39,22 +39,22 @@ object endpoint = {
                     var hdr_type : type_bits := bfe[0][6](ppkt.value(0));
                     var tt := bvand(hdr_type,0x30);
                     var is_long : bool := bvand(0x80,header) ~= 0;
-                    
+
                     var version := ppkt.segment(1,1+4);
                     # var bversion := bytes_to_version(version);
-                    
+
                     var ptype : byte := bvand(0x30,header);
                     idx := idx.next;
                 };
             }
 
-        } 
+        }
     }
 
     object server_endpoint = {
         ...
 
-        module server_quic_ep(address:ip.addr,port:ip.port) = { 
+        module server_quic_ep(address:ip.addr,port:ip.port) = {
             #variant endpoint of server_endpoint = struct { }
             individual ep        : ip.endpoint
             individual tls_id    : tls_api.id
@@ -64,7 +64,7 @@ object endpoint = {
                 ep.addr := address;
                 ep.port := port;
             }
-            
+
             action set_ep(e:ip.endpoint) = {
                 ep := e;
             }
@@ -84,10 +84,10 @@ object endpoint = {
                     var hdr_type : type_bits := bfe[0][6](ppkt.value(0));
                     var tt := bvand(hdr_type,0x30);
                     var is_long : bool := bvand(0x80,header) ~= 0;
-                    
+
                     var version := ppkt.segment(1,1+4);
                     # var bversion := bytes_to_version(version);
-                    
+
                     var ptype : byte := bvand(0x30,header);
                     idx := idx.next;
                 };
@@ -101,12 +101,12 @@ object endpoint = {
 
         module mim_quic_ep(
                     address:ip.addr,
-                    port:ip.port, 
-                    oport:ip.port, 
-                    toward_client:bool, 
+                    port:ip.port,
+                    oport:ip.port,
+                    toward_client:bool,
                     standalone: bool,
-                    bridged: bool) = { 
-            
+                    bridged: bool) = {
+
             # variant this of man_in_the_middle_endpoint = struct { }
             individual ep_mim    : ip.endpoint
             individual ep_client : ip.endpoint
@@ -122,7 +122,7 @@ object endpoint = {
             individual dcil_exported : bool
 
             individual number_of_connection_from(S:ip.addr) : stream_pos
-        
+
 
             after init {
                 if ep_server.addr = 0x7f000001 {
@@ -149,7 +149,7 @@ object endpoint = {
                             if toward_client {
                                 ep_client.interface  := ip.ivy_server;
                                 ep_server.interface  := ip.ivy_client;
-                            } 
+                            }
                             else {
                                 ep_client.interface := ip.ivy_client;
                                 ep_server.interface := ip.ivy_server;
@@ -161,11 +161,11 @@ object endpoint = {
                         ep_server.interface := ip.ivy;
                     }
                 }
-                
+
                 nat_configured := false;
                 server_initial_response := false;
             }
-            
+
             action set_ep(e:ip.endpoint) = {
                 ep_mim := e; # TODO
             }
@@ -183,7 +183,7 @@ object endpoint = {
                 var past_data : stream_data := stream_data.empty;
                 # TODO should not be here
 
-    
+
                 var is_enc     := true;
                 var to_forward := false;
                 var packet_number_of_coalesed : stream_pos := 0;
@@ -203,8 +203,8 @@ object endpoint = {
 
                     if ~nat_configured |( src.addr = ep_client.addr & src.port ~= ep_client.port) {
                         nat_configured := true;
-                        ep_client      := src; # Like initial connection from client 
-                        
+                        ep_client      := src; # Like initial connection from client
+
                         client.set_ep(src);
                         mim_agent.ep_target_client.addr := src.addr + 2;
                         mim_agent.ep_target_client.port := src.port;
@@ -222,16 +222,16 @@ object endpoint = {
                             call mim_agent.disable_ip_forward;
                             forward_packets   := true;
                         }
-    
+
                         if bvand(ppkt.value(0),0xf0) = 0xc0 & hijack_tls {
                             server_initial_response := true;
                             # tls_client_initial_request
                             call tls_start_eavedrop_client_initial_request(src,dst,ppkt);
                             call tls_start_eavedrop_server_initial_response(src,dst,ppkt);
                         };
-    
-                    } 
-                    
+
+                    }
+
                     # if bvand(ppkt.value(0),0xf0) = 0xc0 {
                     #     number_of_connection_from(src.addr) := number_of_connection_from(src.addr) + 1;
                     #     call show_number_of_connection_debug_event(src.addr,number_of_connection_from(src.addr));
@@ -248,20 +248,20 @@ object endpoint = {
                         server_initial_response := false;
                         call tls_start_eavedrop_client_initial_request(src,dst,ppkt);
                     };
-                    
 
-                    if (bversion = 0 & is_long) | version_not_found(src) { 
+
+                    if (bversion = 0 & is_long) | version_not_found(src) {
                         # for server test, for version_negociation
                         # 1000 0000 == version_negociation
                         past_data := past_data.extend(ppkt);
                         # TODO
-                    } 
-                
+                    }
+
                     else if (tt = 0x30 & is_long) & ~(bversion = 0)  {
                         #  Retry packet
                         # TODO
-                    } 
-                    else { 
+                    }
+                    else {
                         var rnum := reference_pkt_num(ppkt,true);
                         if dst = ep_server & server_initial_response {
                             server.set_ep(dst);
@@ -283,7 +283,7 @@ object endpoint = {
                             var skm := cid_to_bytes(0,1); # scid
                             if(~scil = 0) {
                                 client_initial_scil := scil;
-                                client_non_zero_scil := true;	
+                                client_non_zero_scil := true;
                                 skm := ppkt.segment(6+dcil+1,6+dcil+1+scil); # scid
                             };
                             var scid : cid := bytes_to_cid(skm);
@@ -301,7 +301,7 @@ object endpoint = {
                                 call recv_packet(host,src,dst,rppkt);
                                 call infer_tls_events(src,dst,rppkt);   # infer any TLS events on server side
                                 call packet_event(src,dst,rppkt);       # also an inferred event
-                                
+
                                 var jdx := rppkt.payload.begin;
                                 while jdx < rppkt.payload.end {
                                     var f := rppkt.payload.value(jdx);
@@ -313,8 +313,8 @@ object endpoint = {
                                     to_forward := true;
                                     call receiving_packet(src,dst,rppkt, packet_number_of_coalesed);
                                     packet_number_of_coalesed := packet_number_of_coalesed + 1;
-                                };  
-                            }                   
+                                };
+                            }
                         } else {
                             if is_long {
                                 if is_random_padding_packet(ppkt) {
@@ -347,7 +347,7 @@ object endpoint = {
                                             call receiving_packet(src,dst,rppkt, packet_number_of_coalesed);
                                             packet_number_of_coalesed := packet_number_of_coalesed + 1;
                                         };
-                                    } 
+                                    }
                                 }
                             }
                             else {
@@ -395,7 +395,7 @@ object endpoint = {
                             }
                         }
                     }
-                    idx := idx.next; 
+                    idx := idx.next;
                 };
 
                 if forward_packets & keep_coalesed & to_forward {
@@ -407,7 +407,7 @@ object endpoint = {
             action tls_start_eavedrop_server_initial_response(src:ip.endpoint,dst:ip.endpoint,spkt:stream_data) = {
                 var tls_id       := src_tls_id(dst); # todo multiple
                 var other_tls_id := dst_tls_id(dst);
-                
+
                 var version := bytes_to_version(spkt.segment(1,5));
                 var lens := spkt.value(5);
                 var dcil : stream_pos := bfe[0][7](spkt.value(5));
@@ -423,7 +423,7 @@ object endpoint = {
                 var skm := cid_to_bytes(0,1); # scid
                 if(~scil = 0) {
                     client_initial_scil := scil;
-                    client_non_zero_scil := true;	
+                    client_non_zero_scil := true;
                     skm := spkt.segment(6+dcil+1,6+dcil+1+scil); # scid
                 };
                 var scid : cid := bytes_to_cid(skm);
@@ -444,24 +444,24 @@ object endpoint = {
 
                 # if ~tp_client_set | negocation_of_version(src) {
                 #     call tls_api.upper.eavesdrop_server(other_tls_id);
-                #     call tls_api.upper.eavesdrop_client(tls_id);  
+                #     call tls_api.upper.eavesdrop_client(tls_id);
                 #     # 'true' means this instance of tls is a server
                 #     tp_client_set := true;
-                # }; 
+                # };
 
-                
+
                 if client_initial_version ~= initial_version & client_initial_version ~= 0xfaceb002 { #initial_version todo
                     negocation_of_version(src) := true;
-                } 
-                else if (~initial_keys_set(dcid) & retry_client_test -> retry_sent(dcid)) | negocation_of_version(src) { 
+                }
+                else if (~initial_keys_set(dcid) & retry_client_test -> retry_sent(dcid)) | negocation_of_version(src) {
                     call export_length_cid_extension(dcil,scil);
                     negocation_of_version(src) := false;
 
                     var salt : stream_data := stream_data.empty;
-                    
+
                     #0xc3 ee f7 12 c7 2e bb 5a 11 a7 d2 43 2b b4 63 65 be f9 f5 02 QUIC-27
-                    if client_initial_version = 0xfaceb002  
-                    | client_initial_version = 0xff00001b 
+                    if client_initial_version = 0xfaceb002
+                    | client_initial_version = 0xff00001b
                     | client_initial_version = 0xff00001c {
                         salt := salt.append(0xc3);
                         salt := salt.append(0xee);
@@ -529,20 +529,20 @@ object endpoint = {
                         salt := salt.append(0x7f);
                         salt := salt.append(0x0a);
                     };
-                    call tls_api.upper.eavesdrop_client(tls_id);  
+                    call tls_api.upper.eavesdrop_client(tls_id);
                     call show_set_initial_keys(ikm, tls_id, dcid);
-                    call tls_api.upper.set_initial_keys(tls_id,salt,ikm);  
+                    call tls_api.upper.set_initial_keys(tls_id,salt,ikm);
                     initial_keys_set(scid) := true;
                 }
 
             }
-            
+
 
             action tls_start_eavedrop_client_initial_request(src:ip.endpoint,dst:ip.endpoint,spkt:stream_data) = {
                 # call client.set_ep(src);
                 var tls_id       := src_tls_id(dst); # todo multiple
                 var other_tls_id := dst_tls_id(dst);
-                
+
                 var version := bytes_to_version(spkt.segment(1,5));
                 var lens := spkt.value(5);
                 var dcil : stream_pos := bfe[0][7](spkt.value(5));
@@ -558,7 +558,7 @@ object endpoint = {
                 var skm := cid_to_bytes(0,1); # scid
                 if(~scil = 0) {
                     client_initial_scil  := scil;
-                    client_non_zero_scil := true;	
+                    client_non_zero_scil := true;
                     skm := spkt.segment(6+dcil+1,6+dcil+1+scil); # scid
                 };
                 var scid : cid := bytes_to_cid(skm);
@@ -590,11 +590,11 @@ object endpoint = {
                     # 'true' means this instance of tls is a server
                     tp_client_set := true;
                 } else  {
-                    call tls_api.upper.eavesdrop_server(3);  
+                    call tls_api.upper.eavesdrop_server(3);
                 }
 
                 # client_initial_scil := scid_size_pos(false);
-                # var ikm := cid_to_bytes(other_tls_id,dcid_size_cl(retry_response(the_cid))); 
+                # var ikm := cid_to_bytes(other_tls_id,dcid_size_cl(retry_response(the_cid)));
                 # call show_set_initial_keys(ikm, client_initial_version);
                 # call show_version(pversion);
                 var salt : stream_data := stream_data.empty;
@@ -675,7 +675,7 @@ object endpoint = {
                     call show_set_initial_keys(ikm, 3, dcid);
                     call tls_api.upper.set_initial_keys(3,salt,ikm);
                 }
-               
+
                 nonce_cid(the_cid) := server_cid;
                 conn_seen(dcid)    := true;
                 conn_requested(src,dst,scid) := true;
@@ -687,7 +687,7 @@ object endpoint = {
                 # conn_seen(scid) := true;
                 # conn_requested(src,dst,scid) := true;
             }
-                
+
 
             action is_random_padding_packet(spkt:stream_data) returns (is_padding:bool) = {
                 var first_byte := spkt.value(0);
@@ -724,7 +724,7 @@ object endpoint = {
                             fprintf(fp, "%02x",  ppkt[j]); //length field
                         }
                         fclose(fp);
-                    }        
+                    }
                 >>>
             }
 
@@ -740,7 +740,7 @@ object endpoint = {
                         read = getline(&line, &len, fp);
                         fclose(fp);
                         bool is_error = false;
-                        if(line != NULL) { 
+                        if(line != NULL) {
                             std::cerr << "SAVED_PACKET 1 " << line << std::endl;
                             int hex_len = strlen(line);
                             std::cerr << "SAVED_PACKET hex_len " << hex_len << std::endl;
@@ -756,12 +756,12 @@ object endpoint = {
                                     break;
                                 }
                                 secret[j] = a << 4 | b;
-                            }  
+                            }
                             std::cerr << "SAVED_PACKET TEST_ST 2 " << secret << std::endl;
                             for(int i = 0; i < hex_len/2 && !is_error; i++)
                                 ppkt.push_back(secret[i]);
                         }
-                    }        
+                    }
                 >>>
             }
 
@@ -798,13 +798,13 @@ object endpoint = {
             action disable_ip_forward = {
                 <<<
                     //  very important for modifying the packet
-                    
+
                     std::string command = "sysctl -w net.ipv4.ip_forward=0";
                     int n = command.length();
                     char command_array[n + 1];
                     strcpy(command_array, command.c_str());
                     int cr = system(command_array);
-                    
+
                     command = "sysctl -w net.ipv4.conf.all.send_redirects=0";
                     n = command.length();
                     command_array[n + 1];
@@ -828,7 +828,7 @@ object endpoint = {
             action enable_ip_forward = {
                 <<<
                     //  very important for modifying the packet
-                    
+
                     std::string command = "sysctl -w net.ipv4.ip_forward=1";
                     int n = command.length();
                     char command_array[n + 1];
@@ -858,7 +858,7 @@ object endpoint = {
 
             action reset_NAT = {
                 <<<
-                    const char * command = "pkill arpspoof;"; 
+                    const char * command = "pkill arpspoof;";
                     int cr = system( command );
                 >>>
             }
@@ -874,17 +874,17 @@ object endpoint = {
             import action recv_packet(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
             import action recv_encrypted_packet(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint, pkt_head_byte:stream_pos, pkt_scid: cid, pkt_dcid:cid, pkt_version: version, pkt_token:stream_data, pkt_len:stream_pos)
         }
-    
+
     }
 
     object client_attacker_endpoint = {
         ...
 
-        module attacker_quic_ep(address:ip.addr, 
+        module attacker_quic_ep(address:ip.addr,
                                 port:ip.port,
-                                oport:ip.port, 
-                                bridged:bool, 
-                                standalone:bool) = { 
+                                oport:ip.port,
+                                bridged:bool,
+                                standalone:bool) = {
             #variant endpoint of client_attacker_endpoint = struct { }
             individual ep        : ip.endpoint
             individual ep_server : ip.endpoint
@@ -924,7 +924,7 @@ object endpoint = {
                 }
                 nat_configured := false;
             }
-            
+
             action set_ep(e:ip.endpoint) = {
                 ep := e;
             }
@@ -939,14 +939,14 @@ object endpoint = {
                 var past_data : stream_data := stream_data.empty;
                 while idx < pkts.end {
                     var ppkt := pkts.value(idx);
-                    
+
                     var h := net_prot.get_header_info(ppkt,false);
 
                     var header := ppkt.value(0);
                     var hdr_type : type_bits := bfe[0][6](ppkt.value(0));
                     var tt := bvand(hdr_type,0x30);
                     var is_long : bool := bvand(0x80,header) ~= 0;
-                    
+
 
 
                     var tls_id := cid_map_tls_id(h.dcid); #src_tls_id(dst); # todo multiple
@@ -959,27 +959,27 @@ object endpoint = {
                         # cid_map_ep(dcid)          := dst;
                     };
                     call show_recv_debug_ev(src,dst,h.scid,h.dcid,tls_id);
-                
-               
+
+
                     var version := ppkt.segment(1,1+4);
                     var bversion := bytes_to_version(version);
-                    
+
                     var ptype : byte := bvand(0x30,header);
 
-                    if (bversion = 0 & is_long) | version_not_found(src) { 
+                    if (bversion = 0 & is_long) | version_not_found(src) {
                         # for server test, for version_negociation
                         # 1000 0000 == version_negociation
                         past_data := past_data.extend(ppkt);
                         call tls_client_version_response(src,dst,past_data);
-                    } 
+                    }
                     else if (tt = 0x30 & is_long) & ~(bversion = 0)  {
                         #for server test, Retry packet
                         call tls_client_retry_response(src,dst,ppkt);
-                    } 
+                    }
                     # else if is_pad { #is_pad | is_rand_pad
                     #     call padding_packet_event(src,dst,ppkt); # For quic-go and quand  client
-                    # } 
-                    else { 
+                    # }
+                    else {
                         var rnum := reference_pkt_num(ppkt,true);
 
 
@@ -987,7 +987,7 @@ object endpoint = {
                         #     call on_purpose_lost_packet_event(host,src,dst,last_zrtt_pkt);
                         # } else {
                             var res := net_prot.decrypt_quic(tls_id,rnum,ppkt);
-                           
+
                             total_data_received := total_data_received + ppkt.size;
                             # if total_data_received > 3 * total_data_sent { # Only for server
                             #     call show_data_received(total_data_received);
@@ -1039,7 +1039,7 @@ object endpoint = {
 
             import action show_recv_debug_ev(src:ip.endpoint,dst:ip.endpoint,scid:cid,dcid:cid,tls_id:tls_api.id)
             import action show_update_(cid:cid,tls_id:tls_api.id,ep:ip.endpoint)
-            
+
             action configure_NAT_attack(src:ip.addr, dst:ip.addr) = {
                 <<<
                     //  very important for modifying the packet
@@ -1072,7 +1072,7 @@ object endpoint = {
 
             action reset_NAT = {
                 <<<
-                    const char * command = "pkill arpspoof;"; 
+                    const char * command = "pkill arpspoof;";
                     int cr = system( command );
                 >>>
             }
@@ -1082,7 +1082,7 @@ object endpoint = {
     object server_attacker_endpoint = {
         ...
 
-        module attacker_quic_ep(address:ip.addr,port:ip.port, oport:ip.port, bridged:bool, standalone:bool) = { 
+        module attacker_quic_ep(address:ip.addr,port:ip.port, oport:ip.port, bridged:bool, standalone:bool) = {
             #variant endpoint of client_attacker_endpoint = struct { }
             individual ep        : ip.endpoint
             individual ep_server : ip.endpoint
@@ -1119,10 +1119,10 @@ object endpoint = {
                         ep_server.interface := ip.ivy;
                     }
                 }
-                
+
                 nat_configured := false;
             }
-            
+
             action set_ep(e:ip.endpoint) = {
                 ep := e;
             }
@@ -1142,26 +1142,26 @@ object endpoint = {
                     var hdr_type : type_bits := bfe[0][6](ppkt.value(0));
                     var tt := bvand(hdr_type,0x30);
                     var is_long : bool := bvand(0x80,header) ~= 0;
-                    
+
                     var version := ppkt.segment(1,1+4);
                     var bversion := bytes_to_version(version);
-                    
+
                     var ptype : byte := bvand(0x30,header);
 
-                    if (bversion = 0 & is_long) | version_not_found(src) { 
+                    if (bversion = 0 & is_long) | version_not_found(src) {
                         # for server test, for version_negociation
                         # 1000 0000 == version_negociation
                         past_data := past_data.extend(ppkt);
                         call tls_client_version_response(src,dst,past_data);
-                    } 
+                    }
                     else if (tt = 0x30 & is_long) & ~(bversion = 0)  {
                         #for server test, Retry packet
                         call tls_client_retry_response(src,dst,ppkt);
-                    } 
+                    }
                     # else if is_pad { #is_pad | is_rand_pad
                     #     call padding_packet_event(src,dst,ppkt); # For quic-go and quand  client
-                    # } 
-                    else { 
+                    # }
+                    else {
                         var rnum := reference_pkt_num(ppkt,true);
                         # if rnum = lost_pkt_num {
                         #     call on_purpose_lost_packet_event(host,src,dst,last_zrtt_pkt);
@@ -1253,7 +1253,7 @@ object endpoint = {
 
             action reset_NAT = {
                 <<<
-                    const char * command = "pkill arpspoof;"; 
+                    const char * command = "pkill arpspoof;";
                     int cr = system( command );
                 >>>
             }

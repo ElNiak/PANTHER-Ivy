@@ -1,7 +1,7 @@
 # Panther Ivy Tester
 
 !!! info "Plugin Information"
-    **Plugin Type**: Service (Tester)  
+    **Plugin Type**: Service (Tester)
     **Source Location**: `plugins/services/testers/panther_ivy/`
 
 !!! warning "Advanced Testing Tool"
@@ -45,21 +45,21 @@ graph TB
     D --> E[Implementation Under Test]
     E --> F[Verification & Analysis]
     F --> G[Results & Reports]
-    
+
     subgraph "Protocol Models"
         H[QUIC Stack Models]
         I[TLS Stack Models]
         J[Security Properties]
         K[Attack Models]
     end
-    
+
     subgraph "Test Types"
         L[Server Tests]
         M[Client Tests]
         N[Security Tests]
         O[Conformance Tests]
     end
-    
+
     C --> H
     C --> I
     C --> J
@@ -224,9 +224,9 @@ The system uses **shim layers** to interface with real protocol implementations:
 ```ivy
 # ivy_quic_shim.ivy - Interface between Ivy model and implementation
 implement quic_net.recv(host:endpoint_id, s: quic_net.socket, src:ip.endpoint, pkts:net_prot.arr) {
-    if host = endpoint_id.server {       
+    if host = endpoint_id.server {
         call server.behavior(host,s,src,pkts);
-    } else if host = endpoint_id.client { 
+    } else if host = endpoint_id.client {
         call client.behavior(host,s,src,pkts);
     }
 }
@@ -262,15 +262,15 @@ Test outputs include:
 # Experiment configuration excerpt
 services:
   picoquic_server:
-    implementation: 
+    implementation:
       name: "picoquic"
       type: "iut"
-    protocol: 
+    protocol:
       name: "quic"
       role: "server"
-      
+
   ivy_client:
-    implementation: 
+    implementation:
       name: "panther_ivy"
       type: "testers"
       test: "quic_server_test_stream"

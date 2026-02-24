@@ -59,5 +59,3 @@ with ivy_module.Module():
     if not ui.check_inductiveness():
         print("result of inductiveness check should have been true")
         exit(1)
-
-

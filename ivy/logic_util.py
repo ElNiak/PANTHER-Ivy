@@ -170,7 +170,7 @@ def substitute(t, subs):
                 return type(t)(t.name,t.variables,t.environ,substitute(t.body, (
                     newsubs
                 )))
-            else: 
+            else:
                 return type(t)(t.variables, substitute(t.body, (
                     newsubs
                 )))
@@ -329,7 +329,3 @@ def equal_mod_alpha(t,u):
             return len(t) == len(u) and all(rec(v,w,m1,m2,n) for v,w in zip(tuple(t),tuple(u)))
         return False
     return rec(t,u,pushable_map(),pushable_map(),0)
-
-                    
-            
-    

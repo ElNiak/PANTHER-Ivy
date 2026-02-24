@@ -44,7 +44,7 @@ stripping. We need to do this since IVy doesn't yet allow isolates
 within parameterized objects. The idea here is that, since the
 delegation maps and hash tables of the different processes are
 independent, we can verify just one with a symbolic parameter value
-`me`. 
+`me`.
 
 We also need to export the protocol's interface actions to the environment:
 
@@ -159,7 +159,7 @@ Since our process id type is `bv[1]` (one-bit binary numbers) we have two proces
 We fire up terminals A and B, and run the two process:
 
     A: $ ./sht 0
-    A: > 
+    A: >
 
     B: $ ./sht 1
     B: >
@@ -203,7 +203,7 @@ So we can get and set values remotely. Let's try delegating a shard:
     B: > proto.answer(7,66,0)
 
 This looks good, but it's bit hard to tell if the delegation actually
-did anything, since the answers don't change. 
+did anything, since the answers don't change.
 
 # Debug monitoring
 
@@ -226,7 +226,7 @@ this: compile in a debug monitor. Here's an example:
 
 This monitor synchronizes with the low-level message receive and send
 calls `udp.send` and `udp.recv`. In each case it just calls back to the environment,
-passing the destination address and message as parameters. 
+passing the destination address and message as parameters.
 
 Now we have to add the object `debug` to our extract so it doesn't get
 abstracted away:
@@ -257,7 +257,7 @@ a message? The answer is probably not. If we called back to `answer`
 from within `get`, the caller would have to deal with the possible
 interference caused by `answer`. Probably it's better from a usability
 point of view to stash the answer in a message and present it
-asynchronously, as if the operation were done remotely. 
+asynchronously, as if the operation were done remotely.
 
 Now let's try a remote operation:
 
@@ -316,6 +316,3 @@ which is not formally specified. In addition, we haven't proved any
 progress properties. For all we know, our protocol can get into a
 deadlock situation and stop responding. In the next section, we
 discuss how to test more rigorously than we just did, to gain more confidence in our protocol implementation.
-
-
-

@@ -1,7 +1,7 @@
 #lang ivy1.7
 
 module file(pid,data) = {
-    
+
     type cb
 
     action write(d:data)
@@ -18,7 +18,7 @@ module file(pid,data) = {
     specification {
         var contents : data
         relation pending(C:cb)
-        
+
         after init {
 #            contents := ival;
             pending(C) := false;
@@ -86,7 +86,7 @@ module file(pid,data) = {
             ivy_socket_deser ds(`fildes`,buf);  // initializer deserializer with zero bytes
             try {
                 __deser(ds,d);            // read the message
-            } 
+            }
 
             // If file has bad syntax, something really terrible happened so we give up
 
@@ -112,7 +112,7 @@ module file(pid,data) = {
                     fd = -1;
                     cb(c);
                     ivy->__unlock();
-                }  
+                }
             };
         >>>
         implement sync {
@@ -125,7 +125,7 @@ module file(pid,data) = {
         }
 
     }
-    trusted isolate iso = this 
+    trusted isolate iso = this
 }
 
 object packet = {
@@ -192,12 +192,12 @@ object serv = {
             lock(X) := X = 0
         }
 
-        
+
         before grant {
             assert ~lock(X);
             lock(v) := true
         }
-        
+
         before release {
             assert lock(v);
             lock(v) := false

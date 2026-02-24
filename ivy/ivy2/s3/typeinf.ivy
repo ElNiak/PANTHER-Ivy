@@ -20,7 +20,7 @@
 # This action removes type decorations that can be inferred from a
 # vector of expressions. This is usually done before printing the
 # expressions to improve readability.
-# 
+#
 
 include ivylang
 include hash
@@ -37,21 +37,21 @@ object ivy = { ...
     # rely on when eliding type decorations:
     #
     # Verb is monomorphic:
-    
+
     function verb_mono(X:verb) : bool
-    
+
     # Input types determine output types:
 
     function verb_in_to_out(X:verb) : bool
-    
+
     # Output type determines input types:
 
     function verb_out_to_in(X:verb) : bool
-    
+
     # First input type determines all:
 
     function verb_first_to_in(X:verb) : bool
-    
+
     action set_built_in_type(vrb:verb,ty:str,m:bool,io:bool,oi:bool,fi:bool) = {
         optypes(vrb) := expr.dec(ty);
         verb_mono(vrb) := m;
@@ -59,7 +59,7 @@ object ivy = { ...
         verb_out_to_in(vrb) := oi;
         verb_first_to_in(vrb) := fi;
     }
-    
+
     after init {
         call set_built_in_type(verb.none,"alpha",true,true,true,true);
         call set_built_in_type(verb.plus,"alpha * alpha -> alpha",false,true,true,true);
@@ -84,7 +84,7 @@ object ivy = { ...
         call set_built_in_type(verb.comma,"alpha * beta -> alpha * beta",false,true,true,false);
         call set_built_in_type(verb.varv,"alpha -> alpha",false,true,true,true);
     }
-    
+
 
     # Returns `true` if the type of a the first input of a given verb determines
     # the type of the remaining inputs.
@@ -102,11 +102,11 @@ object ivy = { ...
         type this = struct {
 
 	    # A counter for creating type variables
-	    
+
             counter : pos,
 
 	    # Maps types and type variables to their representatives
-	    
+
             m : map,
 
             # Maps identifiers of symbols to their types
@@ -143,7 +143,7 @@ object ivy = { ...
             res := symbol.makenum(s.counter,ann);
             s.counter := s.counter.next
         }
-        
+
 	# Find the representative of an expression. This has the
 	# side effect of shortening the path to the representative
 	# as in classic union/find.
@@ -171,7 +171,7 @@ object ivy = { ...
 	    call typeinf_show_str(x.enc);
 	    call typeinf_show_str(y.enc);
 	}
-	    
+
 
 	# Unify a pair of types. Sets ok to false if the types cannot
 	# be unified.
@@ -231,7 +231,7 @@ object ivy = { ...
         }
     }
 
-    # Called in case of an error typing expression `e`. 
+    # Called in case of an error typing expression `e`.
 
     action type_error(e:expr,st:decost) returns (st:decost) = {
 	if ~st.error_reported {
@@ -300,9 +300,9 @@ object ivy = { ...
             res := e;
         }
     }
-    
+
     object app = { ...
-        
+
         action type_decorate(e:this,st:decost,m:symeval) returns (res:expr,ty:expr,st:decost) = {
             var arg : expr;
             var argty : expr;
@@ -396,7 +396,7 @@ object ivy = { ...
                 var func : expr;
                 (func,st) := e.func.type_elide_int(true,m,st);
                 var vrb := e.func.get_verb;
-                b := b & verb_out_to_in(vrb) | verb_mono(vrb); 
+                b := b & verb_out_to_in(vrb) | verb_mono(vrb);
                 var newargs : vector[expr];
                 var idx := e.args.begin;
                 while idx < e.args.end {
@@ -491,4 +491,3 @@ object ivy = { ...
     }
 
 }
-

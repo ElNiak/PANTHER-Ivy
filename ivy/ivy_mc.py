@@ -56,7 +56,7 @@ class Aiger(object):
             self.map[x] = self.next_id * 2
 #            print 'var: {} = {}'.format(x,self.next_id * 2)
             self.next_id += 1
-        
+
     def true(self):
         return 1
 
@@ -69,7 +69,7 @@ class Aiger(object):
     def define(self,sym,val):
 #        print 'define: {} = {}'.format(sym,val)
         self.map[sym] = val
-        
+
     def andl(self,*args):
         if not args:
             return self.true()
@@ -83,7 +83,7 @@ class Aiger(object):
 
     def notl(self,arg):
         return 2*(arg//2) + (1 - arg%2)
-    
+
     def orl(self,*args):
         return self.notl(self.andl(*list(map(self.notl,args))))
 
@@ -133,7 +133,7 @@ class Aiger(object):
             sym = df.defines()
             assert il.is_boolean_sort(sym.sort),"non-boolean sym in aiger output: {}".format(sym)
             self.define(sym,self.eval(df.args[1],getdef))
-    
+
     def set(self,sym,val):
         self.values[sym] = val
 
@@ -157,7 +157,7 @@ class Aiger(object):
         for x,y,z in self.gates:
             strings.append(str('{} {} {}'.format(x,y,z)))
         return '\n'.join(strings)+'\n'
-                                          
+
     def sym_vals(self,syms):
         for sym in syms:
             assert sym in self.map, sym
@@ -174,7 +174,7 @@ class Aiger(object):
 
     def show_state(self):
         print('state: {}'.format(self.latch_vals()))
-        
+
     def reset(self):
         self.state = dict((self.map[x],'0') for x in self.latches)
 
@@ -216,8 +216,8 @@ class Aiger(object):
         print('self:')
         print(self)
 
-        
-            
+
+
 # functions for binary encoding of finite sorts
 
 def ceillog2(n):
@@ -243,7 +243,7 @@ def get_encoding_bits(sort):
             msg += '(interpreted as {})'.format(interp)
         raise iu.IvyError(None,msg)
     return n
-                                  
+
 
 def encode_vars(syms,encoding):
     res = []
@@ -276,7 +276,7 @@ class Encoder(object):
             '%' : self.encode_mod,
             '<' : self.encode_le,
             }
-        
+
     def true(self):
         return [self.sub.true()]
 
@@ -290,7 +290,7 @@ class Encoder(object):
         vs = encode_vars([sym],self.encoding)
         for s,v in zip(vs,val):
             self.sub.define(s,v )
-        
+
     def andl(self,*args):
         if len(args) == 0:
             return self.true()
@@ -303,7 +303,7 @@ class Encoder(object):
 
     def notl(self,arg):
         return list(map(self.sub.notl,arg))
-    
+
     def implies(self,x,y):
         return [self.sub.implies(a,b) for a,b in zip(x,y)]
 
@@ -318,7 +318,7 @@ class Encoder(object):
                 elseterm = recur(expr.args[2])
                 res = [self.sub.ite(cond[0],x,y) for x,y in zip(thenterm,elseterm)]
             elif il.is_app(expr):
-                sym = expr.rep 
+                sym = expr.rep
                 if sym in il.sig.constructors:
                     m = sym.sort.defines().index(sym.name)
                     res = self.binenc(m,ceillog2(len(sym.sort.defines())))
@@ -369,7 +369,7 @@ class Encoder(object):
         for df in defs:
             sym = df.defines()
             self.define(sym,self.eval(df.args[1],getdef))
-    
+
     def set(self,sym,val):
 #        iu.dbg('sym')
 #        iu.dbg('val')
@@ -393,7 +393,7 @@ class Encoder(object):
     def binenc(self,m,n):
         return [(self.sub.true() if m & (1 << (n-1-i)) else self.sub.false())
                 for i in range(n)]
-        
+
     def bindec(self,bits):
         res = 0
         n = len(bits)
@@ -431,14 +431,14 @@ class Encoder(object):
         return res,cy
 
     def encode_plus(self,sort,x,y):
-        x,y = self.saturate(sort,x),self.saturate(sort,y) 
+        x,y = self.saturate(sort,x),self.saturate(sort,y)
         res,cy =self.encode_plus_int(sort,x,y,self.sub.false())
         if il.is_range_sort(sort):
             res = self.encode_ite(cy,self.binenc(-1,len(x)),res)
         return res
-    
+
     def encode_minus(self,sort,x,y):
-        x,y = self.saturate(sort,x),self.saturate(sort,y) 
+        x,y = self.saturate(sort,x),self.saturate(sort,y)
         ycom = self.notl(y)
         res,cy = self.encode_plus_int(sort,x,ycom,self.sub.true())
         if il.is_range_sort(sort):
@@ -446,7 +446,7 @@ class Encoder(object):
         return res
 
     def encode_times(self,sort,x,y):
-        x,y = self.saturate(sort,x),self.saturate(sort,y) 
+        x,y = self.saturate(sort,x),self.saturate(sort,y)
         res = [self.sub.false() for _ in x]
         for i in range(0,len(x)):
             res = res[1:] + [self.sub.false()]
@@ -454,18 +454,18 @@ class Encoder(object):
         return res
 
     def encode_lt(self,sort,x,y,cy=None):
-        x,y = self.saturate(sort,x),self.saturate(sort,y) 
+        x,y = self.saturate(sort,x),self.saturate(sort,y)
         if cy is None:
             cy = self.sub.false()
         for i in range(len(x)-1,-1,-1):
             cy = self.sub.orl(self.sub.andl(self.sub.notl(x[i]),y[i]),self.sub.andl(self.sub.iff(x[i],y[i]),cy))
         return [cy]
-            
+
     def encode_le(self,sort,x,y):
         return self.encode_lt(sort,x,y,cy=self.sub.true())
-        
+
     def encode_div(self,sort,x,y):
-        x,y = self.saturate(sort,x),self.saturate(sort,y) 
+        x,y = self.saturate(sort,x),self.saturate(sort,y)
         thing = [self.sub.false() for _ in x]
         res = []
         for i in range(0,len(x)):
@@ -497,7 +497,7 @@ class Encoder(object):
         else:
             assert False,'variable has unexpected sort: {} {}'.format(v,v.sort)
         return val
-        
+
 
     def get_state(self,post):
         subres = self.sub.get_state(post)
@@ -513,7 +513,7 @@ class Encoder(object):
         abits = self.sub.sym_vals(enc)
         bits = [il.And() if b == '1' else il.Or() for b in abits]
         return self.decode_val(bits,v)
-        
+
     def get_next_sym(self,v):
         enc = self.encoding[v]
         abits = self.sub.sym_next_vals(enc)
@@ -524,7 +524,7 @@ def is_finite_sort(sort):
     if il.is_function_sort(sort):
         return False
     interp = thy.get_sort_theory(sort)
-    return (il.is_enumerated_sort(interp) or 
+    return (il.is_enumerated_sort(interp) or
             il.is_range_sort(interp) or
             isinstance(interp,thy.BitVectorTheory) or
             il.is_boolean_sort(interp))
@@ -538,11 +538,11 @@ def sort_values(sort):
     if isinstance(interp,thy.BitVectorTheory):
         if interp.bits > 8:
             raise iu.IvyError(None,'Cowardly refusing to enumerate the type bv[{}]'.format(interp.bits))
-        return [il.Symbol(str(i),sort) for i in range(2**interp.bits)]  
+        return [il.Symbol(str(i),sort) for i in range(2**interp.bits)]
     if il.is_boolean_sort(interp):
         return [il.Or(),il.And()]
     assert False,sort
-    
+
 
 # Expand the axiom schemata into axioms, for a given collection of
 # function and constant symbols.
@@ -562,7 +562,7 @@ class Match(object):
     def unify(self,x,y):
         if x not in self.map:
             if x.name.endswith('_finite') and not is_finite_sort(y):
-                return False  # 
+                return False  #
             self.add(x,y)
             return True
         return self.map[x] == y
@@ -573,7 +573,7 @@ class Match(object):
             if not self.unify(x,y):
                 return False
         return True
-    
+
 
 def str_map(map):
     return '{' + ','.join('{}:{}'.format(x,y) for x,y in map.items()) + '}'
@@ -614,9 +614,9 @@ def match_schema_prems(prems,sort_constants,funs,match,bound_sorts):
             for m in match_schema_prems(prems,sort_constants,funs,match,bound_sorts):
                 yield m
         prems.append(prem)
-            
+
 def apply_match(match,fmla):
-    """ apply a match to a formula. 
+    """ apply a match to a formula.
 
     In effect, substitute all symbols in the match with the
     corresponding lambda terms and apply beta reduction
@@ -653,7 +653,7 @@ def expand_schemata(mod,sort_constants,funs):
             inst = apply_match(m,conc)
             res.append(ivy_ast.LabeledFormula(ivy_ast.Atom(name),inst))
     return res
-                
+
 # This is where we do pattern-based eager instantiation of the axioms
 
 def instantiate_axioms(mod,stvars,trans,invariant,sort_constants,funs):
@@ -668,7 +668,7 @@ def instantiate_axioms(mod,stvars,trans,invariant,sort_constants,funs):
 
     if verbose:
         print('Instantiating axioms...')
-    
+
     # Get all the triggers. For now only automatic triggers
 
     def get_trigger(expr,vs):
@@ -723,7 +723,7 @@ def instantiate_axioms(mod,stvars,trans,invariant,sort_constants,funs):
             mp.update(save)
             return match(px,ey,mp) and match(py,ex,mp)
         return all(match(x,y,mp) for x,y in zip(pat.args,expr.args))
-                                                                
+
     # TODO: make sure matches are ground
     def recur(expr):
         for e in expr.args:
@@ -739,7 +739,7 @@ def instantiate_axioms(mod,stvars,trans,invariant,sort_constants,funs):
     # match triggers against the defs and fmlas and invariant
     for f in trans.defs + trans.fmlas + [invariant]:
         recur(f)
-                    
+
     for f in inst_list:
         logfile.write('    {}\n'.format(f))
     return inst_list
@@ -797,7 +797,7 @@ def mine_constants2(mod,trans,invariant):
 # variables, it is a candidate to become an abstract state variable. THis function computes the
 # current state version of such an express from its next state version, or returns None if the expression
 # does not qualify.
-# 
+#
 
 def prev_expr(stvarset,expr,sort_constants):
     if any(sym in stvarset or tr.is_skolem(sym) and not sym in sort_constants[sym.sort]
@@ -807,7 +807,7 @@ def prev_expr(stvarset,expr,sort_constants):
     if news:
         rn = dict((sym,tr.new_of(sym)) for sym in news)
         return ilu.rename_ast(expr,rn)
-    return None        
+    return None
 
 # Here we deal with normalizing of terms. In particular, we order the
 # equalities and convert x = x to true. This means we don't have to
@@ -852,7 +852,7 @@ def normalize(expr):
     if il.is_macro(expr):
         return normalize(il.expand_macro(expr))
     return clone_normal(expr,list(map(normalize,expr.args)))
-    
+
 
 # Class for eliminating quantifiers by finite instantiate. Here,
 # sort_constants is a map from each sort to a list of the grounds
@@ -912,7 +912,7 @@ class Qelim(object):
         # add the transition constraints to the new trans
         trans = ilu.Clauses(new_fmlas+indhyps+self.fmlas,new_defs)
         return trans,invariant
-        
+
 
 def uncompose_annot(annot):
     if not isinstance(annot,ia.ComposeAnnotation):
@@ -920,7 +920,7 @@ def uncompose_annot(annot):
     res = uncompose_annot(annot.args[0])
     res.append(annot.args[1])
     return res
-    
+
 def unite_annot(annot):
     if isinstance(annot,ia.RenameAnnotation):
         return [(annot.map.get(x,x),ia.RenameAnnotation(y,annot.map)) for (x,y) in unite_annot(annot.arg)]
@@ -941,8 +941,8 @@ class MatchHandler(object):
     def handle(self,action,env):
         print('{}{}'.format(action.lineno,action))
         print('env: {}'.format('{'+','.join('{}:{}'.format(x,y) for x,y in env.items())+'}'))
-        
-    
+
+
 def match_annotation(action,annot,handler):
     def recur(action,annot,env,pos=None):
         if isinstance(annot,ia.RenameAnnotation):
@@ -987,7 +987,7 @@ def match_annotation(action,annot,handler):
             return
         if isinstance(action,ia.ChoiceAction):
             assert isinstance(annot,ia.IteAnnotation)
-            
+
             annots = unite_annot(annot)
             assert len(annots) == len(action.args)
             for act,(cond,ann) in reversed(list(zip(action.args,annots))):
@@ -999,7 +999,7 @@ def match_annotation(action,annot,handler):
             callee = im.module.actions[action.args[0].rep]
             seq = ia.Sequence(ia.IgnoreAction(),callee,ia.ReturnAction())
 #            seq = ia.Sequence(*([ia.Sequence() for x in callee.formal_params]
-#                             + [callee] 
+#                             + [callee]
 #                             + [ia.Sequence() for x in callee.formal_returns]))
             recur(seq,annot,env)
             return
@@ -1013,7 +1013,7 @@ def match_annotation(action,annot,handler):
             return
         handler.handle(action,env)
     recur(action,annot,dict())
-    
+
 def checked(thing):
     return ia.checked_assert.value in ["",thing.lineno]
 
@@ -1034,7 +1034,7 @@ def add_err_flag(action,erf,errconds):
         if isinstance(action,ia.AssertAction):
             if verbose:
                 print("assuming assertion at line {}".format(action.lineno))
-        res = ia.AssumeAction(il.Or(erf,action.formula)) 
+        res = ia.AssumeAction(il.Or(erf,action.formula))
         res.lineno = iu.nowhere()
         return res
     if isinstance(action,(ia.Sequence,ia.ChoiceAction,ia.EnvAction,ia.BindOldsAction)):
@@ -1052,7 +1052,7 @@ def add_err_flag_mod(mod,erf,errconds):
         new_action.formal_params = action.formal_params
         new_action.formal_returns = action.formal_returns
         mod.actions[actname] = new_action
-       
+
 # This translates finite function applications to table lookups.  This
 # is preferable to using axioms if the argument types are large, since
 # it prevents copying the argument expressions. Also, the result is a
@@ -1064,7 +1064,7 @@ def to_table_lookup(trans,invariant):
     new_defs = []
     global to_table_lookup_counter
     to_table_lookup_counter = 0
-    
+
     def arg_sym(sort):
         global to_table_lookup_counter
         res = il.Symbol('__arg[{}]'.format(to_table_lookup_counter),sort)
@@ -1075,7 +1075,7 @@ def to_table_lookup(trans,invariant):
         if (il.is_app(expr) and len(expr.args) > 0 and
             not il.is_interpreted_symbol(expr.func) and
             all(is_finite_sort(a.sort) for a in expr.args)):
-            
+
             argsyms = []
             consts = []
             for x in expr.args:
@@ -1125,10 +1125,10 @@ def to_aiger(mod,ext_act,method="mc"):
     ext_acts = [mod.actions[x].add_label(x) for x in sorted(mod.public_actions)]
     ext_act = ia.EnvAction(*ext_acts)
 
-    init_var = il.Symbol('__init',il.find_sort('bool')) 
+    init_var = il.Symbol('__init',il.find_sort('bool'))
     init = add_err_flag(ia.Sequence(*([a for n,a in mod.initializers]+[ia.AssignAction(init_var,il.And()).set_lineno(iu.nowhere())])),erf,errconds)
     action = ia.Sequence(ia.AssignAction(erf,il.Or()).set_lineno(iu.nowhere()),ia.IfAction(init_var,ext_act,init))
-    
+
     # get the invariant to be proved, replacing free variables with
     # skolems. First, we apply any proof tactics.
 
@@ -1155,7 +1155,7 @@ def to_aiger(mod,ext_act,method="mc"):
     sksubs = dict((v.rep,skolemizer(v)) for v in vs)
     invariant = ilu.substitute_ast(invariant,sksubs)
     invar_syms = ilu.used_symbols_ast(invariant)
-    
+
     # compute the transition relation
 
     bgt = mod.background_theory()
@@ -1172,20 +1172,20 @@ def to_aiger(mod,ext_act,method="mc"):
     error = ilu.rename_clauses(error,rn)
     stvars = [x for x in stvars if x not in defsyms]  # Remove symbols with state-dependent definitions
     # iu.dbg('trans')
-    
+
 
 #    print 'action : {}'.format(action)
 #    print 'annotation: {}'.format(trans.annot)
     annot = trans.annot
 #    match_annotation(action,annot,MatchHandler())
-    
+
     indhyps = [il.close_formula(il.Implies(init_var,lf.formula)) for lf in mod.labeled_conjs + mod.assumed_invariants]
 #    trans = ilu.and_clauses(trans,indhyps)
 
     # save the original symbols for trace
     orig_syms = ilu.used_symbols_clauses(trans)
     orig_syms.update(ilu.used_symbols_ast(invariant))
-                     
+
     # TODO: get the axioms (or maybe only the ground ones?)
 
     # axioms = mod.background_theory()
@@ -1224,7 +1224,7 @@ def to_aiger(mod,ext_act,method="mc"):
     new_defs = [elim_ite(df,cnsts) for df in trans.defs]
     new_fmlas = [elim_ite(fmla,cnsts) for fmla in trans.fmlas]
     trans = ilu.Clauses(new_fmlas+cnsts,new_defs)
-    
+
     # step 3: eliminate quantfiers using finite instantiations
 
     from_asserts = il.And(*[il.Equals(x,x) for x in ilu.used_symbols_ast(il.And(*errconds)) if
@@ -1238,8 +1238,8 @@ def to_aiger(mod,ext_act,method="mc"):
     logfile.write('\ninstantiations:\n')
     trans,invariant = Qelim(sort_constants,sort_constants2)(trans,invariant,indhyps)
 #    iu.dbg('invariant')
-    
-    
+
+
 #    print 'after qe:'
 #    print 'trans: {}'.format(trans)
 #    print 'invariant: {}'.format(invariant)
@@ -1266,12 +1266,12 @@ def to_aiger(mod,ext_act,method="mc"):
     # for df3 in trans.fmlas:
     #     print df3
     # print ""
-    
+
 
     # step 4b: handle the finite-domain functions specially
 
     trans,invariant= to_table_lookup(trans,invariant)
-    
+
     # step 5: eliminate all non-propositional atoms by replacing with fresh booleans
     # An atom with next-state symbols is converted to a next-state symbol if possible
 
@@ -1316,7 +1316,7 @@ def to_aiger(mod,ext_act,method="mc"):
             finite_syms_set.add(expr)
             finite_syms.append(expr)
         return expr.clone(list(map(mk_prop_abs,expr.args)))
-    
+
     # apply propositional abstraction to the transition relation
     new_defs = list(map(mk_prop_abs,trans.defs))
     new_fmlas = [mk_prop_abs(il.close_formula(fmla)) for fmla in trans.fmlas]
@@ -1325,7 +1325,7 @@ def to_aiger(mod,ext_act,method="mc"):
 
     def my_is_skolem(x):
         res = tr.is_skolem(x) and x not in invar_syms
-        return res    
+        return res
     def is_immutable_expr(expr):
         res = not any(my_is_skolem(sym) or tr.is_new(sym) or sym in stvarset for sym in ilu.used_symbols_ast(expr))
         return res
@@ -1340,7 +1340,7 @@ def to_aiger(mod,ext_act,method="mc"):
     trans = ilu.Clauses(new_fmlas+mk_prop_fmlas,new_defs)
 
 #    iu.dbg('trans')
-    
+
     # apply propositional abstraction to the invariant
     invariant = mk_prop_abs(invariant)
 
@@ -1373,16 +1373,16 @@ def to_aiger(mod,ext_act,method="mc"):
     new_defs = trans.defs + [il.Definition(ilu.sym_inst(tr.new(v)),ilu.sym_inst(fix(v))) for v in stvars]
     new_defs.extend(il.Definition(curval(v),il.Ite(init_var,v,initchoice(v))) for v in stvars if  v != init_var)
     trans = ilu.Clauses(trans.fmlas,new_defs)
-    
+
     # Turn the transition constraint into a definition
-    
+
     cnst_var = il.Symbol('__cnst',il.find_sort('bool'))
     new_defs = list(trans.defs)
     new_defs.append(il.Definition(tr.new(cnst_var),fix(cnst_var)))
     new_defs.append(il.Definition(fix(cnst_var),il.Or(cnst_var,il.Not(il.And(*trans.fmlas)))))
     stvars.append(cnst_var)
     trans = ilu.Clauses([],new_defs)
-    
+
     # Input are all the non-defined symbols. Output indicates invariant is false.
 
 #    iu.dbg('trans')
@@ -1395,10 +1395,10 @@ def to_aiger(mod,ext_act,method="mc"):
               sym not in def_set and not il.is_interpreted_symbol(sym)]
     fail = il.Symbol('__fail',il.find_sort('bool'))
     outputs = [fail]
-    
+
 
     #    iu.dbg('trans')
-    
+
     # make an aiger
 
     aiger = Encoder(inputs,stvars,outputs)
@@ -1429,7 +1429,7 @@ def to_aiger(mod,ext_act,method="mc"):
 def badwit():
     raise iu.IvyError(None,'model checker returned mis-formated witness')
 
-# This is an adaptor to create a trace as an ART. 
+# This is an adaptor to create a trace as an ART.
 
 class IvyMCTrace(art.AnalysisGraph):
     def __init__(self,stvals):
@@ -1491,7 +1491,7 @@ class AigerMatchHandler(object):
                     show_sym(v,ilu.rename_ast(decd,rn),self.aiger.get_next_sym(v))
 
             print('    {}{}'.format(action.lineno,action))
-        
+
 class AigerMatchHandler2(ivy_trace.TraceBase):
     def __init__(self,aiger,decoder,cnsts,stvarset,current):
         ivy_trace.TraceBase.__init__(self)
@@ -1515,7 +1515,7 @@ class AigerMatchHandler2(ivy_trace.TraceBase):
 
     def get_universes(self):
         return None
-        
+
     def do_return(self,action,env):
         pass
 
@@ -1551,13 +1551,13 @@ class AigerMatchHandler2(ivy_trace.TraceBase):
                     show_sym(v,next_decd,self.aiger.get_next_sym(v),eqns)
 
         self.add_state(eqns)
-        
+
     def final_state(self):
         next(self.aiger.sub)
 
         post = self.aiger.sub.latch_vals()  # use this, since file can be wrong!
         stvals = []
-        stmap = self.aiger.get_state(post)                     
+        stmap = self.aiger.get_state(post)
 #            iu.dbg('stmap')
         for v in self.aiger.latches: # last two are used for encoding
             if v in self.decoder and v.name != '__init':
@@ -1606,7 +1606,7 @@ def aiger_witness_to_ivy_trace(aiger,witnessfilename,action,stvarset,ext_act,ann
             next(aiger.sub)
             post = aiger.sub.latch_vals()  # use this, since file can be wrong!
             stvals = []
-            stmap = aiger.get_state(post)                     
+            stmap = aiger.get_state(post)
 #            iu.dbg('stmap')
             current = dict()
             for v in aiger.latches: # last two are used for encoding
@@ -1682,7 +1682,7 @@ class ABCModelChecker(ModelChecker):
 
 
 def check_isolate(method="mc"):
-    
+
     if verbose:
         print()
         print(80*'*')
@@ -1699,7 +1699,7 @@ def check_isolate(method="mc"):
 
     ext_acts = [mod.actions[x] for x in sorted(mod.public_actions)]
     ext_act = ia.EnvAction(*ext_acts)
-    
+
     # convert to aiger
 
     aiger,decoder,annot,cnsts,action,stvarset = to_aiger(mod,ext_act,method=method)
@@ -1711,7 +1711,7 @@ def check_isolate(method="mc"):
         name = f.name
 #        print 'file name: {}'.format(name)
         f.write(str(aiger))
-    
+
     # convert aag to aig format
 
     aigfilename = name.replace('.aag','.aig')
@@ -1724,7 +1724,7 @@ def check_isolate(method="mc"):
         raise iu.IvyError(None,'failed to run aigtoaig')
     if ret != 0:
         raise iu.IvyError(None,'aigtoaig returned non-zero status')
-        
+
     # run model checker
 
     outfilename = name.replace('.aag','.out')
@@ -1752,7 +1752,7 @@ def check_isolate(method="mc"):
     alltext = ''.join(x.decode("utf-8") for x in texts)
     if verbose:
         print(80*'-')
-    
+
     # get the model checker status
 
     ret = p.wait()
@@ -1764,9 +1764,4 @@ def check_isolate(method="mc"):
     if mc.scrape(alltext):
         return None
     else:
-        return aiger_witness_to_ivy_trace2(aiger,outfilename,action,stvarset,ext_act,annot,cnsts,decoder)        
-        
-    
-
-
-    
+        return aiger_witness_to_ivy_trace2(aiger,outfilename,action,stvarset,ext_act,annot,cnsts,decoder)

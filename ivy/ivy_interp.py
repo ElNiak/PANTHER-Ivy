@@ -24,7 +24,7 @@ from . import ivy_utils as iu
 from . import ivy_module as im
 from . import ivy_solver as islvr
 from functools import reduce
-  
+
 def type_check_list(domain,l):
     for x in l:
         if isinstance(x,list):
@@ -35,7 +35,7 @@ def type_check_list(domain,l):
 Interp = im.Module
 
 def module_type_check(self):
-#        type_check_list(self,[y for x,y in self.concepts]) 
+#        type_check_list(self,[y for x,y in self.concepts])
 #        for a in self.axioms:
 #            print "axiom: {}".format(a)
     type_check_list(self,self.axioms)
@@ -65,7 +65,7 @@ def module_new_state_with_value(self, value):
 
 def module_order(self,state1, state2):
     """True if state1 is a subset of state2 """
-    axioms = self.background_theory(state1.in_scope) 
+    axioms = self.background_theory(state1.in_scope)
     return implies_state(state1.value,state2.value,axioms,self.relations)
 
 def module_skolemizer(self):
@@ -142,7 +142,7 @@ class State(object):
     @update.setter
     def update(self,value):
         self.cached_update = value
-            
+
     @property
     def pred(self):
         if self.cached_pred == None and self.expr != None and is_action_app(self.expr):
@@ -183,7 +183,7 @@ def get_core(state,clause):
         state_clauses = state.clauses
         clauses1 = and_clauses(state_clauses,state.domain.background_theory(state.in_scope))
         clauses2 = [[~lit] for lit in clause]
-        return unsat_core(clauses1,clauses2)    
+        return unsat_core(clauses1,clauses2)
 
 def new_state(value, exact = False, domain = None, expr = None):
 #    print "new_state: {}".format(value)
@@ -195,7 +195,7 @@ def bottom_state(domain = None):
 def concrete_post(update, state, expr = None):
     """ Apply an update concretely (compute concrete post). ".
     """
-    
+
     # TODO: axioms could change as scope changes
     axioms = state.domain.background_theory(state.in_scope)
 #    print "concrete post: axioms = {}".format(axioms)
@@ -210,7 +210,7 @@ def concrete_join(state1,state2):
     """ Apply an update concretely (compute concrete post). This leaves free symbols
     that are implicitly existentially quantified and are prefixed with "__old".
     """
- 
+
     value = join_state(state1.value,state2.value,domain.background_theory())
     res = new_state(value,domain = state1.domain,expr=state_join(state1,state2))
     res.join_of = [state1,state2]
@@ -224,7 +224,7 @@ class UnsatCoreWithInterpolant(Exception):
 def reverse_update_concrete_clauses(state,clauses=None):
     """ Reverse an update concretely (compute concrete pre). If unsat,
     throw UnsatCoreWithInterpolant.
-    
+
     """
 
     assert(state.pred != None and state.update != None) # can't reverse if no predecessor
@@ -239,7 +239,7 @@ def reverse_update_concrete_clauses(state,clauses=None):
 def reverse(state,clauses=None):
     """ Reverse an update concretely (compute concrete pre). If unsat,
     throw UnsatCoreWithInterpolant.
-    
+
     """
 
     assert(state.pred != None and state.update != None) # can't reverse if no predecessor
@@ -462,7 +462,7 @@ def eval_state_atom(expr):
         mod_syms = [a.rep for a in mod] if mod != None else None
         ens_clauses = ens
         req_clauses = Not(req)
-        return ivy_actions.context.new_state((mod_syms,ens_clauses,req_clauses),exact=True)        
+        return ivy_actions.context.new_state((mod_syms,ens_clauses,req_clauses),exact=True)
     assert False
 
 def eval_state(expr):
@@ -596,7 +596,7 @@ def history_satisfy(history,state,_get_model_clauses=None,final_cond=None):
         _get_model_clauses,
         final_cond
     )
-    
+
 def eval_assert_rhs(rhs,domain):
     if not isinstance(rhs,ivy_actions.RME):
         rhs = ivy_actions.RME(And(),None,rhs)

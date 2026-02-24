@@ -17,7 +17,7 @@ relation succ(X:t,Y:t)
     function next(X:t):t
 
     property succ(X,next(X))
-    proof 
+    proof
         apply elimE with n = next(X), p(Y) = succ(X,Y)
 
     property exists Y. succ(X,Y) named next2(X)

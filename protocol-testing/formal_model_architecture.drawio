@@ -1,0 +1,625 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" pages="3">
+  <!-- PAGE 1: General Formal Model Template -->
+  <diagram id="page1" name="General Template">
+    <mxGraphModel dx="2200" dy="1600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- TITLE -->
+        <mxCell id="title1" value="&lt;b&gt;GENERAL FORMAL MODEL TEMPLATE FOR NETWORK PROTOCOL SPECIFICATION-BASED TESTING&lt;/b&gt;&lt;br&gt;(Ivy/Panther Framework)" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="200" y="-80" width="900" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- LEGEND -->
+        <mxCell id="legend_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1150" y="-70" width="320" height="160" as="geometry"/>
+        </mxCell>
+        <mxCell id="legend_title" value="&lt;b&gt;LEGEND&lt;/b&gt;" style="text;html=1;align=center;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1250" y="-65" width="100" height="25" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg1" value="" style="rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="-35" width="20" height="15" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg1t" value="Generic / Reusable Infrastructure" style="text;html=1;align=left;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1195" y="-38" width="200" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg2" value="" style="rounded=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="-12" width="20" height="15" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg2t" value="&lt;b&gt;Protocol-Specific Requirement Zone&lt;/b&gt;" style="text;html=1;align=left;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1195" y="-15" width="250" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg3" value="" style="rounded=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="11" width="20" height="15" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg3t" value="Optional Layer (depends on protocol)" style="text;html=1;align=left;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1195" y="8" width="250" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg4" value="" style="rounded=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="34" width="20" height="15" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg4t" value="APT / Security Cross-Cutting Concern" style="text;html=1;align=left;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1195" y="31" width="250" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg5" value="" style="rounded=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="57" width="20" height="15" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg5t" value="Mixed (generic pattern, specific impl.)" style="text;html=1;align=left;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1195" y="54" width="250" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- CORE PROTOCOL STACK (Center Column) -->
+        <!-- ============================================ -->
+
+        <mxCell id="stack_header" value="&lt;b&gt;PROTOCOL STACK&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_stack/&lt;/i&gt;" style="text;html=1;align=center;fontSize=13;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="370" y="0" width="200" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Application Layer -->
+        <mxCell id="app_layer" value="&lt;b&gt;APPLICATION LAYER&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_application.ivy&lt;/i&gt;&lt;br&gt;&lt;hr&gt;• app_server_open_event&lt;br&gt;• app_send_event / app_recv_event&lt;br&gt;• Stream data management&lt;br&gt;&lt;font color=&quot;#CC0000&quot;&gt;⚑ Protocol-specific: data transfer semantics,&lt;br&gt;stream vs message vs route model&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="250" y="50" width="440" height="130" as="geometry"/>
+        </mxCell>
+
+        <!-- Security Layer -->
+        <mxCell id="sec_layer" value="&lt;b&gt;SECURITY / HANDSHAKE LAYER&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_security.ivy&lt;/i&gt;&lt;br&gt;&lt;hr&gt;• tls_send_event / tls_recv_event&lt;br&gt;• Key establishment events&lt;br&gt;• Handshake state tracking&lt;br&gt;&lt;font color=&quot;#CC0000&quot;&gt;⚑ Protocol-specific: TLS 1.3 (QUIC), DTLS (CoAP),&lt;br&gt;TCP-MD5/IPsec (BGP), none (MiniP)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="250" y="200" width="440" height="120" as="geometry"/>
+        </mxCell>
+
+        <!-- Frame/Message Layer -->
+        <mxCell id="frame_layer" value="&lt;b&gt;FRAME / MESSAGE LAYER&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_frame.ivy / {prot}_message.ivy&lt;/i&gt;&lt;br&gt;&lt;hr&gt;• Frame type definitions (variant structs)&lt;br&gt;• Frame handler actions (handle_{type})&lt;br&gt;• Frame queuing and encryption level&lt;br&gt;&lt;font color=&quot;#CC0000&quot;&gt;⚑ Protocol-specific: frame types (QUIC: 20+,&lt;br&gt;BGP: 4 msg types, CoAP: methods+options)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="250" y="340" width="440" height="130" as="geometry"/>
+        </mxCell>
+
+        <!-- Packet Layer -->
+        <mxCell id="pkt_layer" value="&lt;b&gt;PACKET LAYER&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_packet.ivy&lt;/i&gt;&lt;br&gt;&lt;hr&gt;• Packet structure (header + payload)&lt;br&gt;• Packet types and variants&lt;br&gt;• packet_event action + monitors&lt;br&gt;&lt;font color=&quot;#CC0000&quot;&gt;⚑ Protocol-specific: header format, packet types&lt;br&gt;(QUIC: long/short; BGP: via TCP stream)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="250" y="490" width="440" height="120" as="geometry"/>
+        </mxCell>
+
+        <!-- Protection Layer -->
+        <mxCell id="prot_layer" value="&lt;b&gt;PROTECTION LAYER&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_protection.ivy&lt;/i&gt;&lt;br&gt;&lt;hr&gt;• Encryption / Decryption procedures&lt;br&gt;• Header protection&lt;br&gt;• AEAD operations, key material&lt;br&gt;&lt;font color=&quot;#CC0000&quot;&gt;⚑ Protocol-specific: crypto algorithms,&lt;br&gt;encryption levels, protection scheme&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="250" y="630" width="440" height="115" as="geometry"/>
+        </mxCell>
+
+        <!-- Connection/State Management -->
+        <mxCell id="conn_layer" value="&lt;b&gt;CONNECTION / STATE MANAGEMENT&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_connection.ivy / {prot}_state_management.ivy&lt;/i&gt;&lt;br&gt;&lt;hr&gt;• Connection state relations&lt;br&gt;• CID/session mapping&lt;br&gt;• Connection lifecycle events&lt;br&gt;&lt;font color=&quot;#CC0000&quot;&gt;⚑ Protocol-specific: state machine, connection IDs,&lt;br&gt;session model (QUIC CID, BGP FSM, CoAP token)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="250" y="765" width="440" height="120" as="geometry"/>
+        </mxCell>
+
+        <!-- Transport Parameters -->
+        <mxCell id="tp_layer" value="&lt;b&gt;TRANSPORT PARAMETERS&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_transport_parameters.ivy&lt;/i&gt;&lt;br&gt;&lt;hr&gt;• Negotiable protocol parameters&lt;br&gt;• Parameter encoding/decoding&lt;br&gt;&lt;font color=&quot;#CC0000&quot;&gt;⚑ Protocol-specific: parameter set (QUIC: 20+ TPs,&lt;br&gt;BGP: optional params, CoAP: transmission params)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="250" y="905" width="215" height="110" as="geometry"/>
+        </mxCell>
+
+        <!-- Error Handling -->
+        <mxCell id="err_layer" value="&lt;b&gt;ERROR HANDLING&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_error_code.ivy&lt;/i&gt;&lt;br&gt;&lt;hr&gt;• Error code enumerations&lt;br&gt;• Error handler actions&lt;br&gt;&lt;font color=&quot;#CC0000&quot;&gt;⚑ Protocol-specific: error taxonomy&lt;br&gt;(QUIC: transport+H3 errors, BGP: notification codes)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="475" y="905" width="215" height="110" as="geometry"/>
+        </mxCell>
+
+        <!-- Types -->
+        <mxCell id="types_layer" value="&lt;b&gt;TYPE DEFINITIONS&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_types.ivy&lt;/i&gt;&lt;br&gt;&lt;hr&gt;• ID types (cid, stream_id, pkt_num)&lt;br&gt;• Bit vector types&lt;br&gt;• Enumerations (roles, types)&lt;br&gt;&lt;font color=&quot;#CC0000&quot;&gt;⚑ Protocol-specific: all type defs&lt;br&gt;(QUIC: CID/stream, BGP: AS#, CoAP: token)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="250" y="1035" width="440" height="110" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrows between stack layers -->
+        <mxCell id="a1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="app_layer" target="sec_layer">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="sec_layer" target="frame_layer">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="frame_layer" target="pkt_layer">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="pkt_layer" target="prot_layer">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="prot_layer" target="conn_layer">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- RIGHT COLUMN: ENTITY MODEL -->
+        <!-- ============================================ -->
+
+        <mxCell id="entity_header" value="&lt;b&gt;ENTITY MODEL&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_entities/&lt;/i&gt;" style="text;html=1;align=center;fontSize=13;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="780" y="0" width="200" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Entity Definitions -->
+        <mxCell id="entity_def" value="&lt;b&gt;ENTITY DEFINITIONS&lt;/b&gt;&lt;br&gt;&lt;i&gt;ivy_{prot}_{role}.ivy&lt;/i&gt;&lt;br&gt;&lt;hr&gt;• Instance parameters (addr, port, CID)&lt;br&gt;• Role assignment&lt;br&gt;• Network endpoint configuration&lt;br&gt;&lt;font color=&quot;#CC0000&quot;&gt;⚑ Protocol-specific: entity roles&lt;br&gt;Client/Server (QUIC, CoAP) vs Speaker (BGP)&lt;br&gt;+ MIM, Attacker, Victim for security testing&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="730" y="50" width="300" height="140" as="geometry"/>
+        </mxCell>
+
+        <!-- Entity Behavior -->
+        <mxCell id="entity_beh" value="&lt;b&gt;ENTITY BEHAVIOR&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_entities_behavior/&lt;/i&gt;&lt;br&gt;&lt;i&gt;ivy_{prot}_{role}_behavior.ivy&lt;/i&gt;&lt;br&gt;&lt;hr&gt;• Protocol FSM implementation&lt;br&gt;• Action handlers (before/after)&lt;br&gt;• Constraint specifications (require)&lt;br&gt;• Event generation logic&lt;br&gt;• Socket management&lt;br&gt;&lt;font color=&quot;#CC0000&quot;&gt;⚑ Protocol-specific: all behavioral logic,&lt;br&gt;state transitions, and constraints&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="730" y="210" width="300" height="170" as="geometry"/>
+        </mxCell>
+
+        <!-- Shims -->
+        <mxCell id="shim_layer" value="&lt;b&gt;SHIMS (Implementation Bridge)&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_shims/{prot}_shim.ivy&lt;/i&gt;&lt;br&gt;&lt;hr&gt;• UDP/TCP datagram reception → deserialization&lt;br&gt;• Packet encryption/decryption calls&lt;br&gt;• TLS API integration&lt;br&gt;• Network socket binding&lt;br&gt;• Serializer/deserializer instantiation&lt;br&gt;&lt;font color=&quot;#CC0000&quot;&gt;⚑ Mixed: generic bridge pattern,&lt;br&gt;protocol-specific transport (UDP/TCP),&lt;br&gt;protocol-specific crypto integration&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="730" y="400" width="300" height="170" as="geometry"/>
+        </mxCell>
+
+        <!-- Configuration -->
+        <mxCell id="config_layer" value="&lt;b&gt;CONFIGURATION&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_config/&lt;/i&gt;&lt;br&gt;&lt;hr&gt;• Transport parameter presets&lt;br&gt;• Test scenario configurations&lt;br&gt;• Feature flags&lt;br&gt;&lt;font color=&quot;#CC0000&quot;&gt;⚑ Protocol-specific: parameter values&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="730" y="590" width="300" height="105" as="geometry"/>
+        </mxCell>
+
+        <!-- Tests -->
+        <mxCell id="test_layer" value="&lt;b&gt;TEST HARNESSES&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_tests/&lt;/i&gt;&lt;br&gt;&lt;hr&gt;• Test composition (entities+behavior+shim)&lt;br&gt;• .ivy test files + .dsc descriptors&lt;br&gt;• Client tests / Server tests / MIM tests&lt;br&gt;&lt;font color=&quot;#CC0000&quot;&gt;⚑ Protocol-specific: test scenarios,&lt;br&gt;compliance requirements, edge cases&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="730" y="715" width="300" height="120" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- BOTTOM: INFRASTRUCTURE -->
+        <!-- ============================================ -->
+
+        <mxCell id="infra_header" value="&lt;b&gt;INFRASTRUCTURE &amp;amp; UTILITIES&lt;/b&gt; &lt;i&gt;{prot}_utils/&lt;/i&gt;" style="text;html=1;align=center;fontSize=13;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="250" y="1170" width="440" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- Serialization -->
+        <mxCell id="ser_layer" value="&lt;b&gt;SERIALIZATION&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_ser.ivy&lt;/i&gt;&lt;br&gt;(C++ impl)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="250" y="1210" width="130" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- Deserialization -->
+        <mxCell id="deser_layer" value="&lt;b&gt;DESERIALIZATION&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_deser.ivy&lt;/i&gt;&lt;br&gt;(C++ impl)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="390" y="1210" width="130" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- Byte Stream -->
+        <mxCell id="bs_layer" value="&lt;b&gt;BYTE STREAM&lt;/b&gt;&lt;br&gt;&lt;i&gt;byte_stream.ivy&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="530" y="1210" width="120" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- File I/O -->
+        <mxCell id="file_layer" value="&lt;b&gt;FILE I/O&lt;/b&gt;&lt;br&gt;&lt;i&gt;file.ivy&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="250" y="1280" width="100" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Time -->
+        <mxCell id="time_layer" value="&lt;b&gt;TIME&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_time.ivy&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="360" y="1280" width="100" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Random -->
+        <mxCell id="rand_layer" value="&lt;b&gt;RANDOM VALUES&lt;/b&gt;&lt;br&gt;&lt;i&gt;random_value.ivy&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="470" y="1280" width="120" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Locale/Network -->
+        <mxCell id="locale_layer" value="&lt;b&gt;LOCALE / NETWORK&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_locale.ivy&lt;/i&gt;&lt;br&gt;TLS API + UDP/TCP net" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="600" y="1280" width="130" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- OPTIONAL LAYERS (Left Column) -->
+        <!-- ============================================ -->
+
+        <mxCell id="opt_header" value="&lt;b&gt;OPTIONAL LAYERS&lt;/b&gt;" style="text;html=1;align=center;fontSize=13;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="-20" y="0" width="200" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- Security Sub-Protocol -->
+        <mxCell id="tls_stack" value="&lt;b&gt;SECURITY SUB-PROTOCOL&lt;/b&gt;&lt;br&gt;&lt;i&gt;tls_stack/ or dtls_stack/&lt;/i&gt;&lt;br&gt;&lt;hr&gt;• tls_protocol.ivy&lt;br&gt;• tls_record.ivy&lt;br&gt;• tls_deser_ser.ivy&lt;br&gt;&lt;font color=&quot;#CC0000&quot;&gt;⚑ TLS 1.3 (QUIC), DTLS (CoAP),&lt;br&gt;or custom (BGP)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="-50" y="50" width="250" height="130" as="geometry"/>
+        </mxCell>
+
+        <!-- FSM Modules -->
+        <mxCell id="fsm_opt" value="&lt;b&gt;FSM MODULES&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_fsm/&lt;/i&gt;&lt;br&gt;&lt;hr&gt;• quic_fsm_sending.ivy&lt;br&gt;• quic_fsm_receiving.ivy&lt;br&gt;• coap_state_management.ivy&lt;br&gt;&lt;font color=&quot;#CC0000&quot;&gt;⚑ Protocol-specific states&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="-50" y="200" width="250" height="120" as="geometry"/>
+        </mxCell>
+
+        <!-- Recovery/Congestion -->
+        <mxCell id="recovery_opt" value="&lt;b&gt;RECOVERY &amp;amp; CONGESTION&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_recovery/ or {prot}_congestion/&lt;/i&gt;&lt;br&gt;&lt;hr&gt;• Loss detection (quic_loss_recovery)&lt;br&gt;• Congestion control (quic_congestion_control)&lt;br&gt;• Retransmission (coap_retransmission)&lt;br&gt;• Network controller&lt;br&gt;&lt;font color=&quot;#CC0000&quot;&gt;⚑ Only for protocols with built-in reliability&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="-50" y="340" width="250" height="140" as="geometry"/>
+        </mxCell>
+
+        <!-- Extensions -->
+        <mxCell id="ext_opt" value="&lt;b&gt;EXTENSIONS&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_extensions/&lt;/i&gt;&lt;br&gt;&lt;hr&gt;• quic_ack_frequency_extension&lt;br&gt;• quic_vn_ext&lt;br&gt;&lt;font color=&quot;#CC0000&quot;&gt;⚑ If protocol has extension mechanism&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="-50" y="500" width="250" height="100" as="geometry"/>
+        </mxCell>
+
+        <!-- Attacks Stack -->
+        <mxCell id="atk_opt" value="&lt;b&gt;ATTACKS STACK&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_attacks_stack/&lt;/i&gt;&lt;br&gt;&lt;hr&gt;• Forged packets (initial, short header)&lt;br&gt;• Replayed packets (0-RTT)&lt;br&gt;• Forged datagrams&lt;br&gt;&lt;font color=&quot;#CC0000&quot;&gt;⚑ Protocol-specific attack vectors&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="-50" y="620" width="250" height="110" as="geometry"/>
+        </mxCell>
+
+        <!-- Stream Management -->
+        <mxCell id="stream_opt" value="&lt;b&gt;STREAM / FLOW MGMT&lt;/b&gt;&lt;br&gt;&lt;i&gt;{prot}_stream.ivy&lt;/i&gt;&lt;br&gt;&lt;hr&gt;• Stream IDs and directionality&lt;br&gt;• Flow control&lt;br&gt;&lt;font color=&quot;#CC0000&quot;&gt;⚑ Only for multiplexed protocols&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="-50" y="750" width="250" height="100" as="geometry"/>
+        </mxCell>
+
+        <!-- Dashed arrows from optional to core -->
+        <mxCell id="opt_a1" style="dashed=1;strokeColor=#82b366;" edge="1" parent="1" source="tls_stack" target="sec_layer">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="opt_a2" style="dashed=1;strokeColor=#82b366;" edge="1" parent="1" source="fsm_opt" target="conn_layer">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="opt_a3" style="dashed=1;strokeColor=#82b366;" edge="1" parent="1" source="recovery_opt" target="pkt_layer">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="opt_a4" style="dashed=1;strokeColor=#82b366;" edge="1" parent="1" source="ext_opt" target="frame_layer">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrows from entities to stack -->
+        <mxCell id="ent_a1" style="dashed=1;strokeColor=#d6b656;" edge="1" parent="1" source="entity_beh" target="app_layer">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="ent_a2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="entity_def" target="entity_beh">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="ent_a3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="entity_beh" target="shim_layer">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================ -->
+        <!-- APT CROSS-CUTTING (Far Right) -->
+        <!-- ============================================ -->
+
+        <mxCell id="apt_header" value="&lt;b&gt;APT CROSS-CUTTING MODEL&lt;/b&gt;&lt;br&gt;&lt;i&gt;apt/&lt;/i&gt;" style="text;html=1;align=center;fontSize=13;fontColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="120" width="250" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- APT Entities -->
+        <mxCell id="apt_ent" value="&lt;b&gt;APT ENTITIES&lt;/b&gt;&lt;br&gt;&lt;i&gt;apt_entities/&lt;/i&gt;&lt;br&gt;&lt;hr&gt;• Attacker, Target, MIM&lt;br&gt;• Bot, C2 Server&lt;br&gt;• Client, Server&lt;br&gt;&lt;hr&gt;&lt;i&gt;Protocol-specific bindings:&lt;/i&gt;&lt;br&gt;apt_entities/quic/, apt_entities/minip/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="170" width="250" height="140" as="geometry"/>
+        </mxCell>
+
+        <!-- APT Lifecycle -->
+        <mxCell id="apt_life" value="&lt;b&gt;APT LIFECYCLE&lt;/b&gt;&lt;br&gt;&lt;i&gt;apt_lifecycle/&lt;/i&gt;&lt;br&gt;&lt;hr&gt;1. Reconnaissance (scanning, DNS, WHOIS)&lt;br&gt;2. Infiltration (phishing, zero-day)&lt;br&gt;3. C2 Communication (backdoors)&lt;br&gt;4. Privilege Escalation (lateral movement)&lt;br&gt;5. Maintain Persistence (obfuscation)&lt;br&gt;6. Data Exfiltration (covert channels)&lt;br&gt;+ White Noise (DDoS distraction)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="330" width="250" height="165" as="geometry"/>
+        </mxCell>
+
+        <!-- APT Protocol Bindings -->
+        <mxCell id="apt_bind" value="&lt;b&gt;APT PROTOCOL BINDINGS&lt;/b&gt;&lt;br&gt;&lt;i&gt;apt_lifecycle/{prot}_apt_lifecycle/&lt;/i&gt;&lt;br&gt;&lt;hr&gt;• malicious_{prot}_frame.ivy&lt;br&gt;• malicious_{prot}_packet.ivy&lt;br&gt;• {prot}_attack_connection.ivy&lt;br&gt;&lt;font color=&quot;#CC0000&quot;&gt;⚑ Protocol-specific attack generation&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="515" width="250" height="120" as="geometry"/>
+        </mxCell>
+
+        <!-- APT Stack/Locales -->
+        <mxCell id="apt_stack" value="&lt;b&gt;APT STACK / LOCALES&lt;/b&gt;&lt;br&gt;&lt;i&gt;apt_stack/&lt;/i&gt;&lt;br&gt;&lt;hr&gt;• protection.ivy (crypto)&lt;br&gt;• locale_network.ivy (generic)&lt;br&gt;• {prot}_locale.ivy (per protocol)&lt;br&gt;&lt;font color=&quot;#CC0000&quot;&gt;⚑ Protocol-specific network binding&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="655" width="250" height="115" as="geometry"/>
+        </mxCell>
+
+        <!-- APT arrows -->
+        <mxCell id="apt_a1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#9673a6;" edge="1" parent="1" source="apt_ent" target="apt_life">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="apt_a2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#9673a6;" edge="1" parent="1" source="apt_life" target="apt_bind">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="apt_a3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#9673a6;" edge="1" parent="1" source="apt_bind" target="apt_stack">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Dashed from APT to core model -->
+        <mxCell id="apt_c1" style="dashed=1;strokeColor=#9673a6;entryX=1;entryY=0.5;" edge="1" parent="1" source="apt_ent" target="entity_def">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="apt_c2" style="dashed=1;strokeColor=#9673a6;" edge="1" parent="1" source="apt_bind" target="atk_opt">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <!-- PAGE 2: Protocol Instance Comparison -->
+  <diagram id="page2" name="Protocol Comparison">
+    <mxGraphModel dx="2200" dy="1400" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="t2" value="&lt;b&gt;PROTOCOL INSTANCE COMPARISON — How Each Protocol Fills the Template&lt;/b&gt;" style="text;html=1;align=center;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="100" y="-40" width="700" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- Column Headers -->
+        <mxCell id="h_layer" value="&lt;b&gt;Template Layer&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#666666;fontColor=#ffffff;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="-20" y="0" width="150" height="35" as="geometry"/>
+        </mxCell>
+        <mxCell id="h_quic" value="&lt;b&gt;QUIC (Complete)&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#006600;fontColor=#ffffff;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="130" y="0" width="220" height="35" as="geometry"/>
+        </mxCell>
+        <mxCell id="h_bgp" value="&lt;b&gt;BGP (Partial)&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#CC6600;fontColor=#ffffff;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="350" y="0" width="200" height="35" as="geometry"/>
+        </mxCell>
+        <mxCell id="h_coap" value="&lt;b&gt;CoAP (Partial)&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#CC6600;fontColor=#ffffff;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="550" y="0" width="200" height="35" as="geometry"/>
+        </mxCell>
+        <mxCell id="h_minip" value="&lt;b&gt;MiniP (Partial)&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#CC6600;fontColor=#ffffff;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="750" y="0" width="170" height="35" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 1: Types -->
+        <mxCell id="r1l" value="&lt;b&gt;Types&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="-20" y="35" width="150" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r1q" value="quic_types.ivy ✅&lt;br&gt;cid, stream_id, pkt_num, version, error_code, roles" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="130" y="35" width="220" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r1b" value="bgp_type.ivy ✅&lt;br&gt;bgp_id, version, as_number, marker_id" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="350" y="35" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r1c" value="coap_types.ivy ✅&lt;br&gt;id, itoken, version, pkt_num, error_code" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="550" y="35" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r1m" value="ping_types.ivy ✅&lt;br&gt;cid, aid, pkt_num" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="750" y="35" width="170" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 2: Application -->
+        <mxCell id="r2l" value="&lt;b&gt;Application&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="-20" y="85" width="150" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r2q" value="quic_application.ivy ✅&lt;br&gt;Stream-based data transfer, open/send events" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="130" y="85" width="220" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r2b" value="bgp_application.ivy ⚠️&lt;br&gt;EMPTY (only lang header)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="350" y="85" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r2c" value="coap_application.ivy ✅&lt;br&gt;Data buffering, packet assembly" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="550" y="85" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r2m" value="ping_application.ivy ✅&lt;br&gt;Data buffering (like CoAP)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="750" y="85" width="170" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 3: Frame/Message -->
+        <mxCell id="r3l" value="&lt;b&gt;Frame/Message&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="-20" y="135" width="150" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="r3q" value="quic_frame.ivy ✅&lt;br&gt;20+ frame types: PING, ACK, STREAM, CRYPTO, RST_STREAM, NEW_CID..." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="130" y="135" width="220" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="r3b" value="bgp_*_message.ivy ✅&lt;br&gt;4 types: OPEN, UPDATE, NOTIFICATION, KEEPALIVE + header" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="350" y="135" width="200" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="r3c" value="coap_message.ivy + coap_option.ivy ✅&lt;br&gt;Message structure + 15+ option types" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="550" y="135" width="200" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="r3m" value="ping_frame.ivy ✅&lt;br&gt;3 types: ping, pong, timestamp" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="750" y="135" width="170" height="55" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 4: Packet -->
+        <mxCell id="r4l" value="&lt;b&gt;Packet&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="-20" y="190" width="150" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r4q" value="quic_packet.ivy ✅ + retry, VN, 0RTT variants&lt;br&gt;Long/short headers, 6 packet types" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="130" y="190" width="220" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r4b" value="bgp_header_message.ivy ✅&lt;br&gt;TCP stream (no packet layer needed)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="350" y="190" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r4c" value="(Implicit in coap_message)&lt;br&gt;UDP datagram-based" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="550" y="190" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r4m" value="ping_packet.ivy ✅&lt;br&gt;Simple frame array container" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="750" y="190" width="170" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 5: Protection -->
+        <mxCell id="r5l" value="&lt;b&gt;Protection&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="-20" y="240" width="150" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r5q" value="quic_protection.ivy ✅&lt;br&gt;AEAD, header protection, multi-level" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="130" y="240" width="220" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r5b" value="bgp_protection.ivy ✅&lt;br&gt;Custom C++ ser/deser" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="350" y="240" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r5c" value="coap_protection.ivy ✅&lt;br&gt;DTLS encrypt/decrypt" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="550" y="240" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r5m" value="(None)&lt;br&gt;No encryption in MiniP" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="750" y="240" width="170" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 6: Entities -->
+        <mxCell id="r6l" value="&lt;b&gt;Entities&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="-20" y="290" width="150" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="r6q" value="✅ Client, Server, MIM, Attacker, Victim&lt;br&gt;+ client_server combined" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="130" y="290" width="220" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="r6b" value="✅ Speaker (peer-to-peer)&lt;br&gt;ivy_instance + impl_instance" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="350" y="290" width="200" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="r6c" value="✅ Client, Server&lt;br&gt;UDP endpoints" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="550" y="290" width="200" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="r6m" value="✅ Client, Server&lt;br&gt;Simple endpoints" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="750" y="290" width="170" height="55" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 7: Behavior -->
+        <mxCell id="r7l" value="&lt;b&gt;Behavior&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="-20" y="345" width="150" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r7q" value="✅ Separate dir, 8 files, ~15k lines each&lt;br&gt;Full FSM + constraint specs" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="130" y="345" width="220" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r7b" value="✅ In entities dir, 1 file&lt;br&gt;bgp_speaker_behavior (~5k lines)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="350" y="345" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r7c" value="✅ Separate dir, endpoint + behaviors&lt;br&gt;Client &amp; server behavior" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="550" y="345" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r7m" value="✅ In stack dir&lt;br&gt;ping_endpoint + client behavior" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="750" y="345" width="170" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 8: Shims -->
+        <mxCell id="r8l" value="&lt;b&gt;Shims&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="-20" y="395" width="150" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r8q" value="✅ 14 files, separate dir&lt;br&gt;Client/server/MIM/attacker variants" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="130" y="395" width="220" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r8b" value="✅ bgp_shim.ivy&lt;br&gt;TCP-based network" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="350" y="395" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r8c" value="✅ coap_shim.ivy + client/server&lt;br&gt;UDP-based" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="550" y="395" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r8m" value="✅ ping_shim.ivy + variants&lt;br&gt;UDP-based" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="750" y="395" width="170" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 9: Ser/Deser -->
+        <mxCell id="r9l" value="&lt;b&gt;Ser/Deser&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="-20" y="445" width="150" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r9q" value="✅ 12+ file pairs (standard, 0RTT, retry, VN, forged)&lt;br&gt;~47k lines total" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="130" y="445" width="220" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r9b" value="✅ 10+ files (per msg type)&lt;br&gt;bgp_ser_*.ivy / bgp_deser_*.ivy" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="350" y="445" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r9c" value="⚠️ coap_ser.ivy / coap_deser.ivy&lt;br&gt;EMPTY (0 bytes)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="550" y="445" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r9m" value="✅ ping_ser.ivy / ping_deser.ivy&lt;br&gt;C++ binary ser/deser" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="750" y="445" width="170" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 10: Security Stack -->
+        <mxCell id="r10l" value="&lt;b&gt;Security Stack&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="-20" y="495" width="150" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r10q" value="✅ tls_stack/ (TLS 1.3)&lt;br&gt;6 files: protocol, record, deser_ser, test" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="130" y="495" width="220" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r10b" value="(N/A — uses TCP-MD5 / custom)&lt;br&gt;Handled in bgp_protection" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="350" y="495" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r10c" value="✅ dtls_stack/ (DTLS/TLS 1.2)&lt;br&gt;4 files: protocol, record, infer, deser_ser" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="550" y="495" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r10m" value="(None)&lt;br&gt;No security layer" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="750" y="495" width="170" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 11: Recovery -->
+        <mxCell id="r11l" value="&lt;b&gt;Recovery/&lt;br&gt;Congestion&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="-20" y="545" width="150" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r11q" value="✅ quic_recovery/ (3 files)&lt;br&gt;Loss detection, congestion control, RTT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="130" y="545" width="220" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r11b" value="(N/A — TCP handles this)&lt;br&gt;Not applicable" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="350" y="545" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r11c" value="✅ coap_congestion/ (3 files)&lt;br&gt;Retransmission, network controller" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="550" y="545" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r11m" value="(None)&lt;br&gt;No recovery needed" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="750" y="545" width="170" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 12: Tests -->
+        <mxCell id="r12l" value="&lt;b&gt;Tests&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="-20" y="595" width="150" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r12q" value="✅ 140+ test files&lt;br&gt;server/client/MIM tests" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="130" y="595" width="220" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r12b" value="✅ 2 speaker tests&lt;br&gt;accept + join" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="350" y="595" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r12c" value="(None yet)&lt;br&gt;No test directory" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="550" y="595" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r12m" value="✅ Client + server tests&lt;br&gt;2 test suites" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="750" y="595" width="170" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 13: APT Integration -->
+        <mxCell id="r13l" value="&lt;b&gt;APT Integration&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="-20" y="645" width="150" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r13q" value="✅ Full APT lifecycle&lt;br&gt;Malicious frames, packets, attack connections" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="130" y="645" width="220" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r13b" value="(None)&lt;br&gt;No APT model" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="350" y="645" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r13c" value="(None)&lt;br&gt;No APT model" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="550" y="645" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r13m" value="✅ APT lifecycle&lt;br&gt;Malicious frames + packets" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fontSize=9;align=left;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="750" y="645" width="170" height="50" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <!-- PAGE 3: Protocol Category Adaptations -->
+  <diagram id="page3" name="Category Adaptations">
+    <mxGraphModel dx="1800" dy="1400" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="t3" value="&lt;b&gt;TEMPLATE ADAPTATIONS FOR OTHER NETWORK PROTOCOL CATEGORIES&lt;/b&gt;&lt;br&gt;How the general template changes for different protocol families" style="text;html=1;align=center;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="50" y="-50" width="800" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Category 1: Connection-oriented Transport -->
+        <mxCell id="cat1" value="&lt;b&gt;CONNECTION-ORIENTED TRANSPORT&lt;/b&gt;&lt;br&gt;&lt;i&gt;(SSH, SMTP, FTP, MQTT/TCP, HTTP/1.1)&lt;/i&gt;&lt;hr&gt;&lt;b&gt;Template changes:&lt;/b&gt;&lt;br&gt;• Replace UDP datagram layer → TCP stream layer&lt;br&gt;• Packet layer simplified (TCP handles segmentation)&lt;br&gt;• Add TCP connection FSM (3-way handshake)&lt;br&gt;• Recovery/congestion NOT needed (TCP handles it)&lt;br&gt;• Serialization is stream-oriented&lt;br&gt;• Shim uses TCP sockets instead of UDP&lt;br&gt;&lt;b&gt;Entity model:&lt;/b&gt; Client/Server or Peer/Peer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="0" y="20" width="280" height="200" as="geometry"/>
+        </mxCell>
+
+        <!-- Category 2: Pub/Sub -->
+        <mxCell id="cat2" value="&lt;b&gt;PUBLISH / SUBSCRIBE&lt;/b&gt;&lt;br&gt;&lt;i&gt;(MQTT, AMQP, XMPP, DDS)&lt;/i&gt;&lt;hr&gt;&lt;b&gt;Template changes:&lt;/b&gt;&lt;br&gt;• Application layer: topic/subscription management&lt;br&gt;• Add Broker entity (not just client/server)&lt;br&gt;• QoS levels (at-most/least/exactly-once)&lt;br&gt;• Add session persistence layer&lt;br&gt;• Add will/testament messages&lt;br&gt;• Frame layer: CONNECT, PUBLISH, SUBSCRIBE, UNSUBSCRIBE, PINGREQ/RESP&lt;br&gt;&lt;b&gt;Entity model:&lt;/b&gt; Publisher, Subscriber, Broker" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="300" y="20" width="280" height="200" as="geometry"/>
+        </mxCell>
+
+        <!-- Category 3: Routing -->
+        <mxCell id="cat3" value="&lt;b&gt;ROUTING PROTOCOLS&lt;/b&gt;&lt;br&gt;&lt;i&gt;(BGP, OSPF, IS-IS, RIP)&lt;/i&gt;&lt;hr&gt;&lt;b&gt;Template changes:&lt;/b&gt;&lt;br&gt;• Add RIB (Routing Information Base) data structure&lt;br&gt;• Add neighbor/peer discovery module&lt;br&gt;• Add route announcement/withdrawal&lt;br&gt;• Add path computation (Dijkstra, Bellman-Ford)&lt;br&gt;• Add convergence timing model&lt;br&gt;• Add AS/area topology model&lt;br&gt;• Frame layer: HELLO, UPDATE, ACK, NOTIFICATION&lt;br&gt;&lt;b&gt;Entity model:&lt;/b&gt; Speaker/Peer (symmetric)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="600" y="20" width="280" height="200" as="geometry"/>
+        </mxCell>
+
+        <!-- Category 4: Real-time -->
+        <mxCell id="cat4" value="&lt;b&gt;REAL-TIME MEDIA&lt;/b&gt;&lt;br&gt;&lt;i&gt;(RTP, WebRTC, SIP/SDP)&lt;/i&gt;&lt;hr&gt;&lt;b&gt;Template changes:&lt;/b&gt;&lt;br&gt;• Add timing/latency requirements layer&lt;br&gt;• Add jitter buffer model&lt;br&gt;• Add codec negotiation (SDP)&lt;br&gt;• Add companion control protocol (RTCP)&lt;br&gt;• Add session signaling (SIP)&lt;br&gt;• Recovery: FEC, not retransmission&lt;br&gt;• Frame: RTP header + payload&lt;br&gt;&lt;b&gt;Entity model:&lt;/b&gt; Sender, Receiver, Mixer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="0" y="240" width="280" height="200" as="geometry"/>
+        </mxCell>
+
+        <!-- Category 5: IoT/Constrained -->
+        <mxCell id="cat5" value="&lt;b&gt;IoT / CONSTRAINED DEVICES&lt;/b&gt;&lt;br&gt;&lt;i&gt;(CoAP, MQTT-SN, LwM2M, Zigbee)&lt;/i&gt;&lt;hr&gt;&lt;b&gt;Template changes:&lt;/b&gt;&lt;br&gt;• Add resource discovery (CoRE Link Format)&lt;br&gt;• Add proxy/gateway entity&lt;br&gt;• Add block-wise transfer module&lt;br&gt;• Add observe/notification (pub/sub pattern)&lt;br&gt;• Add constrained resource model&lt;br&gt;• Simplified security (DTLS, OSCORE)&lt;br&gt;• Frame: Compact binary encoding&lt;br&gt;&lt;b&gt;Entity model:&lt;/b&gt; Client, Server, Proxy, Gateway" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="300" y="240" width="280" height="200" as="geometry"/>
+        </mxCell>
+
+        <!-- Category 6: DNS -->
+        <mxCell id="cat6" value="&lt;b&gt;NAME RESOLUTION / QUERY-RESPONSE&lt;/b&gt;&lt;br&gt;&lt;i&gt;(DNS, mDNS, LDAP, RADIUS)&lt;/i&gt;&lt;hr&gt;&lt;b&gt;Template changes:&lt;/b&gt;&lt;br&gt;• Application: query/response matching (txn IDs)&lt;br&gt;• Add record type definitions (A, AAAA, MX...)&lt;br&gt;• Add recursive/iterative resolution model&lt;br&gt;• Add zone transfer module&lt;br&gt;• Add DNSSEC extension (for DNS)&lt;br&gt;• No persistent connection state&lt;br&gt;• Frame: Question + Answer sections&lt;br&gt;&lt;b&gt;Entity model:&lt;/b&gt; Resolver, Auth Server, Recursive" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="600" y="240" width="280" height="200" as="geometry"/>
+        </mxCell>
+
+        <!-- Category 7: Multiplexed Transport -->
+        <mxCell id="cat7" value="&lt;b&gt;MULTIPLEXED SECURE TRANSPORT&lt;/b&gt;&lt;br&gt;&lt;i&gt;(QUIC, HTTP/2, HTTP/3, SCTP)&lt;/i&gt;&lt;hr&gt;&lt;b&gt;Template changes: (most complex)&lt;/b&gt;&lt;br&gt;• Full stream/flow management layer&lt;br&gt;• Full recovery + congestion control&lt;br&gt;• Full FSM modules (send/receive per stream)&lt;br&gt;• Integrated TLS security stack&lt;br&gt;• Connection migration support&lt;br&gt;• Extension mechanism&lt;br&gt;• Multiple encryption levels&lt;br&gt;• Comprehensive attacks stack&lt;br&gt;&lt;b&gt;Entity model:&lt;/b&gt; Client, Server, MIM, Attacker" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="0" y="460" width="280" height="210" as="geometry"/>
+        </mxCell>
+
+        <!-- Category 8: VPN/Tunnel -->
+        <mxCell id="cat8" value="&lt;b&gt;VPN / TUNNELING&lt;/b&gt;&lt;br&gt;&lt;i&gt;(WireGuard, IPsec/IKEv2, OpenVPN, GRE)&lt;/i&gt;&lt;hr&gt;&lt;b&gt;Template changes:&lt;/b&gt;&lt;br&gt;• Add tunnel establishment protocol (IKE)&lt;br&gt;• Add encapsulation/decapsulation layer&lt;br&gt;• Add key exchange module (DH, Noise)&lt;br&gt;• Add SA (Security Association) management&lt;br&gt;• Add anti-replay window&lt;br&gt;• Protection layer is primary concern&lt;br&gt;• Frame: ESP/AH headers, tunnel headers&lt;br&gt;&lt;b&gt;Entity model:&lt;/b&gt; Initiator, Responder, Gateway" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="300" y="460" width="280" height="210" as="geometry"/>
+        </mxCell>
+
+        <!-- Decision Matrix -->
+        <mxCell id="decision" value="&lt;b&gt;TEMPLATE SELECTION DECISION MATRIX&lt;/b&gt;&lt;hr&gt;&lt;table style='font-size:9px;border-collapse:collapse;width:100%'&gt;&lt;tr&gt;&lt;th style='text-align:left;border-bottom:1px solid #999'&gt;Protocol Property&lt;/th&gt;&lt;th style='border-bottom:1px solid #999'&gt;Template Impact&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Connection-oriented?&lt;/td&gt;&lt;td&gt;→ TCP layer, simplified packet&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Built-in reliability?&lt;/td&gt;&lt;td&gt;→ Add recovery/congestion modules&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Multiplexed streams?&lt;/td&gt;&lt;td&gt;→ Add stream mgmt + per-stream FSM&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Integrated security?&lt;/td&gt;&lt;td&gt;→ Add TLS/DTLS stack + protection&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Peer-to-peer?&lt;/td&gt;&lt;td&gt;→ Symmetric entities (Speaker/Peer)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Pub/Sub pattern?&lt;/td&gt;&lt;td&gt;→ Add broker + topic/subscription&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Extension mechanism?&lt;/td&gt;&lt;td&gt;→ Add extensions module&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Stateless?&lt;/td&gt;&lt;td&gt;→ Simplify connection/state mgmt&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="600" y="460" width="280" height="210" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

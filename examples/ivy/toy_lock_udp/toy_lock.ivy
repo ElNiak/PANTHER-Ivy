@@ -38,8 +38,8 @@ module counter(t) = {
         assume input < 0xff;
         output := input + 1
     }
-}        
-    
+}
+
 # Abstract specification of counter. This outputs an arbitrary value
 # greater than the input
 
@@ -48,7 +48,7 @@ module abs_counter(t,c) = {
         assert ~(output <= input)
     }
     mixin incr after c.incr
-}        
+}
 
 # This module describes the network topology. It happens to be
 # a ring, but this isn't needed to prove safety. In principle, it
@@ -103,7 +103,7 @@ module formatter = {
 
     interpret conc -> concat
 }
-    
+
 
 # These are abstract destructuring functions for packets
 
@@ -141,11 +141,11 @@ module abs_low_intf(fmt) = {
     relation sent(D:node, P:packet)  # the set of sent packets
 
     init ~sent(D,P)            # initially, no packets sent
-    
+
     action send(dst:node,p:packet) = {
         sent(dst,p) := true
     }
-    
+
     action recv(dst:node) returns(p:packet) = {
     	assert sent(dst,p)
     }
@@ -216,14 +216,14 @@ module net_intf(lower,fmt,pro,top) = {
 	    }
 	}
     }
-    
+
     conjecture l.sent(D,P) & get_tg(P) = xfer -> an.transfer(get_ep(P),D)
     conjecture pend(S) & P = pend_pkt(S) & succ(S,D) -> get_tg(P) = xfer & an.transfer(get_ep(P),D)
 
 }
 
 module abs_net_intf(net,pro,top) = {
-       
+
     # This is a specification of the interface between the application
     # layer and the transport layer. This interface allows sending and
     # receiving of transfer messages tagged with epochs.  The
@@ -237,7 +237,7 @@ module abs_net_intf(net,pro,top) = {
 
     relation transfer(E:epoch, N:node)  # the node is the message destination
     init ~transfer(E, N)
-     
+
     # precondition of send_transfer
 
     action send_transfer_pre(src:node, e:epoch, dst:node) = {
@@ -273,16 +273,16 @@ module proto(cnt,top,net) = {
 
     # ep(n) is the current epoch of node n
 
-    individual ep(N:node) : epoch 
+    individual ep(N:node) : epoch
 
     # held(n) is true iff the lock is currently held by node n
 
-    relation held(N:node) 
+    relation held(N:node)
 
     # initially exactly one node holds the lock, and all others have epoch zero
 
     individual first:node
- 
+
     init held(X) <-> X=first
     init N ~= first -> ep(N) = 0
     init ~(ep(first) <= 0)
@@ -335,7 +335,7 @@ module proto(cnt,top,net) = {
     # no two locked at same epoch (as a sanity check)
 #    conjecture locked(E, N1) & locked(E, N2) -> N1 = N2
 
-    # epochs transfer to at most one node    
+    # epochs transfer to at most one node
     conjecture an.transfer(E, N1) & an.transfer(E, N2) -> N1 = N2
 
     # if a node sent a locked msg, the node's epoch is now higher
@@ -351,7 +351,7 @@ module proto(cnt,top,net) = {
     conjecture an.transfer(E, N) & ~(E <= ep(N)) -> ~(E <= ep(M))
 
     # pending transfer epoch is higher than any transfer's epoch
-    conjecture an.transfer(E, N) & ~(E <= ep(N)) & an.transfer(F, M) -> (F <= E) 
+    conjecture an.transfer(E, N) & ~(E <= ep(N)) & an.transfer(F, M) -> (F <= E)
 }
 
 
@@ -425,7 +425,7 @@ isolate iso_f = f with af, node, epoch, packet, tag, get_ep, get_tg
 
 # When we verify topology module, make the "succ" relation concrete
 
-isolate iso_t = t with at, node, succ 
+isolate iso_t = t with at, node, succ
 
 # This isolate is for code extraction. We use all the concrete modules, and all
 # concrete data types

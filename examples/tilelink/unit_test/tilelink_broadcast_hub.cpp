@@ -8,4 +8,3 @@
 #define L2Unit L2BroadcastHub
 
 #include "tilelink_coherence_manager_bcast.cpp"
-

@@ -15,8 +15,8 @@ isolate nset = {
     relation member(N:node, S:t)
     relation majority(S:t)
 
-    action emptyset returns (s:nset) 
-    action add(s:nset, n : node) returns (s:nset) 
+    action emptyset returns (s:nset)
+    action add(s:nset, n : node) returns (s:nset)
 
     specification {
         after emptyset {
@@ -39,7 +39,7 @@ isolate nset = {
 	instance arr : array(index,node)
 	destructor repr(N:nset) : arr
 	individual all : nset
-	
+
 	definition member(N,S) = exists I. 0 <= I & I < repr(S).end & repr(S).value(I, N)
 	definition majority(S) = card(S) + card(S) > card(all)
 
@@ -87,10 +87,10 @@ isolate toy_protocol = {
         invariant [one_leader]
             isleader(N) & isleader(M) -> N = M
 
-        invariant [one_vote_per_node] 
+        invariant [one_vote_per_node]
             voted(L, N ) & voted(L, M ) -> N = M
 
-        invariant [leader_has_majority] 
+        invariant [leader_has_majority]
             isleader(N) ->
                 nset.majority(quorum) &
                 forall M. nset.member(M , quorum) -> voted(M,N)
@@ -133,7 +133,7 @@ isolate shim = {
                 require sent(m,dst) & m.kind = p_kind
             }
         }
-    }    
+    }
 
     relation sent(M:msg,N:node)
 
@@ -199,7 +199,7 @@ isolate toy_system = {
     function voters(N:node) : nset
 
     specification {
-        invariant [safe] forall M1:msg, M2:msg. 
+        invariant [safe] forall M1:msg, M2:msg.
                        shim.sent(M1,N1) & M1.kind = msg_kind.leader
                        & shim.sent(M2,N2) & M2.kind = msg_kind.leader
                          -> M1.src = M2.src
@@ -257,7 +257,7 @@ isolate toy_system = {
         invariant toy_protocol.voted(N1,N2) -> alreadyvoted(N1)
 
     }
-        
+
 
 
 

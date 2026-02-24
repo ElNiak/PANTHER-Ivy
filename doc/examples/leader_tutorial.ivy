@@ -51,7 +51,7 @@ object node = { ...
         # get_next has the property that either we wrap around (i.e.,
         # the output is the least element and the input the greatest) or
         # the output is the successor of the input (i.e., output is greater
-        # than input and there are no elements between). 
+        # than input and there are no elements between).
 
 	after get_next {
 	    ensure (y <= X & X <= x) | (x < y & ~ (x < Z & Z < y))
@@ -101,7 +101,7 @@ isolate abstract_model = {
             ensure forall N:node. pid(N) <= pid(n);
         }
     }
-        
+
     private {
         invariant ~(pid(N) < pid(P) & sent(pid(N),N))
         invariant ~(L < M & M < N & pid(L) < pid(M) & sent(pid(L),N))
@@ -143,7 +143,7 @@ isolate leader = {
             call abstract_model.send(self,highest(self));              # ghost
 	    call net.send(self,self.get_next,highest(self));
         }
-        
+
         implement net.recv(self:node,v:id) {
             if v = pid(self) {  # Found a leader
                 call abstract_model.elect(self);

@@ -47,7 +47,7 @@ def sort_to_string(sort):
 def emit_symbol_def(sym):
     emit('def ' + sym.name + ' := mk_cnst "' + sym.name + '" ' + sort_to_string(sym.sort))
     emit_eol()
-    
+
 def emit_expr(f):
     if isinstance(f,lg.Var):
         emit('("'+f.name+'",'+sort_to_string(f.sort)+')')
@@ -121,7 +121,7 @@ def emit_expr(f):
         emit_expr(f.body)
         for v in f.variables:
             emit(')')
-    
+
 def emit_action(a):
     if isinstance(a,ia.AssignAction):
         vars = [(x if isinstance(x,lg.Variable) else lg.Variable('$V'+ str(idx)))
@@ -151,8 +151,8 @@ def emit_action(a):
             emit('PL.pterm.skip')
     else:
         raise iu.IvyError(a,'action not supported yet')
-        
-            
+
+
 def main():
     with im.Module():
         ivy_init.ivy_init(create_isolate=False)
@@ -182,9 +182,7 @@ def main():
         f.write("".join(things))
         f.close()
 
-        
+
 
 if __name__ == "__main__":
     main()
-        
-        

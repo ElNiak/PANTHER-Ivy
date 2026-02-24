@@ -18,7 +18,7 @@ object quic_ser_enc_client = {}
     #define QUOTEME_1(x) #x
     #define QUIC_SER_DESER_HEADER_PATH PANTHER_IVY_BASE_DIR/quic_utils/quic_ser_deser.h
     #include QUOTEME(QUIC_SER_DESER_HEADER_PATH)
-    
+
     class `quic_ser_enc_client` : public ivy_binary_ser_128 {
     //class `quic_ser_enc_client` : public ivy_binary_ser {
         enum {quic_s_init,
@@ -119,20 +119,20 @@ object quic_ser_enc_client = {}
                     setn(res,4);
                 state = quic_s_dcid;
             }
-            break;    
+            break;
             case quic_s_dcid:
             {
                 //std::cerr << "ser res dcid 1 " << res << "\n";
                 if (long_format) {
                     if((res != 0 && res != 1) || dcid_h_client == 0)
                         setn(dcid_h_client,1);
-                    else 
+                    else
                         setn(8,1);
                 }
                 if((res != 0 && res != 1) || dcid_h_client == 0)
                     setn(res,dcid_h_client); //scid_h_client
-                else 
-                    setn(res,8); 
+                else
+                    setn(res,8);
                 std::cerr << "ser res dcid_h_client 2 " << res << "\n";
                 std::cerr << "ser res dcid_h_client " << dcid_h_client << "\n";
                 state = quic_s_scid;
@@ -192,7 +192,7 @@ object quic_ser_enc_client = {}
             }
             break;
             default:
-            //std::cerr << "quic_ser_enc_client 2\n";  
+            //std::cerr << "quic_ser_enc_client 2\n";
             throw deser_err();
             }
         }
@@ -200,7 +200,7 @@ object quic_ser_enc_client = {}
         int set_var_int(int128_t res) {
             int128_t val = res & 0x3fffffffffffffff; //TODO modify with 16 bytes mask ?
         //void set_var_int(long long res) {
-        //    long long val = res & 0x3fffffffffffffff; 
+        //    long long val = res & 0x3fffffffffffffff;
             int bytecode = res <= 0x3f ? 0 : res <= 0x3fff ? 1 : res <= 0x3fffffff ? 2 : 3;
             int bytes = 1 << bytecode;
             val |= bytecode << ((bytes << 3) - 2);
@@ -211,16 +211,16 @@ object quic_ser_enc_client = {}
         int set_pkt_num(int128_t &res) {
         //void set_pkt_num(long long &res) {
             // setn(0xc0000000 | (0x3fffffff & res),4);
-            // pkt number length is low two bits of first packet byte, plus one 
+            // pkt number length is low two bits of first packet byte, plus one
             setn(res,packet_number_length);
             return packet_number_length;
         }
 
         virtual void open_tag(int tag, const std::string &) {
             if (state == quic_s_payload) {
-                
+
             }
-            //std::cerr << "quic_ser_enc_client 1\n";  
+            //std::cerr << "quic_ser_enc_client 1\n";
             throw deser_err();
         }
 
@@ -246,22 +246,22 @@ object quic_ser_enc_client = {}
         void close_list() {
             if (state == quic_s_payload) {
                 if (long_format) {
-                    
+
                     int len = res.size() - (payload_length_pos+2) ;
                     res[payload_length_pos] = 0x40 | ((len >> 8) & 0x3f);
-                    res[payload_length_pos+1] = len & 0xff; 
-                    
+                    res[payload_length_pos+1] = len & 0xff;
+
                     state = quic_s_init;
                 }
             }
             else if (state == quic_s_retry_token) {
                 payload_length_pos = this->res.size();
                 std::cerr << "close_list payload_length_pos " << payload_length_pos << "\n";
-                
+
                 if (long_format) {
                     setn(0,2);  // will fill in correct value later
                 }
-                
+
                 /*
                 if (long_format) state = quic_s_payload_length;
                 else state = quic_s_payload;
@@ -281,7 +281,7 @@ object quic_ser_enc_client = {}
 >>>
 
 <<< init
-    
+
     //transport_error_name_map(transport_error_codes,transport_error_codes_map);
 
 >>>

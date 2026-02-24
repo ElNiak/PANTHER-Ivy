@@ -7,7 +7,7 @@
 # testing (don't use diff!).
 #
 # Try testing both the token protocol (`iso_p`) and the transport
-# service (`iso_t`), each in isolation. 
+# service (`iso_t`), each in isolation.
 #
 # Hint:
 # -----
@@ -93,9 +93,9 @@ module transport(lower,packet,id) = {
     instance seq_num : sequence_numbers
 
     # these type describe the format of messages
-    
+
     type mtype = {msg_t, ack_t}
-    
+
     object net_msg = {
         type t = struct {
             mty : mtype,
@@ -204,12 +204,12 @@ object serv = {
     object spec = {
         relation lock(X:node.t)
         init lock(X) <-> X = 0
-        
+
         before grant {
             assert ~lock(X);
             lock(v) := true
         }
-        
+
         before release {
             assert lock(v);
             lock(v) := false
@@ -269,5 +269,3 @@ extract iso_impl(me:node.t) = proto(me),trans.impl(me),net(me),node,trans.seq_nu
 #
 # Is there something odd about the `num` fields? Does the transport
 # layer respond strangely to this? Why did that happen?
-
-

@@ -77,7 +77,7 @@ small steps. First we divide through by `B`, then we regroup terms:
 proof {
     property (A:nat * B) / B = C / B proof {}
     property A:nat * (B/B) = C / B proof {}
-}    
+}
 
 ```
 Each of these two steps can be proved by Z3, as can the conclusion.
@@ -123,7 +123,7 @@ Proof. Z3 can't prove this directly. We have to tell it to
 distribute the division over the subtraction (note, integer division
 does not always distribute, but it does in this case). This is another
 example of proceeding in small steps to help out the non-linear arithmetic
-procedure in Z3. 
+procedure in Z3.
 
 ```
 theorem [div_rec] {
@@ -303,7 +303,7 @@ Relation `commdiv(Z,X,Y)` is true if Z is a common divisor of X and
 of Y.
 
 ```
-function commdiv(Z,X,Y) = dvds(Z,X) & dvds(Z,Y) 
+function commdiv(Z,X,Y) = dvds(Z,X) & dvds(Z,Y)
 
 ```
 
@@ -493,7 +493,7 @@ proof {
 ```
 The next lemma is the basis for Euclid's algorithm for computing the
 GCD. That is, provided `N > M`, `gcd(N,M)` is preserved by
-subtracting `M` from `N`. 
+subtracting `M` from `N`.
 
 **Lemma (GCD/Euclid).**
 
@@ -564,7 +564,7 @@ proof {
 ```
 We can use the above to prove Bezout's lemma, an important fact
 about GCD's that we will apply to help us prove facts about prime
-factorizations.  
+factorizations.
 
 **Theorem (Bezout's lemma).**
 
@@ -738,7 +738,7 @@ Squares and square roots
 
 Now we will use our properties of primes and GCD to prove a fact
 known to the Pythagorean School of ancient Greece: no rational
-number is a square root of two. 
+number is a square root of two.
 
 First, for convenience, we define the squaring function:
 
@@ -825,7 +825,7 @@ isolate sqrt2irrat_iso = {
         property [a2_even] dvds(2,squared(a)) proof {
             unfold with dvds_alt
             instantiate with Z=squared(b)
-        } 
+        }
         instantiate [dp1] prime_square with a=a,b=2:nat,prem1=a2_even
         unfold dp1 with dvds_alt
         tactic skolemize

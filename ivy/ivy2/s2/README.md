@@ -7,5 +7,3 @@ This is stage 2 compiler. For the moment, it is identical to the stage
 
 $ IVY_INCLUDE_PATH=../s1/include ../s1/ivyc_s1 ivyc_s2.ivy
 $ g++ -I../s1/include -O2 -o ivyc_s2 -std=c++17 ivyc_s2.cpp
-
-

@@ -216,7 +216,7 @@ class Some(AST):
         return Some(*(vs+self.args[1:]))
     def sort(self):
         self.args[0].sort
-    
+
 
 class Definition(AST):
     """
@@ -633,7 +633,7 @@ def has_temporal(fmla):
 # operators.
 def is_gprop(fmla):
     return isinstance(fmla,lg.Globally) and not has_temporal(fmla.args[0])
-    
+
 def quantifier_vars(term):
     return term.variables
 
@@ -1070,7 +1070,7 @@ uninterpreted_polymorphic_symbols = set([
 'l2s_saved',
 'l2s_d',
 'l2s_a',
-])    
+])
 
 # Tricky: since the bfe operator is parameterized, we add instances of it to
 # the polymorphic_symbols table on demand.
@@ -1677,7 +1677,7 @@ def alpha_avoid(fmla,vs):
         vmap[v] = v    # preserve the variable in formula
     res = vu.rec(fmla,vmap)
     return res
-        
+
 def equal_mod_alpha(t,u):
     if isinstance(t,Definition):
         return isinstance(t,Definition) and all(equal_mod_alpha(x,y) for (x,y) in zip(t.args,u.args))
@@ -1740,7 +1740,7 @@ def polar(fmla,pos,pol):
     if isinstance(fmla,Not):
         return negate_polarity(pol)
     if isinstance(fmla,Implies):
-        return pol if pos == 1 else negate_polarity(pol) 
+        return pol if pos == 1 else negate_polarity(pol)
     if is_quantifier(fmla) or isinstance(fmla,And) or isinstance(fmla,Or):
         return pol
     if isinstance(fmla,Ite):
@@ -1760,7 +1760,7 @@ def label_temporal(fmla,label):
         return type(fmla)(func, *args)
     return fmla.clone(args)
 
-            
+
 def is_definitional(defn):
     while isinstance(defn,il.ForAll):
         vs.update(defn.variables)

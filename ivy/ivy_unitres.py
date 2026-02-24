@@ -3,7 +3,7 @@
 #
 from .ivy_resolution import mgu_eq
 from .ivy_logic import *
-from .ivy_logic_utils import * 
+from .ivy_logic_utils import *
 from . import ivy_congclos as congclos
 from collections import defaultdict
 from . import ivy_logic
@@ -41,7 +41,7 @@ def lit_id(lit):
     return id
 
 def canonize_literal(lit):
-    """ 
+    """
     rename variables to constants in a canonical way.
 
     >>> canonize_literal(to_literal('p(t,X,Y)'))
@@ -62,7 +62,7 @@ def canonize_literal(lit):
     return (Literal(lit.polarity,Atom(lit.atom.relname,terms)),subs)
 
 def canonize_literal_vars(lit):
-    """ 
+    """
     rename variables to constants in a canonical way.
 
     >>> canonize_literal(to_literal('p(t,X,Y)'))
@@ -83,7 +83,7 @@ def canonize_literal_vars(lit):
     return Literal(lit.polarity,Atom(lit.atom.relname,terms))
 
 def canonize_literal_unique(lit):
-    """ 
+    """
     rename variables to constants in a canonical way.
 
     >>> canonize_literal(to_literal('p(t,X,Y)'))
@@ -107,7 +107,7 @@ def lit_is_specialization(lit):
     return (lit.polarity == 0
             and lit.atom.relname == "="
             and lit.atom.args[0].rep.startswith('__v')
-            and isinstance(lit.atom.args[0],Constant)) 
+            and isinstance(lit.atom.args[0],Constant))
 
 def get_specializations(cl,specs):
     clspecs = [lit for lit in cl if lit_is_specialization(lit)]
@@ -169,7 +169,7 @@ def find_subsumed_rec(index, terms, idx):
         for t2 in ground_match(t,index[2]):
             for y in find_subsumed_rec(index[2][t2], terms, idx+1):
                 yield y
-        
+
 def find_subsuming_rec(index, terms, idx):
     if idx >= len(terms):
         yield index
@@ -230,7 +230,7 @@ def lit_subsume_mod_eq(lit1,lit2,env):
 new_specialization = True
 
 class UnitRes(object):
-    """ 
+    """
     Performs unit resolution
     """
 
@@ -384,7 +384,7 @@ class UnitRes(object):
         lit = lit_rep(lit)
         if is_taut_lit(lit):
             return
-        t0,t1 = lit.atom.args[0],lit.atom.args[1] 
+        t0,t1 = lit.atom.args[0],lit.atom.args[1]
         if t0.rep < t1.rep:
             t0,t1 = t1,t0
         for lit_idx in self.unit_term_index[t0.rep]:
@@ -406,7 +406,7 @@ class UnitRes(object):
             self.propagate_lit(lit2,max(gen+1,self.unit_queue_gen[lit_idx]))
             if self.unsat:
                 return
-                
+
 
     def propagate_lit(self,lit,gen=0,specs = None):
         """
@@ -467,7 +467,7 @@ class UnitRes(object):
                             self.add_clause(new_cl,new_gen)
                             if self.unsat:
                                 return
-                
+
                 if keep:
                     self.resolve_units(lit,index[0],gen,False) # have to unify against units too!
                     if self.unsat:
@@ -477,7 +477,7 @@ class UnitRes(object):
             # under equality, so that we can infer disequalities
             if keep == False:
                 others = [x for x in self.unit_term_index[lit.atom.relname] if self.unit_queue[x].polarity != lit.polarity]
-                self.resolve_units(lit,others,gen,True) # 
+                self.resolve_units(lit,others,gen,True) #
                 if self.unsat:
                     return
 
@@ -496,7 +496,7 @@ class UnitRes(object):
                     self.add_clause(new_cl,new_gen)
                     if self.unsat:
                         return
-                
+
 
     def propagate(self, specs = None):
         """
@@ -509,7 +509,7 @@ class UnitRes(object):
         >>> r.used_units
         [~a(), ~b(), c()]
         """
-        
+
         save_thing = ivy_logic.allow_unsorted
         ivy_logic.allow_unsorted = True
         while self.used_units < len(self.unit_queue):
@@ -535,12 +535,11 @@ def keep_atom(atom):
 
 def keep_lit(lit):
     return keep_atom(lit.atom)
-        
-    
+
+
 if __name__ == "__main__":
 #    r = UnitRes(to_clauses("[[p(v)],[~r(),=(v,w)],[~p(w),q(w)],[r()]]"))
     r = UnitRes(to_clauses("p(U,v) & v = u & (~p(x,u) | q(u))"))
     with r.context():
         r.propagate()
         print(r.unit_queue)
-

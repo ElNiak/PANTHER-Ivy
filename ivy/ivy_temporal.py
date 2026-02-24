@@ -77,7 +77,7 @@
 # equivalent to validity `wlp(M,true)`. In this case we say the goal
 # is "reduced". A liveness-to-safety transformation is a tactic that
 # reduces `phi` to `true`.
-# 
+#
 # To more easily manipluate normal programs, we introduce a special
 # syntax node for them. We introduce the following classes for this purpose:
 #
@@ -146,7 +146,7 @@ class ActionTerm(ia.AST):
         res += params(self.outputs,' returns')
         res += '{' + str(self.stmt) + '}'
         return res
-    
+
 def clone_action(self,inputs,outputs,labels,stmt):
     """ replace the inputs, output, labels and statement in an action,
     but keep other attributes. """
@@ -285,7 +285,7 @@ def invariance_tactic(prover,goals,proof):
     # Add the invariant list to the model
     model = model.clone([])
     model.invars = model.invars + invars
-    
+
     # Get all the implicit globally properties from the proof
     # environment. Each temporal operator has an 'environment'. The
     # operator applies to states *not* in actions labeled with this
@@ -310,7 +310,7 @@ def invariance_tactic(prover,goals,proof):
     #
     # Currently, the environment labels of a statement have to be
     # statically determined, but this could change, i.e., the labels
-    # could be represented by boolean variables. 
+    # could be represented by boolean variables.
     #
     # TODO: there is something a bit inelegant here, because when we return from
     # an exported action to the external environment, we need to update the operator
@@ -319,13 +319,13 @@ def invariance_tactic(prover,goals,proof):
     # is one version for internal callers and one for external callers. This issue doesn't
     # affect this simple invariance tactic, because it doesn't need to update the truth
     # values of the operators.
-    
+
     # Get all the G properties from the prover environment as assumptions
-    
+
     assumed_gprops = [x for x in prover.axioms if not x.explicit and x.temporal and il.is_gprop(x.formula)]
     gprops = [x.formula for x in assumed_gprops]
     gproplines = [x.lineno for x in assumed_gprops]
-    
+
     # We represent the property G phi to be proved by its negation F ~phi.
     gprops.append(il.Eventually(fmla.environ,il.Not(invar)))
     gproplines.append(goal.lineno)
@@ -340,7 +340,7 @@ def invariance_tactic(prover,goals,proof):
             symprops[sym].append(prop)
     actions = dict((b.name,b.action) for b in model.bindings)
     lines = dict(list(zip(gprops,gproplines)))
-            
+
     def instr_stmt(stmt,labels):
 
         # first, recur on the sub-statements
@@ -352,7 +352,7 @@ def invariance_tactic(prover,goals,proof):
 
         # first, if it is a call, we must consider any events associated with
         # the return
-        
+
         if isinstance(stmt,iact.CallAction):
             callee = actions[stmt.callee()]  # get the called action
             exiting = [l for l in callee.labels if l not in labels] # environments we exit on return
@@ -361,15 +361,15 @@ def invariance_tactic(prover,goals,proof):
                     event_props.add(prop)
 
         # Second, if a symbol is modified, we must add events for every property that
-        # depends on the symbol, but only if we are not in the environment of that property. 
-                    
+        # depends on the symbol, but only if we are not in the environment of that property.
+
         for sym in stmt.modifies():
             for prop in symprops[sym]:
                 if prop.environ not in labels:
                     event_props.add(prop)
-                    
+
         # Now, for every property event, we update the property state (none in this case)
-        # and also assert the property semantic constraint. 
+        # and also assert the property semantic constraint.
 
         events = [prop_event(prop,lines[prop]) for prop in event_props]
         res =  iact.postfix_action(res,events)
@@ -380,11 +380,11 @@ def invariance_tactic(prover,goals,proof):
 
     model.bindings = [b.clone([b.action.clone([instr_stmt(b.action.stmt,b.action.labels)])])
                       for b in model.bindings]
-    
+
     # Add all the assumed invariants to the model
 
     model.asms.extend([p.clone([p.label,p.formula.args[0]]) for p in assumed_gprops])
-    
+
     # if len(gprops) > 0:
     #     assumes = [gprop_to_assume(x) for x in gprops]
     #     model.bindings = [b.clone([prefix_action(b.action,assumes)]) for b in model.bindings]
@@ -441,7 +441,7 @@ def implicit_tactic(prover,goals,proof):
     goal = ipr.goal_prefix_prems(goal,implicit_axioms,goal.lineno)
     return [goal]+goals
 
-    
+
 def to_module(goal):
     conc = ipr.goal_conc(goal)
     assert isinstance(conc,ia.TemporalModels)

@@ -37,8 +37,8 @@
 
 module indexset(basis,index) = {
 
-    type set 
-    
+    type set
+
     individual n : basis.t
     relation member(E:basis.t,S:set)
     relation disjoint(X:set,Y:set)
@@ -46,13 +46,13 @@ module indexset(basis,index) = {
     function cnt(E:basis.t) : index.t
 
     axiom n >= 0
-    
+
     object spec = {
 	property disjoint(X,Y) -> card(X) + card(Y) <= cnt(n)
     }
-    
+
     object impl = {
-	
+
 	definition disjoint(X,Y) = forall E. ~(member(E,X) & member(E,Y))
 
 	# recursive definiton of cnt
@@ -71,7 +71,7 @@ module indexset(basis,index) = {
 
 	# invariant
 
-	derived inv(B,X,Y) = 
+	derived inv(B,X,Y) =
             disjoint(X,Y) -> cardUpTo(X,B) + cardUpTo(Y,B) <= cnt(B)
 
 
@@ -91,8 +91,8 @@ module indexset(basis,index) = {
     }
 }
 
-	
-    
+
+
 include order
 instance bss : unbounded_sequence
 instance idx : unbounded_sequence

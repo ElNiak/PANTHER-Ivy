@@ -43,5 +43,5 @@ int main(int argc, char **argv){
                 std::cout << n1 << " got lock!\n";
         }
     }
-    
+
 }

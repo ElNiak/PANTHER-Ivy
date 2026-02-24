@@ -21,7 +21,7 @@ import sys
 
 diagnose = iu.BooleanParameter("diagnose",False)
 
-    
+
 def usage():
     print("usage: \n  {} file.ivy".format(sys.argv[0]))
     sys.exit(1)
@@ -48,4 +48,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

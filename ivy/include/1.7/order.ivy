@@ -57,7 +57,7 @@ module unbounded_sequence = {
     }
 
     isolate iso = impl,spec
-    
+
     # When testing, use the integer implementation.
 
     attribute test = impl
@@ -114,7 +114,7 @@ module long_unbounded_sequence = {
     }
 
     isolate iso = impl,spec
-    
+
     # When testing, use the integer implementation.
 
     attribute test = impl
@@ -164,7 +164,7 @@ module bounded_sequence_spec = {
 }
 
 module bounded_sequence(interp) = {
-    
+
     instantiate bounded_sequence_spec
 
     object impl = {
@@ -185,7 +185,7 @@ module bounded_sequence(interp) = {
     }
 
     isolate iso = impl,spec
-    
+
     # When testing, use the integer implementation.
 
     attribute test = impl
@@ -214,7 +214,7 @@ module order_iterator(range) = {
 	val : range.t
     }
 
-    definition (X < Y) = ~is_end(X) & is_end(Y) 
+    definition (X < Y) = ~is_end(X) & is_end(Y)
                       | ~is_end(X) & ~is_end(Y) & val(X) < val(Y)
 
     function done(X,Y) = is_end(Y) | X < val(Y)
@@ -223,7 +223,7 @@ module order_iterator(range) = {
 
     action create(x:range.t) returns (y:t)
     action end returns (y:t)
-    
+
     object spec = {
 
 #	instantiate totally_ordered(range.t)
@@ -260,7 +260,7 @@ module order_iterator_impl(range) = {
 	val : range.t
     }
 
-    definition (X < Y) = ~is_end(X) & is_end(Y) 
+    definition (X < Y) = ~is_end(X) & is_end(Y)
                       | ~is_end(X) & ~is_end(Y) & val(X) < val(Y)
 
     function done(X,Y) = is_end(Y) | X < val(Y)
@@ -269,7 +269,7 @@ module order_iterator_impl(range) = {
 
     action create(x:range.t) returns (y:t)
     action end returns (y:t)
-    
+
     implement create {
 	is_end(y) := false;
 	val(y) := x
@@ -287,7 +287,7 @@ module sequence_iterator(range) = {
 
     action next(x:t) returns (x:t)
     action prev(x:t) returns (x:t)
-    
+
     object spec = {
 	...
 	before next {
@@ -341,10 +341,10 @@ module unbounded_queue(data) = {
 	head := 0;
 	tail := 0;
     }
-    
+
     derived empty = tail >= head
     derived first = contents(tail)
-    
+
     # action empty returns (res:bool) = {
     # 	res := tail >= head;
     # }
@@ -392,7 +392,7 @@ module iterable = {
         definition (x:t - y:t) = <<< x - y >>>
         definition 0:t = <<< 0 >>>
         definition max = <<< `size` - 1 >>>
-        
+
         implement next(x:t) returns (y:t) {
             <<< y = x + 1; >>>
         }
@@ -403,7 +403,7 @@ module iterable = {
             <<< r = (x == `size` - 1); >>>
         }
     }
-    
+
     trusted isolate iso = this
     attribute cardinality = size
 

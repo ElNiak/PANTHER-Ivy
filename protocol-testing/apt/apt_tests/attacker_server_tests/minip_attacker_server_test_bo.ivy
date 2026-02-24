@@ -45,14 +45,14 @@ before ping_frame.ping.handle_maliciously(f:ping_frame.ping,dst:ip.endpoint) {
         require f.data.end  = 13;
         # require number_ping_send > 2;
         # require f.data.end > 1 & f.data.end < 100000;
-        require exists I. I < f.data.end-8  & 
+        require exists I. I < f.data.end-8  &
         (f.data.value(I)   = 0x25  & f.data.value(I+1) = 0x78  &
          f.data.value(I+2) = 0x25  & f.data.value(I+3) = 0x78  &
          f.data.value(I+4) = 0x25  & f.data.value(I+5) = 0x78  &
          f.data.value(I+6) = 0x25  & f.data.value(I+7) = 0x6e);
         require dst = server.ep;
     }
-} 
+}
 
 after ping_frame.ping.handle_maliciously {
     if _generating {
@@ -94,6 +94,5 @@ export ping_packet_event_malicious
 # data was actually received from the server. We can add advice to this
 # action with additional checks.
 
-export action _finalize = { 
+export action _finalize = {
 }
-

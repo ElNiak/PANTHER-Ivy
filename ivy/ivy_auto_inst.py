@@ -43,7 +43,7 @@ class Match(object):
     def unify(self,x,y):
         if x not in self.map:
             if x.name.endswith('_finite') and not is_finite_sort(y):
-                return False  # 
+                return False  #
             self.add(x,y)
             return True
         return self.map[x] == y
@@ -54,7 +54,7 @@ class Match(object):
             if not self.unify(x,y):
                 return False
         return True
-    
+
 
 def str_map(map):
     return '{' + ','.join('{}:{}'.format(x,y) for x,y in map.items()) + '}'
@@ -95,9 +95,9 @@ def match_schema_prems(prems,sort_constants,funs,match,bound_sorts):
             for m in match_schema_prems(prems,sort_constants,funs,match,bound_sorts):
                 yield m
         prems.append(prem)
-            
+
 def apply_match(match,fmla):
-    """ apply a match to a formula. 
+    """ apply a match to a formula.
 
     In effect, substitute all symbols in the match with the
     corresponding lambda terms and apply beta reduction
@@ -134,7 +134,7 @@ def expand_schemata(mod,sort_constants,funs):
             inst = apply_match(m,conc)
             res.append(ivy_ast.LabeledFormula(ivy_ast.Atom(name),inst))
     return res
-                
+
 # Here we deal with normalizing of terms. In particular, we order the
 # equalities and convert x = x to true. This means we don't have to
 # axiomatize symmetry and reflexivity. We assume terms we normalize
@@ -200,7 +200,7 @@ def merge_match_lists(match_lists):
     recur(0,dict())
     return res
 
-            
+
 # This is where we do pattern-based eager instantiation of the axioms
 
 def instantiate_axioms(mod,fmlas,triggers):
@@ -229,7 +229,7 @@ def instantiate_axioms(mod,fmlas,triggers):
 
     if verbose:
         print('Instantiating axioms...')
-    
+
     # Get all the triggers. For now only automatic triggers
 
     def get_trigger(expr,vs):
@@ -285,7 +285,7 @@ def instantiate_axioms(mod,fmlas,triggers):
             mp.update(save)
             return match(px,ey,mp) and match(py,ex,mp)
         return all(match(x,y,mp) for x,y in zip(pat.args,expr.args))
-                                                                
+
 
     # TODO: make sure matches are ground
     def recur(expr,trig,res):
@@ -311,7 +311,7 @@ def instantiate_axioms(mod,fmlas,triggers):
             if fmla not in insts:
                 insts.add(fmla)
                 inst_list.append((ax,fmla))
-                    
+
     for f in inst_list:
         logfile.write('    {}\n'.format(f))
     return inst_list
@@ -342,7 +342,7 @@ def auto_inst(self,decls,proof):
     renamer = iu.UniqueRenamer(used = used_names)
 
     prems = list(ipr.goal_prems(goal))
-    
+
     for ax,fmla in instances:
         inst = ax.clone([ivy_ast.Atom(renamer(ax.label.rep)),fmla])
         inst.explicit = False
@@ -350,5 +350,5 @@ def auto_inst(self,decls,proof):
 
     goal = ipr.clone_goal(goal,prems,conc)
     return [goal] + decls[1:]
-    
+
 ipr.register_tactic('auto_inst',auto_inst)

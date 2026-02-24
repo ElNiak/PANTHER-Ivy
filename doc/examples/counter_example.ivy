@@ -1,18 +1,18 @@
 #lang ivy1.5
 
 module counter(t) = {
-    
+
     individual val : t
     init val = 0
-    
+
     action up = {
         val := val + 1
     }
-    
+
     action down = {
         val := val - 1
     }
-    
+
     action is_zero returns(z : bool) = {
         z := (val = 0)
     }
@@ -38,7 +38,7 @@ instance c(X:bar) : counter(foo)
 module counter_prop(c) = {
 
     relation was_up
-    init ~was_up 
+    init ~was_up
 
     action up = {
         was_up := true

@@ -2,7 +2,7 @@
 
 ################################################################################
 #
-# TODO: 
+# TODO:
 #
 ################################################################################
 
@@ -10,7 +10,7 @@ isolate proc = {
  type t
 
  object impl = {
-   interpret proc.t->bv[1] 
+   interpret proc.t->bv[1]
  }
     attribute test=impl
 }
@@ -19,7 +19,7 @@ isolate data_type = {
  type t
 
  object impl = {
-   interpret data_type.t->bv[1] 
+   interpret data_type.t->bv[1]
  }
     attribute test=impl
 }
@@ -28,7 +28,7 @@ isolate addr_type = {
  type t
 
  object impl = {
-   interpret addr_type.t->bv[1] 
+   interpret addr_type.t->bv[1]
  }
     attribute test=impl
 }
@@ -94,7 +94,7 @@ module evs_type = {
 }
 
 ################################################################################
-# Specification: 
+# Specification:
 ################################################################################
 
 object ref = {
@@ -107,7 +107,7 @@ object ref = {
  individual  gt : gtime.t
 
 ################################################################################
-# global memory state 
+# global memory state
 
   individual mem(A:addr_type.t) : data_type.t
 
@@ -124,7 +124,7 @@ object ref = {
 # acquire is complete
 #
 # => A1) prevent lda to issue until all older ld*/st* are finished to ensure it
-#        doesn't overtake those 
+#        doesn't overtake those
 #    A2) prevent younger ld*/st* to issue before lda
 #
 # A release synchronization must ensure that all older loads/stores complete before the
@@ -140,7 +140,7 @@ object ref = {
 #
 
 relation   prevents(T1:ltime.t,T2:ltime.t)
-definition prevents(T1,T2) = ~evs(T1).serialized 
+definition prevents(T1,T2) = ~evs(T1).serialized
      	                   & (T1 < T2) & (evs(T1).op=ld | evs(T1).op=lda | evs(T1).op=st | evs(T1).op=stl)
     	                   & evs(T1).p = evs(T2).p
     	                   & (evs(T1).addr = evs(T2).addr | evs(T2).op = stl | evs(T2).op = lda)
@@ -178,13 +178,13 @@ action perform(p:proc.t, lt:ltime.t) = {
 	evs(lt).data := mem(a)
      } else if evs(lt).op = st | evs(lt).op = stl {
 	mem(a) := d
-     }			
+     }
   }
 
 }
 
 ################################################################################
-# arm: 
+# arm:
 ################################################################################
 type arm_ph_type = {arm_idle_ph, arm_st_ph, arm_stl_ph, arm_ld_ph, arm_lda_ph, arm_rsp_ph, arm_rspa_ph, arm_st_isd_ph, arm_ld_isd_ph, arm_stl_isd_ph, arm_lda_isd_ph}
 
@@ -387,7 +387,7 @@ after init {
 
 # zero
 
-# 
+#
 
 conjecture ~arm.isd_st(P,A,T)
 conjecture ~arm.isd_stl(P,A,T)
@@ -440,6 +440,3 @@ conjecture  (arm.pnd_stl(P1,A1,T1) & arm.pnd_stl(P2,A2,T2) & T1=T2) -> (P1=P2 & 
 
 export arm.step
 export arm.recv
-
-
-

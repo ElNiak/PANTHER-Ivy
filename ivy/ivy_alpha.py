@@ -19,7 +19,7 @@ def alpha(state):
     d = ProgressiveDomain(state.domain.concept_spaces,verbose = False)
     state.clauses = d.post(state.clauses,state.domain.background_theory(state.in_scope),{},[])
 #    print "poststate: {}".format(state.clauses)
-    
+
 #log = Parameter("log.alpha")
 log = False
 
@@ -27,7 +27,7 @@ class ProgressiveDomain(object):
     def __init__(self, cs = [], verbose = True):
         self.concept_spaces = cs
         self.verbose = verbose
-    
+
     def add_concept_space(self, atom, space):
         self.concept_spaces.append((atom, space))
 
@@ -104,7 +104,7 @@ class ProgressiveDomain(object):
 
     def post_init(self,theory,background_theory,new_sym,to_keep):
         self.new_sym = new_sym
-        self.solver = new_solver()        
+        self.solver = new_solver()
         self.cube_memo = dict()
         self.inhabited_cubes = dict()
         self.z3_cubes = []
@@ -116,7 +116,7 @@ class ProgressiveDomain(object):
         self.unsat = test_bottom and self.solver.check() == z3.unsat
         if self.unsat:
             print("core: %s" % unsat_core(and_clauses(theory,background_theory),true_clauses()))
-        
+
     def post_step(self,concept_spaces):
         if self.unsat:
             return false_clauses()
@@ -143,7 +143,7 @@ class ProgressiveDomain(object):
         del self.solver
         del self.unsat
         del self.memo
-        
+
     def post(self,theory,background_theory,new_sym,to_keep):
         self.post_init(theory,background_theory,new_sym,to_keep)
         res = self.post_step(self.concept_spaces)
@@ -289,7 +289,7 @@ class RelAlg2(object):
         return res
     def empty(self,tab):
         return not tab
-                
+
 class RelAlg3(RelAlg2):
     def prim(self,lit):
         print("prim: %s" % lit)
@@ -325,10 +325,10 @@ def predicate_alpha(state):
             res = and_clauses(res,pred)
         slvr.pop()
     state.clauses = res
-        
 
-    
-        
+
+
+
 if __name__ == "__main__":
     d = ProgressiveDomain(None,None,None,False)
     d.add_concept_space(to_atom("s1(X,Y)"),to_concept_space("(p(X,Y) * ~p(Y,X))"))
@@ -345,8 +345,3 @@ if __name__ == "__main__":
     # cs = to_concept_space("( + ~p(X,X) + p(X,c))")
     # memo = dict()
     # print cs.eval(memo,ra)
-
-
-
-
-                

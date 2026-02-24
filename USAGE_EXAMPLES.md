@@ -101,7 +101,7 @@ env:
   # Base paths using templates
   PANTHER_IVY_BASE_DIR: "homepath>/protocol-testing"
   PROTOCOL_MODEL_PATH: "PANTHER_IVY_BASE_DIR>/PROTOCOL_PATH>"
-  
+
   # QUIC-specific files
   ZRTT_SSLKEYLOGFILE: "PANTHER_IVY_BASE_DIR>/IS_APT_PATH>/quic/last_tls_key.txt"
   ZRTT_TOKEN_FILE: "PANTHER_IVY_BASE_DIR>/IS_APT_PATH>/quic/last_token.txt"
@@ -210,7 +210,7 @@ if not is_valid:
    ```yaml
    # Good
    log_path: "LOG_BASE_DIR>/service_name>_role>.log"
-   
+
    # Avoid
    log_path: "LBD>/SN>_R>.log"
    ```
@@ -221,7 +221,7 @@ if not is_valid:
    # Good - broken into logical segments
    base_path: "PANTHER_IVY_BASE_DIR>/IS_APT_PATH>"
    data_file: "base_path>/quic/data.txt"
-   
+
    # Avoid - too complex in single line
    data_file: "PANTHER_IVY_BASE_DIR>/IS_APT_PATH>/quic/data.txt"
    ```
@@ -236,7 +236,7 @@ if not is_valid:
    ```yaml
    # Good - adapts to architecture
    protocol_path: "PANTHER_IVY_BASE_DIR>/IS_APT_PATH>"
-   
+
    # Avoid - hardcoded for specific architecture
    protocol_path: "PANTHER_IVY_BASE_DIR>/apt/apt_protocols"
    ```

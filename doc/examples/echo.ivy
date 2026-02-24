@@ -92,7 +92,7 @@ isolate service = {
             after init {
 	        sent(X,S,D) := false
 	    }
-    
+
 	    before send {
 	        sent(v,src,dst) := true
 	    }
@@ -166,7 +166,7 @@ isolate service = {
         invariant net.sent(M,S,D) & M *> (R:response) -> protocol.response_sent(response.content(R),S,D)
         invariant protocol.request_sent(X,S,D) -> request_pending(S) & request_content(S) = X
     }
-} with protocol   
+} with protocol
 
 export service.client_request
 import service.client_response

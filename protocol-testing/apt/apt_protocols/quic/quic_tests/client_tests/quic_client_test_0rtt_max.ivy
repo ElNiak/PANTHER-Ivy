@@ -41,10 +41,10 @@ before quic_frame.connection_close.handle(f:quic_frame.connection_close,scid:cid
     if _generating {
         #require conn_total_data(the_cid) > 10; # tricks
         #require last_pkt_num(the_cid,quic_packet_type.one_rtt) > 2;
-        require client.ep.addr ~= 0;  
+        require client.ep.addr ~= 0;
         #require tls_handshake_finished;
-        require f.err_code = 0;   
-        require f.frame_type = 0;    
+        require f.err_code = 0;
+        require f.frame_type = 0;
         require scid = the_cid;
     } else {
         require is_no_error;
@@ -58,9 +58,9 @@ before quic_frame.application_close.handle(f:quic_frame.application_close,scid:c
     if _generating {
         #require conn_total_data(the_cid) > 3; # tricks (4bytes is one stream quic_frame data)
         require last_pkt_num(the_cid,quic_packet_type.one_rtt) > 2;
-        require client.ep.addr ~= 0;  
+        require client.ep.addr ~= 0;
         require tls_handshake_finished;
-        require f.err_code = 0;   
+        require f.err_code = 0;
         require scid = the_cid;
         require e = quic_packet_type.one_rtt;
     } else {

@@ -221,7 +221,7 @@ def ite(cond,s1,s2,op,axioms):
 def bind_olds_clauses(clauses):
     subst = dict((s,old_of(s)) for s in used_symbols_clauses(clauses) if is_old(s))
     return rename_clauses(clauses,subst)
-    
+
 def bind_olds_action(action):
     u,c,p = action
     res = (u,bind_olds_clauses(c),bind_olds_clauses(p))
@@ -507,7 +507,7 @@ def interpolant(clauses1,clauses2,axioms,interpreted):
     itp = binary_interpolant(foo,clauses2)
     print ("itp = {}".format(itp))
     return None if itp is None else (clauses1,itp)
-        
+
 
     core = unsat_core(clauses2,foo)
     if core == None:
@@ -580,7 +580,7 @@ class History(object):
         self.maps = maps     # sequence of symbol renamings resulting from forward images
         self.post = clauses  # characteristic formula of the history
         self.actions = actions
- 
+
 
     def forward_step(self,axioms,update,action=None):
         """ This is like forward_image on states, but records the
@@ -641,7 +641,7 @@ class History(object):
             img = set(renaming[s] for s in renaming if not s.is_skolem())
             ignore = lambda s: self.ignore(s,img,renaming)
             # get the sub-mode for the given past time as a formula
-            
+
             if isinstance(final_cond,list):
                 final_cond = or_clauses(*[fc.cond() for fc in final_cond])
             all_clauses = and_clauses(post,final_cond) if final_cond != None else post

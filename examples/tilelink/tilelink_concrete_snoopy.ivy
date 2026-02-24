@@ -47,7 +47,7 @@ module dut(myid,clnt,mngr,ref) = {
     relation pend_rls(A:tl_addrhi,W:tl_addrlo)
     relation pend_prb(A:tl_addrhi,W:tl_addrlo)
     relation wait_finish
-    
+
     init ~cache_excl(A,W) & ~cache_shrd(A,W) & ~pend_rls(A,W) & ~pend_prb(A,W) & ~pend_excl(A,W) & ~pend_shrd(H,W) & ~wait_finish
 
     ########################################
@@ -68,7 +68,7 @@ module dut(myid,clnt,mngr,ref) = {
 	    assume fnss(f).own = ow;
 	    call mngr.tl_Finish(f)
         }
-    }    
+    }
 
     ########################################
     # grant action called by the manager side
@@ -76,7 +76,7 @@ module dut(myid,clnt,mngr,ref) = {
     action tl_Grant(msg:gnt_id) = {
 
         if gnts(msg).relack {
-	
+
 	    # on a release ack, mark release completed
 
 	    local ahi:tl_addrhi, w:tl_addrlo {
@@ -126,7 +126,7 @@ module dut(myid,clnt,mngr,ref) = {
     ########################################
     # construct and send an uncached Grant message
     #
-    # 
+    #
 
     action grant(mid:id, ahi:tl_addrhi, w:tl_addrlo, d:data, lt:ltime) = {
         local g:gnt_id {
@@ -144,7 +144,7 @@ module dut(myid,clnt,mngr,ref) = {
     ########################################
     # Acquire action called by the client side
     #
-    # 
+    #
 
     action tl_Acquire(msg:acq_id) = {
         assume acqs(msg).own = none;     #only support uncached
@@ -164,7 +164,7 @@ module dut(myid,clnt,mngr,ref) = {
 	          d := cache_data(a);
    	          call ref.perform(lt,myid); # ghost
 	          call grant(mid,ahi,wrd,d,lt)
-              } else { # o = write	    
+              } else { # o = write
 	          assume cache_excl(ahi,wrd); # models channel blocking
 		  d := acqs(msg).data_;
 	          cache_data(a) := d;
@@ -186,8 +186,8 @@ module dut(myid,clnt,mngr,ref) = {
          assume own_ ~= none;
 
          assume ~(pend_excl(H,W) | pend_shrd(H,W)) & H ~= ahi;     # no threading, for now
-	 assume ~(pend_excl(ahi,W) & own_=excl);                   # not if already acquiring 
-	 assume ~(pend_shrd(ahi,W) & own_=shrd);                   # not if already acquiring 
+	 assume ~(pend_excl(ahi,W) & own_=excl);                   # not if already acquiring
+	 assume ~(pend_shrd(ahi,W) & own_=shrd);                   # not if already acquiring
 
 	 # construct an Acquire message
 
@@ -199,10 +199,10 @@ module dut(myid,clnt,mngr,ref) = {
 
          if own_ = excl {
              assume ~cache_excl(ahi,W);
-	     pend_excl(ahi,W) := true 
+	     pend_excl(ahi,W) := true
 	 } else {
              assume ~cache_shrd(ahi,W);
-	     pend_shrd(ahi,W) := true 
+	     pend_shrd(ahi,W) := true
          };
 
 	 call mngr.tl_Acquire(msg)
@@ -228,7 +228,7 @@ module dut(myid,clnt,mngr,ref) = {
 
 	    cache_excl(ahi,wrd) := false;
 	    cache_shrd(ahi,wrd) := false;
-	    	    
+
 	    call mngr.tl_Release(r)
         }
     }
@@ -280,7 +280,7 @@ module dut(myid,clnt,mngr,ref) = {
 	    assume rlss(msg).word = wrd;
 
 	    # mark the release pending
-	    
+
 	    pend_rls(ahi,wrd) := true;
 
 	    call send_release(msg)
@@ -309,7 +309,7 @@ module dut(myid,clnt,mngr,ref) = {
 	    assume rlss(msg).word = wrd;
 
 	    call send_release(msg);
-	    
+
 	    # mark probe complete
 
 	    pend_prb(ahi,wrd) := false
@@ -346,7 +346,7 @@ include tilelink_concrete_two_port_testbench
 # The cache makes two assumptions about the system configuration:
 
 # 1) supports only one client
-axiom fside(I) = client & fside(J) = client -> I = J  
+axiom fside(I) = client & fside(J) = client -> I = J
 
 # 2) everything uncached on front side and cached on back side
 axiom ~front.cached(A) & back.cached(A)
@@ -379,13 +379,13 @@ conjecture back.shrd_a(H) -> exists W. b.pend_shrd(H,W)
 
 conjecture ~back.excl_f(H) & ~back.shrd_f(H)
 
-conjecture ~back.unc_r(H,W) & ~back.unc_a(H,W) & ~back.unc_f(H,W) 
+conjecture ~back.unc_r(H,W) & ~back.unc_a(H,W) & ~back.unc_f(H,W)
 
 conjecture ~front.unc_r(H,W) & ~front.unc_a(H,W)
 
-conjecture ~front.excl_r(H) & ~front.excl_a(H) & ~front.excl_f(H) 
+conjecture ~front.excl_r(H) & ~front.excl_a(H) & ~front.excl_f(H)
 
-conjecture ~front.shrd_r(H) & ~front.shrd_a(H) & ~front.shrd_f(H) 
+conjecture ~front.shrd_r(H) & ~front.shrd_a(H) & ~front.shrd_f(H)
 
 conjecture front.unc_f(H,W) -> b.wait_finish
 

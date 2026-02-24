@@ -27,7 +27,7 @@ module sht_reference(id,key,data) = {
     function type_(T:txid) : otype
     function key_(T:txid) : key.t
     function data_(T:txid)  : data
-	
+
 
     ########################################
     # Monitor state
@@ -46,11 +46,11 @@ module sht_reference(id,key,data) = {
 
     individual map(A:key.t) : data
     init map(A) = 0
-    
+
     ########################################
     # commit a transaction now. The "id" parameter tells us what
     # process is committing the event.
-    # 
+    #
 
     action commit(lt:txid)
 
@@ -65,8 +65,8 @@ module sht_reference(id,key,data) = {
 	}
 	else {
 	    map(key_(lt)) := data_(lt)
-	}			
-    }     
+	}
+    }
 
 
     ############################################
@@ -91,10 +91,10 @@ module sht_reference(id,key,data) = {
     action end(lt:txid)
     before end {
 	assert committed(lt)
-    }	
+    }
 
     # Invariant: everything committed has been generated
 
     conjecture committed(T) -> generated(T)
-	
+
 }

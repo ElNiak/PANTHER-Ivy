@@ -5,7 +5,7 @@ type bit = {zero,one}
 type univ
 
 module intf(sndr,rcvr) = {
-       
+
   individual state : bit
   relation pending
 
@@ -38,7 +38,7 @@ module channel(sndr,rcvr) = {
   }
 
   action put(v : bit) = {
-    put_pending := true;      
+    put_pending := true;
     state := v
   }
 
@@ -85,7 +85,7 @@ module receiver(sndr) = {
   init ~pending
 
   action put(v : bit) = {
-    pending := true;      
+    pending := true;
     state := v
   }
 
@@ -112,4 +112,3 @@ instantiate sr : intf(c,r)
 isolate iso_s = s with sc
 isolate iso_c = c with sc,sr
 isolate iso_r = r with sr
-

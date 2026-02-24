@@ -34,7 +34,7 @@ isolate bar = {
     specification {
         var head : nat
         var tail : nat
-        
+
         after init {
             head := 0;
             tail := 0;
@@ -73,7 +73,7 @@ isolate bar = {
         # 'started'.  In this case, started means we have reached a
         # point where the tail pointer is at _X, and head ever reaches
         # _X.
-        
+
         temporal property
         forall X.
         (globally eventually receiving.now)
@@ -82,7 +82,7 @@ isolate bar = {
             tactic skolemize;
             tactic l2s_auto2 with
             definition work_created(X) = (X <= tail)
-            definition work_needed(X) = (X <= _X) 
+            definition work_needed(X) = (X <= _X)
             definition work_done(X) = (X <= head)
             definition work_start = ~(tail = _X -> eventually _X <= head)
             definition work_progress = receiving.now
@@ -92,4 +92,3 @@ isolate bar = {
 
 export bar.send
 export bar.recv
-

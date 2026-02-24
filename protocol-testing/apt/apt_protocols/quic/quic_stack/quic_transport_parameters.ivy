@@ -11,7 +11,7 @@ include ipv6
 type trans_params_struct
 
 #TODO
-#original_connection_id 
+#original_connection_id
 
 object transport_parameter = {
     type this
@@ -167,7 +167,7 @@ object loss_bits = {
     instantiate trans_params_ops(this)
 }
 
-#TODO for now, used for picoquic client as marker for the last tls.unknown_extension that bug to 
+#TODO for now, used for picoquic client as marker for the last tls.unknown_extension that bug to
 #parse without hardcode
 #https://tools.ietf.org/html/draft-thomson-quic-bit-grease-01
 object grease_quic_bit = {

@@ -44,7 +44,7 @@ module main()
 	  next(r[dst]) := din;
 	}
       }
-  
+
   /* the implementation */
 
   ir : array REG of
@@ -53,7 +53,7 @@ module main()
       tag : TAG;
       val : WORD;
     }
-  
+
   st : array TAG of
     struct{
       valid : boolean;
@@ -75,7 +75,7 @@ module main()
     init(st[i].valid) := 0;
   forall(i in REG)
     init(ir[i].resvd) := 0;
-    
+
   default {
     /* instruction completion logic */
 
@@ -85,7 +85,7 @@ module main()
 	  next(ir[i].resvd) := 0;
 	  next(ir[i].val) := pout.val;
 	}
-      
+
       forall(i in TAG){
 	if(~st[i].opra.valid & st[i].opra.tag = pout.tag){
 	  next(st[i].opra.valid) := 1;
@@ -106,16 +106,16 @@ module main()
     if(~stallout)
       switch(opin){
 	ALU : {
-	  
+
 	  /* store the instrcution in an RS */
-	  
+
 	  next(ir[dst].resvd) := 1;
 	  next(ir[dst].tag) := st_choice;
 	  next(st[st_choice].valid) := 1;
 	  next(st[st_choice].issued) := 0;
-	  
+
 	  /* fetch the a operand (with bypass) */
-	  
+
 	  if(pout.valid & ir[srca].resvd & pout.tag = ir[srca].tag){
 	    next(st[st_choice].opra.valid) := 1;
 	    next(st[st_choice].opra.tag) := ir[srca].tag;
@@ -125,9 +125,9 @@ module main()
 	    next(st[st_choice].opra.tag) := ir[srca].tag;
 	    next(st[st_choice].opra.val) := ir[srca].val;
 	  }
-	  
+
 	  /* fetch the b operand (with bypass) */
-	  
+
 	  if(pout.valid & ir[srcb].resvd & pout.tag = ir[srcb].tag){
 	    next(st[st_choice].oprb.valid) := 1;
 	    next(st[st_choice].oprb.tag) := ir[srcb].tag;
@@ -138,15 +138,15 @@ module main()
 	    next(st[st_choice].oprb.val) := ir[srcb].val;
 	  }
 	}
-	
+
 	RD : dout := ir[srca].val;
-	
+
 	WR : {
 	  next(ir[dst].val) := din;
 	  next(ir[dst].resvd) := 0;
 	}
       }
-    
+
   } in {
     /* instruction issue logic */
 
@@ -160,7 +160,7 @@ module main()
 	next(st[issue_choice].issued) := 1;
       }
     else exe_valid := 0;
-    
+
     exe_tag  := issue_choice;
     exe_opra :=  st[issue_choice].opra.val;
     exe_oprb :=  st[issue_choice].oprb.val;
@@ -168,10 +168,10 @@ module main()
 
   /* the stall signal */
 
-  ASSIGN stallout := 
-    opin = ALU & st[st_choice].valid 
+  ASSIGN stallout :=
+    opin = ALU & st[st_choice].valid
     | opin = RD & ir[srca].resvd;
-  
+
   /* the execution units */
 
   issue_eu, complete_eu : EU;
@@ -188,7 +188,7 @@ module main()
 
    forall(i in EU)
      init(eu[i].valid) := 0;
-   
+
    default{
      if(~eu[issue_eu].valid){
        next(eu[issue_eu].valid) := exe_valid;
@@ -202,7 +202,7 @@ module main()
      if(pout.valid)
        next(eu[complete_eu].valid) := 0;
    }
-   
+
    /* the witness function */
 
    layer arch:
@@ -222,7 +222,7 @@ module main()
      next(aux[st_choice].res)  := res;
      next(aux[st_choice].srca) := srca;
      next(aux[st_choice].srcb) := srcb;
-   } 
+   }
 
    /* the refinement maps */
 
@@ -235,20 +235,20 @@ module main()
      layer lemma1 :
       if(st[k].valid & st[k].oprb.valid)
 	st[k].oprb.val := aux[k].oprb;
-   
+
    forall (i in TAG)
      layer lemma2[i] :
       if(pout.tag = i & pout.valid)
 	pout.val := aux[i].res;
-   
+
    /* case splitting */
 
    forall (i in TAG) forall (j in REG) forall (k in TAG) forall(c in WORD){
-     subcase lemma1[i][j][c] 
+     subcase lemma1[i][j][c]
      of st[k].opra.val//lemma1
      for st[k].opra.tag = i & aux[k].srca = j & aux[k].opra = c;
 
-     subcase lemma1[i][j][c] 
+     subcase lemma1[i][j][c]
      of st[k].oprb.val//lemma1
      for st[k].oprb.tag = i & aux[k].srcb = j & aux[k].oprb = c;
 

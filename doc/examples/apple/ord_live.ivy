@@ -80,7 +80,7 @@ module evs_type = {
 
     individual req        : op_type
     individual cmp        : op_type
-    
+
     individual op_ack     : op_ack_type
 
     individual l_req      : loc_type # location request
@@ -105,7 +105,7 @@ object isd = {
 
      rsp(P,M,A,T)        := false;
     }
-    
+
     relation wr(P:proc,M:mem_type,A:addr_type,T:lclock)
     relation rd(P:proc,M:mem_type,A:addr_type,T:lclock)
 
@@ -116,23 +116,23 @@ object isd = {
 # Memory access reference model
 
 object ref = {
-    
+
     instantiate evs(T:lclock) : evs_type
 
     ################################################################################
     # current request time
 
     individual  lt  : lclock
-    
+
     ################################################################################
     # current arrival time
-    
+
     individual  lt_tar(M:mem_type) : tar_clock
-    
+
     individual  lt_tar_cf  : tar_cf_clock
 
     relation   dev(T:lclock)
-   
+
     ################################################################################
     # mem read leading second mem read and older read response past ioa
 
@@ -143,7 +143,7 @@ object ref = {
     relation same_attr(T0:lclock,T1:lclock)
 
     ################################################################################
-    # event T0 prevents T1 if it must come before (become globally visible before) 
+    # event T0 prevents T1 if it must come before (become globally visible before)
     # T1 according to the ordering conditions, but is not yet serialized. There is
     # an ordering requirement on reads and writes from the same instance, and for
     # the same type of address. And then only for reads and writes that are
@@ -153,7 +153,7 @@ object ref = {
     # the operation reaches its destination
     #
     # For reads the prevents method is called when the data is read
-    # 
+    #
     # For reads the prevents method is called when the read response,
     # is returned to the requesting instance of the requesting agent
     #
@@ -162,9 +162,9 @@ object ref = {
     relation   prevents(T0:lclock,T1:lclock)
 
     relation   mem_memc_exception(T0:lclock,T1:lclock)
-    
+
     relation pio(T:lclock)
-    
+
     definition prevents(T0:lclock,T1:lclock) =
                                  ((evs(T0).req~=nop | evs(T0).cmp~=nop) & ((~evs(T0).serialized & evs(T1).serialized | evs(T0).l_cmp~=init_l & evs(T1).l_cmp=init_l)
                                      & (T0<T1) |
@@ -177,11 +177,11 @@ object ref = {
     definition mem_memc_exception(T0:lclock,T1:lclock) = evs(T0).cmp=rrsp & evs(T1).cmp=rrsp &
                                                          evs(T0).m=evs(T1).m & evs(T0).a=evs(T1).a & same_attr(T0,T1) &
                                                          evs(T0).mem_loc=mem_memc & evs(T1).mem_loc=mem_memc
-    
+
     relation both_normal(T0:lclock,T1:lclock)
     relation nGR(OP_ACK:op_ack_type)
     relation nGnR(OP_ACK:op_ack_type)
-    
+
     definition pio(T:lclock)           =  dev(T) & evs(T).mem_loc=pio_memc
 
     definition same_addr(T0:lclock,T1:lclock)   = evs(T0).m=evs(T1).m & evs(T0).a=evs(T1).a
@@ -192,9 +192,9 @@ object ref = {
     definition both_nGR(T0:lclock,T1:lclock)    = (evs(T0).op_ack=nGRE   | evs(T0).op_ack=_GRE)  & (evs(T1).op_ack=nGRE   | evs(T1).op_ack=_GRE)
     definition nGR(OP_ACK:op_ack_type)        = (OP_ACK=nGRE    | OP_ACK=_GRE)
     definition nGnR(OP_ACK:op_ack_type)       = (OP_ACK=nGnRE   | OP_ACK=nGnRnE)
-    
+
     definition dev(T:lclock)  = nGR(evs(T).op_ack) | nGnR(evs(T).op_ack)
-		    
+
 relation   pnd_or_ser_wr(P:proc,M:mem_type,A:addr_type,T:lclock)
 relation   pnd_or_ser_rd(P:proc,M:mem_type,A:addr_type,T:lclock)
 
@@ -216,7 +216,7 @@ definition pnd_or_ser_rd(P:proc,M:mem_type,A:addr_type,T:lclock) = isd.rd(P,M,A,
 	evs(T).lt_arr       := 0;
 	evs(T).lt_arr_cf    := 0;
     }
-    
+
     # create a new evs structure when read/write are issued by an arm instance
     ################################################################################
 
@@ -233,7 +233,7 @@ definition pnd_or_ser_rd(P:proc,M:mem_type,A:addr_type,T:lclock) = isd.rd(P,M,A,
 	evs(lt).serialized := false;
 
 	evs(lt).l_req      := l;
-	
+
         evs(lt).lt_arr     := 0;
     }
 
@@ -253,13 +253,13 @@ definition pnd_or_ser_rd(P:proc,M:mem_type,A:addr_type,T:lclock) = isd.rd(P,M,A,
 	    # serialize at current global time
 	    evs(lt).serialized := true;
 	};
-        
+
         evs(lt).l_cmp      := init_l;
     }
 
     # read/write arrives at the target
     ################################################################################
-    
+
     action perform_grd(lt:lclock) = {
         var m : mem_type;
 	var a : addr_type;
@@ -268,12 +268,12 @@ definition pnd_or_ser_rd(P:proc,M:mem_type,A:addr_type,T:lclock) = isd.rd(P,M,A,
 
 	a := evs(lt).a;
         m := evs(lt).m;
-	
+
         assert ~evs(lt).serialized;
-	
+
 	if evs(lt).req = read {
             evs(lt).l_req     := init_l;
-	    
+
             evs(lt).req       := nop;
 
             evs(lt).cmp       := rrsp;
@@ -284,12 +284,12 @@ definition pnd_or_ser_rd(P:proc,M:mem_type,A:addr_type,T:lclock) = isd.rd(P,M,A,
 	} else if evs(lt).req = write {
 	    # serialize at current global time
 	    evs(lt).serialized := true;
-	    
+
             evs(lt).l_req      := init_l;
-	    
+
             evs(lt).cmp        := wr_cmp;
             evs(lt).req        := nop;
-	    
+
 	    lt_tar(evs(lt).m)  := lt_tar(evs(lt).m).next;
             evs(lt).lt_tar     := lt_tar(evs(lt).m);
 
@@ -306,7 +306,7 @@ module arm_mod = {
 
     action issue_hook(p:proc,lt:lclock)
     action retire_hook(p:proc,lt:lclock)
-    
+
     action step_north(ph:ph_type,p:proc,m:mem_type,a:addr_type,choose_op_ack:op_ack_type,mem_loc_arg:mem_loc_type) = {
 
         var mem_loc    : mem_loc_type;
@@ -317,7 +317,7 @@ module arm_mod = {
 
 	var wr         : bool;
 	var rd         : bool;
-	
+
 	var dev        : bool;
 
 ## open arm_def.ivy
@@ -343,7 +343,7 @@ module arm_mod = {
 
         wr       := false;
 	rd       := false;
-	
+
 	if ph=wr_ph {
 	    wr         := true;
 	} else if ph=rd_ph {
@@ -368,12 +368,12 @@ module arm_mod = {
 	            op_ack  := choose_op_ack;
 		} else {
 	            op_ack  := nGnRnE; # pick one
-		}	    
+		}
 	    };
 
             pio_new  :=  ref.dev(tt) & mem_loc=pio_memc;
             dram_new :=  mem_loc=mem_memc;
-	    
+
 	} else {
             if mem_loc_arg=pio_memc {
 		mem_loc := mem_loc_arg;
@@ -392,11 +392,11 @@ module arm_mod = {
                 if choose_op_ack=nGRE {
 		    op_ack       := nGRE;
                 } else if choose_op_ack=_GRE {
-		    op_ack       := _GRE;		     
+		    op_ack       := _GRE;
 		} else {
 		    op_ack       := normal;
 		};
-		
+
                 pio_new      := false;
                 dram_new     := true;
 	    }
@@ -427,10 +427,10 @@ module arm_mod = {
 
 	if ph=wr_ph & wr & ~ordser {
 	    ref.lt := ref.lt.next;
-	    
+
             issue_hook(p,ref.lt);
 	    isd.wr(p,m,a,ref.lt) := true;
-	    
+
   	    if some tt:lclock,pp:proc,mm:mem_type,aa:addr_type. isd.rd(pp,mm,aa,tt) & ref.evs(tt).req=read & ref.evs(tt).mem_loc=mem_memc & ref.evs(tt).l_req=cf_mem_l minimizing tt {
 		#		cfabric.t_rd_min := tt;
 	    } else {
@@ -444,36 +444,36 @@ module arm_mod = {
 	    };
 	} else if ph=rd_ph & rd & ~ordser {
 	    ref.lt := ref.lt.next;
-	    
+
             issue_hook(p,ref.lt);
 	    isd.rd(p,m,a,ref.lt)  := true;
 	    isd.rsp(p,m,a,ref.lt) := false;
-	    
+
 	    if mem_loc=mem_memc {
 	        ref.lt_tar_cf := ref.lt_tar_cf.next;
-		
+
   		if some tt:lclock,pp:proc,mm:mem_type,aa:addr_type. isd.rd(pp,mm,aa,tt) & ref.evs(tt).req=read & ref.evs(tt).mem_loc=mem_memc & ref.evs(tt).l_req=cf_mem_l {
 		    # cfabric.t_rd_min unchanged
 		} else {
-		    cfabric.t_rd_min     := ref.lt;		
-		    cfabric.t_rd_arr_min := ref.lt_tar_cf;		
+		    cfabric.t_rd_min     := ref.lt;
+		    cfabric.t_rd_arr_min := ref.lt_tar_cf;
 		};
-		
-		
+
+
 		call ref.create(p,read,op_ack,m,a,mem_loc,cf_mem_l);
-		
+
                 ref.evs(ref.lt).lt_arr_cf  := ref.lt_tar_cf;
-		
+
 	    } else {
   		if some tt:lclock,pp:proc,mm:mem_type,aa:addr_type. isd.rd(pp,mm,aa,tt) & ref.evs(tt).req=read & ref.evs(tt).mem_loc=mem_memc & ref.evs(tt).l_req=cf_mem_l minimizing tt {
 		    #		cfabric.t_rd_min := tt;
 		} else {
 		    cfabric.t_rd_min := ref.lt.next;
 		};
-		
+
 		call ref.create(p,read,op_ack,m,a,mem_loc,cf_pio_l);
 	    }
-	}	
+	}
     }
 
 # receive read and write response and check ordering
@@ -489,12 +489,12 @@ module arm_mod = {
 
     action step_south(ph:ph_type,p:proc,t:lclock,m:mem_type,a:addr_type) = {
 	var ordrob : bool;
-	
+
 	var ordrob0 : bool;
 	var ordrob1 : bool;
-	
+
 	var ordser : bool;
-	
+
 	var ordser0 : bool;
 	var ordser1 : bool;
 
@@ -504,7 +504,7 @@ module arm_mod = {
 	# if ph=cpl_ph & ref.evs(t).p=p & ref.evs(t).m=m & ref.evs(t).a=a & ref.evs(t).l_cmp=arm_l {}
 
             # Refactored the ROB logic here. We first find the least operation that is not blocked
-            # by ordering rules. Then *if* it is completed, we retire it. 
+            # by ordering rules. Then *if* it is completed, we retire it.
 
         if ph=cpl_ph {
             retire_hook(p,t);
@@ -546,10 +546,10 @@ module arm_mod = {
 
 ################################################################################
 # cfabric fabric
-# 
+#
 
 object cfabric = {
-    
+
     individual rd_fair : bool
     individual wr_fair : bool
     individual rd_pio_fair : bool
@@ -571,12 +571,12 @@ object cfabric = {
     }
 
     action complete_hook(lt:lclock)
-    
+
     action step(ph:ph_type,sel_memc:bool) = {
         var p : proc;
 	var m : mem_type;
 	var a : addr_type;
-	
+
 	var ordpip0 : bool;
 	var ordpip1 : bool;
 	var ordpip2 : bool;
@@ -596,43 +596,43 @@ object cfabric = {
 
         rd_fair := ph=rd_ph & sel_memc;
 	rd_fair := false;
-	
+
         wr_fair := ph=wr_ph & sel_memc;
 	wr_fair := false;
-	
+
         rd_pio_fair := ph=rd_ph & ~sel_memc;
 	rd_pio_fair := false;
-	
+
         wr_pio_fair := ph=wr_ph & ~sel_memc;
 	wr_pio_fair := false;
-	
+
         cpl_fair := ph=cpl_ph;
 	cpl_fair := false;
 
 	# 3 channels that process messages in arrival order
 	# ph selects between the channels
-	
+
         if ph=rd_ph {
 	    if sel_memc {
   		if some tt:lclock,pp:proc,mm:mem_type,aa:addr_type. isd.rd(pp,mm,aa,tt) & ref.evs(tt).req=read & ref.evs(tt).mem_loc=mem_memc & ref.evs(tt).l_req=cf_mem_l minimizing ref.evs(tt).lt_arr_cf {
 		    t  := tt;
-		    
+
 		    p  := pp;
 		    m  := mm;
 		    a  := aa;
-		    
+
 		    rd := true;
 		}
 	    } else {
   		if some tt:lclock,pp:proc,mm:mem_type,aa:addr_type. isd.rd(pp,mm,aa,tt) & ref.evs(tt).req=read & ~(ref.evs(tt).mem_loc=mem_memc) & ref.evs(tt).l_req=cf_pio_l minimizing tt {
 		    t  := tt;
-		    
+
 		    p  := pp;
 		    m  := mm;
 		    a  := aa;
-		    
+
 		    rd := true;
-		}		
+		}
 	    }
 	} else if ph=wr_ph {
 	    if sel_memc {
@@ -641,7 +641,7 @@ object cfabric = {
 		p  := pp;
 		m  := mm;
 		a  := aa;
-		
+
 		wr := true;
 		}
 	    } else {
@@ -650,9 +650,9 @@ object cfabric = {
 		p  := pp;
 		m  := mm;
 		a  := aa;
-		
+
 		wr := true;
-		}		
+		}
 	    }
 	} else if ph=cpl_ph {
 	    if some tt:lclock,pp:proc,mm:mem_type,aa:addr_type. (isd.rd(pp,mm,aa,tt) & ref.evs(tt).cmp=rrsp | isd.wr(pp,mm,aa,tt) & ref.evs(tt).cmp=wr_cmp) & ref.evs(tt).l_cmp=cf_cmp_l minimizing tt {
@@ -660,17 +660,17 @@ object cfabric = {
 		p  := pp;
 		m  := mm;
 		a  := aa;
-		
+
 	        cmp := true;
 	    }
 	};
 
 
 	ordpip0 := rd & (exists M,A,T. isd.rd(p,M,A,T) & ref.evs(T).req=read & (ref.evs(T).l_req=cf_mem_l | ref.evs(T).l_req=cf_pio_l) & ref.evs(t).mem_loc=ref.evs(T).mem_loc & ref.evs(t).mem_loc=mem_memc & ref.evs(T).lt_arr_cf<ref.evs(t).lt_arr_cf); # processed
-	
+
 	ordpip1 := wr & (exists M,A,T. isd.wr(p,M,A,T) & ref.evs(T).req=write & (ref.evs(T).l_req=cf_mem_l | ref.evs(T).l_req=cf_pio_l) & ref.evs(t).mem_loc=ref.evs(T).mem_loc & ref.evs(t).mem_loc=mem_memc & T<t); # processed
 	ordpip2 := rd & (exists M,A,T. isd.rd(p,M,A,T) & ref.evs(T).req=read & (ref.evs(T).l_req=cf_mem_l | ref.evs(T).l_req=cf_pio_l) &  ref.evs(t).mem_loc=ref.evs(T).mem_loc & ref.evs(t).mem_loc=pio_memc & T<t); # processed
-	ordpip3 := wr & (exists M,A,T. isd.wr(p,M,A,T) & ref.evs(T).req=write & (ref.evs(T).l_req=cf_mem_l | ref.evs(T).l_req=cf_pio_l) & ref.evs(t).mem_loc=ref.evs(T).mem_loc & ref.evs(t).mem_loc=pio_memc & T<t); # processed	
+	ordpip3 := wr & (exists M,A,T. isd.wr(p,M,A,T) & ref.evs(T).req=write & (ref.evs(T).l_req=cf_mem_l | ref.evs(T).l_req=cf_pio_l) & ref.evs(t).mem_loc=ref.evs(T).mem_loc & ref.evs(t).mem_loc=pio_memc & T<t); # processed
 
 	ordpip := ordpip0 | ordpip1 | ordpip2 | ordpip3;
 
@@ -679,7 +679,7 @@ object cfabric = {
 		ref.evs(t).l_req      := memc_l;
 	    } else {
 		ref.evs(t).l_req := if_l;
-		
+
 		assert ref.evs(t).mem_loc=pio_memc;
 	    }
         } else if cmp {
@@ -714,15 +714,15 @@ object ifabric = {
     var rd_fair(P:proc) : bool
     var wr_fair(P:proc) : bool
     var cpl_fair(T:lclock) : bool
-    
+
     after init {
         rd_fair(P) := false;
         wr_fair(P) := false;
         cpl_fair(T) := false;
     }
-    
+
     action step(ph:ph_type,m:mem_type, a:addr_type, p:proc, lt:lclock) = {
-    
+
 	var ordpip0 : bool;
 	var ordpip1 : bool;
 
@@ -747,7 +747,7 @@ object ifabric = {
         wr       := false;
 	rd       := false;
 	cmp      := false;
-	
+
 	if ph=rd_ph {
 	    if some tt:lclock,mm:mem_type,aa:addr_type. isd.rd(p,mm,aa,tt) & ref.evs(tt).req=read & ref.evs(tt).l_req=if_l minimizing tt {
                rd := true;
@@ -765,7 +765,7 @@ object ifabric = {
             # eventually delivered.
             if ref.evs(lt).l_cmp=if_l {
                cmp := true;
-	       t    := lt;	    
+	       t    := lt;
             }
 	};
 
@@ -779,7 +779,7 @@ object ifabric = {
 	      ref.evs(t).l_req := memc_l;
           } else {
 	      assert false;
-          }       
+          }
        } else if cmp {
           ref.evs(t).l_cmp := cf_cmp_l;
        }
@@ -814,7 +814,7 @@ object ifabric = {
             var ordpip     : bool;
 
             var tt         : lclock;
-	    
+
         # rd_fair := ph=rd_ph;
 	# rd_fair := false;
 
@@ -826,7 +826,7 @@ object ifabric = {
 
         cpl_fair(p,m,a,lt) := ph=cpl_ph;
         cpl_fair(p,m,a,lt) := false;
-        
+
 
 	    if ph=rd_ph {
 		ordpip := true;
@@ -836,7 +836,7 @@ object ifabric = {
                 #     tt := t;
 		#     ordpip := exists T. isd.rd(p,m,a,T) & T<t & ref.evs(T).l_req=memc_l;
 		# };
-		
+
 		if some t:lclock, pp:proc. isd.rd(pp,m,a,t) & ref.evs(t).req=read & ref.evs(t).l_req=memc_l minimizing t{
                     tt := t;
 		    ordpip := false;
@@ -845,22 +845,22 @@ object ifabric = {
 	        if ~ordpip & tt~=0 & ref.evs(tt).mem_loc=mem_memc {
                 memc_push_hook(tt);
                 if ~(exists T. ref.evs(T).req=read & ref.evs(T).m=m & ref.evs(T).a=a & ref.evs(T).l_req=dramc_l) {
-		    
+
 	            ref.lt_tar(ref.evs(tt).m)  := ref.lt_tar(ref.evs(tt).m).next;
                     ref.evs(tt).lt_arr  := ref.lt_tar(ref.evs(tt).m);
-		    
+
 		    ref.evs(tt).l_req := dramc_l;
                     memc_arr_hook(tt);
 	        }
-		} else if ~ordpip & tt~=0 & ref.evs(tt).mem_loc=pio_memc {		
+		} else if ~ordpip & tt~=0 & ref.evs(tt).mem_loc=pio_memc {
                     ref.evs(tt).l_cmp := memc_l;
 
 	            isd.rsp(ref.evs(tt).p,m,a,tt)  := true;
 
                     call ref.perform_grd(tt);
-		    
+
                     ref.evs(tt).l_cmp := memc_l;
-		    
+
          	    assert ~ref.prevents(T,tt);
 		}
 	    } else if ph=wr_ph {
@@ -880,7 +880,7 @@ object ifabric = {
 	        if ~ordpip & tt~=0 & ref.evs(tt).mem_loc=mem_memc {
                 memc_push_hook(tt);
                 if ~(exists T. ref.evs(T).req=write & ref.evs(T).m=m & ref.evs(T).a=a & ref.evs(T).l_req=dramc_l) {
-		    
+
 	            ref.lt_tar(ref.evs(tt).m)          := ref.lt_tar(ref.evs(tt).m).next;
                     ref.evs(tt).lt_arr  := ref.lt_tar(ref.evs(tt).m);
 
@@ -889,9 +889,9 @@ object ifabric = {
 	        }
 		} else if ~ordpip & tt~=0 & (ref.evs(tt).mem_loc=pio_memc) {
 		    call ref.perform_grd(tt);
-		    
+
 		    ref.evs(tt).l_cmp := memc_l;
-		    
+
                     assert ~ref.prevents(T,tt);
 
 	    }
@@ -902,17 +902,17 @@ object ifabric = {
 		if ref.evs(t).mem_loc=mem_memc {
                     memc_cpl_hook(t);
 		    ref.evs(t).l_cmp := cf_cmp_l;
-		    
+
 		} else if ref.evs(t).mem_loc=pio_memc {
 		    ref.evs(t).l_cmp := if_l;
 		}
 	    }
 	}
-	
+
   	if some t3:lclock,pp:proc,aa:addr_type. (isd.wr(pp,m,aa,t3) & ref.evs(t3).req=write | isd.rd(pp,m,aa,t3) & ref.evs(t3).req=read) & ref.evs(t3).l_req=dramc_l minimizing ref.evs(t3).lt_arr {
 	       dramc(m).t_min :=  ref.evs(t3).lt_arr;
-	}			
-	
+	}
+
     }
 }
 
@@ -924,7 +924,7 @@ module dramc_mod(m) = {
 
     individual rd_fair : bool
     individual wr_fair : bool
-    
+
     individual t_min : tar_clock
 
     after init {
@@ -939,7 +939,7 @@ module dramc_mod(m) = {
 
         rd_fair := true;
         rd_fair := false;
-	
+
 	if some t:lclock,p:proc,a:addr_type. (isd.rd(p,m,a,t) & ref.evs(t).req=read | isd.wr(p,m,a,t) & ref.evs(t).req=write) & ref.evs(t).l_req=dramc_l minimizing ref.evs(t).lt_arr {
 	    ordpip := ref.evs(t).req=write;
 
@@ -953,17 +953,17 @@ module dramc_mod(m) = {
 		ref.evs(t).l_cmp := memc_l;
 	    }
 	};
-	
+
   	if some tt:lclock,pp:proc,aa:addr_type. (isd.wr(pp,m,aa,tt) & ref.evs(tt).req=write | isd.rd(pp,m,aa,tt) & ref.evs(tt).req=read) & ref.evs(tt).l_req=dramc_l minimizing ref.evs(tt).lt_arr {
 	    t_min := ref.evs(tt).lt_arr;
 	}
     }
-    
+
     action step_wr = { # a:addr_type
         var ordpip : bool;
 
         wr_fair := true;
-        wr_fair := false;	
+        wr_fair := false;
 
 	if some t:lclock,p:proc,a:addr_type. (isd.wr(p,m,a,t) & ref.evs(t).req=write | isd.rd(p,m,a,t) & ref.evs(t).req=read) & ref.evs(t).l_req=dramc_l minimizing ref.evs(t).lt_arr {
 
@@ -971,18 +971,18 @@ module dramc_mod(m) = {
 
 	    if ~ordpip {
 		#WITNESS                assert false;
-		
+
 		call ref.perform_grd(t);
-		
+
 		ref.evs(t).l_cmp := memc_l;
 
               	assert ~ref.prevents(T,t);
 	    }
 	};
-	
+
   	if some tt:lclock,pp:proc,aa:addr_type. (isd.wr(pp,m,aa,tt) & ref.evs(tt).req=write | isd.rd(pp,m,aa,tt) & ref.evs(tt).req=read) & ref.evs(tt).l_req=dramc_l minimizing ref.evs(tt).lt_arr {
 	    t_min := ref.evs(tt).lt_arr;
-	}		    
+	}
     }
 }
 
@@ -1130,7 +1130,7 @@ invariant (
 	   )
 	   ->
 	   (ref.evs(T0).lt_arr~=ref.evs(T1).lt_tar & ref.evs(T0).lt_arr~=ref.evs(T1).lt_arr)
-	   
+
 invariant (
             (ref.evs(T0).req=write & ref.evs(T0).l_req=dramc_l | ref.evs(T0).cmp=wr_cmp | ref.evs(T0).req=read & ref.evs(T0).l_req=dramc_l | ref.evs(T0).cmp=rrsp) & ref.evs(T0).mem_loc=mem_memc &
             (ref.evs(T1).req=write & ref.evs(T1).l_req=dramc_l | ref.evs(T1).cmp=wr_cmp & ref.evs(T1).l_cmp=dramc_l | ref.evs(T1).req=read & ref.evs(T1).l_req=dramc_l | ref.evs(T1).cmp=rrsp & ref.evs(T1).l_cmp=dramc_l) & ref.evs(T1).mem_loc=mem_memc &
@@ -1155,7 +1155,7 @@ invariant (
 
 invariant ~(
             ref.evs(T0).req=write & ref.evs(T1).cmp=rrsp &
-            ref.evs(T0).mem_loc=mem_memc & ref.evs(T1).mem_loc=mem_memc &	
+            ref.evs(T0).mem_loc=mem_memc & ref.evs(T1).mem_loc=mem_memc &
 	    ref.evs(T0).m=ref.evs(T1).m &
 	    ref.evs(T0).a=ref.evs(T1).a &
 	    ref.evs(T0).l_req=dramc_l &
@@ -1165,7 +1165,7 @@ invariant ~(
 invariant (
             ref.evs(T0).req=read & ref.evs(T1).cmp=rrsp &
 	    ref.evs(T0).p=ref.evs(T1).p &
-            ref.evs(T0).mem_loc=mem_memc & ref.evs(T1).mem_loc=mem_memc &	
+            ref.evs(T0).mem_loc=mem_memc & ref.evs(T1).mem_loc=mem_memc &
 	    ref.evs(T0).m=ref.evs(T1).m &
 	    ref.evs(T0).a=ref.evs(T1).a &
 	    ref.same_attr(T0,T1) &
@@ -1181,7 +1181,7 @@ invariant ~(
             (ref.evs(T0).req=read & ref.evs(T1).req=read | ref.evs(T0).req=write & ref.evs(T1).req=write) &
 	    ref.evs(T0).op_ack=normal &
 	    ref.evs(T0).p=ref.evs(T1).p &
-            ref.evs(T0).mem_loc=mem_memc & ref.evs(T1).mem_loc=mem_memc &	
+            ref.evs(T0).mem_loc=mem_memc & ref.evs(T1).mem_loc=mem_memc &
 	    ref.evs(T0).m=ref.evs(T1).m &
 	    ref.evs(T0).a=ref.evs(T1).a &
 	    ref.same_attr(T0,T1) &
@@ -1193,7 +1193,7 @@ invariant ~(
 
 invariant (
             (ref.evs(T0).req=write & ref.evs(T1).req=write | ref.evs(T0).req=read & ref.evs(T1).req=read) &
-            ref.evs(T0).mem_loc=mem_memc & ref.evs(T1).mem_loc=mem_memc &	
+            ref.evs(T0).mem_loc=mem_memc & ref.evs(T1).mem_loc=mem_memc &
 	    ref.evs(T0).p=ref.evs(T1).p &
 	    ref.evs(T0).m=ref.evs(T1).m &
 	    ref.evs(T0).a=ref.evs(T1).a &
@@ -1224,7 +1224,7 @@ invariant (
             ref.evs(T0).a=ref.evs(T1).a &
 	    ref.same_attr(T0,T1) &
             T0<T1
-           ) 
+           )
            ->
            (
             (ref.evs(T0).lt_tar < ref.evs(T1).lt_tar)
@@ -1254,7 +1254,7 @@ invariant ((ref.evs(T).cmp=wr_cmp | ref.evs(T).cmp=rrsp) & ref.evs(T).serialized
 	   )
 #
 ################################################################################
-	   
+
 invariant ref.evs(T).req=write -> ~ref.evs(T).serialized
 invariant ref.evs(T).req=read  -> ~ref.evs(T).serialized
 
@@ -1345,7 +1345,7 @@ invariant ~(ref.pnd_or_ser_wr(P,M,A,T1) & isd.rd(P,M,A,T0) & T0<T1 & ~ref.dev(T0
 invariant ~(ref.pnd_or_ser_wr(P,M,A,T1) & isd.wr(P,M,A,T0) & T0<T1 & ~ref.dev(T0) & ~ref.dev(T1))
 
 ################################################################################
-# SECTION: ref 
+# SECTION: ref
 #
 # ref.lt keeps track of the largest value of the logical time value. Starts at
 #        value 0 and is then incremented when each write/read is issued
@@ -1353,7 +1353,7 @@ invariant ~(ref.pnd_or_ser_wr(P,M,A,T1) & isd.wr(P,M,A,T0) & T0<T1 & ~ref.dev(T0
 
 invariant (T=0 | ref.lt<T) -> (ref.evs(T).req=nop & ref.evs(T).cmp=nop & ref.evs(T).serialized)
 
-invariant isd.wr(P,M,A,T) 
+invariant isd.wr(P,M,A,T)
            <->
            ((ref.evs(T).req=write & ~ref.evs(T).serialized | ref.evs(T).cmp=wr_cmp & ref.evs(T).l_cmp~=init_l & ref.evs(T).serialized) & ref.evs(T).p=P & ref.evs(T).m=M & ref.evs(T).a=A)
 
@@ -1395,10 +1395,10 @@ invariant (
            )
            ->
            ~(ref.evs(T1).serialized & ~ref.evs(T0).serialized)
-	   
+
 invariant (
             (ref.evs(T0).req=write & ref.evs(T1).req=write | ref.evs(T0).req=read & ref.evs(T1).req=read) &
-	    ~ref.evs(T0).serialized & 
+	    ~ref.evs(T0).serialized &
             ref.evs(T0).p=ref.evs(T1).p &
             ref.evs(T0).m=ref.evs(T1).m &
             ref.evs(T0).a=ref.evs(T1).a &
@@ -1457,7 +1457,7 @@ invariant (ref.evs(T0).req=read  & ref.evs(T0).l_req=dramc_l & ref.evs(T1).req=r
 ###
 
 #RAR
-	   
+
 invariant (
             ref.evs(T0).req=read & ~ref.evs(T0).serialized &
             ref.evs(T1).req=read &
@@ -1561,7 +1561,7 @@ export dramc.step_wr
 export dramc.step_rd
 
 ################################################################################
-# 
+#
 #
 # Liveness proof starts here. The proof is broken down into a series of lemmas
 # in the following order:
@@ -1602,7 +1602,7 @@ export dramc.step_rd
 #
 # 9) It remains to show that all operations are eventually retired
 # from the ROB. To do this we use an abstract model of out-of-order
-# completion with in-order retirement (isolate `rfn2`). 
+# completion with in-order retirement (isolate `rfn2`).
 #
 # 10) We connect (8) and (9) to get the end-to-end liveness statement (isolate `sys_live`)
 #
@@ -1652,14 +1652,14 @@ module signal1(data) = {
 }
 
 ################################################################################
-# 
+#
 #
 # Here we prove liveness of cf for requests. That is, if a mem request
 # is issued, it eventually gets pushed into memc.
 #
 
 isolate cf_live = {
-    
+
     # This predicate says that mem request at ltime T is in cfabric.
 
     function issued_memc(T) =
@@ -1690,14 +1690,14 @@ isolate cf_live = {
     # This is important because sometimes that quantifiers in the properties can give us trouble
     # with function cycles. If we only use the properties with the quantifiers explicitly
     # instantiated with skole constants, we don't have this problem.
-    
+
     explicit temporal property [cf_liveness]
     forall T.
     (globally eventually cfabric.rd_fair) &
     (globally eventually cfabric.wr_fair)
     ->
     (globally ~(issued_memc(T) & globally ~(ref.evs(T).l_req=memc_l)))
-    
+
     proof {
         tactic skolemize
         tactic l2s_auto2 with
@@ -1720,17 +1720,17 @@ isolate cf_live = {
 
         invariant
         issued_memc(T1) & ref.evs(T1).req=read & issued_memc(T2) & ref.evs(T2).req=read &
-        T1 < T2 -> ref.evs(T1).lt_arr_cf < ref.evs(T2).lt_arr_cf 
-        
+        T1 < T2 -> ref.evs(T1).lt_arr_cf < ref.evs(T2).lt_arr_cf
+
     }
-    
+
 } with this, lclock, tar_clock, tar_cf_clock
 
 # Notice the 'with' clause above. We need this to use the model and its invariants,
 # and also to use the properties of data types like lclock.
 
 ################################################################################
-# 
+#
 #
 # Here, we prove liveness of dramc by making an abstract model, proving its liveness
 # using model checking, and then showing that dramc is live by refinement.
@@ -1758,7 +1758,7 @@ module isolate split_queue2(nat) with nat = {
 
     # To use the equality unbounded sequence theories in the model
     # checker, we have to instantiate them.
-    
+
     instantiate equality_schemata
     instantiate unbounded_sequence_schemata(nat)
 
@@ -1826,7 +1826,7 @@ module isolate split_queue2(nat) with nat = {
 
     # Now we implement the above interface by adding some auxiliary
     # variables that are not visible externally.
-    
+
     implementation {
         # Two axuliaries to help in the proof
         # lastq indicates the cell of the last work element sent
@@ -1838,7 +1838,7 @@ module isolate split_queue2(nat) with nat = {
         after init {
             lastq := 0;
         }
-        
+
         # When we send, we record the predecessor of the new work element
         # and update the lastq pointer.
         implement send {
@@ -1852,7 +1852,7 @@ module isolate split_queue2(nat) with nat = {
         # between any element X and its predecessor. We can prove that every work element
         # is eventually done by materializiong its predecessor. If the prodecessor X eventually
         # completes, the X eventually completes, since the is no intervening work.
-        
+
         invariant begun(X) & predq(X) < Y & Y < X -> ~begun(Y)
     }
 
@@ -1863,14 +1863,14 @@ module isolate split_queue2(nat) with nat = {
     # Also, we state the obvious (that there are no nats less than 0)
     # to help the model checker, without adding 0 to the list of
     # skolem symbols in the model checker. These invariants are proved
-    # by Z3, not by the model checker. 
+    # by Z3, not by the model checker.
 
     invariant lastq < X & begun(X) -> false
     invariant begun(X) -> begun(lastq)
     invariant begun(X) & done(X) & Y < X & begun(Y) -> done(Y)
     invariant done(X) -> begun(X)
     invariant ~(X:nat < 0)
-    
+
     # Now we can prove liveness with the model checker. We concretize the
     # following individuals:
     #
@@ -1891,7 +1891,7 @@ module isolate split_queue2(nat) with nat = {
     # Note, we could have done the proof by induction on X (using the least
     # element principle of ltime) but doing it by induction in time is simpler with
     # the model checker.
-    
+
 
     explicit temporal property [lemma1]
     (globally eventually trying1.now) &
@@ -1953,7 +1953,7 @@ isolate rfn =
     # model with kind=true for reads and kind=false for writes. Note, we have
     # to figure out which memc is actually doing the operation by looking
     # at ref(lt).m. This tells us which instance of the abstract model to call.
-    
+
     before memc.memc_arr_hook(lt:lclock) {
         var m := ref.evs(lt).m;
         if evqual(m,lt){
@@ -1961,7 +1961,7 @@ isolate rfn =
         }
     }
 
-    
+
     # Here are some invariants relating the abstract abstract and
     # concrete state, as always in a refinement proof.
 
@@ -1976,7 +1976,7 @@ isolate rfn =
     # concrete events, but since all the abstract ones are eventally
     # done, we know all the concrete ones are also eventually done (by
     # the liveness property of the abstract model).
-    
+
     invariant
     evqual(M,T) & Y = ref.evs(T).lt_arr
     ->
@@ -1988,7 +1988,7 @@ isolate rfn =
     # will violate the require clause in abs.send.
     invariant
     X > ref.lt_tar(M) -> ~abs(M).begun(X)
-    
+
     # These invariants should probably be somewhere else!
     invariant ~dramc(M).rd_fair
     invariant ~dramc(M).wr_fair
@@ -1997,7 +1997,7 @@ isolate rfn =
 } with this, lclock, tar_clock, tar_cf_clock
 
 # Notice above, the 'with' clause lets us use all of the safety invariants
-# already proved when proving the refinement. 
+# already proved when proving the refinement.
 
 
 # TRICKY: The rest of the isolates are in a 'private' section. This trick prvents us from using them
@@ -2079,7 +2079,7 @@ private {
         #
         # Both of these tricks (tempcase and instantiation) are possibly useful
         # for plain l2s.
-        
+
         explicit temporal property [lemma1]
         forall M.
         (globally eventually dramc(M).rd_fair) &
@@ -2108,14 +2108,14 @@ private {
         # hgh capacity of l2s) while saving the tricky temporal reasoning for the abstract model
         # using model checking (which has much lower capacity).
 
-        
+
     } with this, rfn, rfn.abs, rfn.abs.trying1, rfn.abs.trying2, lclock, tar_clock, tar_cf_clock
 
 
     isolate dramc_nb2 = {
 
         ################################################################################
-        # 
+        #
         #
         # Now we're going to use the non-blocking property of dramc to prove liveness of
         # memc. Here, we split the memory accesses by both memc index and address.
@@ -2146,14 +2146,14 @@ private {
         # These predicates say we are trying to push an M/A read operation and succeeding
         # to push an M/A read operation. We'll hande writes later, since these are handled
         # by a different action.
-        
+
         function push_trying_rd(M,A) =
         memc_pushing.now & evma(memc_pushing.value,M,A) &
         ref.evs(memc_pushing.value).req=read
         function push_success_rd(M,A) =
         memc_arriving.now & evma(memc_arriving.value,M,A) &
         ref.evs(memc_arriving.value).req=read
-        
+
         # This is the non-blocking property for reads. It says that if we infinitely often
         # try to push a M/A readin into dramc, we infinitely often succeed.
 
@@ -2180,9 +2180,9 @@ private {
         # That is, you can't create new work_needed without pushing a read into dramc,
         # but this satisfies the eventality property, and so terminates the proof by
         # contradiction.
-        
+
         explicit temporal property [nb_rd]
-        forall M,A. 
+        forall M,A.
         (globally eventually dramc(M).rd_fair) &
         (globally eventually dramc(M).wr_fair) &
         (globally eventually push_trying_rd(M,A))
@@ -2197,7 +2197,7 @@ private {
                 definition work_needed(T) = ref.evs(T).req=read & rfn.evqual(_M,T) & ref.evs(T).a=_A
                 definition work_done(T:lclock) = false
                 definition work_start = ~eventually push_success_rd(_M,_A)
-                definition work_progress(T) = rfn.evcomplete(T)  
+                definition work_progress(T) = rfn.evcomplete(T)
                 definition work_created[1] = true
                 definition work_needed[1] = true
                 definition work_done[1] = false
@@ -2251,21 +2251,21 @@ private {
         }
 
         # These predicates say we are trying to push an M/A write operation and succeeding
-        # to push an M/A write operation. 
-        
+        # to push an M/A write operation.
+
         function push_trying_wr(M,A) =
         memc_pushing.now & evma(memc_pushing.value,M,A) &
         ref.evs(memc_pushing.value).req=write
         function push_success_wr(M,A) =
         memc_arriving.now & evma(memc_arriving.value,M,A) &
         ref.evs(memc_arriving.value).req=write
-        
+
         # This is the non-blocking property for writes. It says that if
         # we infinitely often try to push a M/A write into dramc, we
         # infinitely often succeed. It is similar to nb_rd above.
 
         explicit temporal property [nb_wr]
-        forall M,A. 
+        forall M,A.
         (globally eventually dramc(M).rd_fair) &
         (globally eventually dramc(M).wr_fair) &
         (globally eventually push_trying_wr(M,A))
@@ -2280,7 +2280,7 @@ private {
                 definition work_needed(T) = ref.evs(T).req=write & rfn.evqual(_M,T) & ref.evs(T).a=_A
                 definition work_done(T:lclock) = false
                 definition work_start = ~eventually push_success_wr(_M,_A)
-                definition work_progress(T) = rfn.evcomplete(T)  
+                definition work_progress(T) = rfn.evcomplete(T)
                 definition work_created[1] = true
                 definition work_needed[1] = true
                 definition work_done[1] = false
@@ -2344,7 +2344,7 @@ private {
                 definition work_created(T) = T <= ref.lt
                 definition work_needed(T) = T <= _T
                 definition work_done(T) = T <= ref.lt & T <= _T & ~evqual_rd(T,_M,_A)
-                definition work_end(T) = T = _T 
+                definition work_end(T) = T = _T
                 definition work_start = ~(evqual_rd(_T,_M,_A) -> eventually rfn.evqual(_M,_T))
                 definition work_progress = evqual_rd(_T,_M,_A) -> push_success_rd(_M,_A)
             }
@@ -2373,7 +2373,7 @@ private {
 
         # Finally, the liveness statement for mem requests in memc. If either a read or a write
         # request is in memc for a give M/A, then it is eventally in dramc. This is immediate from
-        # the two lemmas, which imply the work_end condition. 
+        # the two lemmas, which imply the work_end condition.
 
         explicit temporal property [live]
         forall M,T,A.
@@ -2401,16 +2401,16 @@ private {
     } with this, lclock, tar_clock, tar_cf_clock, tprops
 
     isolate cmpl_live = {
-        
+
         # instance memc_completing : signal1(lclock)
-        
+
         # before memc.memc_cpl_hook {
         #     memc_completing.raise(lt);
         # }
 
-            
+
         # This predicate says that a completion at ltime T is in cfabric
-        
+
         function cf_cpl(T) =
         (ref.evs(T).cmp = rrsp | ref.evs(T).cmp = wr_cmp)
         & ref.evs(T).l_cmp = cf_cmp_l
@@ -2425,10 +2425,10 @@ private {
         # for all T, if an operation is pending, we eventually deliver it.
         # Notice here we do a temporal case split on P,M,A to capture
         # the P,M,A values for the operation tha must be delivered.
-        
-        explicit temporal property [memc2cf_live]        
+
+        explicit temporal property [memc2cf_live]
         (forall P,M,A,T. globally eventually memc.cpl_fair(P,M,A,T))
-        -> 
+        ->
         forall T. (globally rfn.evcomplete(T) -> eventually cf_cpl(T))
         proof {
             # tactic sorry;
@@ -2451,7 +2451,7 @@ private {
 
         # This predicate says that an completion at ltime T is in arm, waiting
         # to be retired by the ROB.
-        
+
         function arm_cpl(T) =
         (ref.evs(T).cmp = rrsp | ref.evs(T).cmp = wr_cmp)
         & ref.evs(T).l_cmp = arm_l
@@ -2462,16 +2462,16 @@ private {
         function retired(T) =
         ~isd.rd(ref.evs(T).p,ref.evs(T).m,ref.evs(T).a,T) &
         ~isd.wr(ref.evs(T).p,ref.evs(T).m,ref.evs(T).a,T)
-        
+
         # This property says that a completion in cfabric eventually
         # reaches arm.
         # TODO: cfabric is currently assumed to deliver completions
         # in ltime order, which seems unrealistic. It should probably
-        # deliver them in arbitrary order. 
+        # deliver them in arbitrary order.
 
-        explicit temporal property [cf2arm_live]        
+        explicit temporal property [cf2arm_live]
         (globally eventually cfabric.cpl_fair)
-        -> 
+        ->
         forall T. (globally cf_cpl(T) -> eventually arm_cpl(T))
         proof {
             tactic skolemizenp;
@@ -2490,7 +2490,7 @@ private {
     } with this, lclock, tar_clock, tar_cf_clock
 
     isolate cf_pio_live = {
-        
+
         # Now that we handle liveness for the pio path. This is pretty
         # straightforward since there is no blocking. We prove a
         # sequence of properties stating that each stage moves pio
@@ -2561,7 +2561,7 @@ private {
         (globally eventually ifabric.wr_fair(P))
 
         # We prove using l2s_auto2 that a pio request in ifabric at ltime T is eventually
-        # transfered to memc. This is very similar to the proof for cfabric. 
+        # transfered to memc. This is very similar to the proof for cfabric.
 
         explicit temporal property [if_liveness]
         forall T.
@@ -2689,11 +2689,11 @@ private {
 
         explicit temporal axiom [ifabric_cpl_fair_ax]
         (forall T. globally eventually ref.evs(T).l_cmp = if_l -> ifabric.cpl_fair(T))
-        
+
         # We prove that pio completions eventually move from ifabric to cfabric. This
         # is trivial given the above assumption.
 
-        explicit temporal property [if_cpl_liveness]        
+        explicit temporal property [if_cpl_liveness]
         forall T. (globally issued_pio_cpl_if(T) -> eventually ref.evs(T).l_cmp=cf_cmp_l)
         proof {
             # tactic sorry;
@@ -2702,7 +2702,7 @@ private {
             tactic l2s_auto2 with {
                 definition work_created = true
                 definition work_needed = true
-                definition work_done = false 
+                definition work_done = false
                 definition work_end = issued_pio_cpl_if(_T)
                 definition work_start = ~(issued_pio_cpl_if(_T) -> eventually ref.evs(_T).l_cmp=cf_cmp_l)
                 definition work_progress = ref.evs(_T).l_cmp = if_l -> ifabric.cpl_fair(_T)
@@ -2714,7 +2714,7 @@ private {
         # eventually reach each stage in the pio path. Each lemma usings one of the liveness
         # properties above. The proofs are all similar.
 
-        explicit temporal property [lemma1] 
+        explicit temporal property [lemma1]
         forall T.
         globally issued_pio(T) -> eventually ref.evs(T).l_req=memc_l
         proof {
@@ -2732,7 +2732,7 @@ private {
             }
         }
 
-        explicit temporal property [lemma2] 
+        explicit temporal property [lemma2]
         forall T.
         globally issued_pio(T) -> eventually ref.evs(T).l_cmp=memc_l
         proof {
@@ -2750,7 +2750,7 @@ private {
             }
         }
 
-        explicit temporal property [lemma3] 
+        explicit temporal property [lemma3]
         forall T.
         globally issued_pio(T) -> eventually ref.evs(T).l_cmp=if_l
         proof {
@@ -2768,7 +2768,7 @@ private {
             }
         }
 
-        explicit temporal property [lemma4] 
+        explicit temporal property [lemma4]
         forall T.
         globally issued_pio(T) -> eventually ref.evs(T).l_cmp=cf_cmp_l
         proof {
@@ -2793,13 +2793,13 @@ private {
         # Now we show that all operations eventually get their completions back to arm.
 
         # This predicate sas that a mem operation with given M/A values has reached cfabric.
-        
+
         function issued(T,M,A) = cf_live.issued_memc(T) & ref.evs(T).m = M & ref.evs(T).a = A
 
         # Use liveness of cfabric for mem requests and liveness of memc for mem requests to
         # show that mem requests get to dramc.
 
-        explicit temporal property [lemma1] 
+        explicit temporal property [lemma1]
         forall M,T,A.
         (globally eventually cfabric.rd_fair) &
         (globally eventually cfabric.wr_fair) &
@@ -2826,7 +2826,7 @@ private {
 
         # Use liveness of dramc to show that mem completions get back to memc.
 
-        explicit temporal property [lemma2] 
+        explicit temporal property [lemma2]
         forall M,T,A.
         (globally eventually cfabric.rd_fair) &
         (globally eventually cfabric.wr_fair) &
@@ -2854,7 +2854,7 @@ private {
         # Use liveness of memc for mem completions to show that mem completions get
         # back to cfabric.
 
-        explicit temporal property [lemma3] 
+        explicit temporal property [lemma3]
         forall M,T,A.
         (globally eventually cfabric.rd_fair) &
         (globally eventually cfabric.wr_fair) &
@@ -2889,7 +2889,7 @@ private {
         # to prove that completions of *all* operations reach cfabric. This is done
         # with the typical case splitting strategy.
 
-        explicit temporal property [lemma3a] 
+        explicit temporal property [lemma3a]
         forall P,T.
         (forall M,A.
         (globally eventually cfabric.rd_fair) &
@@ -2927,7 +2927,7 @@ private {
         # them together. Here, we show that completions reach arm, using liveness
         # of cfabric for completions.
 
-        explicit temporal property [lemma4] 
+        explicit temporal property [lemma4]
         forall P,T.
         (globally eventually cfabric.rd_fair) &
         (globally eventually cfabric.wr_fair) &
@@ -3049,7 +3049,7 @@ private {
             # are very similar to invariants of the abstract model in
             # module split_queue2 above. In particular, we have that
             # there are no qualified elements between predq(X) and X.
-            
+
             invariant begun(X) & predq(X) < Y & Y < X -> ~begun(Y)
             invariant lastq < X & begun(X) -> false
             invariant begun(X) -> begun(lastq)
@@ -3063,7 +3063,7 @@ private {
         invariant completed(X) -> begun(X)
         invariant done(X) -> begun(X) & completed(X)
         invariant ~(X:nat < 0)
-        
+
         # Now we can prove liveness with the model checker. We concretize the
         # following individuals:
         #
@@ -3073,7 +3073,7 @@ private {
         # The idea of the proof is this: we know by induction on time that
         # cell Y is eventually done. Since there are no qualified cells
         # between Y and X (an invariant stated above) we know the next
-        # cell to be processed is X. 
+        # cell to be processed is X.
 
         explicit temporal property [lemma1]
         (globally eventually trying.now) &
@@ -3087,7 +3087,7 @@ private {
         # Sadly, we have a function cycle in proving the above invariants
         # with Z3, so we turn off the fragment checker in this isolate.
         # TODO: avoid this
-        
+
         attribute complete = fo
     }
 
@@ -3096,7 +3096,7 @@ private {
 
         # Now that we have proved liveness of the abstract model, we will create an
         # instance of it and use it to prove liveness of our system. Notice we
-        # have one instance for each process. 
+        # have one instance for each process.
 
         instance abs(P:proc) : in_order_retire(lclock)
 
@@ -3111,10 +3111,10 @@ private {
         before arm.retire_hook(p:proc,lt:lclock) {
             abs(p).recv
         }
-        
+
         # When memc sends an operations to dramc, we call send of the
         # abstract model
-        
+
         before arm.issue_hook(p:proc,lt:lclock) {
             abs(p).send(lt)
         }
@@ -3122,23 +3122,23 @@ private {
         before cfabric.complete_hook(lt:lclock) {
             abs(ref.evs(lt).p).complete(lt)
         }
-        
+
         # Here are some invariants relating the abstract abstract and
         # concrete state, as always in a refinement proof.
 
         # Every existing operation has begun and is not done. Moreover,
         # if it is completed, its completion has reached arm.
-        
+
         invariant
         (isd.rd(P,M,A,T) | isd.wr(P,M,A,T))
         ->
         abs(P).begun(T) & ~abs(P).done(T) &
         (abs(P).completed(T) -> ref.evs(T).l_cmp=arm_l)
-        
+
         # Make sure we use logical times in ascending order, otherwise we
         # will violate the require clause in abs.send.
         invariant X > ref.lt -> ~abs(P).begun(X)
-        
+
         # These invariants should probably be somewhere else!
         invariant ~arm.cpl_fair(P)
 
@@ -3148,7 +3148,7 @@ private {
     isolate sys_live = {
 
         # Now here's the fun part. First we show that if the system
-        # receives infinitely often, then so does the abstract model. 
+        # receives infinitely often, then so does the abstract model.
         #
 
         explicit temporal property [gf]
@@ -3198,13 +3198,13 @@ private {
                 definition work_end = ~(rfn2.abs.begun(_P,_X) -> eventually rfn2.abs.completed(_P,_X)) & ~cmpl_live.arm_cpl(_X) & ref.evs(_X).p = _P & eventually cmpl_live.arm_cpl(_X)
                 definition work_progress = cmpl_live.arm_cpl(_X)
             }
-            
+
         }
-        
+
         # Now using the liveness of the abstract model, we show that if the
         # operation has begun in the abstract model it is eventually done.
         # This just removes the assumption from the abstract liveness property.
-        
+
         explicit temporal property [evc2]
         forall P,T.
         (globally eventually cfabric.rd_fair) &
@@ -3245,7 +3245,7 @@ private {
         # abstract and concrete state.
 
         explicit temporal property [live]
-        forall P,T. 
+        forall P,T.
         (globally eventually cfabric.rd_fair) &
         (globally eventually cfabric.wr_fair) &
         (forall M. globally eventually dramc(M).rd_fair) &
@@ -3281,6 +3281,3 @@ private {
 
 
 }
-
-
-

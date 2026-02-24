@@ -30,4 +30,3 @@ apt-get -y install vim-tiny x11-apps git $APT_PACKAGES
 # let's install security updates and ensure an editor is installed, to be safe.
 apt-get -y install unattended-upgrades
 unattended-upgrade
-

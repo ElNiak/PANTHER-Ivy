@@ -57,9 +57,8 @@ export quic_frame.connection_close.handle # TODO
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require is_no_error;
     require conn_total_data(the_cid) > 0;
-    #call 
+    #call
 }
-

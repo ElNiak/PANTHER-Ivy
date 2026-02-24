@@ -31,7 +31,7 @@ object bgp_deser_keepalive = {}
             }
             break;
             default:
-                std::cerr << "bgp_deser_keepalive 3\n";  
+                std::cerr << "bgp_deser_keepalive 3\n";
                 throw deser_err();
             }
         }
@@ -52,13 +52,13 @@ object bgp_deser_keepalive = {}
         }
 
         virtual int open_tag(const std::vector<std::string> &tags) {
-            std::cerr << "state          = " << state << "\n";  
-            std::cerr << "bgp_deser_keepalive 2\n";  
+            std::cerr << "state          = " << state << "\n";
+            std::cerr << "bgp_deser_keepalive 2\n";
             throw deser_err();
         }
 
-        virtual bool open_list_elem() {  
-            std::cerr << "bgp_deser_keepalive 1\n";  
+        virtual bool open_list_elem() {
+            std::cerr << "bgp_deser_keepalive 1\n";
             throw deser_err();
         }
 

@@ -60,7 +60,7 @@ isolate bar = {
         # link is not null.
 
         var head_cell : cell   # Pointer to head cell if any
-        var tail_cell : cell   # Pointer to tail cell if any 
+        var tail_cell : cell   # Pointer to tail cell if any
         var full(X:cell):bool  # Full bit for each cell
         var val(X:cell):id     # Message contents of cell, if any
         instance link : partial_function(cell,cell) # Links
@@ -68,7 +68,7 @@ isolate bar = {
 
         # Auxiliary variable maps concrete cells to abstract queue positions
 
-        var index(X:cell) : nat 
+        var index(X:cell) : nat
 
         # Initialization
 
@@ -152,7 +152,7 @@ isolate bar = {
             tactic skolemize;
             tactic l2s_auto with {
                 definition work_created(X) = (X < tail)
-                definition work_needed(X) = ~exists Y. Y < X & queue(Y) = _X 
+                definition work_needed(X) = ~exists Y. Y < X & queue(Y) = _X
                 definition work_done(X) = (X < head)
                 definition work_start = (sending.now & sending.value = _X)
                 definition work_progress = receiving.now
@@ -171,7 +171,7 @@ isolate bar = {
         }
 
         # Prove we don't leak memory
-       
+
         invariant empty -> exists X. ~full(X)
 
         # Auxiliary invariants. TODO: these are duplicated in the liveness proof. Can we re-use them
@@ -187,10 +187,9 @@ isolate bar = {
         invariant link.map(C,D) <-> full(C) & full(D) & nat.succ(index(C),index(D))
         invariant full(C) & full(D) & index(C) = index(D) -> C = D
 
-        
+
     }
 } with nat
 
 export bar.send
 export bar.recv
-

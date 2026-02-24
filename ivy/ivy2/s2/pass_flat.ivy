@@ -47,7 +47,7 @@ object ivy = { ...
     instance ident_to_ident : hash_map(ident,ident)
     instance ident_to_instantiatedc : hash_map(ident,instantiatedc)
     instance ident_to_annot : hash_map(ident,annot)
-    
+
     object flatst = {
         type this = struct {
 
@@ -66,7 +66,7 @@ object ivy = { ...
             # The set of defined identifiers
 
             defs : ident_set,
-            
+
             # The locations of definitions of traits (non-objects)
 
             non_objects : ident_to_annot,
@@ -111,7 +111,7 @@ object ivy = { ...
 
 	    no_undefined : bool
 
-	    
+
 
         }
     }
@@ -153,7 +153,7 @@ object ivy = { ...
 	    res := dot.make(arg,symbol.make(member,ann),ann);
 	}
     }
-    
+
     action find_ident(root:ident,s:ident,st:flatst) returns (s:ident) = {
         var cand := s.prefix(root);
         if st.defs.mem(cand) {
@@ -178,7 +178,7 @@ object ivy = { ...
                 t := t.flat(false,st);
                 s2.subscrs := s2.subscrs.set(idx,t);
                 idx := idx.next
-            };         
+            };
             if st.has_root & s2.val = "this" & s2.subscrs.end = 0 {
                 res := st.root
             } else {
@@ -201,7 +201,7 @@ object ivy = { ...
         action flat(s:this,rhs:bool,st:flatst) returns (res:ident) = {
             res := dotident.make(s.namesp.flat(rhs,st),s.member);
         }
-    } 
+    }
 
 
     action add_def(s:expr,st:flatst,is_global:bool,is_object:bool) returns (st:flatst) = {
@@ -223,7 +223,7 @@ object ivy = { ...
 	}
 	if is_global {
             st.globals := st.globals.set(id,true);
-	}	    
+	}
     }
 
     action check_defined(name:ident,st:flatst,ann:annot) = {
@@ -297,7 +297,7 @@ object ivy = { ...
 	    idx := idx.next
 	}
     }
-    
+
     action remove_local_vars(del: vector[ident], st:flatst) returns (st:flatst) = {
 	var idx := del.begin;
 	while idx < del.end {
@@ -305,7 +305,7 @@ object ivy = { ...
 	    st.locals := st.locals.remove(id);
 	    idx := idx.next
 	}
-    }    
+    }
 
     object asgn = { ...
         instantiate generic_flat_stmt(this,stmt)
@@ -371,7 +371,7 @@ object ivy = { ...
             res := colon.make(res.get_arg(0),ty,res.get_ann)
         }
     }
-    
+
     action formal_ident(s:expr) returns (res:ident) = {
         res := s.get_arg(0).get_name if (s.is(verb.colon)) else s.get_name
     }
@@ -612,14 +612,14 @@ object ivy = { ...
 	    }
 	}
     }
-	
+
     action auto_flat(s:expr,st:flatst) returns(st:flatst) = {
 	if s.is(verb.colon) {
 	    st := auto_flat_rec(s.get_arg(1),st);
 	}
     }
-    
-    
+
+
     object structspec = { ...
         action defd(s:this,st:flatst,id:ident) returns (st:flatst) = {
             var idx := s.destructors.begin;
@@ -685,7 +685,7 @@ object ivy = { ...
 	    call report_error(bad_syntax.make(e),e.get_ann);
 	}
     }
-	
+
 
     object typedc = { ...
         action flat(s:this,st:flatst) returns (st:flatst) = {
@@ -721,13 +721,13 @@ object ivy = { ...
             }
         }
     }
-	
+
     # Get the symbol that is typed in a typing. Examples:
     #
     # - in `x : t`, the typed symbol is `x`
     # - in `f(X:u) : t`, the typed symbol is `f`
     # - in `f(X:u)` the typed symbol is `f'
-    
+
     action get_typed_symbol(typing : expr) returns(res:expr) = {
 	if typing isa app {
 	    if typing.is(verb.colon) {
@@ -792,7 +792,7 @@ object ivy = { ...
 	    bad := rhs
 	}
     }
-    
+
     action check_syntax_typing(typing:expr,has_def:bool) = {
 	var ok : bool;
 	var bad : expr;
@@ -863,7 +863,7 @@ object ivy = { ...
 	    idx := idx.next
 	}
     }
-    
+
     object moduledc = { ...
         action defd(s:this,st:flatst) returns (st:flatst) = {
             var name : expr;
@@ -967,7 +967,7 @@ object ivy = { ...
             var body := instantiatedc.make(s.modname,s.prms,s.ann);
             res := objectdc.make(s.objname,body,s.ann);
         }
-        
+
         action flat(s:this,st:flatst) returns (st:flatst) = {
 	    if ~s.is_auto {
 		var ds := desugar(s);  # workaround
@@ -1002,7 +1002,7 @@ object ivy = { ...
     }
 
     object prog = { ...
-        
+
 
         action flat(p:prog) returns (p:prog) = {
             var st:flatst;
@@ -1011,7 +1011,7 @@ object ivy = { ...
             # know which identifiers are defined to determine the
             # scope of an object reference and to disambiguate
             # hierarchical names from "dot" operators.
-            
+
             var idx := p.decls.begin;
             while idx < p.decls.end {
                 st := p.decls.value(idx).defd(st);

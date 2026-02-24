@@ -40,7 +40,7 @@ after init {
     sock := quic_net.open(endpoint_id.client,client.ep);
     sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
     sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
-    
+
     client.set_tls_id(1);
     server.set_tls_id(0);
 
@@ -58,20 +58,20 @@ after init {
     cid_map_ep(server_cid)             := server.ep;
     cid_map_ep(the_cid)                := client.ep;
 
-    
+
     tls_id_map_cid(client.tls_id)       := the_cid;
     other_tls_id_map_cid(client.tls_id) := server_cid;
     tls_id_map_cid(server.tls_id)       := server_cid;
     other_tls_id_map_cid(server.tls_id) := the_cid;
-    
+
     call show_cid_event(the_cid);
     call show_cid_event(server_cid);
-    
+
     tls_id_map_ep(server.tls_id)       := server.ep;
     other_tls_id_map_ep(server.tls_id) := client.ep;
     ep_map_tls_id(server.ep)           := server.tls_id;
     # ep_map_cid(server.ep)              := the_cid;
-   
+
     var extns := tls_extensions.empty;
     extns := extns.append(make_transport_parameters);
     call tls_api.upper.create(client.tls_id,false,extns);  # false means this instance of tls is not a server
@@ -85,7 +85,7 @@ after init {
 
 
 # static uint8_t test_frame_stream_hang[] = {
-#     0x01, 
+#     0x01,
 #     0x00, 0x0D, 0xFF, 0xFF, 0xFF, 0x01, 0x00,
 #     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 #     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
@@ -138,9 +138,8 @@ attribute quic_frame.malicious_frame.handle_maliciously.weight = "100"
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require is_no_error;
     require conn_total_data(the_cid) > 0;
-    #call 
+    #call
 }
-

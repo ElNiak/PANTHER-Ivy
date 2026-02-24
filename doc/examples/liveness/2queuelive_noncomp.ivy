@@ -70,7 +70,7 @@ module isolate unbounded_queue with nat = {
         var head : nat
         var tail : nat
         var queue(X:nat) : id
-        
+
         after init {
             head := 0;
             tail := 0;
@@ -121,7 +121,7 @@ isolate m = {
     # both q1 and q2, then every message sent on q1 should eventually be received on q2.
     #
 
-    
+
     temporal property
     forall X. ((globally eventually q1.trying.now)
                & (globally eventually q2.trying.now)
@@ -131,12 +131,12 @@ isolate m = {
         tactic skolemize;
         tactic l2s_auto with {
             definition work_created[1](X) = (X < q1.tail)
-            definition work_needed[1](X) = ~exists Y. Y < X & q1.queue(Y) = _X 
+            definition work_needed[1](X) = ~exists Y. Y < X & q1.queue(Y) = _X
             definition work_done[1](X) = X < q1.head
             definition work_progress[1] = q1.trying.now
             definition work_start[1] = (q1.sending.now & q1.sending.value = _X)
             definition work_created[2](X) = (X < q2.tail)
-            definition work_needed[2](X) = ~exists Y. Y < X & q2.queue(Y) = _X 
+            definition work_needed[2](X) = ~exists Y. Y < X & q2.queue(Y) = _X
             definition work_done[2](X) = X < q2.head
             definition work_progress[2] = q2.trying.now
             definition work_start[2] = (q2.sending.now & q2.sending.value = _X)
@@ -150,10 +150,9 @@ isolate m = {
         }
         showgoals
     }
-    
+
 } with nat
 
 export m.q1.send
 export m.poll
 export m.q2.recv
-

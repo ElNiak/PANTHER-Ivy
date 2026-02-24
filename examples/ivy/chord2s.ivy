@@ -34,7 +34,7 @@ module ring_topology = {
     property ~btw(X, Y, Y)
     property btw(X,Y,Z) |  Y = Z |  btw(X,Z,Y)
     property btw(X,Y,Z) |  Y = X |  btw(Y,X,Z)
-    
+
     implementation {
         type idx_t
         interpret idx_t -> bv[16]
@@ -75,7 +75,7 @@ individual org : ring
 
 object bs = {
     relation map(X:ring,Y:ring)
-    
+
     property s1.map(X,Y) & a(Y) -> map(X,Y)
     property s1.map(X,Y) & ~a(Y) & s2.map(X,Z) & a(Z) -> map(X,Z)
 
@@ -107,7 +107,7 @@ object prop = {
     #
     ################################################################################
 
-    derived err(X) = a(X) & ~rch.elem(X) 
+    derived err(X) = a(X) & ~rch.elem(X)
 
     ################################################################################
     #
@@ -123,7 +123,7 @@ object prop = {
 
     ################################################################################
     #
-    # Extract the least error node. 
+    # Extract the least error node.
     #
     ################################################################################
 
@@ -221,8 +221,8 @@ object pro = {
     action test(x:ring) = {
 	call s1.lemma(prop.lerr);
 	call s2.lemma(prop.lerr);
-	assert ~prop.err(X)  
-    } 
+	assert ~prop.err(X)
+    }
 
     # Inductive invariant proving that test never fails
 

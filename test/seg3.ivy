@@ -12,7 +12,7 @@ module segment2(domain,range,arr) = {
     # - Type `arr` must be an array type over (`domain`,`range`).
 
     # This is a type of segments over `arr`
-    
+
     type this
 
     # Extract a segment of an array, from a begin index to an end
@@ -54,27 +54,27 @@ module segment2(domain,range,arr) = {
             ensure upper(seg) = end;
         }
     }
-        
+
     implementation {
 
         # The implementation represents a segment as a pair consisting
         # of an offset into the original array and an array containin
         # the segment values. It constructs segmens in the expected
-        # way, by copying array elements in a loop. 
+        # way, by copying array elements in a loop.
 
         # We have to use arithmetic to prove the implementation, but
         # this is within the decidable array property fragment.
-        
+
         # Notice we use domain.impl to prove this isolate, so we get
         # the arithmetic theory.
 
         destructor offset(X:this) : domain
         destructor elems(X:this) : arr
-        
+
         definition value(X,n:domain) = elems(X).value(n - offset(X))
-        
+
         definition first(X) = offset(X)
-        
+
         definition upper(x:this) = (elems(x).end) + offset(x)
 
         implement make {
@@ -92,10 +92,10 @@ module segment2(domain,range,arr) = {
             };
         }
     }
-    
+
     isolate iso = this with domain.impl,arr
 }
- 
+
 
 instance dom : unbounded_sequence
 type rng
@@ -104,6 +104,3 @@ instance arr : array(dom,rng)
 instance s : segment2(dom,rng,arr)
 
 export s.make
-
-
- 

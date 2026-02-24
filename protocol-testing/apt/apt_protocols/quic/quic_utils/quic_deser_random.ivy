@@ -89,7 +89,7 @@ object quic_deser_random = {}
         bool is_random_padding_packet = false;
         bool is_from_open_list = false;
 
-    
+
     public:
         quic_deser_random(const std::vector<char> &inp) : ivy_binary_deser_128(inp),state(quic_s_payload) {
             fence = 0;
@@ -100,11 +100,11 @@ object quic_deser_random = {}
             switch (state) {
                 case quic_s_payload:
                 {
-                    getn(res,1);         
+                    getn(res,1);
                 }
                 break;
                 default:
-                    std::cerr << "quic_deser_random 3\n";  
+                    std::cerr << "quic_deser_random 3\n";
                     throw deser_err();
             }
         }
@@ -133,9 +133,9 @@ object quic_deser_random = {}
 
         virtual bool open_list_elem() {
             if (state == quic_s_payload) {
-               return data_remaining-->  0; 
+               return data_remaining-->  0;
             }
-            std::cerr << "quic_deser_random 1\n";  
+            std::cerr << "quic_deser_random 1\n";
             throw deser_err();
         }
 

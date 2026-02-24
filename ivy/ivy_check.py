@@ -54,7 +54,7 @@ def display_cex(msg,ag):
 #        ui.ui_main_loop(ag)
 #        exit(1)
     raise iu.IvyError(None,msg)
-    
+
 def check_properties():
     if itp.false_properties():
         if diagnose.get():
@@ -97,7 +97,7 @@ def gui_art(other_art):
 #    gui.tk.mainloop()
     exit(1)
 
-    
+
 def check_conjectures(kind,msg,ag,state):
     failed = itp.undecided_conjectures(state)
     if failed:
@@ -116,7 +116,7 @@ def check_conjectures(kind,msg,ag,state):
 def has_temporal_stuff(f):
     return any(True for x in lut.temporals_ast(f)) or any(True for x in lut.named_binders_ast(f))
 
-    
+
 # This is a little tricky. We know that the current module is a valid abstraction of the
 # program, thus module |= prop implies prop. We tell the prover to trust us and admit
 # prop if module |= prop holds.
@@ -142,7 +142,7 @@ def check_temporals():
                     subgoals = [subgoal]
                     subgoals = pc.admit_proposition(prop,proof,subgoals)
                     check_subgoals(subgoals)
-            
+
         # else:
         #     # Non-temporal properties have already been proved, so just
         #     # admit them here without proof (in other words, ignore the
@@ -245,7 +245,7 @@ def pretty_lineno(ast):
 
 def pretty_lf(lf,indent=8):
     return indent*' ' + "{}{}".format(pretty_lineno(lf),pretty_label(lf.label))
-    
+
 class ConjChecker(Checker):
     def __init__(self,lf,indent=8):
         self.lf = lf
@@ -256,7 +256,7 @@ class ConjChecker(Checker):
         print_dots()
     def get_annot(self):
         return self.lf.annot if hasattr(self.lf,'annot') else None
-    
+
 class ConjAssumer(Checker):
     def __init__(self,lf):
         self.lf = lf
@@ -310,7 +310,7 @@ class MatchHandler(object):
                 continue
             self.current[lhs] = rhs
             print('    {}'.format(rfmla))
-        
+
     def eval(self,cond):
         truth = self.model.eval_to_constant(cond)
         if lg.is_false(truth):
@@ -318,13 +318,13 @@ class MatchHandler(object):
         elif lg.is_true(truth):
             return True
         assert False,truth
-        
+
     def is_skolem(self,sym):
         res = itr.is_skolem(sym) and not (sym.name.startswith('__') and sym.name[2:3].isupper())
         return res
 
     def handle(self,action,env):
-        
+
 #        iu.dbg('env')
         if hasattr(action,'lineno'):
 #            print '        env: {}'.format('{'+','.join('{}:{}'.format(x,y) for x,y in env.iteritems())+'}')
@@ -347,11 +347,11 @@ class MatchHandler(object):
         for sym in self.vocab:
             if not itr.is_new(sym) and not self.is_skolem(sym):
                 self.show_sym(sym,sym)
-            
+
     def fail(self):
         pass
 
-                
+
 def filter_fcs(fcs):
     global check_lineno
     if check_lineno is None:
@@ -474,10 +474,10 @@ def check_isolate(trace_hook = None):
         # tactics to drop axioms and definitions.  For historical
         # reasons, when checking temporal properties we *do* use the
         # context. This should probably be changed, but it requires some
-        # substantial chages to the liveness tactics. 
+        # substantial chages to the liveness tactics.
         check_subgoals(subgoals,use_context=False)
         return
- 
+
     ifc.check_fragment()
     with im.module.theory_context():
         global check_lineno
@@ -488,7 +488,7 @@ def check_isolate(trace_hook = None):
         check = not opt_summary.get()
         unprovable = act.check_unprovable.get()
         subgoalmap = dict((x.id,y) for x,y in im.module.subgoals)
-        axioms = [m for m in mod.labeled_axioms if m.id not in subgoalmap] 
+        axioms = [m for m in mod.labeled_axioms if m.id not in subgoalmap]
         schema_instances = [m for m in mod.labeled_axioms if m.id in subgoalmap]
         if axioms:
             print("\n    The following properties are assumed as axioms:")
@@ -675,7 +675,7 @@ def check_isolate(trace_hook = None):
 
 # This is a little bit backward. When faced with a subgoal from the prover,
 # we check it by constructing fake isolate.
-                
+
 def check_subgoals(goals,method=None,use_context=True):
     mod = im.module
     for goal in goals:
@@ -686,7 +686,7 @@ def check_subgoals(goals,method=None,use_context=True):
             fmla = conc.fmla
             if not lg.is_true(fmla):
                 raise IvyError(goal,
-                  """The temporal subgoal {} has not been reduced to an invariance property. 
+                  """The temporal subgoal {} has not been reduced to an invariance property.
                      Try using a tactic such as l2s.""")
             mod = im.module.copy()
             mod.isolate_proof = None
@@ -702,7 +702,7 @@ def check_subgoals(goals,method=None,use_context=True):
             mod.assumed_invariants = model.asms
             mod.params = list(mod.params)
             mod.updates = list(mod.updates)
-            if not use_context: 
+            if not use_context:
                 mod.labeled_axioms = []
                 mod.definitions = []
             for prem in ivy_proof.goal_prems(goal):
@@ -757,7 +757,7 @@ def check_subgoals(goals,method=None,use_context=True):
                         if hasattr(goal,"trace_hook"):
                             mod.trace_hook = goal.trace_hook
                         check_isolate()
-                
+
 def mc_tactic(prover,goals,proof):
     goal = goals[0]
     conc = ivy_proof.goal_conc(goal)
@@ -785,7 +785,7 @@ def vmt_tactic(prover,goals,proof):
     return goals[1:]
 
 ivy_proof.register_tactic('vmt',vmt_tactic)
-                    
+
 def mypyvy_tactic(prover,goals,proof):
     goal = goals[0]
     conc = ivy_proof.goal_conc(goal)
@@ -813,7 +813,7 @@ def duoai_tactic(prover,goals,proof):
     return goals[1:]
 
 ivy_proof.register_tactic('duoai',duoai_tactic)
-                    
+
 def all_assert_linenos():
     mod = im.module
     all = []
@@ -876,7 +876,7 @@ def mc_isolate(isolate,meth=ivy_mc.check_isolate):
                 print('FAIL')
                 exit(1)
             act.checked_assert.value = old_checked_assert
-    
+
 def get_isolate_method(isolate):
     if opt_mc.get():
         return 'mc'
@@ -980,4 +980,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

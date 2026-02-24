@@ -40,4 +40,4 @@ just *assume* that the sequence numbers don't overflow:
 Notice the `assume` statement in the specification of `next`, saying
 that there exists a number greater than `seq`. Really this ought to be
 a pre-condition of `next`, but we will just leave it as a dangling
-assumption. 
+assumption.

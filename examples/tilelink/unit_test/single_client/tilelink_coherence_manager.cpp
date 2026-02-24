@@ -29,7 +29,7 @@ int to_a_type(int own, int op){
 int to_r_type(int voluntary, int dirty){
     // TODO: temporary!!! All releases contain data
     return 0b000;  // releaseInvalidateData
-    if (!dirty) 
+    if (!dirty)
         return 0b011; // releaseInvalidateAck
     return 0b000;  // releaseInvalidateData
 }
@@ -86,7 +86,7 @@ int to_a_op(int a_type){
 class tilelink_coherence_manager : public tilelink_two_port_dut {
 
     /* This is the "inner" port */
-  
+
   struct my_manager_port : public manager_port {
     L2Unit_t &dut;
 
@@ -99,7 +99,7 @@ class tilelink_coherence_manager : public tilelink_two_port_dut {
     void set_acquire(bool send, const acquire &a){
         dut.L2Unit__io_inner_acquire_valid = LIT<1>(send);
         // TODO: don't have client id bits yet
-        dut.L2Unit__io_inner_acquire_bits_client_id = LIT<2>(0);        
+        dut.L2Unit__io_inner_acquire_bits_client_id = LIT<2>(0);
         dut.L2Unit__io_inner_acquire_bits_client_xact_id = LIT<2>(a.id_);
         dut.L2Unit__io_inner_acquire_bits_is_builtin_type = LIT<1>(a.own == 0);
         dut.L2Unit__io_inner_acquire_bits_addr_beat = LIT<2>(a.word);
@@ -130,7 +130,7 @@ class tilelink_coherence_manager : public tilelink_two_port_dut {
         dut.L2Unit__io_inner_release_bits_voluntary = LIT<1>(a.voluntary);
         dut.L2Unit__io_inner_release_bits_client_xact_id = LIT<2>(a.id_);
         // TODO: don't have client id bits yet
-        dut.L2Unit__io_inner_release_bits_client_id = LIT<2>(0);        
+        dut.L2Unit__io_inner_release_bits_client_id = LIT<2>(0);
         dut.L2Unit__io_inner_release_bits_addr_beat = LIT<2>(a.word);
         dut.L2Unit__io_inner_release_bits_r_type = LIT<3>(to_r_type(a.voluntary,a.dirty));
         dut.L2Unit__io_inner_release_bits_addr_block = LIT<26>(a.addr_hi);
@@ -247,7 +247,7 @@ class tilelink_coherence_manager : public tilelink_two_port_dut {
         dut.L2Unit__io_outer_grant_bits_addr_beat = LIT<2>(a.word);
         dut.L2Unit__io_outer_grant_bits_client_xact_id = LIT<2>(a.clnt_txid);
         // TODO: don't have client id bits yet
-        //        dut.L2Unit__io_outer_grant_bits_client_id = LIT<2>(0);        
+        //        dut.L2Unit__io_outer_grant_bits_client_id = LIT<2>(0);
         dut.L2Unit__io_outer_grant_bits_manager_xact_id = LIT<4>(a.mngr_txid);
         dut.L2Unit__io_outer_grant_bits_g_type = LIT<3>(to_g_type(own, client_txid_to_op[a.clnt_txid]));
         dut.L2Unit__io_outer_grant_bits_data = LIT<128>(a.data_);
@@ -274,7 +274,7 @@ class tilelink_coherence_manager : public tilelink_two_port_dut {
   // The chisel generated code
   L2Unit_t dut;
 
-  
+
   virtual manager_port *mp(){
     return m_mp;
   }
@@ -296,7 +296,7 @@ public:
       dut.init(rand());
 
       // reset a couple of clocks
-      
+
       dut.clock_lo(LIT<1>(1),true);
       dut.clock_hi(LIT<1>(1));
       dut.clock_lo(LIT<1>(1),true);
@@ -307,7 +307,7 @@ public:
           dut.clock_lo(LIT<1>(0),true);
           dut.clock_hi(LIT<1>(0));
       }
-  }  
+  }
 
   ~tilelink_coherence_manager(){
       delete m_mp;

@@ -99,7 +99,7 @@ object bgp_deser_open = {}
             }
             break;
             default:
-                std::cerr << "bgp_deser_open 3\n";  
+                std::cerr << "bgp_deser_open 3\n";
                 throw deser_err();
             }
         }
@@ -130,22 +130,22 @@ object bgp_deser_open = {}
                 std::cerr << "recv param = " << opt_type << "\n";
                 std::cerr << "recv param len = " << opt_len << "\n";
                 state = bgp_s_opt_len;
-                //std::cerr << "saw tag " << ft << "\n";  
+                //std::cerr << "saw tag " << ft << "\n";
             }
-            std::cerr << "state          = " << state << "\n";  
-            std::cerr << "bgp_deser_open 2\n";  
+            std::cerr << "state          = " << state << "\n";
+            std::cerr << "bgp_deser_open 2\n";
             throw deser_err();
         }
 
         virtual bool open_list_elem() {
             if (state == bgp_s_opt) {
-                std::cerr << "bgp_s_opt bgp_deser_open 2\n";  
+                std::cerr << "bgp_s_opt bgp_deser_open 2\n";
                 //state = bgp_s_time;
                 return payload_length-->  0;
             }
                 //return more(1);
             if ( state == bgp_s_opt_val) {
-                std::cerr << "bgp_s_version bgp_deser_open 3\n";  
+                std::cerr << "bgp_s_version bgp_deser_open 3\n";
                 if (opt_len == 0) {
                     //state = bgp_s_time;
                     return false;
@@ -153,8 +153,8 @@ object bgp_deser_open = {}
                 opt_len -= 1;
                 payload_length -= 1;
                 return true;
-            }  
-            std::cerr << "bgp_deser_open 1\n";  
+            }
+            std::cerr << "bgp_deser_open 1\n";
             throw deser_err();
         }
 
@@ -166,7 +166,7 @@ object bgp_deser_open = {}
             } else if (state == bgp_s_opt_val) {
                 state = bgp_s_opt;
             } else {
-                std::cerr << "bgp_deser_open 4\n";  
+                std::cerr << "bgp_deser_open 4\n";
                 throw deser_err();
             }
         }

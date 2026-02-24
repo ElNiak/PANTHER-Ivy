@@ -126,7 +126,7 @@ def p_expr_lit(p):
 def p_expr_prod(p):
     'expr : LPAREN prod RPAREN'
     p[0] = ProductSpace(p[2])
-    
+
 def p_expr_sum(p):
     'expr : LPAREN sum RPAREN'
     p[0] = SumSpace(p[2])
@@ -178,7 +178,7 @@ def p_sum_sum_expr(p):
     p[0] = p[1]
     p[0].append(p[3]) # is this side effect OK?
 
-    
+
 def p_error(p):
     print("Syntax error in input!")
 
@@ -207,4 +207,3 @@ def clauses_to_concept(name,clauses):
     ps = [ProductSpace([NamedSpace(~lit) for lit in clause]) for clause in clauses.triv_clauses()]
     ss = ps[0] if len(ps) == 1 else SumSpace(ps)
     return (Atom(Symbol(name,RelationSort([v.sort for v in vars])),[v for v in vars]),ss)
-

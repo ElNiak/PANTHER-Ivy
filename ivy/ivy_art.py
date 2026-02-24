@@ -90,7 +90,7 @@ class AnalysisGraph(object):
         self.delegates = module.delegates
         self.public_actions = module.public_actions
         self.init_cond = module.init_cond
-        
+
         # TODO: may not really want this
         if initializer is not None:
             self.initialize(initializer)
@@ -188,7 +188,7 @@ class AnalysisGraph(object):
         if prestate == None:
             prestate = self.states[len(self.states)-1]
         poststate = self.post_state(op,prestate,abstractor)
-        expr = action_app(op if label is None else label,prestate) 
+        expr = action_app(op if label is None else label,prestate)
 #        label = label if label else repr(op)
         self.add(poststate,expr)
 #        print "post state %s: %s" % (poststate.id,poststate.clauses)
@@ -404,7 +404,7 @@ class AnalysisGraph(object):
     def make_concrete_trace(self,state,conc):
         # TODO
         return
-        
+
     def decompose_edge(self,transition):
         prestate,op,label,poststate = transition
         return self.decompose_state(poststate)
@@ -488,7 +488,7 @@ def render_rg(rg):
             classes = ['transition_action']
 
             # Curly braces don't survive dot (even if they balance). We work around this by replacing them with digraphs
-            # and then fixing it later by modding the text of the canvas items. Also, we want our code labels to be left 
+            # and then fixing it later by modding the text of the canvas items. Also, we want our code labels to be left
             # justified, so we end the lines with \l, which dot recognizes. Note the backslashes are escaped, since this
             # is *not* a special character, it is a two-character sequence.
 
@@ -520,4 +520,3 @@ def render_rg(rg):
         )
 
     return g
-

@@ -46,8 +46,8 @@ object ivy = { ...
                 st.supertype_of := st.supertype_of.set(s.sort.get_name,s.super);
             }
         }
-    }        
-            
+    }
+
     # This analysis runs over a flat program and maps all the global
     # identifiers to their types. For this purpose, actions are
     # treated as if they were functions. If the types of member functions
@@ -60,7 +60,7 @@ object ivy = { ...
             curried : bool
         }
     }
-    
+
     object prog = { ...
         action get_global_types(p:this, curried : bool) returns (s:global_types) = {
             s.curried := curried;
@@ -83,7 +83,7 @@ object ivy = { ...
     # (3)  (f : (t1*...*tn->t)(...) : u
     # (4)  (f : (t1*...*tn->t)(...)
     #
-    
+
     action is_typing_complete(typing:expr) returns (res:bool) = {
         if typing.is(verb.colon) {
             var lhs := typing.get_arg(0);
@@ -125,7 +125,7 @@ object ivy = { ...
 	        st.type_of := st.type_of.set(typing.get_arg(0).get_name,ty);
             }
         }
-    }        
+    }
 
     action get_formal_type(typings : vector[expr],ann:annot) returns (res:expr) = {
 	if typings.end = 0 {
@@ -189,7 +189,7 @@ object ivy = { ...
     # Get a map from param names to positions
 
     instance param_map : hash_map(ident,vector[expr].domain)
-    
+
     action param_set(ps:vector[expr]) returns (res:param_map) = {
         var idx := ps.begin;
         while idx < ps.end {
@@ -197,7 +197,7 @@ object ivy = { ...
             idx := idx.next
         }
     }
-        
+
     # Here, we add a default prototype to an action declaration, if a
     # prototype has not already been specified.  The default prototype
     # has one of two forms. If there is one output, and it is not an
@@ -205,7 +205,7 @@ object ivy = { ...
     # and the inputs are all by reference. Otherwise, all parameters
     # are by reference and the return type is void. Input parameters
     # are by const reference.
-    
+
     object actdc = { ...
         action get_proto(s:actdc) returns (res:prototype) = {
             if s.has_proto {
@@ -229,7 +229,7 @@ object ivy = { ...
                     arg.is_ref := true;
                     res.args := res.args.append(arg);
                     idx := idx.next
-                };                
+                };
                 if s.outputs.end = 1 & ~inps.mem(s.outputs.value(0).get_arg(0).get_name) {
                     res.has_ret := true;
                     res.ret.name := s.outputs.value(0);
@@ -249,7 +249,7 @@ object ivy = { ...
                         };
                         idx := idx.next
                     }
-                }                
+                }
             }
         }
     }
@@ -272,7 +272,7 @@ object ivy = { ...
             res := arrow.make(dom.value(0),ty2,ty.get_ann.strip)
         }
     }
-    
+
 
     # Uncurry a function. This converts `f : t -> (... -> u)` to `t.f : (t * ... -> u)`.
 
@@ -293,7 +293,7 @@ object ivy = { ...
             b := res.is(verb.times);
         };
     }
-    
+
     # Test whether a type-decorated function is a member
     # function. That is, it returns true if `func` has the form
     # `t.f : (t * ...) -> u`.
@@ -308,7 +308,7 @@ object ivy = { ...
             }
         }
     }
-    
+
 
     # A function application can be in several forms
     #
@@ -354,7 +354,7 @@ object ivy = { ...
 module push_pop_map(domain,range) = {
 
     instance map_t : hash_map(domain,range)
-    instance vec_t : array(pos,domain)        
+    instance vec_t : array(pos,domain)
 
     type this = struct {
         map : map_t,
@@ -387,9 +387,9 @@ module push_pop_map(domain,range) = {
         }
     }
 }
-    
+
 object ivy = { ...
-        
+
     # Local variable tracking
     # =======================
 
@@ -402,7 +402,7 @@ object ivy = { ...
 
         action push(s:this) returns (s:this) = {
             s.map := s.map.push;
-        }                
+        }
 
         action add_var(s:this,typing:expr) returns (s:this) = {
             var v := typing.get_arg(0) if typing.is(verb.colon) else typing;

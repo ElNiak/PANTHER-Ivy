@@ -142,7 +142,7 @@ class Const(recstruct('Const', ['name', 'sort'], [])):
 
 
 def report_bad_sort(op,position,expected,got):
-    raise SortError("in application of {}, at position {}, expected sort {}, got sort {}" 
+    raise SortError("in application of {}, at position {}, expected sort {}, got sort {}"
                     .format(op,position+1,expected,got))
 
 class Apply(recstruct('Apply', [], ['func', '*terms'])):

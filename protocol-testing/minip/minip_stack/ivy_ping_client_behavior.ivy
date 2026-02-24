@@ -6,7 +6,7 @@ include ping_file
 action endpoint_to_pid(src:ip.endpoint) returns (pid:endpoint_id) = {
     if src = client.ep {
         pid := endpoint_id.client;
-    } 
+    }
 }
 
 action socket_endpoint(host:endpoint_id,s:net.socket) returns (src:ip.endpoint) = {
@@ -16,7 +16,7 @@ action socket_endpoint(host:endpoint_id,s:net.socket) returns (src:ip.endpoint) 
 action endpoint_to_socket(src:ip.endpoint) returns (socket:net.socket) = {
     if src = client.ep {
         socket := sock;
-    } 
+    }
 }
 
 action tls_id_to_src(tls_id:tls_api.id) returns (src:ip.endpoint) = {

@@ -11,7 +11,7 @@
 # a least element 0 and iteration.  They provide insertion of
 # key/value pairs (in log time), deletion of ranges of keys (in n
 # log(n) time) and iteration.
-# 
+#
 # For help with proofs, this module also provides an auxiliary map
 # "succ" that gives the successor of every element in the map. The
 # "successor" of the maximal element in the map is 0.
@@ -24,7 +24,7 @@ module unordered_map(key,value_t) = {
     }
     instance index : unbounded_sequence
     instantiate array(index,kvp)
-    
+
     action add(s:this, k:key, v:value_t) returns(s:this)
 
     # is the key present in the map?
@@ -37,10 +37,10 @@ module unordered_map(key,value_t) = {
     action erase(s:this, k:key) returns (s:this)
 
     specification {
-    
+
         relation contains(S:this, K:key)
         function maps(S:this, K:key) : value_t
-        
+
 	after add {
             ensure contains(s,K) <-> (K=k | contains(old s,K));
             ensure maps(s,K) = (v if K = k else maps(old s, K));
@@ -61,4 +61,3 @@ module unordered_map(key,value_t) = {
 
 
 autoinstance unordered_map[key][value] : unordered_map(key,value)
-

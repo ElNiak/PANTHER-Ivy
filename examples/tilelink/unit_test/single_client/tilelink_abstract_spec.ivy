@@ -73,7 +73,7 @@ module memev = {
     individual type_ : otype
     individual addr_ : addr
     individual data_  : data # data for write and cas
-    relation result(D:data)  # value for read and cas 
+    relation result(D:data)  # value for read and cas
     individual id_ : id      # process id of op
     relation serialized
     relation fused
@@ -103,7 +103,7 @@ module reference = {
     # memory events by local time
     # TODO: can we export this read-only?
 
-    instantiate evs(T:ltime) : memev 
+    instantiate evs(T:ltime) : memev
 
     ########################################
     # current global time
@@ -111,7 +111,7 @@ module reference = {
     individual gt : time
 
     ########################################
-    # global memory state 
+    # global memory state
     # obeys partial function axiom
 
     individual mem(A:addr) : data
@@ -124,15 +124,15 @@ module reference = {
     # cas)
 
     derived prevents(T1,T2) =
-    	~evs(T1).serialized 
+    	~evs(T1).serialized
     	& T1 < T2
     	& evs(T1).id_ = evs(T2).id_
     	& (evs(T1).addr_ = evs(T2).addr_ | evs(T1).type_ = cas | evs(T2).type_ = cas)
-    
+
     ########################################
     # serialize an event lt at current global time. The "id"
     # parameter tells us what process is serializing the event.
-    # 
+    #
 
     action perform(lt:ltime, id_:id) = {
 
@@ -160,14 +160,14 @@ module reference = {
 	   else {
 	      if evs(lt).type_ = write {
 		 mem(a) := d
-	      }			
+	      }
 	      else {  # cas operation
 		 evs(lt).data_ := mem(a);
 		 mem(a) := d
 	      }
 	   }
        }
-    }        
+    }
     delegate perform
 
     ########################################
@@ -232,7 +232,7 @@ module interface(ref,clnt,mngr,side) = {
     ########################################
     # client side events to serialize on manager side
 
-    relation to_ser(T:ltime) 
+    relation to_ser(T:ltime)
 
     ########################################
     # set of cached addresses at this interface
@@ -244,7 +244,7 @@ module interface(ref,clnt,mngr,side) = {
 
     init ~excl_p(A) & ~shrd_p(A) & ~dirt_p(A) & ~to_ser(T)
 
-    
+
     ########################################
     # specification of release messages
 
@@ -259,9 +259,9 @@ module interface(ref,clnt,mngr,side) = {
        assert ref.mem(a) = d;  # TEMPORARY: any release transfers correct data
        if o = excl {
            excl_p(a) := false;
-	   dirt_p(a) := false      # after release the line is clean 
+	   dirt_p(a) := false      # after release the line is clean
        } else {
-           shrd_p(a) := false 
+           shrd_p(a) := false
        }
     }
     mixin release before mngr.release
@@ -286,7 +286,7 @@ module interface(ref,clnt,mngr,side) = {
 
     ########################################
     # specification of request messages
-    # 
+    #
     # these model acquire/op. note they have ghost parameter "lt"
     # representing the local time of the event. a request has the
     # effect of marking an event to serialize on the manager side.
@@ -311,7 +311,7 @@ module interface(ref,clnt,mngr,side) = {
 
     ########################################
     # specification of request messages
-    # 
+    #
     # these model grants that respond to acquire/op. they also have
     # ghost parameter "lt" representing the local time of the event. a
     # response indicates the given event has been serialized and returns
@@ -320,7 +320,7 @@ module interface(ref,clnt,mngr,side) = {
     action response(a:addr, d:data, mo:otype, lt:ltime) = {
        local rid:id {
            rid := ref.evs(lt).id_;
-	   
+
 	   assert ~cached(a);
 	   assert side(rid) = client;
 	   assert ref.evs(lt).addr_ = a;
@@ -340,7 +340,7 @@ module interface(ref,clnt,mngr,side) = {
     # has the appropriate ownership state. The manager side promises to serialize
     # only events that have been passed by "request".
 
-    action perform(lt:ltime, sid:id) = { 
+    action perform(lt:ltime, sid:id) = {
        local a:addr,d:data,mo:otype,eid:id {
            a := ref.evs(lt).addr_;
 	   d := ref.evs(lt).data_;
@@ -355,21 +355,21 @@ module interface(ref,clnt,mngr,side) = {
 	      # promises to serialize only with appropriate ownership
 	      # and in order
 
-	      if side(sid) = client {  
+	      if side(sid) = client {
 		  assert mo = read -> excl_p(a) | shrd_p(a);
 		  assert mo = write -> excl_p(a);
 		  assert mo = cas -> excl_p(a);
 		  assert ~ref.prevents(T1,lt);
 		  if mo ~= read {
 		      dirt_p(a) := true  # if modified, mark as dirty
-		  } 
-	      }	       
+		  }
+	      }
 
 	      ########################################
 	      # client event serialized on manager side. manager
 	      # promises to serialize only requested events in order
 
-	      else {  
+	      else {
 		 assert to_ser(lt);
 		 assert ~(to_ser(T1) & ref.prevents(T1,lt))
 	      }
@@ -428,7 +428,7 @@ module interface(ref,clnt,mngr,side) = {
 
     conjecture ~(ref.prevents(T1,T2) & ~to_ser(T1) & to_ser(T2))
 
-    # only client side events are to_ser    
+    # only client side events are to_ser
 
     conjecture to_ser(T) -> side(ref.evs(T).id_) = client
 
@@ -495,4 +495,3 @@ module generic_manager(clnt,ref,side) = {
      }
    }
 }
-

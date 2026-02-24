@@ -16,7 +16,7 @@ include ivy_quic_server_standard_inv_cid_tp
 
 before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid) {
     if _generating {
-        require client.ep.addr ~= 0;         
+        require client.ep.addr ~= 0;
         require scid = the_cid;
     } else {
         require is_transport_parameter_error
@@ -59,8 +59,6 @@ export tls_recv_event
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require is_transport_parameter_error;
 }
-
-

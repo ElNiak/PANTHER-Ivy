@@ -49,7 +49,7 @@ after packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
         total_data_sent := total_data_sent + ppkt.size;
         call on_packet_sent(src,dst,pkt, ppkt.size);
         call net.send(endpoint_to_pid(src),endpoint_to_socket(src),dst,pkts);
-    } 
+    }
     # else {
     #     require ~connection_timeout;
     # }
@@ -136,5 +136,3 @@ after packet_event_0rtt(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet_0rtt) {
 #     };
 #     #call tls_api.lower.recv(tls_id,data,0)
 # }
-
-

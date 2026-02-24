@@ -38,5 +38,3 @@ with ivy_module.Module():
     acts[2][1](None)
     vs.show_relation(vs.relation('f(0,Y) = Z'))
 #    ui.mainloop()
-
-

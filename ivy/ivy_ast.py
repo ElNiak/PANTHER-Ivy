@@ -44,7 +44,7 @@ class NoneAST(AST):
 def copy_attrs(ast1,ast2):
     if hasattr(ast1,'lineno'):
         ast2.lineno = lineno_add_ref(ast1.lineno)
-    
+
 class Symbol(AST):
     def __init__(self,rep,sort):
         assert isinstance(rep,str)
@@ -69,7 +69,7 @@ class Symbol(AST):
         return self.rep
     def apply(self,fun,root):
         return Symbol(fun(self.rep),self.sort) if root else self
-    
+
 def nary_repr(op,args):
     res = (' ' + op + ' ').join([repr(a) for a in args])
     return ('(' + res + ')') if len(args) > 1 else res
@@ -80,7 +80,7 @@ class Formula(AST):
     """
     def __init__(self,*args):
         self.args = list(args) # make args mutable
-    
+
 class And(Formula):
     """
     Conjunction of formulas.
@@ -162,13 +162,13 @@ class Let(Formula):
     def __repr__(self):
         res = repr(self.args[-1])
         if len(self.args) > 1:
-            res = 'let ' + ', '.join([repr(x) for x in self.args[0:-1]]) + ' in ' + res 
+            res = 'let ' + ', '.join([repr(x) for x in self.args[0:-1]]) + ' in ' + res
         return res
     def defines(self):
         return self.args[0].relname
     def to_constraint(self):
         return Iff(*self.args)
-    
+
 
 class Definition(Formula):
     """
@@ -215,7 +215,7 @@ class Iff(Formula):
 
 class Ite(AST):
     """
-    If-the-else expression. 
+    If-the-else expression.
     """
     def __init__(self,*args):
         assert len(args) == 3
@@ -304,7 +304,7 @@ class Atom(Formula):
         if hasattr(self,'sort'):
             res.sort = self.sort
         return res
-        
+
     # following for backward compat
     @property
     def terms(self):
@@ -467,7 +467,7 @@ class Some(AST):
         return self.args[-1]
     def extra(self):
         return ''
-    
+
 class SomeMinMax(Some):
     def params(self):
         return list(self.args[0:-2])
@@ -483,7 +483,7 @@ class SomeMin(SomeMinMax):
 class SomeMax(SomeMinMax):
     def extra(self):
         return ' maximizing ' + str(self.index())
-    
+
 class SomeExpr(AST):
     def __init__(self,*args):
         assert len(args) >= 2
@@ -523,7 +523,7 @@ class EnumeratedSort(Sort):
     @property
     def rep(self):
         return self
-        
+
 
 
 class ConstantSort(Sort):
@@ -536,7 +536,7 @@ class ConstantSort(Sort):
         return self
     def dom(self):
         return []
-        
+
 class StructSort(Sort):
     def __str__(self):
         return 'struct {' + ','.join(map(str,self.args)) + '}'
@@ -557,13 +557,13 @@ class RelationSort(Sort):
     def __init__(self,dom):
         self.dom = dom
     def __repr__(self):
-        return ' * '.join(repr(s) for s in self.dom) 
+        return ' * '.join(repr(s) for s in self.dom)
     def defines(self):
         return []
-    
+
 class Tuple(AST):
     def __repr__(self):
-        return '(' + ','.join(str(s) for s in self.args) + ')' 
+        return '(' + ','.join(str(s) for s in self.args) + ')'
 
 def lineno(c):
     try:
@@ -674,7 +674,7 @@ class LabeledDecl(Decl):
         if iu.get_numeric_version() <= [1,6]:
             return []
         return [(c.label.relname,lineno(c),type(self)) for c in self.args]
-    
+
 
 class AxiomDecl(LabeledDecl):
     def name(self):
@@ -704,7 +704,7 @@ class SchemaDecl(Decl):
     def defines(self):
         return [(c.defines(),lineno(c)) for c in self.args]
 
-    
+
 class SchemaBody(AST):
     def __str__(self):
         lines = []
@@ -750,7 +750,7 @@ class Renaming(AST):
 class Tactic(AST):
     def vocab(self,names):
         pass
-    
+
 class TacticWithMatch(AST):
     """ First arg is a schema name, second is a renaming, rest are matches """
     def __init__(self,*args):
@@ -762,7 +762,7 @@ class TacticWithMatch(AST):
     def match(self):
         return self.args[2:]
     def __str__(self):
-        res = self.tactic_name() + ' ' + str(self.args[0]) 
+        res = self.tactic_name() + ' ' + str(self.args[0])
         if len(self.args) > 1:
             res += ' ' + str(self.args[1])
         if len(self.args) > 2:
@@ -834,7 +834,7 @@ class NullTactic(Tactic):
         self.args = []
     def __str__(self):
         return '{}'
-    
+
 class LetTactic(Tactic):
     def __init__(self,*args):
         self.args = args
@@ -852,7 +852,7 @@ class WitnessTactic(Tactic):
     def vocab(self,names):
         for m in self.args:
             names.update(symbols_ast(m.args[1]))
-    
+
 class SpoilTactic(Tactic):
     def __init__(self,*args):
         self.args = args
@@ -892,7 +892,7 @@ class FunctionTactic(Tactic):
         self.args = args
     def __str__(self):
         return 'function ' + ','.join(map(str,self.args))
-    
+
 class TacticTactic(Tactic):
     @property
     def tactic_name(self):
@@ -924,7 +924,7 @@ class ProofTactic(Tactic):
         res = 'proof [' + str(self.label) + '] {' + str(self.proof) + '}'
     def vocab(self,names):
         self.args[1].vocab(names)
-    
+
 class TacticWith(Tactic):
     def __str__(self):
         res = (' with ' + ' '.join(str(x) for x in self.args[1].args)) if self.args[1].args > 0 else ''
@@ -942,7 +942,7 @@ class ComposeTactics(Tactic):
 
 class Trigger(AST):
     def __repr__(self):
-        return 'trigger' + str(self.args[0]) + ' with ' + ','.join(str(s) for s in self.args[1:])  
+        return 'trigger' + str(self.args[0]) + ' with ' + ','.join(str(s) for s in self.args[1:])
 
 class Instantiation(AST):
     def __init__(self,*args):
@@ -959,7 +959,7 @@ class InstantiateDecl(Decl):
     def defines(self):
         foo = [c.args[0] for c in self.args]
         return [(c.relname,lineno(c)) for c in foo if c is not None]
-        
+
 class AutoInstanceDecl(Decl):
     def name(self):
         return 'autoinstance'
@@ -987,7 +987,7 @@ class ConstantDecl(Decl):
     def get_type_names(self,names):
         for c in self.args:
             tterm_type_names(c,names)
-                
+
 
 class ParameterDecl(ConstantDecl):
     def name(self):
@@ -1115,24 +1115,24 @@ class InterpretDecl(LabeledDecl):
                 if not arg.rep.isdigit():
                     res.append((arg.rep,self.lineno))
         return res
-    
-class MixinDecl(Decl):    
+
+class MixinDecl(Decl):
     def name(self):
         return 'mixin'
     def defines(self):
         return []
-    
+
 class MixinDef(AST):
     def mixer(self):
         return self.args[0].relname
     def mixee(self):
         return self.args[1].relname
-    
+
 class MixinBeforeDef(MixinDef):
     def __str__(self):
         return self.mixer() + " before " + self.mixee()
     pass
-    
+
 class MixinImplementDef(MixinBeforeDef):
     def __str__(self):
         return self.mixer() + " implement " + self.mixee()
@@ -1143,13 +1143,13 @@ class MixinAfterDef(MixinDef):
         return self.mixer() + " after " + self.mixee()
     pass
 
-class IsolateDecl(Decl):    
+class IsolateDecl(Decl):
     def name(self):
         return 'isolate'
     def defines(self):
         return [(c.name(),lineno(c)) for c in self.args if not isinstance(c.args[0],This)]
-    
-class IsolateObjectDecl(IsolateDecl):    
+
+class IsolateObjectDecl(IsolateDecl):
     def defines(self):
         return []
 
@@ -1162,7 +1162,7 @@ class IsolateDef(AST):
         return self.args[len(self.args)-self.with_args:]
     def params(self):
         return self.args[0].args
-        
+
     def __repr__(self):
         return (','.join(repr(a) for a in self.verified()) +
                   (('with ' + ','.join(repr(a) for a in self.present())) if self.present() else ''))
@@ -1177,7 +1177,7 @@ class IsolateDef(AST):
         if hasattr(self,'is_object'):
             res.is_object = self.is_object
         return res
-        
+
 class TrustedIsolateDef(IsolateDef):
     pass
 
@@ -1187,12 +1187,12 @@ class ExtractDef(IsolateDef):
 class ProcessDef(ExtractDef):
     pass
 
-class ExportDecl(Decl):    
+class ExportDecl(Decl):
     def name(self):
         return 'export'
     def defines(self):
         return []
-    
+
 class ExportDef(AST):
     def exported(self):
         return self.args[0].relname
@@ -1201,12 +1201,12 @@ class ExportDef(AST):
     def __repr__(self):
         return self.exported() + (' from {}'.format(self.scope()) if self.scope() else '')
 
-class ImportDecl(Decl):    
+class ImportDecl(Decl):
     def name(self):
         return 'import_'
     def defines(self):
         return []
-    
+
 class ImportDef(AST):
     def imported(self):
         return self.args[0].relname
@@ -1215,12 +1215,12 @@ class ImportDef(AST):
     def __repr__(self):
         return self.imported() + (' from {}'.format(self.scope()) if self.scope() else '')
 
-class PrivateDecl(Decl):    
+class PrivateDecl(Decl):
     def name(self):
         return 'private'
     def defines(self):
         return []
-    
+
 class PrivateDef(AST):
     def privatized(self):
         return self.args[0].relname
@@ -1235,14 +1235,14 @@ class AliasDecl(Decl):
     def get_type_names(self,names):
         for c in self.args:
             names.add(c.args[1].rep)
-    
 
-class DelegateDecl(Decl):    
+
+class DelegateDecl(Decl):
     def name(self):
         return 'delegate'
     def defines(self):
         return []
-    
+
 class DelegateDef(AST):
     def delegated(self):
         return self.args[0].relname
@@ -1257,12 +1257,12 @@ class DelegateDef(AST):
         return s
 
 
-class ImplementTypeDecl(Decl):    
+class ImplementTypeDecl(Decl):
     def name(self):
         return 'implementtype'
     def defines(self):
         return []
-    
+
 class ImplementTypeDef(AST):
     def implemented(self):
         return self.args[0].relname
@@ -1285,7 +1285,7 @@ class NativeCode(AST):
         return ''.join(fields)
     def clone(self,args):
         return NativeCode(self.code)
-    
+
 
 class NativeType(AST):
     """ Quote native type """
@@ -1309,7 +1309,7 @@ def native_to_string(args):
     res += '`'.join(fields)
     res += '>>>'
     return res
-    
+
 
 class NativeDef(AST):
     def name(self):
@@ -1326,7 +1326,7 @@ class NativeDecl(Decl):
         return 'native'
     def defines(self):
         return []
-        
+
 class AttributeDef(AST):
     def name(self):
         return 'attribute'
@@ -1354,7 +1354,7 @@ class TypeDef(Definition):
     def defines(self):
         syms =  [self.args[0].rep] + self.args[1].defines()
         return [(sym,lineno(self)) for sym in syms]
-        
+
     @property
     def name(self):
         return self.args[0].rep
@@ -1370,7 +1370,7 @@ class VariantDef(AST):
         self.args = [name,sort]
     def __repr__(self):
         return str(self.args[0]) + ' of ' + str(self.args[1])
-    
+
 
 class ActionDef(Definition):
     def __init__(self,atom,action,formals=[],returns=[]):
@@ -1430,7 +1430,7 @@ class ScenarioDecl(Decl):
 class PlaceList(AST):
     def __repr__(self):
         return ','.join(repr(a) for a in self.args)
-    
+
 class ScenarioMixin(AST):
     def __repr__(self):
         return self.kind() + ' ' +repr(self.args[1])
@@ -1477,7 +1477,7 @@ class ScenarioDef(AST):
 class DebugItem(AST):
     def __str__(self):
         return str(self.args[0]) + '=' + str(self.args[1])
-    
+
 # predefined things
 
 universe = 'S'
@@ -1517,8 +1517,8 @@ class Dot(AST):
         return rhs if isinstance(lhs,This) else Dot(lhs,rhs)
     def apply(self,fun,root):
         return Dot(self.args[0].apply(fun,root),self.args[1].apply(fun,False))
-    
-    
+
+
 class Bracket(AST):
     def unparse(self):
         lhs = self.args[0].unparse()
@@ -1532,8 +1532,8 @@ class Bracket(AST):
 
 
 symbol_chars_parser = re.compile(r'[^\[\]\.]*')
-    
-    
+
+
 def parse_name(name):
     def recur(pos):
         match = symbol_chars_parser.match(name,pos)
@@ -1551,7 +1551,7 @@ def parse_name(name):
         return pref,pos
     res,pos = recur(0)
     return res
-    
+
 
 # AST rewriting
 
@@ -1608,7 +1608,7 @@ def subst_subscripts(s,subst):
     res = ast.subst(subst,True).unparse()
     assert not isinstance(res,Dot), s
     return res
-        
+
 
 def my_base_name(x):
     return x if isinstance(x,This) else base_name(x)
@@ -1654,7 +1654,7 @@ class AstRewriteSubstPrefix(object):
             # if len(g) > 1:
             #     n = g[0] + ''.join(('[' + self.prefix_str(x[1:-1],always) + ']' if x.startswith('[') else x) for x in g[1:])
             #     atom = atom.rename(n)
-        if not (self.pref and (always or self.to_pref == None or isinstance(atom.rep,This) or 
+        if not (self.pref and (always or self.to_pref == None or isinstance(atom.rep,This) or
                 split_name(atom.rep)[0] in self.to_pref)):
             return atom
         the_pref = self.pref
@@ -1761,14 +1761,14 @@ def copy_attributes_ast(x,y):
         y.lineno = x.lineno
     if hasattr(x,'sort'):
         y.sort = x.sort
-    
+
 def copy_attributes_ast_ref(x,y):
     if hasattr(x,'lineno'):
 #        print 'ast: {} {}'.format(y,reference_lineno)
         y.lineno = lineno_add_ref(x.lineno)
     if hasattr(x,'sort'):
         y.sort = x.sort
-    
+
 def substitute_ast(ast,subs):
     """
     Substitute terms for variables in an ast. Here, subs is
@@ -1839,7 +1839,7 @@ def substitute_constants_ast2(ast,subs):
         return res
 
 def variables_distinct_ast(ast1,ast2):
-    """ rename variables in ast1 so they don't occur in ast2. 
+    """ rename variables in ast1 so they don't occur in ast2.
     """
     map1 = distinct_variable_renaming(used_variables_ast(ast1),used_variables_ast(ast2))
     return substitute_ast(ast1,map1)
@@ -1915,7 +1915,7 @@ class Range(AST):
     @property
     def hi(self):
         return self.args[1]
-    
+
 class ASTContext(object):
     """ ast compiling context, handles line numbers """
     def __init__(self,ast):
@@ -1945,7 +1945,7 @@ class KeyArg(App):
     def __repr__(self):
         return '^' + App.__repr__(self)
 
-class TemporalModels(AST):    
+class TemporalModels(AST):
     """ A predicate of the form M |= phi where M is a NormalProgram
     and phi is a temporal formula """
     def __init__(self,model,fmla):
@@ -1961,5 +1961,3 @@ class TemporalModels(AST):
         return res
     def __str__(self):
         return str(self.model) + ' |= ' + str(self.fmla)
-
-    

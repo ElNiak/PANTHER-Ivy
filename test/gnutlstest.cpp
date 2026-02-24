@@ -149,7 +149,7 @@ int main () {
         }
     } else {
             std::cerr << "gnutls_handshake(server) returned SUCCESS\n";
-    }        
+    }
 
     res = gnutls_handshake (client);
     if (res != GNUTLS_E_SUCCESS) {
@@ -161,7 +161,7 @@ int main () {
         }
     } else {
             std::cerr << "gnutls_handshake(client) returned SUCCESS\n";
-    }        
+    }
 
     return 0;
 }

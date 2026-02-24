@@ -9,7 +9,7 @@
 # time. It provides actions that assign global time to events in
 # increasing order. The pre-conditions of these actions enforce the
 # consistency model (that is, what orderings in local time must be
-# preserved in global time). 
+# preserved in global time).
 #
 ################################################################################
 
@@ -44,21 +44,21 @@ module sht_reference(id,key,data) = {
     ########################################
     # memory events by local time
 
-    instantiate evs(T:ltime) : hashev 
+    instantiate evs(T:ltime) : hashev
 
     ########################################
-    # global memory state 
+    # global memory state
     # obeys partial function axiom
 
     individual hash(A:key.t) : data
 
     # An aribtrary init value
     init hash(A) = 0
-    
+
     ########################################
     # serialize an event lt at current global time. The "id"
     # parameter tells us what process is serializing the event.
-    # 
+    #
 
     action serialize(lt:ltime, id_:id) = {
 
@@ -76,9 +76,9 @@ module sht_reference(id,key,data) = {
 	    }
 	    else { # write
 		hash(a) := d
-	    }			
+	    }
 	}
-    }     
+    }
     delegate serialize
 
 

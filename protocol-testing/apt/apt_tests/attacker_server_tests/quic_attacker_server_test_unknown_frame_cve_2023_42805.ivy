@@ -41,7 +41,7 @@ after init {
     sock := quic_net.open(endpoint_id.client,client.ep);
     sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
     sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
-    
+
     client.set_tls_id(1);
     server.set_tls_id(0);
 
@@ -63,15 +63,15 @@ after init {
     other_tls_id_map_cid(client.tls_id) := server_cid;
     tls_id_map_cid(server.tls_id)       := server_cid;
     other_tls_id_map_cid(server.tls_id) := the_cid;
-    
+
     call show_cid_event(the_cid);
     call show_cid_event(server_cid);
-    
+
     tls_id_map_ep(server.tls_id)       := server.ep;
     other_tls_id_map_ep(server.tls_id) := client.ep;
     ep_map_tls_id(server.ep)           := server.tls_id;
     # ep_map_cid(server.ep)              := the_cid;
-   
+
     var extns := tls_extensions.empty;
     extns := extns.append(make_transport_parameters);
     call tls_api.upper.create(client.tls_id,false,extns);  # false means this instance of tls is not a server
@@ -81,9 +81,9 @@ after init {
     token_saved := false;
 }
 
-# quinn-proto is a state machine for the QUIC transport protocol. 
-# Prior to versions 0.9.5 and 0.10.5, receiving unknown QUIC frames in a QUIC packet 
-# could result in a panic. 
+# quinn-proto is a state machine for the QUIC transport protocol.
+# Prior to versions 0.9.5 and 0.10.5, receiving unknown QUIC frames in a QUIC packet
+# could result in a panic.
 # The problem has been fixed in 0.9.5 and 0.10.5 maintenance releases.
 
 before quic_frame.malicious_unknown_frame.handle_maliciously(f:quic_frame.malicious_unknown_frame,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
@@ -131,9 +131,8 @@ export quic_frame.malicious_unknown_frame.handle_maliciously
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require is_no_error;
     require conn_total_data(the_cid) > 0;
-    #call 
+    #call
 }
-

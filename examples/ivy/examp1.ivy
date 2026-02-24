@@ -19,7 +19,7 @@ module server = {
    returns(val:resp) = {
        assert last < inp;
        last := inp;
-       val := f(inp) 
+       val := f(inp)
    }
 }
 
@@ -28,7 +28,7 @@ module agent(srvr,partner,id) = {
    relation token
 
    init last = zero & (token <-> id=id0)
-   
+
    action serve(inp:req)
    returns(out:resp) = {
        assume token & last < inp;
@@ -77,7 +77,7 @@ module intf(srvr,agnt0,agnt1) = {
 	last := inp
     }
     mixin serve before srvr.serve
-}    	
+}
 
 instantiate i : intf(s,a0,a1)
 

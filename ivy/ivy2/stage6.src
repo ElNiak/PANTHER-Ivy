@@ -14,7 +14,7 @@ type StructType = struct
        fields : FieldList
     }
 
-type TypeDecl = struct 
+type TypeDecl = struct
     {
        name : str,
        type : StructType
@@ -26,15 +26,15 @@ type Top = struct
        grammar : Grammar,
        code : str
     }
-        
+
 # This is the input format
 
 format Ident = ~'[_a-zA-Z0-9]+'
 
-format Field = 
-   struct Field ( < name := Ident > ':' < type := Ident > ) 
+format Field =
+   struct Field ( < name := Ident > ':' < type := Ident > )
 
-format Type = 
+format Type =
     struct StructType ( 'struct' '{' < fields := [ Field ',' ...] > '}' )
 
 format TypeDecl =
@@ -64,8 +64,8 @@ format Grammar =
     struct Grammar
 	< rules :=
 	    [ struct Rule ( 'format' < lhs := ~'[_a-zA-Z0-9]+' > '=' < rhs := Format > ) ... ] >
-         
-format Top = 
+
+format Top =
     struct Top ( < typedecls := [ TypeDecl ... ] >  < grammar := Grammar > '>>>' < code := ~'.*' > )
 
 # The output format
@@ -83,12 +83,12 @@ format PyTypeDecl = struct TypeDecl (
          line ( 'def __init__(self,' < fields := [ struct Field < name := PyIdent > ',' ... ] > '):' )
          < fields := [ struct Field indent line ( 'self.' < name := PyIdent > ' = ' < name := PyIdent > ) ... ] > ) > )
 
-format PyTop = struct Top ( 
+format PyTop = struct Top (
     line 'from parser1 import *'
     < typedecls := [ PyTypeDecl ... ] >
     line ( 'with ivywhite: grammar = ' < grammar := PyExpr > )
     < code := ~'.*' > )
-    
+
 >>>
 
 src = "stage7.src"

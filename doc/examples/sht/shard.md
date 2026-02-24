@@ -14,7 +14,7 @@ number of keys actually represented in the shard.
 We implement a shard as a struct containing the bounds `lo` and `hi`,
 represented by key iterators, and an array of key/value pair that maps
 each key in the range `[lo,hi)` that is present in the hash table to
-its value. 
+its value.
 
 To represent the key/value array, we use the `keyvalue` module from
 the standard library. The specification of `keyvalue` provides a
@@ -67,6 +67,3 @@ The `valid` predicate tells us that a given key does not accur twice
 in the array. In particular, in a valid shard, the `value` function is
 uniquely defined. The predicate `valid` is an object invariant that
 users of `table_shard` will have to carry around.
-
-
-

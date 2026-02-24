@@ -1,15 +1,15 @@
 # ivy_distpy.py
 # Author: Ruijie Fang
-# 
-# Description: Use distpy library to enable very-fine grained, highly parallel 
+#
+# Description: Use distpy library to enable very-fine grained, highly parallel
 # proof checking in Ivy. The objective is to accelerate Ivy's running time when
-# checking very large specifications. 
-# 
+# checking very large specifications.
+#
 # The current implementation distributes distpy jobs at the granularity level of
 # each properties to check (for non-temporal properties). Each temporal property
-# within an isolate is distributed as a single task, while the checking of 
+# within an isolate is distributed as a single task, while the checking of
 # multiple temporal properties within an isolate is parallelized.
-# 
+#
 # Checking of assertions is parallelized at the isolate-level. Within each isolate,
 # the checking of assertions is not parallelized.
 
@@ -97,7 +97,7 @@ def check_temporals():
                     subgoals = [subgoal]
                     subgoals = pc.admit_proposition(prop,proof,subgoals)
                     check_subgoals(subgoals)
-            
+
         # else:
         #     # Non-temporal properties have already been proved, so just
         #     # admit them here without proof (in other words, ignore the
@@ -217,7 +217,7 @@ def apply_conj_proofs(mod):
     mod.conj_subgoals = conjs
 
 
-### preprocess axioms, properties, conjectures if user supplies an "access control list," 
+### preprocess axioms, properties, conjectures if user supplies an "access control list,"
 ###  specifying what properties to ignore and what to assume.
 def preprocess_assumed_ignored_properties():
     mod = im.module
@@ -266,13 +266,13 @@ def check_isolate(trace_hook = None):
         model = itmp.normal_program_from_module(im.module)
         prop = ivy_ast.LabeledFormula(ivy_ast.Atom('safety'),lg.And())
         subgoal = ivy_ast.LabeledFormula(ivy_ast.Atom('safety'),ivy_ast.TemporalModels(model,lg.And()))
-        subgoal.lineno = mod.isolate_proof.lineno 
+        subgoal.lineno = mod.isolate_proof.lineno
         #        print 'subgoal = {}'.format(subgoal)
         subgoals = [subgoal]
         subgoals = pc.admit_proposition(prop,mod.isolate_proof,subgoals)
         check_subgoals(subgoals)
         return
-    
+
     import time
     if opt_ivy_stats.get():
         print('calling fragment checker...')
@@ -290,7 +290,7 @@ def check_isolate(trace_hook = None):
         check = not opt_summary.get()
         unprovable = act.check_unprovable.get()
         subgoalmap = dict((x.id,y) for x,y in im.module.subgoals)
-        axioms = [m for m in mod.labeled_axioms if m.id not in subgoalmap] 
+        axioms = [m for m in mod.labeled_axioms if m.id not in subgoalmap]
         schema_instances = [m for m in mod.labeled_axioms if m.id in subgoalmap]
         if axioms:
             print("\n    The following properties are assumed as axioms:")
@@ -476,7 +476,7 @@ def check_isolate(trace_hook = None):
 
 # This is a little bit backward. When faced with a subgoal from the prover,
 # we check it by constructing fake isolate.
-                
+
 def check_subgoals(goals,method=None):
     mod = im.module
     for goal in goals:
@@ -487,7 +487,7 @@ def check_subgoals(goals,method=None):
             fmla = conc.fmla
             if not lg.is_true(fmla):
                 raise iu.IvyError(goal,
-                  """The temporal subgoal {} has not been reduced to an invariance property. 
+                  """The temporal subgoal {} has not been reduced to an invariance property.
                      Try using a tactic such as l2s.""")
             mod = im.module.copy()
             mod.isolate_proof = None
@@ -554,6 +554,3 @@ def check_subgoals(goals,method=None):
                         if hasattr(goal,"trace_hook"):
                             mod.trace_hook = goal.trace_hook
                         check_isolate()
-                
-
-

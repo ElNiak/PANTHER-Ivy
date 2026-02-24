@@ -10,7 +10,9 @@ class IvyAnalysisMixin:
     method into smaller, focused methods following PANTHER conventions.
     """
 
-    def analyze_outputs_with_data(self, collected_outputs: Dict[str, Any]) -> Dict[str, Any]:
+    def analyze_outputs_with_data(
+        self, collected_outputs: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Analyze collected outputs to determine test success/failure.
 
@@ -57,8 +59,7 @@ class IvyAnalysisMixin:
             if r.get("verdict", "UNKNOWN") != "UNKNOWN"
         }
         all_compilations_succeeded = all(
-            r.get("compilation_succeeded", False)
-            for r in detailed_results.values()
+            r.get("compilation_succeeded", False) for r in detailed_results.values()
         )
         if decisive:
             passed = (
@@ -76,7 +77,7 @@ class IvyAnalysisMixin:
             "passed": passed,
             "analysis_summary": analysis_summary,
             "detailed_results": detailed_results,
-            "failures": all_failures
+            "failures": all_failures,
         }
 
     def analyze_ivy_outputs(self) -> Dict[str, Any]:
@@ -89,18 +90,20 @@ class IvyAnalysisMixin:
         Returns:
             Dict[str, Any]: Analysis results with passed/failed status
         """
-        if not hasattr(self, 'collected_outputs') or not self.collected_outputs:
+        if not hasattr(self, "collected_outputs") or not self.collected_outputs:
             self.logger.warning("No collected outputs available for analysis")
             return {
                 "passed": False,
                 "analysis_summary": "No outputs to analyze",
                 "detailed_results": {},
-                "failures": ["No collected outputs available"]
+                "failures": ["No collected outputs available"],
             }
 
         return self.analyze_outputs_with_data(self.collected_outputs)
 
-    def _organize_outputs_by_service(self, collected_outputs: Dict[str, Any]) -> Dict[str, Dict[str, str]]:
+    def _organize_outputs_by_service(
+        self, collected_outputs: Dict[str, Any]
+    ) -> Dict[str, Dict[str, str]]:
         """
         Reorganize outputs by service name for easier analysis.
 
@@ -179,7 +182,7 @@ class IvyAnalysisMixin:
 
         for prefix, output_type in prefix_patterns:
             if output_key.startswith(prefix):
-                return output_key[len(prefix):], output_type
+                return output_key[len(prefix) :], output_type
 
         return None, None
 
@@ -200,14 +203,16 @@ class IvyAnalysisMixin:
 
         if file_path and isinstance(file_path, str):
             try:
-                with open(file_path, 'r') as f:
+                with open(file_path, "r") as f:
                     return f.read()
             except Exception as e:
                 self.logger.warning(f"Failed to read {file_path}: {e}")
 
         return None
 
-    def _analyze_service_outputs(self, service_name: str, outputs: Dict[str, str]) -> Dict[str, Any]:
+    def _analyze_service_outputs(
+        self, service_name: str, outputs: Dict[str, str]
+    ) -> Dict[str, Any]:
         """
         Analyze outputs for a single service with enhanced details.
 
@@ -237,27 +242,31 @@ class IvyAnalysisMixin:
                 "started": False,
                 "running": False,
                 "completed": False,
-                "terminated": False
-            }
+                "terminated": False,
+            },
         }
 
         # Check for errors and extract detailed information
         if "stderr" in outputs and outputs["stderr"]:
             result["has_stderr"] = True
-            
+
             # Extract basic errors
             errors = self._check_error_patterns(outputs["stderr"])
             if errors:
                 result["has_errors"] = True
                 result["error_messages"].extend(errors)
-            
+
             # Enhanced stderr analysis
-            stderr_analysis = self._analyze_stderr_details(outputs["stderr"], service_name)
+            stderr_analysis = self._analyze_stderr_details(
+                outputs["stderr"], service_name
+            )
             result.update(stderr_analysis)
 
         # Analyze stdout for additional details
         if "stdout" in outputs and outputs["stdout"]:
-            stdout_analysis = self._analyze_stdout_details(outputs["stdout"], service_name)
+            stdout_analysis = self._analyze_stdout_details(
+                outputs["stdout"], service_name
+            )
             result.update(stdout_analysis)
 
         # Check compilation and test execution markers
@@ -327,7 +336,9 @@ class IvyAnalysisMixin:
 
         return result
 
-    def _analyze_stderr_details(self, stderr_content: str, service_name: str) -> Dict[str, Any]:
+    def _analyze_stderr_details(
+        self, stderr_content: str, service_name: str
+    ) -> Dict[str, Any]:
         """
         Extract detailed information from stderr content.
 
@@ -346,12 +357,12 @@ class IvyAnalysisMixin:
                 "started": False,
                 "running": False,
                 "completed": False,
-                "terminated": False
-            }
+                "terminated": False,
+            },
         }
 
-        lines = stderr_content.split('\n')
-        
+        lines = stderr_content.split("\n")
+
         for line in lines:
             line = line.strip()
             if not line:
@@ -359,17 +370,21 @@ class IvyAnalysisMixin:
 
             # Extract connection events
             if "binding client id" in line.lower():
-                details["connection_events"].append({
-                    "type": "client_binding",
-                    "details": line,
-                    "timestamp": self._extract_timestamp(line)
-                })
+                details["connection_events"].append(
+                    {
+                        "type": "client_binding",
+                        "details": line,
+                        "timestamp": self._extract_timestamp(line),
+                    }
+                )
             elif "socket" in line.lower():
-                details["connection_events"].append({
-                    "type": "socket_event",
-                    "details": line,
-                    "timestamp": self._extract_timestamp(line)
-                })
+                details["connection_events"].append(
+                    {
+                        "type": "socket_event",
+                        "details": line,
+                        "timestamp": self._extract_timestamp(line),
+                    }
+                )
 
             # Extract process lifecycle events
             if "starting runtime phase" in line.lower():
@@ -385,16 +400,23 @@ class IvyAnalysisMixin:
                     pass
 
             # Extract detailed error information
-            if any(error_word in line.lower() for error_word in ["error", "failed", "timeout"]):
-                details["detailed_errors"].append({
-                    "message": line,
-                    "timestamp": self._extract_timestamp(line),
-                    "severity": self._determine_error_severity(line)
-                })
+            if any(
+                error_word in line.lower()
+                for error_word in ["error", "failed", "timeout"]
+            ):
+                details["detailed_errors"].append(
+                    {
+                        "message": line,
+                        "timestamp": self._extract_timestamp(line),
+                        "severity": self._determine_error_severity(line),
+                    }
+                )
 
         return details
 
-    def _analyze_stdout_details(self, stdout_content: str, service_name: str) -> Dict[str, Any]:
+    def _analyze_stdout_details(
+        self, stdout_content: str, service_name: str
+    ) -> Dict[str, Any]:
         """
         Extract detailed information from stdout content.
 
@@ -405,14 +427,10 @@ class IvyAnalysisMixin:
         Returns:
             Dictionary with detailed stdout analysis
         """
-        details = {
-            "return_code": None,
-            "exit_status": None,
-            "runtime_duration": None
-        }
+        details = {"return_code": None, "exit_status": None, "runtime_duration": None}
 
-        lines = stdout_content.split('\n')
-        
+        lines = stdout_content.split("\n")
+
         for line in lines:
             line = line.strip()
             if not line:
@@ -422,17 +440,25 @@ class IvyAnalysisMixin:
             if "exit code" in line.lower() or "return code" in line.lower():
                 try:
                     # Try to extract numeric exit code
-                    code_match = re.search(r'(?:exit|return)\s+code[:\s]+(\d+)', line, re.IGNORECASE)
+                    code_match = re.search(
+                        r"(?:exit|return)\s+code[:\s]+(\d+)", line, re.IGNORECASE
+                    )
                     if code_match:
                         details["return_code"] = int(code_match.group(1))
-                        details["exit_status"] = "success" if details["return_code"] == 0 else "failure"
+                        details["exit_status"] = (
+                            "success" if details["return_code"] == 0 else "failure"
+                        )
                 except:
                     pass
 
             # Extract timing information
             if "duration" in line.lower() or "elapsed" in line.lower():
                 try:
-                    time_match = re.search(r'(\d+(?:\.\d+)?)\s*(?:s|sec|seconds?|ms|milliseconds?)', line, re.IGNORECASE)
+                    time_match = re.search(
+                        r"(\d+(?:\.\d+)?)\s*(?:s|sec|seconds?|ms|milliseconds?)",
+                        line,
+                        re.IGNORECASE,
+                    )
                     if time_match:
                         details["runtime_duration"] = time_match.group(1)
                 except:
@@ -478,7 +504,7 @@ class IvyAnalysisMixin:
         # --- Check stdout for IVY-specific markers ---
         if has_stdout:
             # Collect all assumption_failed occurrences
-            af_pattern = re.compile(r'assumption_failed\(([^)]*)\)')
+            af_pattern = re.compile(r"assumption_failed\(([^)]*)\)")
             for match in af_pattern.finditer(stdout_content):
                 assumption_failures.append(match.group(0))
 
@@ -492,28 +518,30 @@ class IvyAnalysisMixin:
             elif has_test_completed:
                 verdict = "NO_VIOLATION_FOUND"
                 details.append("test_completed marker found, no assumption failures")
-            elif re.search(r'^[<>]\s', stdout_content, re.MULTILINE):
+            elif re.search(r"^[<>]\s", stdout_content, re.MULTILINE):
                 # Protocol activity with no assumption failures -> NO_VIOLATION_FOUND
                 # IVY emits lines starting with < or > for protocol events.
                 verdict = "NO_VIOLATION_FOUND"
-                details.append(
-                    "Protocol activity detected without assumption failures"
-                )
+                details.append("Protocol activity detected without assumption failures")
 
         # --- Check for crash indicators (only if not already decided) ---
         if verdict == "UNKNOWN":
             crash_indicators_tester = [
-                "segmentation fault", "sigsegv", "sigabrt", "core dumped",
-                "aborted", "std::bad_alloc",
+                "segmentation fault",
+                "sigsegv",
+                "sigabrt",
+                "core dumped",
+                "aborted",
+                "std::bad_alloc",
             ]
             crash_indicators_iut = [
-                "connection reset", "connection refused",
-                "broken pipe", "timed out",
+                "connection reset",
+                "connection refused",
+                "broken pipe",
+                "timed out",
             ]
 
-            combined = (
-                (stdout_content or "") + "\n" + (stderr_content or "")
-            ).lower()
+            combined = ((stdout_content or "") + "\n" + (stderr_content or "")).lower()
 
             for indicator in crash_indicators_tester:
                 if indicator in combined:
@@ -545,7 +573,9 @@ class IvyAnalysisMixin:
             Timestamp string or None
         """
         # Look for timestamp patterns like [2025-06-24 03:53:47]
-        timestamp_match = re.search(r'\[(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\]', line)
+        timestamp_match = re.search(
+            r"\[(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\]", line
+        )
         if timestamp_match:
             return timestamp_match.group(1)
         return None
@@ -561,8 +591,10 @@ class IvyAnalysisMixin:
             Severity level: critical, high, medium, low
         """
         error_line_lower = error_line.lower()
-        
-        if any(word in error_line_lower for word in ["critical", "fatal", "abort", "crash"]):
+
+        if any(
+            word in error_line_lower for word in ["critical", "fatal", "abort", "crash"]
+        ):
             return "critical"
         elif any(word in error_line_lower for word in ["error", "failed", "timeout"]):
             return "high"
@@ -589,14 +621,14 @@ class IvyAnalysisMixin:
             "ERROR:",
             "failed:",
             "Failed:",
-            "FAILED:"
+            "FAILED:",
         ]
 
         errors = []
         for pattern in error_patterns:
             if pattern in stderr_content:
                 # Extract the line containing the error
-                for line in stderr_content.split('\n'):
+                for line in stderr_content.split("\n"):
                     if pattern in line:
                         errors.append(line.strip())
                         break
@@ -651,7 +683,10 @@ class IvyAnalysisMixin:
         # Fallback: check stderr for lifecycle evidence of successful compilation
         if "stderr" in outputs and outputs["stderr"]:
             stderr_lower = outputs["stderr"].lower()
-            if "starting runtime phase" in stderr_lower or "call_generating" in stderr_lower:
+            if (
+                "starting runtime phase" in stderr_lower
+                or "call_generating" in stderr_lower
+            ):
                 return True
 
         return False
@@ -681,7 +716,7 @@ class IvyAnalysisMixin:
         if "stdout" in outputs and outputs["stdout"]:
             stdout = outputs["stdout"]
             # Protocol event markers (e.g. "> quic_connected" or "< quic_packet")
-            if re.search(r'^[<>]\s', stdout, re.MULTILINE):
+            if re.search(r"^[<>]\s", stdout, re.MULTILINE):
                 return True
             if "assumption_failed" in stdout:
                 return True

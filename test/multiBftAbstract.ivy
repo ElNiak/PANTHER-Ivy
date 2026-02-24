@@ -3,7 +3,7 @@
 include collections
 include order
 
-# assumptions: 
+# assumptions:
 # 1.  In send_new_view and rcv_new_view actions we have a stronger and non realistic assumption : assume is_good(N) -> reported_commit(N,RMAX,V);
 
 ################################################################################
@@ -70,7 +70,7 @@ isolate creport = {
             #ensure maxv(max_cr, I, R) & maxv(old max_cr, I, R2) -> R2 <= R
             #ensure maxv(max_cr, I, R) & maxv(cr, I, R2) -> R2 <= R
             #ensure forall I. exists R. maxv(max_cr, I, R)
-            ensure maxo(max_cr, I, V) & maxv(max_cr, I, R) & maxo(old max_cr, I, V2) & maxv(old max_cr, I, R2) & maxo(cr, I, V3) & maxv(cr, I, R3) -> ((R2 < R3 -> (R = R3 & V = V3)) & 
+            ensure maxo(max_cr, I, V) & maxv(max_cr, I, R) & maxo(old max_cr, I, V2) & maxv(old max_cr, I, R2) & maxo(cr, I, V3) & maxv(cr, I, R3) -> ((R2 < R3 -> (R = R3 & V = V3)) &
                                                         (R2 > R3 -> (R = R2 & V = V2)) &
 	                                                (R3 > R2 -> (R = R3 & V = V3)) &
                                                         ((R2 = R3 & R2 ~= none) -> (R = R2 & V = V2)) &
@@ -78,7 +78,7 @@ isolate creport = {
                                                        )
 
         }
-	
+
 
 	after match_cr {
 	    ensure ret <-> begin(cr1) = begin(cr2)
@@ -87,7 +87,7 @@ isolate creport = {
         property maxv(CR, I, R1) & maxv(CR, I, R2) -> R1 = R2
         property maxo(CR, I, V1) & maxo(CR, I, V2) -> V1 = V2
 	property start(CR, I1) & start(CR, I2) -> I1 = I2
-	property afterend(CR, I1) & afterend(CR, I2) -> I1 = I2 
+	property afterend(CR, I1) & afterend(CR, I2) -> I1 = I2
         property start(CR, I) & afterend(CR, I2) -> I <= I2
     }
 
@@ -110,7 +110,7 @@ isolate creport = {
         definition maxo(CR, I, O) = (I >= begin(CR) & I - begin(CR) < repr(CR).end & repr(CR).value(I - begin(CR)).maxop = O)
         definition start(CR, I) = begin(CR) = I
         definition afterend(CR, I) = begin(CR) + repr(CR).end = I
-	
+
 	implement match_cr{
 	    ret := begin(cr1) = begin(cr2);
 	}
@@ -119,7 +119,7 @@ isolate creport = {
 	definition geti(CR,I) = repr(CR).value(I) if I < repr(CR).end else empty_commit
 
         implement mergecr {
-            
+
 	    var cr_end := begin(cr) + repr(cr).end;
 	    var max_cr_end :=  begin(max_cr) + repr(max_cr).end;
 	    if cr_end > max_cr_end {
@@ -152,7 +152,7 @@ module relarray(domain,range) = {
 
     type this
     alias t = this
-    
+
 
     # return an empty array
 
@@ -165,11 +165,11 @@ module relarray(domain,range) = {
     action set(a:t,x:domain,y:range) returns (a:t)
 
     # get the value y such that x in [0,end) maps to y in array a
-    action get(a:t,x:domain) returns (y:range) 
+    action get(a:t,x:domain) returns (y:range)
 
     # get the value of end
     action size(a:t) returns (s:domain)
-    
+
     # change the size of the array
     action resize(a:t,s:domain,v:range) returns (a:t)
 
@@ -195,7 +195,7 @@ module relarray(domain,range) = {
     object spec = {
 	property end(X) >= 0
         property value(A,X,Y1) & value(A,X,Y2) -> Y1 = Y2
- 
+
 	after empty {
 	    assert end(a) = 0
 	}
@@ -207,7 +207,7 @@ module relarray(domain,range) = {
 	}
         before set {
 	    assert 0 <= x & x < end(a)
-	}	       	 
+	}
 	after set {
             assert end(a) = end(old a);
 	    assert value(a,x,Y) <-> Y = y;
@@ -265,14 +265,14 @@ module relarray(domain,range) = {
 
 	implement set {
 	    <<<
-	        if (0 <= `x` && `x` < (`domain`)`a`.size()) 
+	        if (0 <= `x` && `x` < (`domain`)`a`.size())
 	            `a`[`x`] = `y`;
 	    >>>
 	}
 
 	implement get {
 	    <<<
-	        if (0 <= `x` && `x` < (`domain`)`a`.size()) 
+	        if (0 <= `x` && `x` < (`domain`)`a`.size())
 	            `y` = `a`[`x`];
 	    >>>
 	}
@@ -313,7 +313,7 @@ module relarray(domain,range) = {
 	    template <>
 	    `t` _arg<`t`>(std::vector<ivy_value> &args, unsigned idx, int bound) {
 	        ivy_value &arg = args[idx];
-	        if (arg.atom.size()) 
+	        if (arg.atom.size())
 	            throw out_of_bounds(idx);
 	        `t` a;
 	        a.resize(arg.fields.size());
@@ -391,13 +391,13 @@ trusted isolate nset = {
 
     type this
     alias t = this
-    
+
 
     relation member(N:replica, S:t)
     relation majority(S:t)
 
-    action emptyset returns (s:t) 
-    action add(s:t, n : replica) returns (s:t) 
+    action emptyset returns (s:t)
+    action add(s:t, n : replica) returns (s:t)
 
     specification {
         after emptyset {
@@ -421,7 +421,7 @@ trusted isolate nset = {
         instance arr : relarray(index,replica)
         destructor repr(N:nset) : arr
         individual all : nset
-        
+
         definition member(N,S) = exists I. 0 <= I & I < repr(S).end & repr(S).value(I, N)
         definition majority(S) = card(S) + card(S) + card(S) > card(all) + card(all)
 
@@ -478,7 +478,7 @@ relation l_view_change_msg(N:replica, R:view, SN:replica, CR:creport)
 relation l_prepare_msg(N:replica, R:view, SN:replica, I:slot, V:operation)
 relation l_commit_msg(N:replica, R:view, SN:replica, I:slot, V:operation)
 relation l_new_view_msg(N:replica, R:view, SN:replica, Q:nset)
- 
+
 
 relation committed(N:replica, R:view, I:slot, V:operation)
 relation l_committed(N:replica, I:slot, V:operation)
@@ -497,19 +497,19 @@ isolate axioms = {
 
   instantiate total_order(le)
   instantiate total_order2(le_slot)
- 
- 
-  
-  # primary is a partial function   
+
+
+
+  # primary is a partial function
   axiom primary(N1, R) & primary(N2, R) -> N1 = N2
-  
+
   #axiom forall R. exists N. primary(R, N)
 
 
 }
 
 isolate quorums = {
-   
+
    axiom forall T:tquorum. exists N:replica. tmember(N, T) & is_good(N)
 }
 
@@ -524,13 +524,13 @@ after init {
     committed(N, R, I, V) := false;
     new_view_msg(N, R, Q) := false;
     has_new_view(N, R) := false;
-    
+
     l_view_change_msg(N, R, SN, CR) := false;
     l_prepare_msg(N, R, SN, I, V) := false;
     l_commit_msg(N, R, SN, I, V) := false;
     l_new_view_msg(N, R, SN, Q) := false;
-    
-    
+
+
 }
 
 action send_view_change_msg = {
@@ -555,7 +555,7 @@ action rcv_view_change_msg(sn:replica, cr:creport) = {
     ok := ok & forall I. exists R, V. cr.maxv(I, R) & cr.maxo(I, V) & l_commit_msg(n, R, sn, I, V);
     ok := ok & forall I, R. cr.maxv(I, R) -> ~le(r, R);
     #seems to be redunadent: assume forall I, R, V. maxv(cr, I, R) & maxo(cr, I, V) & R ~= none -> (exists Q:byzquorum. forall N:replica. byzmember(N, Q) -> l_prepare_msg(o, N, I, R, V));
-    
+
     if ok {
         l_view_change_msg(n, r, sn, cr) := true;
     }
@@ -578,7 +578,7 @@ action send_new_view_msg = {
         	    new_view_msg(n, r, q) := true;
         	    l_new_view_msg(n, r, n, q) := true;
         	    has_new_view(n, r) := true;
-        
+
 	            #send preprepare
                 prepare_msg(n, r, I, V) := prepare_msg(n, r, I, V) | (exists R. cr.maxv(I,R) & R ~= none & cr.maxo(I, V));
                 l_prepare_msg(n, r, n, I, V) := l_prepare_msg(n, r, n, I, V) | (exists R. cr.maxv(I,R) & R ~= none & cr.maxo(I,V));
@@ -591,7 +591,7 @@ action rcv_new_view_msg(p:replica, q:nset) = {
     var ok := true;
     ok := ok & r ~= none;
     ok := ok & ~primary(n, r);
-    ok := ok & ~left_view(n, r); 
+    ok := ok & ~left_view(n, r);
     ok := ok & ~has_new_view(n, r);
     ok := ok & primary(p, r);
     ok := ok & new_view_msg(p, r, q);
@@ -602,7 +602,7 @@ action rcv_new_view_msg(p:replica, q:nset) = {
             q := maxCalc.view_change_set(n, r);
             if q.majority {
                 cr := maxCalc.max_cr(n, r);
-	
+
                 assume (forall I, R, V. cr.maxv(I, R) & R ~= none -> l_prepare_msg(n, r, p, I, V)); # can be turned into an if but verification time goes over 2 minuets.  #primary sent all required preprepares
 	        l_new_view_msg(n, r, p, q) :=true;
                 has_new_view(n, r) := true;
@@ -610,7 +610,7 @@ action rcv_new_view_msg(p:replica, q:nset) = {
 	        prepare_msg(n, r, I, V) := prepare_msg(n, r, I, V) | (exists R. cr.maxv(I,R) & R ~= none & cr.maxo(I, V));
                 l_prepare_msg(n, r, n, I, V) := l_prepare_msg(n, r, n, I, V) | (exists R. cr.maxv(I,R) & R ~= none & cr.maxo(I,V));
             }
-            
+
         }
     }
 }
@@ -668,7 +668,7 @@ action send_commit_msg(i:slot, v:operation, q:nset) = {
     ok := ok & ~left_view(n, r);
     ok := ok & q.majority;
     ok := ok & forall N:replica. nset.member(N,q) -> l_prepare_msg(n, r, N, i, v);
-    
+
     if ok {
 	commit_msg(n, r, i, v) := true;
 	l_commit_msg(n, r, n, i, v) := true;
@@ -765,21 +765,21 @@ conjecture is_good(N) & commit_msg(N, R, I, V1) & commit_msg(N, R, I, V2) -> V1 
 
 conjecture is_good(N) & view_change_msg(N, R2, CR) & ~le(R2, R1) & creport.maxv(CR, I, none) -> ~commit_msg(N, R1, I, V2)
 
-conjecture is_good(N) & view_change_msg(N, R, CR) & creport.maxv(CR, I, R2) & R2~= none -> ~le(R, R2) 
+conjecture is_good(N) & view_change_msg(N, R, CR) & creport.maxv(CR, I, R2) & R2~= none -> ~le(R, R2)
 
 conjecture is_good(N) & view_change_msg(N, R, CR) & creport.maxv(CR, I, R2) & R2 ~= none & creport.maxo(CR, I, V) -> commit_msg(N, R2, I, V)
 
 conjecture is_good(N) & view_change_msg(N, R, CR) & creport.maxv(CR, I, R2) & R2 ~= none & ~le(R,ROTHER) & ~le(ROTHER, R2) -> ~commit_msg(N, ROTHER, I, VOTHER)
 
-conjecture is_good(N) & view_change_msg(N, R, CR) & creport.maxv(CR, I, RM) & commit_msg(N, RC, I, V) & ~le(R, RC) -> le(RC, RM)  
+conjecture is_good(N) & view_change_msg(N, R, CR) & creport.maxv(CR, I, RM) & commit_msg(N, RC, I, V) & ~le(R, RC) -> le(RC, RM)
 
 conjecture ~commit_msg(N, none, I, V)
 
-conjecture le(R1, R2) & left_view(N, R2) -> left_view(N, R1) 
+conjecture le(R1, R2) & left_view(N, R2) -> left_view(N, R1)
 
 conjecture view_change_msg(N, R, CR) & ~le(R, R1) -> left_view(N, R1)
 
-# local messages 
+# local messages
 
 conjecture l_commit_msg(O, R, N, I, V) -> commit_msg(N, R, I, V)
 conjecture commit_msg(N, R, I, V) & is_good(N) -> l_commit_msg(N, R, N, I, V)
@@ -787,9 +787,9 @@ conjecture commit_msg(N, R, I, V) & is_good(N) -> l_commit_msg(N, R, N, I, V)
 conjecture l_view_change_msg(O, R, N, CR) -> view_change_msg(N, R, CR)
 conjecture l_view_change_msg(O, R, N, CR) & creport.maxv(CR, I, R2) & R2~= none -> ~le(R, R2)
 conjecture l_view_change_msg(O, R, N, CR) & creport.maxv(CR, I, R2) & R2 ~= none & creport.maxo(CR, I, V) -> l_commit_msg(O, R2, N, I, V)
-conjecture l_view_change_msg(O, R, N, CR) & is_good(N) & creport.maxv(CR, I, none) & ~le(R, R2) -> ~commit_msg(N, R2, I, V)  
+conjecture l_view_change_msg(O, R, N, CR) & is_good(N) & creport.maxv(CR, I, none) & ~le(R, R2) -> ~commit_msg(N, R2, I, V)
 conjecture l_view_change_msg(O, R, N, CR) & is_good(O) & creport.maxv(CR, I, R2) & R2 ~= none -> le(R2, R) & R ~= R2
-conjecture view_change_msg(N, R1, CR) & is_good(N) -> l_view_change_msg(N, R1, N, CR) 
+conjecture view_change_msg(N, R1, CR) & is_good(N) -> l_view_change_msg(N, R1, N, CR)
 
 private {
 conjecture is_good(N) & prepare_msg(N, R, I, V1) & prepare_msg(N, R, I, V2) -> V1 = V2
@@ -914,7 +914,7 @@ action send_checkpoint(n:replica, i:slot, s:state) = {
 }
 
 action rcv_checkpoint(o:replica, n:replica, i:slot, h:hash) = {
-    if checkpoint_msg(n, i, h) { 
+    if checkpoint_msg(n, i, h) {
 	l_checkpoint_msg(o, n, i, h) := true;
     };
 }
@@ -924,10 +924,10 @@ action accept_checkpoint(n:replica, s:replica, i:slot, h:hash, st:state, t:tquor
     ok := ok & exists I. current_slot(n, I) & le_slot(I, i) & I ~= i;
     ok := ok & stateHash(st) = h;
     ok := ok & l_state_transfer_msg(n, s, i, st);
-    ok := ok & forall N1:replica. tmember(N1, t) -> l_checkpoint_msg(n, N1, i, h); 
+    ok := ok & forall N1:replica. tmember(N1, t) -> l_checkpoint_msg(n, N1, i, h);
     if ok {
 	current_slot(n, I) := I = i;
-        replicaState(n) := st; 
+        replicaState(n) := st;
     };
 }
 
@@ -989,7 +989,7 @@ conjecture is_good(N) & current_slot(N, I) -> le_slot(I, oracleSlot)
 
 conjecture le_slot(I, oracleSlot) & I ~= oracleSlot -> exists N, R, V. committed(N , R, I, V)
 
-conjecture le_slot(I2, oracleSlot) & nextSlot(I1, I2) & committed(N, R, I1, V) -> nextState(oracleStateHistory(I1), oracleLog(I1), oracleStateHistory(I2)) 
+conjecture le_slot(I2, oracleSlot) & nextSlot(I1, I2) & committed(N, R, I1, V) -> nextState(oracleStateHistory(I1), oracleLog(I1), oracleStateHistory(I2))
 
 conjecture is_good(N) & current_slot(N, I) -> replicaState(N) = oracleStateHistory(I)
 
@@ -1015,19 +1015,19 @@ conjecture forall I. (exists R. R ~= none & max_cr.maxv(I, R)) -> exists V. max_
 
 # If max is valid, then it comes from one of the repliers to the message
 conjecture forall I.
-              exists R. max_cr.maxv(I, R) & 
+              exists R. max_cr.maxv(I, R) &
                  (R ~= none ->
                   exists V:operation, N:replica, CR:creport.
-                  max_cr.maxo(I, V) & 
-                  nset.member(N, view_change_set) & 
-                  ~le(r, R) & 
+                  max_cr.maxo(I, V) &
+                  nset.member(N, view_change_set) &
+                  ~le(r, R) &
                   l_view_change_msg(n, r, N, CR) &
                   creport.maxv(CR, I, R) &
                   creport.maxo(CR, I, V)
                  )
-conjecture forall I, RM, V. 
-            max_cr.maxv(I, RM) & max_cr.maxo(I, V) & RM ~= none 
-            -> 
+conjecture forall I, RM, V.
+            max_cr.maxv(I, RM) & max_cr.maxo(I, V) & RM ~= none
+            ->
             exists N.
             nset.member(N, view_change_set) &
             l_commit_msg(n, RM, N, I, V)
@@ -1038,8 +1038,8 @@ conjecture max_cr.maxv(I, none) & nset.member(N, view_change_set) & ~le(r, R) & 
 # If max is none, everyone sent none
 conjecture forall I, N, CR, MAXR.
             max_cr.maxv(I, none) ->
-               ~( nset.member(N, view_change_set) & 
-                  ~le(r,MAXR) & 
+               ~( nset.member(N, view_change_set) &
+                  ~le(r,MAXR) &
                   l_view_change_msg(n, r, N, CR) &
                   creport.maxv(CR, I, MAXR) &
                   MAXR ~= none
@@ -1050,14 +1050,14 @@ conjecture forall I, N, CR, MAXR.
 # if max is valid, it is bigger than all the group
 conjecture  forall I:slot, RM:view, N2:replica, R2:view, CR2:creport.
               max_cr.maxv(I, RM) & RM ~= none &
-              nset.member(N2, view_change_set) & 
+              nset.member(N2, view_change_set) &
               l_view_change_msg(n, r, N2, CR2) &
               creport.maxv(CR2, I, R2) &
               ~le(r,R2) &
-              R2 ~= none  
-              -> 
-              le(R2, RM) 
-          
+              R2 ~= none
+              ->
+              le(R2, RM)
+
 
 
 
@@ -1067,7 +1067,7 @@ action update_max_cr(s: replica, cr: creport) = {
     if ret {
       view_change_set := view_change_set.add(s);
       max_cr := creport.mergecr(max_cr, cr);
-    }     
+    }
 }
 
 private {
@@ -1085,13 +1085,13 @@ isolate vcCalc = {
 
 action maximalCommit(n:replica, r:view) returns (cr: creport) = {
     assume     forall I:slot. (
-                               (cr.maxv(I,none) & 
+                               (cr.maxv(I,none) &
                                 forall MAXR:view,MV:operation. ~(~le(r,MAXR) & l_commit_msg(n, MAXR, n, I,MV))
                                ) |
-                               (exists R, V. cr.maxv(I,R) & 
-                                             cr.maxo(I,V) & 
-                                             R ~= none & 
-                                             ~le(r, R) & 
+                               (exists R, V. cr.maxv(I,R) &
+                                             cr.maxo(I,V) &
+                                             R ~= none &
+                                             ~le(r, R) &
                                              l_commit_msg(n, R, n, I, V) &
                                              (forall R2:view,V2:operation. (~le(r,R2) & l_commit_msg(n, R2, n, I, V2)) -> le(R2,R))
                                )
@@ -1100,7 +1100,7 @@ action maximalCommit(n:replica, r:view) returns (cr: creport) = {
     ensure cr.maxv(I, none) & l_commit_msg(n, R, n, I, V) -> le(r, R);
     ensure (exists R. cr.maxv(I, R) & R ~= none) -> (exists V. cr.maxo(I, V));
     ensure cr.maxv(I, R) & R ~= none & cr.maxo(I, V) -> l_commit_msg(n, R, n, I, V);
-    ensure cr.maxv(I, R) & R ~= none & l_commit_msg(n, R2, n, I, V) & ~le(r, R2) -> le(R2, R); 
+    ensure cr.maxv(I, R) & R ~= none & l_commit_msg(n, R2, n, I, V) & ~le(r, R2) -> le(R2, R);
 }
 
 } with protocol, axioms

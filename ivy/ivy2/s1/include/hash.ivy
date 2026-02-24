@@ -8,7 +8,7 @@
 #
 #    instance thing : hash_map(domain,range)
 #
-# 
+#
 
 module hash_map(domain,range) = {
 
@@ -16,7 +16,7 @@ module hash_map(domain,range) = {
 	full : bool,
 	val : range
     }
-    
+
     type this = struct {
 	map(X:domain) : rec
     }
@@ -68,7 +68,7 @@ module hash_map(domain,range) = {
 #
 #    instance thing : hash_rel(domain,range)
 #
-# 
+#
 
 module hash_rel(domain,range) = {
 
@@ -87,7 +87,7 @@ module hash_rel(domain,range) = {
     }
 
     # get a vector of values y such that x maps to y in a
-    
+
     action get(a:this,x:domain) returns (res:vector[range]) = {
 	res := a.value(x);
     }

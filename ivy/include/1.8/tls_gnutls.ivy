@@ -16,13 +16,13 @@ module tls_gnutls(cid,index,bytes,extens,exten_ser,lower,upper) = {
     # Link the gnutls library
 
     attribute libspec = "gnutls"
-    
+
 
     # These empty objects are used to hold C++ values.
 
     object cb = {}          # struct holding the callbacks
     object cid_map = {}     # map from cid's to connections
-    
+
 # This code goes in the C++ header file, ahead of the ivy object declaration.
 # Here, we put declarations (perhaps forward) of any auxiliary classes we need).
 # We need to be careful that the names of these don't clash with other modules.
@@ -42,7 +42,7 @@ module tls_gnutls(cid,index,bytes,extens,exten_ser,lower,upper) = {
 >>>
 
 # This code goes in the C++ implementation file. Here, we put implementations of
-# the classes declared in the header, and auxiliary functions. 
+# the classes declared in the header, and auxiliary functions.
 
 <<< impl
 
@@ -51,7 +51,7 @@ module tls_gnutls(cid,index,bytes,extens,exten_ser,lower,upper) = {
     // Here we have stolen some internal struct definitions from gnutls to allow
     // us to go in and hack the record encryption. This is needed for QUIC version 13
     // and later. Eventually it would be good to have gnutls API calls to directly
-    // read and write handshake messages. 
+    // read and write handshake messages.
 
     typedef struct {
             unsigned int entity;	/* GNUTLS_SERVER or GNUTLS_CLIENT */
@@ -220,7 +220,7 @@ module tls_gnutls(cid,index,bytes,extens,exten_ser,lower,upper) = {
 
     implement create(c:cid, is_server:bool, e:extens) {
         <<< impure
-            
+
 	// We create a new gnutls session, and add an entry in the cid_map
 	// for it.
 
@@ -291,7 +291,7 @@ module tls_gnutls(cid,index,bytes,extens,exten_ser,lower,upper) = {
                 std::cerr << "gnutls_server_name_set returned error\n";
                 exit(1);
             }
-            
+
         }
 
         // Register the extensions
@@ -315,9 +315,9 @@ module tls_gnutls(cid,index,bytes,extens,exten_ser,lower,upper) = {
         }
 
 	`cid_map`[c] = s;
-	
+
         // Start the handshake. This returns, sitting status EAGAIN when input
-        // would block. 
+        // would block.
 
         gnutls_do_handshake(s);
 
@@ -326,7 +326,7 @@ module tls_gnutls(cid,index,bytes,extens,exten_ser,lower,upper) = {
 
 
     # Destroy frees a cid
-    
+
     implement destroy(c:cid) {
 	<<< impure
 
@@ -361,7 +361,7 @@ module tls_gnutls(cid,index,bytes,extens,exten_ser,lower,upper) = {
         >>>
     }
 
-    
+
     trusted isolate iso = this
 
     attribute test = impl

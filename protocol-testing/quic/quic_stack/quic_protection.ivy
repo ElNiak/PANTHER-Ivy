@@ -26,7 +26,7 @@ module quic_protection(tls_id,tls) = {
         payload_length_pos : stream_pos,   # position in packet of length field, if present
         pkt_num_pos : stream_pos           # position in packet of sequence number
     }
-    
+
     # Protect a packet, given the TLS session and the actual (not compressed)
     # sequence number of the packet;
 
@@ -45,12 +45,12 @@ module quic_protection(tls_id,tls) = {
     # indicate a stateless reset.
 
     action decrypt(c:tls_id,seq:pkt_num,pkt:stream_data) returns (res:tls.decrypt_result)
-    
+
     import action show_pkt_length(l:stream_pos)
     import action show_pkt(l:stream_data)
 
     implement encrypt {
-        
+
         var h := get_header_info(pkt,false);
         var level := get_level(pkt);
         var sample_size : stream_pos := tls.iv_size(c,level);
@@ -62,7 +62,7 @@ module quic_protection(tls_id,tls) = {
         # so that it includes the AEAD checksum. Of course, we don't know what
         # that actually is. Here we assume it is 16 bytes. Even worse, the length of
         # the length field could grow. Here, we assume the length field format is
-        # always two bytes. 
+        # always two bytes.
         if h.hdr_long {
             var new_len := to_var_int_16(h.payload_length+16);
             pkt := pkt.set(pnum_pos-2,new_len.value(0));
@@ -101,7 +101,7 @@ module quic_protection(tls_id,tls) = {
         } else {
             pn_offset := 1 + 4;
         };
-	
+
         var sample_pos : stream_pos :=  4 - pnum_len;  #- pnum_len;
         var new_pyld := pyld;
         if sample_pos + sample_size > pkt.end { #MC
@@ -115,13 +115,13 @@ module quic_protection(tls_id,tls) = {
             #check with mcmillan vs maxime piraux
             pyld := new_pyld;  #[*2*]
         };
-	 
-        var sample := pyld.segment(sample_pos,sample_pos+sample_size); 
+
+        var sample := pyld.segment(sample_pos,sample_pos+sample_size);
         var mask := stream_data.empty;
         mask := tls.encrypt_cipher(c,level,mask.resize(5,0),sample,false);
         var byte0_mask := bvand(mask.value(0), 0x0f if h.hdr_long else 0x1f);
         hdr := hdr.set(0,byte_xor(pkt.value(0),byte0_mask));
-        pnum := stream_data_xor(pkt.segment(pnum_pos,pnum_pos+pnum_len),mask.segment(1,1+pnum_len));        
+        pnum := stream_data_xor(pkt.segment(pnum_pos,pnum_pos+pnum_len),mask.segment(1,1+pnum_len));
         pkt := hdr.extend(pnum).extend(pyld);
     }
 
@@ -132,9 +132,9 @@ module quic_protection(tls_id,tls) = {
         var h_rtt := get_header_info(pkt_rtt,false);
 
         # ----------------------------------------------------------------------
-       
+
         var level := get_level(pkt_init);
-        var sample_size : stream_pos := tls.iv_size(c,level);        
+        var sample_size : stream_pos := tls.iv_size(c,level);
         var pnum_pos := h.pkt_num_pos;
         var pnum_len := get_pnum_len(pkt_init);
         var hdr_len := pnum_pos + pnum_len;
@@ -143,7 +143,7 @@ module quic_protection(tls_id,tls) = {
         # so that it includes the AEAD checksum. Of course, we don't know what
         # that actually is. Here we assume it is 16 bytes. Even worse, the length of
         # the length field could grow. Here, we assume the length field format is
-        # always two bytes. 
+        # always two bytes.
         if h.hdr_long {
             var new_len := to_var_int_16(h.payload_length-10); # 16 vs 10 -10 +16
             pkt_init := pkt_init.set(pnum_pos-2,new_len.value(0));
@@ -152,7 +152,7 @@ module quic_protection(tls_id,tls) = {
 
         var hdr  := pkt_init.segment(0,pnum_pos);
         var pnum := pkt_init.segment(pnum_pos,hdr_len);
-        var pyld_i := pkt_init.segment(hdr_len,pkt.end); 
+        var pyld_i := pkt_init.segment(hdr_len,pkt.end);
 
         var auth := pkt_init.segment(0,hdr_len);
         var new_seq := get_pnum(pnum,0,pnum_len);
@@ -181,7 +181,7 @@ module quic_protection(tls_id,tls) = {
         } else {
             pn_offset := 1 + 4;
         };
-	
+
         var sample_pos : stream_pos :=  4 - pnum_len;  #- pnum_len;
         var new_pyld := pyld_i;
         if sample_pos + sample_size > pkt_init.end { #MC
@@ -195,27 +195,27 @@ module quic_protection(tls_id,tls) = {
             #check with mcmillan vs maxime piraux
             pyld_i := new_pyld;  #[*2*]
         };
-	
-        var sample := pyld_i.segment(sample_pos,sample_pos+sample_size); 
+
+        var sample := pyld_i.segment(sample_pos,sample_pos+sample_size);
         var mask := stream_data.empty;
         mask := tls.encrypt_cipher(c,level,mask.resize(5,0),sample,false);
         var byte0_mask := bvand(mask.value(0), 0x0f if h.hdr_long else 0x1f);
         hdr := hdr.set(0,byte_xor(pkt_init.value(0),byte0_mask));
-        pnum := stream_data_xor(pkt_init.segment(pnum_pos,pnum_pos+pnum_len),mask.segment(1,1+pnum_len));        
+        pnum := stream_data_xor(pkt_init.segment(pnum_pos,pnum_pos+pnum_len),mask.segment(1,1+pnum_len));
         pkt_init := hdr.extend(pnum).extend(pyld_i);
 
         # ----------------------------------------------------------
 
         var sample_size_rtt : stream_pos := tls.iv_size(c,1);
         var pnum_pos_rtt := h_rtt.pkt_num_pos;
-        var pnum_len_rtt := get_pnum_len_b(pkt_rtt); 
+        var pnum_len_rtt := get_pnum_len_b(pkt_rtt);
         var hdr_len_rtt := pnum_pos_rtt + pnum_len_rtt;
-        
+
         # Tricky: before encrypting the payload, we need to adjust the length field
         # so that it includes the AEAD checksum. Of course, we don't know what
         # that actually is. Here we assume it is 16 bytes. Even worse, the length of
         # the length field could grow. Here, we assume the length field format is
-        # always two bytes. 
+        # always two bytes.
         if h_rtt.hdr_long {
             var new_len := to_var_int_16(h_rtt.payload_length+16);
             pkt_rtt := pkt_rtt.set(pnum_pos_rtt-2,new_len.value(0));
@@ -253,7 +253,7 @@ module quic_protection(tls_id,tls) = {
         } else {
             pn_offset_rtt := 1 + 4;
         };
-	
+
         var sample_pos_rtt : stream_pos :=  4 - pnum_len_rtt;  #- pnum_len;
         var new_pyld_rtt := pyld_rtt;
         if sample_pos_rtt + sample_size_rtt > pkt_rtt.end  { #MC CHECK
@@ -266,13 +266,13 @@ module quic_protection(tls_id,tls) = {
             #check with mcmillan vs maxime piraux
             pyld_rtt := new_pyld_rtt;  #[*2*]
         };
-	
-        var sample_rtt := pyld_rtt.segment(sample_pos_rtt,sample_pos_rtt+sample_size_rtt); 
+
+        var sample_rtt := pyld_rtt.segment(sample_pos_rtt,sample_pos_rtt+sample_size_rtt);
         var mask_rtt := stream_data.empty;
         mask_rtt := tls.encrypt_cipher(c,1,mask_rtt.resize(5,0),sample_rtt,false); # TODO
         var byte0_mask_rtt := bvand(mask_rtt.value(0), 0x0f if h_rtt.hdr_long else 0x1f);
         hdr_rtt := hdr_rtt.set(0,byte_xor(pkt_rtt.value(0),byte0_mask_rtt));
-        pnum_rtt := stream_data_xor(pkt_rtt.segment(pnum_pos_rtt,pnum_pos_rtt+pnum_len_rtt),mask_rtt.segment(1,1+pnum_len_rtt));        
+        pnum_rtt := stream_data_xor(pkt_rtt.segment(pnum_pos_rtt,pnum_pos_rtt+pnum_len_rtt),mask_rtt.segment(1,1+pnum_len_rtt));
         pkt_rtt := hdr_rtt.extend(pnum_rtt).extend(pyld_rtt);
         # ----------------------------------------------------------
 
@@ -293,22 +293,22 @@ module quic_protection(tls_id,tls) = {
             res.ok := false;
         } else if sample_size = 0 {
             res.ok := false;
-        } 
+        }
         else {
             var pnum_pos := h.pkt_num_pos; #+ h.token_length;
             var sample_pos := pnum_pos + 4; # + h.token_length;
             if sample_pos + sample_size > pkt.end {
                 sample_pos := pkt.end - sample_size
             };
-            
+
             var sample := pkt.segment(sample_pos,sample_pos+sample_size);
             var pnum := pkt.segment(pnum_pos,pnum_pos+4);
             var mask := stream_data.empty;
-            
+
             # tricky: this encrypts with the receiving cipher
             # mask = header_protection(hp_key, sample)
             mask := tls.encrypt_cipher(c,level,mask.resize(5,0),sample,true);
-            
+
 
             # if (packet[0] & 0x80) == 0x80:
                 # Long header: 4 bits masked
@@ -317,10 +317,10 @@ module quic_protection(tls_id,tls) = {
                 # Short header: 5 bits masked
             #     packet[0] ^= mask[0] & 0x1f
             var byte0_mask := bvand(mask.value(0), 0x0f if h.hdr_long else 0x1f);
-            
+
             var hdr := pkt.segment(0,pnum_pos);
             hdr := hdr.set(0,byte_xor(hdr.value(0),byte0_mask));
-            
+
             var pnum_len := get_pnum_len_b(hdr);
 
             last_datagram_received_size := last_datagram_received_size +  h.payload_length + h.pkt_num_pos + pnum_len;
@@ -368,15 +368,15 @@ module quic_protection(tls_id,tls) = {
 
     action get_level(pkt:stream_data) returns (level:tls.level) = {
         if bvand(pkt.value(0),0x80) ~= 0 {
-            var hdr_type := bvand(pkt.value(0),0x30); #  : type_bits :=  bfe[0][6](pkt.value(0)); # 
+            var hdr_type := bvand(pkt.value(0),0x30); #  : type_bits :=  bfe[0][6](pkt.value(0)); #
             #call show_htype(hdr_type);
             if hdr_type = 0x00 | hdr_type = 0x30 { # | hdr_type = 0x20
                 level := 0;
-            } 
+            }
             else if hdr_type = 0x10 {
                 # 0RTT
                 level := 1;
-            } 
+            }
             else  { # if hdr_type = 0x20, TODO: other packet types
                 level := 2;
             }
@@ -405,9 +405,9 @@ module quic_protection(tls_id,tls) = {
             };
         }
     }
-    
+
     # This returns the header information of a packet, whether
-    # encrypted or not. 
+    # encrypted or not.
 
     action get_header_info(pkt:stream_data,decrypt:bool) returns (h:header_info) = {
         h.hdr_long := bvand(0x80,pkt.value(0)) ~= 0;
@@ -454,7 +454,7 @@ module quic_protection(tls_id,tls) = {
     # This computes the full sequence number from the truncated
     # version in the packet. It can fail if a packet is really old, in
     # which case the packet won't decrypt.
-    
+
     action correct_pnum(last:pkt_num, pnum:pkt_num, pnum_len:stream_pos)
     returns (pnum:pkt_num) = {
         # TODO: for now we assume always 30-bit packet number format
@@ -472,7 +472,7 @@ module quic_protection(tls_id,tls) = {
         pnum_len = (pkt[0] & 0x3) + 1;
         >>>
     }
-    
+
     action get_pnum_len(pkt:stream_data) returns (pnum_len:stream_pos) = {
         var len_minus_one : stream_pos := bfe[0][1](pkt.value(0));
         pnum_len := len_minus_one + 1;
@@ -593,7 +593,7 @@ object quic_prot_ser = {}
 
         virtual void  set(int128_t res) {
             setn(res,1);
-        }    
+        }
     };
 
 >>>
@@ -622,7 +622,7 @@ object quic_prot_deser = {}
 
         void  get(int128_t &res) {
             getn(res,1);
-        }    
+        }
 
         unsigned char peek(unsigned p) {
             return more(p-pos+1) ? inp[p] : 0;
@@ -639,7 +639,7 @@ object quic_prot_deser = {}
                 res = (res << 8) + peek(p+i);
             return res;
         }
-            
+
         void open_list() {
             if (level != 1)
                 return;
@@ -668,12 +668,12 @@ object quic_prot_deser = {}
                     unsigned remain = inp.size() - pnum_pos;
                     data_remaining = (pnum_pos-pos) + remain;
                 }
-                else if ((ptype == 0x00 || ptype == 0x20 || ptype == 0x10)) { 
+                else if ((ptype == 0x00 || ptype == 0x20 || ptype == 0x10)) {
                     // Only for Handshake and initial
                     unsigned len = get_var_int_len(pnum_pos);
                     unsigned pyld_len = get_var_int(pnum_pos,len);
                     data_remaining = (pnum_pos-pos) + len + pyld_len;
-                }  
+                }
                 //std::cerr << "pkt len: " << data_remaining << " type: " << (peek(pos)-pos) << " len len: " << len << " pyld_len: " << pyld_len << " pnum_pos: " << pnum_pos << "\n";
             }
             else {

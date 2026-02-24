@@ -31,7 +31,7 @@ object ivy = {
     instance castop : built_in_unary("cast",verb.castv,49)
 
     # The `=`, `~=` and `~` verbs are spelled differently in Ivy and C++
-    
+
     instance equals : built_in_binary("=",verb.equals,5)
     instance notequals : built_in_binary("~=",verb.notequals,5)
     instance not : built_in_unary("~",verb.not,15)
@@ -41,17 +41,17 @@ object ivy = {
     instance ite : built_in_ternary("if",verb.ite,2)
 
     # We treat "var" as a unary operator so it can appear
-    # on lhs of assignments. 
+    # on lhs of assignments.
 
     instance varv : built_in_unary("var",verb.varv,2)
 
     # The `isa` operator
-    
+
     instance isaop : built_in_binary("isa",verb.isav,5)
 
     # Here, we have statements specific to Ivy and the Ivy statement
     # parser.
-    
+
     # The object `varst` represents the `var` statement.
 
     object varst = {
@@ -112,7 +112,7 @@ object ivy = {
 	    res := s.prg;
 	}
     }
-        
+
 
     object stmt = { ...
 
@@ -185,7 +185,7 @@ object ivy = {
             b := b.unnest;
             b := b.newline;
             b := b.extend("}");
-        }	    
+        }
     }
 
     object typespec = {
@@ -210,7 +210,7 @@ object ivy = {
     }
 
     instance curly_tup : tuple(expr,"{","}",verb)
-    
+
     object enumspec = {
         variant this of typespec = struct {
             constructors : vector[expr],
@@ -220,12 +220,12 @@ object ivy = {
             b := b.nest;
             b := curly_tup.encode(s.constructors,b,prio);
             b := b.unnest;
-        }	    
+        }
         action get_elems(s:this) returns (res:vector[expr]) = {
             res := s.constructors
         }
     }
-            
+
     object structspec = {
         variant this of typespec = struct {
             destructors : vector[expr],
@@ -237,7 +237,7 @@ object ivy = {
             b := b.extend(" ");
             b := curly_tup.encode(s.destructors,b,prio);
             b := b.unnest;
-        }	    
+        }
         action get_elems(s:this) returns (res:vector[expr]) = {
             res := s.destructors
         }
@@ -280,8 +280,8 @@ object ivy = {
             };
             b := b.unnest;
             b := b.newline;
-        }	    
-    }        
+        }
+    }
 
     object vardc = {
         variant this of decl = struct {
@@ -315,8 +315,8 @@ object ivy = {
                 b := s.def.encode(b,0);
             };
             b := b.newline;
-        }	    
-    }        
+        }
+    }
 
     object header = {
         variant this of decl = struct {
@@ -337,9 +337,9 @@ object ivy = {
             b := b.extend(s.filename);
             b := b.unnest;
             b := b.newline;
-        }	    
+        }
     }
-        
+
 
     object interpdc = {
         variant this of decl = struct {
@@ -347,7 +347,7 @@ object ivy = {
             ctype : expr,
             ann : annot
         }
-        
+
         action make(itype : expr, ctype : expr, ann : annot) returns (res:decl) =
         {
             var s:this;
@@ -367,7 +367,7 @@ object ivy = {
             b := s.ctype.encode(b,0);
             b := b.unnest;
             b := b.newline;
-        }	    
+        }
     }
 
     object includedc = {
@@ -390,7 +390,7 @@ object ivy = {
             b := s.file.encode(b,0);
             b := b.unnest;
             b := b.newline;
-        }	    
+        }
 
         action get_expr(s:this) returns (res:expr) = {
             res := s.file
@@ -400,7 +400,7 @@ object ivy = {
             res := s.ann
         }
     }
-        
+
     object moduledc = {
         variant this of decl = struct {
             name : expr,
@@ -430,10 +430,10 @@ object ivy = {
             b := b.extend("=");
             b := b.extend(" ");
             b := s.body.encode(b,2);
-        }	    
+        }
 
     }
-        
+
     object instantiatedc = {
         variant this of decl = struct {
             name : expr,
@@ -459,7 +459,7 @@ object ivy = {
             };
             b := b.unnest;
             b := b.newline
-        }	    
+        }
 
     }
 
@@ -488,7 +488,7 @@ object ivy = {
             b := b.extend("=");
             b := b.extend(" ");
             b := s.body.encode(b,0);
-        }	    
+        }
 
     }
 
@@ -498,7 +498,7 @@ object ivy = {
     # The declaration `autoinstance x[p1][p2] : y(p1...pn)` causes an instance
     # `x[p1][p2]` of `y(p1...pn)` to be generated for each identifier `x[p1][p2]` that occurs
     # undefined in the program, for any values of p1...pn. The module `y` is instantiated
-    # just before the declaration triggering the instantiation. 
+    # just before the declaration triggering the instantiation.
 
 
     object instancedc = {
@@ -532,7 +532,7 @@ object ivy = {
             };
             b := b.unnest;
             b := b.newline
-        }	    
+        }
 
     }
 
@@ -549,13 +549,13 @@ object ivy = {
             b := b.extend(" ");
             b := s.body.encode(b,1);
             b := b.newline
-        }	    
+        }
 
         action get_body(s:this) returns (res:stmt) = {
             res := s.body
         }
     }
-    
+
 
     action parse_action(st : pstate, prio:priority, kind:action_kind)
         returns (st : pstate, res:decl) =
@@ -643,7 +643,7 @@ object ivy = {
                     (st,s.itype) := expr.parse(st,verb_to_prio(verb.arrow));
                     if st.ok & st.tok = "->" {
                         st := st.consume;
-                        (st,s.ctype) := expr.parse(st,0); 
+                        (st,s.ctype) := expr.parse(st,0);
                     } else { st.ok := false };
                 } else { st.ok := false };
                 res := s
@@ -760,4 +760,3 @@ object ivy = {
 
     instantiate prog_base(false)
 }
-

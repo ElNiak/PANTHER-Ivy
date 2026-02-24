@@ -93,7 +93,7 @@ object ref = {
     action eval(tx : txid) returns (res : response_body.t)
 
     instance rep : replica
-    
+
     var next : txid
     function txs(X:txid) : request_body.t
     function txres(X:txid) : response_body.t
@@ -131,7 +131,7 @@ object ref = {
 # The serialization object is the same as before
 
 object ser = {
-    
+
     action serialize(tx : txid)
 
     # The serializer object keeps track of which transactions have
@@ -182,7 +182,7 @@ object req_msg = {
 }
 
 module client(cid,prim_chan,sec_chan,cl_chans) = {
-    
+
     action client_request(the_req : request_body.t, the_dst: dest.t)
     action client_response(resp : response_body.t, tx : txid)
 
@@ -215,7 +215,7 @@ module primary_node(port, fwd_chan, rev_chan, cl_chans) = {
     instance req_chan : nondup_endpoint(port,req_msg.t)
 
     instance fail_chan : nondup_endpoint(port,fail_msg)
-    
+
     instance counter : unbounded_sequence
     function pending(K:key) : counter.t
 
@@ -225,7 +225,7 @@ module primary_node(port, fwd_chan, rev_chan, cl_chans) = {
         pending(K) := 0;
         sec_failed := false;
     }
-        
+
     # If we receive a failure message, set `sec_failed`.
 
     implement fail_chan.recv(inp : fail_msg) {
@@ -255,7 +255,7 @@ module primary_node(port, fwd_chan, rev_chan, cl_chans) = {
                 pending(rr.ky) := pending(rr.ky).next;
             };
             var res := rep.exec(inp.req.bd);
-        }             
+        }
     }
 
     # When we receive a write request on the acknowledgement channel,
@@ -270,13 +270,13 @@ module primary_node(port, fwd_chan, rev_chan, cl_chans) = {
 }
 
 # The secondary receives a signal `fail` from the environment indicating it should
-# fail. When this happens it sends a fail message to the primary and shuts down. 
+# fail. When this happens it sends a fail message to the primary and shuts down.
 
 module secondary_node(port, fwd_chan, rev_chan, fail_chan, cl_chans) = {
     instance rep : replica
 
     instance req_chan : nondup_endpoint(port,req_msg.t)
-        
+
     var failed : bool
 
     after init {
@@ -300,7 +300,7 @@ module secondary_node(port, fwd_chan, rev_chan, fail_chan, cl_chans) = {
                 res.tx := inp.req.tx;
                 res.bd := rep.exec(rr);
                 call cl_chans(inp.cid).send(res);
-            }             
+            }
             # ignore writes!
         }
     }
@@ -355,7 +355,7 @@ object service_spec = {
     after init {
         responded(X) := false;
     }
-    
+
     before cl_chans.send(p : client_id, m : response.t) {
         assert ~responded(m.tx);
         assert m.bd = ref.eval(m.tx);
@@ -363,7 +363,7 @@ object service_spec = {
     }
 }
 
-# The interface between primary and secondary is changed a bit to reflect the failure channel. 
+# The interface between primary and secondary is changed a bit to reflect the failure channel.
 
 
 object mid_spec = {
@@ -391,7 +391,7 @@ object mid_spec = {
         acked(X) := false;
         sec_failed := false;
     }
-    
+
     before rev_chan.sndr.send(inp : req_msg.t) {
         assert ref.committed(inp.req.tx);
         assert ref.txs(inp.req.tx) = inp.req.bd;
@@ -399,18 +399,18 @@ object mid_spec = {
         assert ~sec_failed;
         acked(inp.req.tx) := true;
     }
-    
+
     function req_dest(X:txid) : dest.t
 
     after ref.create(inp : request_body.t, dst:dest.t) returns (tx : txid) {
         req_dest(tx) := dst
     }
-        
+
     before prim.fail_chan.send(m : fail_msg) {
         assert ~sec_failed;
     }
 
-    # Here, we set the `sec_failed` flag. 
+    # Here, we set the `sec_failed` flag.
 
     after prim.fail_chan.send(m : fail_msg) {
         sec_failed := true;
@@ -430,9 +430,9 @@ object mid_spec = {
     }
 
     object solution = {
-        
-        # Exercise solution: We maintain an ordered queue of all the 
-        # write requests that have been serialized but not commited. 
+
+        # Exercise solution: We maintain an ordered queue of all the
+        # write requests that have been serialized but not commited.
 
         instance pending : unbounded_queue(txid)
 
@@ -457,7 +457,7 @@ object mid_spec = {
                 call ref.commit(pending.first,dest.prim)
             }
         }
-    }        
+    }
 }
 
 # We export/import our API.
@@ -528,4 +528,3 @@ attribute sec.fail.weight = "0.05"
 # Also, you can test whether a queue `q` is empty with `q.empty`. Try
 # using a queue to keep track of pending transaction commits and
 # perform them at the right moment.
-

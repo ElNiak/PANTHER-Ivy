@@ -100,7 +100,7 @@ object quic_deser_enc_server = {}
         bool is_from_open_list = false;
         int total_data = 0;
 
-    
+
     public:
         quic_deser_enc_server(const std::vector<char> &inp) : ivy_binary_deser_128(inp),state(quic_s_init) {
         //quic_deser_enc_server(const std::vector<char> &inp) : ivy_binary_deser(inp),state(quic_s_init) {
@@ -137,11 +137,11 @@ object quic_deser_enc_server = {}
                 //packet_number_length += 1;
 
                 //TODO big "hack" by lack of time TOFIX
-                /*if(const char* env_p2 = std::getenv("PNUM_LEN")) { 
+                /*if(const char* env_p2 = std::getenv("PNUM_LEN")) {
                     if(const char* env_p3 = std::getenv("PNUM_LEN")) {
                         packet_number_length = atoi(env_p3);
                         std::cerr << "PNUM_LEN " << env_p3 << "\n";
-                    } 
+                    }
                     else {
                         packet_number_length = (res >> 5) & 0x03; //might not work
                         packet_number_length += 1;
@@ -178,7 +178,7 @@ object quic_deser_enc_server = {}
             }
             break;
             case quic_s_dcid:
-            {   
+            {
                 if (long_format) {
                     int128_t cil;
                     //long long cil;
@@ -200,10 +200,10 @@ object quic_deser_enc_server = {}
                     int128_t cil;
                     //long long cil;
                     getn(cil,1);
-                    std::cerr << "sourceID size " << cil << "\n";  
+                    std::cerr << "sourceID size " << cil << "\n";
                     if(cil > 0)
                         have_scid = true;
-                    else 
+                    else
                         have_scid = false;
                     scil = cil;
                     scid_h_server = cil;
@@ -236,7 +236,7 @@ object quic_deser_enc_server = {}
                 else len = 0;
 
                 data_remaining = len;
-                
+
 		        std::cerr << "sourceID token len " << data_remaining << "\n";
                 state = quic_s_retry_token;
             }
@@ -295,14 +295,14 @@ object quic_deser_enc_server = {}
             {
                 /*if(!is_from_open_list && is_random_padding_packet) {
                     data_remaining--;
-                    
-                }  
+
+                }
                 if (is_random_padding_packet & data_remaining == 0) {
                     std::cerr << "quic_deser_enc_server end of random padding packet\n";
                     end();
                     close_struct();
                 }*/
-                getn(res,1);         
+                getn(res,1);
                 // std::cerr << "quic_deser_enc_server payload remaining " << data_remaining << "\n";
             }
             break;
@@ -320,7 +320,7 @@ object quic_deser_enc_server = {}
             }
             break;
             default:
-                std::cerr << "quic_deser_enc_server 3\n";  
+                std::cerr << "quic_deser_enc_server 3\n";
                 throw deser_err();
             }
         }
@@ -367,25 +367,25 @@ object quic_deser_enc_server = {}
                 //long long ft;
                 //ivy_binary_deser::getn(ft,1); // could be bigger
 
-                /* 
-                TODO we should get varint and then parse in consequence like in tls_deser_ser 
+                /*
+                TODO we should get varint and then parse in consequence like in tls_deser_ser
                 */
 
                 frame_type = ft;
                 std::cerr << "recv frame_type = " << frame_type << "\n";
-                std::cerr << "saw tag " << ft << "\n";  
+                std::cerr << "saw tag " << ft << "\n";
             }
-            std::cerr << "state          = " << state << "\n";  
+            std::cerr << "state          = " << state << "\n";
             std::cerr << "quic_s_payload = " << quic_s_payload << "\n";
             std::cerr << "quic_s_payload == " << (quic_s_payload == state) << "\n";
-            std::cerr << "quic_deser_enc_server 2\n";  
+            std::cerr << "quic_deser_enc_server 2\n";
             throw deser_err();
         }
 
         virtual bool open_list_elem() {
             if (state == quic_s_payload) {
                 // We must use/take in count the padding quic_frame since Picoquic client sometimes send packet
-                // only with 1 padding quic_frame which make fails the requirement saying that a 
+                // only with 1 padding quic_frame which make fails the requirement saying that a
                 // packet cannot be empty
                //while ((fence == 0 || pos < fence) && more(1) && inp[pos] == 0)
                //    pos++;  // skip padding frames
@@ -395,7 +395,7 @@ object quic_deser_enc_server = {}
                 //data_remaining--;
                 return data_remaining-->  0;
             }
-            std::cerr << "quic_deser_enc_server 1\n";  
+            std::cerr << "quic_deser_enc_server 1\n";
             throw deser_err();
         }
 

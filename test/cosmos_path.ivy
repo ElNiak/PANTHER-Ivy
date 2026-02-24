@@ -16,7 +16,7 @@ module cosmos_path(number_t,pathElement_t,streamID_t) = {
     # Simple paths are sequences of path elements. This is implemented
     # by the "path" module in collections.
     instance simple_path : path(number_t,pathElement_t)
-    
+
     # This enum indicates which form the Cosmos path takes
     type kind_t = {stream_kind, path_kind}
 
@@ -39,7 +39,7 @@ module cosmos_path(number_t,pathElement_t,streamID_t) = {
 	        guid << a.cp_stream; // this gets the GUID in quotes
 	        int len = guid.str().size();
                 s << "\".streamid/{" << guid.str().substr(1,len-2).c_str() << "}\"";
-	    } else 
+	    } else
 	        s << a.cp_path;
 	    return s;
 	}
@@ -47,7 +47,7 @@ module cosmos_path(number_t,pathElement_t,streamID_t) = {
 	template <>
 	`t` _arg<`t`>(std::vector<ivy_value> &args, unsigned idx, int bound) {
 	    ivy_value &arg = args[idx];
-	    if (arg.fields.size()) 
+	    if (arg.fields.size())
 	        throw out_of_bounds(idx);
 	    `t` a;
 	    int len = arg.atom.size();
@@ -74,7 +74,7 @@ module cosmos_path(number_t,pathElement_t,streamID_t) = {
 	    std::vector<ivy_value> args;
 	    args.resize(1);
 	    inp.get(args[0].atom);
-	    res = _arg<`t`>(args,0,0);	    
+	    res = _arg<`t`>(args,0,0);
         }
 >>>
 }

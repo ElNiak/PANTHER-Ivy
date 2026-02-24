@@ -118,7 +118,7 @@ class {typename}(object):
     _meta_fields = {meta_field_names!r}
     _sub_fields = {sub_field_names!r}
 
-    def __init__(self, {meta_arg_list}{sub_arg_list}):        
+    def __init__(self, {meta_arg_list}{sub_arg_list}):
         #super({typename}, self).__setattr__('_meta', _tupler({meta_arg_list}))
         #super({typename}, self).__setattr__('_sub', _tupler({sub_arg_list}))
         _init(self, {meta_arg_list}{sub_arg_list})
@@ -205,7 +205,7 @@ def _init(self, *args):
     self._tup = args
 
 def rectagtuple(typename,
-                meta_field_names, 
+                meta_field_names,
                 sub_field_names,
                 verbose=False):
 
@@ -280,7 +280,7 @@ def test_combos():
     for meta in [(), ('m0',), ('m0', 'm1')]:
         for sub in [(), ('s0',), ('s0', 's1')]:
             for args in [(), ('*args',)]:
-                rectagtuple('Test', 
+                rectagtuple('Test',
                             meta,
                             sub + args,
                             verbose=True)

@@ -1,0 +1,79 @@
+# Pre-commit configuration for panther_ivy submodule
+#
+# Three-tier approach:
+#   Tier 1 - Plugin code (root-level .py): Full formatting + linting
+#   Tier 2 - Upstream ivy/ code: Hygiene only (whitespace, merge conflicts)
+#   Tier 3 - Everything else (.ivy, templates, YAML, C++): Hygiene only
+#
+# Usage:
+#   pre-commit install
+#   pre-commit run --all-files                          # Auto-commit hooks
+#   pre-commit run --hook-stage manual --all-files      # Manual hooks (flake8, bandit, hadolint)
+
+repos:
+  # === Hygiene hooks (all tiers) ===
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^(submodules/|__pycache__/|build/|dist/|.*\.egg-info/|protocol-testing/apt/test/)
+      - id: end-of-file-fixer
+        exclude: ^(submodules/|__pycache__/|build/|dist/|.*\.egg-info/|protocol-testing/apt/test/)
+      - id: check-yaml
+        args: ['--allow-multiple-documents']
+        exclude: ^(submodules/|templates/)
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: check-merge-conflict
+      - id: check-json
+        exclude: ^(submodules/|\.vscode/)
+
+  # === Tier 1: Plugin code formatting ===
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+      - id: black
+        files: ^[^/]+\.py$
+        args: ['--target-version', 'py310']
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        files: ^[^/]+\.py$
+        args: ['--profile', 'black']
+
+  # === Tier 1: Plugin code linting (manual stage) ===
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        files: ^[^/]+\.py$
+        args: ['--max-line-length=88', '--extend-ignore=E203,W503']
+        stages: [manual]
+
+  - repo: https://github.com/pycqa/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        files: ^[^/]+\.py$
+        args: ['-ll', '-i']
+        additional_dependencies: ['pbr']
+        stages: [manual]
+
+  # === Local hooks ===
+  - repo: local
+    hooks:
+      - id: plugin-syntax-check
+        name: Plugin Syntax Check
+        entry: python -m py_compile
+        language: system
+        files: ^[^/]+\.py$
+        types: [python]
+
+      - id: dockerfile-lint
+        name: Dockerfile Lint (hadolint)
+        entry: hadolint
+        language: system
+        files: ^Dockerfile
+        stages: [manual]

@@ -34,7 +34,7 @@ isolate bar = {
     specification {
         var head : nat
         var tail : nat
-        
+
         after init {
             head := 0;
             tail := 0;
@@ -70,7 +70,7 @@ isolate bar = {
         # that is, which implies that the eventuality is always false. Thus, our work_done
         # condition is X <= head & ~eventually _X <= head.
         #
-        # This pattern might be generally useful for progress properties. 
+        # This pattern might be generally useful for progress properties.
 
         temporal property
         forall X.
@@ -80,7 +80,7 @@ isolate bar = {
             tactic skolemize;
             tactic l2s_auto with
             definition work_created(X) = (X <= tail)
-            definition work_needed(X) = (X <= _X) 
+            definition work_needed(X) = (X <= _X)
             definition work_done(X) = (X <= head) & ~eventually(_X <= head)
             definition work_start = ~(tail = _X -> eventually _X <= head)
             definition work_progress = receiving.now
@@ -90,4 +90,3 @@ isolate bar = {
 
 export bar.send
 export bar.recv
-

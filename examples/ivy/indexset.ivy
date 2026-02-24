@@ -41,8 +41,8 @@ include order
 
 module indexset(basis,index) = {
 
-    type set 
-    
+    type set
+
     individual n : basis.t
     relation member(E:basis.t,S:set)
     relation disjoint(X:set,Y:set)
@@ -54,7 +54,7 @@ module indexset(basis,index) = {
     action add(s:set,e:basis.t) returns (s:set)
 
     axiom n >= 0
-    
+
     object spec = {
 	property disjoint(X,Y) -> card(X) + card(Y) <= cnt(n)
 
@@ -68,9 +68,9 @@ module indexset(basis,index) = {
 	    assert member(X,s) <-> (member(X,old s) | X = e)
 	}
     }
-    
+
     object impl = {
-	
+
 	object spec = {
 
 	definition disjoint(X,Y) = forall E. ~(member(E,X) & member(E,Y))
@@ -93,7 +93,7 @@ module indexset(basis,index) = {
 
 	# invariant
 
-	derived inv(B,X,Y) = 
+	derived inv(B,X,Y) =
             disjoint(X,Y) -> cardUpTo(X,B) + cardUpTo(Y,B) <= cnt(B)
 
 
@@ -116,7 +116,7 @@ module indexset(basis,index) = {
 	# Here is the implementation of the set type using an unsorted array. The above reasoning
 	# is actually independent of the definition of "member" below. Hopefully, this definition
 	# will not confuse Z3. If it did, we would have to put these definitions into their own isolate.
-	
+
 	instance arridx : unbounded_sequence
 	instance arr:array(arridx.t,basis.t)
 
@@ -140,4 +140,3 @@ module indexset(basis,index) = {
 	}
     }
 }
-

@@ -3,7 +3,7 @@
 # a fake serializer for minip
 
 # 2. TODO John: add a serializer for the ping message
-# 
+#
 object ping_ser = {}
 
 <<< member
@@ -13,7 +13,7 @@ object ping_ser = {}
 >>>
 
 <<< impl
-    
+
     class `ping_ser` : public ivy_binary_ser_128 {
         enum {ping_s_init,
               ping_s_frame,
@@ -47,7 +47,7 @@ object ping_ser = {}
             }
             break;
             default:
-            std::cerr << "deser_err 42 "  << "\n";  
+            std::cerr << "deser_err 42 "  << "\n";
             throw deser_err();
             }
         }
@@ -72,14 +72,14 @@ object ping_ser = {}
                     frame_type = 0x03;
                 }
                 else {
-                    std::cerr << "saw frame tag " << tag << "\n";  
+                    std::cerr << "saw frame tag " << tag << "\n";
                     throw deser_err();
 	            }
                 setn(frame_type,sz);
                 return;
             }
-            std::cerr << "deser_err 43 " << tag << "\n";  
-            std::cerr << "deser_err 43 " << state << "\n";  
+            std::cerr << "deser_err 43 " << tag << "\n";
+            std::cerr << "deser_err 43 " << state << "\n";
             throw deser_err();
         }
 

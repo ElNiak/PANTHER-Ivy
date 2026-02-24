@@ -186,9 +186,7 @@ class Module(AST):
 class Call(AST):
     def __repr__(self):
         return repr(self.args[0]) + '(' + ','.join(repr(d) for d in self.args[1:]) + ')'
-    
+
 class ReturnStmt(AST):
     def __repr__(self):
         return 'return ' + ','.join(repr(d) for d in self.args) + ';'
-    
-    

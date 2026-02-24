@@ -12,7 +12,6 @@ object tls_api = {
     instance id : long_unbounded_sequence # unbounded_sequence #id #
     instance lower : tls_lower_intf(id,stream_data)
     instance upper : tls_intf(id,stream_pos,stream_data,lower,tls_extensions,tls_hand_extensions,tls_ser,pkt_num)
-}    
+}
 
 instance net : udp_impl(endpoint_id,prot.arr,coap_prot_ser,coap_prot_deser)
-

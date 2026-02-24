@@ -142,7 +142,7 @@ module isolate split_queue2(nat,id,q,p) with nat = {
     invariant X < tail & done(X) & Y < X & q(queue(Y)) -> done(Y)
     invariant done(X) -> X < tail
     invariant ~(X:nat < 0)
-    
+
     # Now we can prove liveness with the model checker. We concretize the
     # following individuals:
     #
@@ -206,7 +206,7 @@ before send {
 
 before recv1 {
     trying1.raise;
-    bar.recv1; # ghost 
+    bar.recv1; # ghost
     if some x:nat. ~done(x) & x < tail & q(queue(x)) minimizing x {
         if p(queue(x)) {
             done(x) := true;
@@ -305,4 +305,3 @@ proof {
 export send
 export recv1
 export recv2
-

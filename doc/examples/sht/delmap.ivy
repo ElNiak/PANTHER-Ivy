@@ -70,7 +70,7 @@ module delegation_map(key,id) = {
 
 	conjecture imap.maps(key.iter.val(I),V) & imap.gap(I,J) & key.iter.between(I,K,J) -> map(K,V)
 
-	# We always have an entry for key zero. 
+	# We always have an entry for key zero.
 
 	conjecture imap.contains(0)
     }

@@ -33,53 +33,53 @@ export packet.forward_to_server
 
 object packet = {
     ...
-    
+
     object ping_packet = {
         ...
         before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
-            
+
             if _generating {
                 require pkt.payload = ping_packet_received_at_round(dst,
                                                                     coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
                                                                     current_forwarding_round(dst)).payload;
-            } 
+            }
         }
 
         before replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
-            
+
             if _generating {
                 require pkt.payload = ping_packet_received_at_round(dst,
                                                                     coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
                                                                     current_forwarding_round(dst)).payload;
-            } 
+            }
         }
 
         before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
-            
+
             if _generating {
                 require pkt.payload = ping_packet_received_at_round(dst,
                                                                     coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
                                                                     current_forwarding_round(dst)).payload;
-            } 
+            }
         }
 
         before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
-            
+
             if _generating {
                 require pkt.payload = ping_packet_received_at_round(dst,
                                                                     coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
                                                                     current_forwarding_round(dst)).payload;
-            } 
+            }
         }
 
         before modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
-            
+
             if _generating {
                 require pkt.payload = ping_packet_received_at_round(dst,
                                                                                     coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
                                                                                     current_forwarding_round(dst)).payload |
                                       pkt.payload.end >= 0;
-            } 
+            }
         }
     }
 }
@@ -110,8 +110,6 @@ export packet.ping_packet.forward_to_client
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     call mim_agent.reset_NAT;
 }
-
-

@@ -14,7 +14,7 @@ var sock_vn : quic_net.socket
 
 # Server
 action socket_endpoint_mim(host:endpoint_id,s:quic_net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
-    dst := mim_agent.ep_client if src = mim_agent.ep_server else mim_agent.ep_server; # is_mim_standalone | 
+    dst := mim_agent.ep_client if src = mim_agent.ep_server else mim_agent.ep_server; # is_mim_standalone |
     call socket_endpoint_mim_event_debug_event(host,s,src,dst);
 }
 
@@ -78,7 +78,7 @@ before malicious_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_pa
             require src.addr = client_vn.addr;
         } else {
             if ~disable_active_migration.is_set(tp) {
-                if ~migration_done | allowed_multiple_migration { 
+                if ~migration_done | allowed_multiple_migration {
                     #only one migration
                     require src.addr = client.ep.addr; #client.ep | src = client_alt;
                 } else {
@@ -94,11 +94,11 @@ require src.port = client.ep.port;
         require src.interface = ip.veth_ivy;
         require (ep_present(src) & pkt.long)-> pkt.src_cid = ep_map_cid(src);
         require dst = server.ep;
-        #require pkt.token.end = 0; 
+        #require pkt.token.end = 0;
         if pkt.ptype = quic_packet_type.initial & retry_recv(pkt.src_cid) & ~zero_length_token {
             require pkt.token = retry_token(pkt.src_cid); # TODO new_token
         } else {
-            require pkt.token.end = 0; 
+            require pkt.token.end = 0;
         };
     };
     if final_version = 0x00000000 {
@@ -118,7 +118,7 @@ before open_connection(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
             require src.addr = client_vn.addr;
         } else {
             if ~disable_active_migration.is_set(tp) {
-                if ~migration_done | allowed_multiple_migration { 
+                if ~migration_done | allowed_multiple_migration {
                     #only one migration
                     require src.addr = client.ep.addr; #client.ep | src = client_alt;
                 } else {
@@ -130,16 +130,16 @@ before open_connection(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
         };
         require src.port = client.ep.port;
         # # require used_client_ports(src.port);
-        require src.protocol = ip.udp; 
+        require src.protocol = ip.udp;
         require src.interface = ip.veth_ivy;
         require (ep_present(src) & pkt.long)-> pkt.src_cid = ep_map_cid(src);
         require dst = server.ep;
         # require pkt.ptype = quic_packet_type.initial;
-        #require pkt.token.end = 0; 
+        #require pkt.token.end = 0;
         if pkt.ptype = quic_packet_type.initial & retry_recv(pkt.src_cid) & ~zero_length_token {
             require pkt.token = retry_token(pkt.src_cid); # TODO new_token
         } else {
-            require pkt.token.end = 0; 
+            require pkt.token.end = 0;
         };
     };
     if final_version = 0x00000000 {
@@ -172,7 +172,7 @@ around attacker_send_event {
     # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
     # require _generating -> is_not_sleeping;
     # if _generating {
-        
+
     # };
     require s = current_stream;
     var tp := trans_params(ep_map_cid(src));
@@ -195,7 +195,7 @@ around attacker_send_event {
         require src.addr = client_vn.addr;
     } else {
         if ~disable_active_migration.is_set(tp) {
-            if ~migration_done | allowed_multiple_migration { 
+            if ~migration_done | allowed_multiple_migration {
                 #only one migration
                 require src.addr = client.ep.addr; #client.ep | src = client_alt;
             } else {

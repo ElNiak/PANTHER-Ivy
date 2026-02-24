@@ -65,7 +65,7 @@ module isolate unbounded_queue with time, time.impl = {
     specification {
         var pending(X:time) : bool
         var t : time
-        
+
         function count(X:time) : time
         definition count(X) = (0 if X=0 else count(X-1)) + (1 if pending(X) else 0)
         proof {
@@ -108,4 +108,3 @@ instance q : unbounded_queue
 
 export q.send
 export q.recv
-

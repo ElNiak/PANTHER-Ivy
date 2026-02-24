@@ -127,7 +127,7 @@ action receive_wedge_ack_msgs(e:epoch, s:stake, nset:nodeset.set, maxs : stake, 
 
     left_maj(e,K) := nset if maxs < K & K < s else left_maj(e,K);
 
-    assert 
+    assert
         0 < K & K < s ->
             (accept_msg(e,K,c) | (nodeset.majority(left_maj(e,K)) &
                                   (nodeset.member(N,left_maj(e,K)) ->
@@ -182,16 +182,16 @@ action start(e:epoch, e_prev: epoch, n:node, s:stake, nset:nodeset.set, c:config
 # TODO: is this needed?
 
     assert accept_msg(e_prev,s,c)
-    proof let 
+    proof let
         E1 = e_prev,
         K = s,
         C = c,
         N = nodeset.common(nset,nset);
-    
+
 # TODO: is this needed?
 
     assert E2 < e_prev -> epoch_ended(E2)
-    proof let 
+    proof let
         C = c,
         K = s,
         E1 = e_prev,
@@ -252,11 +252,11 @@ action decide(e:epoch, n:node, v:value, nset:nodeset.set, i:inst) = {
     dec_epoch(i,v) := e;
 
     assert
-      ~(~(E1 < E2) & any_decision(I,V1) & any_decision(I,V2) & V1 ~= V2 & dec_epoch(I,V1) = E1 & dec_epoch(I,V2) = E2) 
+      ~(~(E1 < E2) & any_decision(I,V1) & any_decision(I,V2) & V1 ~= V2 & dec_epoch(I,V1) = E1 & dec_epoch(I,V2) = E2)
     proof let
         S3 = dec_maj(I,V1),
         S2 = dec_maj(I,V2),
-        S1 = (S2 if E2 = E1 else epoch_maj(E2)), 
+        S1 = (S2 if E2 = E1 else epoch_maj(E2)),
         N = nodeset.common(S1,S2),
         K = epoch_stake(E2),
         C = config_decided(E2),

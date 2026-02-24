@@ -97,4 +97,3 @@ def mgu_eq(atom1, atom2):
         return False, dict(), []
     else:
         return terms_mgu_eq(atom1.args, atom2.args)
-

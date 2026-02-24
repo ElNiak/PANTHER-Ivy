@@ -20,7 +20,7 @@ module broadcast_shim(node,msg) = {
     action bcast(src:node,m:msg)
     action unicast(src:node,dst:node,m:msg)
     action recv(dst:node,m:msg)
-    
+
     specification {
 
         relation sent(M:msg,N:node)
@@ -32,11 +32,11 @@ module broadcast_shim(node,msg) = {
         before bcast {
             sent(m,D) := true
         }
-        
+
         before unicast {
             sent(m,dst) := true;
         }
-        
+
         before recv {
             assert sent(m,dst)
         }
@@ -70,7 +70,7 @@ module broadcast_shim(node,msg) = {
     }
 
     isolate iso = this with node
-    
+
 }
 
 
@@ -81,5 +81,3 @@ module broadcast_shim(node,msg) = {
 # export foo.unicast
 # import foo.recv
 # extract code(self:node) = foo(self),node
-
-

@@ -64,18 +64,18 @@ object quic_ser_retry = {}
                 setn(res,4);
                 state = quic_s_dcid;
             }
-            break;    
+            break;
             case quic_s_dcid:
             {
                 //std::cerr << "ser res dcid 1 " << res << "\n";
                 if((res != 0 && res != 1) || scid_h == 0)
                     setn(scid_h,1);
-                else 
+                else
                     setn(8,1);
                 if((res != 0 && res != 1) || scid_h == 0)
                     setn(res,scid_h); //scid_h
-                else 
-                    setn(res,8); 
+                else
+                    setn(res,8);
                 //std::cerr << "ser res dcid 2 " << res << "\n";
                 state = quic_s_scid;
             }
@@ -108,7 +108,7 @@ object quic_ser_retry = {}
             }
             break;
             default:
-            //std::cerr << "quic_ser_retry 2\n";  
+            //std::cerr << "quic_ser_retry 2\n";
             throw deser_err();
             }
         }
@@ -116,7 +116,7 @@ object quic_ser_retry = {}
         void set_var_int(int128_t res) {
             int128_t val = res & 0x3fffffffffffffff; //TODO modify with 16 bytes mask ?
         //void set_var_int(long long res) {
-        //    long long val = res & 0x3fffffffffffffff; 
+        //    long long val = res & 0x3fffffffffffffff;
             int bytecode = res <= 0x3f ? 0 : res <= 0x3fff ? 1 : res <= 0x3fffffff ? 2 : 3;
             int bytes = 1 << bytecode;
             val |= bytecode << ((bytes << 3) - 2);
@@ -126,12 +126,12 @@ object quic_ser_retry = {}
         void set_pkt_num(int128_t &res) {
         //void set_pkt_num(long long &res) {
             // setn(0xc0000000 | (0x3fffffff & res),4);
-            // pkt number length is low two bits of first packet byte, plus one 
+            // pkt number length is low two bits of first packet byte, plus one
             setn(res,(hdr_type & 3) + 1);
         }
 
         virtual void open_tag(int tag, const std::string &) {
-            //std::cerr << "quic_ser_retry 1\n";  
+            //std::cerr << "quic_ser_retry 1\n";
             throw deser_err();
         }
 
@@ -172,7 +172,7 @@ object quic_ser_retry = {}
 >>>
 
 <<< init
-    
+
     //transport_error_name_map(transport_error_codes,transport_error_codes_map);
 
 >>>

@@ -52,7 +52,7 @@ global {
 
     # We use the `vector_bounded` template to model files that are
     # limited to 4 bytes.
-    
+
     instance file : vector_bounded(byte,4)
     type pid = {0..1}
 
@@ -67,26 +67,26 @@ process host(self:pid) = {
 
     export action append(val:byte)
     import action show(content:file)
-    
+
     instance sock : net.socket
     var contents : file
 
     after init {
         contents := file.empty;
     }
-   
+
     implement append {
         assert false;
         contents := contents.append(val);
         sock.send(host(1-self).sock.id,val);
         show(contents);
     }
-    
+
     implement sock.recv(src:tcp.endpoint,val:byte) {
         contents := contents.append(val);
         show(contents);
     }
-} 
+}
 
 # Our specification is unchanged.
 

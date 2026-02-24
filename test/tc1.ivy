@@ -14,7 +14,7 @@ module tree_tc(t) = {
     # This module provides a simple interface for manipulating
     # directed trees. It has methods for adding an edge, testing
     # the successor relation, and determining whcih one node reaches
-    # anopther (in other words the decendant relation). 
+    # anopther (in other words the decendant relation).
 
     action add(x:t,y:t)
     action succ(x:t,y:t) returns (r:bool)
@@ -24,7 +24,7 @@ module tree_tc(t) = {
 
         # The specification is written entirely in terms of `tc`,
         # which tracks the transitive closure of the successor
-        # relation. 
+        # relation.
 
 	relation tc(X:t,Y:t)
 
@@ -59,7 +59,7 @@ module tree_tc(t) = {
         # composition of two other edges. This is the 'pre fixed
         # point' property of transitive closure, which you can see
         # below.  Since it has a function cycle, we have to manually
-        # instantiate it here. 
+        # instantiate it here.
 
 	after succ {
 	    ensure r -> (tc(x,y) & ~(tc(x,Z) & tc(Z,y)));
@@ -104,12 +104,12 @@ module tree_tc(t) = {
         # would generate.
         #
         # We declare a relation ttc.
-        
+
 	relation ttc(X:t,Y:t)
 
 	# This axiom says that ttc is a post fixed point
-        
-	axiom (tree(X,Y) | ttc(X,Z) & ttc(Z,Y)) -> ttc(X,Y) 
+
+	axiom (tree(X,Y) | ttc(X,Z) & ttc(Z,Y)) -> ttc(X,Y)
 
         # This schema says that ttc is a pre fixed point. It is a
         # schema because of the forbidden quantifier alternation.
@@ -119,7 +119,7 @@ module tree_tc(t) = {
         schema pre_fp = {
             property ttc(X,Y) -> (tree(X,Y) | exists Z. (ttc(X,Z) & ttc(Z,Y)))
         }
-        
+
 	# This schema says that ttc is the *least* fixed point. That
         # is for any fixed point r, ttc is stronger than r. We have to
         # state this is a schema and instantiate it manually because
@@ -130,7 +130,7 @@ module tree_tc(t) = {
 	    property forall X,Y. ((tree(X,Y) | exists Z. (r(X,Z) & r(Z,Y))) -> r(X,Y))
 	    property ttc(X,Y) -> r(X,Y)
 	}
-	    
+
         # With `ttc` defined in terms of `tree`, we can now define our
         # interface implementations. Notice that `reaches` here uses
         # `ttc`, which is not computable. For a real implementation,
@@ -162,11 +162,11 @@ module tree_tc(t) = {
 
         # We state the two directions of equivalence as separate invariants,
         # since the proofs are different.
-        
+
         # The tc -> ttc direction only needs the fact that tc is a
         # post fixed point. Because this has no quantifier
         # alternation, Z3 can get the proof without any help.
-        
+
 	invariant [fwd] tc(X,Y) -> ttc(X,Y)
 
         # For ttc -> tc, we need the fact the ttc is the *least* fixed
@@ -175,7 +175,7 @@ module tree_tc(t) = {
         # the match r(X,Y) = tc(X,Y).  This leaves the proof goal that
         # tc is a post fixed point, which Z3 can prove. Have a look at
         # the output to see the proof goal Ivy generates.
-        
+
 	invariant [rev] ttc(X,Y) -> tc(X,Y)
 	proof {
             apply lep;  showgoals
@@ -197,7 +197,7 @@ module tree_tc(t) = {
         invariant ~(tree(X,Y) & tc(X,Z) & tc(Z,Y))
 
     }
-    
+
     isolate iso = this
 
 }

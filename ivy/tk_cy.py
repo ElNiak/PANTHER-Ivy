@@ -53,7 +53,7 @@ def get_bspline(element):
         coords.append(p[0])
         coords.append(p[1])
     return coords
-            
+
 # Returns the position of the label or None
 
 def get_label_pos(element):
@@ -63,7 +63,7 @@ def get_label_pos(element):
     position = data['lp']
     x,y = get_coord(position)
     return x,y
-    
+
 # Remove formatting characters
 
 def get_label_text(element):
@@ -134,7 +134,7 @@ class TkCyCanvas(Canvas):
                 coords = list(map(get_coord,get_coords(elem)))
                 (x0,y0),(x1,y1) = coords
                 self.create_rectangle((x0,y0,x1,y1))
-                    
+
 
     def make_popup(self,event,actions,arg):
         if len(actions) == 1 and actions[0][0] == '<>':
@@ -156,7 +156,7 @@ class TkCyCanvas(Canvas):
         finally:
             # make sure to release the grab (Tk 8.0a1 only)
             popup.grab_release()
-        
+
 
     # Handle a clicks on nodes
 
@@ -167,7 +167,7 @@ class TkCyCanvas(Canvas):
     # Handle a clicks on an edges
 
     def click_edge(self,click,event,elem):
-        # display the popup menu 
+        # display the popup menu
         edge = self.edge_from_cy_elem(elem)
         self.make_popup(event,self.get_edge_actions(edge,click=click),edge)
 
@@ -179,5 +179,3 @@ class TkCyCanvas(Canvas):
             item = self.create_line(*self.edge_points[eid],tags=tag,
                                      smooth="bezier",width=6,capstyle=ROUND,fill='grey')
             self.tag_lower(item)
-
-            

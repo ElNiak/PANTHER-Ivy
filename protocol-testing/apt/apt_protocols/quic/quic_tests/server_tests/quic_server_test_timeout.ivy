@@ -64,14 +64,14 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     call show_last_pkt_num_for_cid(last_pkt_num(pkt.src_cid,quic_packet_type.one_rtt),pkt.src_cid,quic_packet_type.one_rtt,last_pkt_num(pkt.src_cid,quic_packet_type.one_rtt)/2);
     # TODO check with & without handshake_done_recv
     if ~_generating {
-        if last_pkt_num(pkt.src_cid,quic_packet_type.one_rtt) > 5 & ~slept & handshake_done_recv {  # 
+        if last_pkt_num(pkt.src_cid,quic_packet_type.one_rtt) > 5 & ~slept & handshake_done_recv {  #
             var idle_timeout_forced := max_idle_timeout_used;
             var force_packet_retransmission_timeout := max_ack_delay_tp;
             call sleep_event(idle_timeout_forced);
             call time_api.c_timer.sleep(microseconds_to_milliseconds(idle_timeout_forced)+0x10);
             slept := true;
         }
-    } 
+    }
 }
 
 import action show_last_pkt_num_for_cid(pktnum:pkt_num,dst_cid:cid,ptype:quic_packet_type, div:pkt_num)
@@ -80,9 +80,9 @@ export send_ack_eliciting_initial_packet
 export quic_frame.ping.handle
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require is_no_error;
     require conn_total_data(the_cid) > 0;
     require ~connection_closed; # silent close
-    #call 
+    #call
 }

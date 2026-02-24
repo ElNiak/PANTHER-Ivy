@@ -4,7 +4,7 @@ include ping_shim
 
 
 after ping_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:ping_packet) {
-    if _generating {  
+    if _generating {
         var spkt := ping_packet_serdes.to_bytes(pkt);
         var tls_id := src_tls_id(src);
         var pkts := pingd.arr.empty;

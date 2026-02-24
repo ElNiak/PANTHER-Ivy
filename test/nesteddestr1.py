@@ -14,7 +14,7 @@ type s1 = struct {
 type s2 = struct {
     baz : s1,
     bif : t
-} 
+}
 
 individual w : t
 individual v : s2
@@ -30,4 +30,3 @@ with im.Module():
     iu.set_parameters({'show_compiled':'true'})
     ivy_from_string(prog,create_isolate=False)
     print(im.module.actions["a"].update(im.module,{}))
-

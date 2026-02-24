@@ -29,43 +29,43 @@ attribute packet.forward_to.weight = "100"
 
 object packet = {
     ...
-    
+
     object malicious_stream_data_packet = {
         ...
         before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
-            
+
             if _generating {;
                 require pkt.payload = malicious_stream_data_packet_received_last_round(dst).payload;
-            } 
+            }
         }
 
         before replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
-            
+
             if _generating {
                 require pkt.payload = malicious_stream_data_packet_received_last_round(dst).payload;
-            } 
+            }
         }
 
         before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
-            
+
             if _generating {
                 require pkt.payload = malicious_stream_data_packet_received_last_round(dst).payload;
-            } 
+            }
         }
 
         before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
-            
+
             if _generating {
                 require pkt.payload = malicious_stream_data_packet_received_last_round(dst).payload;
-            } 
+            }
         }
 
         before modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
-            
+
             if _generating {
                 require pkt.payload = malicious_stream_data_packet_received_last_round(dst).payload |
                                           pkt.payload.end >= 0;
-            } 
+            }
         }
     }
 }
@@ -98,12 +98,10 @@ attribute packet.malicious_stream_data_packet.forward_to_client.weight = "15"
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     call mim_agent.reset_NAT;
     require mim_agent.last_packet_forwarded_to(mim_agent.ep_server) > 0;
     require mim_agent.last_packet_forwarded_to(mim_agent.ep_client) > 0;
     require mim_agent.last_packet_forwarded_to(mim_agent.ep_client) = mim_agent.cppkt_forwarded_to_client;
     require mim_agent.last_packet_forwarded_to(mim_agent.ep_server) = mim_agent.cppkt_forwarded_to_server;
 }
-
-

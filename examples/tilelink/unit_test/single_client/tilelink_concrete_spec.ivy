@@ -3,7 +3,7 @@
 ################################################################################
 #
 # This is a (more) concrete specification of the tilelink protocol. It specifies
-# the low-level messages with reference to the abstract spec. 
+# the low-level messages with reference to the abstract spec.
 #
 # The concrete model introduces Acquire and Finish messages, requester ID's,
 # and other fields that indicate the address range to operate on, and so on.
@@ -162,8 +162,8 @@ module interface_stubs = {
 # This module describes the TileLink interface. It uses mixins to specify the
 # interaction between a client (clnt) a manager (mngr) and a reference model (ref).
 # The funciton "side" tells us, for each component ID, which side of the interface
-# the component is on ("client" or "manager"). 
-# 
+# the component is on ("client" or "manager").
+#
 ################################################################################
 
 module tl_interface(ref,clnt,mngr,side) = {
@@ -180,7 +180,7 @@ module tl_interface(ref,clnt,mngr,side) = {
 
     ########################################
     # An Acquire has three phases: requested, accepted and finishing
-    # 
+    #
     # These predicates keep track of whether there is an acquire in one
     # of the three phases, for each type: exclusive, shared and uncached.
     #
@@ -190,16 +190,16 @@ module tl_interface(ref,clnt,mngr,side) = {
     relation excl_r(A:tl_addrhi)               # there is a requested excl acquire for line
     relation shrd_r(A:tl_addrhi)               # there is a requested shrd acquire for line
     relation unc_r(A:tl_addrhi,W:tl_addrlo)    # there is a requested uncached acquire
-    
+
     relation excl_a(A:tl_addrhi)               # there is an accepted excl acquire for line
     relation shrd_a(A:tl_addrhi)               # there is an accepted shrd acquire for line
     relation unc_a(A:tl_addrhi,W:tl_addrlo)    # there is an accepted uncached acquire
-    
+
     relation excl_f(A:tl_addrhi)               # there is an finishing excl acquire for line
     relation shrd_f(A:tl_addrhi)               # there is an finishing shrd acquire for line
     relation unc_f(A:tl_addrhi,W:tl_addrlo)    # there is an finishing uncached acquire
-    
-    
+
+
     ########################################
     # Release messages
     #
@@ -207,7 +207,7 @@ module tl_interface(ref,clnt,mngr,side) = {
     # the time it is transmitted until the time its Grant has been
     # transmitted. This predicate tracks which addresses have releases
     # requested (none = no priviledges).
-    # 
+    #
 
     relation none_r(A:tl_addrhi,W:tl_addrlo)
 
@@ -260,15 +260,15 @@ module tl_interface(ref,clnt,mngr,side) = {
     #
     # Nothing is requested, accepted, finished or granted.
 
-    init    ~excl_r(H) & ~shrd_r(H) & ~unc_r(H,W) 
-          & ~excl_a(H) & ~shrd_a(H) & ~unc_a(H,W) 
-          & ~excl_f(H) & ~shrd_f(H) & ~unc_f(H,W) 
+    init    ~excl_r(H) & ~shrd_r(H) & ~unc_r(H,W)
+          & ~excl_a(H) & ~shrd_a(H) & ~unc_a(H,W)
+          & ~excl_f(H) & ~shrd_f(H) & ~unc_f(H,W)
 	  & ~none_r(H,W) & ~prb_addr(H,W) & ~granted(E)
 
 
     ########################################
     # specification of Acquire message
-    # 
+    #
 
     action tl_Acquire(msg:acq_id) = {
 
@@ -307,7 +307,7 @@ module tl_interface(ref,clnt,mngr,side) = {
 		# client. This is required for release consistency,
 		# which would be violated by reordering lock operations.
 
-		assert ~(to_ser(E) & ~granted(E) & 
+		assert ~(to_ser(E) & ~granted(E) &
 		        (ref.evs(E).type_ = cas | ref.evs(lt).type_ = cas)
 			 & ref.evs(E).id_ = ref.evs(lt).id_);
 
@@ -328,7 +328,7 @@ module tl_interface(ref,clnt,mngr,side) = {
 		# (7) Must have correct address, data and op for associated memory event.
 
 		assert addr_cons(hi,lo) = ref.evs(lt).addr_
-		       & d = ref.evs(lt).data_ 
+		       & d = ref.evs(lt).data_
 		       & o = ref.evs(lt).type_;
 
 		# (8) Must be in uncached address space
@@ -341,7 +341,7 @@ module tl_interface(ref,clnt,mngr,side) = {
 		unc_r(hi,lo) := true;
 
 		########################################
-	        # Associate the address and txid 
+	        # Associate the address and txid
 
 	        addr_rid(hi) := txid;
 
@@ -370,7 +370,7 @@ module tl_interface(ref,clnt,mngr,side) = {
 
 		assert (excl_r(hi) | shrd_r(hi)) -> addr_rid(hi) = txid;
 		assert (excl_a(hi) | shrd_a(hi)) -> addr_rid(hi) = txid;
-		
+
 		# (3) May not use a txid in use by a requested or accepted acquire
                 # for a different hi addr
 
@@ -404,7 +404,7 @@ module tl_interface(ref,clnt,mngr,side) = {
 		};
 
 	        ########################################
-	        # Associate the address and txid 
+	        # Associate the address and txid
 
 	        addr_rid(hi) := txid
 
@@ -412,19 +412,19 @@ module tl_interface(ref,clnt,mngr,side) = {
 
         }
     }
-    mixin tl_Acquire before mngr.tl_Acquire    
+    mixin tl_Acquire before mngr.tl_Acquire
 
     ########################################
     # specification of Grant message
 
     action tl_Grant(msg:gnt_id) = {
         local hi:tl_addrhi, lo:tl_addrlo, c_txid: id, m_txid: id, reqt:time, maddr:addr, ow:ownership, lt:ltime {
-	
+
 	    hi := gnts(msg).addr_hi;  # this field is aux
 	    lo := gnts(msg).word;
 	    c_txid := gnts(msg).clnt_txid;
 	    m_txid := gnts(msg).mngr_txid;
-	    ow := gnts(msg).own;	    
+	    ow := gnts(msg).own;
 	    lt := gnts(msg).ltime_;
 	    maddr := addr_cons(hi,lo);                             # construct full address
 
@@ -459,14 +459,14 @@ module tl_interface(ref,clnt,mngr,side) = {
 		none_r(hi,X) := false
 
             }
-            else {	    
+            else {
 
-	        
+
 		########################################
 		# Rules for normal Grants:
-		# 
-		# (1) A Grant must match a requested or accepted Acquire. 
-		 
+		#
+		# (1) A Grant must match a requested or accepted Acquire.
+
 		assert ow = none -> (unc_r(hi,lo) | unc_a(hi,lo));
 		assert ow = excl -> (excl_r(hi) | excl_a(hi));
 		assert ow = shrd -> (shrd_r(hi) | shrd_a(hi));
@@ -475,7 +475,7 @@ module tl_interface(ref,clnt,mngr,side) = {
 
 		assert ow = none -> ~granted(lt);
 
-		# (3) Cannot grant if there is a pending probe with 
+		# (3) Cannot grant if there is a pending probe with
 		# the same hi address.
 
 		assert ~prb_addr(hi,W);
@@ -486,7 +486,7 @@ module tl_interface(ref,clnt,mngr,side) = {
 		assert ow = none -> maddr = ref.evs(lt).addr_ & to_ser(lt) & ref.evs(lt).serialized;
 
 		# (5) A grant's txid must match its request
-		
+
 		assert addr_rid(hi) = c_txid;
 
 		# (6) Cannot use a manager-side txid if already in use for a
@@ -494,7 +494,7 @@ module tl_interface(ref,clnt,mngr,side) = {
 
 		assert ~((excl_a(H) | excl_f(H) | shrd_a(H) | shrd_f(H) | unc_a(H,W) | unc_f(H,W))
 		         & addr_gid(H) = m_txid & H ~= hi);
-		
+
 		# (7) Cannot use two different manager-side txid's for same hi address.
 
 		assert ~((excl_a(H) | excl_f(H) | shrd_a(H) | shrd_f(H) | unc_a(H,W) | unc_f(H,W))
@@ -576,20 +576,20 @@ module tl_interface(ref,clnt,mngr,side) = {
 	    txid := fnss(msg).id_;
 	    hi := fnss(msg).addr_hi;  # this field is aux
 	    lo := fnss(msg).word;  # this field is aux
-	    ow := fnss(msg).own;	  # this field is aux    
-	
+	    ow := fnss(msg).own;	  # this field is aux
+
 	    ########################################
 	    # Rules for Finishes:
 	    #
 	    # (1) A finished transaction must correspond to some
 	    # finishing acquire.
-	    	
+
 	    assert ow = none -> unc_f(hi,lo);
 	    assert ow = excl -> excl_f(hi);
 	    assert ow = shrd -> shrd_f(hi);
 
 	    # (2) The txid of the finish must match the grant.
-	    
+
 	    assert addr_gid(hi) = txid;
 
 	    ########################################
@@ -605,8 +605,8 @@ module tl_interface(ref,clnt,mngr,side) = {
 	        shrd_f(hi) := false
             }
         }
-    }   
-    mixin tl_Finish before mngr.tl_Finish    
+    }
+    mixin tl_Finish before mngr.tl_Finish
 
     ########################################
     # specification of Release message
@@ -621,7 +621,7 @@ module tl_interface(ref,clnt,mngr,side) = {
 	    lo := rlss(msg).word;         # this field is aux
 	    a := addr_cons(hi,lo);
 
-	    
+
 	    ########################################
 	    # Rules for all Releases:
 	    #
@@ -689,15 +689,15 @@ module tl_interface(ref,clnt,mngr,side) = {
 		#
 		# Note we *do* allow an involuntary relase with
 		# a pending Acquire.
-		# 
+		#
 
-		assert prb_addr(hi,lo);	    
+		assert prb_addr(hi,lo);
 
 		########################################
 		# Mark the probe completed
 		#
 
-		prb_addr(hi,lo) := false  
+		prb_addr(hi,lo) := false
 	    };
 
 
@@ -719,7 +719,7 @@ module tl_interface(ref,clnt,mngr,side) = {
     # specification of Probe message
 
     action tl_Probe(msg:prb_id) = {
-    
+
         local hi:tl_addrhi {
 
 	    hi := prbs(msg).addr_hi;
@@ -750,7 +750,7 @@ module tl_interface(ref,clnt,mngr,side) = {
     mixin tl_Probe before clnt.tl_Probe
 
     ########################################
-    # 
+    #
     # Instantiate the abstract interface specification
     #
     ########################################
@@ -760,7 +760,7 @@ module tl_interface(ref,clnt,mngr,side) = {
     instantiate interface(ref,abs,abs,side)
 
     ########################################
-    # 
+    #
     # All or none of a line is cached
     #
     ########################################
@@ -773,14 +773,14 @@ module tl_interface(ref,clnt,mngr,side) = {
     # Conjectured invariants of the interface state
     #
     ################################################################################
-    
+
     # A cached acquire must be in cached space, uncached in uncached space
 
     conjecture (excl_r(H) | excl_a(H) | excl_f(H) |
                 shrd_r(H) | shrd_a(H) | shrd_f(H)) -> cached_hi(H)
     conjecture (unc_r(H,L) | unc_a(H,L) | unc_f(H,L)) -> ~cached_hi(H)
 
-    
+
     # An cached acquire must be in only one phase
 
     conjecture ~(excl_r(H) & excl_a(H)) & ~(excl_r(H) & excl_f(H)) & ~(excl_a(H) & excl_f(H))
@@ -822,7 +822,7 @@ module tl_interface(ref,clnt,mngr,side) = {
     conjecture prb_addr(H,W) -> ~excl_a(H) & ~excl_f(H) & ~shrd_a(H) & ~shrd_f(H)
 
     # If a cached acquire is requested and no voluntary release or probe outstanding,
-    # we do not have the requested privs    
+    # we do not have the requested privs
 
     conjecture excl_r(H) & ~none_r(H,W) & ~prb_addr(H,W) -> ~excl_p(addr_cons(H,W))
     conjecture shrd_r(H) & ~none_r(H,W) & ~prb_addr(H,W) -> ~shrd_p(addr_cons(H,W))
@@ -870,7 +870,7 @@ module tl_interface(ref,clnt,mngr,side) = {
 
     # No two hi addresses of requested transactions can have the same txid
 
-    conjecture 
+    conjecture
       (excl_r(H1) | shrd_r(H1) | unc_r(H1,W1))
       & (excl_r(H2) | shrd_r(H2) | unc_r(H2,W2))
       & H1 ~= H2
@@ -878,7 +878,7 @@ module tl_interface(ref,clnt,mngr,side) = {
 
     # No two hi addresses of voluntary releases can have the same txid
 
-    conjecture 
+    conjecture
      none_r(H1,W1) & none_r(H2,W2)
       & H1 ~= H2
        -> addr_nid(H1) ~= addr_nid(H2)
@@ -955,7 +955,7 @@ module tl_generic_client(mngr,ref,side) = {
 ################################################################################
 
 module tl_generic_manager(clnt,ref,side) = {
- 
+
    action tl_Acquire(msg:acq_id) = {}
 
    action tl_Finish(msg:fns_id) = {}
@@ -998,7 +998,7 @@ module tl_generic_manager(clnt,ref,side) = {
 
 ################################################################################
 #
-# This module describes the TileLink main memory interface. 
+# This module describes the TileLink main memory interface.
 #
 # This uses only Acquire and Grant messages and is uncached.
 #
@@ -1008,13 +1008,13 @@ module tl_mm_interface(ref,clnt,mngr,side) = {
 
     ########################################
     # An Acquire has two phases: requested and accepted
-    # 
+    #
 
     relation unc_r(A:tl_addrhi,W:tl_addrlo)    # there is a requested uncached acquire
     relation unc_a(A:tl_addrhi,W:tl_addrlo)    # there is an accepted uncached acquire
     relation unc_w(A:tl_addrhi,W:tl_addrlo)    # there is a requested uncached write
-        
-    
+
+
     ########################################
     # Each Acquire has a transaction ID (txid). This
     # map tracks the txid associated with requested acquires
@@ -1043,14 +1043,14 @@ module tl_mm_interface(ref,clnt,mngr,side) = {
     #
     # Nothing is requested or accepted
 
-    init    ~unc_r(H,W) 
-          & ~unc_w(H,W) 
-          & ~unc_a(H,W) 
+    init    ~unc_r(H,W)
+          & ~unc_w(H,W)
+          & ~unc_a(H,W)
 	  & ~dirty(A)
 
     ########################################
     # specification of Acquire message
-    # 
+    #
 
     action tl_Acquire(msg:acq_id) = {
 
@@ -1065,7 +1065,7 @@ module tl_mm_interface(ref,clnt,mngr,side) = {
 	    d := acqs(msg).data_;
 	    o := acqs(msg).op;
 
-	    
+
 	    ########################################
 	    # rules for  Acquires
 
@@ -1102,7 +1102,7 @@ module tl_mm_interface(ref,clnt,mngr,side) = {
             };
 
 	    ########################################
-	    # Associate the address and txid 
+	    # Associate the address and txid
 
 	    addr_rid(hi) := txid;
 
@@ -1115,30 +1115,30 @@ module tl_mm_interface(ref,clnt,mngr,side) = {
 	    }
         }
     }
-    mixin tl_Acquire before mngr.tl_Acquire    
+    mixin tl_Acquire before mngr.tl_Acquire
 
     ########################################
     # specification of Grant message
 
     action tl_Grant(msg:gnt_id) = {
         local hi:tl_addrhi, lo:tl_addrlo, c_txid: id, m_txid: id, reqt:time, maddr:addr, ow:ownership, lt:ltime {
-	
+
 	    hi := gnts(msg).addr_hi;  # this field is aux
 	    lo := gnts(msg).word;
 	    c_txid := gnts(msg).clnt_txid;
 	    m_txid := gnts(msg).mngr_txid;
-	    ow := gnts(msg).own;	    
+	    ow := gnts(msg).own;
 	    lt := gnts(msg).ltime_;
 	    maddr := addr_cons(hi,lo);                             # construct full address
 
 
 	    assert ~gnts(msg).relack & ow = none;
 
-	        
+
 	    ########################################
 	    # Rules for normal Grants:
-	    # 
-	    # (1) A Grant must match a requested or accepted Acquire. 
+	    #
+	    # (1) A Grant must match a requested or accepted Acquire.
 
 	    assert unc_r(hi,lo) | unc_a(hi,lo) | unc_w(hi,W);
 
@@ -1151,13 +1151,13 @@ module tl_mm_interface(ref,clnt,mngr,side) = {
 	    # This assumes an ordered channel
 
 	    assert ~(unc_a(H,W) & H ~= hi);
-	    
+
 	    	# (6) Cannot use a manager-side txid if already in use for a
 		# different hi address
 
 		assert ~((unc_a(H,W))
 		         & addr_gid(H) = m_txid & H ~= hi);
-		
+
 		# (7) Cannot use two different manager-side txid's for same hi address.
 
 		assert ~((unc_a(H,W))
@@ -1192,7 +1192,7 @@ module tl_mm_interface(ref,clnt,mngr,side) = {
 	    unc_w(hi,W) := false;  # one grant for all beats
 
 	    ########################################
-	    # Transaction is accepted if there are any beats remaining	    
+	    # Transaction is accepted if there are any beats remaining
 
 	    unc_a(hi,X) := unc_r(hi,X);
 
@@ -1213,16 +1213,16 @@ module tl_mm_interface(ref,clnt,mngr,side) = {
     # A finish marks all the Acquires in a transaction as completed.
 
     action tl_Finish(msg:fns_id) = {
-        # not allowed    
+        # not allowed
         assert false
-    }   
-    mixin tl_Finish before mngr.tl_Finish    
+    }
+    mixin tl_Finish before mngr.tl_Finish
 
     ########################################
     # specification of Release message
 
     action tl_Release(msg:rls_id) = {
-        # not allowed    
+        # not allowed
         assert false
     }
     mixin tl_Release before mngr.tl_Release
@@ -1231,7 +1231,7 @@ module tl_mm_interface(ref,clnt,mngr,side) = {
     # specification of Probe message
 
     action tl_Probe(msg:prb_id) = {
-        # not allowed    
+        # not allowed
         assert false
     }
     mixin tl_Probe before clnt.tl_Probe
@@ -1239,7 +1239,7 @@ module tl_mm_interface(ref,clnt,mngr,side) = {
     ########################################
     # specification of perform (serialization)
 
-    action perform(lt:ltime, sid:id) = { 
+    action perform(lt:ltime, sid:id) = {
 
        # nothing can be serialized on the manager (main memory) side
        # serializing write or atomic dirties the address
@@ -1253,8 +1253,8 @@ module tl_mm_interface(ref,clnt,mngr,side) = {
 
 	   if mo ~= read {
 		dirty(a) := true  # if modified, mark as dirty
-	   } 
-       }	       
+	   }
+       }
     }
     mixin perform before ref.perform
 }

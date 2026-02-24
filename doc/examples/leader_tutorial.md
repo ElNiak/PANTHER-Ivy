@@ -38,7 +38,7 @@ containing exported types, procedures and functions, a
 *specification*, describing the externally observable properties of
 the interface, and an *implementation* that provides executable bodies
 for interface functions and procedures, as well as variables and theories
-that are hidden from the isolate's environment. 
+that are hidden from the isolate's environment.
 
 Here is how the interface and specification of the leader election
 service are described in Ivy:
@@ -148,7 +148,7 @@ responsibility of the *environment* to make sure this assertion is
 true. Before an `elect(n)` event occurs, we require that node `n` has
 been sent its own pid (meaning that this pid must have made a complete
 circuit, and hence is as high as than any other pid in the ring).
- 
+
 We have one additional specification for `elect`: we ensure that in
 fact the pid of node `n` is maximal in the ring. Finally, notice the
 declaration `with node,id,pid_injective` at the end of the
@@ -173,7 +173,7 @@ formula about the state that has the following key properties:
 - *consecution*: If it is true in a state, then after executing any
 action, the formula remains true.
 
-An inductive invariant for an isolate is guaranteed to hold at all times 
+An inductive invariant for an isolate is guaranteed to hold at all times
 between executions of the interface actions.
 An inductive invariant is relatively easy to prove, since
 we only have to verify the initiation and consecution properties, a task
@@ -188,7 +188,7 @@ proof. We start by naively trying to verify the abstract model using
 this command:
 
     $ ivy_check isolate=abstract_model trace=true leader_tutorial_no_proof.ivy
-    
+
 Ivy uses the Z3 theorem prover to try to verify the program
 assertions, given the invariants.  Since we have given no invariants,
 it effectively has to verify that the `ensure` condition holds when the
@@ -204,12 +204,12 @@ this state should not be possible. We can rule out this state (and others like i
 be dding the following invariant to the isolate:
 
     invariant ~(N.pid < M.pid & sent(N.pid,N))
-    
+
 The capital letters in this formula are free variables. They are
 implicitly universally quantifier, so this statement applies to all
 nodes `M` and `N`.  It says that it should never be the case that a
 node receives its own pid and another node has a greater pid. In fact,
-Ivy can help us to construct this invariant from the counterexample (see 
+Ivy can help us to construct this invariant from the counterexample (see
 [this tutorial](http://microsoft.github.io/ivy/examples/leader.html)).
 
 We add this invariant to the isolate and try again.  This time, Ivy
@@ -235,7 +235,7 @@ which can be stated as follows:
         invariant ~(L < M & M < N & pid(M) < pid(N) & sent(pid(M),L))
         invariant ~(L < M & M < N & pid(N) < pid(L) & sent(pid(N),M))
     }
-    
+
 We put the invariants inside a private section, so that they are
 hidden from other isolates.
 
@@ -311,7 +311,7 @@ The `id` datatype requires verification. Ivy can accomplish this automatically u
 this command:
 
     $ ivy_check isolate=id leader.ivy
-    
+
 Ivy uses the built-in bit vector theory of Z3 to prove the total order properties.
 This is easy, because it requires no reasoning about quantifiers over long bit vectors,
 as all the quantifiers in the properties become Skolem symbols.
@@ -361,7 +361,7 @@ Notice what we have accomplished here: we have used modularity to
 hide the theories `bv[32]` and `iterable`. In this way we have eliminated
 arithmetic reasoning from the verification of our abstract model.
 This is important because mixing arithmetic with quantifiers could
-make the theorem prover behave unreliably. It also makes the 
+make the theorem prover behave unreliably. It also makes the
 abstract model more generic. That is, we know that we can substitute
 for `node` and `id` any datatypes that satisfy their specifications.
 
@@ -388,7 +388,7 @@ periodically pass this along.
 To implement the protocol, we will need a transport service that sends
 messages on an actual network. The Ivy standard library provides some
 simple services for this purpose. We will use one called `udp_simple`
-that implements an unreliable datagram service using UDP. The service 
+that implements an unreliable datagram service using UDP. The service
 specification of `udp_simple` looks like this:
 
     module udp_simple(addr,pkt) = {
@@ -456,11 +456,11 @@ Using these system services, here is the implementation of `leader`:
             }
 
             implement net.recv(self:node,v:id) {
-                if v = pid(self) { 
+                if v = pid(self) {
                     call abstract_model.elect(self);
                     call elect(self);
                 }
-                else if v > highest(self)  { 
+                else if v > highest(self)  {
                     highest(self) := v;
                 }
             }
@@ -478,7 +478,7 @@ representing the highest pid seen so far by the node. Notice that this
 variable is also parameterized, since there is one instance of it per node.
 Initially, we set the value of `highest(N)` to be the pid of node `N`.
 This is another example of a parameterized assignment. In this case, the
-assigned value depends on the parameter `N`. 
+assigned value depends on the parameter `N`.
 
 Now we implement two actions. The first is `timer.timeout`. When a
 timeout occurs, we send the highest pid we have seen to the next node
@@ -489,7 +489,7 @@ that node `n` is either sending its own pid, or a higher pid that has
 been sent to it in the past. IN other words, the `require` condition is an
 *assumption* for the `abstract_model` isolate, but a *guarantee* for
 the `leader` isolate.  Assuming the condition holds the abstract model's
-specification state is updated to reflect the send action. 
+specification state is updated to reflect the send action.
 
 When a network receive event occurs, the action `net.recv` is
 called. Because of the `require` statement in the specification of
@@ -519,9 +519,9 @@ this is not needed here).
 To finish the program, we add this declaration:
 
     import leader.elect
-    
+
 This says that the `elect` action of the `leader` isolate will be
-implemented by the run-time environment. 
+implemented by the run-time environment.
 
 ### Proof of the implementation
 
@@ -533,7 +533,7 @@ satisfies its own specification.
 We can ask Ivy to do the verification like this:
 
     $ ivy_check isolate=leader leader.ivy
-    
+
 Ivy will show us a counterexample to induction. In the counterexample,
 we may see a state in which node `n` in `leader` sends its `highest`
 pid, but this pid has never been sent in the abstract model. We need
@@ -578,7 +578,7 @@ an `extract`. We specify it like this:
 
 The extract is parameterized on a node `n`. It consists of the `leader` isolate
 for parameter `n`, the value of the `pid` map for `n`, as well as the node and
-id isolates (which are not parameterized, and which therefore cannot have state). 
+id isolates (which are not parameterized, and which therefore cannot have state).
 
 When we extract code, the specification sections of the isolates are
 erased.  The specification state variables and code (including
@@ -604,7 +604,7 @@ run-time services.
 We compile the code with this command:
 
     $ ivyc leader.ivy
-    
+
 This produces a binary executable file called `leader` (under
 Unix-like operating systems).
 
@@ -653,5 +653,4 @@ theories from the implementation.
 
 The resulting proved parameterized sequential program can then be extracted to an
 executable distributed program with an arbitrary number of processes, provided some
-non-interference conditions are met. 
-
+non-interference conditions are met.

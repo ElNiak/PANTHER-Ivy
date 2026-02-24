@@ -10,7 +10,7 @@ object endpoint = {
     object server_endpoint = {
         ...
 
-        module server_ep(address:ip.addr,port:ip.port) = { 
+        module server_ep(address:ip.addr,port:ip.port) = {
             #variant this of server_endpoint = struct { }
             individual ep        : ip.endpoint
             individual tls_id    : tls_api.id
@@ -25,7 +25,7 @@ object endpoint = {
                     ep.interface := ip.ivy;
                 }
             }
-            
+
             action set_ep(e:ip.endpoint) = {
                 ep := e;
             }
@@ -40,8 +40,8 @@ object endpoint = {
 
     object client_endpoint = {
         ...
-    
-        module client_ep(address:ip.addr,port:ip.port) = { 
+
+        module client_ep(address:ip.addr,port:ip.port) = {
             # variant this of client_endpoint = struct { }
             individual ep        : ip.endpoint
             individual tls_id    : tls_api.id
@@ -56,7 +56,7 @@ object endpoint = {
                     ep.interface := ip.ivy;
                 }
             }
-            
+
             action set_ep(e:ip.endpoint) = {
                 ep := e;
             }
@@ -73,14 +73,14 @@ object endpoint = {
         ...
 
         module mim__stream_data_ep(address:ip.addr,
-                    port:ip.port, 
-                    oport:ip.port, 
-                    toward_client:bool, 
+                    port:ip.port,
+                    oport:ip.port,
+                    toward_client:bool,
                     standalone: bool,
-                    bridged: bool) = { 
-            
+                    bridged: bool) = {
+
             # variant this of man_in_the_middle_endpoint = struct { }
-            
+
             individual ep_client : ip.endpoint
             individual ep_server : ip.endpoint
             individual ep_target_server : ip.endpoint
@@ -95,7 +95,7 @@ object endpoint = {
 
             individual ppkt_saved_b : bool
             individual ppkt_saved   : stream_data
-            
+
             individual ppkt_to_be_replayed_to_server : stream_data
             function   ppkt_to_be_forwarded_to_server(C:stream_pos) : stream_data
             individual cppkt_forwarded_to_server : stream_pos
@@ -107,12 +107,12 @@ object endpoint = {
             individual last_packet_forwarded_to(H:ip.endpoint) : stream_pos
 
             individual force_server_forward : bool
-            
+
             individual forward_turn : bool
             individual forward_turn_count : stream_pos
-            
+
             individual ppkt_to_be_reflected_to_target : stream_data
-        
+
             individual ppkt_to_be_forge : stream_data
 
             individual init_cids : bool # TODO remove
@@ -140,7 +140,7 @@ object endpoint = {
                             if toward_client {
                                 ep_client.interface  := ip.ivy_server;
                                 ep_server.interface := ip.ivy_client;
-                            } 
+                            }
                             else {
                                 ep_client.interface  := ip.ivy_client;
                                 ep_server.interface := ip.ivy_server;
@@ -152,7 +152,7 @@ object endpoint = {
                         ep_server.interface := ip.ivy;
                     }
                 }
-                
+
                 nat_configured := false;
                 ppkt_saved_b := false;
                 init_cids := false;
@@ -171,12 +171,12 @@ object endpoint = {
 
                 forward_turn := false;
                 forward_turn_count := 0;
-                
+
                 wait_forward := true;
-                
+
                 ppkt_to_be_forge := stream_data.empty;
             }
-            
+
             action set_ep(e:ip.endpoint) = {
                 ep_client := e; # TODO
             }
@@ -192,10 +192,10 @@ object endpoint = {
 
                 if ~nat_configured {
                     nat_configured := true;
-                    ep_client := src; # Like initial connection from client 
+                    ep_client := src; # Like initial connection from client
                     call nat_configured_event(src,dst);
-                } 
-                
+                }
+
                 var to_forward := false;
                 var packet_number_of_coalesed : stream_pos := 0;
 
@@ -216,7 +216,7 @@ object endpoint = {
                             number_packet_recv_from(src) := number_packet_recv_from(src) + 1;
                         };
                     };
-                    idx := idx.next; 
+                    idx := idx.next;
                 };
 
                 if forward_packets & keep_coalesed & to_forward { # To server
@@ -273,7 +273,7 @@ object endpoint = {
                             fprintf(fp, "%02x",  ppkt[j]); //length field
                         }
                         fclose(fp);
-                    }        
+                    }
                 >>>
             }
 
@@ -289,7 +289,7 @@ object endpoint = {
                         read = getline(&line, &len, fp);
                         fclose(fp);
                         bool is_error = false;
-                        if(line != NULL) { 
+                        if(line != NULL) {
                             std::cerr << "SAVED_PACKET 1 " << line << std::endl;
                             int hex_len = strlen(line);
                             std::cerr << "SAVED_PACKET hex_len " << hex_len << std::endl;
@@ -305,19 +305,19 @@ object endpoint = {
                                     break;
                                 }
                                 secret[j] = a << 4 | b;
-                            }  
+                            }
                             std::cerr << "SAVED_PACKET TEST_ST 2 " << secret << std::endl;
                             for(int i = 0; i < hex_len/2 && !is_error; i++)
                                 ppkt.push_back(secret[i]);
                         }
-                    }        
+                    }
                 >>>
             }
 
             action reflection_packets(ppkt:stream_data,dst_port:ip.port) = {
                 # spoof source ip/port
-                # TODO: we should modify the packet directly, however we only see the QUIC packet and thus this 
-                # is impossible for now to do so 
+                # TODO: we should modify the packet directly, however we only see the QUIC packet and thus this
+                # is impossible for now to do so
                 # Instead: we send with target ep so it simulate the ip spoofing
                 # forward to server
                 var dst := ep_server;
@@ -359,7 +359,7 @@ object endpoint = {
 
             action reset_NAT = {
                 <<<
-                    const char * command = "pkill arpspoof;"; 
+                    const char * command = "pkill arpspoof;";
                     int cr = system( command );
                 >>>
             }
@@ -371,13 +371,13 @@ object endpoint = {
             import action client_target_setup_event(src:ip.endpoint)
             import action recv_packet(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:stream_data)
         }
-    
+
     }
 
     object client_attacker_endpoint = {
         ...
 
-        module attacker_ep(address:ip.addr,port:ip.port) = { 
+        module attacker_ep(address:ip.addr,port:ip.port) = {
             #variant endpoint of client_attacker_endpoint = struct { }
             individual ep        : ip.endpoint
             individual tls_id    : tls_api.id
@@ -387,7 +387,7 @@ object endpoint = {
                 ep.addr := address;
                 ep.port := port;
             }
-            
+
             action set_ep(e:ip.endpoint) = {
                 ep := e;
             }
@@ -407,10 +407,10 @@ object endpoint = {
                     var hdr_type : type_bits := bfe[0][6](ppkt.value(0));
                     var tt := bvand(hdr_type,0x30);
                     var is_long : bool := bvand(0x80,header) ~= 0;
-                    
+
                     var version := ppkt.segment(1,1+4);
                     # var bversion := bytes_to_version(version);
-                    
+
                     var ptype : byte := bvand(0x30,header);
                     idx := idx.next;
                 };
@@ -419,12 +419,12 @@ object endpoint = {
             action configure_NAT_attack_in_spoof(server_quic:ip.port,target_ep:ip.port) = {
                 <<<
                     // should use postrouting
-                    std::string command = "iptables -t nat -A OUTPUT -o lo -d 127.0.0.1 -p udp --dport " + std::to_string(server_quic) + ":" + std::to_string(server_quic) + " -j DNAT --to-destination 127.0.0.1:"+ std::to_string(target_ep) +">/dev/null 2>&1"; 
+                    std::string command = "iptables -t nat -A OUTPUT -o lo -d 127.0.0.1 -p udp --dport " + std::to_string(server_quic) + ":" + std::to_string(server_quic) + " -j DNAT --to-destination 127.0.0.1:"+ std::to_string(target_ep) +">/dev/null 2>&1";
                     int n = command.length();
                     std::cerr << "configure_NAT_attack_in_spoof " << command << "\n";
                     // declaring character array
                     char command_array[n + 1];
-                
+
                     // copying the contents of the
                     // string to char array
                     strcpy(command_array, command.c_str());
@@ -434,12 +434,12 @@ object endpoint = {
             }
 
             action configure_NAT_attack_in_spoof_hack(server_quic:ip.port,target_ep:ip.port) = {
-                sock_attacker := sock_target; 
+                sock_attacker := sock_target;
             }
-            
+
             action reset_NAT = {
                 <<<
-                    const char * command = "iptables -t nat -L -n -v;iptables -t nat -F >/dev/null 2>&1"; 
+                    const char * command = "iptables -t nat -L -n -v;iptables -t nat -F >/dev/null 2>&1";
                     int cr = system( command );
                 >>>
             }

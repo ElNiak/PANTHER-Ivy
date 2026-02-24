@@ -1,7 +1,7 @@
 #lang ivy1.8
 
 # A model of two linked-list queues sharing a memory. An empty queue reserves one
-# memort cell to avoid being starved. 
+# memort cell to avoid being starved.
 #
 # Properties:
 #
@@ -100,12 +100,12 @@ module bounded_ll_queue(mem,other) = {
         # link is not null.
 
         var head_cell : cell   # Pointer to head cell if any
-        var tail_cell : cell   # Pointer to tail cell if any 
+        var tail_cell : cell   # Pointer to tail cell if any
         var empty : bool       # The queue is empty
 
         # Auxiliary variable maps concrete cells to abstract queue positions
 
-        var index(X:cell) : nat 
+        var index(X:cell) : nat
 
         # Initialization
 
@@ -168,9 +168,9 @@ module bounded_ll_queue(mem,other) = {
 
                 call receiving.raise(mem.val(head_cell));
                 head := head.next;
-                
+
                 # Concrete action
-                
+
                 mem.full(head_cell) := false;
                 full(head_cell) := false;    # ghost
                 if head_cell = tail_cell {
@@ -196,7 +196,7 @@ module bounded_ll_queue(mem,other) = {
             tactic skolemize;
             tactic l2s_auto with {
                 definition work_created(X) = (X < tail)
-                definition work_needed(X) = ~exists Y. Y < X & queue(Y) = _X 
+                definition work_needed(X) = ~exists Y. Y < X & queue(Y) = _X
                 definition work_done(X) = (X < head)
                 definition work_start = (sending.now & sending.value = _X)
                 definition work_progress = receiving.now
@@ -218,7 +218,7 @@ module bounded_ll_queue(mem,other) = {
         #
         # The phases are ordered lexically by their names. That is, phase 2
         # starts when phase 1 is complete.
-        
+
         temporal property [nb]
         ((globally eventually recv_trying.now)
         & (globally eventually send_trying.now)
@@ -240,7 +240,7 @@ module bounded_ll_queue(mem,other) = {
         }
 
         # Prove we don't leak memory
-       
+
         invariant empty -> exists X. ~mem.full(X) & X ~= other.tail_cell
 
         # Auxiliary invariants. Once proved, these are re-used in the liveness proofs.
@@ -277,4 +277,3 @@ export q1.send
 export q1.recv
 export q2.send
 export q2.recv
-

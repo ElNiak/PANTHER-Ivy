@@ -2,6 +2,7 @@
 """Generate CHANGELOG.md from git history **without relying on git tags**."""
 
 from __future__ import annotations
+
 import argparse
 import re
 from collections import defaultdict
@@ -9,8 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-from git import Repo, Commit  # GitPython
-
+from git import Commit, Repo  # GitPython
 
 # ---------- helpers ----------
 CONVENTIONAL_RE = re.compile(r"^(?P<type>\w+)(?:\([\w\-]+\))?:\s+(?P<msg>.+)", re.I)
@@ -68,7 +68,9 @@ def main() -> None:
     ap.add_argument("--repo", default=".", type=Path, help="Path to git repo root")
     ap.add_argument("-o", "--output", default="CHANGELOG.md", type=Path)
     ap.add_argument(
-        "--include-merges", action="store_true", help="Keep merge commits (default: ignore)"
+        "--include-merges",
+        action="store_true",
+        help="Keep merge commits (default: ignore)",
     )
     args = ap.parse_args()
     build(args.repo.resolve(), args.output.resolve(), args.include_merges)

@@ -12,8 +12,8 @@ module totally_ordered_with_zero(t) = {
 }
 
 module unbounded_sequence = {
-    
-    
+
+
     type this
     alias t = this
 
@@ -62,7 +62,7 @@ module unbounded_sequence = {
     }
 
     isolate iso = impl,spec
-    
+
     # When testing, use the integer implementation.
 
     attribute test = impl
@@ -115,7 +115,7 @@ module long_unbounded_sequence = {
     }
 
     isolate iso = impl,spec
-    
+
     # When testing, use the integer implementation.
 
     attribute test = impl
@@ -165,7 +165,7 @@ module bounded_sequence_spec = {
 }
 
 module bounded_sequence(interp) = {
-    
+
     instantiate bounded_sequence_spec
 
     object impl = {
@@ -186,7 +186,7 @@ module bounded_sequence(interp) = {
     }
 
     isolate iso = impl,spec
-    
+
     # When testing, use the integer implementation.
 
     attribute test = impl
@@ -215,7 +215,7 @@ module order_iterator(range) = {
 	val : range.t
     }
 
-    definition (X < Y) = ~is_end(X) & is_end(Y) 
+    definition (X < Y) = ~is_end(X) & is_end(Y)
                       | ~is_end(X) & ~is_end(Y) & val(X) < val(Y)
 
     function done(X,Y) = is_end(Y) | X < val(Y)
@@ -226,7 +226,7 @@ module order_iterator(range) = {
     action create(x:range.t) returns (y:t)
     action begin returns (y:t)
     action end returns (y:t)
-    
+
     object spec = {
 
 #	instantiate totally_ordered(range.t)
@@ -271,18 +271,18 @@ module order_iterator_impl(range) = {
 	val : range.t
     }
 
-    definition (X < Y) = ~is_end(X) & is_end(Y) 
+    definition (X < Y) = ~is_end(X) & is_end(Y)
                       | ~is_end(X) & ~is_end(Y) & val(X) < val(Y)
 
     function done(X,Y) = is_end(Y) | X < val(Y)
     function ahead(X,Y) = ~is_end(Y) & val(Y) < X
     function between(X,V,Y) = ~done(V,X) & done(V,Y)
     function value(X:t) = val(X)
-    
+
     action create(x:range.t) returns (y:t)
     action begin returns (y:t)
     action end returns (y:t)
-    
+
     implement create {
 	is_end(y) := false;
 	val(y) := x
@@ -304,7 +304,7 @@ module sequence_iterator(range) = {
 
     action next(x:t) returns (x:t)
     action prev(x:t) returns (x:t)
-    
+
     object spec = {
 	...
 	before next {
@@ -359,10 +359,10 @@ module sequence_iterator(range) = {
 # 	head := 0;
 # 	tail := 0;
 #     }
-    
+
 #     derived empty = tail >= head
 #     derived first = contents(tail)
-    
+
 #     # action empty returns (res:bool) = {
 #     # 	res := tail >= head;
 #     # }
@@ -401,15 +401,15 @@ module iterable = {
 
     implementation {
         interpret t -> {0..max}
-        
+
         implement next(x:t) returns (y:t) {
-            y := x + 1; 
+            y := x + 1;
         }
         implement prev(x:t) returns (y:t) {
             y := x - 1;
         }
         implement is_max(x:t) returns (r:bool) {
-            r := (x = max); 
+            r := (x = max);
         }
 
         implement random {
@@ -419,7 +419,7 @@ module iterable = {
         }
 
     }
-    
+
     specification {
         property 0 <= X:t & X <= max
     }
@@ -435,4 +435,3 @@ module iterable = {
 global {
     instance index : unbounded_sequence
 }
-

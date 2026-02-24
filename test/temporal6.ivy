@@ -10,12 +10,12 @@ isolate iso1 = {
 
     var a : bool
     var b : bool
-    
+
     after init {
         a := true;
         b := true;
     }
-    
+
     action act(x:bool) = {
         b := (b & a) | x
     }

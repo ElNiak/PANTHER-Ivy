@@ -42,7 +42,7 @@ mapped. The `get` action returns the destination `id` for a given 'key'.
 The abstract state is a relation `map` between keys and id's. Initially,
 all keys map to the default server with if `0`. By making `map` a relation
 rather than a function, we avoid creating a function cycles in case the client
-of the delegation map has a finction from id's to keys. 
+of the delegation map has a finction from id's to keys.
 
 THe specification of `set` says that all keys between `lo` and `hi`
 are mapped to `dst` and all other keys keep their value. The `get`
@@ -111,19 +111,19 @@ The `set` action is a little more complicated. First, we have to check
 that the given interval actually contains some keys (`lo < hi`). If
 so, we will set the value of `lo` to point to `dst`. We must also
 clear out all the keys in the range `[lo,hi)` so that the whole ranges
-is covered by `lo`. In addition though, we must be careful no to disturb the 
+is covered by `lo`. In addition though, we must be careful no to disturb the
 values above `hi`. This means that if `hi` is not `end`, we have to map
-`hi` to its current value, which we obtain by calling `get`. 
+`hi` to its current value, which we obtain by calling `get`.
 
 # Proof
 
 To prove the the implementation of `get` satisfies its postcondition,
 we need to know that if the glb if key `L` is `K`, then key `K` has
 the correct value for `L` according to the abstract map. To state this invariant
-directly would invold a quantifier alternation, since the definition of 
+directly would invold a quantifier alternation, since the definition of
 `glb` as a function would look something like this:
 
-    definition glb(L) = some K. K <= L & contains(K) 
+    definition glb(L) = some K. K <= L & contains(K)
                                 & ~exists M. K < M & M <= L & contains(M)
 
 Fortunately, the `ordered_map` module has an alternative specification
@@ -138,14 +138,14 @@ The `gap` specification allows us to state our invariant as follows:
                                   & key.iter.between(I,K,J) -> map(K,V)
 
 That is, if a key `K` lies in the gap between `I` and `J`, and `I`
-maps to `V`, then in the abstract map `I` maps to `V`. We need one more 
+maps to `V`, then in the abstract map `I` maps to `V`. We need one more
 invariant to make sure all keys are mapped:
 
     conjecture imap.contains(0)
 
 Because the map always contains key `0`, all keys have a `glb`. With
 these two invariants, IVy can prove that the implementation satisfies
-its specification.  
+its specification.
 
 ## Reasoning with alternate specifications
 
@@ -202,9 +202,9 @@ Let's test the `delegation_map` module by instantiating it:
     isolate iso_dmap = dmap with key
     extract iso_impl = dmap, key, impl
 
-We need our `key` module. In addition, we need a type of process id's. 
+We need our `key` module. In addition, we need a type of process id's.
 
-    $ ivy_check diagnose=true delmap_test.ivy 
+    $ ivy_check diagnose=true delmap_test.ivy
     Checking isolate iso_dmap...
     trying ext:dmap.get...
     checking consecution...
@@ -220,8 +220,3 @@ We need our `key` module. In addition, we need a type of process id's.
 As an excersize, you might try changin or removing some lines in the
 implementation to see what breaks, or try compiling this module to a
 REPL and running it.
-
-
-
-
-

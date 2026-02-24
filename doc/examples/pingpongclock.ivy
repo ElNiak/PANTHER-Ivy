@@ -84,21 +84,21 @@ with intf, clock
 
 
 isolate right_player = {
-    
+
     implementation {
         individual ball : bool
         individual time : clock
         after init {
             ball := false
         }
-        
+
         action hit = {
             if ball {
                 call intf.pong(clock.incr(time));
                 ball := false
             }
         }
-        
+
         implement intf.ping {
             ball := true;
             time := x
@@ -113,4 +113,3 @@ with intf, clock
 
 export left_player.hit
 export right_player.hit
-

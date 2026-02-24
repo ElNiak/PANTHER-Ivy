@@ -191,7 +191,7 @@ def make_ret_val(sort):
     res = il.Symbol('retval$'+str(ret_val_ctr),sort)
     ret_val_ctr += 1
     return res
-    
+
 def is_constant_lambda(x):
     if il.is_app(x) and x.rep.name == 'cast' or il.is_lambda(x):
         return is_constant_lambda(x.args[0])
@@ -213,8 +213,8 @@ def ite_into_lambda(x,cond,elseval):
     return il.Ite(cond,x,elseval)
 
 
-                        
-    
+
+
 
 def uf_to_array_action(action):
     if isinstance(action,ia.Action):
@@ -366,7 +366,7 @@ def check_isolate(method="mc",tagged_dfns=[],use_array_encoding=True):
     have_mod = [any(y in mod_set for y in ilu.used_symbols_ast(x)) for x in bgt.fmlas]
     axioms = [x for x,hm in zip(bgt.fmlas,have_mod) if not hm]
     bgt = ilu.Clauses([x for x,hm in zip(bgt.fmlas,have_mod) if hm])
-    
+
     # Convert the global action and initializer to logic. Notice we
     # use 'action_to_state' to turn the initializer TR into a state
     # predicate (i.e., it's strongest post).
@@ -406,7 +406,7 @@ def check_isolate(method="mc",tagged_dfns=[],use_array_encoding=True):
                 add_sort(sort.domain())
             else:
                 sorts.append(sort)
-                        
+
 
     declared_symbols = set()
     enum_symbols = set()
@@ -588,4 +588,3 @@ def get_action_defs(actions):
         action_defs.append(action_def)
         action_defs.append(define)
     return action_defs
-

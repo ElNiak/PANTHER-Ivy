@@ -11,7 +11,7 @@ module table_shard(key,data) = {
 
     type range
     instance props : totally_ordered_with_zero(range)
-    
+
     type t = struct {
 	lo : key,
 	hi : key,
@@ -32,9 +32,9 @@ module table_shard(key,data) = {
     }
 
     object impl = {
-	
+
 	interpret range -> bv[2]
-	
+
 	implement iter.next(x:iter.t) returns (y:iter.t) {
 	    if iter.iter_val(x) = 3 {
 		iter.iter_end(y) := true;

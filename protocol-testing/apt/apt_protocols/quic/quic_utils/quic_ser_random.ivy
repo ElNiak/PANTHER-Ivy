@@ -96,7 +96,7 @@ object quic_ser_random = {}
                 }
                 break;
                 default:
-                    //std::cerr << "quic_ser_random 2\n";  
+                    //std::cerr << "quic_ser_random 2\n";
                     throw deser_err();
             }
         }
@@ -104,7 +104,7 @@ object quic_ser_random = {}
         int set_var_int(int128_t res) {
             int128_t val = res & 0x3fffffffffffffff; //TODO modify with 16 bytes mask ?
         //void set_var_int(long long res) {
-        //    long long val = res & 0x3fffffffffffffff; 
+        //    long long val = res & 0x3fffffffffffffff;
             int bytecode = res <= 0x3f ? 0 : res <= 0x3fff ? 1 : res <= 0x3fffffff ? 2 : 3;
             int bytes = 1 << bytecode;
             val |= bytecode << ((bytes << 3) - 2);
@@ -115,16 +115,16 @@ object quic_ser_random = {}
         int set_pkt_num(int128_t &res) {
         //void set_pkt_num(long long &res) {
             // setn(0xc0000000 | (0x3fffffff & res),4);
-            // pkt number length is low two bits of first packet byte, plus one 
+            // pkt number length is low two bits of first packet byte, plus one
             setn(res,packet_number_length);
             return packet_number_length;
         }
 
         virtual void open_tag(int tag, const std::string &) {
             if (state == quic_s_payload) {
-                
+
             }
-            //std::cerr << "quic_ser_random 1\n";  
+            //std::cerr << "quic_ser_random 1\n";
             throw deser_err();
         }
 
@@ -164,4 +164,3 @@ object quic_ser_random = {}
     };
 
 >>>
-

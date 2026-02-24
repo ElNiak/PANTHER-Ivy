@@ -31,9 +31,9 @@ module transport(lower,packet,id) = {
     instance seq_num : sequence_numbers
 
     # these type describe the format of messages
-    
+
     type mtype = {msg_t, ack_t}
-    
+
     object net_msg = {
         type t = struct {
             mty : mtype,

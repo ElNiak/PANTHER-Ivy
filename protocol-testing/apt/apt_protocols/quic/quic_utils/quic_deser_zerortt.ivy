@@ -13,7 +13,7 @@ object quic_deser_zerortt = {}
 <<< impl
     #define QUIC_DESER_FAKE_CHECKSUM_LENGTH 0
     //TODO
-    
+
      #define QUOTEME(x) QUOTEME_1(x)
     #define QUOTEME_1(x) #x
     #define QUIC_SER_DESER_HEADER_PATH PANTHER_IVY_BASE_DIR/quic_utils/quic_ser_deser.h
@@ -86,7 +86,7 @@ object quic_deser_zerortt = {}
 	    bool have_scid = false;
         bool ecn = false;
 
-    
+
     public:
         quic_deser_zerortt(const std::vector<char> &inp) : ivy_binary_deser_128(inp),state(quic_s_init) {
         //quic_deser_zerortt(const std::vector<char> &inp) : ivy_binary_deser(inp),state(quic_s_init) {
@@ -117,7 +117,7 @@ object quic_deser_zerortt = {}
             }
             break;
             case quic_s_dcid:
-            {   
+            {
                 int128_t cil;
                 //long long cil;
                 getn(cil,1);
@@ -133,7 +133,7 @@ object quic_deser_zerortt = {}
             {
                 int128_t cil;
                 getn(cil,1);
-                std::cerr << "sourceID size " << cil << "\n";  
+                std::cerr << "sourceID size " << cil << "\n";
                 if(cil > 0) have_scid = true;
                 else have_scid = false;
                 scil = cil;
@@ -201,8 +201,8 @@ object quic_deser_zerortt = {}
                     res = fence - pos;
                 }
                 data_remaining = res;
-                // std::cerr << "quic_stream_length state " << state << "\n";  
-                // std::cerr << "quic_stream_length next state " << quic_stream_data << "\n";  
+                // std::cerr << "quic_stream_length state " << state << "\n";
+                // std::cerr << "quic_stream_length next state " << quic_stream_data << "\n";
                 // std::cerr << "quic_stream_length data_remaining " << data_remaining << "\n";
                 state = quic_stream_data;
             }
@@ -223,27 +223,27 @@ object quic_deser_zerortt = {}
             case quic_ack_frequency: //TODO
             /*{
                 get_var_int(res);
-		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency\n"; 
+		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency\n";
                 state = quic_ack_frequency_packet_tolerence;
             }
             break;
-            case quic_ack_frequency_packet_tolerence: 
+            case quic_ack_frequency_packet_tolerence:
             {
                 get_var_int(res);
-		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency_packet_tolerence\n"; 
+		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency_packet_tolerence\n";
                 state = quic_ack_frequency_update_max_ack_delay;
             }
             break;
-            case quic_ack_frequency_update_max_ack_delay: 
+            case quic_ack_frequency_update_max_ack_delay:
             {
                 get_var_int(res);
-		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency_update_max_ack_delay\n"; 
+		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency_update_max_ack_delay\n";
                 state = quic_ack_frequency_ignore_order;
             }
             break;
             case quic_ack_frequency_ignore_order:
             {
-		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency_ignore_order\n"; 
+		        std::cerr << "deser: quic_ack_frequency   = quic_ack_frequency_ignore_order\n";
                 getn(res,1);
             }
             break;*/
@@ -255,7 +255,7 @@ object quic_deser_zerortt = {}
             break;
             case quic_ack_delay:
             {
-		        std::cerr << "deser: quic_ack_delay  \n"; 
+		        std::cerr << "deser: quic_ack_delay  \n";
                 get_var_int(res);
                 state = quic_ack_block_count;
             }
@@ -371,7 +371,7 @@ object quic_deser_zerortt = {}
             }
             break;
             default:
-                std::cerr << "quic_deser_zerortt 3 " << state << "\n";  
+                std::cerr << "quic_deser_zerortt 3 " << state << "\n";
                 throw deser_err();
             }
         }
@@ -416,12 +416,12 @@ object quic_deser_zerortt = {}
                 //long long ft;
                 //ivy_binary_deser::getn(ft,1); // could be bigger
 
-                /* 
-                TODO we should get varint and then parse in consequence like in tls_deser_ser 
+                /*
+                TODO we should get varint and then parse in consequence like in tls_deser_ser
                 */
 
                 frame_type = ft;
-                std::cerr << "quic_deser_zerortt 2 open_tag " << frame_type  << "\n";  
+                std::cerr << "quic_deser_zerortt 2 open_tag " << frame_type  << "\n";
                 if (frame_type == 0x01) {
                     state = quic_ping;
                     return 0;
@@ -445,7 +445,7 @@ object quic_deser_zerortt = {}
                     return 4;
                 }
                 if (frame_type == 0x06) {
-                    std::cerr << "quic_deser_zerortt 2 crypto erro\n";  
+                    std::cerr << "quic_deser_zerortt 2 crypto erro\n";
                     throw deser_err();
                     return 5;
                 }
@@ -469,7 +469,7 @@ object quic_deser_zerortt = {}
                     state = quic_reset_stream_id; // max_stream_id state equivalent to this
                     return 10;
                 }
-                if (frame_type == 0x13) { 
+                if (frame_type == 0x13) {
                     state = quic_reset_stream_id; // max_stream_id state equivalent to this
                     return 11;
                 }
@@ -537,21 +537,21 @@ object quic_deser_zerortt = {}
                     state = quic_padding;
                     return 25;
                 }*/
-                std::cerr << "saw tag " << ft << "\n";  
+                std::cerr << "saw tag " << ft << "\n";
             }
-            std::cerr << "state          = " << state << "\n";  
+            std::cerr << "state          = " << state << "\n";
             std::cerr << "quic_s_payload = " << quic_s_payload << "\n";
             std::cerr << "quic_s_payload == " << (quic_s_payload == state) << "\n";
-            std::cerr << "quic_deser_zerortt 2\n";  
+            std::cerr << "quic_deser_zerortt 2\n";
             throw deser_err();
         }
 
         virtual bool open_list_elem() {
-            std::cerr << "quic_deser_zerortt 1 state 1 " << state << "\n";  
+            std::cerr << "quic_deser_zerortt 1 state 1 " << state << "\n";
             if (state == quic_s_payload) {
-                std::cerr << "quic_deser_zerortt 1 quic_s_payload " << data_remaining << "\n";  
+                std::cerr << "quic_deser_zerortt 1 quic_s_payload " << data_remaining << "\n";
                 // We must use/take in count the padding quic_frame since Picoquic client sometimes send packet
-                // only with 1 padding quic_frame which make fails the requirement saying that a 
+                // only with 1 padding quic_frame which make fails the requirement saying that a
                 // packet cannot be empty
                while ((fence == 0 || pos < fence) && more(1) && inp[pos] == 0)
                    pos++;  // skip padding frames
@@ -578,11 +578,11 @@ object quic_deser_zerortt = {}
                     return data_remaining-->  0;
             if (state == quic_ack_frequency_packet_tolerence)
                     return data_remaining-->  0;
-            
+
             if (state == quic_ack_frequency_packet_tolerence || state == quic_ack_largest) //todo not normal
                     return data_remaining-->  0;
-            std::cerr << "quic_deser_zerortt 1 state 2 " << state << "\n";  
-            std::cerr << "quic_deser_zerortt 1 data_remaining " << data_remaining << "\n";  
+            std::cerr << "quic_deser_zerortt 1 state 2 " << state << "\n";
+            std::cerr << "quic_deser_zerortt 1 data_remaining " << data_remaining << "\n";
             throw deser_err();
         }
 
@@ -595,7 +595,7 @@ object quic_deser_zerortt = {}
             }
         }
         void close_list() {
-            std::cerr << "close_list 1 state " << state << "\n";  
+            std::cerr << "close_list 1 state " << state << "\n";
             if (state == quic_s_payload) {
                 state = quic_s_init;
                 pos += QUIC_DESER_FAKE_CHECKSUM_LENGTH; // skip the fake checksum

@@ -45,5 +45,3 @@ with im.Module():
 #     main_ui.answer("View")
 #     cg.bmc_conjecture(bound=1)
 # #    main_ui.mainloop()
-
-

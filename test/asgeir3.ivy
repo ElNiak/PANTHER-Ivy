@@ -5,7 +5,7 @@ isolate proc = {
     type this
 
     object impl = {
-	interpret proc->bv[2] 
+	interpret proc->bv[2]
     }
 
     attribute test=impl
@@ -15,7 +15,7 @@ isolate mem_type = {
     type this
 
     object impl = {
-	interpret mem_type->bv[2] 
+	interpret mem_type->bv[2]
     }
 
     attribute test=impl
@@ -28,7 +28,7 @@ type data_type = {0,1,2}
 #     type this
 
 #     object impl = {
-# 	interpret data_type->bv[1] 
+# 	interpret data_type->bv[1]
 #     }
 
 #     attribute test=impl
@@ -38,7 +38,7 @@ isolate addr_type = {
     type this
 
     object impl = {
-	interpret addr_type->bv[1] 
+	interpret addr_type->bv[1]
     }
 
     attribute test=impl
@@ -49,7 +49,7 @@ isolate dcs_type = {
     type this
 
     object impl = {
-	interpret dcs_type->bv[1] 
+	interpret dcs_type->bv[1]
     }
 
     attribute test=impl
@@ -135,7 +135,7 @@ object ref = {
     individual  gt : lclock
 
     ################################################################################
-    # global memory state 
+    # global memory state
 
     individual mem(M:mem_type,A:addr_type) : data_type
 
@@ -314,7 +314,7 @@ module arm_ref(p) = {
 	# 3 don't issue barrier instruction if barrier instruction issued
 
 	if ph=ep_wr0_ph & ~post & ~(ro_isd & ~ro | nro_isd & ro | nro_isd & ~ro |  ro & io) {
-          
+
 	    if forall T. ~isd.isd_wr0(p,m,a,T) & acc.wr0(m,a).cmd=nop {
 		isd.isd_wr0(p,m,a,ref.lt) := true;
 
@@ -443,7 +443,7 @@ object acc = {
     alias lclock_type = lclock
 
     # issue write/read if ordering requirements met
-    
+
     action send(ph:acc_ph_type, m:mem_type,a:addr_type) = {
 
         var ordser : bool;
@@ -620,7 +620,7 @@ object acc = {
 	    call send(ph,m,a)
 	}
     }
-    
+
 }
 
 ################################################################################
@@ -639,7 +639,7 @@ object afc = {
     instantiate rsp0(M:mem_type,A:addr_type) : cmd_type
     instantiate rsp1(M:mem_type,A:addr_type) : cmd_type
 
-    alias lclock_type = lclock    
+    alias lclock_type = lclock
 
     action step(ph:ph_type,m:mem_type, a:addr_type) = {
         var ordpip              : bool;
@@ -651,8 +651,8 @@ object afc = {
 
 	    if some t:lclock_type. isd.isd_rd0(p,m,a,t) & ref.evs(t).op=read & ~ref.evs(t).serialized & ref.evs(t).agt=arm_agt {
 
-		ordpip := exists T. (isd.isd_rd0(p,m,a,T) & rd0(m,a).cmd=read  | 
-                                     isd.isd_rd1(p,m,a,T) & rd1(m,a).cmd=read  | 
+		ordpip := exists T. (isd.isd_rd0(p,m,a,T) & rd0(m,a).cmd=read  |
+                                     isd.isd_rd1(p,m,a,T) & rd1(m,a).cmd=read  |
                                      isd.isd_wr0(p,m,a,T) & wr0(m,a).cmd=write |
                                      isd.isd_wr1(p,m,a,T) & wr1(m,a).cmd=write) & (T<t) & ref.evs(T).ch=ref.evs(t).ch & ref.evs(T).agt=arm_agt;
 
@@ -669,8 +669,8 @@ object afc = {
 
 	    if some t:lclock_type. isd.isd_rd1(p,m,a,t) & ref.evs(t).op=read & ~ref.evs(t).serialized & ref.evs(t).agt=arm_agt {
 
-		ordpip := exists T. (isd.isd_rd0(p,m,a,T) & rd0(m,a).cmd=read  | 
-                                     isd.isd_rd1(p,m,a,T) & rd1(m,a).cmd=read  | 
+		ordpip := exists T. (isd.isd_rd0(p,m,a,T) & rd0(m,a).cmd=read  |
+                                     isd.isd_rd1(p,m,a,T) & rd1(m,a).cmd=read  |
                                      isd.isd_wr0(p,m,a,T) & wr0(m,a).cmd=write |
                                      isd.isd_wr1(p,m,a,T) & wr1(m,a).cmd=write) & (T<t) & ref.evs(T).ch=ref.evs(t).ch & ref.evs(T).agt=arm_agt;
 
@@ -680,19 +680,19 @@ object afc = {
                     ref.evs(t).l       := amcc_l;
 
 		    rd1(m,a).cmd := nop;
-		} 
+		}
 	    }
 	} else if ph=mem_recv_wr0 & wr0(m,a).cmd=write {
             p                 := wr0(m,a).p;
 
 	    if some t:lclock_type. isd.isd_wr0(p,m,a,t) & ref.evs(t).op=write & ~ref.evs(t).serialized & ref.evs(t).agt=arm_agt {
 
-		ordpip := exists T. (isd.isd_rd0(p,m,a,T) & rd0(m,a).cmd=read  | 
-                                     isd.isd_rd1(p,m,a,T) & rd1(m,a).cmd=read  | 
+		ordpip := exists T. (isd.isd_rd0(p,m,a,T) & rd0(m,a).cmd=read  |
+                                     isd.isd_rd1(p,m,a,T) & rd1(m,a).cmd=read  |
                                      isd.isd_wr0(p,m,a,T) & wr0(m,a).cmd=write |
                                      isd.isd_wr1(p,m,a,T) & wr1(m,a).cmd=write) & (T<t) & ref.evs(T).ch=ref.evs(t).ch & ref.evs(T).agt=arm_agt;
 
-		if ~ordpip & amcc(m).wr0(a).cmd=nop {       
+		if ~ordpip & amcc(m).wr0(a).cmd=nop {
 		    call amcc(m).recv(amcc_wr0_ph,a,wr0(m,a).data,wr0(m,a).p);
 
                     ref.evs(t).l       := amcc_l;
@@ -705,12 +705,12 @@ object afc = {
 
 	    if some t:lclock_type.  isd.isd_wr1(p,m,a,t) & ref.evs(t).op=write & ~ref.evs(t).serialized & ref.evs(t).agt=arm_agt {
 
-		ordpip := exists T. (isd.isd_rd0(p,m,a,T) & rd0(m,a).cmd=read  | 
-                                     isd.isd_rd1(p,m,a,T) & rd1(m,a).cmd=read  | 
+		ordpip := exists T. (isd.isd_rd0(p,m,a,T) & rd0(m,a).cmd=read  |
+                                     isd.isd_rd1(p,m,a,T) & rd1(m,a).cmd=read  |
                                      isd.isd_wr0(p,m,a,T) & wr0(m,a).cmd=write |
                                      isd.isd_wr1(p,m,a,T) & wr1(m,a).cmd=write) & (T<t) & ref.evs(T).ch=ref.evs(t).ch & ref.evs(T).agt=arm_agt;
 
-		if ~ordpip & amcc(m).wr1(a).cmd=nop {       
+		if ~ordpip & amcc(m).wr1(a).cmd=nop {
 		    call amcc(m).recv(amcc_wr1_ph,a,wr1(m,a).data,wr1(m,a).p);
 
                     ref.evs(t).l       := amcc_l;
@@ -778,9 +778,9 @@ module amcc_ref(m) = {
 
 	    if some t:lclock_type. isd.isd_rd0(p,m,a,t) & ref.evs(t).op=read & ~ref.evs(t).serialized & ref.evs(t).agt=arm_agt & ref.evs(t).l=amcc_l { # originates from ARM Table 61
 
-		ordpip_nro := ~ref.evs(t).ro & exists M,A,T. (isd.isd_wr0(p,M,A,T) & wr0(A).cmd=write | 
-                                                              isd.isd_wr1(p,M,A,T) & wr1(A).cmd=write | 
-                                                              isd.isd_rd0(p,M,A,T) & rd0(A).cmd=read | 
+		ordpip_nro := ~ref.evs(t).ro & exists M,A,T. (isd.isd_wr0(p,M,A,T) & wr0(A).cmd=write |
+                                                              isd.isd_wr1(p,M,A,T) & wr1(A).cmd=write |
+                                                              isd.isd_rd0(p,M,A,T) & rd0(A).cmd=read |
                                                               isd.isd_rd1(p,M,A,T) & rd1(A).cmd=read) & ~ref.evs(T).ro & T < t & ref.evs(T).agt=arm_agt & ref.evs(T).m=m & ref.evs(T).l=amcc_l;
                 ordpip_ro  := false;
 
@@ -804,9 +804,9 @@ module amcc_ref(m) = {
             ordpip_ro  := true;
 
 	    if some t:lclock_type. isd.isd_rd1(p,m,a,t) & ref.evs(t).op=read & ~ref.evs(t).serialized & ref.evs(t).agt=arm_agt & ref.evs(t).l=amcc_l { # originates from ARM Table 61
-		ordpip_nro := ~ref.evs(t).ro & exists M,A,T. (isd.isd_wr0(p,M,A,T) & wr0(A).cmd=write | 
-                                                              isd.isd_wr1(p,M,A,T) & wr1(A).cmd=write | 
-                                                              isd.isd_rd0(p,M,A,T) & rd0(A).cmd=read | 
+		ordpip_nro := ~ref.evs(t).ro & exists M,A,T. (isd.isd_wr0(p,M,A,T) & wr0(A).cmd=write |
+                                                              isd.isd_wr1(p,M,A,T) & wr1(A).cmd=write |
+                                                              isd.isd_rd0(p,M,A,T) & rd0(A).cmd=read |
                                                               isd.isd_rd1(p,M,A,T) & rd1(A).cmd=read) & ~ref.evs(T).ro & T < t & ref.evs(T).agt=arm_agt & ref.evs(T).m=m & ref.evs(T).l=amcc_l;
                 ordpip_ro  := false;
 
@@ -832,9 +832,9 @@ module amcc_ref(m) = {
 
                     tt := t;
 
-		    ordpip_nro := ~ref.evs(t).ro & exists M,A,T. (isd.isd_wr0(p,M,A,T) & wr0(A).cmd=write | 
-                                                                  isd.isd_wr1(p,M,A,T) & wr1(A).cmd=write | 
-                                                                  isd.isd_rd0(p,M,A,T) & rd0(A).cmd=read | 
+		    ordpip_nro := ~ref.evs(t).ro & exists M,A,T. (isd.isd_wr0(p,M,A,T) & wr0(A).cmd=write |
+                                                                  isd.isd_wr1(p,M,A,T) & wr1(A).cmd=write |
+                                                                  isd.isd_rd0(p,M,A,T) & rd0(A).cmd=read |
                                                                   isd.isd_rd1(p,M,A,T) & rd1(A).cmd=read) & ~ref.evs(T).ro & T < t & ref.evs(T).agt=arm_agt & ref.evs(T).m=m & ref.evs(T).l=amcc_l;
                     ordpip_ro  := false;
 	    };
@@ -860,9 +860,9 @@ module amcc_ref(m) = {
 
                     tt := t;
 
-		    ordpip_nro := ~ref.evs(t).ro & exists M,A,T. (isd.isd_wr0(p,M,A,T) & wr0(A).cmd=write | 
-                                                                  isd.isd_wr1(p,M,A,T) & wr1(A).cmd=write | 
-                                                                  isd.isd_rd0(p,M,A,T) & rd0(A).cmd=read | 
+		    ordpip_nro := ~ref.evs(t).ro & exists M,A,T. (isd.isd_wr0(p,M,A,T) & wr0(A).cmd=write |
+                                                                  isd.isd_wr1(p,M,A,T) & wr1(A).cmd=write |
+                                                                  isd.isd_rd0(p,M,A,T) & rd0(A).cmd=read |
                                                                   isd.isd_rd1(p,M,A,T) & rd1(A).cmd=read) & ~ref.evs(T).ro & T < t & ref.evs(T).agt=arm_agt & ref.evs(T).m=m & ref.evs(T).l=amcc_l;
                     ordpip_ro  := false;
 	    };
@@ -942,12 +942,12 @@ module dcs_ref(m) = {
 
             if some t:lclock_type. isd.isd_rd0(p,m,a,t) & ref.evs(t).op=read & ~ref.evs(t).serialized & ref.evs(t).l=dcs_l & ref.evs(t).m=m {
 
-  	         ordpip := exists T. (isd.isd_wr0(p,m,a,T) & wr0(a).cmd=write | 
-                                      isd.isd_wr1(p,m,a,T) & wr1(a).cmd=write | 
+  	         ordpip := exists T. (isd.isd_wr0(p,m,a,T) & wr0(a).cmd=write |
+                                      isd.isd_wr1(p,m,a,T) & wr1(a).cmd=write |
                                       isd.isd_rd0(p,m,a,T) & rd0(a).cmd=read & ref.evs(T).io & ref.evs(t).io |
                                       isd.isd_rd1(p,m,a,T) & rd1(a).cmd=read & ref.evs(T).io & ref.evs(t).io)  & T < t & ref.evs(T).m=m & ref.evs(T).l=dcs_l;
 
-		if ~ordpip & amcc(m).rsp0(a).cmd=nop { 
+		if ~ordpip & amcc(m).rsp0(a).cmd=nop {
 		    amcc(m).rsp0(a).cmd  := rrsp;
 		    amcc(m).rsp0(a).p    := rd0(a).p;
 		    amcc(m).rsp0(a).data := data(a);
@@ -968,12 +968,12 @@ module dcs_ref(m) = {
 
             if some t:lclock_type. isd.isd_rd1(p,m,a,t) & ref.evs(t).op=read & ~ref.evs(t).serialized & ref.evs(t).l=dcs_l & ref.evs(t).m=m {
 
-  	         ordpip := exists T. (isd.isd_wr0(p,m,a,T) & wr0(a).cmd=write | 
-                                      isd.isd_wr1(p,m,a,T) & wr1(a).cmd=write | 
+  	         ordpip := exists T. (isd.isd_wr0(p,m,a,T) & wr0(a).cmd=write |
+                                      isd.isd_wr1(p,m,a,T) & wr1(a).cmd=write |
                                       isd.isd_rd0(p,m,a,T) & rd0(a).cmd=read & ref.evs(T).io & ref.evs(t).io |
                                       isd.isd_rd1(p,m,a,T) & rd1(a).cmd=read & ref.evs(T).io & ref.evs(t).io)  & T < t & ref.evs(T).m=m & ref.evs(T).l=dcs_l;
 
-		if rd1(a).cmd=read & ~ordpip & amcc(m).rsp1(a).cmd=nop { 
+		if rd1(a).cmd=read & ~ordpip & amcc(m).rsp1(a).cmd=nop {
 		    amcc(m).rsp1(a).cmd  := rrsp;
 		    amcc(m).rsp1(a).p    := rd1(a).p;
 		    amcc(m).rsp1(a).data := data(a);
@@ -996,12 +996,12 @@ module dcs_ref(m) = {
 
             if some t:lclock_type. isd.isd_wr0(p,m,a,t) & ref.evs(t).op=write & ~ref.evs(t).serialized & ref.evs(t).l=dcs_l & ref.evs(t).m=m {
 
-  	         ordpip := exists T. (isd.isd_wr0(p,m,a,T) & wr0(a).cmd=write | 
-                                      isd.isd_wr1(p,m,a,T) & wr1(a).cmd=write | 
+  	         ordpip := exists T. (isd.isd_wr0(p,m,a,T) & wr0(a).cmd=write |
+                                      isd.isd_wr1(p,m,a,T) & wr1(a).cmd=write |
                                       isd.isd_rd0(p,m,a,T) & rd0(a).cmd=read & ref.evs(T).io & ref.evs(t).io |
                                       isd.isd_rd1(p,m,a,T) & rd1(a).cmd=read & ref.evs(T).io & ref.evs(t).io)  & T < t & ref.evs(T).m=m & ref.evs(T).l=dcs_l;
 
-		if wr0(a).cmd=write & ~ordpip { 
+		if wr0(a).cmd=write & ~ordpip {
 		    data(a)       := wr0(a).data;
 
 		    wr0(a).cmd    := nop;
@@ -1016,12 +1016,12 @@ module dcs_ref(m) = {
 
             if some t:lclock_type. isd.isd_wr1(p,m,a,t) & ref.evs(t).op=write & ~ref.evs(t).serialized & ref.evs(t).l=dcs_l & ref.evs(t).m=m {
 
-  	         ordpip := exists T. (isd.isd_wr0(p,m,a,T) & wr0(a).cmd=write | 
-                                      isd.isd_wr1(p,m,a,T) & wr1(a).cmd=write | 
+  	         ordpip := exists T. (isd.isd_wr0(p,m,a,T) & wr0(a).cmd=write |
+                                      isd.isd_wr1(p,m,a,T) & wr1(a).cmd=write |
                                       isd.isd_rd0(p,m,a,T) & rd0(a).cmd=read & ref.evs(T).io & ref.evs(t).io |
                                       isd.isd_rd1(p,m,a,T) & rd1(a).cmd=read & ref.evs(T).io & ref.evs(t).io)  & T < t & ref.evs(T).m=m & ref.evs(T).l=dcs_l;
 
-		if wr1(a).cmd=write & ~ordpip { 
+		if wr1(a).cmd=write & ~ordpip {
 	            data(a)       := wr1(a).data;
 
 		    wr1(a).cmd := nop;
@@ -1225,8 +1225,8 @@ conjecture (~ref.evs(T).serialized & (ref.evs(T).op=read | ref.evs(T).op=rrsp) &
 conjecture (~ref.evs(T).serialized & ref.evs(T).op=write & ref.evs(T).m=M & ref.evs(T).a=A & ref.evs(T).p=P & ~ref.evs(T).sub) -> isd.isd_wr0(P,M,A,T)
 conjecture (~ref.evs(T).serialized & ref.evs(T).op=write & ref.evs(T).m=M & ref.evs(T).a=A & ref.evs(T).p=P &  ref.evs(T).sub) -> isd.isd_wr1(P,M,A,T)
 
-conjecture ref.evs(T).serialized 
-           -> 
+conjecture ref.evs(T).serialized
+           ->
            ~(
              isd.isd_wr0(P,M,A,T) | isd.isd_wr1(P,M,A,T) | isd.isd_rd0(P,M,A,T) & ~isd.isd_rsp0(P,M,A) | isd.isd_rd1(P,M,A,T) & ~isd.isd_rsp1(P,M,A)
             )
@@ -1302,10 +1302,10 @@ conjecture (ref.evs(T).op~=nop  & ~ref.evs(T).serialized & ref.evs(T).agt=arm_ag
 #
 
 conjecture (
-            ref.evs(T0).op=rrsp & ~ref.evs(T0).serialized & (ref.evs(T1).op=read & ~ref.evs(T1).serialized | ref.evs(T1).op=write & ~ref.evs(T1).serialized & ~ref.evs(T1).post) & ref.evs(T0).p=ref.evs(T1).p & ref.evs(T0).agt=ref.evs(T1).agt & ~ref.evs(T0).ro & ~ref.evs(T1).ro & 
+            ref.evs(T0).op=rrsp & ~ref.evs(T0).serialized & (ref.evs(T1).op=read & ~ref.evs(T1).serialized | ref.evs(T1).op=write & ~ref.evs(T1).serialized & ~ref.evs(T1).post) & ref.evs(T0).p=ref.evs(T1).p & ref.evs(T0).agt=ref.evs(T1).agt & ~ref.evs(T0).ro & ~ref.evs(T1).ro &
             ref.evs(T0).io=ref.evs(T1).io &
            (ref.evs(T0).agt=arm_agt -> ref.evs(T0).io)
-           ) 
+           )
            -> T0 < T1
 
 #
@@ -1319,7 +1319,7 @@ conjecture (ref.evs(T0).op~=nop & ~ref.evs(T0).serialized & ref.evs(T1).op~=nop 
              ((ref.evs(T1).op=read  &  ref.evs(T1).sub) -> (acc.rd1(ref.evs(T1).m,ref.evs(T1).a).cmd=read  & acc.rd1(ref.evs(T1).m,ref.evs(T1).a).p=ref.evs(T1).p))
            )
 
-###  
+###
 
 conjecture (ref.evs(T).op~=nop & ~ref.evs(T).serialized) <-> ref.evs(T).l~=init_l
 #conjecture (ref.evs(T).op~=nop & ~ref.evs(T).serialized) <-> ref.evs(T).agt~=init_agt
@@ -1457,7 +1457,7 @@ conjecture (ref.evs(T).op=rrsp & ~ref.evs(T).serialized & ref.evs(T).sub & (isd.
 ### PIO from the same source to the same dest stay in order, if both are non-posted or both are posted
 
 conjecture (
-            (ref.evs(T0).op=read & ~ref.evs(T0).serialized | ref.evs(T0).op=write & ~ref.evs(T0).serialized) & 
+            (ref.evs(T0).op=read & ~ref.evs(T0).serialized | ref.evs(T0).op=write & ~ref.evs(T0).serialized) &
             (ref.evs(T1).op=read & ~ref.evs(T1).serialized | ref.evs(T1).op=write & ~ref.evs(T1).serialized) &
              ref.evs(T0).p=ref.evs(T1).p & ref.evs(T0).a=ref.evs(T1).a & ref.evs(T0).agt=ref.evs(T1).agt &
              ref.evs(T0).io & ref.evs(T1).io & T0<T1 & ref.evs(T0).post=ref.evs(T1).post
@@ -1471,7 +1471,7 @@ conjecture (
 
 ###
 
-conjecture ref.evs(T).op~=nop -> ref.evs(T).rspro   
+conjecture ref.evs(T).op~=nop -> ref.evs(T).rspro
 
 ###
 
@@ -1504,7 +1504,7 @@ conjecture (ref.evs(T).op=read & ~ref.evs(T).serialized & ref.evs(T).agt=arm_agt
 conjecture ref.evs(T).op=read                            ->  ~ref.evs(T).serialized
 conjecture ref.evs(T).op=read                            ->  ref.evs(T).time=0
 
-#ISSUE2 
+#ISSUE2
 conjecture ref.evs(T).op=rrsp  -> ~(ref.gt=0)
 
 export arm.step
@@ -1512,6 +1512,3 @@ export acc.step
 export afc.step
 export amcc.step
 export dcs.dcs_step
-
-
-

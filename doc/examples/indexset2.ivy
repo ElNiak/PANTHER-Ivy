@@ -44,7 +44,7 @@
 # ordinals and cardinals distinct types. The functions are stratified
 # in this order: set -> basis -> index.t. In particular, this allows
 # us to state the inductive lemma in a way that does not involve
-# quantified variables under arithmetic operators. 
+# quantified variables under arithmetic operators.
 
 include collections
 include order
@@ -59,7 +59,7 @@ include deduction
 # The structure 'upper' must contain a value `n` of type `basis`
 # that gives the upper bound on ordinals. That is, this defines the
 # set S as the set of ordinals N such that 0 <= N <= n-1. It must also
-# contain a proof that n-1 >= 0. 
+# contain a proof that n-1 >= 0.
 
 # Notice this is set up so that for modular types you can give the
 # modulus for `n`. For example, for bv[4], you can let `n` be 16
@@ -68,8 +68,8 @@ include deduction
 
 module indexset(basis,index,upper) = {
 
-    type set 
-    
+    type set
+
     relation member(E:basis,S:set)
     function card(S:set) : index.t
     relation majority(S:set)
@@ -92,11 +92,11 @@ module indexset(basis,index,upper) = {
 	    assert r <-> ~ exists X. member(X,s)
 	}
     }
-    
+
     function cnt(E:basis) : index.t
     relation disjoint(X:set,Y:set)
 
-    
+
     isolate disjointness = {
 
 	object impl = {
@@ -137,7 +137,7 @@ module indexset(basis,index,upper) = {
 	    # the basis set.
 
 	    definition majority(X) = 2 * card(X) > cnt((upper.n) - 1)
-	    
+
 	    object spec = {
 		# This is the definition of dijoint sets in terms of the member relation.
 		# Notice that there is a quantifier alternation in the direction set -> basis.
@@ -176,12 +176,12 @@ module indexset(basis,index,upper) = {
                     apply introImp;
                     apply ind[basis] with X = B;
                     apply elimImp with p = ~(member(B,X) & member(B,Y));
-                    apply disax; 
+                    apply disax;
                     showgoals
 	    }
 
 	}
-	
+
 	object spec = {
 
 	    # With the above lemma, the desired property is trivial.
@@ -192,7 +192,7 @@ module indexset(basis,index,upper) = {
 
             property majority(X) & majority(Y) -> exists E. (member(E,X) & member(E,Y))
 	}
-	
+
 	attribute test = impl
     }
     with upper,basis.impl,index.impl
@@ -202,7 +202,7 @@ module indexset(basis,index,upper) = {
     # are interpreted. Fortunately, we don't run afoul of the fragment checker.
 
     isolate api = {
-	
+
 	object impl = {
 	    # Here is the implementation of the set type using an unsorted array.
 
@@ -218,7 +218,7 @@ module indexset(basis,index,upper) = {
 
 	    definition member(y:basis,X:set) = exists Z. 0 <= Z & Z < repr(X).end & repr(X).value(Z) = y
 
-	    # These lemmas are needed to prove correctness of is_empty. 
+	    # These lemmas are needed to prove correctness of is_empty.
 
 	    property member(Y,X) -> repr(X).end ~= 0
 	    property repr(X).end ~= 0 -> member(repr(X).value(0),X)

@@ -13,7 +13,7 @@ object tls_ser_server = {}
 <<< impl
     //https://tools.ietf.org/html/draft-thomson-quic-bit-grease-00
     //https://tools.ietf.org/id/draft-huitema-quic-ts-03.html
-    
+
     //TODO
      #define QUOTEME(x) QUOTEME_1(x)
     #define QUOTEME_1(x) #x
@@ -53,9 +53,9 @@ object tls_ser_server = {}
             return ivy_binary_deser_128::more(bytes);
             //return ivy_binary_deser::more(bytes);
         }
-    
+
         virtual void open_field(const std::string &name) {
-            std::cerr << "deser-open_field: name : " << name << "\n";  
+            std::cerr << "deser-open_field: name : " << name << "\n";
             if(name == "tls.server_hello")
                 is_server_hello = true;
             if(name == "tls.client_hello")
@@ -84,20 +84,20 @@ object tls_ser_server = {}
                 }*/
                 /*if(name == "psk_identities")
                     bytes -= 2;*/
-                std::cerr << "deser-open_field: flength : " << bytes << "\n";  
+                std::cerr << "deser-open_field: flength : " << bytes << "\n";
                 if(tls_field_bytes_map.find(name) != tls_field_bytes_map.end()) {
                     //tls_field_bytes_map[name] = bytes;
-                    std::cerr << "deser-open_field: tls_field_bytes_map[" << name << "] : " << bytes << "\n"; 
+                    std::cerr << "deser-open_field: tls_field_bytes_map[" << name << "] : " << bytes << "\n";
                 } //else if (name == )
-                
+
                 fence.push_back(pos+bytes);
 
                 // if (name == "ticket" && ! ticket_b) {
-                //     std::cerr << "deser-open_field: name BITE : " << name << "\n"; 
+                //     std::cerr << "deser-open_field: name BITE : " << name << "\n";
                 //     // int128_t val;
                 //     // getn(val,bytes);
-                //     //std::cerr << "deser-open_field: val BITE : " << val << "\n"; 
-                //     //std::cerr << "deser-open_field: pos+bytes BITE : " << pos+bytes << "\n"; 
+                //     //std::cerr << "deser-open_field: val BITE : " << val << "\n";
+                //     //std::cerr << "deser-open_field: pos+bytes BITE : " << pos+bytes << "\n";
                 //     const char * session_file = getenv("STFILE2");
                 //     FILE *fp;
                 //     if(session_file != NULL) {
@@ -107,9 +107,9 @@ object tls_ser_server = {}
                 //         for(int j = 0; j < bytes; j++) {
                 //             int128_t val;
                 //             getn(val,1);
-                //             //std::cerr << "deser-open_field: val BITE : " << val << "\n"; 
+                //             //std::cerr << "deser-open_field: val BITE : " << val << "\n";
                 //             val_trunc = val;
-                //             fprintf(fp, "%02x", val_trunc); 
+                //             fprintf(fp, "%02x", val_trunc);
                 //         }
                 //         fclose(fp);
                 //         pos -= bytes;
@@ -117,11 +117,11 @@ object tls_ser_server = {}
                 //     ticket_b = true;
                 // }
                 // if (name == "ticket_nonce" && !ticket_nonce_b) {
-                //     std::cerr << "deser-open_field: name BITE : " << name << "\n"; 
+                //     std::cerr << "deser-open_field: name BITE : " << name << "\n";
                 //     // int128_t val;
                 //     // getn(val,bytes);
-                //     ////std::cerr << "deser-open_field: val BITE : " << val << "\n"; 
-                //     //std::cerr << "deser-open_field: pos+bytes BITE : " << pos+bytes << "\n"; 
+                //     ////std::cerr << "deser-open_field: val BITE : " << val << "\n";
+                //     //std::cerr << "deser-open_field: pos+bytes BITE : " << pos+bytes << "\n";
                 //     const char * session_file = getenv("STFILE2");
                 //     FILE *fp;
                 //     if(session_file != NULL) {
@@ -131,7 +131,7 @@ object tls_ser_server = {}
                 //         for(int j = 0; j < bytes && bytes > 0; j++) {
                 //             int128_t val;
                 //             getn(val,1);
-                //             //std::cerr << "deser-open_field: val BITE : " << val << "\n"; 
+                //             //std::cerr << "deser-open_field: val BITE : " << val << "\n";
                 //             val_trunc = val;
                 //             fprintf(fp, "%02x", val_trunc); //length field
                 //         }
@@ -141,11 +141,11 @@ object tls_ser_server = {}
                 //     ticket_nonce_b = true;
                 // }
                 // if (name == "extensions" && ticket_b && !extensions_b) {
-                //     std::cerr << "deser-open_field: name BITE : " << name << "\n"; 
+                //     std::cerr << "deser-open_field: name BITE : " << name << "\n";
                 //     // int128_t val;
                 //     // getn(val,bytes);
-                //     ////std::cerr << "deser-open_field: val BITE : " << val << "\n"; 
-                //     //std::cerr << "deser-open_field: pos+bytes BITE : " << pos+bytes << "\n"; 
+                //     ////std::cerr << "deser-open_field: val BITE : " << val << "\n";
+                //     //std::cerr << "deser-open_field: pos+bytes BITE : " << pos+bytes << "\n";
                 //     const char * session_file = getenv("STFILE2");
                 //     FILE *fp;
                 //     if(session_file != NULL) {
@@ -157,11 +157,11 @@ object tls_ser_server = {}
                 //     extensions_b = true;
                 // }
                 // if (name == "tls.early_data" && !early_data_b) {
-                    //std::cerr << "deser-open_field: name BITE : " << name << "\n"; 
+                    //std::cerr << "deser-open_field: name BITE : " << name << "\n";
                     // int128_t val;
                     // getn(val,bytes);
-                    ////std::cerr << "deser-open_field: val BITE : " << val << "\n"; 
-                    //std::cerr << "deser-open_field: pos+bytes BITE : " << pos+bytes << "\n"; 
+                    ////std::cerr << "deser-open_field: val BITE : " << val << "\n";
+                    //std::cerr << "deser-open_field: pos+bytes BITE : " << pos+bytes << "\n";
                     // const char * session_file = getenv("STFILE2");
                     // FILE *fp;
                     // if(session_file != NULL) {
@@ -173,7 +173,7 @@ object tls_ser_server = {}
                     //     for(int j = 0; j < bytes; j++) {
                     //         int128_t val;
                     //         getn(val,1);
-                    //         //std::cerr << "deser-open_field: val BITE : " << val << "\n"; 
+                    //         //std::cerr << "deser-open_field: val BITE : " << val << "\n";
                     //         val_trunc = val;
                     //         fprintf(fp, "%02x", val_trunc); //length field
                     //     }
@@ -186,18 +186,18 @@ object tls_ser_server = {}
             }
             else if (fence.size() > 0) {
                 unsigned b = fence.back();
-                std::cerr << "4) pkt-pos =  " << b << "\n"; 
+                std::cerr << "4) pkt-pos =  " << b << "\n";
                 fence.push_back(b);
-            } 
+            }
             if (tls_field_bytes_map.find(name) != tls_field_bytes_map.end()) {
                 field_bytes = tls_field_bytes_map[name];
                 // if (name == "ticket_lifetime" ||
                 //     name == "ticket_age_add") {
-                    //std::cerr << "deser-open_field: name BITE : " << name << "\n"; 
+                    //std::cerr << "deser-open_field: name BITE : " << name << "\n";
                     //int128_t val;
                     //getn(val,field_bytes);
-                    //std::cerr << "deser-open_field: val BITE : " << val << "\n"; 
-                    //std::cerr << "deser-open_field: pos+bytes BITE : " << pos+bytes << "\n"; 
+                    //std::cerr << "deser-open_field: val BITE : " << val << "\n";
+                    //std::cerr << "deser-open_field: pos+bytes BITE : " << pos+bytes << "\n";
                     // const char * session_file = getenv("STFILE2");
                     // FILE *fp;
                     // if(session_file != NULL) {
@@ -211,9 +211,9 @@ object tls_ser_server = {}
                     //     fclose(fp);
                     // }
                     //pos -= field_bytes;
-                //} 
-                std::cerr << "deser-open_field: field_bytes : " << field_bytes << "\n"; 
-                
+                //}
+                std::cerr << "deser-open_field: field_bytes : " << field_bytes << "\n";
+
             }
             if (name == "tls.encrypted_extensions") {
                 in_encrypted_extensions = fence.size();
@@ -240,8 +240,8 @@ object tls_ser_server = {}
             //unsigned long long tag_final;
 	        long long mask;
             getn(tag,bytes);
-            std::cerr << "tag v1: " << tag << "\n";  
-            std::cerr << "bytes v1: " << bytes << "\n"; 
+            std::cerr << "tag v1: " << tag << "\n";
+            std::cerr << "bytes v1: " << bytes << "\n";
 	        u_int tag_int = (u_int) tag;  //TODO change could be dangerous
             int tag_size = (tag_int >> 6) & ((1 << 2) -1);
             if(tag_size == 0) {
@@ -256,12 +256,12 @@ object tls_ser_server = {}
             } else if(tag_size == 3) {
                 tag_size = 8;
                 mask = 0x3fffffffffffffff;
-            } 
+            }
 
             bool is_unknow = false;
             if(tag > 0x0f && tag != 0x002a && tag != 0x0029)
                 is_unknow = true;
-            
+
             //if(tag == 0x00C0)
             //    is_unknow = false;
 
@@ -280,8 +280,8 @@ object tls_ser_server = {}
                 //tls_field_bytes_map["ticket"] = value_size;
                 is_session_ticket = true;
             }
-            if((((tag_size != bytes || is_unknow || tag == 0x1010 || tag == 0x0f || tag == 0x00 || tag == 0x0d) 
-		            && tags[0] != "tls.client_hello" && tags[0] != "tls.unknown_extension" //&& tags[0] != "tls.early_data" && tags[0] != "tls.unknown_extension" 
+            if((((tag_size != bytes || is_unknow || tag == 0x1010 || tag == 0x0f || tag == 0x00 || tag == 0x0d)
+		            && tags[0] != "tls.client_hello" && tags[0] != "tls.unknown_extension" //&& tags[0] != "tls.early_data" && tags[0] != "tls.unknown_extension"
 		            && tags[0] != "tls.server_hello"))
                 || tag ==0x002a || tag == 0x0029) { //|| tag == 0x0d
                 tls_tag_bytes_map["unknown_transport_parameter"] = tag_size;
@@ -290,8 +290,8 @@ object tls_ser_server = {}
                 bytes = tag_size;
                 getn(tag_new,bytes);
 
-                //unsigned long long tag_intt = (uint128_t) tag_new; 
-                uint128_t tag_intt = (uint128_t) tag_new; 
+                //unsigned long long tag_intt = (uint128_t) tag_new;
+                uint128_t tag_intt = (uint128_t) tag_new;
                 tag_final = (tag_intt & mask);
                 if(tag == 0x0029 || tag == 0x002a) {
                     getn(value_size,2);
@@ -300,9 +300,9 @@ object tls_ser_server = {}
                     getn(value_size,1);
                     pos -= 1;
                 }
-                                
-                std::cerr << "tag: " << tag << "\n"; 
-                std::cerr << "value_size: " << value_size << "\n";  
+
+                std::cerr << "tag: " << tag << "\n";
+                std::cerr << "value_size: " << value_size << "\n";
 
                 if(tag == 0x0f || tag == 0x00) {
                     tls_field_bytes_map["scid"] = value_size;
@@ -316,13 +316,13 @@ object tls_ser_server = {}
                 }*/
                 else if(tag == 0x0d) {
 		            int128_t pcil = value_size - 4 - 2 -16 - 2 - 1 - 16;
-                    std::cerr << "pcil: " << pcil << "\n";     
-                    std::cerr << "pref_add: " << (pcil+4+2+16+2+1+16) << "\n";   
+                    std::cerr << "pcil: " << pcil << "\n";
+                    std::cerr << "pref_add: " << (pcil+4+2+16+2+1+16) << "\n";
                     tls_field_bytes_map["pcid"] = pcil;
                 }
                 else if(tag == 0x10) { // else if(tag == 0x1010) {
                     tls_field_bytes_map["rcid"] = value_size;
-                } 
+                }
                 else if (is_unknow) {
                     tls_field_bytes_map["unknown"] = value_size;
                 }
@@ -333,7 +333,7 @@ object tls_ser_server = {}
             unsigned long long casted_tag = (unsigned long long)(tag_final & 0xFFFFFFFFFFFFFFFF);
 	        std::cerr << "value_size: " << value_size << "\n";
             std::cerr << "tag v2: " <<  casted_tag  << "\n";
-            if(casted_tag == 4278509082) 
+            if(casted_tag == 4278509082)
                 tag_final = -4611686014148878822; //TODO hack
             for (int i = 0; i < tags.size(); i++) {
                // std::cerr << "tags[i]: " << tags[i] << "\n";
@@ -368,7 +368,7 @@ object tls_ser_server = {}
                     }
                 }
             }
-            std::cerr << "error tls_desert 1\n";  
+            std::cerr << "error tls_desert 1\n";
             throw deser_err();
         }
 
@@ -439,14 +439,14 @@ object tls_ser_server = {}
             }
         }
 
-        /** 
+        /**
           * Allocate memory for each transport parameters
           */
         virtual void open_field(const std::string &name) {
             int flb = 0;
-            std::cerr << "ser-open_field: name 1: " << name << "\n"; 
+            std::cerr << "ser-open_field: name 1: " << name << "\n";
             // if(name == "tls.server_hello")
-            //     is_server_hello = true; 
+            //     is_server_hello = true;
             if (name == "random_bytes") {
                 field_bytes = 1;
             }
@@ -461,7 +461,7 @@ object tls_ser_server = {}
                     res.resize(res.size() + flb);
                 }
             }
-            else if (name != "tls.early_data"  && // && name != "tls.pre_shared_key_client" && name != "identity" 
+            else if (name != "tls.early_data"  && // && name != "tls.pre_shared_key_client" && name != "identity"
              tls_field_length_bytes_map.find(name) != tls_field_length_bytes_map.end()) {
                 flb = tls_field_length_bytes_map[name];
 		        std::cerr << "ser-open_field: flb : " << flb << "\n";
@@ -472,10 +472,10 @@ object tls_ser_server = {}
             field_start.push_back(res.size());
             field_length_bytes.push_back(flb);
             if (tls_field_bytes_map.find(name) != tls_field_bytes_map.end()
-                ) { //&& name != "psk_identities" 
+                ) { //&& name != "psk_identities"
                 field_bytes = tls_field_bytes_map[name];
 		        std::cerr << "ser-open_field: name_field_bytes 1: " << field_bytes << "\n";
-            }   else 
+            }   else
 		        std::cerr << "ser-open_field: name_field_bytes 2: " << field_bytes << "\n";
             if (name == "tls.encrypted_extensions") { // || name == "tls.new_session_ticket"
                 in_encrypted_extensions = field_start.size();
@@ -511,15 +511,15 @@ object tls_ser_server = {}
             int bytes = 1;
             if (tls_tag_bytes_map.find(name) != tls_tag_bytes_map.end())
                 bytes = tls_tag_bytes_map[name];
-            int128_t tag = tls_tags_map[name];	
+            int128_t tag = tls_tags_map[name];
             std::cerr << "ser-open_tag: bytes : " << bytes << "\n";
             std::cerr << "ser-open_tag: tag : " << tag << "\n";
-            //long long tag = tls_tags_map[name];	
+            //long long tag = tls_tags_map[name];
             if (tag !=-1) {
                 std::cerr << "ser-open_tag: tag != -1: \n";
                 setn(tag,bytes); // var int ?
             }
-	        if(const char* env_p2 = std::getenv("TEST_TYPE")) { 
+	        if(const char* env_p2 = std::getenv("TEST_TYPE")) {
                 // because it seralize directly so we dont know the scid/dcid length
                 // TODO maybe change and put the value directly in envvar
                 std::cerr << "TEST_TYPE " << env_p2 << "\n";
@@ -570,14 +570,14 @@ object tls_ser_server = {}
         // that the QUIC_extension structure has an extra field "versions".
 
         tls_ser_server() {
-          in_encrypted_extensions = -1; 
+          in_encrypted_extensions = -1;
         }
-    
+
     };
 >>>
 
 <<< init
-    
+
     tls_make_name_map(tls_field_length_bytes,tls_field_length_bytes_map);
     tls_make_name_map(tls_field_bytes,tls_field_bytes_map);
     tls_make_name_map(tls_tags,tls_tags_map);

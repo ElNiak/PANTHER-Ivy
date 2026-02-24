@@ -25,11 +25,11 @@ implementation {
 
     individual full : bool
     individual contents : packet
-    
+
     after init {
         full := false;
     }
-    
+
     implement intf.send {
 	full := true;
 	contents := x
@@ -48,4 +48,3 @@ export intf.send
 export async
 
 #interpret packet -> bv[16]
-

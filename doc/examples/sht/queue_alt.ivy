@@ -38,12 +38,12 @@ module message_queue(net_msg,seq_num) = {
 	after pick_one {
 	    assert contents(res)
 	}
-    
+
 	before delete_all  {
 	    contents(M) := contents(M) & ~(net_msg.num(M) <= seq)
 	}
     }
-    
+
     object impl = {
 
 	type range
@@ -77,7 +77,7 @@ module message_queue(net_msg,seq_num) = {
 		res := true
 	    }
 	}
-	
+
 	implement delete_all(seq:seq_num) {
 	    full(X) := full(X) & ~(net_msg.num(items(X)) <= seq)
 	}

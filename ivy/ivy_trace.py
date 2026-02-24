@@ -40,7 +40,7 @@ class TraceBase(art.AnalysisGraph):
         self.renaming = None
         self.pp = None
         self.is_full_trace = False
-        
+
     def rename(self,map):
         self.renaming = map
         return self
@@ -108,7 +108,7 @@ class TraceBase(art.AnalysisGraph):
                         lines.append("{}error: assertion failed\n".format(action.lineno if hasattr(action,'lineno') else ''))
                     if isinstance(action,(act.CallAction,act.EnvAction)):
                         if isinstance(action,act.CallAction):
-                            callee_name = action.args[0].rep 
+                            callee_name = action.args[0].rep
                             callee_name = callee_name if any(x.imported() == callee_name for x in im.module.imports) else None
                             callee = im.module.actions.get(callee_name,None)
                             params = callee.formal_params if callee else []
@@ -137,7 +137,7 @@ class TraceBase(art.AnalysisGraph):
                             if not event.startswith('"'):
                                 event = '"' + event + '"'
                             return event
-                        def print_expr(expr):    
+                        def print_expr(expr):
                             m = {}
                             for v in lut.variables_ast(expr):
                                 sym = lg.Symbol('@'+v.name,v.sort)
@@ -189,14 +189,14 @@ class TraceBase(art.AnalysisGraph):
                         lines.append((indent+1) * '    ' + str(c) + '\n')
                 if foo:
                     lines.append(indent * '    ' + ']\n')
-        
+
     def __str__(self):
         lines = []
         hash = dict()
         self.to_lines(lines,hash,0,self.hidden_symbols)
         return ''.join(lines)
 
-                
+
 
     def handle(self,action,env):
 #        iu.dbg('env')
@@ -225,7 +225,7 @@ class TraceBase(art.AnalysisGraph):
             self.sub = self.clone()
             self.handle(action,env)
             self.do_return(action,env)
-            
+
     def fail(self):
         self.last_action = itp.fail_action(self.last_action)
     def end(self):
@@ -264,7 +264,7 @@ class Trace(TraceBase):
 
     def get_universes(self):
         return self.model.universes(numerals=True)
-        
+
     def eval(self,cond):
         truth = self.model.eval_to_constant(cond)
         if lg.is_false(truth):
@@ -272,7 +272,7 @@ class Trace(TraceBase):
         elif lg.is_true(truth):
             return True
         assert False,truth
-        
+
     def get_sym_eqs(self,sym):
         return self.eqs[sym]
 
@@ -295,7 +295,7 @@ class Trace(TraceBase):
                 rfmla = lut.rename_ast(fmla,rmap)
                 eqns.append(rfmla)
         self.add_state(eqns)
-                        
+
     def final_state(self):
         sym_pairs = []
         for sym in self.vocab:
@@ -308,11 +308,11 @@ def make_check_art(act_name=None,precond=[]):
     action = act.env_action(act_name)
 
     ag = art.AnalysisGraph()
-    
+
     pre = itp.State()
     pre.clauses = lut.and_clauses(*precond) if precond else lut.true_clauses()
     pre.clauses.annot = act.EmptyAnnotation()
-    
+
     with itp.EvalContext(check=False): # don't check safety
         post = ag.execute(action, pre)
         post.clauses = lut.true_clauses()
@@ -321,7 +321,7 @@ def make_check_art(act_name=None,precond=[]):
 
     return ag,post,fail
 
-        
+
 def check_final_cond(ag,post,final_cond,rels_to_min=[],shrink=False,handler_class=None):
     history = ag.get_history(post)
     axioms = im.module.background_theory()
@@ -362,11 +362,11 @@ def check_vc(clauses,action,final_cond=None,rels_to_min=[],shrink=False,handler_
 def make_vc(action,precond=[],postcond=[],check_asserts=True):
 
     ag = art.AnalysisGraph()
-    
+
     pre = itp.State()
     pre.clauses = lut.Clauses([lf.formula for lf in precond])
     pre.clauses.annot = act.EmptyAnnotation()
-    
+
     with itp.EvalContext(check=False): # don't check safety
         post = ag.execute(action, pre)
         post.clauses = lut.true_clauses()
@@ -385,7 +385,7 @@ def make_vc(action,precond=[],postcond=[],check_asserts=True):
     clauses.annot = clauses.annot.args[1]
     while stack:
         clauses.annot = act.RenameAnnotation(clauses.annot,stack.pop())
-    
+
     clauses = lut.and_clauses(clauses,axioms)
     fc = lut.Clauses([lf.formula for lf in postcond])
     fc.annot = act.EmptyAnnotation()
@@ -424,4 +424,4 @@ def value_to_str(val,eval_in_state):
             vals = [value_to_str(eval_in_state(destr(val)),eval_in_state) if len(destr.sort.dom) == 1 else '...' for destr in destrs]
             return '{' + ','.join(destr.name + ':' + val for destr,val in zip(destrs,vals)) + '}'
         return val.rep.name
-    return str(val) 
+    return str(val)

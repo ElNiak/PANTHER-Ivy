@@ -29,7 +29,7 @@ L2HellaCacheBank/L2HellaCacheBank.o: $(ROCKETCHIP)/uncore/src/main/scala/Builder
 L2HellaCacheBank/L2HellaCacheBank.prms.h: L2HellaCacheBank/L2HellaCacheBank.o
 	sed -e 's/(/#define /' -e 's/,/ /' -e 's/)//' L2HellaCacheBank/agents.L2HellaCacheBank.prm > L2HellaCacheBank/L2HellaCacheBank.prms.h
 
-tilelink_coherence_manager_hella.cpp: tilelink_coherence_manager.cpp 
+tilelink_coherence_manager_hella.cpp: tilelink_coherence_manager.cpp
 	sed -e 's/managerEndpoint_//g' -e 's/L2Unit_/L2HellaCacheBank_/g' tilelink_coherence_manager.cpp > tilelink_coherence_manager_hella.cpp
 
 test_L2HellaCacheBank: tilelink_coherence_manager_tester.h tilelink_coherence_manager_tester.cpp tilelink_coherence_manager_hella.cpp hash.h hash.cpp main.cpp tilelink_two_port_dut.h tilelink_hella_cache.cpp L2HellaCacheBank/L2HellaCacheBank.o L2HellaCacheBank/L2HellaCacheBank.prms.h
@@ -47,7 +47,7 @@ L2BroadcastHub/L2BroadcastHub.prms.h: L2BroadcastHub/L2BroadcastHub.o
 #L2BroadcastHub/L2BroadcastHub_fixed.o: L2BroadcastHub/L2BroadcastHub_fixed.cpp
 #	g++ -g -c -o L2BroadcastHub/L2BroadcastHub_fixed.o -I L2BroadcastHub -I $(ROCKETCHIP)/csrc L2BroadcastHub/L2BroadcastHub_fixed.cpp
 
-tilelink_coherence_manager_bcast.cpp: tilelink_coherence_manager.cpp 
+tilelink_coherence_manager_bcast.cpp: tilelink_coherence_manager.cpp
 	sed -e 's/managerEndpoint_//g' -e 's/L2Unit_/L2BroadcastHub_/g' tilelink_coherence_manager.cpp > tilelink_coherence_manager_bcast.cpp
 
 test_L2BroadcastHub: tilelink_coherence_manager_tester.h tilelink_coherence_manager_tester.cpp tilelink_coherence_manager_bcast.cpp hash.h hash.cpp main.cpp tilelink_two_port_dut.h tilelink_broadcast_hub.cpp L2BroadcastHub/L2BroadcastHub.o L2BroadcastHub/L2BroadcastHub.prms.h

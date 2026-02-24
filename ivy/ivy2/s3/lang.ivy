@@ -45,7 +45,7 @@ module verb_base = {
             lt, leq, gt, geq, minus, div, string, ite, comma, varv, logvar, isav
         }
     }
-    
+
     function str_to_verb(X:str) : verb
     function verb_to_str(X:verb) : str
     function verb_to_prio(X:verb) : priority
@@ -65,7 +65,7 @@ module verb_base = {
     # the verb of a symbol from its name by looking it up in
     # `str_to_verb`. The default is `none`, which indicates a
     # program-defined symbol.
-    
+
     action is_logvar_name(name:str) returns (res:bool) = {
 	if name.value(0).is_capital {
  	    res := true;
@@ -76,7 +76,7 @@ module verb_base = {
 	    idx := idx.next
 	}
     }
-    
+
     action verb_from_name(name:str) returns(vrb:verb) = {
         if name.value(0).is_digit {
             vrb := verb.numeral;
@@ -95,14 +95,14 @@ module verb_base = {
             vrb := str_to_verb(name);
         }
     }
-}        
+}
 
 
 
 module built_in (optok,vrb,opprio,oparity) = {
     after init {
         str_to_verb(optok) := vrb;
-        verb_to_str(vrb) := optok; 
+        verb_to_str(vrb) := optok;
         verb_to_prio(vrb) := opprio;
 	verb_to_arity(vrb) := oparity;
     }
@@ -162,7 +162,7 @@ module built_in_binary (optok,vrb,opprio) = {
         args := args.append(e);
         args := args.reverse;
     }
-}    
+}
 
 module built_in_ternary (optok,vrb,opprio) = {
     instantiate built_in(optok,vrb,opprio,3)
@@ -185,8 +185,8 @@ module built_in_const (optok,vrb) = {
         res := symbol.makestr(optok,ann);
     }
 }
-    
-    
+
+
 module genbinop(expr,arg) = {
     variant this of expr = struct {
 	lhs : arg,
@@ -251,10 +251,10 @@ module expr_base(cppstyle) = {
 	    vrb := verb.none
 	}
     }
-    
+
     # String identifiers are used for all symbols occurring in the
-    # source, including operators like `+` and `&`. 
-        
+    # source, including operators like `+` and `&`.
+
     object strident = {
         variant this of ident = struct {
             val : str,
@@ -373,7 +373,7 @@ module expr_base(cppstyle) = {
     }
 
     # Dotted identifiers are used to represent members of a namespace.
-        
+
     object dotident = {
         variant this of ident = struct {
             namesp : ident,
@@ -434,7 +434,7 @@ module expr_base(cppstyle) = {
         action get_name(s:this) returns (res:ident)
         action app_verb(s:this) returns (res:verb)
         action get_ann(s:this) returns (res:annot)
-        action get_func(s:this) returns (res:expr) 
+        action get_func(s:this) returns (res:expr)
         action get_args(s:this) returns (res:vector[expr])
         action prefix(s:this,pref:ident) returns (res:expr)
 
@@ -568,7 +568,7 @@ module expr_base(cppstyle) = {
                 if opprio < prio {
                     b := b.nest;
                     b := b.extend("(");
-                };	    
+                };
 		if s.args.end = 1 {
                     b := b.extend(verb_to_str(vrb));
                     b := b.extend(" ");
@@ -632,14 +632,14 @@ module expr_base(cppstyle) = {
             idx : pos,
             ann : annot
         }
-        
+
         action make(idx:pos) returns (res:expr) = {
             var s:this;
             s.idx := idx;
             res := s
         }
     }
-    
+
     object pi = {
         variant this of expr = struct {
             vars : vector[expr],
@@ -666,7 +666,7 @@ module expr_base(cppstyle) = {
             b := b.extend(";");
             b := b.unnest;
         }
-        
+
     }
 
 
@@ -687,15 +687,15 @@ module expr_base(cppstyle) = {
     instance truev : built_in_const("true",verb.truev)
     instance falsev : built_in_const("false",verb.falsev)
     instance comma : built_in_binary(",",verb.comma,1)
-    
+
     # The dot is used to introduce members of namespaces
-    
+
     instance dot : built_in_binary(".",verb.dot,100)
 
     # Treat open paren as a builtin operator for function application. The
     # real operator is the empty string, but open paren will work.
 
-    instantiate built_in("(",verb.app,99,1)        
+    instantiate built_in("(",verb.app,99,1)
 
     object expr = { ...
 
@@ -716,7 +716,7 @@ module expr_base(cppstyle) = {
                     var s : app;
                     s.func := symbol.makestr(st.tok,s.ann);
                     st := st.consume;
-		    var arg : expr; 
+		    var arg : expr;
                     (st,arg) := parse(st,verb_to_prio(vrb));
                     s.args := s.args.append(arg);
 		    res := s;
@@ -762,13 +762,13 @@ module generic_stmt_encode(stmt_prio) = {
             b := b.nest;
             b := b.extend("{");
             b := b.newline;
-        };	    
+        };
         b := s.encode_int(b,prio);
         if stmt_prio < prio {
             b := b.unnest;
             b := b.newline;
             b := b.extend("}");
-        }	    
+        }
     }
 }
 
@@ -782,7 +782,7 @@ module stmt_base(expr,asgntok,cppstyle) = {
 	action get_lhs(s:this) returns (res:expr)
 	action get_rhs(s:this) returns (res:expr)
 	action get_ann(s:this) returns (res:annot)
-	
+
     }
 
     object asgn = {
@@ -1068,7 +1068,7 @@ module decl_base(expr,stmt) = {
         }
     }
 
-    # The prototype tells us how arguments are passed in C++. 
+    # The prototype tells us how arguments are passed in C++.
 
     object prototype = {
         type this = struct {
@@ -1154,7 +1154,7 @@ module decl_base(expr,stmt) = {
         }
     }
 }
-    
+
 module prog_base(cppstyle) = {
 
     object version = {
@@ -1225,7 +1225,7 @@ module prog_base(cppstyle) = {
 		b := s.decls.value(idx).encode(b,0);
 		idx := idx.next;
 	    };
-	}	    
+	}
 
         # Note, the Ivy verison number is encoded in the first comment line
 
@@ -1250,4 +1250,3 @@ module prog_base(cppstyle) = {
         }
     }
 }
-

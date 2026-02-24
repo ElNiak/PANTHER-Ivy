@@ -41,7 +41,7 @@ is the interface of `hash_table`:
 
             before incorporate(s:shard.t) {
                 assert shard.valid(s);
-                hash(K) := shard.value(s,K) 
+                hash(K) := shard.value(s,K)
                            if key.iter.between(shard.lo(s),K,shard.hi(s))
                            else hash(K)
             }
@@ -105,7 +105,7 @@ The ordered map representing the table is called `tab`. We just
 call the actions of `tab` to implement `get` and `set`:
 
     object impl = {
-        
+
         instance tab : ordered_map(key,value)
 
         implement set {
@@ -131,7 +131,7 @@ recording the key/value pairs in a shard:
             var k := idx.val;
             res.kv := res.kv.append_pair(k,tab.get(k,0));
             idx := tab.next(idx)
-        };                
+        };
         res.lo := lo;
         res.hi := hi
     }
@@ -149,7 +149,7 @@ with several invariants that allow IVy to prove the post-condition of
 `extract_`. These are inserted in place of `...` above:
 
     invariant lo <= idx & (idx < hi -> tab.contains(idx.val))
-    invariant lo.between(X,idx) & tab.contains(X) -> 
+    invariant lo.between(X,idx) & tab.contains(X) ->
                    exists I. (res.key_at(I,X) & tab.maps(X,res.value_at(I)))
     invariant res.key_at(I,X) -> lo.between(X,idx) & tab.contains(X)
     invariant shard.valid(res)
@@ -203,10 +203,10 @@ Here is the implementation:
             var d := s.kv.get_value(pos);
             if lo.between(k,hi) & d ~= 0{
                 call tab.set(k,d)
-            };                        
+            };
             pos := pos.next
         }
-    }        
+    }
 
 
 
@@ -340,6 +340,4 @@ Let's try running a few manual tests:
     ...
 
 This exercise is useful before implementing on top of `hash_table`, since
-we aren't sure at this point if the specification is right. 
-
-
+we aren't sure at this point if the specification is right.

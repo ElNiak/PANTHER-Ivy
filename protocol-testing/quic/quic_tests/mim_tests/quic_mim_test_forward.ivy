@@ -51,7 +51,7 @@ after init {
 #     var imsib : initial_max_stream_id_bidi;
 #     imsib.stream_id_16 := initial_max_streams_bidi;
 #     tp.transport_parameters := tp.transport_parameters.append(imsib);
-    
+
 #     #if client_non_zero_scil {
 #     var icid : initial_source_connection_id; #update v29
 #     icid.scid := the_cid;
@@ -70,7 +70,7 @@ before forward_packet_to_client_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged
         require dst = mim_client_target.ep;
         require pkt = mim_agent.ppkt_to_be_forwarded_to_client;
         # require pkt = mim_agent.ppkt_to_be_forwarded_to_server; # TODO put relation ?
-    } 
+    }
 }
 
 before forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_pkts) {
@@ -78,9 +78,9 @@ before forward_packet_to_server_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged
         require mim_server_target.ep.addr ~= 0;  # must have a client address to send to
         require src = mim_agent.ep_out;
         require dst = mim_server_target.ep;
-        require pkt = mim_agent.ppkt_to_be_forwarded_to_server;        
+        require pkt = mim_agent.ppkt_to_be_forwarded_to_server;
         # require pkt = mim_agent.ppkt_to_be_forwarded_to_server; # TODO put relation ?
-    } 
+    }
 }
 
 
@@ -96,9 +96,7 @@ export forward_packet_to_server_event
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
-    require conn_total_data(the_cid) > 0; # == 
+    # chris TODO
+    require conn_total_data(the_cid) > 0; # ==
     call mim_agent.reset_NAT;
 }
-
-

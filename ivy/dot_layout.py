@@ -178,7 +178,7 @@ def dot_layout(cy_elements,edge_labels=False,subgraph_boxes=False,node_gt=None):
     if node_gt is None:
         node_gt = lambda X,y:False
     else:
-        node_gt = lambda x,y: node_key[x] > node_key[y] 
+        node_gt = lambda x,y: node_key[x] > node_key[y]
 
     # add nodes to the graph
     for e in elements:

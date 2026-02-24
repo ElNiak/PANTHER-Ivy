@@ -3,7 +3,7 @@ include order
 include collections
 
 include apt_types
-include quic_types 
+include quic_types
 
 include apt_byte_stream
 
@@ -56,15 +56,15 @@ object packet = {
                     var other_tls_id := dst_tls_id(dst);
                     var ppkt := net_prot.encrypt_quic(other_tls_id,rnum,spkt);
                     pkts_mim := pkts_mim.append(ppkt);
-                } 
+                }
                 else if some(cf:packet.encrypted_quic_packet)p *> cf {
                     var spkt := quic_encrypted_packet_serdes_server.to_bytes(cf);
                     pkts_mim := pkts_mim.append(spkt);
-                } 
+                }
                 else if some(cf:packet.encrypted_short_quic_packet)p *> cf {
                     var spkt := quic_encrypted_short_packet_serdes_server.to_bytes(cf);
                     pkts_mim := pkts_mim.append(spkt);
-                } 
+                }
                 else if some(cf:packet.random_padding_encrypted_quic_packet)p *> cf {
                     var spkt := quic_random_padding_encrypted_packet_serdes.to_bytes(cf);
                     pkts_mim := pkts_mim.append(spkt);
@@ -79,12 +79,12 @@ object packet = {
                     pkts_mim := pkts_mim.append(cf.payload);
                 };
                 #TODO allow forwarding coalesed packet or not
-                idx := idx.next; 
-            }; 
+                idx := idx.next;
+            };
             call forwarding_time(time_api.c_timer.now_sec);
             call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
         }
-    }  
+    }
 
     after forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.arr) {
         if _generating {
@@ -105,15 +105,15 @@ object packet = {
                     # }
                     var ppkt := net_prot.encrypt_quic(tls_id,rnum,spkt);
                     pkts_mim := pkts_mim.append(ppkt);
-                } 
+                }
                 else if some(cf:packet.encrypted_quic_packet)p *> cf {
                     var spkt := quic_encrypted_packet_serdes_client.to_bytes(cf);
                     pkts_mim := pkts_mim.append(spkt);
-                } 
+                }
                 else if some(cf:packet.encrypted_short_quic_packet)p *> cf {
                     var spkt := quic_encrypted_short_packet_serdes_client.to_bytes(cf);
                     pkts_mim := pkts_mim.append(spkt);
-                } 
+                }
                 else if some(cf:packet.random_padding_encrypted_quic_packet)p *> cf {
                     var spkt := quic_random_padding_encrypted_packet_serdes.to_bytes(cf);
                     pkts_mim := pkts_mim.append(spkt);
@@ -128,13 +128,13 @@ object packet = {
                     pkts_mim := pkts_mim.append(cf.payload);
                 };
                 #TODO allow forwarding coalesed packet or not
-                idx := idx.next; 
-            }; 
+                idx := idx.next;
+            };
             call forwarding_time(time_api.c_timer.now_sec);
             call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
         }
     }
-    
+
     after reflect_to(src:ip.endpoint,dst:ip.endpoint,pkt:packet.arr) {
         if _generating {
             # TODO assert it is smaller than MTU
@@ -154,15 +154,15 @@ object packet = {
                     # }
                     var ppkt := net_prot.encrypt_quic(tls_id,rnum,spkt);
                     pkts_mim := pkts_mim.append(ppkt);
-                } 
+                }
                 else if some(cf:packet.encrypted_quic_packet)p *> cf {
                     var spkt := quic_encrypted_packet_serdes_client.to_bytes(cf);
                     pkts_mim := pkts_mim.append(spkt);
-                } 
+                }
                 else if some(cf:packet.encrypted_short_quic_packet)p *> cf {
                     var spkt := quic_encrypted_short_packet_serdes_client.to_bytes(cf);
                     pkts_mim := pkts_mim.append(spkt);
-                } 
+                }
                 else if some(cf:packet.random_padding_encrypted_quic_packet)p *> cf {
                     var spkt := quic_random_padding_encrypted_packet_serdes.to_bytes(cf);
                     pkts_mim := pkts_mim.append(spkt);
@@ -177,8 +177,8 @@ object packet = {
                     pkts_mim := pkts_mim.append(cf.payload);
                 };
                 #TODO allow forwarding coalesed packet or not
-                idx := idx.next; 
-            }; 
+                idx := idx.next;
+            };
             call forwarding_time(time_api.c_timer.now_sec);
             call quic_net.send(endpoint_id.man_in_the_middle,endpoint_to_socket_mim(src),dst,pkts_mim); # TODO endpoint_to_socket_mim
         }

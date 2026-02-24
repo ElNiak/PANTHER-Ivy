@@ -18,13 +18,13 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
     # Link the gnutls library
 
     attribute libspec = "picotls-core,picotls-minicrypto,picotls-openssl,ssl,crypto,dl,picotls.lib,libcrypto.lib,libssl.lib,cifra.lib,bcrypt.lib"
-    
+
 
     # These empty objects are used to hold C++ values.
 
     object cb = {}          # struct holding the callbacks
     object cid_map = {}     # map from cid's to connections
-    
+
     # This code goes in the C++ header file, ahead of the ivy object declaration.
     # Here, we put declarations (perhaps forward) of any auxiliary classes we need).
     # We need to be careful that the names of these don't clash with other modules.
@@ -55,7 +55,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
 >>>
 
 # This code goes in the C++ implementation file. Here, we put implementations of
-# the classes declared in the header, and auxiliary functions. 
+# the classes declared in the header, and auxiliary functions.
 
 <<< impl
 
@@ -95,7 +95,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
            aead_encrypt = aead_decrypt = pn_enc = pn_dec = 0;
         }
     };
-    
+
     // Structure to hold state of a tls session
 
     struct picotls_connection {
@@ -121,7 +121,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
             handshake_status = 0;
             session_ticket = NULL;
             crypto_context.resize(4);
-            ticket_aead_encrypt = 0; 
+            ticket_aead_encrypt = 0;
             ticket_aead_decrypt = 0;
         }
     };
@@ -153,7 +153,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         if(session_file != NULL) {
             fp = fopen(session_file,"w");
             for(int j = 0; j < input.len-m && fp != NULL; j++) {
-                fprintf(fp, "%02x",  input.base[j]); 
+                fprintf(fp, "%02x",  input.base[j]);
             }
             fclose(fp);
         }
@@ -230,7 +230,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
                     fprintf(fp, "%02x",  src.base[j]); //length field
                 }
                 fclose(fp);
-            }  
+            }
             ptls_aead_context_t *aead_enc = (ptls_aead_context_t *)(s->ticket_aead_encrypt);
             std::cerr << "tls_server_encrypt_ticket_cb 3a ticket_aead_encrypt " << s->ticket_aead_encrypt << "\n";
             //ptls_aead_context_t* aead_enc = (ptls_aead_context_t*)quic->aead_encrypt_ticket_ctx;
@@ -252,15 +252,15 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
                 /* Copy initial ticket to dst field before encryption. */
                 memcpy(dst->base + dst->off, src.base, src.len);
                 data_length = src.len;
-                
+
                 /* Add the version number */
                // picoformat_32(dst->base + dst->off + data_length, version_number);
                // data_length += 4;
-               
+
                 /* Run AEAD encryption */
                 dst->off += ptls_aead_encrypt(aead_enc, dst->base + dst->off,
                     dst->base + start_off, data_length, seq_num, NULL, 0);
-                    
+
                 /* Remember issued ticket ID in connection context */
                 //quic->cnx_in_progress->issued_ticket_id = seq_num;
             }
@@ -298,7 +298,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
                             fprintf(fp, "%02x",  dst->base[j]); //length field
                         }
                         fclose(fp);
-                    }                   
+                    }
                 }
             }
         }
@@ -313,7 +313,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         return 0;
     }
 
-    static int tls_on_extension_cb(ptls_on_extension_t* ext, ptls_t* tls, uint8_t type_tls, 
+    static int tls_on_extension_cb(ptls_on_extension_t* ext, ptls_t* tls, uint8_t type_tls,
     uint16_t type, ptls_iovec_t input)
     {
         // TODO: do something with incoming extensions
@@ -368,16 +368,16 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
     {
         uint8_t key[PTLS_MAX_SECRET_SIZE];
 
-        ptls_hkdf_expand_label(cipher->hash, key, 
+        ptls_hkdf_expand_label(cipher->hash, key,
                                cipher->aead->ctr_cipher->key_size,
-                               ptls_iovec_init(secret, cipher->hash->digest_size), 
+                               ptls_iovec_init(secret, cipher->hash->digest_size),
                                "quic hp",
                                ptls_iovec_init(NULL, 0),
                                NULL);
 
         return ptls_cipher_new(cipher->aead->ctr_cipher, is_enc, key);
     }
-    
+
     void quic_set_key_from_secret(ptls_cipher_suite_t * cipher, int is_enc, quic_crypto_context_t * ctx, const void *secret)
     {
         std::cerr << "quic_set_key_from_secret 1" <<"\n";
@@ -463,7 +463,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
     }
 
     int convert(const char *hex_str, uint8_t *byte_array, int byte_array_max)
-    {   
+    {
         std::cerr << "convert 1" <<"\n";
         int hex_str_len = strnlen(hex_str,byte_array_max);
         int i = 0, j = 0;
@@ -505,8 +505,8 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         res.base = new uint8_t[vec.size()];
         std::copy(vec.begin(),vec.end(),res.base);
         res.len = vec.size();
-    }  
-    
+    }
+
     void vec_to_ptls_iovec(ptls_iovec_t &res, uint8_t* vec, int size) {
         res.base = new uint8_t[size];
         std::cerr << "vec_to_ptls_iovec " << std::dec << size << std::endl;
@@ -531,9 +531,9 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
 
     /**
      * @brief from https://gitlab.com/wireshark/wireshark/-/blob/master/wsutil/str_util.c
-     * 
-     * @param ch 
-     * @return int 
+     *
+     * @param ch
+     * @return int
      */
     int
     ws_xton(char ch)
@@ -558,9 +558,9 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
             default: return -1;
         }
     }
-    
+
     /**
-     * @brief 
+     * @brief
      *      Derive-Secret(Secret, Label, Messages) =
             HKDF-Expand-Label(Secret, Label,
                               Transcript-Hash(Messages), Hash.length)
@@ -628,13 +628,13 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
     // Some parameters for picotls as used by picoquic.
 
     //mvfst -> No HelloRetry  &ptls_openssl_x25519,&ptls_openssl_secp256r1
-    ptls_key_exchange_algorithm_t *picotls_key_exchanges[] = 
+    ptls_key_exchange_algorithm_t *picotls_key_exchanges[] =
         {  &ptls_openssl_x25519,&ptls_openssl_secp256r1, NULL };
 
-    // ptls_key_exchange_algorithm_t *picotls_key_exchanges[] = 
+    // ptls_key_exchange_algorithm_t *picotls_key_exchanges[] =
     //     {  &ptls_openssl_secp256r1, &ptls_openssl_x25519, NULL };
 
-    ptls_cipher_suite_t *picotls_cipher_suites[] = { 
+    ptls_cipher_suite_t *picotls_cipher_suites[] = {
         &ptls_openssl_aes128gcmsha256, &ptls_openssl_aes256gcmsha384,
         &ptls_minicrypto_chacha20poly1305sha256, NULL };
 
@@ -740,7 +740,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
                 read = getline(&line, &len, fp);
                 fclose(fp);
                 bool is_error = false;
-                if(line != NULL) { 
+                if(line != NULL) {
                     std::cerr << "get_session_ticket 1 " << line << std::endl;
                     std::cerr << "get_session_ticket hex_len " << size << std::endl;
                     int sizze = convert(line, secret, size*2+1);
@@ -755,7 +755,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
                         printt(secret, sizze);
                     }
                     else
-                    {   
+                    {
                         fprintf(stderr,"%s","OK OK\n");
                         printt(secret, sizze);
                     }
@@ -773,7 +773,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
                 fp = fopen(session_file,"r");
                 read = getline(&line, &len, fp);
                 fclose(fp);
-                if(line != NULL) { 
+                if(line != NULL) {
                     std::cerr << "get_session_ticket_size " << line << std::endl;
                     int hex_len = (strnlen(line,2000))/2; //strnlen(line,300)-1
                     std::cerr << "get_session_ticket_size " << hex_len << std::endl;
@@ -829,8 +829,8 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         if(is_server)
             is_client_test = true;
 
-        std::cerr << "create cid = " << c << std::endl;  
-        std::cerr << "is_server  = " << is_server << std::endl;  
+        std::cerr << "create cid = " << c << std::endl;
+        std::cerr << "is_server  = " << is_server << std::endl;
 
         // We create a new picootls session, and add an entry in the cid_map
         // for it.
@@ -845,22 +845,22 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
             C2 A2 11 16 7A BB 8C 5E 07 9E 09 E2 C8 A8 33 9C
         */
         ctx->random_bytes = ptls_openssl_random_bytes;
-        ctx->key_exchanges = picotls_key_exchanges; 
-        ctx->cipher_suites = picotls_cipher_suites; 
+        ctx->key_exchanges = picotls_key_exchanges;
+        ctx->cipher_suites = picotls_cipher_suites;
         ctx->send_change_cipher_spec = 0;
         // ctx->hkdf_label_prefix = QUIC_LABEL_QUIC_BASE;
-        
+
         ctx->hkdf_label_prefix__obsolete = NULL;
         ctx->update_traffic_key = (ptls_update_traffic_key_t *)malloc(sizeof(ptls_update_traffic_key_t));
         memset(ctx->update_traffic_key, 0, sizeof(ptls_update_traffic_key_t));
         //ctx->update_traffic_key = new ptls_update_traffic_key_t;
         ctx->update_traffic_key->cb = quic_update_traffic_key_cb;
-        
+
         //ctx->on_extension = new ptls_on_extension_t;
         ctx->on_extension = (ptls_on_extension_t *)malloc(sizeof(ptls_on_extension_t));
         memset(ctx->on_extension, 0, sizeof(ptls_on_extension_t));
         ctx->on_extension->cb = tls_on_extension_cb;
-        
+
         ctx->get_time = &ptls_get_time;
         const char * is_zrtt = getenv("ZERORTT_TEST");
 
@@ -872,20 +872,20 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         std::cerr << "PROUT 3 "  << std::endl;
 
         //ctx->use_exporter = 1; // master secrets should be recorded
-        
-        ptls_handshake_properties_t *handshake_properties = new ptls_handshake_properties_t; 
+
+        ptls_handshake_properties_t *handshake_properties = new ptls_handshake_properties_t;
         memset(handshake_properties, 0, sizeof(ptls_handshake_properties_t));
         handshake_properties->collect_extension = tls_collect_extensions_cb;
         handshake_properties->collected_extensions = tls_collected_extensions_cb;
-   
+
         std::cerr << "PROUT 4 " << std::endl;
-        
+
         ptls_iovec_t *alpn_vec = new(ptls_iovec_t);  // TODO: will leak this
-        
-        // h3-x == HTTP/3 over QUIC 
+
+        // h3-x == HTTP/3 over QUIC
         // hq-x == HTTP/0.9 over QUIC
         alpn_vec->base = (uint8_t*) "hq-interop";
-        if(const char* env_p = std::getenv("TEST_ALPN")) { 
+        if(const char* env_p = std::getenv("TEST_ALPN")) {
             std::cerr << "TEST_ALPN " << env_p << std::endl;
             alpn_vec->base = (uint8_t*) env_p;
         }
@@ -898,18 +898,18 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         ptls_raw_extension_t *ptls_exts = new ptls_raw_extension_t[e.size()+1];
         for (unsigned i = 0; i < e.size(); i++) {
             `exten_ser` ser;
-	        std::cerr << "etype =" << std::endl;  
+	        std::cerr << "etype =" << std::endl;
             __ser(ser,e[i]);
             unsigned etype = (((unsigned char)(ser.res[0])) << 8) + ((unsigned char)(ser.res[1]));
             unsigned len = (((unsigned char)(ser.res[2])) << 8) + ((unsigned char)(ser.res[3]));
             unsigned char *data = new unsigned char[ser.res.size()-4];
             std::copy(ser.res.begin()+4,ser.res.end(),data);
             ptls_exts[i].type = etype;
-            std::cerr << "etype =" << etype << std::endl;  
+            std::cerr << "etype =" << etype << std::endl;
             ptls_exts[i].data.base = data;
-            //std::cerr << "data =" << data << std::endl;  
+            //std::cerr << "data =" << data << std::endl;
             ptls_exts[i].data.len = len;
-            std::cerr << "len =" << len << std::endl;  
+            std::cerr << "len =" << len << std::endl;
             // int eres = gnutls_session_ext_register (session, "ext_name", etype,
             //   GNUTLS_EXT_APPLICATION, gnutls_ext_supp_recv_params,
             //   gnutls_ext_supp_send_params, 0,0,0,0);
@@ -923,7 +923,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         ptls_exts[e.size()].data.len = 0;
 
         for (unsigned i = 0; i < e.size(); i++) {
-            std::cerr << "ptls_exts[i].type = " << ptls_exts[i].type << std::endl;  
+            std::cerr << "ptls_exts[i].type = " << ptls_exts[i].type << std::endl;
             //std::cerr << "ptls_exts[i].base = " << ptls_exts[i].data.base << std::endl;
             std::cerr << "ptls_exts[i].len = " << ptls_exts[i].data.len << std::endl;
         }
@@ -948,26 +948,26 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         session = ptls_new(ctx,is_server ? 1 : 0);
         ptls_set_server_name(session, "servername", strlen("servername"));
 
-        //if(const char* env_p = std::getenv("TEST_IMPL")) { 
+        //if(const char* env_p = std::getenv("TEST_IMPL")) {
         //    std::cerr << "TEST_IMPL " << env_p << std::endl;
         //    std::cerr << "is_server " << is_server << std::endl;
-            // if(strncmp(env_p,"quic-go",10) == 0 
-            //     || strncmp(env_p,"quiche",10) == 0 
-            //        || strncmp(env_p,"lsquic",10) == 0 
-            //           || strncmp(env_p,"quinn",10) == 0 
+            // if(strncmp(env_p,"quic-go",10) == 0
+            //     || strncmp(env_p,"quiche",10) == 0
+            //        || strncmp(env_p,"lsquic",10) == 0
+            //           || strncmp(env_p,"quinn",10) == 0
             //              || strncmp(env_p,"aioquic",10) == 0) //TODO ask why sometime ALPN needed
             //     if (is_server) { // && false
                         std::cerr << "ptls_set_negotiated_protocol"  << std::endl;
-                        ptls_set_negotiated_protocol(session, 
-                            (const char*) handshake_properties->client.negotiated_protocols.list[0].base, 
+                        ptls_set_negotiated_protocol(session,
+                            (const char*) handshake_properties->client.negotiated_protocols.list[0].base,
                             handshake_properties->client.negotiated_protocols.list[0].len);
-                // } 
+                // }
         //}
 
         picotls_connection *s = new picotls_connection(c, session, ctx, *`cb`, handshake_properties, is_server);
-        *ptls_get_data_ptr(session) = s;   
-        
-        if(is_zrtt != NULL){ //is_server && 
+        *ptls_get_data_ptr(session) = s;
+
+        if(is_zrtt != NULL){ //is_server &&
             /**
             * @brief picoquic_server_setup_ticket_aead_contexts
             */
@@ -994,7 +994,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
                 std::cerr << "picoquic_server_setup_ticket_aead_contexts 5 " << std::endl;
                 /* erase the temporary secret */
                 ptls_clear_memory(temp_secret, cipher_ticket.hash->digest_size);
-            } 
+            }
 
             ptls_iovec_t ticket_psk = ptls_iovec_init(NULL, 0);
             std::cerr << "ptls_encrypt_ticket_t " << is_zrtt << std::endl;
@@ -1026,10 +1026,10 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
 
 
 	    `cid_map`[c] = s;
-        
+
         // Start the handshake if we are the client. The in_epoch is zero for "initial".
 
-        if (!is_server) 
+        if (!is_server)
             picotls_do_handshake(s,0,0,0);
         >>>
     }
@@ -1041,7 +1041,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         if(is_server)
             is_client_test = true;
 
-        std::cerr << "create cid = " << c << std::endl;  
+        std::cerr << "create cid = " << c << std::endl;
 
         // We create a new picootls session, and add an entry in the cid_map
         // for it.
@@ -1056,42 +1056,42 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
             C2 A2 11 16 7A BB 8C 5E 07 9E 09 E2 C8 A8 33 9C
         */
         ctx->random_bytes = ptls_openssl_random_bytes;
-        ctx->key_exchanges = picotls_key_exchanges; 
-        ctx->cipher_suites = picotls_cipher_suites; 
+        ctx->key_exchanges = picotls_key_exchanges;
+        ctx->cipher_suites = picotls_cipher_suites;
         ctx->send_change_cipher_spec = 0;
         // ctx->hkdf_label_prefix = QUIC_LABEL_QUIC_BASE;
-        
+
         ctx->hkdf_label_prefix__obsolete = NULL;
         ctx->update_traffic_key = (ptls_update_traffic_key_t *)malloc(sizeof(ptls_update_traffic_key_t));
         memset(ctx->update_traffic_key, 0, sizeof(ptls_update_traffic_key_t));
         //ctx->update_traffic_key = new ptls_update_traffic_key_t;
         ctx->update_traffic_key->cb = quic_update_traffic_key_cb;
-        
+
         //ctx->on_extension = new ptls_on_extension_t;
         ctx->on_extension = (ptls_on_extension_t *)malloc(sizeof(ptls_on_extension_t));
         memset(ctx->on_extension, 0, sizeof(ptls_on_extension_t));
         ctx->on_extension->cb = tls_on_extension_cb;
-        
+
         ctx->get_time = &ptls_get_time;
         const char * is_zrtt = getenv("ZERORTT_TEST");
-        
+
         ctx->max_early_data_size = 0xFFFFFFFF;
 
         std::cerr << "PROUT 3 "  << std::endl;
-        
-        ptls_handshake_properties_t *handshake_properties = new ptls_handshake_properties_t; 
+
+        ptls_handshake_properties_t *handshake_properties = new ptls_handshake_properties_t;
         memset(handshake_properties, 0, sizeof(ptls_handshake_properties_t));
         handshake_properties->collect_extension = tls_collect_extensions_cb;
         handshake_properties->collected_extensions = tls_collected_extensions_cb;
-    
+
         std::cerr << "PROUT 4 " << std::endl;
-        
+
         ptls_iovec_t *alpn_vec = new(ptls_iovec_t);  // TODO: will leak this
-        
-        // h3-x == HTTP/3 over QUIC 
+
+        // h3-x == HTTP/3 over QUIC
         // hq-x == HTTP/0.9 over QUIC
         alpn_vec->base = (uint8_t*) "hq-interop";
-        if(const char* env_p = std::getenv("TEST_ALPN")) { 
+        if(const char* env_p = std::getenv("TEST_ALPN")) {
             std::cerr << "TEST_ALPN " << env_p << std::endl;
             alpn_vec->base = (uint8_t*) env_p;
         }
@@ -1104,18 +1104,18 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         ptls_raw_extension_t *ptls_exts = new ptls_raw_extension_t[e.size()+1];
         for (unsigned i = 0; i < e.size(); i++) {
             `exten_ser` ser;
-	        std::cerr << "etype =" << std::endl;  
+	        std::cerr << "etype =" << std::endl;
             __ser(ser,e[i]);
             unsigned etype = (((unsigned char)(ser.res[0])) << 8) + ((unsigned char)(ser.res[1]));
             unsigned len = (((unsigned char)(ser.res[2])) << 8) + ((unsigned char)(ser.res[3]));
             unsigned char *data = new unsigned char[ser.res.size()-4];
             std::copy(ser.res.begin()+4,ser.res.end(),data);
             ptls_exts[i].type = etype;
-            std::cerr << "etype =" << etype << std::endl;  
+            std::cerr << "etype =" << etype << std::endl;
             ptls_exts[i].data.base = data;
-            //std::cerr << "data =" << data << std::endl;  
+            //std::cerr << "data =" << data << std::endl;
             ptls_exts[i].data.len = len;
-            std::cerr << "len =" << len << std::endl;  
+            std::cerr << "len =" << len << std::endl;
             // int eres = gnutls_session_ext_register (session, "ext_name", etype,
             //   GNUTLS_EXT_APPLICATION, gnutls_ext_supp_recv_params,
             //   gnutls_ext_supp_send_params, 0,0,0,0);
@@ -1148,25 +1148,25 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         session = ptls_new(ctx,is_server ? 1 : 0);
         ptls_set_server_name(session, "servername", strlen("servername"));
 
-        if(const char* env_p = std::getenv("TEST_IMPL")) { 
+        if(const char* env_p = std::getenv("TEST_IMPL")) {
             std::cerr << "TEST_IMPL " << env_p << std::endl;
             std::cerr << "is_server " << is_server << std::endl;
-            if(strncmp(env_p,"quic-go",10) == 0 
-                || strncmp(env_p,"quiche",10) == 0 
-                   || strncmp(env_p,"lsquic",10) == 0 
+            if(strncmp(env_p,"quic-go",10) == 0
+                || strncmp(env_p,"quiche",10) == 0
+                   || strncmp(env_p,"lsquic",10) == 0
                    || strncmp(env_p,"quinn",10) == 0
                       || strncmp(env_p,"aioquic",10) == 0) //TODO ask why sometime ALPN needed
                 if (is_server) { // && false
                         std::cerr << "ptls_set_negotiated_protocol"  << std::endl;
-                        ptls_set_negotiated_protocol(session, 
-                            (const char*) handshake_properties->client.negotiated_protocols.list[0].base, 
+                        ptls_set_negotiated_protocol(session,
+                            (const char*) handshake_properties->client.negotiated_protocols.list[0].base,
                             handshake_properties->client.negotiated_protocols.list[0].len);
-                } 
+                }
         }
 
         picotls_connection *s = new picotls_connection(c, session, ctx, *`cb`, handshake_properties, is_server);
-        *ptls_get_data_ptr(session) = s;   
-        
+        *ptls_get_data_ptr(session) = s;
+
         if(is_zrtt != NULL){ //is_server &&
             /**
             * @brief picoquic_server_setup_ticket_aead_contexts
@@ -1192,7 +1192,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
                 std::cerr << "picoquic_server_setup_ticket_aead_contexts 5 " << std::endl;
                 /* erase the temporary secret */
                 ptls_clear_memory(temp_secret, cipher_ticket.hash->digest_size);
-            } 
+            }
 
             ptls_iovec_t ticket_psk = ptls_iovec_init(NULL, 0);
                 std::cerr << "ptls_encrypt_ticket_t " << is_zrtt << std::endl;
@@ -1230,12 +1230,12 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         std::cerr << "ptls_get_data_ptr"  << std::endl;
 
 	    `cid_map`[c] = s;
-        
+
         std::cerr << "cid_map[c] = s;"  << std::endl;
 
         // Start the handshake if we are the client. The in_epoch is zero for "initial".
 
-        if (!is_server) 
+        if (!is_server)
             picotls_do_handshake(s,0,0,0);
         >>>
     }
@@ -1249,33 +1249,33 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         std::cerr << "XXXXXXXXXXXX"  << "\n";
         bbsize = get_session_ticket_size();
         bytes = (uint8_t*) malloc(bbsize * sizeof(uint8_t));
-        get_session_ticket(bytes,bbsize); 
-        ptls_iovec_t ticket_psk; 
+        get_session_ticket(bytes,bbsize);
+        ptls_iovec_t ticket_psk;
         vec_to_ptls_iovec(ticket_psk,bytes,bbsize);
 
         ptls_context_t* ctx;
         ctx = new ptls_context_t;
         memset(ctx, 0, sizeof(ptls_context_t));
         ctx->random_bytes = ptls_openssl_random_bytes;
-        ctx->key_exchanges = picotls_key_exchanges; 
-        ctx->cipher_suites = picotls_cipher_suites; 
+        ctx->key_exchanges = picotls_key_exchanges;
+        ctx->cipher_suites = picotls_cipher_suites;
         ctx->send_change_cipher_spec = 0;
         // ctx->hkdf_label_prefix = QUIC_LABEL_QUIC_BASE;
         ctx->hkdf_label_prefix__obsolete = NULL;
-        
+
         //ctx->update_traffic_key = new ptls_update_traffic_key_t;
         ctx->update_traffic_key = (ptls_update_traffic_key_t *)malloc(sizeof(ptls_update_traffic_key_t));
         memset(ctx->update_traffic_key, 0, sizeof(ptls_update_traffic_key_t));
         ctx->update_traffic_key->cb = quic_update_traffic_key_cb;
-        
+
         //ctx->on_extension = new ptls_on_extension_t;
         ctx->on_extension = (ptls_on_extension_t *)malloc(sizeof(ptls_on_extension_t));
         memset(ctx->on_extension, 0, sizeof(ptls_on_extension_t));
         ctx->on_extension->cb = tls_on_extension_cb;
 
         //ctx->client_mode = !is_server;
-    
-        ctx->require_client_authentication = 0; 
+
+        ctx->require_client_authentication = 0;
 
         ctx->get_time = &ptls_get_time;
 
@@ -1295,18 +1295,18 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         }
 
        // ctx->use_exporter = 1; // master secrets should be recorded
-       
-        ptls_handshake_properties_t *handshake_properties = new ptls_handshake_properties_t; 
+
+        ptls_handshake_properties_t *handshake_properties = new ptls_handshake_properties_t;
         memset(handshake_properties, 0, sizeof(ptls_handshake_properties_t));
         handshake_properties->collect_extension = tls_collect_extensions_cb;
         handshake_properties->collected_extensions = tls_collected_extensions_cb;
-  
+
         ptls_iovec_t *alpn_vec = new(ptls_iovec_t);  // TODO: will leak this
-        
-        // h3-x == HTTP/3 over QUIC 
+
+        // h3-x == HTTP/3 over QUIC
         // hq-x == HTTP/0.9 over QUIC
         alpn_vec->base = (uint8_t*) "hq-interop";
-        if(const char* env_p = std::getenv("TEST_ALPN")) { 
+        if(const char* env_p = std::getenv("TEST_ALPN")) {
             std::cerr << "TEST_ALPN " << env_p << std::endl;
             alpn_vec->base = (uint8_t*) env_p;
         }
@@ -1318,18 +1318,18 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         ptls_raw_extension_t *ptls_exts = new ptls_raw_extension_t[e.size()+he.size()];
         for (unsigned i = 0; i < e.size(); i++) {
             `exten_ser` ser;
-	        std::cerr << "etype =" << std::endl;  
+	        std::cerr << "etype =" << std::endl;
             __ser(ser,e[i]);
             unsigned etype = (((unsigned char)(ser.res[0])) << 8) + ((unsigned char)(ser.res[1]));
             unsigned len = (((unsigned char)(ser.res[2])) << 8) + ((unsigned char)(ser.res[3]));
             unsigned char *data = new unsigned char[ser.res.size()-4];
             std::copy(ser.res.begin()+4,ser.res.end(),data);
             ptls_exts[i].type = etype;
-            std::cerr << "etype =" << etype << std::endl;  
+            std::cerr << "etype =" << etype << std::endl;
             ptls_exts[i].data.base = data;
-            //std::cerr << "data =" << data << std::endl;  
+            //std::cerr << "data =" << data << std::endl;
             ptls_exts[i].data.len = len;
-            std::cerr << "len =" << len << std::endl;  
+            std::cerr << "len =" << len << std::endl;
             // int eres = gnutls_session_ext_register (session, "ext_name", etype,
             //   GNUTLS_EXT_APPLICATION, gnutls_ext_supp_recv_params,
             //   gnutls_ext_supp_send_params, 0,0,0,0);
@@ -1340,7 +1340,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         }
         for (unsigned i = 0; i <  he.size(); i++) {
             `exten_ser` ser;
-	        std::cerr << "etype =" << std::endl;  
+	        std::cerr << "etype =" << std::endl;
             __ser(ser,he[i]);
             // unsigned char etype = (((unsigned char)(ser.res[0])));
             // unsigned len = (((unsigned char)(ser.res[1])) << 16) + (((unsigned char)(ser.res[2])) << 8) + ((unsigned char)(ser.res[3]));
@@ -1350,11 +1350,11 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
             unsigned char *data = new unsigned char[ser.res.size()-4];
             std::copy(ser.res.begin()+4,ser.res.end(),data);
             ptls_exts[e.size()+i].type = etype;
-            std::cerr << "etype =" << etype << std::endl;  
+            std::cerr << "etype =" << etype << std::endl;
             ptls_exts[e.size()+i].data.base = data;
-            std::cerr << "data =" << data << std::endl;  
+            std::cerr << "data =" << data << std::endl;
             ptls_exts[e.size()+i].data.len = len;
-            std::cerr << "len =" << len << std::endl;  
+            std::cerr << "len =" << len << std::endl;
             // int eres = gnutls_session_ext_register (session, "ext_name", etype,
             //   GNUTLS_EXT_APPLICATION, gnutls_ext_supp_recv_params,
             //   gnutls_ext_supp_send_params, 0,0,0,0);
@@ -1377,7 +1377,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
             handshake_properties->client.session_ticket.base = ticket_psk.base;
             handshake_properties->client.session_ticket.len = ticket_psk.len;
             size_t m = 0xFFFFFFFF;  //0xFFFFFFFF
-            handshake_properties->client.max_early_data_size = &m;      
+            handshake_properties->client.max_early_data_size = &m;
         }
 
 
@@ -1398,32 +1398,32 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         ptls_set_server_name(session, "servername", strlen("servername"));
 
 
-        if(const char* env_p = std::getenv("TEST_IMPL")) { 
+        if(const char* env_p = std::getenv("TEST_IMPL")) {
             std::cerr << "TEST_IMPL " << env_p << std::endl;
             std::cerr << "TEST_IMPL " << env_p << std::endl;
             std::cerr << "is_server " << is_server << std::endl;
-            if(strncmp(env_p,"quic-go",10) == 0 
-                || strncmp(env_p,"quiche",10) == 0 
-                   || strncmp(env_p,"lsquic",10) == 0 
+            if(strncmp(env_p,"quic-go",10) == 0
+                || strncmp(env_p,"quiche",10) == 0
+                   || strncmp(env_p,"lsquic",10) == 0
                    || strncmp(env_p,"quinn",10) == 0
                       || strncmp(env_p,"aioquic",10) == 0 || true) //TODO ask why sometime ALPN needed
                 if (is_server) {
                         std::cerr << "ptls_set_negotiated_protocol"  << std::endl;
                         std::cerr << "ptls_set_negotiated_protocol"  << std::endl;
-                        ptls_set_negotiated_protocol(session, 
-                            (const char*) handshake_properties->client.negotiated_protocols.list[0].base, 
+                        ptls_set_negotiated_protocol(session,
+                            (const char*) handshake_properties->client.negotiated_protocols.list[0].base,
                             handshake_properties->client.negotiated_protocols.list[0].len);
                 }
-                   
+
         }
 
         picotls_connection *s = new picotls_connection(c,session,ctx,*`cb`,handshake_properties,is_server);
-        *ptls_get_data_ptr(session) = s;  
+        *ptls_get_data_ptr(session) = s;
 
-        
+
 	    `cid_map`[c] = s;
 
-        if (!is_server) 
+        if (!is_server)
             picotls_do_handshake(s,0,0,0);
         std::cerr << "create 0rtt finish"  << "\n";
         >>>
@@ -1442,7 +1442,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
                 read = getline(&line, &len, fp);
                 fclose(fp);
                 bool is_error = false;
-                if(line != NULL) { 
+                if(line != NULL) {
                     std::cerr << "RETRY_TOKEN_FILE 1 " << line << std::endl;
                     int hex_len = strlen(line);
                     std::cerr << "RETRY_TOKEN_FILE hex_len " << hex_len << std::endl;
@@ -1461,7 +1461,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
                         // std::cerr << "RETRY_TOKEN_FILE a " << a << std::endl;
                         // std::cerr << "RETRY_TOKEN_FILE b " << b << std::endl;
                         // std::cerr << "RETRY_TOKEN_FILE secret[j] " << secret[j] << std::endl;
-                    }  
+                    }
                     std::cerr << "TEST_ST 2 " << secret << std::endl;
                     /*for(int i = (hex_len/2)-1; i >=0 && !is_error; i--)
                         b.push_back(secret[i]);*/
@@ -1486,7 +1486,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
                 read = getline(&line, &len, fp);
                 fclose(fp);
                 bool is_error = false;
-                if(line != NULL) { 
+                if(line != NULL) {
                     // std::cerr << "NEW_TOKEN_FILE 1 " << line << std::endl;
                     int hex_len = strlen(line);
                     // std::cerr << "NEW_TOKEN_FILE hex_len " << hex_len << std::endl;
@@ -1505,7 +1505,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
                         // std::cerr << "NEW_TOKEN_FILE a " << a << std::endl;
                         // std::cerr << "NEW_TOKEN_FILE b " << b << std::endl;
                         // std::cerr << "NEW_TOKEN_FILE secret[j] " << secret[j] << std::endl;
-                    }  
+                    }
                     //std::cerr << "NEW_TOKEN_FILE 2 " << secret << std::endl;
                     /*for(int i = (hex_len/2)-1; i >=0 && !is_error; i--)
                         b.push_back(secret[i]);*/
@@ -1515,10 +1515,10 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
             }
         >>>
     }
-  
+
 
     # Destroy frees a cid
-    
+
     implement destroy(c:cid) {
         <<< impure
 
@@ -1538,7 +1538,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
 
     implement set_initial_keys(c:cid,salt:bytes,ikm:bytes) {
         <<< impure
-        
+
 	    picotls_connection *s = `cid_map`[c];
         std::cerr << "setup_initial_traffic_keys cid: " << c << "\n";
         std::cerr << "setup_initial_traffic_keys session: " << s->is_server << "\n";
@@ -1578,7 +1578,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         if (recv) {
             pn_enc = (ptls_cipher_context_t *)(s->crypto_context[l].pn_dec);
             std::cerr << "encrypt_cipher pn_dec " << pn_enc << "\n";
-        } 
+        }
         else {
             pn_enc = (ptls_cipher_context_t *)(s->crypto_context[l].pn_enc);
             std::cerr << "encrypt_cipher pn_enc " << pn_enc << "\n";
@@ -1616,9 +1616,9 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
                 //std::cerr <<  "str_d[i] == 0 "  << (str_d[i] == 0) << std::endl;
                 if(str_d[i] < 16)
                     fprintf(fp, "0%x", str_d[i]);
-                else 
+                else
                     fprintf(fp, "%x", str_d[i]);
-            }  
+            }
             fclose(fp);
         }
 
@@ -1652,7 +1652,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
                 read = getline(&line, &len, fp);
                 fclose(fp);
                 bool is_error = false;
-                if(line != NULL) { 
+                if(line != NULL) {
                     i = (uint32_t) std::stoll(line);
                 }
             }
@@ -1686,7 +1686,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
                 read = getline(&line, &len, fp);
                 fclose(fp);
                 bool is_error = false;
-                if(line != NULL) { 
+                if(line != NULL) {
                     i = (uint32_t) std::stoll(line);
                 }
             }
@@ -1720,7 +1720,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
                 read = getline(&line, &len, fp);
                 fclose(fp);
                 bool is_error = false;
-                if(line != NULL) { 
+                if(line != NULL) {
                     i = (uint32_t) std::stoll(line);
                 }
             }
@@ -1755,7 +1755,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
                 read = getline(&line, &len, fp);
                 fclose(fp);
                 bool is_error = false;
-                if(line != NULL) { 
+                if(line != NULL) {
                     i = (uint32_t) std::stoll(line);
                 }
             }
@@ -1771,7 +1771,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
             fp = fopen(session_file,"w");
             if(i < 16)
                 fprintf(fp, "0%x", i);
-            else 
+            else
                 fprintf(fp, "%x", i);
             fclose(fp);
         }
@@ -1792,7 +1792,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
                 read = getline(&line, &len, fp);
                 fclose(fp);
                 bool is_error = false;
-                if(line != NULL) { 
+                if(line != NULL) {
                     i = (uint16_t) std::stoll(line);
                 }
             }
@@ -1825,7 +1825,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
                 read = getline(&line, &len, fp);
                 fclose(fp);
                 bool is_error = false;
-                if(line != NULL) { 
+                if(line != NULL) {
                     i = (uint32_t) std::stoll(line);
                 }
             }
@@ -1852,50 +1852,50 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
                 //std::cerr <<  "str_d[i] == 0 "  << (str_d[i] == 0) << std::endl;
                 if(str_d[i] < 16)
                     fprintf(fp, "0%x", str_d[i]);
-                else 
+                else
                     fprintf(fp, "%x", str_d[i]);
-            }  
+            }
             fclose(fp);
         }
-        
+
 
         uint8_t plaintext[] = "";
         //0xbe 0c 69 0b 9f 66 57 5a 1d 76 6b 54 e3 68 c8 4e : rfc9001
         /*uint8_t key[16] = { 0xbe, 0x0c, 0x69, 0x0b, 0x9f, 0x66, 0x57,
-                            0x5a, 0x1d, 0x76, 0x6b, 0x54, 0xe3, 0x68, 
+                            0x5a, 0x1d, 0x76, 0x6b, 0x54, 0xe3, 0x68,
                             0xc8, 0x4e };*/
 
         //0xcc ce 18 7e d0 9a 09 d0 57 28 15 5a 6c b9 6b e1
         //0xcc 0xce 0x18 0x7e 0xd0 0x9a 0x09 0xd0 0x57 0x28 0x15 0x5a 0x6c 0xb9 0x6b 0xe1 : draft 29
-        uint8_t key[16]; 
+        uint8_t key[16];
 
         //0x4d 0x32 0xec 0xdb 0x2a 0x21 0x33 0xc8 0x41 0xe4 0x04 0x3d 0xf2 0x7d 0x44 0x30
         if(pversion == 0xff00001c) {
             uint8_t key2[16] = { 0x4d, 0x32, 0xec, 0xdb, 0x2a,
-                                 0x21, 0x33, 0xc8, 0x41, 0xe4, 
-                                 0x04, 0x3d, 0xf2, 0x7d, 0x44, 
+                                 0x21, 0x33, 0xc8, 0x41, 0xe4,
+                                 0x04, 0x3d, 0xf2, 0x7d, 0x44,
                                  0x30 };
             for(int i = 0; i < 16;i++)
                 key[i] = key2[i];
-        }   
+        }
         else if(pversion == 0xff00001d) {
-            uint8_t key2[16] = { 0xcc, 0xce, 0x18, 0x7e, 0xd0, 
-                                 0x9a, 0x09, 0xd0, 0x57, 0x28, 
-                                 0x15, 0x5a, 0x6c, 0xb9, 0x6b, 
+            uint8_t key2[16] = { 0xcc, 0xce, 0x18, 0x7e, 0xd0,
+                                 0x9a, 0x09, 0xd0, 0x57, 0x28,
+                                 0x15, 0x5a, 0x6c, 0xb9, 0x6b,
                                  0xe1 };
             for(int i = 0; i < 16;i++)
                 key[i] = key2[i];
         }
         else if(pversion == 0x00000001) {
             //0xbe 0x0c 0x69 0x0b 0x9f 0x66 0x57 0x5a 0x1d 0x76 0x6b 0x54 0xe3 0x68 0xc8 0x4e
-            uint8_t key2[16] = { 0xbe, 0x0c, 0x69, 0x0b, 0x9f, 
-                                 0x66, 0x57, 0x5a, 0x1d, 0x76, 
-                                 0x6b, 0x54, 0xe3, 0x68, 0xc8, 
+            uint8_t key2[16] = { 0xbe, 0x0c, 0x69, 0x0b, 0x9f,
+                                 0x66, 0x57, 0x5a, 0x1d, 0x76,
+                                 0x6b, 0x54, 0xe3, 0x68, 0xc8,
                                  0x4e };
             for(int i = 0; i < 16;i++)
                 key[i] = key2[i];
         }
-            
+
         //0x461599d35d632bf2239825bb
         /*uint8_t nonce[12] = { 0x46, 0x15, 0x99, 0xd3, 0x5d, 0x63, 0x2b,
                               0xf2, 0x23, 0x98, 0x25, 0xbb };*/
@@ -1905,14 +1905,14 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         //0x4d 0x16 0x11 0xd0 0x55 0x13 0xa5 0x52 0xc5 0x87 0xd5 0x75
         if(pversion == 0xff00001c) {
             uint8_t nonce2[12] = { 0x4d, 0x16, 0x11, 0xd0, 0x55,
-                                   0x13, 0xa5, 0x52, 0xc5, 0x87, 
+                                   0x13, 0xa5, 0x52, 0xc5, 0x87,
                                    0xd5, 0x75 }; //nonce[12]
             for(int i = 0; i < 12; i++)
                 nonce[i] = nonce2[i];
-        }    
+        }
         else if(pversion == 0xff00001d) {
             uint8_t nonce2[12] = { 0xe5, 0x49, 0x30, 0xf9, 0x7f,
-                                   0x21, 0x36, 0xf0, 0x53, 0x0a, 
+                                   0x21, 0x36, 0xf0, 0x53, 0x0a,
                                    0x8c, 0x1c }; //nonce[12]
             for(int i = 0; i < 12; i++)
                 nonce[i] = nonce2[i];
@@ -1920,16 +1920,16 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         else if(pversion == 0x00000001) {
             //0x46 0x15 0x99 0xd3 0x5d 0x63 0x2b 0xf2 0x23 0x98 0x25 0xbb
             uint8_t nonce2[12] = { 0x46, 0x15, 0x99, 0xd3, 0x5d,
-                                   0x63, 0x2b, 0xf2, 0x23, 0x98, 
+                                   0x63, 0x2b, 0xf2, 0x23, 0x98,
                                    0x25, 0xbb }; //nonce[12]
             for(int i = 0; i < 12; i++)
                 nonce[i] = nonce2[i];
         }
-        
+
         ptls_aead_context_t *aead = ptls_aead_new_direct(&ptls_openssl_aes128gcm, 1, key, nonce);
         std::cerr << "compute_retry_integrity_tag aead " << aead <<  "\n";
-    
-        
+
+
         uint32_t checksum_length = aead->algo->tag_size;
         std::cerr << "c 3 \n";
         std::cerr << "compute_retry_integrity_tag ptls_aead_context_t " << "\n";
@@ -1945,14 +1945,14 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         std::cerr << "compute_retry_integrity_tag scil " <<  scil << "\n";
         std::cerr << "compute_retry_integrity_tag scid " << std::hex << scid << "\n";
         std::cerr << "compute_retry_integrity_tag seq " << std::dec << seq << "\n";
-        
+
         uint8_t pushed;
         std::cerr << "compute_retry_integrity_tag odcil \n";
         ad.push_back(odcil);
         for (int i = odcil-1; i >= 0; --i) {
             pushed = (odcid.val >> (8*i)) & 0xff;
             std::cerr << std::to_string(pushed) << " ";
-            ad.push_back(pushed);  
+            ad.push_back(pushed);
         }
         std::cerr << "\n";
         ad.push_back(h);
@@ -1961,14 +1961,14 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
             pushed = (pversion >> (8*i)) & 0xff;
             std::cerr << std::to_string(pushed) << " ";
             ad.push_back(pushed);
-        } 
+        }
         std::cerr << "\n";
         std::cerr << "compute_retry_integrity_tag dcid \n";
         ad.push_back(dcil);
         for (int i = dcil-1; i >= 0; --i) {
             pushed = (dcid.val >> (8*i)) & 0xff;
             std::cerr << std::to_string(pushed) << " ";
-            ad.push_back(pushed); 
+            ad.push_back(pushed);
         }
         std::cerr << "\n";
         std::cerr << "compute_retry_integrity_tag scid \n";
@@ -1976,9 +1976,9 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         for (int i = scil-1; i >= 0; --i) {
             pushed = (scid.val >> (8*i)) & 0xff;
             std::cerr << std::to_string(pushed) << " ";
-            ad.push_back(pushed); 
+            ad.push_back(pushed);
         }
-        
+
         std::cerr << "\n";
         std::cerr << "compute_retry_integrity_tag token size: " << token.size()  << "\n";
         for (unsigned i = 0; i < token.size(); i++) {
@@ -2006,7 +2006,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         size_t encrypted = ptls_aead_encrypt(aead,
           &output[0], &plaintext[0], 0 , seq, //seq, strnlen ?strlen(plaintext)
           &bytes[0], bytes.size());
-        
+
         cipher.resize(output.size());
         std::copy(output.begin(),output.end(),cipher.begin());
 
@@ -2067,9 +2067,9 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
             std::copy(cipher.begin(),cipher.end(),input.begin());
             output.resize(cipher.size() - checksum_length);
             size_t decrypted = ptls_aead_decrypt(aead,
-                                                &output[0], 
-                                                &input[0], 
-                                                input.size(), 
+                                                &output[0],
+                                                &input[0],
+                                                input.size(),
                                                 seq,
                                                 &bytes[0], bytes.size());
             res.ok = decrypted <= input.size();
@@ -2115,7 +2115,7 @@ module tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,upper) = {
         >>>
     }
 
-    
+
     trusted isolate iso = this
 
     attribute test = impl

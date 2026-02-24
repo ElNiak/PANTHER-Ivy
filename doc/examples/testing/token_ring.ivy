@@ -60,12 +60,12 @@ object serv = {
     object spec = {
 	relation lock(X:node.t)
 	init lock(X) <-> X = 0
-	
+
 	before grant {
 	    assert ~lock(X);
 	    lock(v) := true
 	}
-	
+
 	before release {
 	    assert lock(v);
 	    lock(v) := false

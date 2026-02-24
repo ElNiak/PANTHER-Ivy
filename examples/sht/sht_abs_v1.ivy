@@ -128,7 +128,7 @@ module hashev = {
 # time. It provides actions that assign global time to events in
 # increasing order. The pre-conditions of these actions enforce the
 # consistency model (that is, what orderings in local time must be
-# preserved in global time). 
+# preserved in global time).
 #
 ################################################################################
 
@@ -138,22 +138,22 @@ object reference = {
     # memory events by local time
     # TODO: can we export this read-only?
 
-    instantiate evs(T:ltime) : hashev 
+    instantiate evs(T:ltime) : hashev
 
 
     ########################################
-    # global memory state 
+    # global memory state
     # obeys partial function axiom
 
     individual hash(A:key) : data
 
     # An aribtrary init value
     init hash(A) = 0
-    
+
     ########################################
     # serialize an event lt at current global time. The "id"
     # parameter tells us what process is serializing the event.
-    # 
+    #
 
     action serialize(lt:ltime, id_:id) = {
 
@@ -171,9 +171,9 @@ object reference = {
 	    }
 	    else { # write
 		hash(a) := d
-	    }			
+	    }
 	}
-    }     
+    }
     delegate serialize
 
     ########################################
@@ -244,7 +244,7 @@ module delegation_map = {
 }
 
 ################################################################################
-# 
+#
 # This is the top-level server description
 #
 # "ref" is the reference object
@@ -254,9 +254,9 @@ module delegation_map = {
 module server_top(ref,me,net) = {
 
     # The server's hash table
-    
+
     instance hash : hash_top(key,data)
-    
+
     # The server's delegation map
 
     instance dm : delegation_map
@@ -442,7 +442,7 @@ object encoder = {
 	  & net_msg_seq_num(msg) = seq
 	  & net_msg_mtype(msg) = ack_t
     }
-    
+
 }
 
 module message_queue_top(me) = {
@@ -463,7 +463,7 @@ module message_queue_top(me) = {
     action pick_one returns (res:net_msg) = {
 	assume ~contents(res) -> ~contents(M)
     }
-    
+
     action delete_all(seq:seq_num) = {
 	contents(M) := contents(M) & ~(net_msg_seq_num(M) <= seq)
     }
@@ -544,7 +544,7 @@ module net_impl(ref,proto,me,lower) = {
 
     conjecture neti(S1).mq(D).contents(M1) & neti(D).recv_seq(S1) <= net_msg_seq_num(M1)
        & neti(S2).mq(D).contents(M2) & neti(D).recv_seq(S2) <= net_msg_seq_num(M2)
-       & net_msg_mtype(M1) = request_t & net_msg_mtype(M2) = request_t 
+       & net_msg_mtype(M1) = request_t & net_msg_mtype(M2) = request_t
        & (S1 ~= S2 | net_msg_seq_num(M1) ~= net_msg_seq_num(M2))
        -> net_msg_req(M1) ~= net_msg_req(M2)
 
@@ -552,7 +552,7 @@ module net_impl(ref,proto,me,lower) = {
 
     conjecture neti(S1).mq(D).contents(M1) & neti(D).recv_seq(S1) <= net_msg_seq_num(M1)
        & neti(S2).mq(D).contents(M2) & neti(D).recv_seq(S2) <= net_msg_seq_num(M2)
-       & net_msg_mtype(M1) = delegate_t & net_msg_mtype(M2) = delegate_t 
+       & net_msg_mtype(M1) = delegate_t & net_msg_mtype(M2) = delegate_t
        & (S1 ~= S2 | net_msg_seq_num(M1) ~= net_msg_seq_num(M2))
        -> net_msg_shard(M1) ~= net_msg_shard(M2)
 
@@ -562,7 +562,7 @@ module net_impl(ref,proto,me,lower) = {
 
     # No two messages in a queue have the same sequence number
 
-    conjecture mq(D).contents(M1) & mq(D).contents(M2) 
+    conjecture mq(D).contents(M1) & mq(D).contents(M2)
         -> net_msg_seq_num(M1) ~= net_msg_seq_num(M2)
 
     # A sent message must match any message queue entry with the same
@@ -573,11 +573,11 @@ module net_impl(ref,proto,me,lower) = {
        -> M = M2
 
     conjecture low.sent(M) & net_msg_mtype(M) = request_t & net_msg_dst(M) = D
-               & net_msg_src(M) = S & neti(D).recv_seq(S) <= net_msg_seq_num(M) 
+               & net_msg_src(M) = S & neti(D).recv_seq(S) <= net_msg_seq_num(M)
                -> net.requested(D,net_msg_req(M))
 
     conjecture low.sent(M) & net_msg_mtype(M) = delegate_t & net_msg_dst(M) = D
-               & net_msg_src(M) = S & neti(D).recv_seq(S) <= net_msg_seq_num(M) 
+               & net_msg_src(M) = S & neti(D).recv_seq(S) <= net_msg_seq_num(M)
                -> net.delegated(D,net_msg_shard(M))
 
 }
@@ -585,7 +585,7 @@ module net_impl(ref,proto,me,lower) = {
 module lower(net_impl) = {
 
     relation sent(M:net_msg)
-    
+
     init ~sent(M)
 
     action send_msg(msg:net_msg) = {
@@ -613,7 +613,7 @@ instance net : net_top(reference,servers)
 instance neti(X:id) : net_impl(reference,servers,X,low)
 
 # lower network specification
-instance low : lower(neti) 
+instance low : lower(neti)
 
 
 ################################################################################
@@ -632,11 +632,10 @@ export neti.timeout
 #  verify the servers
 #
 # This says verify all the actions of "servers", keeping "ref" and "net"
-# concrete. 
+# concrete.
 
 isolate iso_s = servers with reference,net
 
 # Verify the network implementation, using its upper and lower specifications
 
 isolate iso_n = neti with net,low,seq_nums,encoder
-

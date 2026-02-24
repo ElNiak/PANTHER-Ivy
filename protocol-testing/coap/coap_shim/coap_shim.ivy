@@ -32,10 +32,10 @@ after init {
 implement net.recv(host:endpoint_id, s: net.socket, src:ip.endpoint, pkts: prot.arr) {
     if host = endpoint_id.server {
         call server.behavior(host, s, src, pkts);
-    } 
+    }
     else host = endpoint_id.client {
         call client.behavior(host, s, src, pkts);
-    } 
+    }
     else {
         call undefined_host_error(host,s,src);
     };

@@ -3,7 +3,7 @@
 module unbounded_sequence = {
     type this
     interpret this -> ivy.native_unsigned[size_t]
-    
+
     action next(x:this) returns (y:this) = {
         y := x + 1;
     }

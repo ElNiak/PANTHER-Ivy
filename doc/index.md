@@ -28,7 +28,7 @@ Z3](https://github.com/Z3Prover/z3) can check the validity of formulas
 in various logics and can even generate inductive invariants. Because
 these tools are heuristic in nature, however, they fail in ways that
 are unpredictable and often not understandable by a human user.  To
-reduce this problem, Ivy relies on interactive visualization, 
+reduce this problem, Ivy relies on interactive visualization,
 decidable logics and modularity
 
 ### Interactive visualization
@@ -73,4 +73,3 @@ tests oracles that can be used to test design components rigorously
 against their specifications. Such testers can reveal latent bugs
 in component implementations that do not appear in integration tests or
 ad-hoc unit testing.
-

@@ -38,15 +38,15 @@
 # ordinals and cardinal distinct types. The functions are stratified
 # in this order: set -> basis.t -> index.t. In particular, this allows
 # us to state the inductive lemma in a way that does not involve
-# quantified variables under arithmetic operators. 
+# quantified variables under arithmetic operators.
 
 include collections
 include order
 
 module indexset(basis,index) = {
 
-    type set 
-    
+    type set
+
     individual n : basis.t
     relation member(E:basis.t,S:set)
     function card(S:set) : index.t
@@ -61,7 +61,7 @@ module indexset(basis,index) = {
     # module should require the property n > 0.
 
     axiom [n_positive] n > 0
-    
+
     object spec = {
 
 	after empty {
@@ -72,11 +72,11 @@ module indexset(basis,index) = {
 	    assert member(X,s) <-> (member(X,old s) | X = e)
 	}
     }
-    
+
     function cnt(E:basis.t) : index.t
     relation disjoint(X:set,Y:set)
 
-    
+
     isolate disjointness = {
 
 	# The funtion cnt(x) returns the cardinaility of the set of
@@ -91,7 +91,7 @@ module indexset(basis,index) = {
 
 	definition cnt(x:basis.t) = 0 if x <= 0 else cnt(x-1) + 1
     	proof rec[basis.t]
-	
+
 	# We define cardinality in terms of a recursive function
 	# cardUpTo that counts the number of elements in a set that
 	# are less than a bound B.
@@ -100,11 +100,11 @@ module indexset(basis,index) = {
 
 	# Note again the we deal with recursion by restricting the
 	# instantion of the definition.
-	
+
     	definition cardUpTo(s:set,b:basis.t) =
     	    0 if b <= 0 else (cardUpTo(s,b-1)+1 if member(b-1,s) else cardUpTo(s,b-1))
     	proof rec[basis.t]
-	
+
 	# The cardinality function is then defined in terms of cardUpTo.
 
 	definition card(S) = cardUpTo(S,n)
@@ -113,12 +113,12 @@ module indexset(basis,index) = {
 	# Notice that there is a quantifier alternation in the direction set -> basis.t.
 
 	definition disjoint(X,Y) = forall E. ~(member(E,X) & member(E,Y))
-	
+
 	# A majority is a set whose cardinality is greater than 1/2 of
 	# the basis set.
 
     	definition majority(X) = 2 * card(X) > cnt(n)
-	
+
 	# This is our inductive invariant. It says that, for disjoint
 	# sets, the sum of the cardinailities up to bound B is less
 	# than the total number of elements less than B. We prove it
@@ -141,15 +141,15 @@ module indexset(basis,index) = {
 
 	property disjoint(Xa,Y) -> cardUpTo(Xa,B) + cardUpTo(Y,B) <= cnt(B)
 	proof ind[basis.t] with X = B
-	
+
 	# With the above lemma, the desired property is trivial.
 
     	property disjoint(X,Y) -> card(X) + card(Y) <= cnt(n)
-	
+
 	# We can also prove that two majorities have an element in common.
-	
+
 	property majority(X) & majority(Y) -> exists E. (member(E,X) & member(E,Y))
-	
+
 	# We can interpret both the ordinals and cardinals as integers
 	# without running afoul of the fragment checker.
 
@@ -163,7 +163,7 @@ module indexset(basis,index) = {
     # should be able to say just `n_positive`.
 
     isolate api = {
-	
+
     	# Here is the implementation of the set type using an unsorted array.
 
     	instance arridx : unbounded_sequence
@@ -197,5 +197,3 @@ instance nodeset : indexset(nodeord,nodecard)
 
 export nodeset.empty
 export nodeset.add
-
-    

@@ -19,7 +19,7 @@ module udp_impl(host,pkt,ser,des) = {
     type socket
 
 
-    
+
 # This code goes in the C++ header file, ahead of the ivy object declaration.
 # Here, we put declarations (perhaps forward) of any auxiliary classes we need).
 # We need to be careful that the names of these don't clash with other modules.
@@ -46,7 +46,7 @@ module udp_impl(host,pkt,ser,des) = {
 >>>
 
 # This code goes in the C++ implementation file. Here, we put implementations of
-# the classes declared in the header, and auxiliary functions. 
+# the classes declared in the header, and auxiliary functions.
 
 <<< impl
 
@@ -59,7 +59,7 @@ module udp_impl(host,pkt,ser,des) = {
             { std::cerr << "cannot create socket\n"; exit(1); }
         return sock;
     }
-    
+
 
     // This structure holds all the callbacks for the endpoint. These are function objects
     // that are called asynchronously.
@@ -85,7 +85,7 @@ module udp_impl(host,pkt,ser,des) = {
       public:
 
         udp_task(`host` my_id, int sock, const udp_callbacks &cb, ivy_class *ivy)
-          : my_id(my_id), sock(sock), cb(cb), ivy(ivy) {} 
+          : my_id(my_id), sock(sock), cb(cb), ivy(ivy) {}
 
         virtual int fdes() {
             return sock;
@@ -134,9 +134,9 @@ module udp_impl(host,pkt,ser,des) = {
 				`des` ds(buf);
 				__deser(ds,pkt);
 				if (ds.pos < buf.size()) {
-					//std::cerr << pkt << std::endl; 
-					//std::cerr << ds << std::endl; 
-					std::cerr << "udp impl" << std::endl; 
+					//std::cerr << pkt << std::endl;
+					//std::cerr << ds << std::endl;
+					std::cerr << "udp impl" << std::endl;
 					throw deser_err();
 				}
 			} catch (deser_err &){
@@ -234,11 +234,11 @@ object impl(me:host) = {
 			//inet_pton(AF_INET, htonl(addr.addr), &v_src.sin_addr.s_addr);
 			v_src.sin_port = htons(addr.port);
 			v_src.sin_family = AF_INET;
-			
+
 			int error = 0;
 			if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &error, sizeof(int)) < 0 || setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &error, sizeof(int)) < 0)
 				perror("setsockopt(SO_REUSEADDR) failed");
-		
+
 			if (bind(s, (struct sockaddr*) &v_src, sizeof(struct sockaddr_in)) != 0) {
 				char s[100];
 				sprintf(s, "bind to addr %u", htonl(addr.addr));
@@ -263,7 +263,7 @@ object impl(me:host) = {
 			std::cerr << "binding client id: " << `me` << " addr: " << ntohl(myaddr.sin_addr.s_addr) << " port: " << ntohs(myaddr.sin_port) << std::endl;
 			if (::bind(s, (struct sockaddr *)&myaddr, sizeof(myaddr)) != 0)
 				{ perror("bind failed"); exit(1); }
-			
+
 			len = sizeof(sin);
 			if (::getsockname(s, (struct sockaddr *)&sin, &len) == -1)
 				perror("getsockname");
@@ -281,7 +281,7 @@ object impl(me:host) = {
 			bool free = false;
 			char opt;
 			int port;
-			
+
 			if (dst.interface == `ip.ivy`) {
 				dev = strdup("ivy");
 			}
@@ -305,25 +305,25 @@ object impl(me:host) = {
 				perror(s);
 				exit(EXIT_FAILURE);
 			}
-			
+
 			int error = 0;
 			if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR,  &error, sizeof(int)) < 0 || setsockopt(s, SOL_SOCKET, SO_REUSEPORT,  &error, sizeof(int)) < 0)
 				perror("setsockopt(SO_REUSEADDR) failed");
-			
+
 			struct sockaddr_in v_dst = {};
 			v_dst.sin_addr.s_addr = htonl(dst.addr);
 			//inet_pton(AF_INET, ip, &v_dst.sin_addr.s_addr);
 			v_dst.sin_port = htons(dst.port);
 			v_dst.sin_family = AF_INET;
-			
+
 			if (bind(s, (struct sockaddr*) &v_dst, sizeof(struct sockaddr_in)) != 0) {
 					char s[100];
 					sprintf(s, "bind to addr %u", htonl(dst.addr));
 					perror(s);
 				exit(EXIT_FAILURE);
 			}
-			
-		
+
+
 			/*
 			char buf[100];
 			int len = 100;
@@ -351,7 +351,7 @@ object impl(me:host) = {
 
 	    // We don't want to close a socket when there is another thread
 	    // waiting, because the other thread won't know what to do with the
-	    // error. 
+	    // error.
 
 	    // Instead we shut down the socket and let the other thread close it.
 	    // If there is a reader thread, it will see EOF and close the socket. If there is
@@ -359,7 +359,7 @@ object impl(me:host) = {
 	    // send queue. If the queue is already closed, closing it has no effect.
 
 	    // invariant: if a socket is open there is a reader thread or
-	    // an open writer thread, but not both. 
+	    // an open writer thread, but not both.
 
 	    // Because of this invariant, the socket will be closed exactly once.
 
@@ -378,7 +378,7 @@ object impl(me:host) = {
         s := impl.listen(me,addr)
     }
 
-    # send transmits a packet synchronously.  
+    # send transmits a packet synchronously.
 
     action send(me:host,s:socket,dst:ip.endpoint,x:pkt) = {
 	<<< impure
@@ -402,7 +402,7 @@ object impl(me:host) = {
 		//dstaddr.sin_addr.s_addr = htonl(INADDR_ANY);
 		dstaddr.sin_port = htons(dst.port);
 		std::cerr << "sending from socket: " << s << std::endl;
-		
+
 		struct sockaddr_in sin;
 		socklen_t len = sizeof(sin);
 		if (::getsockname(s, (struct sockaddr *)&sin, &len) == -1)
@@ -417,12 +417,12 @@ object impl(me:host) = {
 			perror("getsockname");
 		else
 			std::cerr <<  "port number " << ntohs(sin.sin_port)  << std::endl;
-		
-		
+
+
 		int error = 0;
 		socklen_t lsen = sizeof (error);
 		int retval = ::getsockopt (s, SOL_SOCKET, SO_ERROR, &error, &lsen);
-		
+
 		if (retval != 0) {
 			/* there was a problem getting the error code */
 			std::cerr << "error getting socket error code: " << strerror(retval)  << std::endl;
@@ -433,10 +433,10 @@ object impl(me:host) = {
 			/* socket has a non zero error status */
 			std::cerr <<  "socket error: " << strerror(error)  << std::endl;
 		}
-		
-		if (::sendto(s,&sr.res[0],sr.res.size(),0,(struct sockaddr *)&dstaddr,sizeof(dstaddr)) < 0) 
-	if (::sendto(s,&sr.res[0],sr.res.size(),0,(struct sockaddr *)&dstaddr,sizeof(dstaddr)) < 0) 
-		if (::sendto(s,&sr.res[0],sr.res.size(),0,(struct sockaddr *)&dstaddr,sizeof(dstaddr)) < 0) 
+
+		if (::sendto(s,&sr.res[0],sr.res.size(),0,(struct sockaddr *)&dstaddr,sizeof(dstaddr)) < 0)
+	if (::sendto(s,&sr.res[0],sr.res.size(),0,(struct sockaddr *)&dstaddr,sizeof(dstaddr)) < 0)
+		if (::sendto(s,&sr.res[0],sr.res.size(),0,(struct sockaddr *)&dstaddr,sizeof(dstaddr)) < 0)
 	#ifdef _WIN32
 				{ std::cerr << "sendto failed " << WSAGetLastError() << "\n"; exit(1); }
 	#else
@@ -445,7 +445,7 @@ object impl(me:host) = {
 		error = 0;
 		lsen = sizeof (error);
 		retval = ::getsockopt (s, SOL_SOCKET, SO_ERROR, &error, &lsen);
-		
+
 		if (retval != 0) {
 			/* there was a problem getting the error code */
 			std::cerr << "error getting socket error code: " << strerror(retval)  << std::endl;
@@ -459,9 +459,9 @@ object impl(me:host) = {
 
 		std::cerr << "sending id finish" << std::endl;
 	//}
-	
+
 	>>>
-	
+
     }
 
 

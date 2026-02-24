@@ -41,8 +41,8 @@ include order
 
 module indexset(basis,index) = {
 
-    type set 
-    
+    type set
+
     individual n : basis.t
     relation member(E:basis.t,S:set)
     function card(S:set) : index.t
@@ -52,7 +52,7 @@ module indexset(basis,index) = {
     action add(s:set,e:basis.t) returns (s:set)
 
     axiom [n_positive] n > 0
-    
+
     object spec = {
 
 	after empty {
@@ -63,7 +63,7 @@ module indexset(basis,index) = {
 	    assert member(X,s) <-> (member(X,old s) | X = e)
 	}
     }
-    
+
     isolate succ_fact = {
     	object spec = {
     	    property basis.succ(X:basis.t,Y:basis.t) <-> (Y-1 = X)
@@ -73,7 +73,7 @@ module indexset(basis,index) = {
 
     function cnt(E:basis.t) : index.t
     function cardUpTo(S:set,B:basis.t) : index.t
-    
+
     isolate counting = {
 
 
@@ -116,7 +116,7 @@ module indexset(basis,index) = {
     	}
 
     	object impl = {
-    	    derived inv(X,Y,B) = 
+    	    derived inv(X,Y,B) =
     		disjoint(X,Y) -> cardUpTo(X,B) + cardUpTo(Y,B) <= cnt(B)
 
     	    property exists L. (L >= 0 & forall B. (B >= 0 & ~inv(X,Y,B) -> ~inv(X,Y,L) & L <= B))
@@ -140,7 +140,7 @@ module indexset(basis,index) = {
 
 
     isolate api = {
-	
+
     	# Here is the implementation of the set type using an unsorted array.
 
     	instance arridx : unbounded_sequence
@@ -174,5 +174,3 @@ instance nodeset : indexset(nodeord,nodecard)
 
 export nodeset.empty
 export nodeset.add
-
-    

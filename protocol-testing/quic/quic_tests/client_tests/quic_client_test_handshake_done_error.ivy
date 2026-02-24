@@ -27,7 +27,7 @@ export frame.handshake_done.handle
 
 attribute frame.handshake_done.handle.weight = "5"
 
-# "Not working" due to requirements in quic_Frame, should move them here directly to 
+# "Not working" due to requirements in quic_Frame, should move them here directly to
 # control
 
 before frame.handshake_done.handle(f:frame.handshake_done,scid:cid,dcid:cid) {
@@ -45,7 +45,7 @@ before frame.handshake_done.handle(f:frame.handshake_done,scid:cid,dcid:cid) {
 
 before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid) {
     if _generating {
-        require client.ep.addr ~= 0;         
+        require client.ep.addr ~= 0;
         require scid = the_cid;
     } else {
         require is_protocol_violation
@@ -89,8 +89,6 @@ export tls_recv_event
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require is_protocol_violation;
 }
-
-

@@ -37,7 +37,7 @@ before forged_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_quic_packe
             require src = client_vn;
         } else {
             if ~disable_active_migration.is_set(tp) {
-                if ~migration_done | allowed_multiple_migration { 
+                if ~migration_done | allowed_multiple_migration {
                     #only one migration
                     require src = attacker.ep | src = client_alt;
                 } else {
@@ -48,13 +48,13 @@ before forged_packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:forged_quic_packe
             }
         };
         require dst = server.ep;
-        #require pkt.token.end = 0; 
+        #require pkt.token.end = 0;
         if pkt.ptype = quic_packet_type.initial & retry_recv(pkt.src_cid) & ~zero_length_token {
             require pkt.token = retry_token(pkt.src_cid); # TODO new_token
         } else {
-            require pkt.token.end = 0; 
+            require pkt.token.end = 0;
         };
-    } 
+    }
     if final_version = 0x00000000 {
         #require pkt.long -> pkt.pversion = 0xff00001d  #version 29
         #require pkt.long -> pkt.pversion = 0xff000020  #version 32
@@ -93,9 +93,8 @@ export frame.connection_close.handle # TODO
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require victim_agent.ppkt_recvd.end > 0;
     call attacker.reset_NAT;
-    #call 
+    #call
 }
-

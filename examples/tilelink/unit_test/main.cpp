@@ -16,7 +16,7 @@ typedef tilelink_two_port_dut::finish finish;
 typedef tilelink_two_port_dut::release release;
 typedef tilelink_two_port_dut::grant grant;
 typedef tilelink_two_port_dut::probe probe;
- 
+
 void mutate_memory(tilelink_coherence_manager_tester & tb){
     int client = rand() % tb.__CARD__client_id;
     int addr = rand() % tb.__CARD__addr;
@@ -75,7 +75,7 @@ struct delay {
 int main(int argc, const char **argv){
 
     unsigned random_seed = (unsigned)time(NULL) ^ (unsigned)getpid();
-      
+
     int arg = 1;
     bool delay_rels = false;
     bool delay_acqs = false;
@@ -85,7 +85,7 @@ int main(int argc, const char **argv){
     int mtbf = 200;
     int stride = -1;
     int supports_uncached_atomic = 1;
-                                                
+
     while (arg < argc) {
         // option -c: max clock cycles per trace
         if (arg < argc - 1 && argv[arg] == std::string("-c")) {
@@ -128,14 +128,14 @@ int main(int argc, const char **argv){
             supports_uncached_atomic = 0;
         }
         else break;
-    }        
+    }
 
     if (argc > arg){
         if (!isdigit(argv[arg][0]))
             usage();
         random_seed = atoi(argv[arg++]);
     }
-        
+
     if (arg != argc) {
         usage();
     }
@@ -171,7 +171,7 @@ int main(int argc, const char **argv){
 
         int ccl = dut.cached_clients();
         for (int cl = 0; cl < 2; cl++){
-            for (int a = 0; a < 4; a++) 
+            for (int a = 0; a < 4; a++)
                 tb.front__cached[cl][a] = 1 ? (cl < ccl) : 0;
             for (int a = 0; a < 2; a++)
                 tb.front__cached_hi[cl][a] = 1 ? (cl < ccl) : 0;
@@ -180,10 +180,10 @@ int main(int argc, const char **argv){
         // Assume front interface is ordered
 
         tb.front__ordered = 1;
-        
+
         // Do we allow PutAtomic on front?
 
-        tb.front__supports_uncached_atomic = supports_uncached_atomic; 
+        tb.front__supports_uncached_atomic = supports_uncached_atomic;
 
 #if 0
 	tb.back__cached[0] = 0;
@@ -251,7 +251,7 @@ int main(int argc, const char **argv){
           // than one input in a clock cycle.  TODO: we ought to
           // dequeue these messages randomly.
 
-	  
+
           if (!delays[0].tick() && rand() % 2 && acq_i.size() < BUF_MAX && cag.generate(tb)) {
               acquire acq_g = {cag.cid,cag.id_,cag.addr_hi,cag.word,cag.own,cag.op,cag.data_,0 /* cag.block */,cag.ltime_};
 	      tb.ext__c__acquire(acq_g.cid,acq_g.id_,acq_g.addr_hi,acq_g.word,acq_g.own,acq_g.op, acq_g.data_, acq_g.block, acq_g.ltime_);
@@ -261,7 +261,7 @@ int main(int argc, const char **argv){
           acq_gen = acq_i.size();
           if (acq_gen) acq_m = acq_i[0];
           dut.mp()->set_acquire(acq_gen,acq_m);
-	  
+
           if (!delays[1].tick() && rand() % 2 && fns_i.size() < BUF_MAX && cfg.generate(tb)) {
               finish fns_g = {cfg.cid, cfg.id_, cfg.addr_hi, cfg.word, cfg.own};
               tb.ext__c__finish(fns_g.cid, fns_g.id_, fns_g.addr_hi, fns_g.word, fns_g.own);
@@ -280,7 +280,7 @@ int main(int argc, const char **argv){
               rel_del = (delay_rels && crg.voluntary) ? 6 : 0;
           }
           rls_gen = rls_i.size() && !rel_del;
-          if (rel_del) rel_del--;  
+          if (rel_del) rel_del--;
           if (rls_gen) rls_m = rls_i[0];
           dut.mp()->set_release(rls_gen,rls_m);
 
@@ -289,7 +289,7 @@ int main(int argc, const char **argv){
               acq_gen = false;
               dut.mp()->set_acquire(false,acq_m);
           }
-              
+
           if (!delays[3].tick() && rand() % 2 && gnt_i.size() < BUF_MAX && mgg.generate(tb)) {
               grant gnt_g = {0 /* mgg.cid */, mgg.clnt_txid, mgg.mngr_txid, mgg.word,mgg.own,mgg.relack,mgg.data_,mgg.addr_hi,0 /* mgg.ltime_ */};
 	      tb.ext__m__grant(gnt_g.cid, gnt_g.clnt_txid,gnt_g.clnt_txid,gnt_g.word,gnt_g.own,gnt_g.relack,gnt_g.data_,gnt_g.addr_hi,gnt_g.ltime_);
@@ -324,7 +324,7 @@ int main(int argc, const char **argv){
 	  dut.cp()->set_release_ready(rls_ready);
 	  dut.mp()->set_grant_ready(gnt_ready);
 	  dut.mp()->set_probe_ready(prb_ready);
-	  
+
           std::cout << "====clock " << cycle << "====\n";
           try {
               dut.clock();
@@ -373,7 +373,7 @@ int main(int argc, const char **argv){
 	  bool gnt_send = dut.mp()->get_grant(gnt_m);
 	  probe prb_m;
 	  bool prb_send = dut.mp()->get_probe(prb_m);
-	    
+
 	  // check the dut outputs, advancing tester state
 
 	  if (acq_send & acq_ready){
@@ -414,7 +414,7 @@ int main(int argc, const char **argv){
 	    tb.ext__b__probe(prb_m.cid,prb_m.id_, prb_m.addr_hi);
           }
 
-          tb.back_acq_rdy = acq_ready || !acq_send; 
+          tb.back_acq_rdy = acq_ready || !acq_send;
           if (!tb.back_acq_rdy) std::cout << "outer acq blocked\n";
           tb.front_gnt_rdy = gnt_ready || !gnt_send;
           if (!tb.front_gnt_rdy) std::cout << "inner gnt blocked\n";
@@ -424,7 +424,7 @@ int main(int argc, const char **argv){
           tb.__tick(30);
 
 	  // end of clock cycle
-	}	  
+	}
 
         delete dut_ptr;
     }

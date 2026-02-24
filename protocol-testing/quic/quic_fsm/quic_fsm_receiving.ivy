@@ -10,11 +10,11 @@ include quic_frame
 # of the opponant. We assume perfect reliability of the medium.
 # However a more correct way would be to represent state when,
 # we receive ACK for the corresponding frame but this would introduce
-# some delay between the real current state of receiver and the represented one. 
+# some delay between the real current state of receiver and the represented one.
 
 # - For each stream id S, `receiving_recv(S)`
 #   indicates that a STREAM frame, either
-#   a STREAM_DATA_BLOCKED or that a bidirectional stream is 
+#   a STREAM_DATA_BLOCKED or that a bidirectional stream is
 #   send by the sender to the receiver.
 # => We can check when we send these frame
 
@@ -35,7 +35,7 @@ relation receiving_dataRecvd(S:stream_id)
 
 # - For each stream id S, `receiving_dataRead(S)` indicates that
 #   the stream transmitted to receiver on stream id S is read (that is, a
-#   RESET_STREAM frame has been sent). 
+#   RESET_STREAM frame has been sent).
 #  => We cannot test if the application has read all the data
 
 relation receiving_dataRead(S:stream_id)
@@ -50,17 +50,17 @@ relation receiving_resetRecvd(S:stream_id)
 # - For each stream id S, `receiving_resetRead(S)` indicates that
 #   the reset stream transmitted to receiver on stream id S is read (that is, a
 #   RESET_STREAM frame has been sent). (+-stream_reset)
-#  => We cannot check (maybe check if stream is reset) 
+#  => We cannot check (maybe check if stream is reset)
 
 relation receiving_resetRead(S:stream_id)
 
-# lastest_stream_id_receiving(P) contains a list of stream_id that appear 
+# lastest_stream_id_receiving(P) contains a list of stream_id that appear
 # in a given packet_number P, allow us to track which packet are acked
 instance idx_r : unbounded_sequence
 instance arr_streamid_r : array(idx_r,stream_id)
 function lastest_stream_id_receiving(P:pkt_num) : this.arr_streamid_r
 
-# lastest_pkt_num_receiving contains a list of pkt_num that appear 
+# lastest_pkt_num_receiving contains a list of pkt_num that appear
 # in a given execution, allow us to track which packet are sent(received)
 instance jdx_r : unbounded_sequence
 instance arr_pkt_num_r : array(jdx_r,pkt_num)
@@ -85,8 +85,8 @@ after init {
 action handle_receiving_recv(id:stream_id,seq:pkt_num) = {
     if ~stream_frame_restransmitted(id) & ~sdb_frame_restransmitted(id) {
         # possible source state/transition: none
-        # set of non allowed state (useless ?) 
-        # allowed: 
+        # set of non allowed state (useless ?)
+        # allowed:
         # require  ~receiving_sizeKnown(id) & ~receiving_dataRecvd(id) & ~receiving_dataRead(id)  & ~receiving_resetRecvd(id) & ~receiving_resetRead(id);
         receiving_recv(id) := true;
         #call show_fsm_receiving_recv_event;
@@ -100,7 +100,7 @@ action handle_receiving_sizeKnown(id:stream_id,seq:pkt_num) = {
     if ~stream_frame_restransmitted(id) {
         # possible source state/transition
         # require receiving_recv(id);
-        # set of non allowed state (useless ?) 
+        # set of non allowed state (useless ?)
         # require  ~receiving_dataRecvd(id) & ~receiving_dataRead(id) & ~receiving_resetRecvd(id)  & ~receiving_resetRead(id);
         receiving_recv(id) := false;
         receiving_sizeKnown(id) := true;
@@ -114,7 +114,7 @@ action handle_receiving_sizeKnown(id:stream_id,seq:pkt_num) = {
 action handle_receiving_dataRecvd(id:stream_id) = {
     # possible source state/transition
     # require receiving_sizeKnown(id) | receiving_resetRecvd(id);
-    # set of non allowed state  
+    # set of non allowed state
     # require  ~receiving_dataRead(id) & ~receiving_resetRead(id);
     receiving_sizeKnown(id) := false;
     receiving_resetRecvd(id):= false;
@@ -126,7 +126,7 @@ action handle_receiving_dataRecvd(id:stream_id) = {
 action handle_receiving_dataRead(id:stream_id) = {
     # possible source state/transition
     # require receiving_dataRecvd(id);
-    # set of non allowed state  
+    # set of non allowed state
     # require  ~receiving_dataRead(id) & ~receiving_resetRead(id) & ~receiving_resetRead(id);
     receiving_dataRecvd(id) := false;
     receiving_dataRead(id)  := true;
@@ -138,7 +138,7 @@ action handle_receiving_resetRecvd(id:stream_id,seq:pkt_num) = {
     if ~reset_frame_restransmitted(id) {
         # possible source state/transition
         # require receiving_recv(id) | receiving_sizeKnown(id) | receiving_dataRecvd(id);
-        # set of non allowed state 
+        # set of non allowed state
         # require  ~receiving_resetRead(id) & ~receiving_dataRead(id);
         receiving_recv(id) := false;
         receiving_sizeKnown(id) := false;
@@ -166,7 +166,7 @@ action handle_receiving_resetRead(id:stream_id) = {
 # Auxilary functions
 #=====================================================================
 
-#largest ack 
+#largest ack
 action handle_receiving_ack(largest_acked:pkt_num) = {
     var jdx_r : jdx_r := 0;
     #call show_fsm_receiving_ack_event;
@@ -175,7 +175,7 @@ action handle_receiving_ack(largest_acked:pkt_num) = {
         var idx_r : idx_r := 0;
         while seq <= largest_acked & idx_r < lastest_stream_id_receiving(seq).end {
             var sid := lastest_stream_id_receiving(seq).value(idx_r);
-            if receiving_resetRecvd(sid) { 
+            if receiving_resetRecvd(sid) {
                 call handle_receiving_resetRead(sid);
             } else if receiving_sizeKnown(sid) {
                 call handle_receiving_dataRecvd(sid);
@@ -204,4 +204,3 @@ import action show_fsm_receiving_resetRecvd_event
 import action show_fsm_receiving_resetRead_event
 
 import action show_fsm_receiving_ack_event
-

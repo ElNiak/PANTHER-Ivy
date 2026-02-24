@@ -45,11 +45,11 @@ attribute packet.forward_to_server.weight = "100"
 
 object packet = {
     ...
-    
+
     object quic_packet = {
         ...
         before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
-           
+
             if _generating {
                 require mim_agent.number_of_connection_from(dst.addr) = 2;
                 var interest_pkt := quic_packet_received_at_round(dst,
@@ -62,11 +62,11 @@ object packet = {
                 require pkt.token       = interest_pkt.token;
                 require pkt.seq_num     = interest_pkt.seq_num;
                 require pkt.payload     = interest_pkt.payload;
-            } 
+            }
         }
 
         before replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
-           
+
             if _generating {
                 require mim_agent.number_of_connection_from(dst.addr) = 2;
                 var interest_pkt := quic_packet_received_at_round(dst,
@@ -79,11 +79,11 @@ object packet = {
                 require pkt.token       = interest_pkt.token;
                 require pkt.seq_num     = interest_pkt.seq_num;
                 require pkt.payload     = interest_pkt.payload;
-            } 
+            }
         }
 
         before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
-           
+
             if _generating {
                 # require ~quic_packet_forwarded(dst,pkt);
                 var interest_pkt := quic_packet_received_at_round(dst,
@@ -96,11 +96,11 @@ object packet = {
                 require pkt.token       = interest_pkt.token;
                 require pkt.seq_num     = interest_pkt.seq_num;
                 require pkt.payload     = interest_pkt.payload;
-            } 
+            }
         }
 
         before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
-           
+
             if _generating {
                 # require ~quic_packet_forwarded(dst,pkt);
                 var interest_pkt := quic_packet_received_at_round(dst,
@@ -113,11 +113,11 @@ object packet = {
                 require pkt.token       = interest_pkt.token;
                 require pkt.seq_num     = interest_pkt.seq_num;
                 require pkt.payload     = interest_pkt.payload;
-            } 
+            }
         }
 
         before modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
-           
+
             if _generating {
                 require pkt.ptype       = quic_packet_type.one_rtt |
                         pkt.ptype       = quic_packet_type.zero_rtt |
@@ -125,7 +125,7 @@ object packet = {
                         pkt.ptype       = quic_packet_type.retry |
                         pkt.ptype       = quic_packet_type.initial;
 
-                require pkt.pversion    = 0x00000000 | 
+                require pkt.pversion    = 0x00000000 |
                         pkt.pversion    = 0x00000001 |
                         pkt.pversion    = 0xff000022 |
                         pkt.pversion    = 0xff00001d |
@@ -134,17 +134,17 @@ object packet = {
                         (pkt.pversion   ~= 0x00000000 & pkt.pversion   ~= 0x00000001 &
                          pkt.pversion   ~= 0xff000022 & pkt.pversion   ~= 0xff00001d &
                          pkt.pversion   ~= 0xff00001c & pkt.pversion   ~= 0xff00001b);
-                
+
                 var interest_pkt := quic_packet_received_at_round(dst,
                                                                   coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
                                                                   current_forwarding_round(dst));
-                
+
                 require (pkt.dst_cid     = interest_pkt.dst_cid &
                          pkt.src_cid     = interest_pkt.src_cid) |
                         (pkt.dst_cid     = interest_pkt.src_cid &
                          pkt.src_cid     = interest_pkt.dst_cid);
 
-                require (pkt.token       = interest_pkt.token) | 
+                require (pkt.token       = interest_pkt.token) |
                         (pkt.token.end >= 0);
 
                 require pkt.seq_num     = interest_pkt.seq_num |
@@ -153,7 +153,7 @@ object packet = {
 
                 require pkt.payload     = interest_pkt.payload |
                                           pkt.payload.end >= 0;
-            } 
+            }
         }
     }
 }
@@ -183,12 +183,12 @@ import action show_last_cppkt_forwarded_to_server_debug_event(x:stream_pos)
 
 object packet = {
     ...
-    
+
     object encrypted_quic_packet = {
         ...
 
         before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
-           
+
             if _generating {
                 require mim_agent.number_of_connection_from(dst.addr) = 2;
                 # require is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
@@ -203,11 +203,11 @@ object packet = {
                 # require pkt.payload_len = interest_pkt.payload_len;
                 # require pkt.seq_num     = interest_pkt.seq_num;
                 require pkt.seq_num_payload = interest_pkt.seq_num_payload;
-            } 
+            }
         }
 
         before replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
-           
+
             if _generating {
                 require mim_agent.number_of_connection_from(dst.addr) = 2;
                 # require is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
@@ -222,11 +222,11 @@ object packet = {
                 # require pkt.payload_len = interest_pkt.payload_len;
                 # require pkt.seq_num     = interest_pkt.seq_num;
                 require pkt.seq_num_payload     = interest_pkt.seq_num_payload;
-            } 
+            }
         }
 
         before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
-           
+
             if _generating {
                 require mim_agent.number_of_connection_from(dst.addr) = 2;
                 # require ~encrypted_quic_packet_forwarded(dst,pkt);
@@ -242,11 +242,11 @@ object packet = {
                 # require pkt.seq_num     = interest_pkt.seq_num;
                 require pkt.seq_num_payload  = interest_pkt.seq_num_payload;
                 # require is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
-            } 
+            }
         }
 
         before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
-           
+
             if _generating {
                 require mim_agent.number_of_connection_from(dst.addr) = 2;
                 # require ~encrypted_quic_packet_forwarded(dst,pkt);
@@ -262,11 +262,11 @@ object packet = {
                 # require pkt.seq_num     = interest_pkt.seq_num;
                 require pkt.seq_num_payload  = interest_pkt.seq_num_payload;
                 # require is_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
-            } 
+            }
         }
 
         before modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_quic_packet) {
-           
+
             if _generating {
                 require mim_agent.number_of_connection_from(dst.addr) = 2;
                 var interest_pkt := encrypted_quic_packet_received_at_round(dst,
@@ -275,9 +275,9 @@ object packet = {
 
                 require pkt.head_byte   = interest_pkt.head_byte;
                 # TODO
-                require pkt.pversion    = 0x00000000  -> 
-                            (pkt.token.end = 0 &  
-                             pkt.seq_num_payload.end = 0) | 
+                require pkt.pversion    = 0x00000000  ->
+                            (pkt.token.end = 0 &
+                             pkt.seq_num_payload.end = 0) |
                         pkt.pversion    = 0x00000001 |
                         pkt.pversion    = 0xff000022 |
                         pkt.pversion    = 0xff00001d |
@@ -286,7 +286,7 @@ object packet = {
                         (pkt.pversion   ~= 0x00000000 & pkt.pversion    ~= 0x00000001 &
                          pkt.pversion   ~= 0xff000022 & pkt.pversion    ~= 0xff00001d &
                          pkt.pversion   ~= 0xff00001c & pkt.pversion    ~= 0xff00001b);
-                
+
                 require (pkt.dst_cid     = interest_pkt.dst_cid &
                          pkt.src_cid     = interest_pkt.src_cid) |
                         (pkt.dst_cid     = interest_pkt.src_cid &
@@ -294,14 +294,14 @@ object packet = {
 
                 require (pkt.token       = interest_pkt.token);
 
-                        
+
                 # require pkt.seq_num     = interest_pkt.seq_num |
                 #         pkt.seq_num     < interest_pkt.seq_num |
                 #         pkt.seq_num     > interest_pkt.seq_num;
-                
+
                 require pkt.seq_num_payload = interest_pkt.seq_num_payload &
                         pkt.seq_num_payload.end = pkt.seq_num_payload.end;
-            } 
+            }
         }
     }
 }
@@ -324,33 +324,33 @@ export packet.encrypted_quic_packet.replay_to_server
 
 object packet = {
     ...
-    
+
     object random_padding_encrypted_quic_packet = {
         ...
 
         before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet) {
-           
+
             if _generating {
                 require mim_agent.number_of_connection_from(dst.addr) = 2;
                 # require is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
                 require pkt.payload = random_padding_encrypted_quic_packet_received_at_round(dst,
                                                                                                coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
                                                                                                current_forwarding_round(dst)).payload;
-            } 
+            }
         }
 
         before replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet) {
-           
+
             if _generating {
                 require mim_agent.number_of_connection_from(dst.addr) = 2;
                 require pkt.payload = random_padding_encrypted_quic_packet_received_at_round(dst,
                                                                                                coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
                                                                                                current_forwarding_round(dst)).payload;
-            } 
+            }
         }
 
         before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet) {
-           
+
             if _generating {
                 require mim_agent.number_of_connection_from(dst.addr) = 2;
                 # require ~random_padding_encrypted_quic_packet_forwarded(dst,pkt);
@@ -358,11 +358,11 @@ object packet = {
                 require pkt.payload = random_padding_encrypted_quic_packet_received_at_round(dst,
                                                                                                coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
                                                                                                current_forwarding_round(dst)).payload;
-            } 
+            }
         }
 
         before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet) {
-           
+
             if _generating {
                 require mim_agent.number_of_connection_from(dst.addr) = 2;
                 # require ~random_padding_encrypted_quic_packet_forwarded(dst,pkt);
@@ -370,19 +370,19 @@ object packet = {
                 require pkt.payload = random_padding_encrypted_quic_packet_received_at_round(dst,
                                                                                                coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
                                                                                                current_forwarding_round(dst)).payload;
-            } 
+            }
         }
 
         before modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.random_padding_encrypted_quic_packet) {
-           
+
             if _generating {
                 require mim_agent.number_of_connection_from(dst.addr) = 2;
                 require is_random_padding_encrypted_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
                 require pkt.payload = random_padding_encrypted_quic_packet_received_at_round(dst,
                                                                                                coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
-                                                                                               current_forwarding_round(dst)).payload | 
+                                                                                               current_forwarding_round(dst)).payload |
                                       pkt.payload.end >= 0;
-            } 
+            }
         }
     }
 }
@@ -405,12 +405,12 @@ export packet.random_padding_encrypted_quic_packet.replay_to_server
 
 object packet = {
     ...
-    
+
     object encrypted_short_quic_packet = {
         ...
 
         before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
-           
+
             if _generating {
                 require mim_agent.number_of_connection_from(dst.addr) = 2;
                 # require is_encrypted_short_quic_packet_received(dst,pkt,coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)));
@@ -420,11 +420,11 @@ object packet = {
                 require pkt.head_byte   = interest_pkt.head_byte;
                 require pkt.dst_cid     = interest_pkt.dst_cid;
                 require pkt.payload     = interest_pkt.payload;
-            } 
+            }
         }
 
         before replay_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
-           
+
             if _generating {
                 require mim_agent.number_of_connection_from(dst.addr) = 2;
                 var interest_pkt := encrypted_short_quic_packet_received_at_round(dst,
@@ -434,11 +434,11 @@ object packet = {
                 require pkt.head_byte   = interest_pkt.head_byte;
                 require pkt.dst_cid     = interest_pkt.dst_cid;
                 require pkt.payload     = interest_pkt.payload;
-            } 
+            }
         }
 
         before forward_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
-           
+
             if _generating {
                 require mim_agent.number_of_connection_from(dst.addr) = 2;
                 var interest_pkt := encrypted_short_quic_packet_received_at_round(dst,
@@ -449,11 +449,11 @@ object packet = {
                 require pkt.head_byte   = interest_pkt.head_byte;
                 require pkt.dst_cid     = interest_pkt.dst_cid;
                 require pkt.payload     = interest_pkt.payload;
-            } 
+            }
         }
 
         before forward_to_server(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
-           
+
             if _generating {
                 require mim_agent.number_of_connection_from(dst.addr) = 2;
                 # require ~encrypted_short_quic_packet_forwarded(dst,pkt);
@@ -464,11 +464,11 @@ object packet = {
                 require pkt.head_byte   = interest_pkt.head_byte;
                 require pkt.dst_cid     = interest_pkt.dst_cid;
                 require pkt.payload     = interest_pkt.payload;
-            } 
+            }
         }
 
         before modify(src:ip.endpoint,dst:ip.endpoint,pkt:packet.encrypted_short_quic_packet) {
-           
+
             if _generating {
                 require mim_agent.number_of_connection_from(dst.addr) = 2;
                 var interest_pkt := encrypted_short_quic_packet_received_at_round(dst,
@@ -476,11 +476,11 @@ object packet = {
                                                                                 current_forwarding_round(dst));
                 require pkt.head_byte   = interest_pkt.head_byte;
 
-                require (pkt.dst_cid    = interest_pkt.dst_cid | 
+                require (pkt.dst_cid    = interest_pkt.dst_cid |
                          pkt.dst_cid   ~= interest_pkt.dst_cid);
 
                 require pkt.payload     = interest_pkt.payload;
-            } 
+            }
         }
     }
 }
@@ -510,7 +510,6 @@ export packet.encrypted_short_quic_packet.replay_to_server
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     call mim_agent.reset_NAT;
 }
-

@@ -14,7 +14,7 @@ class tilelink_queue_model : public tilelink_two_port_dut {
     bool acq_send,fns_send,rls_send,gnt_send,prb_send;
     bool acq_ready,fns_ready,rls_ready,gnt_ready,prb_ready;
   };
-  
+
   struct my_manager_port : public manager_port {
     port_data pd;
     void set_acquire(bool send, const acquire &a){
@@ -97,7 +97,7 @@ class tilelink_queue_model : public tilelink_two_port_dut {
   std::vector<release> rls_q;
   std::vector<grant> gnt_q;
   std::vector<probe> prb_q;
-  
+
   virtual manager_port *mp(){
     return &m_mp;
   }
@@ -112,37 +112,37 @@ class tilelink_queue_model : public tilelink_two_port_dut {
       m_cp.pd.acq_send = acq_q.size();
       m_mp.pd.acq_ready = true;
       if (acq_q.size()) m_cp.pd.acq = acq_q.front();
-    }      
+    }
     if(m_cp.pd.fns_send && m_cp.pd.fns_ready){
       fns_q.erase(fns_q.begin());
       m_cp.pd.fns_send = fns_q.size();
       m_mp.pd.fns_ready = true;
       if (fns_q.size()) m_cp.pd.fns = fns_q.front();
-    }      
+    }
     if(m_cp.pd.rls_send && m_cp.pd.rls_ready){
       rls_q.erase(rls_q.begin());
       m_cp.pd.rls_send = rls_q.size();
       m_mp.pd.rls_ready = true;
       if (rls_q.size()) m_cp.pd.rls = rls_q.front();
-    }      
+    }
     if(m_mp.pd.gnt_send && m_mp.pd.gnt_ready){
       gnt_q.erase(gnt_q.begin());
       m_mp.pd.gnt_send = gnt_q.size();
       m_cp.pd.gnt_ready = true;
       if (gnt_q.size()) m_mp.pd.gnt = gnt_q.front();
-    }      
+    }
     if(m_mp.pd.prb_send && m_mp.pd.prb_ready){
       prb_q.erase(prb_q.begin());
       m_mp.pd.prb_send = prb_q.size();
       m_cp.pd.prb_ready = true;
       if (prb_q.size()) m_mp.pd.prb = prb_q.front();
-    }      
+    }
     if(m_mp.pd.acq_send && m_mp.pd.acq_ready){
       acq_q.push_back(m_mp.pd.acq);
       m_mp.pd.acq_ready = acq_q.size() < QUEUE_SIZE;
       m_cp.pd.acq_send = true;
       m_cp.pd.acq = acq_q[0];
-    }      
+    }
     if(m_mp.pd.fns_send && m_mp.pd.fns_ready){
       fns_q.push_back(m_mp.pd.fns);
       m_mp.pd.fns_ready = fns_q.size() < QUEUE_SIZE;
@@ -154,19 +154,19 @@ class tilelink_queue_model : public tilelink_two_port_dut {
       m_mp.pd.rls_ready = rls_q.size() < QUEUE_SIZE;
       m_cp.pd.rls_send = true;
       m_cp.pd.rls = rls_q[0];
-    }      
+    }
     if(m_cp.pd.gnt_send && m_cp.pd.gnt_ready){
       gnt_q.push_back(m_cp.pd.gnt);
       m_cp.pd.gnt_ready = gnt_q.size() < QUEUE_SIZE;
       m_mp.pd.gnt_send = true;
       m_mp.pd.gnt = gnt_q[0];
-    }      
+    }
     if(m_cp.pd.prb_send && m_cp.pd.prb_ready){
       prb_q.push_back(m_cp.pd.prb);
       m_cp.pd.prb_ready = prb_q.size() < QUEUE_SIZE;
       m_mp.pd.prb_send = true;
       m_mp.pd.prb = prb_q[0];
-    }      
+    }
   }
 
 public:
@@ -181,7 +181,7 @@ public:
     m_cp.pd.rls_send = false;
     m_mp.pd.gnt_send = false;
     m_mp.pd.prb_send = false;
-  }  
+  }
 
 
 };

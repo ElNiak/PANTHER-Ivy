@@ -4,8 +4,8 @@
 # https://github.com/quic-go/quic-go/blob/84e03e59760ceee37359688871bb0688fcc4e98f/mtu_discoverer.go
 # QUIC-attacks (CVE-2022-30591)
 
-# The current repository serves the purpose of sharing the scripts we used for educational usage. These attacks were a part of our study (check [here](https://link.springer.com/article/10.1007/s10207-022-00630-6)), and were tested against 6 different QUIC-enabled servers (IIS, NGINX, LiteSpeed, Cloudflare, H2O, and Caddy). 
-# The quic-loris script is the exploit of the [CVE-2022-30591](https://nvd.nist.gov/vuln/detail/CVE-2022-30591) issue that affected quic-go library. 
+# The current repository serves the purpose of sharing the scripts we used for educational usage. These attacks were a part of our study (check [here](https://link.springer.com/article/10.1007/s10207-022-00630-6)), and were tested against 6 different QUIC-enabled servers (IIS, NGINX, LiteSpeed, Cloudflare, H2O, and Caddy).
+# The quic-loris script is the exploit of the [CVE-2022-30591](https://nvd.nist.gov/vuln/detail/CVE-2022-30591) issue that affected quic-go library.
 # This script can also be exploited against Caddy server.
 
 #  Installation procedure
@@ -66,7 +66,7 @@ after init {
     sock := quic_net.open(endpoint_id.client,client.ep);
     sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
     sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
-    
+
     client.set_tls_id(1);
     server.set_tls_id(100);
 
@@ -93,12 +93,12 @@ after init {
 
     call show_cid_event(the_cid);
     call show_cid_event(server_cid);
-    
+
     tls_id_map_ep(server.tls_id)       := server.ep;
     other_tls_id_map_ep(server.tls_id) := client.ep;
     ep_map_tls_id(server.ep)           := server.tls_id;
     # ep_map_cid(server.ep)              := the_cid;
-   
+
     var extns := tls_extensions.empty;
     extns := extns.append(make_transport_parameters);
     call tls_api.upper.create(client.tls_id,false,extns);  # false means this instance of tls is not a server
@@ -112,7 +112,7 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
     if _generating {  # & ~conn_closed(pkt.the_cid) # TODO
         require conn_requested(src,dst,pkt.src_cid);
     }
-} 
+}
 
 export quic_frame.ping.handle
 export quic_frame.ack.handle
@@ -141,9 +141,8 @@ export open_connection
 # action with additional checks.
 
 export action _finalize = {
-    # chris TODO 
+    # chris TODO
     require is_no_error;
     require conn_total_data(the_cid) > 0;
-    #call 
+    #call
 }
-

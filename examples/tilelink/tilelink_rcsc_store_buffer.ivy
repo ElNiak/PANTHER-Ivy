@@ -55,7 +55,7 @@ module memev = {
     individual type_ : otype
     relation addr_(A:addr)
     relation data_(D:data) # data for write and cas
-    relation result(D:data) # value for read and cas 
+    relation result(D:data) # value for read and cas
     individual side_ : side # node ID on client side?
     relation serialized
     relation fused
@@ -159,7 +159,7 @@ macro forward() = {
       mo := *;
       st := *;
       st1 := *;
-      assume mrec(mid) & mrec(mid1) & mid1 ~= mid; 
+      assume mrec(mid) & mrec(mid1) & mid1 ~= mid;
       assume msg(mid):type_ = request & msg(mid1):type_ = request;
       assume msg(mid):addr_(a) & msg(mid1):addr_(a);
       assume msg(mid):op = read;
@@ -178,7 +178,7 @@ macro forward() = {
       assume msg(mid):op = mo;
 
       # tell us what to fuse
-      assume msg(mid1):ltime_(e1) & msg(mid):ltime_(e2)       
+      assume msg(mid1):ltime_(e1) & msg(mid):ltime_(e2)
 }
 
 
@@ -189,12 +189,12 @@ axiom msg(I):received(T) & msg(J):received(U) & T = U -> I = J
 axiom msg(I):sent(T1) & msg(J):sent(U1) & T1 < U1 & msg(J):received(t) -> ~mrec(I)
 
 derived prevents(T1,A1,T2,A2) =
-    ~evs(T1):serialized 
+    ~evs(T1):serialized
     & T1 ~= T2 & lleq(T1,T2)
     & evs(T1):side_ = evs(T2):side_
     & evs(T1):addr_(A1) & evs(T2):addr_(A2)
     & (A1 = A2 | evs(T1):type_ = cas | evs(T2):type_ = cas)
-  
+
 
 module interface = {
      individual own(A:addr) : ownership # client side ownership state of address
@@ -211,7 +211,7 @@ module interface = {
 	if own(a) = excl {
 	    assume mem(a,d)
         };
-	own(a) := none; 
+	own(a) := none;
 	o := none
      }
 
@@ -221,7 +221,7 @@ module interface = {
 	if own(a) = excl {
 	    assert mem(a,d)
         };
-	own(a) := none; 
+	own(a) := none;
 	o := none
      }
 
@@ -241,7 +241,7 @@ module interface = {
 	assert o ~= none;
 	assert own(a) = none;
         assert mem(a,d);
-	own(a) := o 
+	own(a) := o
      }
 
      macro request() = {
@@ -318,7 +318,7 @@ module interface = {
 	       assume mo = write -> own(a) = excl;
 	       assume mo = cas -> own(a) = excl;
 	       assume ~prevents(T1,A1,lt,A2)
-	   }	       
+	   }
 	   else {
 	      assume to_ser(lt);
 	      assume ~(to_ser(T1) & prevents(T1,A1,lt,A2))
@@ -347,7 +347,7 @@ module interface = {
 	       assert mo = write -> own(a) = excl;
 	       assert mo = cas -> own(a) = excl;
 	       assert ~prevents(T1,A1,lt,A2)
-	   }	       
+	   }
 	   else {
 	      assert to_ser(lt);
 	      assert ~(to_ser(T1) & prevents(T1,A1,lt,A2))
@@ -389,7 +389,7 @@ module interface = {
 	assert side_ = manager <-> to_ser(e2)
      }
 
-    
+
 }
 
  # perform a serialization event at current global time
@@ -416,13 +416,13 @@ macro perform() = {
       if mo = write {
 	 mem(a,D) := D = d
 #	 to_ser(lt):= false # no response required
-      }			
+      }
       else {  # mo = cas
 	 evs(lt):result(D) := mem(a,D);
 	 mem(a,D) := D = d
       }
    }
-}        
+}
 
 # this serializes an event by combining it with another event at the
 # same location into an atomic event
@@ -522,7 +522,7 @@ action bm = {
 macro front_serialize = {
     instantiate front:serialize(client);
     instantiate back:serialize_check(client);
-    instantiate perform()    
+    instantiate perform()
 }
 
 action fs = {
@@ -532,7 +532,7 @@ action fs = {
 macro back_serialize = {
     instantiate back:serialize(manager);
     instantiate front:serialize_check(manager);
-    instantiate perform()    
+    instantiate perform()
 }
 
 action bs = {
@@ -544,7 +544,7 @@ action bs = {
 macro front_coalesce = {
     instantiate front:coalesce(client);
     instantiate back:coalesce_check(client);
-    instantiate fuse()    
+    instantiate fuse()
 }
 
 action ff = {
@@ -554,7 +554,7 @@ action ff = {
 macro back_coalesce = {
     instantiate back:coalesce(manager);
     instantiate front:coalesce_check(manager);
-    instantiate fuse()    
+    instantiate fuse()
 }
 
 action bf = {
@@ -571,7 +571,7 @@ macro channel_internal() = {
      instantiate forward();
      instantiate front:coalesce_check(manager);
      instantiate back:coalesce_check(client);
-     instantiate fuse()    
+     instantiate fuse()
 }
 
 action fw = {
@@ -651,7 +651,7 @@ concept excl_front_back(A) = front:own(A) = excl * back:own(A) ~= excl
 concept shrd_front_back(A) = front:own(A) = shrd * back:own(A) ~= shrd
 
 # grant messages have correct data
-concept grant_data(A,M,D) = mrec(M) * msg(M):type_ = grant * msg(M):addr_(A) * msg(M):data_(D) * ~mem(A,D) 
+concept grant_data(A,M,D) = mrec(M) * msg(M):type_ = grant * msg(M):addr_(A) * msg(M):data_(D) * ~mem(A,D)
 
 # release messages have correct data
 concept release_data(A,M,D) = mrec(M) * msg(M):type_ = release * msg(M):addr_(A) * msg(M):data_(D) * ~mem(A,D) * back:own(A) = excl

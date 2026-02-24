@@ -8,7 +8,7 @@
 # - key_t : the type of keys
 # - data_t : the type of values
 #
-# 
+#
 # A map has the following operations:
 #
 # - put(key,data)
@@ -46,17 +46,17 @@
 module linmap(txid_t,data_t) = {
 
     # The begin and end actions
-    
-    action put(txid:txid_t, data:data_t)   
+
+    action put(txid:txid_t, data:data_t)
     action end_put(txid:txid_t, ok:bool)
     action get(txid:txid_t)
     action end_get(txid:txid_t, ok:bool, data:data_t)
 
     # The specification state
-    
+
     # The relation hb(T,U) holds when transaction T provably happens
-    # before transaction U in the commit order. 
-    
+    # before transaction U in the commit order.
+
     relation hb(T:txid_t, U:txid_t)
 
     # Predicate pending(T) holds if the 'begin' action of transaction T
@@ -112,7 +112,7 @@ module linmap(txid_t,data_t) = {
     # a test can deadlock, when all available txid's are used for
     # concurrent puts. To prvent this deadlock we require that on a put
     # there is at least one other txid that is not a put.
-    
+
     before put {
         require ~pending(txid) & ~completed(txid) & ~failed(txid);
         require ~((pending(T) | completed(T)) & is_put(T) & value(T) = data);
@@ -157,7 +157,7 @@ module linmap(txid_t,data_t) = {
 
     # The precondion of 'begin' is that the txid has not been used
     # before.
-    
+
     before get {
         require ~pending(txid) & ~completed(txid) & ~failed(txid);
     }
@@ -238,12 +238,12 @@ module linmap(txid_t,data_t) = {
     # - for every pending get there exists an intervening put
     # A get can be forgotten if it has failed or uses a put that is
     # completed
-    
+
     relation dead(T:txid_t)
-    
+
     action scrub = {
         dead(T) :=
-            failed(T) 
+            failed(T)
             | is_put(T) & completed(T)
               & (forall G. is_put(G) & pending(G) -> hb(T,G))
               & (exists U. is_put(U) & completed(U) & hb(T,U))
@@ -257,4 +257,3 @@ module linmap(txid_t,data_t) = {
     }
 
 }
-

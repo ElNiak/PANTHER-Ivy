@@ -57,7 +57,7 @@ module isolate unbounded_queue with time = {
 
     specification {
         var pending(X:time) : bool
-        
+
         after init {
             pending(X) := false;
         }
@@ -107,4 +107,3 @@ instance q1 : unbounded_queue
 
 export q1.send
 export q1.recv
-

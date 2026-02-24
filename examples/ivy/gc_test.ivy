@@ -1,7 +1,7 @@
 #lang ivy1.1
 
 #
-# Theory of partial functions. 
+# Theory of partial functions.
 #
 #
 module partial_function(f,D,R) = {
@@ -18,9 +18,9 @@ module partial_function(f,D,R) = {
 
 # 4) This defines how dom[f] updates as we update f:
      update dom[f] from f
-       params v:D,w:D in v.f := w -> 
+       params v:D,w:D in v.f := w ->
      	ensures ((~old dom[f](X:D) | dom[f](X:D)) & dom[f](v))
-       params v:D in v.f := null -> 
+       params v:D in v.f := null ->
      	ensures (~old dom[f](X:D) | X:D = v | dom[f](X:D))
        params v:D,w:D in v.f := w.f ->
          ensures (old dom[f](Y:D) & Y:D ~= v | old dom[f](w) & Y:D = v) ->
@@ -84,7 +84,7 @@ individual hroot:Object #root of the abstract heap
 
 # each abstract heap cell has two pointer fields
 
-relation h0(X:Object,Y:Object), h1(X:Object,Y:Object) 
+relation h0(X:Object,Y:Object), h1(X:Object,Y:Object)
 instantiate partial_function(h0,Object,Object)
 instantiate partial_function(h1,Object,Object)
 
@@ -93,7 +93,7 @@ instantiate partial_function(h1,Object,Object)
 individual mroot:Addr #address of root in machine memory
 
 # each machine memory cell has two pointer fields
-relation m0(X:Addr,Y:Addr), m1(X:Addr,Y:Addr) 
+relation m0(X:Addr,Y:Addr), m1(X:Addr,Y:Addr)
 instantiate partial_function(m0,Addr,Addr)
 instantiate partial_function(m1,Addr,Addr)
 
@@ -111,7 +111,7 @@ relation copied_to(A1:Addr,A2:Addr)
 #   & (repr(O1,A1) & h1(O1,O2) & m1(A1,A2) -> repr(O2,A2)))
 
 init
-	
+
   # representation invariant holds initially
   repr(hroot,mroot)
   & (repr(O1,A1) & h0(O1,O2) -> dom[m0](A1))
@@ -126,7 +126,7 @@ init
 
   & faddr(mroot)  # root is in "from" region
   # "from" region is closed
-  & ~(m0(A1,A2) & faddr(A1) & ~faddr(A2)) 
+  & ~(m0(A1,A2) & faddr(A1) & ~faddr(A2))
   & ~(m1(A1,A2) & faddr(A1) & ~faddr(A2))
   & ~copied_to(A1,A2)
   # represenation invarianr
@@ -197,7 +197,7 @@ action error = {
   # TODO: this should be a macro
   instantiate img[m0](ae1);
   instantiate img[m1](ae1);
-  assume ~(  
+  assume ~(
    repr(hroot,mroot)
    & taddr(mroot)
    & (repr(oe1,ae1) & h0(oe1,oe2) & taddr(ae1) -> dom[m0](ae1))

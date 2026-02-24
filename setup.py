@@ -2,7 +2,8 @@ import codecs
 import os
 import platform
 from pathlib import Path
-from setuptools import setup, find_packages
+
+from setuptools import find_packages, setup
 from setuptools.dist import Distribution
 
 

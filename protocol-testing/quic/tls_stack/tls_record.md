@@ -50,7 +50,7 @@ A record encapsulates TLS messages. Its fields are:
 
 In general, messages may span fragment boundaries, but we do not
 allow that here. The content type field indicates the type of messages
-occurring in the fragment, as detailed below. 
+occurring in the fragment, as detailed below.
 
 ```
     type record = struct {
@@ -67,7 +67,7 @@ in serialized form in a record.
 
 #### Handshake
 
-The handshake protocol uses messages of type `handshake`. 
+The handshake protocol uses messages of type `handshake`.
 
 
 ```
@@ -84,7 +84,7 @@ The serialized form of `handshake` has the following four-byte prefix:
 
 | byte 0 | bytes 1..3 |
 |--------|------------|
-| tag    | length     | 
+| tag    | length     |
 
 where "length" is the length of the subsequent message in bytes.
 
@@ -127,7 +127,7 @@ A cipher suite descriptor is a two-byte field used to indicate
 a combination of cryptographic algorithms.
 
 ```
-    type cipher_suite 
+    type cipher_suite
     interpret cipher_suite -> bv[16]
 
 ```

@@ -25,7 +25,7 @@ object proto = {
 	    assert q.majority;
 	    assert nodeset.member(N, q) -> vote(N, v)
 	}
-    }    
+    }
 
     object impl = {
 	relation decision(V:value)
@@ -42,13 +42,13 @@ object proto = {
 	implement decide {
 	    decision(v) := true
 	}
-	
+
 	# safety property:
 	conjecture decision(V1) & decision(V2) -> V1 = V2
-	
+
 	# inductive invariant:
 	conjecture vote(N,V1) & vote(N,V2) -> V1 = V2
-	conjecture decision(V) -> exists Q:quorum. nodeset.majority(Q) & 
+	conjecture decision(V) -> exists Q:quorum. nodeset.majority(Q) &
                                     forall N:node. nodeset.member(N, Q) -> vote(N,V)
     }
 }

@@ -1,7 +1,7 @@
 #lang ivy1.6
 
 ################################################################################
-# 
+#
 # This is the top-level server description
 #
 # "ref" is the reference object
@@ -55,7 +55,7 @@ module sht_protocol(me,ref,trans,id,key,data,shard) = {
 	instance dm : delegation_map(key,id)
 
 	# Handle a request from user or from network
-	
+
 	action handle_request(rq:req.t) = {
 	    local src:id, k:key.t, op:ref.otype, d:data, lt:ref.ltime, ow:id {
 		src := req.src(rq);
@@ -179,4 +179,3 @@ module sht_protocol(me,ref,trans,id,key,data,shard) = {
 	conjecture ref.evs(T).serialized -> ref.generated(T)
     }
 }
-

@@ -71,7 +71,7 @@ The parameters of the module are:
 ```
 module indexset(basis) = {
 
-    type set 
+    type set
     instance index : unbounded_sequence
 
     relation member(E:basis,S:set)
@@ -170,7 +170,7 @@ quantifier alternation in the direction set ->
 basis.
 
 ```
-		definition 
+		definition
                     disjoint(X,Y) = forall E. ~(member(E,X) & member(E,Y))
 
 ```
@@ -245,7 +245,7 @@ the tpye `set` will still appear to be uninterpreted.
 	    definition member(y:basis,X:set) = exists Z. 0 <= Z & Z < repr(X).end & repr(X).value(Z) = y
 
 ```
-These lemmas are needed to prove correctness of is_empty. 
+These lemmas are needed to prove correctness of is_empty.
 
 ```
 	    property member(Y,X) -> repr(X).end ~= 0

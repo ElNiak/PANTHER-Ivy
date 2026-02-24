@@ -44,7 +44,7 @@ class Clauses(object):
         self.defidx = dict((d.defines(),d) for d in defs)
         self.fmlas = list(collect_and_list([coerce_clause_to_formula(c) for c in fmlas]))
         self.annot = annot
-        
+
     @property
     def clauses(self):
         res = tseitin_encode(self.to_open_formula())
@@ -309,7 +309,7 @@ def replace_temporals_by_named_binder_g_ast(ast, g=default_globally_binder, when
             return ast.clone(args)
 
 # Reduce subexpressions of the form ($b V1...Vn. t)(s1...sn) where $b is a
-# named binder to $b. t[Vi/si]$. 
+# named binder to $b. t[Vi/si]$.
 
 def reduce_named_binders(ast,g=default_globally_binder):
     if is_constant(ast):
@@ -325,8 +325,8 @@ def reduce_named_binders(ast,g=default_globally_binder):
             #     print("new body: {}".format(body))
             return lg.NamedBinder(ast.rep.name, [], None, body)
         return normalize_named_binders(ast.rep,g)(*args)
-    return ast.clone(args)    
-        
+    return ast.clone(args)
+
 
 def replace_named_binders_ast(ast,subs):
     """
@@ -392,7 +392,7 @@ def reduce_numerically(ast):
                 return boolean_constant(vs[0] == vs[1])
             if ast.rep.name.endswith('.succ'):
                 return boolean_constant(vs[0]+1 == vs[1])
-                
+
     return ast.clone(args)
 
 def resort_sort(sort,subs):
@@ -1290,9 +1290,9 @@ def ite_clauses(cond,args):
     if args[0].is_false() and args[1].is_false():
         return args[0]
     if args[0].is_false():
-        args[0] = Clauses(args[0].fmlas,args[1].defs,args[0].annot) 
+        args[0] = Clauses(args[0].fmlas,args[1].defs,args[0].annot)
     elif args[1].is_false():
-        args[1] = Clauses(args[1].fmlas,args[0].defs,args[1].annot) 
+        args[1] = Clauses(args[1].fmlas,args[0].defs,args[1].annot)
     used = set(chain(*[arg.symbols() for arg in args]))
     used.update(symbols_ast(cond))
     rn = UniqueRenamer('__ts0',used)
@@ -1430,7 +1430,7 @@ def and_clauses(*args,**kwargs):
             annot = a.annot if annot is None else annot if a.annot is None else annot.conj(a.annot)
     else:
          annot = annot_op(*[c.annot for c in args])
-         
+
     if any(cls.is_false() for cls in args):
         return false_clauses(annot=annot)
     fmlas = [c for cls in args for c in cls.fmlas]

@@ -31,8 +31,8 @@ object ivy = { ...
         action has_numident(e:this) returns (res:bool) = {
             res := e.name isa numident;
         }
-    }	
-	    	    
+    }
+
     object app = { ...
 	action reduce(s:this,smap:symeval) returns (res:expr) = {
 	    var resa : this;
@@ -70,6 +70,3 @@ object ivy = { ...
 	}
     }
 }
-
-
-

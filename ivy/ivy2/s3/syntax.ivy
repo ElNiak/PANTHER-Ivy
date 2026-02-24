@@ -40,7 +40,7 @@ object char = {
     function is_capital(X:char) =  (65 <= X & X < 91)
     function downcase(X:char) = (X+32) if is_capital(X:char) else X
 }
-    
+
 # Character strings
 # -----------------
 
@@ -83,7 +83,7 @@ object pretty = {
 	begin : vector[token].domain,
 	total : pos
     }
-    
+
 
     type this = struct {
         tokens : vector[token],
@@ -99,7 +99,7 @@ object pretty = {
         cppstyle : bool,
 	annots : (str * pos -> bool)
     }
-    
+
     action make(maxline:pos,indent:pos) returns (res:this) = {
 	res.maxline := maxline;
 	res.indent := indent;
@@ -151,7 +151,7 @@ object pretty = {
 	    }
 	};
     }
-	
+
     action extend(self:this, string:str) returns (self:this) = {
 	var tok : token;
 	tok.pair := false;
@@ -165,7 +165,7 @@ object pretty = {
 	};
         self.tokens := self.tokens.append(tok);
 	self.st.total := self.st.total + string.end
-    }    
+    }
 
     action newline(self:this) returns (self:this) = {
 	var tok : token;
@@ -173,8 +173,8 @@ object pretty = {
         tok.tdepth := self.depth;
         tok.second := self.maxline + 1;
         self.tokens := self.tokens.append(tok);
-    }        
-        
+    }
+
 
     action nest(self:this) returns (self:this) = {
         self.stack := self.stack.append(self.space);
@@ -208,7 +208,7 @@ object pretty = {
 object str = { ...
     action encode(s:this,b:pretty) returns (b:pretty) = {
 	b := b.extend(s)
-    }    
+    }
 }
 
 # Annotations
@@ -231,7 +231,7 @@ object annot = {
 
 # For now, there is only one variant of `annot`. We use a variant
 # so the annotations will be stored by shared reference. This reduces
-# the overhead of copying annotations when transforming AST's. 
+# the overhead of copying annotations when transforming AST's.
 
 object annot_i = {
     variant this of annot = struct {
@@ -254,7 +254,7 @@ object annot_i = {
 		b.annots(s.file,s.line) := true;
 	    }
 	}
-    }    
+    }
     action strip(s:this) returns (res:annot) = {
 	var news := s;
         news.comments := vector[str].empty;
@@ -298,7 +298,7 @@ object pstate = {
     }
     action consume(st:pstate) returns(st:pstate) = {
 	st := lex(st);
-    }	
+    }
 
     action make(s:str) returns (st:pstate) = {
         st.b := s;
@@ -314,7 +314,7 @@ object pstate = {
 }
 
 
-# Lexical analyzer. Read tokens from the input stream 
+# Lexical analyzer. Read tokens from the input stream
 # ---------------------------------------------------
 #
 # A token is one of the following:
@@ -336,11 +336,11 @@ object pstate = {
 # - \n : newline character
 #
 # A backslash followed by any other printing character is interpreted
-# as that character. 
+# as that character.
 #
 # Any non-printing character other than carriage return and newline
 # is considered a syntax error.
-# 
+#
 
 action skip_space(st:pstate) returns (st:pstate) = {
     # Skip space, tab, carriage return and newline characters
@@ -400,9 +400,9 @@ action read_string_literal(st:pstate) returns (st:pstate) = {
             if ~chr.non_printing {
                 st.tok := st.tok.append(chr);
 	        st.p := st.p.next;
-            } else { st.ok := false } 
-        } 
-    }; 
+            } else { st.ok := false }
+        }
+    };
     if st.ok & st.p < st.b.end {
         st.tok := st.tok.append(34);  # double quote
 	st.p := st.p.next;
@@ -419,7 +419,7 @@ module chars_reader(pred) = {
         } else {
             st.ok := false;
         }
-    }    
+    }
 }
 
 instance decimals : chars_reader(char.is_digit)
@@ -429,10 +429,10 @@ instance hexes : chars_reader(char.is_hex)
 # forms:
 #
 # - [0..9]+{\.[0..9]+{[eE]{[+-]}[0..9]+}}
-# - 0[xX][0-9A-Fa-f]+ 
+# - 0[xX][0-9A-Fa-f]+
 #
 # That is, we allow the usual formats for non-negative integers,
-# and floating point numbers, including hex integers. 
+# and floating point numbers, including hex integers.
 
 
 action read_numeric_literal(st:pstate) returns (st:pstate) = {
@@ -588,4 +588,3 @@ object pos = { ...
 }
 
 instance stdio : io_stdio(str,pos,char)
-

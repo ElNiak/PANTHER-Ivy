@@ -74,7 +74,7 @@ module isolate bounded_queue with nat = {
         var head : nat
         var tail : nat
         var queue(X:nat) : id
-        
+
         after init {
             head := 0;
             tail := 0;
@@ -118,7 +118,7 @@ module isolate bounded_queue with nat = {
             tactic skolemize;
             tactic l2s_auto with {
                 definition work_created(X) = (X < tail)
-                definition work_needed(X) = ~exists Y. Y < X & queue(Y) = _X 
+                definition work_needed(X) = ~exists Y. Y < X & queue(Y) = _X
                 definition work_done(X) = (X < head)
                 definition work_start = (sending.now & sending.value = _X)
                 definition work_progress = recv_trying.now
@@ -140,7 +140,7 @@ module isolate bounded_queue with nat = {
         #
         # The phases are ordered lexically by their names. That is, phase 2
         # starts when phase 1 is complete.
-        
+
         temporal property [nb]
         ((globally eventually recv_trying.now)
         & (globally eventually send_trying.now)
@@ -166,4 +166,3 @@ module isolate bounded_queue with nat = {
 instance q : bounded_queue
 export q.send
 export q.recv
-

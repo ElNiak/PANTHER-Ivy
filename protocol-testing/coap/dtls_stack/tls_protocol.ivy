@@ -39,11 +39,9 @@ object tls = { ...
     # message serializer.
 
     action handshake_data_event(src : ip.endpoint, dst : ip.endpoint, data:stream_data)
-    
+
 }
 
 # For the moment, we don't monitor TLS, just output the records.
 
 import tls.handshake_event
-
-    

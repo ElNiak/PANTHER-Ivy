@@ -17,7 +17,7 @@ action get(i:idx) returns(v: t) = {
 }
 
 object thing = {
-    
+
     type bargl
 
     type foo = struct {
@@ -25,13 +25,9 @@ object thing = {
     }
 
     var q : foo
-    
+
     action qget(i:vector[bargl].domain) returns(v: bargl) = {
         v := q.bar.value(i)
     }
 
 }
-
-
-
- 
