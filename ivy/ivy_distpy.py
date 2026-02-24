@@ -365,9 +365,9 @@ def check_isolate(trace_hook = None):
                 print('')
 
         if mod.initializers:
-            guarantees = [sub for sub in action.iter_subactions()
-                          if isinstance(sub,(act.AssertAction,act.Ranking))
-                          for action in mod.initializers]
+            guarantees = [sub for actname, action in mod.initializers
+                          for sub in action.iter_subactions()
+                          if isinstance(sub,(act.AssertAction,act.Ranking))]
             if check_lineno is not None:
                 guarantees = [sub for sub in guarantees if sub.lineno == check_lineno]
             guarantees = [x for x in guarantees if is_guarantee_mod_unprovable(x)]

@@ -297,6 +297,13 @@ def install_z3():
             print(f"Fallback: copying from {z3_py_src}")
             for py_file in z3_py_src.glob("*.py"):
                 shutil.copy2(py_file, IVY / "z3" / py_file.name)
+        # Re-check after fallback — fail hard if bindings are still missing
+        still_missing = [f for f in required_files if not (IVY / "z3" / f).exists()]
+        if still_missing:
+            print(
+                f"FATAL: Z3 Python bindings still missing after fallback: {still_missing}"
+            )
+            sys.exit(1)
 
 
 def build_picotls():

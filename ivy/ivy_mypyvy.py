@@ -224,16 +224,17 @@ class Translation:
             args = [Translation.smt_to_ivy(x, sorts, syms, binders) for x in fmla.children()]
             try:
                 return lg.Apply(lg.Const(name, sort), *args)
-            except:
-                # ivy.logic.SortError: in application of new_env.auth_required, at position 3, expected sort {_mint,_transfer}, got sort function_identifier
-                import pdb; pdb.set_trace()
+            except Exception as e:
+                raise type(e)(
+                    f"Sort mismatch in smt_to_ivy: Apply({name}, {sort}) with "
+                    f"{len(args)} args failed: {e}"
+                ) from e
 
                 # Constants
         elif z3.is_var(fmla):
             # FIXME: is this correct?
             return binders[z3.get_var_index(fmla)]
         else:
-            import pdb; pdb.set_trace()
             assert False, "unhandled SMT formula: {}".format(fmla)
 
 
@@ -398,8 +399,8 @@ class Translation:
                     # for applications
                     return lhs.func.name.startswith(IVY_TEMPORARY_INDICATOR) \
                         or lhs.func.name.startswith(IVY_TSEITIN_INDICATOR)
-                except:
-                    # for constants
+                except AttributeError:
+                    # for constants (no .func attribute)
                     return lhs.name.startswith(IVY_TEMPORARY_INDICATOR) \
                         or lhs.name.startswith(IVY_TSEITIN_INDICATOR)
         return False
@@ -467,7 +468,7 @@ class Translation:
             try:
                 m = next(macro_defs)
                 # print(m)
-            except:
+            except StopIteration:
                 break
             # print("unfolding macro {}... ".format(m.formula), end='\n', flush=True)
             new_sfmla = pf.unfold_fmla(_sfmla, [[m]])

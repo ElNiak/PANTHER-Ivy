@@ -10,7 +10,7 @@ lexicographic relational rankings.
 from collections import defaultdict
 from itertools import chain
 
-from ivy.ivy_dafny_ast import AssignStmt
+from .ivy_dafny_ast import AssignStmt
 
 from .ivy_printer import print_module
 from .ivy_actions import (AssignAction, Sequence, ChoiceAction,
