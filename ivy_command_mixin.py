@@ -518,6 +518,9 @@ class IvyCommandMixin:
     def _build_ivy_model_setup_commands(self) -> List[str]:
         """Build Ivy model setup commands."""
         if not hasattr(self, "env_protocol_model_path"):
+            self.logger.warning(
+                "env_protocol_model_path is not set — skipping Ivy model setup commands"
+            )
             return []
 
         commands = [
@@ -541,15 +544,13 @@ class IvyCommandMixin:
         Returns:
             List[str]: Command sequence for test compilation
         """
-        # Store current config for role-based commands
+        # System (APT) models don't need test compilation
         use_system_models = getattr(
             self.service_config_to_test.implementation, "use_system_models", False
         )
-
         if use_system_models:
             return []
 
-        commands = []
         container_base_path = self.env_protocol_model_path
 
         # Get role information
@@ -557,128 +558,23 @@ class IvyCommandMixin:
         role_name = role.name if hasattr(role, "name") else str(role)
         protocol_name = self.get_protocol_name()
 
-        # Get internal iterations parameter with robust extraction
-        internal_iterations = 100  # Default
+        # Get internal iterations from PantherIvyConfig (set via YAML config)
         service_config = getattr(self, "service_config_to_test", None)
-
-        # Debug the service config structure
-        self.logger.debug(
-            f"Service config for test compilation: {type(service_config)}"
+        internal_iterations = getattr(
+            service_config, "internal_iterations_per_test", 300
         )
-        if service_config:
-            self.logger.debug(f"Service config attributes: {dir(service_config)}")
-            if hasattr(service_config, "implementation"):
-                self.logger.debug(
-                    f"Implementation attributes: {dir(service_config.implementation)}"
-                )
-                if hasattr(service_config.implementation, "parameters"):
-                    params = service_config.implementation.parameters
-                    self.logger.debug(f"Implementation parameters: {params}")
-                    self.logger.debug(f"Parameters type: {type(params)}")
-                    if params:
-                        self.logger.debug(f"Parameters attributes: {dir(params)}")
+        self.logger.debug(
+            f"Test compilation config: internal_iterations={internal_iterations}, "
+            f"role={role_name}, protocol={protocol_name}"
+        )
 
-        # Attempt multiple extraction paths for internal_iterations
-        if service_config and hasattr(service_config, "implementation"):
-            impl = service_config.implementation
-
-            # Path 1: Direct access to implementation parameters
-            if hasattr(impl, "parameters") and impl.parameters:
-                params = impl.parameters
-                if hasattr(params, "internal_iterations_per_test"):
-                    param_value = params.internal_iterations_per_test
-                    if hasattr(param_value, "value"):
-                        internal_iterations = param_value.value
-                    else:
-                        internal_iterations = param_value
-                    self.logger.debug(
-                        f"Found internal_iterations via implementation.parameters: {internal_iterations}"
-                    )
-
-                # Also check for alternative parameter names
-                elif hasattr(params, "internal_iterations"):
-                    param_value = params.internal_iterations
-                    if hasattr(param_value, "value"):
-                        internal_iterations = param_value.value
-                    else:
-                        internal_iterations = param_value
-                    self.logger.debug(
-                        f"Found internal_iterations via alternative name: {internal_iterations}"
-                    )
-
-            # Path 2: Check version parameters (as seen in tests)
-            if hasattr(impl, "version") and hasattr(impl.version, "parameters"):
-                version_params = impl.version.parameters
-                if hasattr(version_params, "internal_iterations_per_test"):
-                    param_value = version_params.internal_iterations_per_test
-                    if hasattr(param_value, "value"):
-                        internal_iterations = param_value.value
-                    else:
-                        internal_iterations = param_value
-                    self.logger.debug(
-                        f"Found internal_iterations via version.parameters: {internal_iterations}"
-                    )
-
-            # Path 3: Direct attribute check on implementation
-            if hasattr(impl, "internal_iterations_per_test"):
-                param_value = impl.internal_iterations_per_test
-                if hasattr(param_value, "value"):
-                    internal_iterations = param_value.value
-                else:
-                    internal_iterations = param_value
-                self.logger.debug(
-                    f"Found internal_iterations via direct implementation attribute: {internal_iterations}"
-                )
-
-        self.logger.info(f"Using internal_iterations value: {internal_iterations}")
-
-        # Construct test directory paths
-        if use_system_models:
-            container_file_path = os.path.join(
-                container_base_path,
-                "apt_tests",
-                f"attacker_{oppose_role(role_name)}_tests",
-            )
-        else:
-            test_dir = self._extract_test_directory_from_name(
-                self.test_to_compile, role_name
-            )
-            container_file_path = os.path.join(
-                container_base_path, f"{protocol_name}_tests", test_dir
-            )
-
-        self.logger.info(f"Container path for test compilation: {container_file_path}")
-
-        # Get build directory
-        tests_build_dir = self._get_build_dir()
-
-        # Get role information
-        role = self.role
-        role_name = role.name if hasattr(role, "name") else str(role)
-        protocol_name = self.get_protocol_name()
-
-        # Get internal iterations parameter
-        internal_iterations = 100  # Default
-        if service_config := getattr(self, "service_config_to_test", None):
-            # Access internal_iterations_per_test directly from PantherIvyConfig
-            internal_iterations = getattr(
-                service_config, "internal_iterations_per_test", 300
-            )
-
-        # Construct test directory paths
-        if use_system_models:
-            container_file_path = os.path.join(
-                container_base_path,
-                "apt_tests",
-                f"attacker_{oppose_role(role_name)}_tests",
-            )
-        else:
-            test_dir = self._extract_test_directory_from_name(
-                self.test_to_compile, role_name
-            )
-            container_file_path = os.path.join(
-                container_base_path, f"{protocol_name}_tests", test_dir
-            )
+        # Construct test directory path (use_system_models already returned early)
+        test_dir = self._extract_test_directory_from_name(
+            self.test_to_compile, role_name
+        )
+        container_file_path = os.path.join(
+            container_base_path, f"{protocol_name}_tests", test_dir
+        )
 
         self.logger.info(f"Container path for test compilation: {container_file_path}")
 
@@ -755,6 +651,9 @@ class IvyCommandMixin:
         # Set up environments
         service_config = getattr(self, "service_config_to_test", None)
         if not service_config:
+            self.logger.warning(
+                "service_config_to_test is not set — cannot generate compilation commands"
+            )
             return []
 
         # Get environment configurations
@@ -838,9 +737,11 @@ class IvyCommandMixin:
             return processed
 
         except Exception as e:
-            if hasattr(self, "logger"):
-                self.logger.warning(f"Command processing failed: {e}")
-            # Fallback to original commands if processing fails
+            self.logger.warning(
+                f"Command processing failed for phase '{phase}': {e}. "
+                f"Falling back to raw commands (error detection may be impaired).",
+                exc_info=True,
+            )
             return [cmd.strip() for cmd in commands if cmd and cmd.strip()]
 
     def _validate_deployment_command(self, cmd_args: str) -> tuple[bool, str]:

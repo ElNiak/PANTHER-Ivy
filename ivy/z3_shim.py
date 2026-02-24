@@ -6,6 +6,7 @@ a defensive fallback for non-Docker environments where ivy/z3/ was populated
 by build_submodules.py but not installed as a system package.
 """
 import os as _os
+import warnings as _warnings
 
 _local_z3_dir = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), 'z3')
 _has_local_z3 = _os.path.isfile(_os.path.join(_local_z3_dir, 'z3core.py'))
@@ -16,7 +17,20 @@ if _has_local_z3:
     try:
         from .z3 import _to_ast_array, _to_expr_ref
     except ImportError:
-        pass
+        # Fall back to standalone implementations in ivy_z3_utils
+        _warnings.warn(
+            "z3_shim: _to_ast_array/_to_expr_ref not in local z3, using ivy_z3_utils fallback",
+            ImportWarning,
+        )
+        from .ivy_z3_utils import _to_ast_array, _to_expr_ref
+    # _z3_assert: wildcard import skips underscore-prefixed names
+    try:
+        from .z3 import _z3_assert
+    except ImportError:
+        from .z3 import Z3Exception
+        def _z3_assert(cond, msg):
+            if not cond:
+                raise Z3Exception(msg)
 else:
     from z3 import *
     # Export underscore-prefixed utilities that wildcard import skips.
@@ -27,7 +41,12 @@ else:
         try:
             from z3.z3 import _to_ast_array, _to_expr_ref
         except ImportError:
-            pass
+            # Fall back to standalone implementations in ivy_z3_utils
+            _warnings.warn(
+                "z3_shim: _to_ast_array/_to_expr_ref not in system z3, using ivy_z3_utils fallback",
+                ImportWarning,
+            )
+            from .ivy_z3_utils import _to_ast_array, _to_expr_ref
     try:
         from z3 import _z3_assert
     except ImportError:

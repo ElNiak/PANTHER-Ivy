@@ -396,8 +396,8 @@ class IvyAnalysisMixin:
                 try:
                     cycles = line.split("cycles =")[1].strip().split()[0]
                     details["performance_metrics"]["total_cycles"] = int(cycles)
-                except:
-                    pass
+                except (ValueError, IndexError, AttributeError):
+                    self.logger.debug(f"Could not extract cycle count from: {line!r}")
 
             # Extract detailed error information
             if any(
@@ -448,8 +448,8 @@ class IvyAnalysisMixin:
                         details["exit_status"] = (
                             "success" if details["return_code"] == 0 else "failure"
                         )
-                except:
-                    pass
+                except (ValueError, IndexError, AttributeError):
+                    self.logger.debug(f"Could not extract exit code from: {line!r}")
 
             # Extract timing information
             if "duration" in line.lower() or "elapsed" in line.lower():
@@ -461,8 +461,8 @@ class IvyAnalysisMixin:
                     )
                     if time_match:
                         details["runtime_duration"] = time_match.group(1)
-                except:
-                    pass
+                except (ValueError, IndexError, AttributeError):
+                    self.logger.debug(f"Could not extract duration from: {line!r}")
 
         return details
 
@@ -646,25 +646,22 @@ class IvyAnalysisMixin:
             True if compilation succeeded
         """
         # Check compilation_status / compile_status key (both variants)
+        # The status writer produces exactly "Compilation succeeded" or
+        # "Compilation failed with code X" — match these specifically.
         for key in ("compile_status", "compilation_status"):
             if key in outputs and outputs[key]:
                 status = outputs[key].strip().lower()
-                success_patterns = [
-                    "compilation succeeded",
-                    "compilation success",
-                    "succeeded",
-                    "success",
-                    "ok",
-                ]
                 failure_patterns = [
                     "compilation failed",
-                    "failed",
-                    "error",
                 ]
-                if any(p in status for p in success_patterns):
-                    return True
-                elif any(p in status for p in failure_patterns):
+                success_patterns = [
+                    "compilation succeeded",
+                ]
+                # Check failure first to avoid masking by partial matches
+                if any(p in status for p in failure_patterns):
                     return False
+                elif any(p in status for p in success_patterns):
+                    return True
 
         # Check stdout for compilation success patterns
         if "stdout" in outputs and outputs["stdout"]:

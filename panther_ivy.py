@@ -17,6 +17,7 @@ from panther.core.docker_builder.plugin_mixin.service_manager_docker_mixin impor
     ServiceManagerDockerMixin,
 )
 from panther.core.exceptions.error_handler_mixin import ErrorHandlerMixin
+from panther.core.exceptions.fast_fail import ErrorCategory, ErrorSeverity
 from panther.plugins.core.plugin_decorators import register_plugin
 from panther.plugins.core.structures.plugin_type import PluginType
 from panther.plugins.services.testers.panther_ivy.config_schema import AvailableTests
@@ -135,10 +136,6 @@ class PantherIvyServiceManager(
         )
 
         self.protocol = protocol
-
-        self.targets_implementaions = []
-        for targets in getattr(service_config_to_test, "targets", []):
-            pass
 
         # Initialize Ivy-specific attributes (after role and protocol are properly set)
         self._initialize_ivy_attributes(service_config_to_test, protocol)
@@ -837,7 +834,13 @@ class PantherIvyServiceManager(
                 ["git", "submodule", "update", "--init", "--recursive"], check=True
             )
         except subprocess.CalledProcessError as e:
-            self.logger.error("Failed to initialize submodules: %s", e)
+            self.handle_error(
+                e,
+                "initialize git submodules",
+                reraise=True,
+                category=ErrorCategory.DEPENDENCY,
+                severity=ErrorSeverity.HIGH,
+            )
         finally:
             os.chdir(current_dir)
 
@@ -856,10 +859,14 @@ class PantherIvyServiceManager(
             return base_commands + commands
 
         except Exception as e:
-            self.logger.error(
-                f"Failed to generate pre-compile commands: {e}", exc_info=True
+            self.handle_error(
+                e,
+                "generate pre-compile commands",
+                reraise=True,
+                category=ErrorCategory.COMMAND_EXECUTION,
+                severity=ErrorSeverity.HIGH,
             )
-            return []
+            raise  # unreachable, satisfies type checker
 
     def generate_compile_commands(self) -> List[Union[str, ShellCommand]]:
         """Generate compile commands using mixin integration."""
@@ -875,8 +882,14 @@ class PantherIvyServiceManager(
             # Combine base and Ivy-specific commands
             return base_commands + ivy_commands
         except Exception as e:
-            self.logger.error(f"Failed to generate compile commands: {e}")
-            return base_commands if "base_commands" in locals() else []
+            self.handle_error(
+                e,
+                "generate compile commands",
+                reraise=True,
+                category=ErrorCategory.COMMAND_EXECUTION,
+                severity=ErrorSeverity.HIGH,
+            )
+            raise  # unreachable, satisfies type checker
 
     def generate_run_command(self) -> Dict[str, Any]:
         """Generate run command with delegated deployment args."""
@@ -938,8 +951,14 @@ class PantherIvyServiceManager(
             return self._build_test_compilation_commands()
 
         except Exception as e:
-            self.logger.error(f"Failed to build tests: {e}")
-            return []
+            self.handle_error(
+                e,
+                "build tests",
+                reraise=True,
+                category=ErrorCategory.TEST_FRAMEWORK,
+                severity=ErrorSeverity.HIGH,
+            )
+            raise  # unreachable, satisfies type checker
 
     def generate_deployment_commands(self) -> str:
         """Generate deployment commands using mixin integration."""
@@ -948,8 +967,14 @@ class PantherIvyServiceManager(
             return self.generate_ivy_deployment_commands()
 
         except Exception as e:
-            self.logger.error(f"Failed to generate deployment commands: {e}")
-            return ""
+            self.handle_error(
+                e,
+                "generate deployment commands",
+                reraise=True,
+                category=ErrorCategory.COMMAND_EXECUTION,
+                severity=ErrorSeverity.HIGH,
+            )
+            raise  # unreachable, satisfies type checker
 
     def generate_post_run_commands(self) -> List[Union[str, ShellCommand]]:
         """Generate post-run commands using mixin integration."""
@@ -966,8 +991,14 @@ class PantherIvyServiceManager(
             return base_commands + ivy_commands
 
         except Exception as e:
-            self.logger.error(f"Failed to generate post-run commands: {e}")
-            return base_commands if "base_commands" in locals() else []
+            self.handle_error(
+                e,
+                "generate post-run commands",
+                reraise=True,
+                category=ErrorCategory.COMMAND_EXECUTION,
+                severity=ErrorSeverity.MEDIUM,
+            )
+            raise  # unreachable, satisfies type checker
 
     def _get_build_dir(self) -> str:
         """Helper to get build directory path."""
@@ -1106,9 +1137,16 @@ class PantherIvyServiceManager(
                 self.logger.info(f"Processed collected outputs for {self.service_name}")
 
         except Exception as e:
-            error_msg = f"Error setting collected outputs: {e}"
-            self.logger.error(error_msg)
-            self._collected_outputs = {}
+            # Keep the raw outputs for debugging — don't discard them
+            if isinstance(outputs, dict):
+                self._collected_outputs = outputs
+            self.handle_error(
+                e,
+                "set collected outputs (analysis failed, raw outputs preserved)",
+                reraise=False,
+                category=ErrorCategory.TEST_EXECUTION,
+                severity=ErrorSeverity.MEDIUM,
+            )
 
     def collect_outputs(self) -> Dict[str, Any]:
         """
@@ -1199,6 +1237,10 @@ class PantherIvyServiceManager(
             # For now, the basic delegation to parent mixins is sufficient
 
         except Exception as e:
-            self.logger.error(
-                f"Error handling event in PantherIvy service manager: {e}"
+            self.handle_error(
+                e,
+                f"handle event '{getattr(event, 'name', type(event).__name__)}'",
+                reraise=False,
+                category=ErrorCategory.COMMAND_EXECUTION,
+                severity=ErrorSeverity.MEDIUM,
             )
