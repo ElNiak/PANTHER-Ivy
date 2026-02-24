@@ -646,21 +646,27 @@ class IvyAnalysisMixin:
             True if compilation succeeded
         """
         # Check compilation_status / compile_status key (both variants)
-        # The status writer produces exactly "Compilation succeeded" or
-        # "Compilation failed with code X" — match these specifically.
+        # Accept multiple status formats for flexibility:
+        # - Full status messages like "Compilation succeeded" / "Compilation failed with code X"
+        # - Short status values like "succeeded", "success", "ok", "failed", "error"
         for key in ("compile_status", "compilation_status"):
             if key in outputs and outputs[key]:
                 status = outputs[key].strip().lower()
                 failure_patterns = [
                     "compilation failed",
+                    "failed",
+                    "error",
                 ]
                 success_patterns = [
                     "compilation succeeded",
+                    "succeeded",
+                    "success",
+                    "ok",
                 ]
                 # Check failure first to avoid masking by partial matches
-                if any(p in status for p in failure_patterns):
+                if any(status == p or p in status for p in failure_patterns):
                     return False
-                elif any(p in status for p in success_patterns):
+                elif any(status == p or p in status for p in success_patterns):
                     return True
 
         # Check stdout for compilation success patterns
