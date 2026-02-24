@@ -6,6 +6,7 @@ PANTHER's standard architecture patterns with proper separation of concerns.
 """
 
 import os
+import re
 import subprocess
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Protocol, Tuple, Union
@@ -258,6 +259,14 @@ class PantherIvyServiceManager(
         else:
             # Final fallback to direct attribute access
             test_name = getattr(service_config_to_test, "test", "")
+
+        # Validate test_to_compile to prevent shell injection via config
+        _SAFE_TEST_NAME = re.compile(r"^[a-zA-Z0-9_\-]*$")
+        if test_name and not _SAFE_TEST_NAME.match(test_name):
+            raise ValueError(
+                f"Invalid test name '{test_name}': "
+                "must contain only alphanumeric characters, underscores, and hyphens"
+            )
 
         self.test_to_compile = test_name
         self.test_to_compile_path = None
@@ -820,11 +829,14 @@ class PantherIvyServiceManager(
 
             return True
         except Exception as e:
-            self.logger.error(
-                f"Error preparing PantherIvy service manager: {e}",
-                exc_info=True,
+            self.handle_error(
+                e,
+                "prepare PantherIvy service manager",
+                reraise=True,
+                category=ErrorCategory.INITIALIZATION,
+                severity=ErrorSeverity.CRITICAL,
             )
-            return False
+            raise
 
     def build_submodules(self):
         """Initialize git submodules."""
@@ -941,7 +953,7 @@ class PantherIvyServiceManager(
         commands.extend(
             [
                 f"cd {self.env_protocol_model_path}",
-                "pwd  /app/logs/ivy_post_compile.log",
+                "pwd >> /app/logs/ivy_post_compile.log",
             ]
         )
 
@@ -1003,10 +1015,6 @@ class PantherIvyServiceManager(
             )
             raise  # re-raise if handle_error did not (e.g. fast-fail disabled)
 
-    def _get_build_dir(self) -> str:
-        """Helper to get build directory path."""
-        return getattr(self.service_config_to_test, "tests_build_dir", "build")
-
     def _do_run_tests(self) -> Dict[str, Any]:
         """
         Execute Ivy tests and return results.
@@ -1066,16 +1074,14 @@ class PantherIvyServiceManager(
             return results
 
         except Exception as e:
-            error_msg = f"Error running Ivy tests: {e}"
-            self.logger.error(error_msg, exc_info=True)
-            return {
-                "success": False,
-                "test_name": getattr(self, "test_to_compile", "unknown"),
-                "role": getattr(self, "role", "unknown"),
-                "outputs": {},
-                "analysis": {},
-                "errors": [error_msg],
-            }
+            self.handle_error(
+                e,
+                "run Ivy tests",
+                reraise=True,
+                category=ErrorCategory.TEST_EXECUTION,
+                severity=ErrorSeverity.HIGH,
+            )
+            raise
 
     def get_test_results(self) -> Dict[str, Any]:
         """
@@ -1190,8 +1196,14 @@ class PantherIvyServiceManager(
             return collected
 
         except Exception as e:
-            self.logger.error(f"Error collecting outputs: {e}", exc_info=True)
-            return {}
+            self.handle_error(
+                e,
+                "collect outputs",
+                reraise=True,
+                category=ErrorCategory.TEST_EXECUTION,
+                severity=ErrorSeverity.HIGH,
+            )
+            raise
 
     def analyze_outputs(self) -> Dict[str, Any]:
         """
@@ -1207,13 +1219,14 @@ class PantherIvyServiceManager(
             # Use the analysis mixin method
             return self.analyze_outputs_with_data(self.outputs)
         except Exception as e:
-            self.logger.error(f"Error analyzing outputs: {e}")
-            return {
-                "passed": False,
-                "analysis_summary": f"Analysis failed due to error: {e}",
-                "detailed_results": {},
-                "failures": [str(e)],
-            }
+            self.handle_error(
+                e,
+                "analyze outputs",
+                reraise=True,
+                category=ErrorCategory.TEST_EXECUTION,
+                severity=ErrorSeverity.HIGH,
+            )
+            raise
 
     def __str__(self) -> str:
         """String representation of the service manager."""

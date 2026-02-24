@@ -653,10 +653,10 @@ class IvyCommandMixin:
         # Set up environments
         service_config = getattr(self, "service_config_to_test", None)
         if not service_config:
-            self.logger.warning(
-                "service_config_to_test is not set — cannot generate compilation commands"
+            raise ValueError(
+                "service_config_to_test is not set — cannot generate compilation commands. "
+                "Aborting to prevent false 'ready' signal without actual compilation."
             )
-            return []
 
         # Get environment configurations
         protocol_env = {}
