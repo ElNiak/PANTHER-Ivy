@@ -411,9 +411,16 @@ class PantherIvyServiceManager(
         )
         local_protocol_dir = self.protocol_model_path
 
-        volumes = [ 
+        # Mount ivy_to_cpp.py so runtime `setup.py install` picks up host fixes
+        # (Docker build cache may serve stale egg even with --no-cache)
+        ivy_to_cpp_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "ivy", "ivy_to_cpp.py")
+        )
+
+        volumes = [
             f"{ivy_include_dir}:/opt/panther_ivy/ivy/include/1.7:ro",
             f"{local_protocol_dir}:{self.env_protocol_model_path}",
+            f"{ivy_to_cpp_path}:/opt/panther_ivy/ivy/ivy_to_cpp.py:ro",
         ]
 
         if hasattr(self, "volumes"):

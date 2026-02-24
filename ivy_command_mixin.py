@@ -584,6 +584,8 @@ class IvyCommandMixin:
             f"cp $PYTHON_IVY_DIR/ivy/include/1.7/{self.test_to_compile} {container_base_path}/{tests_build_dir}/ >> /app/logs/compile/ivy_compile.log 2>&1",
             "echo 'Copying executable from ivy include to outputs directory...' >> /app/logs/compile/ivy_compile.log",
             f"cp $PYTHON_IVY_DIR/ivy/include/1.7/{self.test_to_compile} /app/logs/compile/{self.test_to_compile} 2>&1",
+            f"cp $PYTHON_IVY_DIR/ivy/include/1.7/{self.test_to_compile}.cpp  /app/logs/compile/{self.test_to_compile}.cpp  2>&1",
+            f"cp $PYTHON_IVY_DIR/ivy/include/1.7/{self.test_to_compile}.h  /app/logs/compile/{self.test_to_compile}.h  2>&1",   
             f"ls -la {container_base_path}/{tests_build_dir}/ >> /app/logs/compile/ivy_compile.log",
         ]
 
