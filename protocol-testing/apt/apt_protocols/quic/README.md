@@ -510,7 +510,7 @@ The file `log.iev` should have lines like this:
 
 These are decoded packets. Each line consists of a source endpoint, a
 destination endpoint and a packet. The structure of packets is
-described in [packet.quic_packet.ivy](packet.quic_packet.md).
+described in [packet.quic_packet.ivy](quic_stack/quic_packet.md).
 
 If the specification is violated by the packet trace, the file will
 end with an error message indicating the requirement that was
