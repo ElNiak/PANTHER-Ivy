@@ -2891,14 +2891,19 @@ def module_to_cpp_class(classname,basename):
 
     if target.get() in ["gen","test"]:
         header.append('#include "z3++.h"\n')
-        # Pull in Z3 version macros so parse_smtlib2_compat picks the right API path.
-        header.append('#if defined(__has_include)\n')
-        header.append('#  if __has_include(<z3_version.h>)\n')
-        header.append('#    include <z3_version.h>\n')
-        header.append('#  elif __has_include("z3_version.h")\n')
-        header.append('#    include "z3_version.h"\n')
-        header.append('#  endif\n')
-        header.append('#endif\n')
+        # Define Z3 version macros directly from Python z3 bindings.
+        # This replaces the __has_include(<z3_version.h>) mechanism which is
+        # unreliable: Z3 4.7.1 (local mk_make.py build) does not install
+        # z3_version.h, so __has_include always fails and macros stay undefined.
+        try:
+            import z3 as _z3_ver_mod
+            _z3_ver = _z3_ver_mod.get_version()
+            header.append('#define Z3_MAJOR_VERSION {}\n'.format(_z3_ver[0]))
+            header.append('#define Z3_MINOR_VERSION {}\n'.format(_z3_ver[1]))
+            header.append('#define Z3_BUILD_NUMBER {}\n'.format(_z3_ver[2]))
+            header.append('#define Z3_REVISION_NUMBER {}\n'.format(_z3_ver[3]))
+        except Exception:
+            pass  # If z3 unavailable, macros stay undefined -> #else branch (safe)
         # --- Z3 >= 4.8 compatibility shims ---
         # Shim 1: Z3 >= 4.8 z3++.h uses #pragma once instead of
         #   #ifndef Z3PP_H_ / #define Z3PP_H_.
@@ -8368,19 +8373,28 @@ public:
         // can't use operator[] here because the value classes don't have nullary constructors
         enum_sorts.insert(std::pair<std::string, z3::sort>(sort_name,sort));
         enum_values.insert(std::pair<Z3_sort, z3::func_decl_vector>(sort,cs));
-        // Do NOT add enum sorts to sort_names/sorts vectors.
-        // In Z3 >= 4.12, Z3_parse_smtlib2_string's insert_sort() auto-registers
-        // datatype constructors via insert_datatype(), which collides with the
-        // constructors already present in decl_names. Enum constructors are
-        // resolved from decl_names; the sort object lives in enum_sorts.
+        // Register sort in sort_names so Z3's SMT-LIB2 parser can resolve it
+        // in quantifiers like (forall ((x quic_packet_type)) ...).
+        // In Z3 >= 4.12, insert_sort() auto-registers constructors via
+        // insert_datatype(), so we must NOT also put them in decl_names.
+        // ENUM_FIX_V2_MARKER — confirms Docker build picked up the fix
+        sort_names.push_back(Z3_mk_string_symbol(ctx,sort_name));
+        sorts.push_back(sort);
         for(unsigned i = 0; i < num_values; i++){
             Z3_symbol sym = Z3_mk_string_symbol(ctx,value_names[i]);
             enum_to_int[sym] = i;
-            if (decls_by_name.find(value_names[i]) == decls_by_name.end()) {
-                decl_names.push_back(sym);
-                decls.push_back(cs[i]);
-                decls_by_name.insert(std::pair<std::string, z3::func_decl>(value_names[i], cs[i]));
-            }
+#if defined(Z3_MAJOR_VERSION) && (Z3_MAJOR_VERSION > 4 || (Z3_MAJOR_VERSION == 4 && Z3_MINOR_VERSION >= 12))
+            // Z3 4.12+ auto-registers enum constructors via insert_datatype()
+            // when processing sort_names. Only track in decls_by_name to
+            // prevent mk_decl() re-declaration.
+            decls_by_name.insert(std::pair<std::string, z3::func_decl>(value_names[i], cs[i]));
+#else
+            // Z3 < 4.12: Manually register constructors so
+            // Z3_parse_smtlib2_string can resolve enum value references.
+            decl_names.push_back(sym);
+            decls.push_back(cs[i]);
+            decls_by_name.insert(std::pair<std::string, z3::func_decl>(value_names[i], cs[i]));
+#endif
         }
     }
 
@@ -8413,9 +8427,11 @@ public:
     }
 
     void mk_decl(const char *decl_name, unsigned arity, const char **domain_names, const char *range_name) {
+#if defined(Z3_MAJOR_VERSION) && (Z3_MAJOR_VERSION > 4 || (Z3_MAJOR_VERSION == 4 && Z3_MINOR_VERSION >= 12))
         if (decls_by_name.find(decl_name) != decls_by_name.end()) {
             return;  // Already declared (e.g., as enum constructor), skip to avoid Z3 4.12+ duplicate error
         }
+#endif
         std::vector<z3::sort> domain;
         for (unsigned i = 0; i < arity; i++) {
             if (enum_sorts.find(domain_names[i]) == enum_sorts.end()) {
@@ -8454,7 +8470,7 @@ public:
     //   submodules/z3/src/util/version.h.in  (local build)
     //   <z3_version.h>                       (pip z3-solver package)
     z3::expr parse_smtlib2_compat(const char* str) {
-#if !defined(Z3_MAJOR_VERSION) || Z3_MAJOR_VERSION > 4 || (Z3_MAJOR_VERSION == 4 && Z3_MINOR_VERSION >= 8)
+#if defined(Z3_MAJOR_VERSION) && (Z3_MAJOR_VERSION > 4 || (Z3_MAJOR_VERSION == 4 && Z3_MINOR_VERSION >= 8))
         std::cerr << "Using Z3 API for version 4.8 or later" << std::endl;
         Z3_ast_vector av = Z3_parse_smtlib2_string(ctx, str,
             sort_names.size(), &sort_names[0], &sorts[0],

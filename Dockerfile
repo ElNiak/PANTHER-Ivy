@@ -320,6 +320,18 @@ assert not (shim_ast and utils_ast) or shim_ast is utils_ast, \
     f'Ast mismatch: z3_shim.Ast={shim_ast} vs ivy_z3_utils.Ast={utils_ast}'; \
 print(f'OK: Ast type consistent ({shim_ast})' if (shim_ast and utils_ast) else f'WARN: could not verify Ast types (shim={shim_ast}, utils={utils_ast})')"
 
+# Verify ivy_to_cpp.py uses Python-based Z3 version detection (not __has_include).
+RUN python3.10 -c "\
+import pathlib; \
+src = pathlib.Path('/opt/panther_ivy/ivy/ivy_to_cpp.py').read_text(); \
+assert 'import z3 as _z3_ver_mod' in src, \
+    'STALE: ivy_to_cpp.py still uses __has_include for Z3 version detection'; \
+assert '#if defined(Z3_MAJOR_VERSION) && (Z3_MAJOR_VERSION > 4' in src, \
+    'STALE: ivy_to_cpp.py has wrong #if guard for parse_smtlib2_compat'; \
+assert 'Z3_MINOR_VERSION >= 12' in src, \
+    'STALE: ivy_to_cpp.py missing Z3 4.12 version guard for mk_enum/mk_decl'; \
+print('OK: ivy_to_cpp.py uses Python-based Z3 version macros with 4.12 guards')"
+
 ADD protocol-testing /opt/panther_ivy/protocol-testing/
 
 # =============================================================================
