@@ -77,8 +77,6 @@ setup(
             }
         )
     ),
-    # TODO - Chris: Add z3-solver==4.13.4.0 to install_requires for non-Docker builds.
-    #   Currently Z3 is only installed via Dockerfile; local/CI builds without Docker fail at import.
     install_requires=[
         "pyparsing",
         "ply",
@@ -87,6 +85,9 @@ setup(
         "ordered-set",
     ]
     + (["applescript"] if platform.system() == "Darwin" else []),
+    extras_require={
+        "z3": ["z3-solver==4.13.4.0"],
+    },
     entry_points={
         "console_scripts": [
             "ivy=ivy.ivy:main",

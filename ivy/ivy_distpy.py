@@ -49,8 +49,13 @@ from .ivy_check import ConjChecker, ConjAssumer, pretty_lf
 import sys
 from collections import defaultdict
 
-import pdb, traceback, sys, code
-import dispy
+import traceback, sys, code
+
+try:
+    import dispy
+except ImportError:
+    dispy = None
+    print("WARNING: dispy not installed — distributed checking is unavailable", file=sys.stderr)
 
 checked_action = iu.get_parameter("checked_action")
 

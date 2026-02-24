@@ -118,6 +118,6 @@ def check_isolate(method="duoai",tagged_dfns=[],use_array_encoding=True):
     try:
         with open(file_name,'w') as g:
             g.write(f)
-    except:
-        print (f'failed to write to {file_name}')
+    except (IOError, OSError) as e:
+        print(f'failed to write to {file_name}: {e}')
         exit(1)

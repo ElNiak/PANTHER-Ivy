@@ -339,6 +339,8 @@ class IvyCommandMixin:
             params["role"] = role_name
             params["implementation"] = self.implementation_name
             params["is_server"] = role_name == "server"
+            # Ivy role inversion: when testing a server IUT, Ivy acts as client.
+            # is_client means "Ivy acts as client in this test", NOT "the IUT is a client".
             params["is_client"] = oppose_role(role_name) == "client"
             params["test_name"] = self.test_to_compile
             params["timeout_cmd"] = f"timeout {service_config.timeout} "
@@ -737,7 +739,7 @@ class IvyCommandMixin:
             return processed
 
         except Exception as e:
-            self.logger.warning(
+            self.logger.error(
                 f"Command processing failed for phase '{phase}': {e}. "
                 f"Falling back to raw commands (error detection may be impaired).",
                 exc_info=True,

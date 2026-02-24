@@ -820,7 +820,10 @@ class PantherIvyServiceManager(
 
             return True
         except Exception as e:
-            self.logger.error(f"Error preparing PantherIvy service manager: {e}")
+            self.logger.error(
+                f"Error preparing PantherIvy service manager: {e}",
+                exc_info=True,
+            )
             return False
 
     def build_submodules(self):
@@ -866,7 +869,7 @@ class PantherIvyServiceManager(
                 category=ErrorCategory.COMMAND_EXECUTION,
                 severity=ErrorSeverity.HIGH,
             )
-            raise  # unreachable, satisfies type checker
+            raise  # re-raise if handle_error did not (e.g. fast-fail disabled)
 
     def generate_compile_commands(self) -> List[Union[str, ShellCommand]]:
         """Generate compile commands using mixin integration."""
@@ -889,7 +892,7 @@ class PantherIvyServiceManager(
                 category=ErrorCategory.COMMAND_EXECUTION,
                 severity=ErrorSeverity.HIGH,
             )
-            raise  # unreachable, satisfies type checker
+            raise  # re-raise if handle_error did not (e.g. fast-fail disabled)
 
     def generate_run_command(self) -> Dict[str, Any]:
         """Generate run command with delegated deployment args."""
@@ -958,7 +961,7 @@ class PantherIvyServiceManager(
                 category=ErrorCategory.TEST_FRAMEWORK,
                 severity=ErrorSeverity.HIGH,
             )
-            raise  # unreachable, satisfies type checker
+            raise  # re-raise if handle_error did not (e.g. fast-fail disabled)
 
     def generate_deployment_commands(self) -> str:
         """Generate deployment commands using mixin integration."""
@@ -974,7 +977,7 @@ class PantherIvyServiceManager(
                 category=ErrorCategory.COMMAND_EXECUTION,
                 severity=ErrorSeverity.HIGH,
             )
-            raise  # unreachable, satisfies type checker
+            raise  # re-raise if handle_error did not (e.g. fast-fail disabled)
 
     def generate_post_run_commands(self) -> List[Union[str, ShellCommand]]:
         """Generate post-run commands using mixin integration."""
@@ -998,7 +1001,7 @@ class PantherIvyServiceManager(
                 category=ErrorCategory.COMMAND_EXECUTION,
                 severity=ErrorSeverity.MEDIUM,
             )
-            raise  # unreachable, satisfies type checker
+            raise  # re-raise if handle_error did not (e.g. fast-fail disabled)
 
     def _get_build_dir(self) -> str:
         """Helper to get build directory path."""
@@ -1064,7 +1067,7 @@ class PantherIvyServiceManager(
 
         except Exception as e:
             error_msg = f"Error running Ivy tests: {e}"
-            self.logger.error(error_msg)
+            self.logger.error(error_msg, exc_info=True)
             return {
                 "success": False,
                 "test_name": getattr(self, "test_to_compile", "unknown"),
@@ -1136,10 +1139,18 @@ class PantherIvyServiceManager(
 
                 self.logger.info(f"Processed collected outputs for {self.service_name}")
 
+        except ValueError:
+            # Non-dict outputs — store as-is for debugging
+            self._collected_outputs = {"raw_invalid_outputs": outputs}
+            self.handle_error(
+                ValueError(f"Outputs must be a dictionary, got {type(outputs)}"),
+                "set collected outputs (invalid type, raw outputs preserved)",
+                reraise=False,
+                category=ErrorCategory.TEST_EXECUTION,
+                severity=ErrorSeverity.MEDIUM,
+            )
         except Exception as e:
-            # Keep the raw outputs for debugging — don't discard them
-            if isinstance(outputs, dict):
-                self._collected_outputs = outputs
+            # Analysis failed but outputs are valid dict (already stored at line above)
             self.handle_error(
                 e,
                 "set collected outputs (analysis failed, raw outputs preserved)",
@@ -1166,16 +1177,20 @@ class PantherIvyServiceManager(
                     try:
                         with open(file_path, "r") as f:
                             collected[pattern_name] = f.read()
-                    except Exception as e:
-                        self.logger.warning(f"Could not read {file_path}: {e}")
-                        collected[pattern_name] = ""
+                    except (OSError, UnicodeDecodeError) as e:
+                        self.logger.warning(
+                            f"Could not read {file_path}: {e}", exc_info=True
+                        )
+                        collected[
+                            pattern_name
+                        ] = None  # failed read, distinct from empty
                 else:
                     collected[pattern_name] = ""
 
             return collected
 
         except Exception as e:
-            self.logger.error(f"Error collecting outputs: {e}")
+            self.logger.error(f"Error collecting outputs: {e}", exc_info=True)
             return {}
 
     def analyze_outputs(self) -> Dict[str, Any]:

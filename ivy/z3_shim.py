@@ -32,7 +32,13 @@ if _has_local_z3:
             if not cond:
                 raise Z3Exception(msg)
 else:
-    from z3 import *
+    try:
+        from z3 import *
+    except ModuleNotFoundError:
+        raise ModuleNotFoundError(
+            "Z3 Python bindings not found. Install via 'pip install z3-solver' "
+            "or build from submodule with 'python build_submodules.py'."
+        ) from None
     # Export underscore-prefixed utilities that wildcard import skips.
     # Try z3 top-level first, then z3.z3 submodule (where they're defined).
     try:

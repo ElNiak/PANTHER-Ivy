@@ -215,7 +215,7 @@ ADD ivy /opt/panther_ivy/ivy/
 ADD lib /opt/panther_ivy/lib/
 
 # Verify z3_shim fix is deployed (catches stale build context)
-RUN head -1 ivy/ivy_z3_utils.py | grep -q "z3_shim" || \
+RUN grep -q "z3_shim" ivy/ivy_z3_utils.py || \
     (echo "ERROR: ivy_z3_utils.py does not import z3_shim — build context has stale files" && exit 1)
 
 # Overlay Z3 build artifacts from z3-builder stage

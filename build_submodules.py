@@ -4,7 +4,6 @@ import platform
 import subprocess
 import sys
 from pathlib import Path
-from pdb import run
 
 ROOT = Path.cwd()  # Current working directory
 SUBMOD, IVY = ROOT / "submodules", ROOT / "ivy"
