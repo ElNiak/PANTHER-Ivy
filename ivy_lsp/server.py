@@ -2,6 +2,7 @@
 
 import logging
 
+import lsprotocol.types as lsp
 from pygls.lsp.server import LanguageServer
 
 from ivy_lsp import __version__
@@ -18,6 +19,6 @@ class IvyLanguageServer(LanguageServer):
             version=__version__,
         )
 
-    def initialized(self, params):
-        """Handle the initialized notification."""
-        logger.info("Ivy Language Server initialized")
+        @self.feature(lsp.INITIALIZED)
+        def _on_initialized(params: lsp.InitializedParams) -> None:
+            logger.info("Ivy Language Server initialized")

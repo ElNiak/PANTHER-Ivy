@@ -196,7 +196,7 @@ type stream_kind = {unidir, bidir}
 
 @pytest.fixture
 def ivy_source_variant():
-    """Ivy source with variant/destructor patterns."""
+    """Ivy source with an enumerated type (packet_type)."""
     return """\
 #lang ivy1.7
 

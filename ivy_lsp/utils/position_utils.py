@@ -33,9 +33,9 @@ def make_range(sl: int, sc: int, el: int, ec: int) -> Range:
 def ivy_location_to_range(loc: Any, source: str) -> Range:
     """Convert an Ivy location object to an LSP Range spanning the full line.
 
-    Ivy locations are list-like objects with ``.filename`` and ``.line``
-    properties where ``.line`` is **1-based**. The returned Range uses
-    0-based line numbers and spans the entire line content.
+    Ivy locations are objects with a ``.line`` property where ``.line``
+    is **1-based**. The returned Range uses 0-based line numbers and
+    spans the entire line content.
 
     Args:
         loc: An Ivy location (has ``.line`` attribute, 1-based) or None.
@@ -61,10 +61,10 @@ def ivy_location_to_range(loc: Any, source: str) -> Range:
 
 
 def offset_to_position(offset: int, source: str) -> Position:
-    """Convert a byte offset within *source* to an LSP Position.
+    """Convert a character offset within *source* to an LSP Position.
 
     Args:
-        offset: 0-based byte offset into *source*.
+        offset: 0-based character offset into *source*.
         source: The full source text.
 
     Returns:

@@ -73,8 +73,11 @@ def _tokenize(source: str) -> list:
             try:
                 tok = lex_copy.token()
             except Exception:
-                # The Ivy lexer raises IvyError on illegal characters.
-                # Return whatever we collected so far.
+                logger.warning(
+                    "Lexer error after %d tokens; returning partial results",
+                    len(tokens),
+                    exc_info=True,
+                )
                 break
             if tok is None:
                 break
@@ -159,7 +162,7 @@ def fallback_scan(
     try:
         tokens = _tokenize(source)
     except Exception:
-        logger.debug("Lexer failed entirely for %s, returning empty", filename)
+        logger.warning("Lexer failed entirely for %s, returning empty symbol list", filename, exc_info=True)
         return []
 
     if not tokens:

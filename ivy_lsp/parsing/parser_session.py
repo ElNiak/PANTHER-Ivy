@@ -1,4 +1,4 @@
-"""Parser state isolation for safe concurrent/sequential Ivy parsing."""
+"""Parser state isolation for safe sequential Ivy parsing."""
 
 import logging
 from dataclasses import dataclass, field
@@ -114,7 +114,7 @@ class IvyParserWrapper:
                     filename=filename,
                 )
             except Exception as e:
-                logger.debug("Unexpected parse error for %s: %s", filename, e)
+                logger.warning("Unexpected parse error for %s: %s", filename, e, exc_info=True)
                 return ParseResult(
                     ast=None,
                     errors=[e],

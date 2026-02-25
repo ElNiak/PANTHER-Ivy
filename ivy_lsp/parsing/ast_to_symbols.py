@@ -46,9 +46,10 @@ def ast_to_symbols(
             syms = _convert_decl(decl, filename, source)
             flat_symbols.extend(syms)
         except Exception:
-            logger.debug(
-                "Skipping decl %s: conversion failed",
+            logger.warning(
+                "Failed to convert declaration %s in %s; symbol will be missing from outline",
                 type(decl).__name__,
+                filename,
                 exc_info=True,
             )
 
@@ -261,7 +262,7 @@ def _extract_enum_detail(decl: Any) -> Optional[str]:
                 ]
                 return "enum: " + ", ".join(variant_names)
     except (IndexError, AttributeError):
-        pass
+        logger.debug("Could not extract enum detail from %s", type(decl).__name__)
     return None
 
 
@@ -368,7 +369,7 @@ def _extract_action_detail(decl: Any) -> Optional[str]:
         if parts:
             return " ".join(parts)
     except (IndexError, AttributeError):
-        pass
+        logger.debug("Could not extract action detail from %s", type(decl).__name__)
     return None
 
 
@@ -398,7 +399,7 @@ def _convert_constant_or_relation(
         if has_args and str(sort) == "bool":
             kind = SymbolKind.Function
     except (IndexError, AttributeError):
-        pass
+        logger.debug("Could not determine relation kind for %s", type(decl).__name__)
 
     return [
         IvySymbol(
@@ -627,4 +628,5 @@ def _name_from_args(decl: Any) -> Optional[str]:
     try:
         return decl.args[0].relname
     except (IndexError, AttributeError):
+        logger.debug("Could not extract name from args for %s", type(decl).__name__)
         return None
