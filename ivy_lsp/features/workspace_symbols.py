@@ -104,6 +104,19 @@ def to_workspace_symbol(flat: FlatSymbol) -> lsp.WorkspaceSymbol:
     )
 
 
+def compute_workspace_symbols(
+    indexer,
+    query: str,
+) -> List[lsp.WorkspaceSymbol]:
+    """Query the workspace indexer and return matching LSP WorkspaceSymbols."""
+    if indexer is None:
+        return []
+    all_syms = indexer._symbol_table.all_symbols()
+    flat = flatten_symbols(all_syms)
+    matches = search_symbols(flat, query)
+    return [to_workspace_symbol(f) for f in matches]
+
+
 def register(server) -> None:
     """Register the ``workspace/symbol`` feature handler on *server*.
 
@@ -115,5 +128,6 @@ def register(server) -> None:
     def workspace_symbol(
         params: lsp.WorkspaceSymbolParams,
     ) -> List[lsp.WorkspaceSymbol]:
-        # Will be wired up during integration (Task 1.9)
-        return []
+        if not hasattr(server, "_indexer") or server._indexer is None:
+            return []
+        return compute_workspace_symbols(server._indexer, params.query or "")
