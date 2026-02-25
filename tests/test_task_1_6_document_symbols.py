@@ -310,10 +310,8 @@ class TestRegisterFeature:
         assert callable(register)
 
     def test_register_with_server(self):
-        """register(server) adds the documentSymbol feature without error."""
-        from ivy_lsp.features.document_symbols import register
+        """IvyLanguageServer registers the documentSymbol feature on init."""
         from ivy_lsp.server import IvyLanguageServer
 
         server = IvyLanguageServer()
-        register(server)
-        # No exception means success; the handler is registered on the server.
+        # Feature is registered during __init__; no exception means success.
