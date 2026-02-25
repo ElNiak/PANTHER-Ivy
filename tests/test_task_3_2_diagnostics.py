@@ -159,11 +159,26 @@ class TestComputeDiagnostics:
 
 
 class TestDeepDiagnostics:
-    @pytest.mark.asyncio
-    async def test_missing_ivyc_handled(self):
+    def test_missing_ivyc_returns_empty(self):
+        """run_deep_diagnostics with missing binary should return []."""
+        import asyncio
+
         from ivy_lsp.features.diagnostics import run_deep_diagnostics
 
-        result = await run_deep_diagnostics(
-            "nonexistent.ivy", ivy_check_cmd="nonexistent_binary_12345"
+        result = asyncio.run(
+            run_deep_diagnostics(
+                "nonexistent.ivy", ivy_check_cmd="nonexistent_binary_12345"
+            )
+        )
+        assert result == []
+
+    def test_deep_diag_parses_error_output(self):
+        """Validate that a real file with no ivy_check returns []."""
+        import asyncio
+
+        from ivy_lsp.features.diagnostics import run_deep_diagnostics
+
+        result = asyncio.run(
+            run_deep_diagnostics("/dev/null", ivy_check_cmd="nonexistent_binary_12345")
         )
         assert result == []
