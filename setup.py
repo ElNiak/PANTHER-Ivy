@@ -87,6 +87,7 @@ setup(
     + (["applescript"] if platform.system() == "Darwin" else []),
     extras_require={
         "z3": ["z3-solver==4.13.4.0"],
+        "lsp": ["pygls>=1.0", "lsprotocol"],
     },
     entry_points={
         "console_scripts": [
@@ -100,6 +101,7 @@ setup(
             "ivy_libs=ivy.ivy_libs:main",
             "ivy_shell=ivy.ivy_shell:main",
             "ivy_launch=ivy.ivy_launch:main",
+            "ivy_lsp=ivy_lsp.__main__:main",
         ],
     },
     zip_safe=False,

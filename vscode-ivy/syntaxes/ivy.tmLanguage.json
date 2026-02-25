@@ -1,0 +1,205 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Ivy",
+  "scopeName": "source.ivy",
+  "patterns": [
+    { "include": "#lang-directive" },
+    { "include": "#comment" },
+    { "include": "#native-quote" },
+    { "include": "#string" },
+    { "include": "#numeric" },
+    { "include": "#label" },
+    { "include": "#declaration-keywords" },
+    { "include": "#control-keywords" },
+    { "include": "#specification-keywords" },
+    { "include": "#quantifier-keywords" },
+    { "include": "#scope-keywords" },
+    { "include": "#constant-language" },
+    { "include": "#other-keywords" },
+    { "include": "#operators" },
+    { "include": "#temporal-unicode" },
+    { "include": "#uppercase-variable" },
+    { "include": "#type-annotation" },
+    { "include": "#object-block" },
+    { "include": "#module-block" },
+    { "include": "#struct-block" }
+  ],
+  "repository": {
+    "lang-directive": {
+      "match": "^(#lang)\\s+(ivy[0-9.]+)",
+      "captures": {
+        "1": { "name": "keyword.control.directive.ivy" },
+        "2": { "name": "constant.language.version.ivy" }
+      }
+    },
+    "comment": {
+      "name": "comment.line.number-sign.ivy",
+      "match": "#.*$"
+    },
+    "native-quote": {
+      "name": "string.unquoted.native.ivy",
+      "begin": "<<<",
+      "end": ">>>",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.string.begin.ivy" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.string.end.ivy" }
+      }
+    },
+    "string": {
+      "name": "string.quoted.double.ivy",
+      "begin": "\"",
+      "end": "\"",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.string.begin.ivy" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.string.end.ivy" }
+      },
+      "patterns": [
+        {
+          "name": "constant.character.escape.ivy",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "numeric": {
+      "patterns": [
+        {
+          "name": "constant.numeric.hex.ivy",
+          "match": "\\b0x[0-9a-fA-F]+\\b"
+        },
+        {
+          "name": "constant.numeric.integer.ivy",
+          "match": "\\b[0-9]+\\b"
+        }
+      ]
+    },
+    "label": {
+      "match": "\\[([a-zA-Z_][a-zA-Z0-9_]*)\\]",
+      "captures": {
+        "0": { "name": "entity.name.tag.ivy" },
+        "1": { "name": "entity.name.tag.label.ivy" }
+      }
+    },
+    "declaration-keywords": {
+      "match": "\\b(action|object|module|type|class|struct|relation|function|individual|isolate|axiom|conjecture|schema|instantiate|instance|derived|concept|init|method|field|state|macro|interpret|mixin|execute|destructor|constructor|definition|alias|var|attribute|variant|scenario|proof|tactic|template)\\b",
+      "name": "keyword.declaration.ivy"
+    },
+    "control-keywords": {
+      "match": "\\b(if|else|while|for|match|call|local|let|entry|returns|in|of)\\b",
+      "name": "keyword.control.ivy"
+    },
+    "specification-keywords": {
+      "match": "\\b(property|invariant|assume|assert|ensures|requires|modifies|ensure|require|theorem|conjecture)\\b",
+      "name": "keyword.other.specification.ivy"
+    },
+    "quantifier-keywords": {
+      "match": "\\b(forall|exists|globally|eventually|temporal|decreases)\\b",
+      "name": "keyword.operator.quantifier.ivy"
+    },
+    "scope-keywords": {
+      "match": "\\b(export|import|include|using|delegate|with|before|after|around|extract|process|specification|implementation|private|common|global|parameter|trusted|ghost|named|explicit|finite|unprovable)\\b",
+      "name": "keyword.other.ivy"
+    },
+    "constant-language": {
+      "match": "\\b(true|false|null|this|old|fresh)\\b",
+      "name": "constant.language.ivy"
+    },
+    "other-keywords": {
+      "match": "\\b(set|update|params|from|some|maximizing|minimizing|implement|progress|rely|mixord|apply|showgoals|defergoal|spoil|thunk|isa|autoinstance|unfold|forget|debug|subclass|whenfirst|whenlast|whenprev|whennext|trigger)\\b",
+      "name": "keyword.other.ivy"
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.assignment.ivy",
+          "match": ":="
+        },
+        {
+          "name": "keyword.operator.arrow.ivy",
+          "match": "<->"
+        },
+        {
+          "name": "keyword.operator.arrow.ivy",
+          "match": "->"
+        },
+        {
+          "name": "keyword.operator.pto.ivy",
+          "match": "\\*>"
+        },
+        {
+          "name": "keyword.operator.logical.ivy",
+          "match": "[&|]"
+        },
+        {
+          "name": "keyword.operator.negation.ivy",
+          "match": "~=?"
+        },
+        {
+          "name": "keyword.operator.range.ivy",
+          "match": "\\.\\.\\.?"
+        },
+        {
+          "name": "keyword.operator.comparison.ivy",
+          "match": "<=|>=|<|>"
+        }
+      ]
+    },
+    "temporal-unicode": {
+      "patterns": [
+        {
+          "name": "keyword.operator.temporal.globally.ivy",
+          "match": "\u25a1"
+        },
+        {
+          "name": "keyword.operator.temporal.eventually.ivy",
+          "match": "\u25c7"
+        }
+      ]
+    },
+    "uppercase-variable": {
+      "match": "\\b([A-Z][_a-zA-Z0-9]*)\\b",
+      "name": "variable.other.ivy"
+    },
+    "type-annotation": {
+      "match": "(?<=:)\\s*([a-zA-Z_][a-zA-Z0-9_]*(?:\\.[a-zA-Z_][a-zA-Z0-9_]*)*)(?=\\s*[,)\\]}=]|\\s*$)",
+      "captures": {
+        "1": { "name": "entity.name.type.ivy" }
+      }
+    },
+    "object-block": {
+      "begin": "\\b(object)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\{",
+      "end": "\\}",
+      "beginCaptures": {
+        "1": { "name": "keyword.declaration.ivy" },
+        "2": { "name": "entity.name.class.ivy" }
+      },
+      "patterns": [
+        { "include": "$self" }
+      ]
+    },
+    "module-block": {
+      "begin": "\\b(module)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?:\\([^)]*\\))?\\s*=\\s*\\{",
+      "end": "\\}",
+      "beginCaptures": {
+        "1": { "name": "keyword.declaration.ivy" },
+        "2": { "name": "entity.name.class.ivy" }
+      },
+      "patterns": [
+        { "include": "$self" }
+      ]
+    },
+    "struct-block": {
+      "begin": "\\b(struct)\\s*\\{",
+      "end": "\\}",
+      "beginCaptures": {
+        "1": { "name": "keyword.declaration.ivy" }
+      },
+      "patterns": [
+        { "include": "$self" }
+      ]
+    }
+  }
+}

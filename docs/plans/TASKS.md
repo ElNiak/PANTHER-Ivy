@@ -93,7 +93,7 @@
     - `AliasDecl` -> `SymbolKind.Variable`
     - `DestructorDecl` -> `SymbolKind.Field`
     - `VariantDecl` -> `SymbolKind.Class`
-    - `ImportDecl` / `ExportDecl` -> track but don't emit as symbols
+    - `ImportDecl` / `ExportDeccl` -> track but don't emit as symbols
     - `IncludeDecl` -> track for include graph
     - `BeforeDecl` / `AfterDecl` / `AroundDecl` -> `SymbolKind.Function` (mixin)
     - `DefinitionDecl` -> `SymbolKind.Function`
@@ -305,7 +305,7 @@
   - Test include resolution for all files in `quic_stack/`
   - Test go-to-definition across include boundaries
   - Test find references across the workspace
-  - Test workspace indexer performance on full `protocol-testing/` (667+ files, see Task 4.4 for full counts)
+  - Test workspace indexer performance on full `protocol-testing/` (667 files)
   - Test cache invalidation on file changes
 - **Acceptance criteria**:
   - All `include` directives in `quic_stack/` resolve correctly
@@ -509,6 +509,307 @@
 
 ---
 
+---
+
+## Phase 5: VSCode Extension
+
+> **Branch**: `feature/ivy-lsp-integration`
+> **Design Doc**: `docs/plans/2026-02-25-vscode-extension-design.md`
+>
+> This phase adds a thin VSCode client extension that connects to the Python LSP server
+> (`ivy_lsp/`) over stdio, plus TextMate grammar for syntax highlighting, language
+> configuration, and snippets.
+>
+> **Location**: `panther_ivy/vscode-ivy/`
+
+### Architecture
+
+```
+VSCode  <-->  extension.ts (TypeScript thin client)
+                    |
+                    | stdio (JSON-RPC)
+                    v
+              python -m ivy_lsp  (Python, pygls)
+                    |
+                    v
+              ivy_parser / ivy_lexer (PLY-based)
+```
+
+### Directory Structure
+
+```
+panther_ivy/vscode-ivy/
+  package.json                    # Extension manifest
+  tsconfig.json                   # TypeScript config
+  language-configuration.json     # Brackets, comments, indentation
+  .vscodeignore                   # Exclude source from VSIX
+  .eslintrc.json                  # Linting
+  README.md                       # Extension readme
+  syntaxes/
+    ivy.tmLanguage.json           # TextMate grammar (syntax highlighting)
+  snippets/
+    ivy.json                      # Code snippets
+  src/
+    extension.ts                  # Activation, LSP client lifecycle
+    pythonFinder.ts               # Python + ivy_lsp discovery logic
+    test/
+      runTest.ts                  # Test runner setup
+      suite/
+        index.ts                  # Mocha test suite loader
+        grammar.test.ts           # Grammar tokenization tests
+        extension.test.ts         # Extension activation tests
+```
+
+### Task 5.1: Extension Scaffolding
+- [ ] **Create directory structure, `package.json`, `tsconfig.json`, `.vscodeignore`**
+- **Effort**: 2 hours
+- **Dependencies**: None (can start immediately, parallel with Phases 1-4)
+- **Files**:
+  - `package.json` — Extension manifest with:
+    - `name`: `ivy-language`, `displayName`: `Ivy Language`
+    - `engines.vscode`: `^1.75.0`
+    - `activationEvents`: `["onLanguage:ivy"]`
+    - `main`: `./out/extension.js`
+    - `contributes.languages`: `id: ivy`, extensions `.ivy`, config `./language-configuration.json`
+    - `contributes.grammars`: `scopeName: source.ivy`, path `./syntaxes/ivy.tmLanguage.json`
+    - `contributes.snippets`: path `./snippets/ivy.json`
+    - `contributes.configuration`: settings for `ivy.pythonPath`, `ivy.lsp.enabled`, `ivy.lsp.args`, `ivy.lsp.trace.server`
+    - `dependencies`: `vscode-languageclient ^9.0.1`
+    - `devDependencies`: `@types/vscode`, `@types/mocha`, `@types/node`, `typescript`, `@vscode/test-electron`, `@vscode/vsce`, `eslint`, `@typescript-eslint/*`, `mocha`, `vscode-tmgrammar-test`
+    - `scripts`: `compile`, `watch`, `lint`, `pretest`, `test`, `vscode:prepublish`
+  - `tsconfig.json` — `module: Node16`, `target: ES2022`, `outDir: out`, `rootDir: src`, `strict: true`
+  - `.vscodeignore` — Exclude `src/`, `node_modules/`, `*.ts`, `*.map`, `.vscode-test/`
+  - `.eslintrc.json` — TypeScript ESLint with `@typescript-eslint/recommended`
+- **Acceptance criteria**:
+  - `npm install && npm run compile` succeeds
+  - `vsce package` produces `.vsix` file
+  - Directory structure matches the plan
+
+### Task 5.2: TextMate Grammar
+- [ ] **Create `syntaxes/ivy.tmLanguage.json` — complete Ivy syntax highlighting**
+- **Effort**: 6 hours
+- **Dependencies**: None (parallel with 5.1)
+- **Key source**: `ivy/ivy_lexer.py` lines 51-173 for definitive keyword list (80+ keywords)
+- **Details**:
+  - Root scope: `source.ivy`
+  - Pattern priority order (higher first):
+    1. `#lang ivy1.7` version pragma -> `keyword.control.directive.ivy` (NOT a comment)
+    2. `#` line comments -> `comment.line.number-sign.ivy`
+    3. Double-quoted strings -> `string.quoted.double.ivy`
+    4. `<<<...>>>` native quotes -> `string.unquoted.native.ivy` (multiline)
+    5. Numeric literals: decimal `[0-9]+`, hex `0x[0-9a-fA-F]+` -> `constant.numeric.ivy`
+    6. Declaration keywords (30+): `action`, `object`, `module`, `type`, `isolate`, `struct`, `relation`, `function`, `individual`, `axiom`, `conjecture`, `schema`, `instantiate`, `instance`, `derived`, `concept`, `init`, `method`, `field`, `state`, `macro`, `interpret`, `mixin`, `execute`, `destructor`, `constructor`, `definition`, `alias`, `var`, `attribute`, `variant`, `class`, `scenario`, `proof`, `tactic` -> `keyword.declaration.ivy`
+    7. Control keywords: `if`, `else`, `while`, `for`, `match`, `call`, `local`, `let`, `entry`, `returns`, `in`, `of` -> `keyword.control.ivy`
+    8. Specification keywords: `property`, `invariant`, `axiom`, `conjecture`, `assume`, `assert`, `ensures`, `requires`, `modifies`, `ensure`, `require`, `theorem` -> `keyword.other.specification.ivy`
+    9. Quantifiers/temporal: `forall`, `exists`, `globally`, `eventually`, `temporal`, `decreases` -> `keyword.operator.quantifier.ivy`
+    10. Scope/module keywords: `export`, `import`, `include`, `using`, `delegate`, `with`, `before`, `after`, `around`, `extract`, `process`, `specification`, `implementation`, `private`, `common`, `global`, `parameter`, `trusted`, `ghost`, `named`, `explicit`, `finite`, `unprovable` -> `keyword.other.ivy`
+    11. Boolean/null constants: `true`, `false`, `null`, `this`, `old`, `fresh` -> `constant.language.ivy`
+    12. Other reserved: `set`, `update`, `params`, `from`, `some`, `maximizing`, `minimizing`, `implement`, `progress`, `rely`, `mixord`, `apply`, `showgoals`, `defergoal`, `spoil`, `thunk`, `isa`, `autoinstance`, `unfold`, `forget`, `debug`, `subclass`, `whenfirst`, `whenlast`, `whenprev`, `whennext`, `trigger` -> `keyword.other.ivy`
+    13. Operators: `:=` (assign), `->` (arrow), `<->` (iff), `&` (and), `|` (or), `~` (tilda), `~=` (tildaeq), `..` (range), `*>` (pto) -> `keyword.operator.ivy`
+    14. Uppercase identifiers `[A-Z][_a-zA-Z0-9]*` -> `variable.other.ivy`
+    15. Label syntax `[name]` -> `entity.name.tag.ivy`
+    16. Type annotations in `name:type` patterns -> `entity.name.type.ivy` for the type part
+    17. Unicode temporal operators: `\u25A1` (globally box), `\u25C7` (eventually diamond) -> `keyword.operator.temporal.ivy`
+  - Nested scopes:
+    - `object name = { ... }` — begin/end with `{ include: "$self" }`
+    - `module name = { ... }` — begin/end with `{ include: "$self" }`
+    - `struct { ... }` — begin/end with `{ include: "$self" }`
+  - **Word boundary**: All keyword patterns use `\b` boundaries to avoid matching inside identifiers (e.g., `property_name` should NOT highlight `property`)
+- **Acceptance criteria**:
+  - Real files (`quic_types.ivy`, `quic_frame.ivy`) highlight correctly
+  - `#lang ivy1.7` is a directive, not a comment
+  - Keywords inside identifiers (e.g., `property_name`) are NOT highlighted
+  - `<<<...>>>` native quotes highlight as strings
+  - Uppercase variables (`X`, `Y`, `Z`) highlight differently from lowercase identifiers
+  - Labels `[name]` highlight as tags
+  - Comments after `#` are correctly scoped (except `#lang` which is a directive)
+
+### Task 5.3: Language Configuration
+- [ ] **Create `language-configuration.json`**
+- **Effort**: 1 hour
+- **Dependencies**: None (parallel)
+- **Details**:
+  - Line comment: `#` (prefix `# `)
+  - No block comments (Ivy has none)
+  - Bracket pairs: `()`, `{}`, `[]`
+  - Auto-closing pairs: `()`, `{}`, `[]`, `""`, `<<<` / `>>>`
+  - Surrounding pairs: `()`, `{}`, `[]`, `""`, `<<<` / `>>>`
+  - `wordPattern`: `[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*` — includes `.` for qualified names like `frame.ack.range`
+  - Folding markers: `{` / `}` and `#region` / `#endregion`
+  - Indent rules:
+    - Increase: lines ending with `= {`, `{`, or `(`
+    - Decrease: lines starting with `}` or `)`
+  - `onEnterRules`: after `= {$` insert indented newline
+- **Acceptance criteria**:
+  - `#` toggles line comments
+  - `{` auto-closes with `}`
+  - Enter after `= {` indents the next line
+  - Double-click selects full qualified name (e.g., `frame.ack.range`)
+  - Code folding works on `{` / `}` blocks
+
+### Task 5.4: Snippets
+- [ ] **Create `snippets/ivy.json` — common Ivy patterns**
+- **Effort**: 1 hour
+- **Dependencies**: None (parallel)
+- **Details**: Snippets with tab stops for:
+  - `#lang` pragma: `#lang ivy1.7`
+  - `module`: `module $1 = { ... }`
+  - `object`: `object $1 = { ... }`
+  - `action`: `action $1($2) returns ($3) = { ... }`
+  - `type`: `type $1` (simple) and `type $1 = {$2}` (enum)
+  - `struct`: `type $1 = struct { $2:$3 }`
+  - `isolate`: `isolate $1 = $2 with $3`
+  - `property`: `property $1 = $2`
+  - `invariant`: `invariant [spec] $1`
+  - `after init`: `after init { ... }`
+  - `require`/`ensure`: guards
+  - `forall`/`exists`: quantifiers
+  - `include`: `include $1`
+  - `instance`: `instance $1 : $2`
+  - `before`/`after` action mixins
+- **Acceptance criteria**:
+  - Typing prefix + Tab inserts correct template with tab stops
+  - All snippets produce valid Ivy syntax
+  - Tab stops navigate logically through the template
+
+### Task 5.5: Extension Client (TypeScript)
+- [ ] **Create `src/extension.ts` and `src/pythonFinder.ts`**
+- **Effort**: 4 hours
+- **Dependencies**: Task 5.1 (needs `package.json`), Phase 1 complete (LSP server must be startable)
+- **Details**:
+  - **`src/pythonFinder.ts`**:
+    - `findPython()` function with 5-step discovery:
+      1. Check `ivy.pythonPath` setting (if non-empty)
+      2. Check workspace `.venv/bin/python` (or `.venv/Scripts/python.exe` on Windows)
+      3. Try `python3` on PATH
+      4. Try `python` on PATH
+      5. Return `undefined` if none found
+    - `checkIvyLsp(pythonPath: string): Promise<string | undefined>` — runs `python -c "import ivy_lsp; print(ivy_lsp.__version__)"` and returns version or `undefined`
+    - Cache discovered Python path for session
+  - **`src/extension.ts`**:
+    - `activate(context: ExtensionContext)`:
+      1. If `ivy.lsp.enabled` is false, return early (syntax-only mode)
+      2. Call `findPython()` to discover Python
+      3. If Python not found: show warning, degrade to syntax-only
+      4. Call `checkIvyLsp()` to verify `ivy_lsp` is importable
+      5. If `ivy_lsp` not found: show error with install instructions (`pip install -e ".[lsp]"`)
+      6. Create `LanguageClient` with:
+         - `serverOptions`: `{ command: pythonPath, args: ["-m", "ivy_lsp", ...extraArgs] }`
+         - `clientOptions`: `{ documentSelector: [{ scheme: "file", language: "ivy" }] }`
+         - Trace level from `ivy.lsp.trace.server` setting
+      7. Start the client
+      8. Create status bar item: `"Ivy LSP: Running"` / `"Ivy LSP: Error"` / `"Ivy LSP: Syntax Only"`
+    - `deactivate()`: Stop client, dispose status bar item
+    - Config change listener: restart server when `ivy.pythonPath` or `ivy.lsp.args` changes
+    - Error handling: auto-restart built into `vscode-languageclient` (3 restarts / 5 min)
+- **Acceptance criteria**:
+  - Opening `.ivy` file starts LSP server
+  - Status bar shows "Ivy LSP: Running"
+  - Changing `ivy.pythonPath` restarts the server
+  - Clear error messages when Python / `ivy_lsp` not found
+  - Extension still provides syntax highlighting when LSP is unavailable
+
+### Task 5.6: Extension Testing
+- [ ] **Create test suite for grammar tokenization and extension activation**
+- **Effort**: 3 hours
+- **Dependencies**: Tasks 5.2, 5.5
+- **Details**:
+  - **`src/test/runTest.ts`**: Test runner using `@vscode/test-electron` to launch VSCode instance
+  - **`src/test/suite/index.ts`**: Mocha test suite loader
+  - **`src/test/suite/grammar.test.ts`**: Grammar tokenization tests:
+    - Test `#lang ivy1.7` -> `keyword.control.directive.ivy`
+    - Test `# comment` -> `comment.line.number-sign.ivy`
+    - Test `action foo(x:t)` -> `keyword.declaration.ivy` + `source.ivy`
+    - Test `object bar = { }` -> `keyword.declaration.ivy`
+    - Test `<<<native code>>>` -> `string.unquoted.native.ivy`
+    - Test `X` uppercase -> `variable.other.ivy`
+    - Test `[label]` -> `entity.name.tag.ivy`
+    - Test `true`, `false` -> `constant.language.ivy`
+    - Test `forall`, `exists` -> `keyword.operator.quantifier.ivy`
+    - Test `property`, `invariant` -> `keyword.other.specification.ivy`
+    - Test keyword inside identifier NOT highlighted (e.g., `property_name` stays `source.ivy`)
+  - **`src/test/suite/extension.test.ts`**: Extension activation tests:
+    - Test extension activates on `.ivy` file
+    - Test configuration reading
+    - Test Python finder (mocked)
+- **Acceptance criteria**:
+  - `npm test` passes
+  - Covers 10+ Ivy syntax patterns
+  - Tests are reliable (no flaky tests)
+
+### Task 5.7: Integration with setup.py
+- [ ] **Update `setup.py` to include `vscode-ivy` as package data**
+- **Effort**: 30 min
+- **Dependencies**: Task 5.1
+- **Details**:
+  - Add `"lsp": ["pygls>=1.0", "lsprotocol"]` to `extras_require` in `setup.py`
+  - Add entry point: `"ivy_lsp=ivy_lsp.__main__:main"` to `console_scripts`
+  - Add `"ivy_lsp"` to the `packages` list (or adjust `find_packages()` to include it)
+  - Ensure `vscode-ivy/` is excluded from the Python package (it's a separate Node package)
+- **Acceptance criteria**:
+  - `pip install -e ".[lsp]"` installs `pygls` and `lsprotocol`
+  - `python -m ivy_lsp` starts the language server
+  - `ivy_lsp` console script also starts the server
+
+### Task 5.8: End-to-End Testing
+- [ ] **Test complete workflow: extension -> LSP -> real Ivy files**
+- **Effort**: 3 hours
+- **Dependencies**: All Phase 5 tasks + LSP Phases 1-3
+- **Details**:
+  - Open `quic_types.ivy`, `quic_frame.ivy` in VSCode Development Host
+  - Verify syntax highlighting for all element types:
+    - `#lang ivy1.7` is a directive (not grayed as comment)
+    - `type`, `object`, `action` are keyword-colored
+    - `# comments` are comment-colored
+    - `<<<...>>>` native quotes are string-colored
+    - Uppercase variables are distinctly colored
+  - Verify document outline (Cmd+Shift+O) shows symbol hierarchy
+  - Verify workspace symbols (Cmd+T) finds symbols across files
+  - Test with broken `.ivy` file (fallback symbols should still appear)
+  - Test server crash recovery (kill Python process, verify auto-restart)
+  - Test syntax-only mode (disable LSP, verify highlighting still works)
+- **Acceptance criteria**:
+  - All syntax elements highlight correctly
+  - Document symbols match the file hierarchy
+  - No crashes on the QUIC corpus
+  - Server recovers from crashes within 5 seconds
+
+### Task 5.9: Documentation
+- [ ] **Write extension README and installation guide**
+- **Effort**: 1.5 hours
+- **Dependencies**: All Phase 5 tasks
+- **Details**:
+  - `vscode-ivy/README.md` with:
+    - Feature overview (syntax highlighting, LSP features, snippets)
+    - Installation methods: VSIX file, from source
+    - Configuration reference (all `ivy.*` settings)
+    - Prerequisites: Python 3.10+, `ivy_lsp` package
+    - Troubleshooting: Python not found, `ivy_lsp` not installed, server crashes
+    - Screenshots (placeholder paths for future)
+    - Development guide: building, testing, packaging
+  - Update `panther_ivy/CLAUDE.md` with VSCode extension information
+- **Acceptance criteria**:
+  - New developer can install and use the extension from README alone
+  - All settings are documented
+  - Troubleshooting covers common failure modes
+
+---
+
+### Phase 5 Parallelism
+
+```
+5.1 (scaffold) -------> 5.5 (client TS) -------> 5.8 (E2E)
+5.2 (grammar)  -------> 5.6 (testing) ----------> 5.9 (docs)
+5.3 (lang config) --+
+5.4 (snippets) -----+
+5.7 (setup.py) -----+
+```
+
+Tasks 5.1, 5.2, 5.3, 5.4 can ALL proceed in parallel (no dependencies).
+Phase 5 has NO hard dependency on Phases 2-4 — extension works with Phase 1 alone (syntax + document symbols).
+
+---
+
 ## Summary
 
 | Phase | Tasks | Estimated Effort |
@@ -517,7 +818,8 @@
 | Phase 2: Cross-File Navigation | 6 tasks | ~21 hours |
 | Phase 3: Completion + Diagnostics | 4 tasks | ~16 hours |
 | Phase 4: Serena Integration | 6 tasks | ~13.5 hours |
-| **Total** | **25 tasks** | **~76.5 hours** |
+| **Phase 5: VSCode Extension** | **9 tasks** | **~22 hours** |
+| **Total** | **34 tasks** | **~98.5 hours** |
 
 ### Critical Path
 
@@ -526,6 +828,9 @@
               |               |
               v               v
              1.5             2.5
+
+5.1 -> 5.5 -> 5.8
+5.2 -> 5.6 -> 5.9
 ```
 
 ### Parallelizable Tasks
@@ -535,3 +840,15 @@
 - Task 2.4 (definition) and Task 2.5 (references) can be done in parallel
 - Task 3.1 (completion), Task 3.2 (diagnostics), and Task 3.3 (hover) can be done in parallel
 - Task 4.1 (Serena fork) and Task 4.3 (packaging) can be done in parallel
+- Tasks 5.1, 5.2, 5.3, 5.4 can ALL proceed in parallel
+- Task 5.5 and Task 5.7 can proceed in parallel (both depend on 5.1)
+
+### Critical Files for Phase 5
+
+| File | Purpose |
+|------|---------|
+| `ivy/ivy_lexer.py` (lines 51-173) | Definitive keyword list for TextMate grammar |
+| `ivy_lsp/server.py` | LSP server class the extension spawns |
+| `ivy_lsp/__main__.py` | Entry point `python -m ivy_lsp` (interface contract) |
+| `ivy_lsp/__init__.py` | Version string (`0.1.0`) checked by Python finder |
+| `setup.py` | Package integration (Task 5.7) |

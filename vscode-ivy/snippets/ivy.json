@@ -1,0 +1,219 @@
+{
+  "Language Pragma": {
+    "prefix": "#lang",
+    "body": [
+      "#lang ivy1.7",
+      "",
+      "$0"
+    ],
+    "description": "Ivy language version pragma"
+  },
+  "Module": {
+    "prefix": "module",
+    "body": [
+      "module ${1:name}(${2:params}) = {",
+      "    $0",
+      "}"
+    ],
+    "description": "Module declaration with parameters"
+  },
+  "Object": {
+    "prefix": "object",
+    "body": [
+      "object ${1:name} = {",
+      "    $0",
+      "}"
+    ],
+    "description": "Object declaration"
+  },
+  "Action": {
+    "prefix": "action",
+    "body": [
+      "action ${1:name}(${2:params}) returns (${3:ret}) = {",
+      "    $0",
+      "}"
+    ],
+    "description": "Action declaration with parameters and return"
+  },
+  "Action (void)": {
+    "prefix": "actionv",
+    "body": [
+      "action ${1:name}(${2:params}) = {",
+      "    $0",
+      "}"
+    ],
+    "description": "Action declaration without return value"
+  },
+  "Type": {
+    "prefix": "type",
+    "body": [
+      "type ${1:name}"
+    ],
+    "description": "Simple type declaration"
+  },
+  "Type Enum": {
+    "prefix": "typeenum",
+    "body": [
+      "type ${1:name} = {${2:variant1},${3:variant2}}"
+    ],
+    "description": "Enumerated type declaration"
+  },
+  "Struct": {
+    "prefix": "struct",
+    "body": [
+      "type ${1:name} = struct {",
+      "    ${2:field}:${3:type}",
+      "}"
+    ],
+    "description": "Struct type declaration"
+  },
+  "Variant": {
+    "prefix": "variant",
+    "body": [
+      "variant ${1:name} of ${2:base} = struct {",
+      "    $0",
+      "}"
+    ],
+    "description": "Variant type declaration"
+  },
+  "Isolate": {
+    "prefix": "isolate",
+    "body": [
+      "isolate ${1:name} = ${2:implementation} with ${3:specification}"
+    ],
+    "description": "Isolate declaration"
+  },
+  "Property": {
+    "prefix": "property",
+    "body": [
+      "property ${1:name} = ${2:formula}"
+    ],
+    "description": "Property declaration"
+  },
+  "Invariant": {
+    "prefix": "invariant",
+    "body": [
+      "invariant [${1:label}] ${2:formula}"
+    ],
+    "description": "Invariant with label"
+  },
+  "Require": {
+    "prefix": "require",
+    "body": [
+      "require ${1:condition}"
+    ],
+    "description": "Require precondition"
+  },
+  "Ensure": {
+    "prefix": "ensure",
+    "body": [
+      "ensure ${1:condition}"
+    ],
+    "description": "Ensure postcondition"
+  },
+  "After Init": {
+    "prefix": "afterinit",
+    "body": [
+      "after init {",
+      "    $0",
+      "}"
+    ],
+    "description": "After init block (initialization)"
+  },
+  "Before Action": {
+    "prefix": "before",
+    "body": [
+      "before ${1:action_name} {",
+      "    $0",
+      "}"
+    ],
+    "description": "Before action mixin"
+  },
+  "After Action": {
+    "prefix": "after",
+    "body": [
+      "after ${1:action_name} {",
+      "    $0",
+      "}"
+    ],
+    "description": "After action mixin"
+  },
+  "Include": {
+    "prefix": "include",
+    "body": [
+      "include ${1:module_name}"
+    ],
+    "description": "Include another Ivy file"
+  },
+  "Instance": {
+    "prefix": "instance",
+    "body": [
+      "instance ${1:name} : ${2:module}(${3:args})"
+    ],
+    "description": "Module instantiation"
+  },
+  "Relation": {
+    "prefix": "relation",
+    "body": [
+      "relation ${1:name}(${2:params})"
+    ],
+    "description": "Relation declaration"
+  },
+  "Function": {
+    "prefix": "function",
+    "body": [
+      "function ${1:name}(${2:params}) : ${3:return_type}"
+    ],
+    "description": "Function declaration"
+  },
+  "Forall": {
+    "prefix": "forall",
+    "body": [
+      "forall ${1:X}:${2:type}. ${3:formula}"
+    ],
+    "description": "Universal quantifier"
+  },
+  "Exists": {
+    "prefix": "exists",
+    "body": [
+      "exists ${1:X}:${2:type}. ${3:formula}"
+    ],
+    "description": "Existential quantifier"
+  },
+  "If-Else": {
+    "prefix": "if",
+    "body": [
+      "if ${1:condition} {",
+      "    $2",
+      "} else {",
+      "    $3",
+      "}"
+    ],
+    "description": "If-else block"
+  },
+  "Interpret": {
+    "prefix": "interpret",
+    "body": [
+      "interpret ${1:type} -> ${2:target}"
+    ],
+    "description": "Type interpretation"
+  },
+  "Specification Block": {
+    "prefix": "specification",
+    "body": [
+      "specification {",
+      "    $0",
+      "}"
+    ],
+    "description": "Specification block"
+  },
+  "Implementation Block": {
+    "prefix": "implementation",
+    "body": [
+      "implementation {",
+      "    $0",
+      "}"
+    ],
+    "description": "Implementation block"
+  }
+}
