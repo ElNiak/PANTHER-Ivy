@@ -96,9 +96,7 @@ class IvyParserWrapper:
             iu.filename = filename
             try:
                 ast = ip.parse(source)
-                return ParseResult(
-                    ast=ast, errors=[], success=True, filename=filename
-                )
+                return ParseResult(ast=ast, errors=[], success=True, filename=filename)
             except iu.ErrorList as e:
                 return ParseResult(
                     ast=None,
@@ -114,7 +112,9 @@ class IvyParserWrapper:
                     filename=filename,
                 )
             except Exception as e:
-                logger.warning("Unexpected parse error for %s: %s", filename, e, exc_info=True)
+                logger.warning(
+                    "Unexpected parse error for %s: %s", filename, e, exc_info=True
+                )
                 return ParseResult(
                     ast=None,
                     errors=[e],

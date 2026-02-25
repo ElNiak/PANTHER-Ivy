@@ -124,9 +124,7 @@ class TestFallbackScanSingleDeclarations:
         """``instance idx : unbounded_sequence`` produces a Variable."""
         from ivy_lsp.parsing.fallback_scanner import fallback_scan
 
-        symbols = fallback_scan(
-            "instance idx : unbounded_sequence", "test.ivy"
-        )
+        symbols = fallback_scan("instance idx : unbounded_sequence", "test.ivy")
         assert len(symbols) == 1
         assert symbols[0].name == "idx"
         assert symbols[0].kind == SymbolKind.Variable
@@ -198,12 +196,7 @@ class TestFallbackScanNesting:
         """Declarations inside a module become children."""
         from ivy_lsp.parsing.fallback_scanner import fallback_scan
 
-        source = (
-            "module counter(t) = {\n"
-            "    action up\n"
-            "    action down\n"
-            "}\n"
-        )
+        source = "module counter(t) = {\n" "    action up\n" "    action down\n" "}\n"
         symbols = fallback_scan(source, "test.ivy")
         assert len(symbols) == 1
         mod = symbols[0]

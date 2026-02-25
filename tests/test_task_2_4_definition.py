@@ -25,9 +25,7 @@ class TestGotoDefinition:
         from ivy_lsp.indexer.workspace_indexer import WorkspaceIndexer
         from ivy_lsp.parsing.parser_session import IvyParserWrapper
 
-        (tmp_path / "types.ivy").write_text(
-            "#lang ivy1.7\ntype cid\n"
-        )
+        (tmp_path / "types.ivy").write_text("#lang ivy1.7\ntype cid\n")
         (tmp_path / "user.ivy").write_text(
             "#lang ivy1.7\ninclude types\nrelation uses(X:cid, Y:cid)\n"
         )
@@ -40,9 +38,7 @@ class TestGotoDefinition:
         # Line 2: "relation uses(X:cid, Y:cid)"
         #          0123456789...      16=c 17=i 18=d
         pos = Position(line=2, character=16)  # cursor on first "cid"
-        result = goto_definition(
-            indexer, str(tmp_path / "user.ivy"), pos, lines
-        )
+        result = goto_definition(indexer, str(tmp_path / "user.ivy"), pos, lines)
         assert result is not None
         loc = result[0] if isinstance(result, list) else result
         assert loc.uri.endswith("types.ivy")
@@ -60,7 +56,5 @@ class TestGotoDefinition:
         indexer.index_workspace()
         lines = ["# nothing_here"]
         pos = Position(line=0, character=5)
-        result = goto_definition(
-            indexer, str(tmp_path / "a.ivy"), pos, lines
-        )
+        result = goto_definition(indexer, str(tmp_path / "a.ivy"), pos, lines)
         assert result is None

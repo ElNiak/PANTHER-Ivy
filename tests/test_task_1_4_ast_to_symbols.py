@@ -7,7 +7,6 @@ from ivy_lsp.parsing.ast_to_symbols import ast_to_symbols
 from ivy_lsp.parsing.parser_session import IvyParserWrapper
 from ivy_lsp.parsing.symbols import IvySymbol
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -360,9 +359,9 @@ object frame = {
         assert ack_child is not None
         # 'largest_acked' should be nested under ack
         child_names = [c.name for c in ack_child.children]
-        assert "largest_acked" in child_names, (
-            f"Expected 'largest_acked' in ack children, got {child_names}"
-        )
+        assert (
+            "largest_acked" in child_names
+        ), f"Expected 'largest_acked' in ack children, got {child_names}"
 
 
 # ---------------------------------------------------------------------------
@@ -383,9 +382,9 @@ alias aid = cid
 """
         symbols = _parse_and_convert(source, filename="myfile.ivy")
         for sym in symbols:
-            assert sym.file_path == "myfile.ivy", (
-                f"Symbol '{sym.name}' has file_path={sym.file_path!r}"
-            )
+            assert (
+                sym.file_path == "myfile.ivy"
+            ), f"Symbol '{sym.name}' has file_path={sym.file_path!r}"
 
     def test_children_have_file_path(self):
         source = """\
@@ -400,9 +399,9 @@ object bit = {
         bit_sym = _find_symbol(symbols, "bit", SymbolKind.Module)
         assert bit_sym is not None
         for child in bit_sym.children:
-            assert child.file_path == "objects.ivy", (
-                f"Child '{child.name}' has file_path={child.file_path!r}"
-            )
+            assert (
+                child.file_path == "objects.ivy"
+            ), f"Child '{child.name}' has file_path={child.file_path!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -562,32 +561,24 @@ class TestQuicTypesIntegration:
     """Parse real quic_types.ivy and verify key symbols exist."""
 
     def test_find_cid_symbol(self, quic_types_source, quic_types_path):
-        symbols = _parse_and_convert(
-            quic_types_source, str(quic_types_path)
-        )
+        symbols = _parse_and_convert(quic_types_source, str(quic_types_path))
         sym = _find_symbol(symbols, "cid")
         assert sym is not None, "Expected 'cid' in quic_types.ivy symbols"
         assert sym.kind == SymbolKind.Class
 
     def test_find_pkt_num_symbol(self, quic_types_source, quic_types_path):
-        symbols = _parse_and_convert(
-            quic_types_source, str(quic_types_path)
-        )
+        symbols = _parse_and_convert(quic_types_source, str(quic_types_path))
         sym = _find_symbol(symbols, "pkt_num")
         assert sym is not None, "Expected 'pkt_num' in quic_types.ivy symbols"
         assert sym.kind == SymbolKind.Class
 
     def test_find_bit_object(self, quic_types_source, quic_types_path):
-        symbols = _parse_and_convert(
-            quic_types_source, str(quic_types_path)
-        )
+        symbols = _parse_and_convert(quic_types_source, str(quic_types_path))
         sym = _find_symbol(symbols, "bit", SymbolKind.Module)
         assert sym is not None, "Expected Module 'bit' in quic_types.ivy symbols"
 
     def test_find_stream_kind_enum(self, quic_types_source, quic_types_path):
-        symbols = _parse_and_convert(
-            quic_types_source, str(quic_types_path)
-        )
+        symbols = _parse_and_convert(quic_types_source, str(quic_types_path))
         sym = _find_symbol(symbols, "stream_kind")
         assert sym is not None, "Expected 'stream_kind' in quic_types.ivy symbols"
         assert sym.kind == SymbolKind.Class
@@ -597,22 +588,18 @@ class TestQuicTypesIntegration:
         assert "bidir" in sym.detail
 
     def test_multiple_symbols_present(self, quic_types_source, quic_types_path):
-        symbols = _parse_and_convert(
-            quic_types_source, str(quic_types_path)
-        )
+        symbols = _parse_and_convert(quic_types_source, str(quic_types_path))
         # quic_types has many types: cid, version, pkt_num, microsecs, etc.
         assert len(symbols) >= 5, f"Expected at least 5 symbols, got {len(symbols)}"
 
     def test_file_path_set_on_all(self, quic_types_source, quic_types_path):
-        symbols = _parse_and_convert(
-            quic_types_source, str(quic_types_path)
-        )
+        symbols = _parse_and_convert(quic_types_source, str(quic_types_path))
 
         def check_file_path(sym_list, path_str):
             for sym in sym_list:
-                assert sym.file_path == path_str, (
-                    f"Symbol '{sym.name}' has file_path={sym.file_path!r}"
-                )
+                assert (
+                    sym.file_path == path_str
+                ), f"Symbol '{sym.name}' has file_path={sym.file_path!r}"
                 check_file_path(sym.children, path_str)
 
         check_file_path(symbols, str(quic_types_path))

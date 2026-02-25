@@ -24,9 +24,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-def ast_to_symbols(
-    ivy_obj: Any, filename: str, source: str
-) -> List[IvySymbol]:
+def ast_to_symbols(ivy_obj: Any, filename: str, source: str) -> List[IvySymbol]:
     """Convert a parsed Ivy AST into a hierarchical list of symbols.
 
     Args:
@@ -164,9 +162,7 @@ def _reconstruct_hierarchy(flat_symbols: List[IvySymbol]) -> List[IvySymbol]:
 # ---------------------------------------------------------------------------
 
 
-def _convert_decl(
-    decl: Any, filename: str, source: str
-) -> List[IvySymbol]:
+def _convert_decl(decl: Any, filename: str, source: str) -> List[IvySymbol]:
     """Dispatch a single declaration to the appropriate handler.
 
     Returns a (possibly empty) list of flat ``IvySymbol`` instances.
@@ -198,9 +194,7 @@ def _convert_decl(
     if isinstance(decl, ia.DestructorDecl):
         return _convert_constant(decl, filename, source, SymbolKind.Field)
     if isinstance(decl, ia.ConstructorDecl):
-        return _convert_constant(
-            decl, filename, source, SymbolKind.EnumMember
-        )
+        return _convert_constant(decl, filename, source, SymbolKind.EnumMember)
     if isinstance(decl, ia.ConstantDecl):
         return _convert_constant_or_relation(decl, filename, source)
     if isinstance(decl, ia.InstantiateDecl):
@@ -220,9 +214,7 @@ def _convert_decl(
 # ---------------------------------------------------------------------------
 
 
-def _convert_type(
-    decl: Any, filename: str, source: str
-) -> List[IvySymbol]:
+def _convert_type(decl: Any, filename: str, source: str) -> List[IvySymbol]:
     """Convert a TypeDecl to one IvySymbol (SymbolKind.Class).
 
     For enum types (``type sk = {a, b}``), includes a detail string
@@ -257,9 +249,7 @@ def _extract_enum_detail(decl: Any) -> Optional[str]:
         if len(type_def.args) >= 2:
             sort_part = type_def.args[1]
             if isinstance(sort_part, ia.EnumeratedSort):
-                variant_names = [
-                    getattr(a, "relname", str(a)) for a in sort_part.args
-                ]
+                variant_names = [getattr(a, "relname", str(a)) for a in sort_part.args]
                 return "enum: " + ", ".join(variant_names)
     except (IndexError, AttributeError):
         logger.debug("Could not extract enum detail from %s", type(decl).__name__)
@@ -271,9 +261,7 @@ def _extract_enum_detail(decl: Any) -> Optional[str]:
 # ---------------------------------------------------------------------------
 
 
-def _convert_object(
-    decl: Any, filename: str, source: str
-) -> List[IvySymbol]:
+def _convert_object(decl: Any, filename: str, source: str) -> List[IvySymbol]:
     """Convert an ObjectDecl to SymbolKind.Module."""
     defs = decl.defines()
     if not defs:
@@ -309,9 +297,7 @@ def _convert_object(
 # ---------------------------------------------------------------------------
 
 
-def _convert_action(
-    decl: Any, filename: str, source: str
-) -> List[IvySymbol]:
+def _convert_action(decl: Any, filename: str, source: str) -> List[IvySymbol]:
     """Convert an ActionDecl to SymbolKind.Function with param/return detail."""
     defs = decl.defines()
     if not defs:
@@ -441,9 +427,7 @@ def _convert_constant(
 # ---------------------------------------------------------------------------
 
 
-def _convert_alias(
-    decl: Any, filename: str, source: str
-) -> List[IvySymbol]:
+def _convert_alias(decl: Any, filename: str, source: str) -> List[IvySymbol]:
     """Convert an AliasDecl to SymbolKind.Variable."""
     defs = decl.defines()
     if not defs:
@@ -468,9 +452,7 @@ def _convert_alias(
 # ---------------------------------------------------------------------------
 
 
-def _convert_isolate(
-    decl: Any, filename: str, source: str
-) -> List[IvySymbol]:
+def _convert_isolate(decl: Any, filename: str, source: str) -> List[IvySymbol]:
     """Convert an IsolateDecl to SymbolKind.Namespace."""
     defs = decl.defines()
     if not defs:
@@ -495,9 +477,7 @@ def _convert_isolate(
 # ---------------------------------------------------------------------------
 
 
-def _convert_module(
-    decl: Any, filename: str, source: str
-) -> List[IvySymbol]:
+def _convert_module(decl: Any, filename: str, source: str) -> List[IvySymbol]:
     """Convert a ModuleDecl to SymbolKind.Module."""
     defs = decl.defines()
     if not defs:
@@ -552,9 +532,7 @@ def _convert_labeled(
 # ---------------------------------------------------------------------------
 
 
-def _convert_definition(
-    decl: Any, filename: str, source: str
-) -> List[IvySymbol]:
+def _convert_definition(decl: Any, filename: str, source: str) -> List[IvySymbol]:
     """Convert a DefinitionDecl to SymbolKind.Function."""
     defs = decl.defines()
     if not defs:
@@ -579,9 +557,7 @@ def _convert_definition(
 # ---------------------------------------------------------------------------
 
 
-def _convert_instantiate(
-    decl: Any, filename: str, source: str
-) -> List[IvySymbol]:
+def _convert_instantiate(decl: Any, filename: str, source: str) -> List[IvySymbol]:
     """Convert an InstantiateDecl to SymbolKind.Variable."""
     defs = decl.defines()
     if not defs:
@@ -606,9 +582,7 @@ def _convert_instantiate(
 # ---------------------------------------------------------------------------
 
 
-def _loc_to_tuple(
-    loc: Any, source: str
-) -> Tuple[int, int, int, int]:
+def _loc_to_tuple(loc: Any, source: str) -> Tuple[int, int, int, int]:
     """Convert an Ivy location to a 0-based 4-int tuple.
 
     Uses :func:`ivy_location_to_range` to handle the 1-based to 0-based

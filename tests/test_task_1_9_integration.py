@@ -116,9 +116,7 @@ object bit = {
         sym = _find_symbol(symbols, "bit", SymbolKind.Module)
         assert sym is not None, "Expected Module symbol 'bit'"
         child_names = [c.name for c in sym.children]
-        assert "zero" in child_names, (
-            f"Expected 'zero' in children, got {child_names}"
-        )
+        assert "zero" in child_names, f"Expected 'zero' in children, got {child_names}"
 
 
 class TestSnippetAction:
@@ -266,9 +264,9 @@ class TestQuicTypesFullPipeline:
         flat = flatten_symbols(symbols)
         results = search_symbols(flat, "cid")
         found_names = [r.qualified_name for r in results]
-        assert any("cid" in n for n in found_names), (
-            f"search('cid') should find 'cid', got: {found_names}"
-        )
+        assert any(
+            "cid" in n for n in found_names
+        ), f"search('cid') should find 'cid', got: {found_names}"
 
 
 # ---------------------------------------------------------------------------
@@ -362,9 +360,7 @@ class TestCorpusParsing:
             total,
         )
 
-        assert len(failures) == 0, (
-            f"Crashes during corpus parsing: {failures}"
-        )
+        assert len(failures) == 0, f"Crashes during corpus parsing: {failures}"
 
     def test_at_least_one_file_parses_fully(self):
         """Sanity check: at least one .ivy file should parse without errors."""
@@ -380,9 +376,9 @@ class TestCorpusParsing:
                     any_success = True
                     break
 
-        assert any_success, (
-            "At least one .ivy file should parse fully and produce symbols"
-        )
+        assert (
+            any_success
+        ), "At least one .ivy file should parse fully and produce symbols"
 
     def test_zero_crashes_across_corpus(self):
         """Redundant crash-safety check: iterate all files, no exceptions."""
@@ -401,9 +397,7 @@ class TestCorpusParsing:
             except Exception:
                 crash_count += 1
 
-        assert crash_count == 0, (
-            f"Expected zero crashes, got {crash_count}"
-        )
+        assert crash_count == 0, f"Expected zero crashes, got {crash_count}"
 
     def test_corpus_symbol_counts(self):
         """Log symbol counts per file for diagnostic purposes."""

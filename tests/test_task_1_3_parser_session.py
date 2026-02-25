@@ -136,9 +136,7 @@ class TestIvyParserWrapper:
         from ivy_lsp.parsing.parser_session import IvyParserWrapper
 
         wrapper = IvyParserWrapper()
-        result = wrapper.parse(
-            "#lang ivy1.7\n\nthis is not valid !!!\n", "bad.ivy"
-        )
+        result = wrapper.parse("#lang ivy1.7\n\nthis is not valid !!!\n", "bad.ivy")
         assert result.success is False
         assert result.ast is None or len(result.errors) > 0
 

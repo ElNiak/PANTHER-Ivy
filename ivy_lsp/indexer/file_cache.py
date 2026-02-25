@@ -79,9 +79,7 @@ class FileCache:
         """Remove *filepath* from the cache. No error if absent."""
         self._cache.pop(filepath, None)
 
-    def invalidate_dependents(
-        self, filepath: str, include_graph: Any
-    ) -> None:
+    def invalidate_dependents(self, filepath: str, include_graph: Any) -> None:
         """Invalidate all files that directly include *filepath*.
 
         Uses ``include_graph.get_included_by(filepath)`` to discover

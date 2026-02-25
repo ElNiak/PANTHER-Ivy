@@ -83,9 +83,7 @@ def register(server) -> None:
             return None
         lines = doc.source.split("\n") if doc.source else []
         filepath = uri.replace("file://", "")
-        include_decl = (
-            params.context.include_declaration if params.context else True
-        )
+        include_decl = params.context.include_declaration if params.context else True
         return find_references(
             server._indexer,
             filepath,

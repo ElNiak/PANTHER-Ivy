@@ -14,6 +14,7 @@ if str(IVY_ROOT) not in sys.path:
 class TestReferencesImport:
     def test_import(self):
         from ivy_lsp.features.references import find_references
+
         assert find_references is not None
 
 
@@ -42,7 +43,9 @@ class TestFindReferences:
         from ivy_lsp.parsing.parser_session import IvyParserWrapper
 
         (tmp_path / "types.ivy").write_text("#lang ivy1.7\ntype cid\n")
-        (tmp_path / "user.ivy").write_text("#lang ivy1.7\ninclude types\nrelation r(X:cid)\n")
+        (tmp_path / "user.ivy").write_text(
+            "#lang ivy1.7\ninclude types\nrelation r(X:cid)\n"
+        )
         parser = IvyParserWrapper()
         resolver = IncludeResolver(str(tmp_path))
         indexer = WorkspaceIndexer(str(tmp_path), parser, resolver)

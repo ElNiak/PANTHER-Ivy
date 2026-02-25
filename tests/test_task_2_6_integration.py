@@ -15,7 +15,6 @@ QUIC_STACK_DIR = IVY_ROOT / "protocol-testing" / "quic" / "quic_stack"
 
 
 class TestPhase2FullPipeline:
-
     @pytest.fixture
     def quic_indexer(self):
         if not QUIC_STACK_DIR.exists():
@@ -76,9 +75,7 @@ class TestPhase2FullPipeline:
             if "cid" in line and not line.strip().startswith("#"):
                 col = line.index("cid")
                 pos = Position(line=i, character=col + 1)
-                result = goto_definition(
-                    quic_indexer, str(frame_file), pos, lines
-                )
+                result = goto_definition(quic_indexer, str(frame_file), pos, lines)
                 if result is not None:
                     break
 

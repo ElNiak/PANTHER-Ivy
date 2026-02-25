@@ -138,9 +138,7 @@ def _read_dotted_name(tokens: list, start: int) -> Tuple[Optional[str], int]:
 # ---------------------------------------------------------------------------
 
 
-def fallback_scan(
-    source: str, filename: str = "<string>"
-) -> List[IvySymbol]:
+def fallback_scan(source: str, filename: str = "<string>") -> List[IvySymbol]:
     """Extract symbol declarations from Ivy source using lexer tokens only.
 
     Parameters
@@ -162,7 +160,11 @@ def fallback_scan(
     try:
         tokens = _tokenize(source)
     except Exception:
-        logger.warning("Lexer failed entirely for %s, returning empty symbol list", filename, exc_info=True)
+        logger.warning(
+            "Lexer failed entirely for %s, returning empty symbol list",
+            filename,
+            exc_info=True,
+        )
         return []
 
     if not tokens:
@@ -245,8 +247,7 @@ def fallback_scan(
                 # ``type this`` is a common pattern where ``this`` is a
                 # reserved keyword tokenised as THIS).
                 if i + 1 < len(tokens) and (
-                    tokens[i + 1].type == "PRESYMBOL"
-                    or tokens[i + 1].type == "THIS"
+                    tokens[i + 1].type == "PRESYMBOL" or tokens[i + 1].type == "THIS"
                 ):
                     name = tokens[i + 1].value
                     i += 2

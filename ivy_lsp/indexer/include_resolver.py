@@ -23,9 +23,7 @@ class IncludeResolver:
         self._workspace_root = os.path.abspath(workspace_root)
         self._ivy_include_path = ivy_include_path
 
-    def resolve(
-        self, include_name: str, from_file: str
-    ) -> Optional[str]:
+    def resolve(self, include_name: str, from_file: str) -> Optional[str]:
         """Resolve an include name to an absolute file path.
 
         Args:

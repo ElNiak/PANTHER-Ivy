@@ -3,7 +3,6 @@
 import pytest
 from lsprotocol.types import Position, Range
 
-
 # ---------------------------------------------------------------------------
 # Mock for Ivy location objects (avoids importing Ivy itself)
 # ---------------------------------------------------------------------------

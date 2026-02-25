@@ -10,7 +10,7 @@ from typing import Any, List, Tuple
 
 from ivy_lsp.indexer.file_cache import FileCache
 from ivy_lsp.indexer.include_resolver import IncludeResolver
-from ivy_lsp.parsing.symbols import IvySymbol, IncludeGraph, SymbolTable
+from ivy_lsp.parsing.symbols import IncludeGraph, IvySymbol, SymbolTable
 
 logger = logging.getLogger(__name__)
 
@@ -163,7 +163,5 @@ class WorkspaceIndexer:
         own_symbols = list(self._symbol_table.symbols_in_file(abs_path))
         transitive = self._include_graph.get_transitive_includes(abs_path)
         for included_file in transitive:
-            own_symbols.extend(
-                self._symbol_table.symbols_in_file(included_file)
-            )
+            own_symbols.extend(self._symbol_table.symbols_in_file(included_file))
         return own_symbols

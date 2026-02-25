@@ -24,7 +24,6 @@ from ivy_lsp.parsing.ast_to_symbols import ast_to_symbols
 from ivy_lsp.parsing.parser_session import IvyParserWrapper
 from ivy_lsp.parsing.symbols import IvySymbol
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -91,13 +90,9 @@ object bit = {
                 bit_ds = ds
                 break
         assert bit_ds is not None, "Expected DocumentSymbol 'bit'"
-        assert bit_ds.children is not None, (
-            "DocumentSymbol 'bit' should have children"
-        )
+        assert bit_ds.children is not None, "DocumentSymbol 'bit' should have children"
         child_names = [c.name for c in bit_ds.children]
-        assert "zero" in child_names, (
-            f"Expected 'zero' in children, got {child_names}"
-        )
+        assert "zero" in child_names, f"Expected 'zero' in children, got {child_names}"
 
     def test_document_symbol_kinds_match_ivy_symbols(self):
         """DocumentSymbol kinds should match the underlying IvySymbol kinds."""
@@ -151,9 +146,9 @@ type pkt_num
         flat = flatten_symbols(symbols)
         results = search_symbols(flat, "cid")
         found_names = [r.qualified_name for r in results]
-        assert "cid" in found_names, (
-            f"Expected 'cid' in search results, got: {found_names}"
-        )
+        assert (
+            "cid" in found_names
+        ), f"Expected 'cid' in search results, got: {found_names}"
 
     def test_empty_query_returns_all(self):
         """Workspace search with empty query returns all symbols."""
@@ -168,8 +163,7 @@ alias aid = cid
         flat = flatten_symbols(symbols)
         results = search_symbols(flat, "")
         assert len(results) == len(flat), (
-            f"Empty query should return all {len(flat)} symbols, "
-            f"got {len(results)}"
+            f"Empty query should return all {len(flat)} symbols, " f"got {len(results)}"
         )
 
     def test_workspace_symbol_conversion(self):
@@ -203,9 +197,9 @@ object frame = {
         qnames = [f.qualified_name for f in flat]
         # Should have 'frame' and 'frame.ack' at minimum
         assert "frame" in qnames, f"Expected 'frame' in {qnames}"
-        assert any("frame.ack" in qn for qn in qnames), (
-            f"Expected 'frame.ack' in qualified names, got: {qnames}"
-        )
+        assert any(
+            "frame.ack" in qn for qn in qnames
+        ), f"Expected 'frame.ack' in qualified names, got: {qnames}"
 
 
 # ---------------------------------------------------------------------------
@@ -216,34 +210,26 @@ object frame = {
 class TestQuicTypesServerPipeline:
     """Full pipeline: parse quic_types.ivy -> symbols -> LSP responses."""
 
-    def test_document_symbols_from_real_file(
-        self, quic_types_source, quic_types_path
-    ):
+    def test_document_symbols_from_real_file(self, quic_types_source, quic_types_path):
         """Parse quic_types.ivy -> DocumentSymbol list, verify non-empty."""
-        symbols = _parse_to_symbols(
-            quic_types_source, str(quic_types_path)
-        )
+        symbols = _parse_to_symbols(quic_types_source, str(quic_types_path))
         doc_syms = get_document_symbols(symbols)
-        assert len(doc_syms) > 0, (
-            "Expected non-empty DocumentSymbol list from quic_types.ivy"
-        )
+        assert (
+            len(doc_syms) > 0
+        ), "Expected non-empty DocumentSymbol list from quic_types.ivy"
         # Verify all have names
         for ds in doc_syms:
             assert ds.name, f"DocumentSymbol has empty name: {ds}"
 
-    def test_workspace_search_from_real_file(
-        self, quic_types_source, quic_types_path
-    ):
+    def test_workspace_search_from_real_file(self, quic_types_source, quic_types_path):
         """Parse quic_types.ivy -> flatten -> search produces results."""
-        symbols = _parse_to_symbols(
-            quic_types_source, str(quic_types_path)
-        )
+        symbols = _parse_to_symbols(quic_types_source, str(quic_types_path))
         flat = flatten_symbols(symbols)
         assert len(flat) > 0, "Expected non-empty flat symbol list"
 
         # Search for 'bit' should find at least the 'bit' object
         results = search_symbols(flat, "bit")
         found_names = [r.qualified_name for r in results]
-        assert any("bit" in n for n in found_names), (
-            f"search('bit') should find 'bit', got: {found_names}"
-        )
+        assert any(
+            "bit" in n for n in found_names
+        ), f"search('bit') should find 'bit', got: {found_names}"

@@ -16,6 +16,7 @@ QUIC_STACK_DIR = IVY_ROOT / "protocol-testing" / "quic" / "quic_stack"
 class TestWorkspaceIndexerImport:
     def test_import(self):
         from ivy_lsp.indexer.workspace_indexer import SymbolLocation, WorkspaceIndexer
+
         assert WorkspaceIndexer is not None
         assert SymbolLocation is not None
 
@@ -68,7 +69,9 @@ class TestLookupSymbol:
         from ivy_lsp.parsing.parser_session import IvyParserWrapper
 
         (tmp_path / "types.ivy").write_text("#lang ivy1.7\ntype cid\n")
-        (tmp_path / "frame.ivy").write_text("#lang ivy1.7\ninclude types\ntype frame_type\n")
+        (tmp_path / "frame.ivy").write_text(
+            "#lang ivy1.7\ninclude types\ntype frame_type\n"
+        )
         parser = IvyParserWrapper()
         resolver = IncludeResolver(str(tmp_path))
         indexer = WorkspaceIndexer(str(tmp_path), parser, resolver)
@@ -145,5 +148,7 @@ class TestWorkspaceIndexerQuicStack:
         results = indexer.lookup_symbol("cid")
         assert len(results) >= 1
 
-        frame_scope = indexer.get_symbols_in_scope(str(QUIC_STACK_DIR / "quic_frame.ivy"))
+        frame_scope = indexer.get_symbols_in_scope(
+            str(QUIC_STACK_DIR / "quic_frame.ivy")
+        )
         assert len(frame_scope) > 5

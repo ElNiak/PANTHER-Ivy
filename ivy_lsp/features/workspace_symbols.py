@@ -37,9 +37,7 @@ class FlatSymbol:
     range: tuple  # (sl, sc, el, ec)
 
 
-def flatten_symbols(
-    symbols: List[IvySymbol], prefix: str = ""
-) -> List[FlatSymbol]:
+def flatten_symbols(symbols: List[IvySymbol], prefix: str = "") -> List[FlatSymbol]:
     """Recursively flatten IvySymbol trees into qualified-name list.
 
     Each symbol becomes a :class:`FlatSymbol` whose ``qualified_name`` is
