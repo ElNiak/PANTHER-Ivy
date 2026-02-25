@@ -22,8 +22,11 @@ class IvyLanguageServer(LanguageServer):
         self._parser = None
 
         from ivy_lsp.features import (
+            completion,
             definition,
+            diagnostics,
             document_symbols,
+            hover,
             references,
             workspace_symbols,
         )
@@ -32,6 +35,9 @@ class IvyLanguageServer(LanguageServer):
         workspace_symbols.register(self)
         definition.register(self)
         references.register(self)
+        hover.register(self)
+        completion.register(self)
+        diagnostics.register(self)
 
     def initialized(self, params):
         """Handle the initialized notification."""
