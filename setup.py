@@ -34,7 +34,15 @@ setup(
     author="IVy team",
     author_email="nomail@example.com",
     license="MIT",
-    packages=find_packages(),
+    packages=find_packages(exclude=["tests", "tests.*"])
+    + [
+        "ivy_lsp",
+        "ivy_lsp.features",
+        "ivy_lsp.indexer",
+        "ivy_lsp.parsing",
+        "ivy_lsp.utils",
+    ],
+    package_dir={"ivy_lsp": "ivy_lsp/ivy_lsp"},
     package_data=(
         {
             "ivy": [

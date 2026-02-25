@@ -1,7 +1,8 @@
 # Pre-commit configuration for panther_ivy submodule
 #
 # Three-tier approach:
-#   Tier 1 - Plugin code (root .py, ivy_lsp/, tests/): Full formatting + linting
+#   Tier 1 - Plugin code (root .py files): Full formatting + linting
+#            (ivy_lsp/ and tests/ are now in the ivy-lsp submodule with their own hooks)
 #   Tier 2 - Upstream ivy/ code: Hygiene only (whitespace, merge conflicts)
 #   Tier 3 - Everything else (.ivy, templates, YAML, C++): Hygiene only
 #
@@ -33,14 +34,14 @@ repos:
     rev: 23.3.0
     hooks:
       - id: black
-        files: ^([^/]+|ivy_lsp/.+|tests/.+)\.py$
+        files: ^[^/]+\.py$
         args: ['--target-version', 'py310']
 
   - repo: https://github.com/pycqa/isort
     rev: 5.12.0
     hooks:
       - id: isort
-        files: ^([^/]+|ivy_lsp/.+|tests/.+)\.py$
+        files: ^[^/]+\.py$
         args: ['--profile', 'black']
 
   # === Tier 1: Plugin code linting (manual stage) ===
@@ -48,7 +49,7 @@ repos:
     rev: 6.0.0
     hooks:
       - id: flake8
-        files: ^([^/]+|ivy_lsp/.+|tests/.+)\.py$
+        files: ^[^/]+\.py$
         args: ['--max-line-length=88', '--extend-ignore=E203,W503']
         stages: [manual]
 
@@ -56,7 +57,7 @@ repos:
     rev: 1.7.5
     hooks:
       - id: bandit
-        files: ^([^/]+|ivy_lsp/.+|tests/.+)\.py$
+        files: ^[^/]+\.py$
         args: ['-ll', '-i']
         additional_dependencies: ['pbr']
         stages: [manual]
@@ -68,7 +69,7 @@ repos:
         name: Plugin Syntax Check
         entry: python -m py_compile
         language: system
-        files: ^([^/]+|ivy_lsp/.+|tests/.+)\.py$
+        files: ^[^/]+\.py$
         types: [python]
 
       - id: dockerfile-lint
