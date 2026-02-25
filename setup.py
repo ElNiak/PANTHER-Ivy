@@ -34,15 +34,7 @@ setup(
     author="IVy team",
     author_email="nomail@example.com",
     license="MIT",
-    packages=find_packages(exclude=["tests", "tests.*"])
-    + [
-        "ivy_lsp",
-        "ivy_lsp.features",
-        "ivy_lsp.indexer",
-        "ivy_lsp.parsing",
-        "ivy_lsp.utils",
-    ],
-    package_dir={"ivy_lsp": "ivy_lsp/ivy_lsp"},
+    packages=find_packages(exclude=["tests", "tests.*", "ivy_lsp", "ivy_lsp.*"]),
     package_data=(
         {
             "ivy": [
@@ -95,7 +87,7 @@ setup(
     + (["applescript"] if platform.system() == "Darwin" else []),
     extras_require={
         "z3": ["z3-solver==4.13.4.0"],
-        "lsp": ["pygls>=1.0", "lsprotocol"],
+        "lsp": ["ivy-lsp @ git+https://github.com/ElNiak/ivy-lsp.git"],
     },
     entry_points={
         "console_scripts": [
@@ -109,7 +101,6 @@ setup(
             "ivy_libs=ivy.ivy_libs:main",
             "ivy_shell=ivy.ivy_shell:main",
             "ivy_launch=ivy.ivy_launch:main",
-            "ivy_lsp=ivy_lsp.__main__:main",
         ],
     },
     zip_safe=False,
