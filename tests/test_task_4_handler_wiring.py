@@ -92,3 +92,75 @@ class TestDocumentSymbolsWiring:
         result = compute_document_symbols(parser, None, source, "test.ivy")
         for sym in result:
             assert isinstance(sym, lsp.DocumentSymbol)
+
+
+def _build_indexer(tmp_path, files: dict):
+    """Helper: create .ivy files and build an indexer."""
+    from ivy_lsp.indexer.include_resolver import IncludeResolver
+    from ivy_lsp.indexer.workspace_indexer import WorkspaceIndexer
+    from ivy_lsp.parsing.parser_session import IvyParserWrapper
+
+    for name, content in files.items():
+        (tmp_path / name).write_text(content)
+    parser = IvyParserWrapper()
+    resolver = IncludeResolver(str(tmp_path))
+    indexer = WorkspaceIndexer(str(tmp_path), parser, resolver)
+    indexer.index_workspace()
+    return indexer, parser
+
+
+class TestWorkspaceSymbolsWiring:
+    """Verify compute_workspace_symbols returns symbols from the indexer."""
+
+    def test_empty_query_returns_all_symbols(self, tmp_path):
+        from ivy_lsp.features.workspace_symbols import compute_workspace_symbols
+
+        indexer, _ = _build_indexer(
+            tmp_path, {"a.ivy": "#lang ivy1.7\ntype cid\ntype pkt_num\n"}
+        )
+        result = compute_workspace_symbols(indexer, "")
+        assert len(result) > 0
+
+    def test_filtered_query_returns_matches(self, tmp_path):
+        from ivy_lsp.features.workspace_symbols import compute_workspace_symbols
+
+        indexer, _ = _build_indexer(
+            tmp_path, {"a.ivy": "#lang ivy1.7\ntype cid\ntype pkt_num\n"}
+        )
+        result = compute_workspace_symbols(indexer, "cid")
+        names = [s.name for s in result]
+        assert any("cid" in n for n in names)
+
+    def test_no_indexer_returns_empty(self):
+        from ivy_lsp.features.workspace_symbols import compute_workspace_symbols
+
+        result = compute_workspace_symbols(None, "cid")
+        assert result == []
+
+    def test_returns_workspace_symbol_type(self, tmp_path):
+        from ivy_lsp.features.workspace_symbols import compute_workspace_symbols
+
+        indexer, _ = _build_indexer(tmp_path, {"a.ivy": "#lang ivy1.7\ntype cid\n"})
+        result = compute_workspace_symbols(indexer, "")
+        for sym in result:
+            assert isinstance(sym, lsp.WorkspaceSymbol)
+
+    def test_symbols_have_file_uri(self, tmp_path):
+        from ivy_lsp.features.workspace_symbols import compute_workspace_symbols
+
+        indexer, _ = _build_indexer(tmp_path, {"a.ivy": "#lang ivy1.7\ntype cid\n"})
+        result = compute_workspace_symbols(indexer, "cid")
+        assert len(result) > 0
+        assert result[0].location.uri.startswith("file://")
+
+    def test_respects_max_results(self, tmp_path):
+        from ivy_lsp.features.workspace_symbols import (
+            MAX_RESULTS,
+            compute_workspace_symbols,
+        )
+
+        # Create many types to exceed MAX_RESULTS
+        types = "\n".join(f"type t{i}" for i in range(150))
+        indexer, _ = _build_indexer(tmp_path, {"a.ivy": f"#lang ivy1.7\n{types}\n"})
+        result = compute_workspace_symbols(indexer, "")
+        assert len(result) <= MAX_RESULTS
