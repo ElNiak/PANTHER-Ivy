@@ -59,7 +59,7 @@ Task 1 (manifest)
 
 ## Task 1: Repository Setup & Manifest
 
-- **Status**: todo
+- **Status**: done
 - **Dependencies**: None (foundation task)
 - **Estimated effort**: 1 hour
 - **Files to create**:
@@ -90,7 +90,7 @@ Task 1 (manifest)
 
 ## Task 2: NCT Guide Agent
 
-- **Status**: todo
+- **Status**: done
 - **Dependencies**: Task 7 (nct-methodology skill), Task 10 (14-layer-template skill), Task 13 (panther-serena-for-ivy skill)
 - **Estimated effort**: 4 hours
 - **Files to create**: `panther-ivy-serena/agents/nct-guide.md`
@@ -138,7 +138,7 @@ Task 1 (manifest)
 
 ## Task 3: NACT Guide Agent
 
-- **Status**: todo
+- **Status**: done
 - **Dependencies**: Task 8 (nact-methodology skill), Task 13 (panther-serena-for-ivy skill)
 - **Estimated effort**: 4 hours
 - **Files to create**: `panther-ivy-serena/agents/nact-guide.md`
@@ -182,7 +182,7 @@ Task 1 (manifest)
 
 ## Task 4: NSCT Guide Agent
 
-- **Status**: todo
+- **Status**: done
 - **Dependencies**: Task 9 (nsct-methodology skill), Task 13 (panther-serena-for-ivy skill)
 - **Estimated effort**: 3 hours
 - **Files to create**: `panther-ivy-serena/agents/nsct-guide.md`
@@ -217,7 +217,7 @@ Task 1 (manifest)
 
 ## Task 5: Spec Verifier Agent
 
-- **Status**: todo
+- **Status**: done
 - **Dependencies**: Task 13 (panther-serena-for-ivy skill)
 - **Estimated effort**: 4 hours
 - **Files to create**: `panther-ivy-serena/agents/spec-verifier.md`
@@ -255,7 +255,7 @@ Task 1 (manifest)
 
 ## Task 6: Spec Explorer Agent
 
-- **Status**: todo
+- **Status**: done
 - **Dependencies**: Task 10 (14-layer-template skill), Task 13 (panther-serena-for-ivy skill)
 - **Estimated effort**: 3 hours
 - **Files to create**: `panther-ivy-serena/agents/spec-explorer.md`
@@ -302,7 +302,7 @@ Task 1 (manifest)
 
 ## Task 7: NCT Methodology Skill
 
-- **Status**: todo
+- **Status**: done
 - **Dependencies**: None (skills are foundational, no dependency on Task 1)
 - **Estimated effort**: 3 hours
 - **Files to create**: `panther-ivy-serena/skills/nct-methodology/SKILL.md`
@@ -344,7 +344,7 @@ Task 1 (manifest)
 
 ## Task 8: NACT Methodology Skill
 
-- **Status**: todo
+- **Status**: done
 - **Dependencies**: None (skills are foundational)
 - **Estimated effort**: 3 hours
 - **Files to create**: `panther-ivy-serena/skills/nact-methodology/SKILL.md`
@@ -390,7 +390,7 @@ Task 1 (manifest)
 
 ## Task 9: NSCT Methodology Skill
 
-- **Status**: todo
+- **Status**: done
 - **Dependencies**: None (skills are foundational)
 - **Estimated effort**: 2 hours
 - **Files to create**: `panther-ivy-serena/skills/nsct-methodology/SKILL.md`
@@ -434,7 +434,7 @@ Task 1 (manifest)
 
 ## Task 10: 14-Layer Template Skill
 
-- **Status**: todo
+- **Status**: done
 - **Dependencies**: None (skills are foundational)
 - **Estimated effort**: 4 hours
 - **Files to create**: `panther-ivy-serena/skills/14-layer-template/SKILL.md`
@@ -513,7 +513,7 @@ Task 1 (manifest)
 
 ## Task 11: Writing Test Specs Skill
 
-- **Status**: todo
+- **Status**: done
 - **Dependencies**: None (skills are foundational)
 - **Estimated effort**: 3 hours
 - **Files to create**: `panther-ivy-serena/skills/writing-test-specs/SKILL.md`
@@ -577,7 +577,7 @@ Task 1 (manifest)
 
 ## Task 12: RFC-to-Ivy Mapping Skill
 
-- **Status**: todo
+- **Status**: done
 - **Dependencies**: None (skills are foundational)
 - **Estimated effort**: 3 hours
 - **Files to create**: `panther-ivy-serena/skills/rfc-to-ivy-mapping/SKILL.md`
@@ -627,7 +627,7 @@ Task 1 (manifest)
 
 ## Task 13: Panther-Serena for Ivy Skill
 
-- **Status**: todo
+- **Status**: done
 - **Dependencies**: None (skills are foundational)
 - **Estimated effort**: 3 hours
 - **Files to create**: `panther-ivy-serena/skills/panther-serena-for-ivy/SKILL.md`
@@ -700,7 +700,7 @@ Task 1 (manifest)
 
 ## Task 14: /nct-check Command
 
-- **Status**: todo
+- **Status**: done
 - **Dependencies**: Task 1 (manifest)
 - **Estimated effort**: 1 hour
 - **Files to create**: `panther-ivy-serena/commands/nct-check.md`
@@ -728,7 +728,7 @@ Task 1 (manifest)
 
 ## Task 15: /nct-compile Command
 
-- **Status**: todo
+- **Status**: done
 - **Dependencies**: Task 1 (manifest)
 - **Estimated effort**: 1 hour
 - **Files to create**: `panther-ivy-serena/commands/nct-compile.md`
@@ -757,7 +757,7 @@ Task 1 (manifest)
 
 ## Task 16: /nct-model-info Command
 
-- **Status**: todo
+- **Status**: done
 - **Dependencies**: Task 1 (manifest)
 - **Estimated effort**: 1 hour
 - **Files to create**: `panther-ivy-serena/commands/nct-model-info.md`
@@ -788,7 +788,7 @@ Task 1 (manifest)
 
 ## Task 17: /nct-new-protocol Command
 
-- **Status**: todo
+- **Status**: done
 - **Dependencies**: Task 1 (manifest), Task 10 (14-layer-template skill for template content)
 - **Estimated effort**: 3 hours
 - **Files to create**: `panther-ivy-serena/commands/nct-new-protocol.md`
@@ -838,7 +838,7 @@ Task 1 (manifest)
 
 ## Task 18: /nct-new-test Command
 
-- **Status**: todo
+- **Status**: done
 - **Dependencies**: Task 1 (manifest), Task 11 (writing-test-specs skill for template content)
 - **Estimated effort**: 2 hours
 - **Files to create**: `panther-ivy-serena/commands/nct-new-test.md`
@@ -905,7 +905,7 @@ Task 1 (manifest)
 
 ## Task 19: Hooks -- Enforce Serena Usage
 
-- **Status**: todo
+- **Status**: done
 - **Dependencies**: Task 1 (manifest)
 - **Estimated effort**: 2 hours
 - **Files to create**:
@@ -993,7 +993,7 @@ Task 1 (manifest)
 
 ## Task 20: Documentation
 
-- **Status**: in-progress (this document is part of Task 20)
+- **Status**: done
 - **Dependencies**: None (can be done first or last; updates as implementation progresses)
 - **Estimated effort**: 4 hours total across all documents
 - **Files to create/update**:
