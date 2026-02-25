@@ -1,3 +1,5 @@
+import os
+
 from setuptools import setup
 from setuptools.dist import Distribution
 
@@ -9,4 +11,8 @@ class BinaryDistribution(Distribution):
         return True
 
 
-setup(distclass=BinaryDistribution)
+kwargs = {}
+if not os.environ.get("PURE_PYTHON_BUILD"):
+    kwargs["distclass"] = BinaryDistribution
+
+setup(**kwargs)
