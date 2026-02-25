@@ -22,6 +22,7 @@
   - `ivy_lsp/indexer/__init__.py`
   - `ivy_lsp/features/__init__.py`
   - `ivy_lsp/utils/__init__.py`
+- **Code style note**: All `ivy_lsp/*.py` files must follow pre-commit Tier 1 rules defined in `.pre-commit-config.yaml`: Black formatting (`--target-version py310`), isort imports (`--profile black`), line length 88. Run `pre-commit run --all-files` to verify.
 - **Acceptance criteria**:
   - `python -m ivy_lsp` starts a server that accepts LSP initialization over stdio
   - Server responds to `initialize` with capabilities (document symbols, definition, references, completion, diagnostics)
@@ -64,6 +65,8 @@
     - Catches all exceptions (including `ErrorList`, `IvyError`, unexpected exceptions)
     - Returns partial results when possible
   - Import path handling: ensure `ivy` package is importable from `ivy_lsp/`
+  - **Production note**: Z3 imports now route through `ivy/z3_shim.py`, a compatibility shim that wraps `z3` / `z3_api`. The shim is read-only (no mutable state to save/restore), but the import path must be accessible. Ensure `ivy.z3_shim` is importable when configuring the `ivy` package path.
+  - **Production note**: `ivy_parser.py` now includes an `UNPROVABLE` reserved word and grammar rules (`p_optunprovable`, `p_top_unprovable_property_labeledfmla`, etc.). The `check_unprovable` context var from `ivy_actions` is imported at line 6. These add parser globals to be aware of but do **not** require state save/restore (they are grammar rules, not mutable globals). Line number references for globals above are verified accurate on production.
 - **Acceptance criteria**:
   - Can parse a valid `.ivy` file and get back an `Ivy` AST object
   - Global state is fully restored after parsing (even on exception)
@@ -83,7 +86,7 @@
     - `ActionDecl` -> `SymbolKind.Function` (extract params, return type from AST)
     - `RelationDecl` -> `SymbolKind.Function`
     - `FunctionDecl` -> `SymbolKind.Function` (extract return type)
-    - `PropertyDecl` -> `SymbolKind.Property`
+    - `PropertyDecl` -> `SymbolKind.Property` (note: may have `lf.unprovable=True` attribute; reflect in `detail` string, e.g., `"unprovable property name"`)
     - `AxiomDecl` -> `SymbolKind.Property`
     - `IsolateDecl` -> `SymbolKind.Namespace`
     - `InstanceDecl` (InstantiateDecl) -> `SymbolKind.Variable`
@@ -124,6 +127,7 @@
     EXPORT [ACTION] PRESYMBOL -> ExportDirective
     IMPORT [ACTION] PRESYMBOL -> ImportDirective
     PROPERTY/AXIOM/CONJECTURE -> PropertySymbol
+    UNPROVABLE PROPERTY/INVARIANT -> PropertySymbol (with unprovable flag)
     BEFORE/AFTER/AROUND PRESYMBOL -> MixinSymbol
     VARIANT PRESYMBOL OF PRESYMBOL -> VariantSymbol
     INSTANTIATE PRESYMBOL COLON PRESYMBOL -> InstanceSymbol
@@ -136,6 +140,8 @@
     IMPLEMENTATION LCB        -> Block scope
     ```
   - Track brace depth (`LCB`/`RCB`) for scope nesting
+  - Recognize `GLOBALLY` (U+25A1) and `EVENTUALLY` (U+25C7) as Unicode temporal operator tokens (defined in `ivy_lexer.py` via `t_GLOBALLY`/`t_EVENTUALLY` functions)
+  - Note: lexer uses `re.UNICODE | re.VERBOSE` flags (line 251 of `ivy_lexer.py`)
   - Produce hierarchical symbols respecting object/module nesting
 - **Acceptance criteria**:
   - Can produce partial symbols from files with syntax errors
@@ -299,7 +305,7 @@
   - Test include resolution for all files in `quic_stack/`
   - Test go-to-definition across include boundaries
   - Test find references across the workspace
-  - Test workspace indexer performance on full `protocol-testing/` (667 files)
+  - Test workspace indexer performance on full `protocol-testing/` (667+ files, see Task 4.4 for full counts)
   - Test cache invalidation on file changes
 - **Acceptance criteria**:
   - All `include` directives in `quic_stack/` resolve correctly
@@ -323,7 +329,8 @@
     2. **After `include `**: List available `.ivy` filenames in workspace + standard library
     3. **After keywords** (`type`, `action`, `object`, etc.): Suggest common patterns
     4. **General**: All symbols in scope (from current file + transitive includes)
-       - Keywords from `ivy_lexer.py` `all_reserved` dict
+       - Keywords from `ivy_lexer.py` `all_reserved` dict (includes `unprovable`, `globally`, `eventually` on production)
+       - Add `unprovable` to keyword completions for property-related contexts (e.g., after typing in a property/invariant block)
        - All defined symbols visible through include chain
   - `CompletionItem` with:
     - `label`: symbol name
@@ -436,16 +443,17 @@
   - Serena processes `.ivy` files in the PANTHER workspace
 
 ### Task 4.3: Package ivy_lsp
-- [ ] **Add ivy_lsp to setup.py / pyproject.toml**
+- [ ] **Add ivy_lsp to setup.py**
 - **Effort**: 1 hour
 - **Dependencies**: Phase 3 complete
 - **Details**:
-  - Add `ivy_lsp` as a console script entry point (or ensure `python -m ivy_lsp` works)
-  - Add `pygls` and `lsprotocol` to dependencies
+  - Package is now `panther_ms_ivy` v1.8.26 (renamed from `ms_ivy` v1.8.25 during VMT-RF integration). Update `setup.py` (line 28: `name="panther_ms_ivy"`, line 30: `version="1.8.26"`).
+  - Add `"lsp": ["pygls", "lsprotocol"]` to `extras_require` in `setup.py`
+  - Add entry point: `ivy_lsp=ivy_lsp.__main__:main` in `console_scripts`
   - Ensure `ivy_lsp` can locate the `ivy` package (parent directory or installed)
-  - Test installation: `pip install -e .` and verify `python -m ivy_lsp` starts
+  - Test installation: `pip install -e ".[lsp]"` and verify `python -m ivy_lsp` starts
 - **Acceptance criteria**:
-  - `pip install -e .` installs ivy_lsp with all dependencies
+  - `pip install -e ".[lsp]"` installs ivy_lsp with all dependencies
   - `python -m ivy_lsp` starts the language server
 
 ### Task 4.4: Corpus Testing
@@ -453,7 +461,7 @@
 - **Effort**: 4 hours
 - **Dependencies**: Phase 3 complete
 - **Details**:
-  - Parse all 667 `.ivy` files in `protocol-testing/`
+  - Parse all `.ivy` files in `protocol-testing/` (currently 667 files) and `doc/examples/cav2024/` (7 VMT-RF files added post-PR #9). Total corpus across the repo (excluding submodules): ~1430 `.ivy` files.
   - Measure: parse success rate, fallback rate, average parse time
   - Fix any parser crashes or edge cases discovered
   - Test include resolution across all files
