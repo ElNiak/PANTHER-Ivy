@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from lsprotocol import types as lsp
 
@@ -203,6 +203,7 @@ async def run_deep_diagnostics(
 def register(server) -> None:
     """Register diagnostic handlers for didOpen, didChange, didSave."""
     _debounce_tasks: Dict[str, asyncio.Task] = {}
+    _deep_tasks: Dict[str, asyncio.Task] = {}
 
     @server.feature(lsp.TEXT_DOCUMENT_DID_OPEN)
     def did_open(params: lsp.DidOpenTextDocumentParams) -> None:
@@ -238,14 +239,27 @@ def register(server) -> None:
         uri = params.text_document.uri
         filepath = uri.replace("file://", "")
         doc = server.workspace.get_text_document(uri)
-        diags = compute_diagnostics(
-            server._parser, doc.source or "", filepath, server._indexer
-        )
+        source = doc.source or ""
+
+        # Incremental re-index on save
+        indexer = getattr(server, "_indexer", None)
+        if indexer is not None:
+            try:
+                indexer.reindex_file(filepath)
+            except Exception:
+                logger.warning("Re-indexing failed for %s", filepath, exc_info=True)
+
+        diags = compute_diagnostics(server._parser, source, filepath, indexer)
         server.publish_diagnostics(uri, diags)
+
+        # Cancel any in-flight deep diagnostics for this URI
+        old_deep = _deep_tasks.pop(uri, None)
+        if old_deep and not old_deep.done():
+            old_deep.cancel()
 
         async def _deep():
             deep = await run_deep_diagnostics(filepath)
             server.publish_diagnostics(uri, diags + deep)
 
         loop = asyncio.get_event_loop()
-        loop.create_task(_deep())
+        _deep_tasks[uri] = loop.create_task(_deep())
