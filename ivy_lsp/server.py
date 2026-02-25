@@ -20,6 +20,7 @@ class IvyLanguageServer(LanguageServer):
         )
         self._indexer = None
         self._parser = None
+        self._initialized = False
 
         from ivy_lsp.features import (
             completion,
@@ -43,6 +44,7 @@ class IvyLanguageServer(LanguageServer):
         """Handle the initialized notification."""
         logger.info("Ivy Language Server initialized")
         self._setup_indexer()
+        self._initialized = True
 
     def _setup_indexer(self):
         """Create and populate the workspace indexer."""
