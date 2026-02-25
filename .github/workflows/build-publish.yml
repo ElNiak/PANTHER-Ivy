@@ -1,8 +1,12 @@
-name: Build and Publish to PyPI
+name: Build Native Wheels and Publish to PyPI
 
 on:
-  push:
-    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g. v1.8.26)'
+        required: true
+        type: string
 
 permissions:
   contents: read
