@@ -45,16 +45,10 @@ from panther.plugins.services.testers.tester_service_manager_mixin import (
     TesterServiceManagerMixin,
 )
 
+from panther_ivy._shared import oppose_role
+
 if TYPE_CHECKING:
     from panther.plugins.plugin_manager import PluginManager
-
-
-def oppose_role(role):
-    """
-    quic_server_test -> We test the server, so we need the client implementation (ivy_client)
-    quic_client_test -> We test the client, so we need the server implementation (ivy_server)
-    """
-    return "client" if role == "server" else "server"
 
 
 @register_plugin(
