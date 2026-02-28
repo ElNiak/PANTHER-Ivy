@@ -49,7 +49,7 @@ class TestGenerateCompileCommands:
         compile_cmd = " ".join(result.compile_commands.commands)
         assert "test_iters=500" in compile_cmd
 
-    def test_compile_working_dir_is_protocol_dir(self):
+    def test_compile_working_dir_is_ivy_include_dir(self):
         result = generate_compile_commands(
             ivy_file=Path(
                 "protocol-testing/quic/quic_tests/"
@@ -58,8 +58,23 @@ class TestGenerateCompileCommands:
             protocol="quic",
             base_path=self.BASE_PATH,
         )
-        # Working dir should point to the protocol model directory
-        assert "quic" in result.compile_commands.working_dir
+        # Working dir should point to the Ivy include directory (not tests dir)
+        # In Docker: $PYTHON_IVY_DIR/ivy/include/1.7
+        # Natively: auto-detected from installed package
+        assert "ivy" in result.compile_commands.working_dir
+        assert "include" in result.compile_commands.working_dir
+
+    def test_compile_working_dir_with_explicit_ivy_include(self):
+        result = generate_compile_commands(
+            ivy_file=Path(
+                "protocol-testing/quic/quic_tests/"
+                "quic_server_test_stream.ivy"
+            ),
+            protocol="quic",
+            base_path=self.BASE_PATH,
+            ivy_include_dir="/opt/ivy/include/1.7",
+        )
+        assert result.compile_commands.working_dir == "/opt/ivy/include/1.7"
 
     def test_compile_setup_creates_build_dir(self):
         result = generate_compile_commands(
@@ -126,7 +141,10 @@ class TestGenerateCompileCommandsPathAgnostic:
             protocol="quic",
             base_path="/custom/path",
         )
-        assert "/custom/path" in result.compile_commands.working_dir
+        # base_path affects setup/build dirs, not compile working_dir
+        assert "/custom/path" in result.setup_commands.working_dir
+        # Compile working dir is the Ivy include directory
+        assert "ivy" in result.compile_commands.working_dir
 
     def test_generate_compile_commands_raises_without_base_path(self):
         """Passing base_path=None explicitly should raise ValueError."""
@@ -189,3 +207,65 @@ class TestParseCompileOutput:
     def test_parse_empty_output(self):
         diags = parse_compile_output("", "")
         assert diags == []
+
+
+class TestExtractTestDirectory:
+    """Tests for _extract_test_directory helper."""
+
+    def test_client_test(self):
+        from panther_ivy.api.compiler import _extract_test_directory
+
+        assert _extract_test_directory("quic_client_test_stream") == "client_tests"
+
+    def test_server_test(self):
+        from panther_ivy.api.compiler import _extract_test_directory
+
+        assert _extract_test_directory("quic_server_test_stream") == "server_tests"
+
+    def test_mim_test(self):
+        from panther_ivy.api.compiler import _extract_test_directory
+
+        assert _extract_test_directory("quic_mim_test_stream") == "mim_tests"
+
+    def test_unknown_returns_empty(self):
+        from panther_ivy.api.compiler import _extract_test_directory
+
+        assert _extract_test_directory("quic_test_stream") == ""
+
+
+class TestPostCompileCommands:
+    """Tests for post-compile copy commands."""
+
+    BASE_PATH = "/opt/panther_ivy/protocol-testing"
+
+    def test_post_compile_copies_binary(self):
+        result = generate_compile_commands(
+            ivy_file=Path(
+                "protocol-testing/quic/quic_tests/"
+                "quic_server_test_stream.ivy"
+            ),
+            protocol="quic",
+            base_path=self.BASE_PATH,
+            ivy_include_dir="/opt/ivy/include/1.7",
+        )
+        cmds = result.compile_commands.commands
+        # First command is ivyc, remaining are copy commands
+        assert len(cmds) == 4
+        assert cmds[0].startswith("ivyc")
+        assert "cp" in cmds[1]
+        assert "quic_server_test_stream" in cmds[1]
+        assert "build/" in cmds[1]
+
+    def test_post_compile_copies_cpp_and_h(self):
+        result = generate_compile_commands(
+            ivy_file=Path(
+                "protocol-testing/quic/quic_tests/"
+                "quic_server_test_stream.ivy"
+            ),
+            protocol="quic",
+            base_path=self.BASE_PATH,
+            ivy_include_dir="/opt/ivy/include/1.7",
+        )
+        cmds = result.compile_commands.commands
+        assert any(".cpp" in c for c in cmds)
+        assert any(".h" in c for c in cmds)

@@ -18,6 +18,43 @@ _WARNING_PATTERN = re.compile(
 )
 _SEVERITY_PREFIX = re.compile(r"^(error|warning):\s*")
 
+# Default Ivy include directory inside Docker containers
+_DEFAULT_DOCKER_IVY_INCLUDE_DIR = "$PYTHON_IVY_DIR/ivy/include/1.7"
+
+
+def _extract_test_directory(test_name: str) -> str:
+    """Extract test subdirectory from test name.
+
+    Mirrors ivy_command_mixin.py:597-605 logic for nested test directories.
+    """
+    lower = test_name.lower()
+    if "client" in lower:
+        return "client_tests"
+    elif "server" in lower:
+        return "server_tests"
+    elif "mim" in lower:
+        return "mim_tests"
+    return ""
+
+
+def _detect_ivy_include_dir() -> str:
+    """Detect the Ivy include directory from the installed package.
+
+    In Docker: $PYTHON_IVY_DIR/ivy/include/1.7
+    Natively: find from panther_ms_ivy package installation path.
+    """
+    try:
+        import ivy.ivy_utils as iu
+
+        ivy_dir = Path(iu.__file__).parent.parent
+        include_dir = ivy_dir / "ivy" / "include" / "1.7"
+        if include_dir.is_dir():
+            return str(include_dir)
+    except (ImportError, AttributeError):
+        pass
+
+    return _DEFAULT_DOCKER_IVY_INCLUDE_DIR
+
 
 def generate_compile_commands(
     ivy_file: Path,
@@ -27,8 +64,12 @@ def generate_compile_commands(
     test_iters: int = 300,
     *,
     base_path: str,
+    ivy_include_dir: Optional[str] = None,
 ) -> CompileResult:
     """Generate ivyc compilation commands for an .ivy file.
+
+    Mirrors the real PANTHER pipeline from ivy_command_mixin.py:536-595.
+    ivyc must run from the Ivy include directory, not the tests directory.
 
     Args:
         ivy_file: Path to the .ivy source file.
@@ -37,6 +78,9 @@ def generate_compile_commands(
         build_mode: Z3 build mode ("", "debug-asan", "rel-lto", "release-static-pgo").
         test_iters: Internal Ivy test iterations (default 300).
         base_path: Base protocol-testing path. Required (no default).
+        ivy_include_dir: Ivy include directory where ivyc runs.
+            Defaults to $PYTHON_IVY_DIR/ivy/include/1.7 (Docker) or
+            auto-detected from installed package (native).
 
     Returns:
         CompileResult with setup and compilation commands.
@@ -50,16 +94,18 @@ def generate_compile_commands(
     # Auto-detect if needed
     if protocol is None:
         detected = detect_from_path(ivy_file)
-        protocol = detected["protocol"]
+        protocol = str(detected["protocol"])
         if version is None and "version" in detected:
-            version = detected["version"]
+            version = str(detected["version"])
 
     test_name = Path(ivy_file).stem
 
     protocol_dir = f"{base_path}/{protocol}"
-
     build_dir = f"{protocol_dir}/build"
-    tests_subdir = f"{protocol_dir}/{protocol}_tests"
+
+    # Resolve Ivy include directory
+    if ivy_include_dir is None:
+        ivy_include_dir = _detect_ivy_include_dir()
 
     # Setup commands: ensure build directory exists
     setup = CommandResult(
@@ -75,16 +121,24 @@ def generate_compile_commands(
         env["Z3_BUILD_MODE"] = build_mode
 
     # Compile command: mirrors _build_test_compilation_commands()
-    # from ivy_command_mixin.py:542-601
+    # from ivy_command_mixin.py:583 — ivyc runs from Ivy include dir
     ivyc_cmd = (
         f"ivyc show_compiled=false trace=false target=test "
         f"test_iters={test_iters} {test_name}.ivy"
     )
 
+    # Post-compile: copy binary + generated files to build dir
+    # Mirrors ivy_command_mixin.py:589-593
+    post_compile_cmds = [
+        f"cp {ivy_include_dir}/{test_name} {build_dir}/ 2>/dev/null || true",
+        f"cp {ivy_include_dir}/{test_name}.cpp {build_dir}/ 2>/dev/null || true",
+        f"cp {ivy_include_dir}/{test_name}.h {build_dir}/ 2>/dev/null || true",
+    ]
+
     compile_cmds = CommandResult(
-        commands=[ivyc_cmd],
+        commands=[ivyc_cmd] + post_compile_cmds,
         environment=env,
-        working_dir=tests_subdir,
+        working_dir=ivy_include_dir,
     )
 
     return CompileResult(setup_commands=setup, compile_commands=compile_cmds)
