@@ -1,4 +1,4 @@
-#lang ivy
+#lang ivy1.7
 
 module totally_ordered(t) = {
     property [transitivity] (T:t < U & U < V) -> (T < V)
