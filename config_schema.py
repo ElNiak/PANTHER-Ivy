@@ -60,7 +60,7 @@ DEFAULT_ENVIRONMENT_VARIABLES = {
     "SOURCE_DIR": "/opt/",
     "IVY_DIR": "$SOURCE_DIR/panther_ivy",
     # TODO: This version should be resolved dynamically rather than hardcoded
-    "PYTHON_IVY_DIR": "/root/.pyenv/versions/3.10.12/lib/python3.10/site-packages/panther_ms_ivy-1.10.0-py3.10-linux-x86_64.egg/",
+    "PYTHON_IVY_DIR": "/root/.pyenv/versions/3.10.12/lib/python3.10/site-packages/panther_ms_ivy-1.10.1-py3.10-linux-x86_64.egg/",
     "IVY_INCLUDE_PATH": "/opt/panther_ivy/ivy/include/1.7",
     # Z3_LIBRARY_DIRS, Z3_LIBRARY_PATH, and LD_LIBRARY_PATH are intentionally
     # omitted here. They are only needed when z3_source=local and are added
