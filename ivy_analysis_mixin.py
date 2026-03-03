@@ -1,6 +1,8 @@
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
+from panther_ivy._shared import determine_verdict
+
 
 class IvyAnalysisMixin:
     """
@@ -475,92 +477,14 @@ class IvyAnalysisMixin:
     ) -> Dict[str, Any]:
         """Determine IVY test verdict from stdout/stderr markers.
 
-        Verdict semantics
-        -----------------
-        * ``assumption_failed(...)`` in stdout  -> NON_COMPLIANT
-        * ``test_completed`` in stdout (no assumption_failed) -> NO_VIOLATION_FOUND
-        * Protocol activity (``<``/``>`` lines, no assumption_failed) -> NO_VIOLATION_FOUND
-        * Tester crash (segfault / SIGSEGV, no markers) -> TESTER_CRASH
-        * IUT crash (connection reset / timeout after partial) -> IUT_CRASH
-        * No stdout/stderr at all -> UNKNOWN
+        Delegates to the shared pure function ``determine_verdict()``
+        in ``panther_ivy._shared``, which is the single source of truth
+        for verdict logic, regex patterns, and crash indicators.
 
         Returns:
             Dict with keys: verdict, details, assumption_failures
         """
-        verdict = "UNKNOWN"
-        details: List[str] = []
-        assumption_failures: List[str] = []
-
-        has_stdout = bool(stdout_content and stdout_content.strip())
-        has_stderr = bool(stderr_content and stderr_content.strip())
-
-        if not has_stdout and not has_stderr:
-            return {
-                "verdict": "UNKNOWN",
-                "details": ["No stdout/stderr output available"],
-                "assumption_failures": [],
-            }
-
-        # --- Check stdout for IVY-specific markers ---
-        if has_stdout:
-            # Collect all assumption_failed occurrences
-            af_pattern = re.compile(r"assumption_failed\(([^)]*)\)")
-            for match in af_pattern.finditer(stdout_content):
-                assumption_failures.append(match.group(0))
-
-            has_test_completed = "test_completed" in stdout_content
-
-            if assumption_failures:
-                verdict = "NON_COMPLIANT"
-                details.append(
-                    f"Found {len(assumption_failures)} assumption failure(s)"
-                )
-            elif has_test_completed:
-                verdict = "NO_VIOLATION_FOUND"
-                details.append("test_completed marker found, no assumption failures")
-            elif re.search(r"^[<>]\s", stdout_content, re.MULTILINE):
-                # Protocol activity with no assumption failures -> NO_VIOLATION_FOUND
-                # IVY emits lines starting with < or > for protocol events.
-                verdict = "NO_VIOLATION_FOUND"
-                details.append("Protocol activity detected without assumption failures")
-
-        # --- Check for crash indicators (only if not already decided) ---
-        if verdict == "UNKNOWN":
-            crash_indicators_tester = [
-                "segmentation fault",
-                "sigsegv",
-                "sigabrt",
-                "core dumped",
-                "aborted",
-                "std::bad_alloc",
-            ]
-            crash_indicators_iut = [
-                "connection reset",
-                "connection refused",
-                "broken pipe",
-                "timed out",
-            ]
-
-            combined = ((stdout_content or "") + "\n" + (stderr_content or "")).lower()
-
-            for indicator in crash_indicators_tester:
-                if indicator in combined:
-                    verdict = "TESTER_CRASH"
-                    details.append(f"Crash indicator: {indicator}")
-                    break
-
-            if verdict == "UNKNOWN":
-                for indicator in crash_indicators_iut:
-                    if indicator in combined:
-                        verdict = "IUT_CRASH"
-                        details.append(f"IUT crash indicator: {indicator}")
-                        break
-
-        return {
-            "verdict": verdict,
-            "details": details,
-            "assumption_failures": assumption_failures,
-        }
+        return determine_verdict(stdout_content, stderr_content)
 
     def _extract_timestamp(self, line: str) -> Optional[str]:
         """

@@ -1,12 +1,82 @@
 import argparse
 import os
 import platform
+import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path.cwd()  # Current working directory
 SUBMOD, IVY = ROOT / "submodules", ROOT / "ivy"
+
+
+def detect_openssl_prefix() -> str:
+    """Auto-detect OpenSSL installation prefix.
+
+    Detection priority:
+    1. OPENSSL_PREFIX env var (explicit override)
+    2. brew --prefix openssl (Intel + Apple Silicon macOS)
+    3. pkg-config --variable=prefix openssl (Linux)
+    4. Filesystem fallbacks
+    """
+    # 1. Explicit env var
+    env_prefix = os.environ.get("OPENSSL_PREFIX")
+    if env_prefix and os.path.isdir(env_prefix):
+        print(f"OpenSSL prefix from OPENSSL_PREFIX env: {env_prefix}")
+        return env_prefix
+
+    # 2. Homebrew (macOS)
+    if shutil.which("brew"):
+        try:
+            result = subprocess.run(
+                ["brew", "--prefix", "openssl"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode == 0:
+                prefix = result.stdout.strip()
+                if prefix and os.path.isdir(prefix):
+                    print(f"OpenSSL prefix from brew: {prefix}")
+                    return prefix
+        except (subprocess.TimeoutExpired, OSError):
+            pass
+
+    # 3. pkg-config (Linux)
+    if shutil.which("pkg-config"):
+        try:
+            result = subprocess.run(
+                ["pkg-config", "--variable=prefix", "openssl"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode == 0:
+                prefix = result.stdout.strip()
+                if prefix and os.path.isdir(prefix):
+                    print(f"OpenSSL prefix from pkg-config: {prefix}")
+                    return prefix
+        except (subprocess.TimeoutExpired, OSError):
+            pass
+
+    # 4. Filesystem fallbacks
+    fallbacks = [
+        "/opt/homebrew/opt/openssl@3",  # Apple Silicon Homebrew
+        "/opt/homebrew/opt/openssl",  # Apple Silicon Homebrew (unversioned)
+        "/usr/local/opt/openssl",  # Intel Homebrew
+        "/usr",  # System default (Linux)
+    ]
+    for path in fallbacks:
+        if os.path.isdir(path) and (
+            os.path.isdir(os.path.join(path, "include"))
+            or os.path.isdir(os.path.join(path, "lib"))
+        ):
+            print(f"OpenSSL prefix from fallback: {path}")
+            return path
+
+    print("WARNING: Could not detect OpenSSL prefix, defaulting to /usr")
+    return "/usr"
+
 
 # ─────────── Build-mode table ───────────
 MODES: dict[str, dict[str, object]] = {
@@ -308,12 +378,12 @@ def install_z3():
 def build_picotls():
     if not os.path.exists("submodules/picotls"):
         print(
-            "submodules/picotls not found. try 'git submodule update; git submodule update'"
+            "submodules/picotls not found. "
+            "Run: git submodule update --init --recursive"
         )
         exit(1)
 
     cwd = os.getcwd()
-
     os.chdir("submodules/picotls")
 
     # TODO: extract commit from version_config
@@ -327,12 +397,19 @@ def build_picotls():
             )
         )
     else:
+        ssl_prefix = detect_openssl_prefix()
+        cmake_args = [
+            "cmake",
+            ".",
+            f"-DOPENSSL_ROOT_DIR={ssl_prefix}",
+            f"-DOPENSSL_INCLUDE_DIR={ssl_prefix}/include",
+        ]
         if platform.system() == "Darwin":
-            do_cmd(
-                'PKG_CONFIG_PATH="/usr/local/opt/openssl/lib/pkgconfig" cmake . -DOPENSSL_CRYPTO_LIBRARY=/usr/local/opt/openssl/lib/libcrypto.dylib -DOPENSSL_SSL_LIBRARY=/usr/local/opt/openssl/lib/libssl.dylib'
+            cmake_args.insert(
+                0,
+                f'PKG_CONFIG_PATH="{ssl_prefix}/lib/pkgconfig"',
             )
-        else:
-            do_cmd("cmake .")
+        do_cmd(" ".join(cmake_args))
         do_cmd("make")
 
     os.chdir(cwd)
@@ -340,20 +417,21 @@ def build_picotls():
 
 def install_picotls():
     make_dir_exist("ivy/lib")
+    make_dir_exist("ivy/include")
 
     cwd = os.getcwd()
-
     os.chdir("submodules/picotls")
 
     if platform.system() == "Windows":
         do_cmd("copy include\\*.h ..\\..\\ivy\\include\\")
-        if not os.path.exists("../../ivy/include/picotls"):
-            do_cmd("mkdir ..\\..\\ivy\\include\\picotls")
+        make_dir_exist("../../ivy/include/picotls")
         do_cmd("copy include\\picotls\\*.h ..\\..\\ivy\\include\\picotls\\")
         do_cmd("copy picotlsvs\\picotls\\*.h ..\\..\\ivy\\include\\picotls\\")
         do_cmd("copy picotlsvs\\picotls\\x64\\Debug\\picotls.lib ..\\..\\ivy\\lib\\")
     else:
-        do_cmd("cp -a include/*.h include/picotls ../../ivy/include/")
+        make_dir_exist("../../ivy/include/picotls")
+        do_cmd("cp -a include/*.h ../../ivy/include/")
+        do_cmd("cp -a include/picotls/*.h ../../ivy/include/picotls/")
         do_cmd("cp -a *.a ../../ivy/lib/")
 
     os.chdir(cwd)
@@ -431,6 +509,11 @@ if __name__ == "__main__":
         action="store_true",
         help="Skip Z3, build everything else (for Docker multi-stage main stage)",
     )
+    group.add_argument(
+        "--picotls-only",
+        action="store_true",
+        help="Build only picotls (for local ivyc compilation on macOS/Linux)",
+    )
     parser.add_argument(
         "--z3-source",
         choices=["local", "pip"],
@@ -441,7 +524,11 @@ if __name__ == "__main__":
 
     print("--- Running build_submodules.py ---")
 
-    if args.z3_only:
+    if args.picotls_only:
+        print("[picotls-only mode] Building only picotls")
+        build_picotls()
+        install_picotls()
+    elif args.z3_only:
         if args.z3_source == "pip":
             print("[z3-only + pip mode] Skipping Z3 build, pip z3-solver will be used")
         else:

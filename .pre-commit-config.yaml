@@ -1,7 +1,8 @@
 # Pre-commit configuration for panther_ivy submodule
 #
 # Three-tier approach:
-#   Tier 1 - Plugin code (root-level .py): Full formatting + linting
+#   Tier 1 - Plugin code (root .py files): Full formatting + linting
+#            (ivy_lsp/ and tests/ are now in the ivy-lsp submodule with their own hooks)
 #   Tier 2 - Upstream ivy/ code: Hygiene only (whitespace, merge conflicts)
 #   Tier 3 - Everything else (.ivy, templates, YAML, C++): Hygiene only
 #

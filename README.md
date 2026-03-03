@@ -24,7 +24,7 @@ correctness.
 The plugin requires:
 
 - **Ivy**: The Ivy formal verification framework
-- **Python**: Python 3.7 or higher
+- **Python**: Python 3.10 or higher
 - **Protocol Model**: Formal specification of the protocol in Ivy language
 - **Build Tools**: C++ compiler and related development tools
 
@@ -85,24 +85,31 @@ services:
       name: "quic"
       version: "rfc9000"
       role: "tester"
-      target: "quic_implementation"  # Target service name
     config:
-      model_file: "quic_model.ivy"  # Formal model
-      test_depth: 10                # Exploration depth
-      timeout: 600                  # Timeout in seconds
-      properties:                   # Properties to verify
-        - "connection_establishment"
-        - "packet_encryption"
+      test: "quic_server_test_stream"  # Ivy test name
+      build_mode: ""                   # Z3 build mode (see Build Modes)
+      timeout: 120                     # Timeout in seconds
+      iterations_per_test: 1           # Number of iterations per test
+      internal_iterations_per_test: 300  # Solver loop iterations
+      use_system_models: false         # Use APT system models
+      z3_source: "local"               # Z3 source: "local" or "pip"
+      log_level_events: "DEBUG"        # Event logging level
+      log_level_binary: "DEBUG"        # Binary logging level
 ```
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `name` | string | Yes | - | Service name |
-| `config.model_file` | string | Yes | - | Path to Ivy model file |
-| `config.test_depth` | integer | No | 5 | Search depth for test generation |
-| `config.timeout` | integer | No | 300 | Verification timeout in seconds |
-| `config.properties` | array | No | [] | Specific properties to verify |
-| `config.build_mode` | string | No | "" | Build mode for compilation (see Build Modes section) |
+| `config.test` | string | Yes | - | Ivy test name to run |
+| `config.build_mode` | string | No | `None` | Build mode for compilation (see Build Modes section) |
+| `config.timeout` | integer | No | 120 | Per-test timeout in seconds |
+| `config.iterations_per_test` | integer | No | 1 | Number of iterations per test |
+| `config.internal_iterations_per_test` | integer | No | 300 | Internal solver loop iterations |
+| `config.use_system_models` | boolean | No | false | Use APT system models instead of standard |
+| `config.z3_source` | string | No | `"local"` | Z3 source: `"local"` (build from submodule) or `"pip"` |
+| `config.log_level_events` | string | No | `"DEBUG"` | Log level for Ivy events |
+| `config.log_level_binary` | string | No | `"DEBUG"` | Log level for Ivy binary |
+| `config.optimization_level` | string | No | `None` | Optimization level (O0, O1, O2, O3) |
 
 ## Build Modes
 
