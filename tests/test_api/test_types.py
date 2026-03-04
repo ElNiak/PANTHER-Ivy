@@ -1,6 +1,6 @@
 """Tests for panther_ivy API data types."""
 import pytest
-from panther_ivy.api.types import (
+from api.types import (
     CommandResult,
     CompileResult,
     DiagnosticItem,

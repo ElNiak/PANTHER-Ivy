@@ -1,7 +1,7 @@
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
-from panther_ivy._shared import determine_verdict
+from ._shared import determine_verdict
 
 
 class IvyAnalysisMixin:

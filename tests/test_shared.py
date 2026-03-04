@@ -1,7 +1,7 @@
 """Tests for panther_ivy._shared pure verdict logic and role helpers."""
 import pytest
 
-from panther_ivy._shared import (
+from ._shared import (
     VERDICT_IUT_CRASH,
     VERDICT_NO_VIOLATION_FOUND,
     VERDICT_NON_COMPLIANT,

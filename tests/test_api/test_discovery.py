@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from panther_ivy.api.discovery import detect_from_path, list_tests
-from panther_ivy.api.types import TestInfo
+from api.discovery import detect_from_path, list_tests
+from api.types import TestInfo
 
 
 # Use the actual protocol-testing dir in the submodule for realistic tests

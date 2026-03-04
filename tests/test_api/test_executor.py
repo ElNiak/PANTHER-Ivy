@@ -3,8 +3,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from panther_ivy.api.executor import IvyExecutor
-from panther_ivy.api.types import CommandResult, ExecutionResult
+from api.executor import IvyExecutor
+from api.types import CommandResult, ExecutionResult
 
 
 class TestIvyExecutor:

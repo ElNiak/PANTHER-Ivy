@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from panther_ivy._shared import detect_role
+from ._shared import detect_role
 
 from .types import TestInfo
 

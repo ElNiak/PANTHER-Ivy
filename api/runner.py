@@ -2,7 +2,7 @@
 from pathlib import Path
 from typing import Dict, Optional
 
-from panther_ivy._shared import (
+from ._shared import (
     VERDICT_IUT_CRASH,
     VERDICT_NON_COMPLIANT,
     VERDICT_NO_VIOLATION_FOUND,

@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from panther_ivy.api.runner import generate_test_commands, parse_test_output
-from panther_ivy.api.types import TestRunResult
+from api.runner import generate_test_commands, parse_test_output
+from api.types import TestRunResult
 
 
 class TestGenerateTestCommands:
