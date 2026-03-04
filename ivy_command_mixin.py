@@ -14,13 +14,7 @@ from panther.core.command_processor.builders import ServiceCommandBuilder
 from panther.core.command_processor.models.shell_command import ShellCommand
 from panther.core.command_processor.utils import CommandUtils
 
-
-def oppose_role(role):
-    """
-    quic_server_test -> We test the server, so we need the client implementation (ivy_client)
-    quic_client_test -> We test the client, so we need the server implementation (ivy_server)
-    """
-    return "client" if role == "server" else "server"
+from panther_ivy._shared import oppose_role
 
 
 class IvyCommandMixin:

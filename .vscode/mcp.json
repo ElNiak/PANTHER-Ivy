@@ -1,0 +1,22 @@
+{
+  "servers": {
+    "ivy-tools-lightweight": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["-m", "ivy_lsp", "--mcp"],
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    },
+    "panther-serena": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/ElNiak/panther-serena",
+        "serena",
+        "start-mcp-server"
+      ]
+    }
+  }
+}

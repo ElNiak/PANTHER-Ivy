@@ -61,6 +61,12 @@ protocol-testing/quic/initial_max_stream_id_*.txt
 protocol-testing/quic/last_new_token.txt
 protocol-testing/quic/leaf_cert.pem
 
+# Cache directories
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
 # macOS metadata
 .DS_Store
 **/.DS_Store
@@ -70,3 +76,4 @@ protocol-testing/quic/leaf_cert.pem
 
 #Ignore vscode AI rules
 .github/instructions/codacy.instructions.md
+# VSCode extension build artifacts (managed by vscode-ivy submodule's own .gitignore)

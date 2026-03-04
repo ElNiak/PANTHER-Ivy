@@ -1,6 +1,74 @@
-# Tool configuration only - setup.py remains the build config.
-# This prevents accidental reformatting of upstream code when running
-# Black/isort outside of pre-commit (e.g. `black .` or IDE integration).
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "panther_ms_ivy"
+version = "1.10.1"
+description = "IVy verification tool"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [{name = "IVy team", email = "nomail@example.com"}]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "pyparsing",
+    "ply",
+    "tarjan",
+    "pydot",
+    "ordered-set",
+    "applescript; sys_platform == 'darwin'",
+]
+
+[project.optional-dependencies]
+z3 = ["z3-solver==4.13.4.0"]
+lsp = ["ivy-lsp"]
+
+[project.scripts]
+ivy = "ivy.ivy:main"
+ivy_check = "ivy.ivy_check:main"
+ivy_to_cpp = "ivy.ivy_to_cpp:main"
+ivy_show = "ivy.ivy_show:main"
+ivy_ev_viewer = "ivy.ivy_ev_viewer:main"
+ivyc = "ivy.ivy_to_cpp:ivyc"
+ivy_to_md = "ivy.ivy_to_md:main"
+ivy_libs = "ivy.ivy_libs:main"
+ivy_shell = "ivy.ivy_shell:main"
+ivy_launch = "ivy.ivy_launch:main"
+
+[project.urls]
+Homepage = "https://github.com/ElNiak/Panther-IVy"
+Repository = "https://github.com/ElNiak/Panther-IVy"
+Issues = "https://github.com/ElNiak/Panther-IVy/issues"
+
+[tool.setuptools.packages.find]
+exclude = ["tests", "tests.*", "ivy_lsp", "ivy_lsp.*", "vscode-ivy", "vscode-ivy.*"]
+
+[tool.setuptools.package-data]
+ivy = [
+    "include/*/*.ivy",
+    "include/*/*.h",
+    "include/*.h",
+    "lib/*.so",
+    "lib/*.dylib",
+    "lib/*.dll",
+    "lib/*.a",
+    "lib/*.lib",
+    "z3/*.so",
+    "z3/*.dylib",
+    "z3/*.dll",
+    "z3/*.py",
+    "ivy2/s3/ivyc_s3",
+    "bin/*",
+]
 
 [tool.black]
 target-version = ["py310"]

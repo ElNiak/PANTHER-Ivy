@@ -1778,6 +1778,52 @@ def expand_field_references(pre_clauses):
     dfs = [df for df in dfs if df.args[0] != df.args[1]]
     return ilu.Clauses(list(map(recur,pre_clauses.fmlas)),dfs)
 
+def _detect_openssl_prefix():
+    """Auto-detect OpenSSL prefix at ivyc runtime."""
+    import shutil
+    import subprocess as sp
+
+    env_prefix = os.environ.get("OPENSSL_PREFIX")
+    if env_prefix and os.path.isdir(env_prefix):
+        return env_prefix
+
+    if shutil.which("brew"):
+        try:
+            result = sp.run(
+                ["brew", "--prefix", "openssl"],
+                capture_output=True, text=True, timeout=10,
+            )
+            if result.returncode == 0:
+                prefix = result.stdout.strip()
+                if prefix and os.path.isdir(prefix):
+                    return prefix
+        except (sp.TimeoutExpired, OSError):
+            pass
+
+    if shutil.which("pkg-config"):
+        try:
+            result = sp.run(
+                ["pkg-config", "--variable=prefix", "openssl"],
+                capture_output=True, text=True, timeout=10,
+            )
+            if result.returncode == 0:
+                prefix = result.stdout.strip()
+                if prefix and os.path.isdir(prefix):
+                    return prefix
+        except (sp.TimeoutExpired, OSError):
+            pass
+
+    for path in [
+        "/opt/homebrew/opt/openssl@3",
+        "/opt/homebrew/opt/openssl",
+        "/usr/local/opt/openssl",
+        "/usr",
+    ]:
+        if os.path.isdir(path):
+            return path
+
+    return "/usr"
+
 def get_lib_dirs(with_z3=True):
     import platform
     def file_dir_path(x):
@@ -1787,7 +1833,7 @@ def get_lib_dirs(with_z3=True):
 #        files.append(z3.__file__)
     dirs = [file_dir_path(x) for x in files]
     if platform.system() == 'Darwin':
-        dirs.append('/usr/local/opt/openssl')  # work around Mac openssl bug
+        dirs.append(_detect_openssl_prefix())
     if with_z3 and 'Z3DIR' in os.environ:
         dirs.append('$Z3DIR')
     return dirs

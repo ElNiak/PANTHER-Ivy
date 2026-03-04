@@ -1,107 +1,95 @@
-import codecs
 import os
-import platform
-from pathlib import Path
+import shutil
 
-from setuptools import find_packages, setup
+from setuptools import setup
+from setuptools.command.build_py import build_py
+from setuptools.command.develop import develop
 from setuptools.dist import Distribution
 
+here = os.path.dirname(os.path.abspath(__file__))
 
-# Workaround for bdist_wheel so that we get a platform-specific package
+
+def _ensure_picotls():
+    """Build picotls if ivy/lib/ or ivy/include/picotls/ are missing."""
+    ivy_dir = os.path.join(here, "ivy")
+    lib_dir = os.path.join(ivy_dir, "lib")
+    include_picotls = os.path.join(ivy_dir, "include", "picotls")
+
+    # Skip if already built
+    if (
+        os.path.isdir(lib_dir)
+        and os.path.isdir(include_picotls)
+        and any(f.endswith((".a", ".dylib", ".lib")) for f in os.listdir(lib_dir))
+    ):
+        return
+
+    # Check submodule exists
+    submod = os.path.join(here, "submodules", "picotls")
+    if not os.path.isdir(submod):
+        print(
+            "WARNING: submodules/picotls not found, skipping picotls build\n"
+            "  Run: git submodule update --init --recursive"
+        )
+        return
+
+    # Check cmake available
+    if not shutil.which("cmake"):
+        print(
+            "WARNING: cmake not found, skipping picotls build\n"
+            "  Install: brew install cmake (macOS) / apt install cmake (Linux)"
+        )
+        return
+
+    # Build by importing build_submodules with correct cwd
+    saved_cwd = os.getcwd()
+    try:
+        os.chdir(here)
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location(
+            "build_submodules", os.path.join(here, "build_submodules.py")
+        )
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        mod.build_picotls()
+        mod.install_picotls()
+        print("picotls built and installed successfully")
+    except Exception as e:
+        print(
+            f"WARNING: picotls build failed: {e}\n"
+            "  Manual fallback: python build_submodules.py --picotls-only"
+        )
+    finally:
+        os.chdir(saved_cwd)
+
+
+class BuildPyWithPicotls(build_py):
+    def run(self):
+        _ensure_picotls()
+        super().run()
+
+
+class DevelopWithPicotls(develop):
+    def run(self):
+        _ensure_picotls()
+        super().run()
+
+
 class BinaryDistribution(Distribution):
-    """Distribution which always forces a binary package with platform name"""
+    """Distribution which always forces a binary package with platform name."""
 
-    def has_ext_modules(foo):
+    def has_ext_modules(self):
         return True
 
 
-# Get the long description from the README file
-here = os.path.abspath(os.path.dirname(__file__))
-try:
-    with codecs.open(os.path.join(here, "README.md"), encoding="utf-8") as f:
-        long_description = f.read()
-except:
-    # This happens when running tests
-    long_description = None
+kwargs = {}
+if not os.environ.get("PURE_PYTHON_BUILD"):
+    kwargs["distclass"] = BinaryDistribution
 
 setup(
-    name="panther_ms_ivy",
-    python_requires=">=3.10",
-    version="1.8.26",
-    description="IVy verification tool",
-    long_description=long_description,
-    url="https://github.com/ElNiak/Panther-IVy",
-    author="IVy team",
-    author_email="nomail@example.com",
-    license="MIT",
-    packages=find_packages(),
-    package_data=(
-        {
-            "ivy": [
-                "include/*/*.ivy",
-                "include/*/*.h",
-                "include/*.h",
-                "lib/*.dll",
-                "lib/*.lib",
-                "z3/*.dll",
-                "z3/*.py",
-            ]
-        }
-        if platform.system() == "Windows"
-        else (
-            {
-                "ivy": [
-                    "include/*/*.ivy",
-                    "include/*/*.h",
-                    "include/*.h",
-                    "lib/*.dylib",
-                    "lib/*.a",
-                    "z3/*.dylib",
-                    "z3/*.py",
-                    "bin/*",
-                ]
-            }
-            if platform.system() == "Darwin"
-            else {
-                "ivy": [
-                    "include/*/*.ivy",
-                    "include/*/*.h",
-                    "include/*.h",
-                    "lib/*.so",
-                    "lib/*.a",
-                    "z3/*.so",
-                    "z3/*.py",
-                    "ivy2/s3/ivyc_s3",
-                    "bin/*",
-                ]
-            }
-        )
-    ),
-    install_requires=[
-        "pyparsing",
-        "ply",
-        "tarjan",
-        "pydot",
-        "ordered-set",
-    ]
-    + (["applescript"] if platform.system() == "Darwin" else []),
-    extras_require={
-        "z3": ["z3-solver==4.13.4.0"],
+    cmdclass={
+        "build_py": BuildPyWithPicotls,
+        "develop": DevelopWithPicotls,
     },
-    entry_points={
-        "console_scripts": [
-            "ivy=ivy.ivy:main",
-            "ivy_check=ivy.ivy_check:main",
-            "ivy_to_cpp=ivy.ivy_to_cpp:main",
-            "ivy_show=ivy.ivy_show:main",
-            "ivy_ev_viewer=ivy.ivy_ev_viewer:main",
-            "ivyc=ivy.ivy_to_cpp:ivyc",
-            "ivy_to_md=ivy.ivy_to_md:main",
-            "ivy_libs=ivy.ivy_libs:main",
-            "ivy_shell=ivy.ivy_shell:main",
-            "ivy_launch=ivy.ivy_launch:main",
-        ],
-    },
-    zip_safe=False,
-    distclass=BinaryDistribution,
+    **kwargs,
 )
