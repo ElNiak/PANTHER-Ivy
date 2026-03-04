@@ -12,7 +12,11 @@ _local_z3_dir = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), 'z3'
 _has_local_z3 = _os.path.isfile(_os.path.join(_local_z3_dir, 'z3core.py'))
 
 if _has_local_z3:
-    from .z3 import *
+    # Dynamically emulate 'from .z3 import *' to bypass Griffe/MkDocs static analysis crashes
+    from . import z3 as _local_z3_mod
+    _exports = getattr(_local_z3_mod, '__all__', [k for k in vars(_local_z3_mod) if not k.startswith('_')])
+    globals().update({k: getattr(_local_z3_mod, k) for k in _exports})
+
     # Export underscore-prefixed utilities that wildcard import skips
     try:
         from .z3 import _to_ast_array, _to_expr_ref
@@ -33,12 +37,16 @@ if _has_local_z3:
                 raise Z3Exception(msg)
 else:
     try:
-        from z3 import *
+        # Dynamically emulate 'from z3 import *' to bypass Griffe/MkDocs static analysis crashes
+        import z3 as _system_z3_mod
+        _exports = getattr(_system_z3_mod, '__all__', [k for k in vars(_system_z3_mod) if not k.startswith('_')])
+        globals().update({k: getattr(_system_z3_mod, k) for k in _exports})
     except ModuleNotFoundError:
         raise ModuleNotFoundError(
             "Z3 Python bindings not found. Install via 'pip install z3-solver' "
             "or build from submodule with 'python build_submodules.py'."
         ) from None
+        
     # Export underscore-prefixed utilities that wildcard import skips.
     # Try z3 top-level first, then z3.z3 submodule (where they're defined).
     try:
@@ -56,6 +64,7 @@ else:
     try:
         from z3 import _z3_assert
     except ImportError:
+        from z3 import Z3Exception
         # _z3_assert is defined in z3/z3.py but is underscore-prefixed, so
         # z3/__init__.py's `from .z3 import *` does NOT re-export it (Python
         # convention: wildcard imports skip names starting with '_').
@@ -69,7 +78,7 @@ else:
         #
         # Package __init__.py that causes the import to fail:
         #   https://github.com/Z3Prover/z3/blob/z3-4.13.4/src/api/python/z3/__init__.py
-        from z3 import Z3Exception
         def _z3_assert(cond, msg):
             if not cond:
                 raise Z3Exception(msg)
+            

@@ -461,7 +461,7 @@ class IvyCommandMixin:
         """Build Ivy tool update commands."""
         commands = [
             "echo 'Updating Ivy tool...' >> /app/logs/compile/ivy_setup.log",
-            "cd /opt/panther_ivy && sudo python3.10 -m pip install . >> /app/logs/compile/ivy_setup.log 2>&1",
+            "cd /opt/panther_ivy && sudo env PURE_PYTHON_BUILD=1 python3.10 -m pip install . >> /app/logs/compile/ivy_setup.log 2>&1",
             "cd /opt/panther_ivy && if [ -f lib/libz3.so ]; then cp lib/libz3.so /opt/panther_ivy/ivy/z3/ && echo 'Copied libz3.so to ivy/z3/'; else echo 'No local libz3.so (z3_source=pip), skipping copy'; fi >> /app/logs/compile/ivy_setup.log 2>&1",
             # Ensure target directories exist in the site-packages install
             "mkdir -p \"$PYTHON_IVY_DIR/ivy/include/1.7\" \"$PYTHON_IVY_DIR/ivy/lib\" >> /app/logs/compile/ivy_setup.log 2>&1",

@@ -280,7 +280,7 @@ RUN BUILD_MODE=${BUILD_MODE} python3.10 build_submodules.py --skip-z3 && \
             fi; \
         fi ; \
     fi && \
-    sudo python3.10 -m pip install . && \
+    sudo env PURE_PYTHON_BUILD=1 python3.10 -m pip install . && \
     python3.10 -c "import z3; print('Python Z3 version:', z3.get_version_string())" && \
     if [ "$Z3_SOURCE" = "local" ]; then \
         # C++ linking: make libz3.so discoverable by the dynamic linker \
