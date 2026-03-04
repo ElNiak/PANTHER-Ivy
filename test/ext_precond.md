@@ -1,0 +1,20 @@
+
+```
+type t
+
+object foo = {
+    action a(v:t) = {
+	assert v = 0
+    }
+}
+
+object bar = {
+    action a = {
+	call foo.a(0)
+    }
+}
+
+isolate iso_foo = foo
+
+interpret t -> int
+```

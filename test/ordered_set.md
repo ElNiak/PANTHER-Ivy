@@ -1,0 +1,14 @@
+
+```
+include collections
+
+type t
+
+instance s : ordered_set(t)
+
+interpret t -> bv[2]
+
+export s.insert
+export s.erase
+export s.get_glb
+```

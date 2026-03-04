@@ -1,0 +1,10 @@
+
+```
+type t
+type color = {red,green,blue}
+
+individual c(X:t):color
+relation p(X:t)
+
+init p(X) -> c(X) = green
+```

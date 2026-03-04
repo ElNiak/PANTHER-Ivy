@@ -1,0 +1,13 @@
+
+```
+module po(t,lt) = {
+    axiom lt(X:t,Y) & lt(Y,Z) -> lt(X,Z)
+    axiom ~(lt(X:t,Y) & lt(Y,X))
+}
+
+
+type foo
+relation (X:foo < Y:foo)
+
+instantiate po(foo,<)
+```

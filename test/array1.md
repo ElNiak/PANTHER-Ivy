@@ -1,0 +1,15 @@
+
+```
+include collections
+
+type t
+interpret t -> bv[8]
+
+instance arr : array(t,t)
+
+var x : arr
+
+export action a(y:t) = {
+    x := x.append(y);
+}
+```

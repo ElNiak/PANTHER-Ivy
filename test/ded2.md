@@ -1,0 +1,21 @@
+
+```
+    axiom [elimAndR] {
+        function p : bool
+        function q : bool
+        property p & q
+        #----------------------
+        property q
+    }
+
+
+    theorem [test_elimAndR] {
+        relation p
+        relation q
+        relation r
+        property ((p & q) & r)
+        property r
+    }
+    proof
+        apply elimAndR with p = p & q
+```

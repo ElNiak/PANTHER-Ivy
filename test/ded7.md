@@ -1,0 +1,18 @@
+
+```
+include deduction
+
+theorem [commE] {
+    type t
+    type u
+    function p(X:t,Y:u) : bool
+    property exists X. exists Y. p(X,Y)
+    property exists Y. exists X. p(X,Y)
+}
+proof
+    apply elimE with p(X) = exists Y. p(X,Y);
+    apply elimE<y/x> with p(X) = p(x,X);
+    apply introE with witness = y;
+    apply introE with witness = x;
+    showgoals
+```

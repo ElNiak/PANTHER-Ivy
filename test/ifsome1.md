@@ -1,0 +1,20 @@
+
+Testing problem with traces and 'if some'
+
+```
+type t
+relation p(X:t)
+var v : t
+
+action a = {
+    if some (x:t) p(x) {
+        v := x;
+    }
+    else {
+        assume false;
+    };
+    assert false;
+}
+
+export a
+```

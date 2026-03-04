@@ -1,0 +1,20 @@
+
+```
+type t
+type r = struct {
+    f : t
+}
+
+var q : t
+
+schema thing = {
+    property exists Y. f(Y) = X
+}
+
+property exists R. f(R) = q named foo
+proof {
+    apply constructor[r]
+}
+
+property f(foo) = q
+```

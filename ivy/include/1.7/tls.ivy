@@ -103,7 +103,7 @@ module tls_intf(cid,index,bytes,lower,extens,hextens,exten_ser) = {
     }
 
     implementation {
-        instance impl : tls_gnutls(cid,index,bytes,extens,exten_ser,lower,this)
+        instance impl : tls_gnutls(cid,index,bytes,extens,hextens,exten_ser,lower,this)
     }
 
 }

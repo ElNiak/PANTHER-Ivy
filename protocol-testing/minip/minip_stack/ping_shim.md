@@ -1,0 +1,51 @@
+
+
+```
+include ping_types # should be change
+include ping_application
+include ping_packet
+
+include ping_time
+```
+###
+0. TODO John:  c'est les includes de base pour genere des event
+```
+include deserializer
+include ip
+include serdes
+```
+###
+
+
+```
+include ping_deser
+include ping_ser
+
+include ping_server
+include ping_client
+
+implement minip_net.recv(host:endpoint_id, s:minip_net.socket, src:ip.endpoint, pkts:pingd.arr) {
+```
+call show_current_time(time_api.c_timer.now_micros_last_bp);
+```
+    if host = endpoint_id.server {        # for client test (tested implem = client <-> ivy implem = server)
+        call server.behavior(host,s,src,pkts);
+    } else if host = endpoint_id.client  { # for server test (tested implem = server <-> ivy implem = client)
+        call client.behavior(host,s,src,pkts);
+    } else {
+```
+ERROR
+```
+        call undefined_host_error(host,s,src);
+    };
+}
+
+import action recv_ping(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:ping_packet)
+import action recv_pong(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:ping_packet)
+import action undefined_host_error(host:endpoint_id, s:minip_net.socket, src:ip.endpoint)
+
+```
+0. TODO John: On instancie le serdes
+```
+instance ping_packet_serdes : serdes(ping_packet,stream_data,ping_ser,ping_deser)
+```

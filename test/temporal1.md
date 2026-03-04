@@ -1,0 +1,22 @@
+
+This is a test for the temporal logic plumbing.
+
+```
+var b : bool
+
+after init {
+    b := true
+}
+
+action act(x:bool) = {
+    b := b | x
+}
+
+temporal property [myprop] globally b
+proof {
+    tactic invariance with
+        invariant [inv1] b
+}
+
+export act
+```

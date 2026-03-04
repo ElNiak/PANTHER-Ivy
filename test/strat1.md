@@ -1,0 +1,9 @@
+```
+type t
+relation le(X:t,Y:t)
+axiom le(X,X)
+axiom forall X. exists Y. le(X,Y)
+action step(a:t) = { assume true }
+export step
+conjecture le(X,X)
+```

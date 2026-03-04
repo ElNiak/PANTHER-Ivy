@@ -1,0 +1,16 @@
+
+```
+include deduction
+
+theorem [thm14] {
+    type t
+    function p(X:t) : bool
+    property forall X. p(X)
+    property exists X. p(X)
+}
+proof {
+    apply introE;
+    apply elimA with X = witness;
+    showgoals
+}
+```

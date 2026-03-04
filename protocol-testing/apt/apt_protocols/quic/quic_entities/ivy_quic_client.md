@@ -1,0 +1,67 @@
+
+```
+include order
+include quic_infer
+include file
+include apt_types
+```
+include quic_locale
+```
+include quic_random_value
+include ip
+include apt_endpoint
+include apt_quic_endpoint
+include quic_endpoint
+include ivy_quic_shim
+
+include ivy_client
+
+parameter the_cid : cid = 0xd
+parameter n_clients : stream_pos = 0x1
+
+parameter max_stream_data : stream_pos = 0x2000
+parameter initial_max_streams_bidi : stream_id = 200
+
+```
+create a client and server. the client has an instance of TLS
+
+instance client : endpoint(endpoint_id.client)
+instance server : endpoint(endpoint_id.server)
+
+```
+instance client : endpoint.client_endpoint.client_quic(client_addr,client_port)
+
+```
+An ip endpoint for the client to migrate to.
+
+```
+var client_alt : ip.endpoint
+var client_vn  : ip.endpoint
+
+after init {
+    client_alt := endpoint_id_addr(endpoint_id.client_alt);
+    client_vn  := endpoint_id_addr(endpoint_id.client_vn);
+}
+
+```
+instance second_client : endpoint(endpoint_id.client_alt)
+
+```
+instance second_client : endpoint.client_endpoint.client_quic(client_addr,client_port_alt) # second_client_ep
+
+```
+after init {
+    call second_client.initialization(client_addr,client_port);
+}
+
+We create sockets and bind them to the addresses that the client can use.
+
+TODO create socket for client & server
+TODO associate these data to the entities itself
+```
+var sock : quic_net.socket
+var sock_alt : quic_net.socket
+var sock_vn : quic_net.socket
+
+import action show_client_debug_event(client_addr:ip.endpoint)
+```

@@ -1,0 +1,12 @@
+
+```
+module arith_char = {
+    type this
+    interpret this -> ivy.native_int[char]
+}
+
+module arith_int = {
+    type this
+    interpret this -> ivy.native_int[int]
+}
+```

@@ -1,0 +1,9 @@
+
+```
+include shard
+
+type key
+type data
+
+instance foo : table_shard(key,data)
+```

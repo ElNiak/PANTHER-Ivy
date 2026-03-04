@@ -1,0 +1,23 @@
+
+```
+var x : bool
+var y : bool
+
+after init {
+    x := true;
+    y := true;
+}
+
+action a = {
+    var temp : bool;
+    temp := x;
+    x := y;
+    assert x;
+    y := temp;
+}
+
+invariant x
+invariant y
+
+export a
+```

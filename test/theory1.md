@@ -1,0 +1,13 @@
+
+```
+type t
+type q
+
+function f(X:t) : q
+
+individual a:t, b:t
+
+axiom f(X) = f(Y) + Z
+
+interpret q->int
+```

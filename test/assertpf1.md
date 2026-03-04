@@ -1,0 +1,16 @@
+
+```
+type t
+
+var x:t
+var y:t
+
+action a = {
+
+    assert x = y -> x = y proof let X = x;
+    assert x = y -> x = y proof let X = x;
+
+}
+
+export a
+```

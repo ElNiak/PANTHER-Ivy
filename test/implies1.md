@@ -1,0 +1,10 @@
+
+```
+type t
+
+function f(X:t):t
+
+axiom X:t < f(0) & true
+
+```
+axiom 0 < X:t + Y

@@ -1,0 +1,26 @@
+
+```
+type t
+var p(X:t) : bool
+var q : bool
+
+var y : t
+
+after init {
+   p(X) := true
+}
+
+action a(x:t) = {
+    if q & x ~= y {
+        p(x) := false
+    }
+    else {
+        q := true
+    }
+}
+
+invariant p(X)
+
+
+export a
+```

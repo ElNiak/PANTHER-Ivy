@@ -1,0 +1,15 @@
+
+```
+include reader
+include io
+
+instance stdio : io.stdio(str,pos,char)
+
+init {
+    var p : ivy.prog;
+    p := ivy.prog.read_file("test.ivy");
+    var s : str;
+    s := p.enc;
+    stdio.write(s);
+}
+```

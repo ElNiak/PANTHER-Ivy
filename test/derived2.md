@@ -1,0 +1,10 @@
+
+```
+type t
+
+function ident(X:t):t
+
+definition ident(X) = some Y. X = Y
+
+property ident(Z) = Z
+```

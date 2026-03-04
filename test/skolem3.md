@@ -1,0 +1,16 @@
+
+```
+include order
+
+type t
+
+axiom [transitivity] (T:t < U & U < V) -> (T < V)
+axiom [antisymmetry] ~(T:t < U & U < T)
+axiom [totality] T:t < U | T = U | U < T
+
+relation r(X:t,Y:t)
+
+axiom exists Y. r(X,Y)
+
+axiom r(X,Y) -> X < Y
+```

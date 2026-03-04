@@ -1,0 +1,16 @@
+
+```
+type t
+
+individual bit(X:t) : bool
+
+object foo(me:t) = {
+    action flip = {
+	bit(me) := ~bit(me)
+    }
+}
+
+export foo.flip
+
+extract iso_foo(me:t) = foo(me),bit(me)
+```

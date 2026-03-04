@@ -1,0 +1,26 @@
+
+```
+include order
+include quic_infer
+include file
+include apt_types
+
+```
+include quic_locale
+```
+include quic_random_value
+include ip
+include apt_endpoint
+include apt_quic_endpoint
+include quic_endpoint
+include ivy_quic_shim
+include ivy_server
+
+parameter server_cid : cid = 0xb
+
+
+instance server        : endpoint.server_endpoint.server_quic(server_addr,server_port)
+instance second_server : endpoint.server_endpoint.server_quic(server_addr,server_port_alt) # TODO
+
+import action show_server_debug_event(server_addr:ip.endpoint)
+```

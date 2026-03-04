@@ -1,0 +1,24 @@
+
+```
+schema alli = {
+    type t
+    function p(X:t) : bool
+    {
+        function x : t
+        property p(x)
+    }
+    #----------------------
+    property forall X. p(X)
+}
+
+type t
+relation q(X:t)
+var x : t
+
+theorem foo = {
+    property forall X:t. X = x
+}
+proof
+    apply alli<y/x,t1/t>;
+    showgoals
+```

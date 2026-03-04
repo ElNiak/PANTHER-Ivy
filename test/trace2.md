@@ -1,0 +1,23 @@
+
+```
+var p : bool
+var q : bool
+
+after init {
+   p := false
+}
+
+action a = {
+    if q {
+        p := false
+    }
+    else {
+        q := true
+    }
+}
+
+invariant p
+
+
+export a
+```

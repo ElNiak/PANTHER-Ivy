@@ -1,0 +1,25 @@
+
+```
+type r
+
+object a = {
+    type this
+    action run(arg:this) = {}
+}
+
+var x : a
+
+object b = {
+    variant this of a = struct {
+        foo : r
+    }
+    action run(arg:this) = {x := arg}
+}
+
+
+action bar = {
+    call x.run
+}
+
+export bar
+```

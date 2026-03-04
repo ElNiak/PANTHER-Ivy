@@ -1,0 +1,22 @@
+
+```
+include attack_white_noise
+
+```
+Inflitration
+```
+include attack_reconnaissance
+include attack_infiltration
+include attack_c2_communication
+
+```
+Expansion
+```
+include attack_privilege_escalation
+include attack_maintain_persistence
+
+```
+Extraction
+```
+include attack_exfiltration
+```

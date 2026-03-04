@@ -1,0 +1,10 @@
+
+```
+include indexset
+
+instance bss : unbounded_sequence
+instance idx : unbounded_sequence
+instance s : indexset(bss,idx)
+
+isolate iso = s with idx,bss
+```

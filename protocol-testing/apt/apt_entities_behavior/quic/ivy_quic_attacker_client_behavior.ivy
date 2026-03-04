@@ -123,7 +123,7 @@ before open_connection(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
                     require src.addr = client.ep.addr; #client.ep | src = client_alt;
                 } else {
                     require src.addr  = client_alt.addr;
-                }Ò
+                }
             } else {
                 require src.addr = client.ep.addr;
             }

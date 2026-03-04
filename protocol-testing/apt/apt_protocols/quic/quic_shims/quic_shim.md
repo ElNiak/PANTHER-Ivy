@@ -1,0 +1,452 @@
+
+```
+include quic_connection
+include tls_msg
+include serdes
+include quic_deser
+include quic_ser
+include quic_deser_enc_client
+include quic_deser_enc_server
+include quic_ser_enc_client
+include quic_ser_enc_server
+include quic_deser_random
+include quic_ser_random
+include quic_deser_short_enc_client
+include quic_ser_short_enc_client
+include quic_deser_short_enc_server
+include quic_ser_short_enc_server
+include quic_deser_vn
+include quic_ser_vn
+include quic_deser_retry
+include quic_ser_retry
+include quic_deser_zerortt
+include quic_ser_zerortt
+include quic_deser_forged
+include quic_ser_forged
+include quic_random_value
+include network_controler
+include quic_infer
+
+```
+TODO import _stream for debug
+
+The QUIC test shim
+------------------
+
+This shim translates between the randomized mirror process generated
+by Ivy for the QUIC specification, and the test locale. The test
+locale contains a server or client implementation under test (as a
+separate process), the network, and one instance of TLS for each
+client or server process that communcates with the process under
+test.
+
+The shim makes this connection by two methods:
+
+- It uses a *implements* clause to attach code to actions.
+- It implements call-back actions of the processes in the locale
+
+In particular, the implementations of protocol actions can send
+messages by UDP to the client/server under test. Reception of messages
+can in turn trigger inferred protocol actions.
+
+
+The test shim uses an instance of the QUIC protection module
+to protect packts (see comment below). This module in turn uses the services
+of TLS.
+
+
+```
+include quic_endpoint
+include quic_locale
+
+include quic_loss_recovery
+include quic_congestion_control
+
+include ivy_quic_server
+include ivy_quic_client
+```
+include ivy_quic_client_server
+include ivy_quic_attacker_client
+include ivy_quic_target
+include ivy_quic_mim
+
+UDP receive event shim
+----------------------
+
+When a UDP datagram arrives, decrypt_quic it, deserialize it, then
+generate a `packet_event`.
+
+Note: the quic_net API deserializes the datagram into a sequence of
+packets.  Thus, we have to iterate over the packets. If a packet
+is undecryptable, we call the action `undecryptable_packet_event`.
+This is not necessarily a protocol error, as an undecryptable
+packet may be a stateless reset.
+
+####### Test type config
+
+```
+relation initial_keys_set(C:cid)
+relation tp_client_set # (C:cid) TODO strange segfault for level 2 not set with quant
+
+function client_initial_rcid : cid
+function client_initial_scid : cid
+function client_initial_scil : stream_pos
+function client_initial_dcid : cid
+function client_initial_dcil : stream_pos
+function client_initial_version : version
+
+relation client_non_zero_scil
+
+relation zero_rtt_allowed
+relation zero_rtt_sent
+relation send_connection_close # TODO, send co_close at end of test or not
+
+after init {
+    initial_keys_set(C)   := false;
+    tp_client_set         := false;
+    client_non_zero_scil  := false;
+    zero_rtt_allowed      := false;
+    zero_rtt_sent         := false;
+    send_connection_close := false;
+}
+
+```
+for client test
+```
+relation zero_rtt_client_test
+relation zero_rtt_server_test # TODO should be parameters
+
+```
+for server tests
+```
+function nclients : stream_pos
+instance cids : array(index,cid)
+function the_cids : cids
+function server_cids : cids
+```
+var clients : endpoint.arr
+
+PS: for modelisation purpose, for each differents client, we associate one virtual server
+Should only instanciate one server TODO
+instance clients : endpoint.clients_quic(client_addr,client_port,2)
+instance servers : endpoint.servers_quic(server_addr,server_port,2)
+
+```
+var the_cid_alt : cid
+var server_cid_alt : cid
+
+instance ip_endpoints : array(index,ip.endpoint)
+```
+instance endpoints : array(index,endpoint)
+```
+relation allowed_migration
+relation allowed_multiple_migration
+
+relation first_datagram_received
+function last_datagram_received_size : stream_pos
+
+```
+for client & server tests
+```
+relation version_negociated
+function initial_version : version # init in each entities/test
+relation negocation_of_version(E:ip.endpoint)
+relation negocation_of_version_initiated(E:ip.endpoint)
+
+after init {
+    zero_rtt_client_test := false;
+    zero_rtt_server_test := false;
+    allowed_migration          := true;
+    allowed_multiple_migration := false;
+
+    version_negociated := false;
+    negocation_of_version_initiated(E) := false;
+    negocation_of_version(E):=  false;
+
+    first_datagram_received := false;
+    last_datagram_received_size := 0;
+
+    nclients := 1;
+```
+the_cids :=
+```
+}
+
+```
+####### RTT config
+
+var early_data_end : stream_data
+after init {
+    # Need to be local for mvfst STRANGE
+    # TODO global -> quic-go crash if not global
+    early_data_end := stream_data.empty;
+    early_data_end := early_data_end.append(0xff);
+    early_data_end := early_data_end.append(0xff);
+    early_data_end := early_data_end.append(0xff);
+    early_data_end := early_data_end.append(0xff);
+}
+
+####### Padding-only packet management
+
+```
+function last_packet_type(C:cid) : quic_packet_type
+function last_packet_length(C:cid) : stream_pos
+
+function total_data_received: stream_pos
+function total_data_sent : stream_pos
+
+after init {
+    last_packet_type(C) := quic_packet_type.initial;
+    last_packet_length(C) := 1200;
+    total_data_received := 0;
+    total_data_sent := 0;
+}
+
+```
+####### Version (negociation) config
+
+```
+parameter iversion : stream_pos = 0x1
+parameter vnversion : stream_pos = 0x1 # TODO
+relation version_not_found(E:ip.endpoint)
+
+var supported_versions : versions
+var final_version : version # TODO test function
+var supported_versions_bv : versions_bv
+
+after init {
+    supported_versions := versions.empty;
+    var v1 := stream_data.empty;
+    supported_versions_bv := versions_bv.empty;
+```
+TODO change properties according to version, for now only last version specification is used !!
+```
+    if iversion = 1 {
+        v1 := v1.append(0x0);
+        v1 := v1.append(0x0);
+        v1 := v1.append(0x0);
+        v1 := v1.append(0x01); # TODO stop bv and non-bv conversion
+        supported_versions_bv := supported_versions_bv.append(0x00000001);
+        initial_version := 0x00000001;
+    } else if iversion = 34 {
+        v1 := v1.append(0xff);
+        v1 := v1.append(0x0);
+        v1 := v1.append(0x0);
+        v1 := v1.append(0x22); # TODO
+        supported_versions_bv := supported_versions_bv.append(0xff000022);
+        initial_version := 0xff000022;
+    } else if iversion = 29 {
+        v1 := v1.append(0xff);
+        v1 := v1.append(0x0);
+        v1 := v1.append(0x0);
+        v1 := v1.append(0x1d); # TODO
+        supported_versions_bv := supported_versions_bv.append(0xff00001d);
+        initial_version := 0xff00001d;
+    } else if iversion = 28 {
+        v1 := v1.append(0xff);
+        v1 := v1.append(0x0);
+        v1 := v1.append(0x0);
+        v1 := v1.append(0x1c); # TODO
+        supported_versions_bv := supported_versions_bv.append(0xff00001c);
+        initial_version := 0xff00001c;
+    } else if iversion = 27 {
+        v1 := v1.append(0xff);
+        v1 := v1.append(0x0);
+        v1 := v1.append(0x0);
+        v1 := v1.append(0x1b); # TODO
+        supported_versions_bv := supported_versions_bv.append(0xff00001b);
+        initial_version := 0xff00001b;
+    };
+    supported_versions := supported_versions.append(v1);
+    final_version := 0x0000000; # This is init value, meaning that VN is proceed or not
+    version_not_found(E) := false;
+}
+
+
+```
+implement quic_net.recv(host:endpoint_id, s:quic_net.socket, src:ip.endpoint, pkts:net_prot.arr) {
+    # call show_current_time_debug_event(time_api.c_timer.now_micros_last_bp);
+    call show_socket_debug_event(s);
+    if(is_lost_recv) {
+        call on_purpose_lost_packet_event(host,src,pkts);
+    } else {
+        if host = endpoint_id.server {        # for client test (tested implem = client <-> ivy implem = server)
+            call server.behavior(host,s,src,pkts);
+        } else if host = endpoint_id.client | host = endpoint_id.client_alt  { # for server test (tested implem = server <-> ivy implem = client)
+            call client.behavior(host,s,src,pkts);
+        } else if host = endpoint_id.man_in_the_middle {
+            call mim_agent.behavior(host,s,src,pkts);
+        } else if host = endpoint_id.target {
+            call mim_agent.ep_target_server.behavior(host,s,src,pkts);
+        } else if host = endpoint_id.malicious_server {
+            call attacker.behavior(host,s,src,pkts);
+        } else {
+            # ERROR
+            call undefined_host_error(host,s,src);
+        };
+    }
+
+}
+
+For logging purposes. This logs the decoded packets received from the network, before
+event inference.
+
+
+```
+import action recv_packet(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
+```
+import action recv_protected_packet_mim(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_protected_quic_packet)
+
+```
+import action recv_packet_target(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:stream_data)
+import action padding_packet_event(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:stream_data)
+
+```
+This received packets that are undecryptable
+```
+import action undecryptable_packet_event(host:endpoint_id,src:ip.endpoint,dst:ip.endpoint,pkt:stream_data)
+import action on_purpose_lost_packet_event(host:endpoint_id,src:ip.endpoint,pkt:net_prot.arr)
+
+```
+import action undefined_host_error(host:endpoint_id, s:quic_net.socket, src:ip.endpoint)
+
+
+import action show_socket_debug_event(n:quic_net.socket)
+
+Security event shims
+--------------------
+
+Here, we connect protocol events at the security layer to API calls of the
+TLS 1.3 service (a part of the test locale).
+
+
+TLS send event shim
+```
+        call tls_send_event(tls_id_to_src(tls_id), tls_id_to_dst(tls_id), scid,
+                            dcid, bytes,crypto_data_end(scid,e),e, tls_id);
+
+```
+if ~slow_loris {
+    slow_loris := true;
+}
+if slow_loris {
+    the_cid := next_cid(the_cid);
+    # server_cid := next_cid(server_cid);
+    # nonce_cid(the_cid) := server_cid;
+    the_cid_used          := the_cid_used.append(the_cid);
+    # last_connection_id    := client_current_connection_id;
+    client_current_connection_id := client_current_connection_id.next;
+
+    client.ep.port        := client.ep.port + 1;
+    client.set_tls_id(client_current_connection_id);
+
+    sock     := quic_net.open(endpoint_id.client,client.ep);
+    sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
+    sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
+     # server.set_tls_id(client_current_connection_id.next);
+
+    cid_map_tls_id(the_cid) := client_current_connection_id;
+    ep_map_tls_id(client.ep)   := client_current_connection_id;
+    ep_map_cid(client.ep)      := the_cid;
+    cid_map_ep(the_cid)     :=  client.ep;
+    cid_map_sock(the_cid)   := sock;
+    tls_id_map_cid(client_current_connection_id) := the_cid;
+    tls_id_map_ep(client_current_connection_id)  :=  client.ep;
+    other_tls_id_map_ep(client_current_connection_id) := server.ep;
+    call show_dev( client.ep,server.ep,the_cid,dcid,src_tls_id(client.ep));
+    number_of_open_connection(server.ep) := number_of_open_connection(server.ep) + 1;
+    used_client_ports(client.ep.port) := true;
+
+    var extns := tls_extensions.empty;
+    extns := extns.append(make_transport_parameters);
+    call tls_api.upper.create(client_current_connection_id,false,extns);
+    # the_cid := next_cid(the_cid);
+    # # server_cid := next_cid(server_cid);
+    # # nonce_cid(the_cid) := server_cid;
+    # the_cid_used          := the_cid_used.append(the_cid);
+    # # last_connection_id    := client_current_connection_id;
+    # # client_current_connection_id := client_current_connection_id.next;
+    # client.ep.port        := client.ep.port + 1;
+    # used_client_ports(client.ep.port) := true;
+    # client.set_tls_id(client_current_connection_id);
+
+    # sock     := quic_net.open(endpoint_id.client,client.ep);
+    # sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
+    # sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
+    #     # server.set_tls_id(client_current_connection_id.next);
+    # var extns := tls_extensions.empty;
+    # extns := extns.append(make_transport_parameters);
+    # call tls_api.upper.create(client_current_connection_id,false,extns);
+}
+```
+    }
+}
+
+```
+The following is just for debugging purposes.call show_tls_send_event
+
+```
+after tls_send_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, data : stream_data,
+                     pos:stream_pos, e:quic_packet_type, tls_id:tls_api.id) {
+    call show_tls_send_event(src,dst,scid,dcid,data,pos,e, tls_id);
+```
+if slow_loris {
+    the_cid := next_cid(the_cid);
+    # server_cid := next_cid(server_cid);
+    # nonce_cid(the_cid) := server_cid;
+    the_cid_used          := the_cid_used.append(the_cid);
+    # last_connection_id    := client_current_connection_id;
+    client_current_connection_id := client_current_connection_id.next;
+
+    client.ep.port        := client.ep.port + 1;
+    client.set_tls_id(client_current_connection_id);
+
+    sock     := quic_net.open(endpoint_id.client,client.ep);
+    sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
+    sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
+        # server.set_tls_id(client_current_connection_id.next);
+
+    cid_map_tls_id(the_cid) := client_current_connection_id;
+    ep_map_tls_id(client.ep)   := client_current_connection_id;
+    ep_map_cid(client.ep)      := the_cid;
+    cid_map_ep(the_cid)     :=  client.ep;
+    cid_map_sock(the_cid)   := sock;
+    tls_id_map_cid(client_current_connection_id) := the_cid;
+    tls_id_map_ep(client_current_connection_id)  :=  client.ep;
+    other_tls_id_map_ep(client_current_connection_id) := server.ep;
+    call show_dev( client.ep,server.ep,the_cid,dcid,src_tls_id(client.ep));
+    number_of_open_connection(server.ep) := number_of_open_connection(server.ep) + 1;
+    used_client_ports(client.ep.port) := true;
+
+    var extns := tls_extensions.empty;
+    extns := extns.append(make_transport_parameters);
+    call tls_api.upper.create(client_current_connection_id,false,extns);
+    # the_cid := next_cid(the_cid);
+    # # server_cid := next_cid(server_cid);
+    # # nonce_cid(the_cid) := server_cid;
+    # the_cid_used          := the_cid_used.append(the_cid);
+    # # last_connection_id    := client_current_connection_id;
+    # # client_current_connection_id := client_current_connection_id.next;
+    # client.ep.port        := client.ep.port + 1;
+    # used_client_ports(client.ep.port) := true;
+    # client.set_tls_id(client_current_connection_id);
+
+    # sock     := quic_net.open(endpoint_id.client,client.ep);
+    # sock_alt := sock; # quic_net.open(endpoint_id.client_alt,client_alt);
+    # sock_vn  := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
+    #     # server.set_tls_id(client_current_connection_id.next);
+    # var extns := tls_extensions.empty;
+    # extns := extns.append(make_transport_parameters);
+    # call tls_api.upper.create(client_current_connection_id,false,extns);
+}
+```
+}
+
+```
+TLS keys established event shim
+
+```
+import action show_version(ver:version)
+
+import action show_kk
+```

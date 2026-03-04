@@ -1,0 +1,24 @@
+
+```
+type t
+
+interpret t->nat
+
+type q
+
+function f(Q:q) : t
+
+```
+property f(Q) >= 0
+
+property 0 <= X:t
+
+property X:t - Y:t >= 0
+
+```
+relation p(X:t)
+
+axiom p(X)
+
+property p(X)
+```

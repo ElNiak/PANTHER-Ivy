@@ -53,7 +53,6 @@ action make_transport_parameters returns (tp:quic_transport_parameters) = {
 #
 # Restrict generation to packets from the designated client endpoints
 # to the server endpoint.
-
 before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     if _generating {
         require pkt.ptype = quic_packet_type.initial -> retry_response(client_initial_rcid); #  pkt.ptype = quic_packet_type.initial -> retry_response retry_sent &

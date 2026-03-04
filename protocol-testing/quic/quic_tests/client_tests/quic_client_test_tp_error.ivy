@@ -48,7 +48,7 @@ action make_transport_parameters returns (tp:quic_transport_parameters) = {
     #  Values above 20 are invalid.
 
     var acl_del : ack_delay_exponent;
-    acl_del.exponent_8 := greater_microsecs(20);
+    acl_del.exponent_8 := greater_microseconds(20);
     tp.transport_parameters := tp.transport_parameters.append(acl_del);
 }
 

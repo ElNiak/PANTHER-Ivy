@@ -1,0 +1,25 @@
+
+```
+type t
+
+relation p(X:t)
+
+
+```
+axiom X:t = 0 & Y = 0 -> X = Y
+axiom X:t = Y & Y = 0 -> X = 0
+
+```
+invariant p(X)
+
+after init {
+    p(X) := true
+}
+
+action a(x:t)  = {
+  p(x) := false
+}
+
+
+export a
+```

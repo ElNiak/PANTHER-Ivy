@@ -1,0 +1,20 @@
+
+```
+include order
+
+instance foo : iterable
+
+relation p(X:foo)
+
+after init {
+    p(X) := true
+}
+
+action a returns(q:bool) = {
+    q := forall X. p(X)
+}
+
+export a
+
+extract code = this,foo
+```

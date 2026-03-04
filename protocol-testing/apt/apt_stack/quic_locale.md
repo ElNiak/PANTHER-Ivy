@@ -1,0 +1,16 @@
+
+```
+include network_implementation
+include tls_msg
+include tls_api
+```
+include quic_types
+
+interpret cid -> longbv[1][1000][20]
+This file provides the interface to the test locale. This includes
+two services: TLS 1.3 and UDP.
+
+
+```
+instance quic_net : network_implementation(endpoint_id,net_prot.arr,quic_prot_ser,quic_prot_deser, 443)
+```

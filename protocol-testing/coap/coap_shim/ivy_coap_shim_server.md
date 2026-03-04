@@ -1,0 +1,17 @@
+
+
+Actions for server endpoint
+```
+action server_receive_request(client:ip.endpoint, request:coap_message) = {
+```
+Deserialize and process the request
+Prepare a response based on the request
+```
+}
+
+action server_send_response(client:ip.endpoint) = {
+```
+Serialize and send the response to the client
+```
+}
+```

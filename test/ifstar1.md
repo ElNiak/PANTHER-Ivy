@@ -1,0 +1,17 @@
+
+```
+type t
+
+var x : t
+
+action a = {
+    if * {
+        x := 0
+    } else {
+        x := 1
+    };
+    assert x = 0 | x = 1
+}
+
+export a
+```

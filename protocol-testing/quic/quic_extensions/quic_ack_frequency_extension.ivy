@@ -12,6 +12,8 @@
 # send ACK_FREQUENCY frames independent of whether it also sends the min_ack_delay transport
 # parameter or not.
 
+include quic_time
+
 import action is_min_ack_set(b:bool)
 
 var force_immediate_ack : bool

@@ -1,0 +1,14 @@
+
+```
+type t
+
+action a(x:t) = {
+    if x <= 0 {
+        assert x < 0 | x = 0
+    }
+}
+
+export a
+
+attribute method=mc
+```

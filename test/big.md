@@ -1,0 +1,20 @@
+
+```
+type t
+
+interpret t -> bv[16]
+
+relation r(X:t)
+
+action a = {
+    r(X) := false
+}
+
+action b(x:t) = {
+    r(x) := true
+}
+
+action c(x:t) returns (y:bool) = {
+    y := r(x)
+}
+```

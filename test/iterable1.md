@@ -1,0 +1,16 @@
+
+```
+include order
+
+instance foo : iterable
+
+relation p(X:foo)
+
+action a returns(q:bool) = {
+    q := forall X. X <= 0 & X <= foo.max -> p(X)
+}
+
+export a
+
+extract code = this,foo
+```

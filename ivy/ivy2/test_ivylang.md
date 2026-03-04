@@ -1,0 +1,16 @@
+
+```
+include ivylang
+include io
+
+instance stdio : io.stdio(str,pos,char)
+
+init {
+    var line := stdio.read;
+    var e : ivy.prog;
+    e := ivy.prog.dec(line);
+    var s : str;
+    s := e.enc;
+    stdio.write(s);
+}
+```

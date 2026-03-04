@@ -1,0 +1,17 @@
+
+```
+include linmap
+
+type data_t
+type txid_t
+
+instantiate linmap(txid_t, data_t)
+
+export put
+export end_put
+export get
+export end_get
+
+interpret data_t -> int
+interpret txid_t -> bv[2]
+```

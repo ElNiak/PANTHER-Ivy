@@ -1,0 +1,15 @@
+
+```
+include order
+include file
+```
+include system_locale
+```
+include apt_system_endpoint
+include ivy_attacker
+
+instance server : endpoint.server_attacker_endpoint.attacker_system_ep(
+    server_addr,
+    server_port,
+    client_port,true,true)
+```
