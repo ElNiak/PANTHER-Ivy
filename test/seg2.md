@@ -1,0 +1,13 @@
+
+```
+include order
+include collections
+
+instance dom : unbounded_sequence
+type rng
+instance arr : array(dom,rng)
+
+instance s : segment(dom,rng,arr)
+
+export s.make
+```

@@ -1,0 +1,20 @@
+
+```
+module mod = {
+    object obj = {
+        type foo
+    }
+}
+
+instantiate mod
+
+object obj = { ...
+   var x : foo
+}
+
+action bar = {
+   obj.x := obj.x;
+}
+
+export bar
+```

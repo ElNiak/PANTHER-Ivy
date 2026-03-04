@@ -1,0 +1,13 @@
+
+```
+include deduction
+
+type t
+relation q(X:t,Y:t)
+
+property forall X,Y. q(X,Y)
+proof {
+    showgoals;
+    apply introA
+}
+```

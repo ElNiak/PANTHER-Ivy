@@ -1,0 +1,5 @@
+
+```
+isolate foo = {
+} with xxx
+```

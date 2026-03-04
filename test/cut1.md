@@ -1,0 +1,16 @@
+
+```
+var a : bool
+var b : bool
+var c : bool
+
+axiom a
+axiom [foo] a -> b
+axiom [bar] b -> c
+
+property c proof {
+    property [baz] b;
+    showgoals;
+    assume bar
+}
+```

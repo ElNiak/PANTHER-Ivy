@@ -1,0 +1,17 @@
+
+```
+type t
+
+include order
+include collections
+
+instance idx : unbounded_sequence
+
+instance arr : array(idx,t)
+
+action a(x:arr,lo:idx,hi:idx) returns(y:arr) = {
+    y := x.segment(lo,hi)
+}
+
+export a
+```

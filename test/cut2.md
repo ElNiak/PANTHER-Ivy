@@ -1,0 +1,17 @@
+
+```
+type t
+relation p(X:t)
+
+var a : t
+var b : bool
+var c : bool
+
+axiom p(a)
+axiom forall X. p(X) -> c
+
+property c proof {
+    property [baz] exists X. p(X) named y;
+    showgoals
+}
+```

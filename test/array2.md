@@ -1,0 +1,16 @@
+
+```
+include collections
+
+type idx
+type val
+
+interpret idx -> int
+
+instance arr : array(idx,val)
+
+action foo(x:arr) = {
+    var i : idx;
+    var z := x.value(i)
+}
+```

@@ -1,0 +1,16 @@
+
+```
+type t
+relation p(X:t)
+
+schema foo = {
+    function v : t
+    property p(v)
+}
+
+var w : t
+
+property [thing] p(w)
+proof
+    assume foo with v = w
+```

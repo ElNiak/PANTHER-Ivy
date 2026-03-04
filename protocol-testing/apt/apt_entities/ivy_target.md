@@ -1,0 +1,18 @@
+
+```
+include order
+include file
+include apt_shim
+include ip
+include tls_record
+include ivy_client
+include ivy_server
+
+after init {
+    mim_agent.ep_client.addr := client_addr;
+    mim_agent.ep_client.port := client_port;
+
+    mim_agent.ep_server.addr := server_addr;
+    mim_agent.ep_server.port := server_port;
+}
+```

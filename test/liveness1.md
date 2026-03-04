@@ -1,0 +1,21 @@
+
+```
+var p : bool
+
+after init {
+    p := false;
+}
+
+action a = {
+    p := true
+}
+
+temporal property eventually p
+proof {
+    tactic l2s with
+        invariant [inv1] globally ~p
+
+}
+
+export a
+```

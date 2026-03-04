@@ -1,0 +1,75 @@
+
+```
+include order
+include quic_infer
+include file
+```
+include quic_locale
+```
+include ivy_quic_shim_attacker
+include quic_random_value
+include ivy_attacker_stream_data_behavior
+
+
+```
+Network setup
+-------------
+
+To test the server over the OS sockets layer, we need some setup. We must
+establish which interface and which ports the tester will use.
+
+
+```
+after init {
+    zero_rtt_server_test := false;
+    client_port_vn := client_port;
+}
+
+instance tls_extensions : vector(tls.extension)
+instance tls_hand_extensions : vector(tls.handshake)
+
+
+```
+Get cid associated to a TLS instance
+
+```
+action tls_id_to_cid(tls_id:tls_api.id) returns (scid:cid) = {
+    scid := the_cid;
+}
+
+
+```
+
+Client HTTP request
+```
+interpret version -> bv[32]
+interpret pkt_num -> bv[32]
+interpret error_code -> bv[16]
+interpret stream_id -> bv[16]
+
+attribute quic_frame.idx.cardinality = 1
+attribute quic_frame.ack.range.idx.cardinality = 1
+attribute pkt_num.cardinality = 1
+attribute stream_pos.cardinality = 4
+```
+attribute ip.addr.override = bv[1]
+attribute ip.port.override = bv[1]
+
+The following are some imported actions that can be used to put
+"debugging" information in the logs. They have no other effect.
+
+```
+import action show_tls_send_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, data:stream_data, pos:stream_pos, e:quic_packet_type, tls_id:tls_api.id)
+
+import action show_level_offset_length(e:quic_packet_type,offset:stream_pos,length:stream_pos)
+
+import action clear_packet(src:ip.endpoint,dst:ip.endpoint,rnum:pkt_num,pkt:stream_data)
+
+import action cipher_packet(pkt:stream_data)
+
+import action show_stream(pkt:stream_data)
+
+import action show_connected(c1:bool, c2:cid)
+
+import action show_aead(level:tls_api.upper.level,pyld:stream_data,seq:pkt_num,auth:stream_data)
+```

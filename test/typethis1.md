@@ -1,0 +1,20 @@
+
+```
+type t
+
+object foo = {
+    type this = struct {
+        f : t
+    }
+
+    action bar (x:this) returns (y:t) = {
+        y := x.f
+    }
+}
+
+var v : foo
+
+action baz = {
+    var q := v.bar
+}
+```

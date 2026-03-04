@@ -1,0 +1,10 @@
+
+```
+module arith_char = {
+    type this
+}
+
+module arith_int = {
+    type this
+}
+```

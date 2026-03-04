@@ -1,0 +1,13 @@
+
+```
+object t = {
+    type this
+    relation r(X:this)
+}
+
+action foo(a:t) = {
+    assert (old a).r
+}
+
+export foo
+```

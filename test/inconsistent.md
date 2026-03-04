@@ -1,0 +1,8 @@
+
+```
+type node
+interpret node -> int
+individual max_node : node
+axiom max_node > N
+action empty = {}
+```

@@ -1,0 +1,20 @@
+
+```
+include order
+include collections
+
+type a  # network addresses
+type index
+type t
+instance arr : array(index,t)
+
+include udp
+instance foo : udp_simple(a,arr.t)
+
+import foo.recv
+export foo.send
+
+interpret a->bv[1]
+
+extract iso_impl = foo.impl, arr
+```

@@ -1,0 +1,14 @@
+
+```
+type microseconds
+type seconds
+type milliseconds
+
+type stream_id                                   # stream identifier
+
+type version
+type pkt_num
+
+type type_bits
+interpret type_bits -> bv[7]
+```

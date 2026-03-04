@@ -1,0 +1,24 @@
+
+```
+type t
+
+object foo(me:t) = {
+    action a returns (v:bool)
+
+    object spec = {
+	after a {
+	    assert v
+	}
+    }
+
+    object impl = {
+	implement a {
+	    v := true
+	}
+    }
+
+    isolate iso = impl with spec
+}
+
+export foo.a
+```

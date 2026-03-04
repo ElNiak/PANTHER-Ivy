@@ -1,0 +1,43 @@
+
+```
+include order
+include quic_infer
+include file
+```
+include quic_locale
+```
+include ivy_quic_shim_attacker
+include quic_random_value
+include ivy_attacker_stream_data_behavior
+
+
+```
+Network setup
+-------------
+
+To test the server over the OS sockets layer, we need some setup. We must
+establish which interface and which ports the tester will use.
+
+
+```
+after init {
+    zero_rtt_server_test := false;
+    client_port_vn := client_port;
+}
+
+instance tls_extensions : vector(tls.extension)
+instance tls_hand_extensions : vector(tls.handshake)
+
+
+```
+Get cid associated to a TLS instance
+
+```
+action tls_id_to_cid(tls_id:tls_api.id) returns (scid:cid) = {
+    scid := the_cid;
+}
+
+
+```
+
+Client HTTP request

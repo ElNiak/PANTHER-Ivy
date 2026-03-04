@@ -1,0 +1,16 @@
+
+```
+include syntax
+include io
+
+instance stdio : io.stdio(str,pos,char)
+
+init {
+    var b := pretty.make(10,4);
+    b := b.extend("fooooo");
+    b := b.extend(" ");
+    b := b.extend("barrrr");
+    b := b.flush;
+    stdio.write(b.output);
+}
+```

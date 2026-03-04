@@ -1,0 +1,25 @@
+
+
+```
+action foo(inp:bool)
+
+object spec = {
+    before foo {
+	assert inp
+    }
+}
+
+object impl = {
+
+    individual thing : bool
+
+    implement foo {
+	thing := inp
+    }
+}
+
+
+export foo
+
+isolate iso_this = this
+```

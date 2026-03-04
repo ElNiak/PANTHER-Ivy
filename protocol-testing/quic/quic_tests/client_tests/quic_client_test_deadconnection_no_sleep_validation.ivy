@@ -30,7 +30,7 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     #require time_api.c_timer.is_sleep_fake_timeout -> _generating;
     # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
     #require is_not_sleeping -> _generating;
-    call show_is_sleep_fake_timeout(time_api.c_timer.is_sleep_fake_timeout);
+    # call show_is_sleep_fake_timeout(time_api.c_timer.is_sleep_fake_timeout);
     # require _generating -> is_not_sleeping;
     # require _generating <-> is_not_sleeping;
     if slept & is_not_sleeping {

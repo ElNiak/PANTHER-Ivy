@@ -1,0 +1,23 @@
+
+```
+schema alli = {
+    type t
+    function p(X:t) : bool
+    {
+        function x : t
+        property p(x)
+    }
+    #----------------------
+    property forall X. p(X)
+}
+
+type t
+relation q(X:t)
+
+theorem foo = {
+    property forall X:t. X = 0
+}
+proof
+    apply alli;
+    showgoals
+```

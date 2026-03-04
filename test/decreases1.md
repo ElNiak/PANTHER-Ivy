@@ -1,0 +1,19 @@
+
+```
+type t
+
+interpret t -> int
+
+var n : t
+
+action a = {
+    var i : t := 0;
+    while i < n
+        decreases n - i
+    {
+        i := i - 1;
+    }
+}
+
+export a
+```

@@ -1,0 +1,21 @@
+
+```
+type t
+
+schema foo = {
+    property X:t = X
+    {
+        function x : t
+        property x = X
+    }
+    property Y:t = Z
+}
+
+var x : t
+var y : t
+
+property x = y
+proof
+    apply foo with X = x;
+    showgoals
+```

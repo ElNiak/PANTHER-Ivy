@@ -53,12 +53,13 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     # TODO check with & without handshake_done_recv
     # # is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
     #require is_not_sleeping -> _generating;
-    call show_is_sleep_fake_timeout(time_api.c_timer.is_sleep_fake_timeout);
+    var is_not_sleeping := time_api.c_timer.is_sleep_fake_timeout;
+    call show_is_sleep_fake_timeout(is_not_sleeping);
     # require _generating -> is_not_sleeping;
     # require _generating <-> is_not_sleeping;
     # require (_generating  -> is_not_sleeping);
     # # require (~is_not_sleeping -> ~_generating);
-    if slept & time_api.c_timer.is_sleep_fake_timeout   { # & sleep_start + microseconds_to_milliseconds(max_idle_timeout_used) + 500 < time_api.c_timer.now_millis
+    if slept & is_not_sleeping   { # & sleep_start + microseconds_to_milliseconds(max_idle_timeout_used) + 500 < time_api.c_timer.now_millis
         #call _finalize;
         if ~_generating {
             last_pkt_send_before_sleep := pkt.seq_num;

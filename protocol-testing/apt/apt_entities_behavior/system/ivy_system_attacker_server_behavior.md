@@ -1,0 +1,73 @@
+
+```
+include order
+include quic_infer
+include file
+```
+include quic_locale
+```
+include quic_random_value
+
+
+```
+Network setup
+-------------
+
+To test the server over the OS sockets layer, we need some setup. We must
+establish which interface and which ports the tester will use.
+
+
+
+```
+var sock : quic_net.socket
+var sock_alt : quic_net.socket
+var sock_vn : quic_net.socket
+
+```
+Server
+```
+action socket_endpoint_mim(host:endpoint_id,s:quic_net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
+    dst := mim_agent.ep_client if src = mim_agent.ep_server else mim_agent.ep_server; # is_mim_standalone |
+    call socket_endpoint_mim_event_debug_event(host,s,src,dst);
+}
+
+import action socket_endpoint_mim_event_debug_event(host:endpoint_id,s:quic_net.socket,src:ip.endpoint,dst:ip.endpoint)
+
+action endpoint_to_socket_mim(src:ip.endpoint) returns (socket:quic_net.socket) = {
+    socket := sock_mim_server if src = mim_agent.ep_server else sock_mim_client; #  & ~forged_packet_send
+}
+
+after init {
+    zero_rtt_server_test := false;
+    client_port_vn := client_port;
+}
+
+
+```
+Get cid associated to a TLS instance
+
+```
+action tls_id_to_cid(tls_id:tls_api.id) returns (scid:cid) = {
+    scid := the_cid;
+}
+
+
+```
+
+Client HTTP request
+```
+interpret version -> bv[32]
+interpret pkt_num -> bv[32]
+interpret error_code -> bv[16]
+interpret stream_id -> bv[16]
+
+attribute quic_frame.idx.cardinality = 1
+attribute quic_frame.ack.range.idx.cardinality = 1
+attribute pkt_num.cardinality = 1
+attribute stream_pos.cardinality = 4
+```
+attribute ip.addr.override = bv[1]
+attribute ip.port.override = bv[1]
+
+The following are some imported actions that can be used to put
+"debugging" information in the logs. They have no other effect.

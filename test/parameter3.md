@@ -1,0 +1,22 @@
+
+include order
+
+```
+type foo
+interpret foo -> bv[3]
+
+
+parameter max : foo = 3
+
+action a (s:foo) returns (r:foo) = {
+    require s < max;
+    r := s + 1
+}
+
+action b returns (r:foo) = {
+    r := 0
+}
+
+export a
+export b
+```

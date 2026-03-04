@@ -1,0 +1,27 @@
+
+```
+type t
+var x:t
+var y:t
+var z:bool
+
+after init {
+    z := true
+}
+
+action a(c:bool) = {
+```
+var c := x = y;
+```
+    if c {
+        z := true
+    }
+    else {
+        z := false
+    }
+}
+
+invariant z
+
+export a
+```

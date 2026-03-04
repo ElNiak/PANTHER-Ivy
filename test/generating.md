@@ -1,0 +1,15 @@
+
+```
+type t
+interpret t -> int
+
+action act(x:t)
+
+before act {
+    if __generating {
+        require x >= 2
+    }
+}
+
+export act
+```

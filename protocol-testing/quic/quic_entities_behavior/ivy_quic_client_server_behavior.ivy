@@ -3,7 +3,7 @@
 include order
 include quic_infer
 include file
-# include quic_locale
+include quic_locale
 include ivy_quic_shim_client_server
 include random_value
 
@@ -170,7 +170,6 @@ after init {
     #initial_version := 0x00000001;
     # initial_version := 0x00000001; # 0xff00001d; #
 }
-
 before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     if _generating {
         var tp := trans_params(the_cid);
@@ -226,8 +225,6 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
 #
 # TODO: We reuquire tje `off` and `len` bits to be true. Maybe these should
 # determined in the low-level packet encoding stage.
-
-
 before frame.stream.handle(f:frame.stream,scid:cid,dcid:cid,e:quic_packet_type) {
     if _generating {
         require scid = the_cid;
@@ -242,8 +239,7 @@ before frame.stream.handle(f:frame.stream,scid:cid,dcid:cid,e:quic_packet_type) 
 
 }
 
-# We have something similar for crypto frames
-
+# We have something similar for crypto frames-
 before frame.crypto.handle(f:frame.crypto,scid:cid,dcid:cid,e:quic_packet_type) {
     if _generating {
         require scid = the_cid;
@@ -267,7 +263,6 @@ before frame.ack.handle(f:frame.ack,scid:cid,dcid:cid) {
 }
 
 # Generate rst_stream frames only for the environment process(es).
-
 before frame.rst_stream.handle(f:frame.rst_stream,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid;
@@ -302,6 +297,7 @@ before frame.max_streams.handle(f:frame.max_streams,scid:cid,dcid:cid) {
         require scid = the_cid;
     }
 }
+
 
 before frame.new_connection_id.handle(f:frame.new_connection_id,scid:cid,dcid:cid) {
     if _generating {

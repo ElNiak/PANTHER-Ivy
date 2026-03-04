@@ -1,0 +1,17 @@
+```
+type t
+relation le(X:t,Y:t)
+function f(X:t) : t
+individual q : t
+
+axiom le(X,X)
+
+```
+axiom le(X,f(X))
+```
+axiom forall X. exists Y. le(X,Y)
+
+axiom ~le(q,q)
+
+property false
+```

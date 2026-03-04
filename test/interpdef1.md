@@ -1,0 +1,8 @@
+```
+type nat
+interpret nat->nat
+relation (N:nat < N:nat)
+definition (N:nat < N1) = true
+invariant X:nat<X
+invariant false
+```

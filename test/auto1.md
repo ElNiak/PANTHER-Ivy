@@ -1,0 +1,36 @@
+
+```
+include order
+include collections
+
+
+```
+autoinstance myarr[x][y] : array(x,y)
+
+```
+instance idx : unbounded_sequence
+
+type t
+
+var p : array[idx][t]
+
+action get(i:idx) returns(v: t) = {
+    v := p.value(i)
+}
+
+object thing = {
+
+    type bargl
+
+    type foo = struct {
+        bar : vector[bargl]
+    }
+
+    var q : foo
+
+    action qget(i:vector[bargl].domain) returns(v: bargl) = {
+        v := q.bar.value(i)
+    }
+
+}
+```

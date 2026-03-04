@@ -1,0 +1,16 @@
+
+```
+type t
+
+relation p(X:t)
+
+after init {
+    p(X) := true
+}
+
+invariant p(X)
+
+interpret t -> bv[1]
+
+attribute method = mc
+```

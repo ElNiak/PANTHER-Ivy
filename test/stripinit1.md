@@ -1,0 +1,13 @@
+
+```
+type t
+
+object foo(self:t)  = {
+    var x : bool
+    after init {
+        x := false
+    }
+}
+
+isolate iso(self:t) = foo(self)
+```

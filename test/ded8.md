@@ -1,0 +1,20 @@
+
+```
+include deduction
+
+theorem [leibniz] {
+    type t
+    individual x : t
+    individual y : t
+    property [my_prem] {
+        relation q(X:t)
+        property q(x) -> q(y)
+    }
+    property x = y
+}
+proof
+    apply introEq;
+    apply elimImp with p = p(x);
+    apply my_prem;
+    showgoals
+```

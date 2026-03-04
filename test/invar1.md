@@ -1,0 +1,25 @@
+
+```
+isolate foo = {
+
+    action a
+
+    action c = {
+```
+	call bar.b
+```
+    }
+    conjecture true
+
+}
+
+isolate bar = {
+    action b = {
+	call foo.a
+    }
+    conjecture true
+} with foo
+
+export bar.b
+export foo.c
+```

@@ -1,0 +1,18 @@
+
+```
+type t = {f,g,h}
+
+var x : t
+
+invariant x = f
+
+after init {
+    x := f
+}
+
+action a  = {
+  x := g
+}
+
+export a
+```

@@ -1,0 +1,17 @@
+
+```
+type t
+
+object foo(me:t) = {
+    individual bit:bool
+    init ~bit
+
+    action get_bit returns (x:bool) = {
+	x := bit
+    }
+}
+
+export foo.get_bit
+
+extract iso_foo(me:t) = foo(me)
+```

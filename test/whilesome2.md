@@ -1,0 +1,20 @@
+
+```
+include order
+
+instance t : unbounded_sequence
+
+var v : t
+relation p(X:t)
+
+
+action a(bound:t) = {
+    while some x:t. (x < bound & ~p(x)) {
+	assert ~p(x);
+	p(x) := true
+    };
+    assert X < bound -> p(X)
+}
+
+export a
+```

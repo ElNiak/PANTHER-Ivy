@@ -1,0 +1,212 @@
+
+```
+include order
+include quic_infer
+include file
+```
+include ivy_quic_shim_server
+include quic_locale
+```
+include quic_random_value
+
+
+```
+Network setup
+-------------
+
+To test the server over the OS sockets layer, we need some setup. We must
+establish which interface and which ports the tester will use.
+
+create an UDP network instance to communicate to server with
+Note: because of packet coalescing, a single UDP datagram contains
+an array of QUIC packets.
+
+Our test network has two endpoints: one for the client and one for the server
+We use this type as a host id. There are two client host ids so we
+can model migration.
+
+var server_cid  : cid  # useless for now, refactoring of shim neeeded
+var client_addr : ip.addr
+var client_port : ip.port
+var client_port_alt : ip.port
+
+after init {
+    #the_cid := 0x1; # zero length => 0x1 mvfst and other 0x0
+    #initial_version := 0x00000001;
+    # initial_version := 0x00000001;
+    # server_cid := 0xb;
+    # client_addr := 0;
+    # client_port := 0;
+    # client_port_alt := 0;
+}
+
+   *  active_connection_id_limit
+   *  initial_max_data
+   *  initial_max_stream_data_bidi_local
+   *  initial_max_stream_data_bidi_remote
+   *  initial_max_stream_data_uni
+   *  initial_max_streams_bidi
+  (*  initial_max_streams_uni)
+
+
+Map test endpoint ids to the ip endpoints
+
+var sock : quic_net.socket
+var sock_alt : quic_net.socket
+var sock_vn : quic_net.socket
+
+instance tls_extensions : vector(tls.extension)
+instance tls_hand_extensions : vector(tls.handshake)
+
+
+Open a server socket to listen on and create an instance of TLS.
+TODO: we should have one instance of TLS per connection
+
+```
+after init {
+    sock := quic_net.open(endpoint_id.server,server.ep);
+    server.set_tls_id(0);
+
+    client.ep.addr := 0;
+    client.ep.port := 0;
+
+    call show_client_debug_event(client.ep);
+    call show_server_debug_event(server.ep);
+}
+
+```
+Here we have a bunch of conversions that map between cid's, IP
+endpoints, TLS instances and host ids. TODO: This is a mess and
+should be done in a more systematic way.
+
+Get the host id associated to an ip endpoint.
+
+TODO remove if is_mim
+```
+action endpoint_to_pid(src:ip.endpoint) returns (pid:endpoint_id) = {
+    if is_mim {
+        if src = server.ep {
+            pid := endpoint_id.server;
+        } else {
+            pid := endpoint_id.man_in_the_middle;
+        };
+    } else {
+        pid := endpoint_id.server;
+    };
+}
+
+```
+Get the IP endpoint associated to a host id and socket number.
+
+```
+action socket_endpoint(host:endpoint_id,s:quic_net.socket) returns (src:ip.endpoint) = {
+    src := server.ep;
+}
+
+```
+Get the socket number associated to an IP endpoint.
+
+TODO For mim-> according to dst
+```
+action endpoint_to_socket(src:ip.endpoint) returns (socket:quic_net.socket) = {
+    socket := sock;
+}
+
+```
+Get the source IP endpoint associated to a TLS instance
+TODO: this shouldn't be needed.
+
+```
+action tls_id_to_src(tls_id:tls_api.id) returns (src:ip.endpoint) = {
+    src := tls_id_map_ep(tls_id);
+}
+
+```
+Get the destination IP endpoint associated to a TLS instance
+TODO: this shouldn't be needed.
+
+```
+action tls_id_to_dst(tls_id:tls_api.id) returns (dst:ip.endpoint) = {
+    dst := other_tls_id_map_ep(tls_id);
+}
+
+```
+Get cid associated to a TLS instance
+
+```
+action tls_id_to_cid(tls_id:tls_api.id) returns (scid:cid) = {
+    scid := tls_id_map_cid(tls_id); #tls_id_map_cid(tls_id);
+}
+
+action other_tls_id_to_cid(tls_id:tls_api.id) returns (scid:cid) = {
+    scid := other_tls_id_map_cid(tls_id);
+}
+
+```
+Returns true if an IP endpoint is controlled by the generator.
+TODO: shouldn't be needed.
+
+```
+action dst_is_generated(dst:ip.endpoint) returns (res:bool) = {
+    if is_mim {
+        res := dst = server.ep; #| dst = mim_agent.ep_client | dst = mim_agent.ep_server;
+    } else {
+        res := dst = server.ep;
+    };
+}
+
+action dst_is_generated_tls(dst:ip.endpoint) returns (res:bool) = {
+    if is_mim {
+        res := dst = server.ep;
+    } else {
+        res := dst = server.ep;
+    };
+}
+
+action endpoint_to_socket_mim(src:ip.endpoint) returns (socket:quic_net.socket) = {
+    socket := sock_mim_server if src = mim_agent.ep_server else sock_mim_client; #  & ~forged_packet_send
+}
+
+action socket_endpoint_mim(host:endpoint_id,s:quic_net.socket,src:ip.endpoint) returns (dst:ip.endpoint) = {
+    dst := mim_agent.ep_client if src = mim_agent.ep_server else mim_agent.ep_server; # is_mim_standalone |
+    call socket_endpoint_mim_event_debug_event(host,s,src,dst);
+}
+
+import action socket_endpoint_mim_event_debug_event(host:endpoint_id,s:quic_net.socket,src:ip.endpoint,dst:ip.endpoint)
+
+
+```
+Returns the TLS instance associated to a destination IP endppoint.
+TODO: shouldn't be needed.
+```
+action dst_tls_id(dst:ip.endpoint) returns (tls_id:tls_api.id) = {
+    tls_id := ep_map_tls_id(dst);
+}
+
+action src_tls_id(src:ip.endpoint) returns (tls_id:tls_api.id) = {
+    tls_id := ep_map_tls_id(src); #TODO can cause error server vn eg
+}
+```
+
+Client HTTP response
+attribute ip.addr.override = bv[1]
+attribute ip.port.override = bv[1]
+
+action show_tls_send_event(src:ip.endpoint, dst:ip.endpoint, scid:cid, dcid:cid, data:stream_data, pos:stream_pos, e:quic_packet_type, tls_id:tls_api.id) = {}
+
+import show_tls_send_event
+
+Print a packet on stdout. In the compiled tester importing `show_packet`
+causes calls to be logged to stdout.
+
+action show_packet(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet)
+import show_packet
+
+import action show_level_offset_length(e:quic_packet_type,offset:stream_pos,length:stream_pos)
+
+import action clear_packet(src:ip.endpoint,dst:ip.endpoint,rnum:pkt_num,pkt:stream_data)
+import action cipher_packet(pkt:stream_data)
+
+import action show_stream(pkt:stream_data)
+
+import action show_aead(level:tls_api.upper.level,pyld:stream_data,seq:pkt_num,auth:stream_data)

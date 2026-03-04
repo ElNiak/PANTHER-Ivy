@@ -1,0 +1,103 @@
+
+```
+include quic_types
+include quic_transport_error_code
+include quic_frame
+include quic_packet
+include quic_transport_parameters
+include ip
+```
+include quic_fsm_sending
+include quic_fsm_receiving
+include apt_byte_stream
+
+The packet protocol
+
+The packet protocol has several funcitons including establishing
+connections and loss detection. Packets carry frames whihc implement
+many other funcition of QUIC.
+
+QUIC Packets
+------------
+
+This section defines the QUIC packet datatype. Packets are the basic
+unit of communication between endpoints. A packet may be encoded in
+either the long or the short format. There are packet types:
+`initial`, `handshake`, `zero_rtt` and `one_rtt`. The `zero_rtt`
+type is encoded in the short format, while others are encoded in the
+long format.  Packets have associated source cid (long format only)
+and destination cid, protocol version (long format only), and a
+packet sequence number. An initial packet also has a *retry token*, which
+is a (possibly empty) sequence of bytes.  The *payload* of the
+packet consists of a sequence of *frames* (see quic_frame.ivy).
+
+TODO: retry and one_rtt packet types
+
+Packet
+
+The type `packet.quic_packet` represents packet.
+
+The fields are:
+
+- *ptype*: the packet type [2]
+- *pversion*: the protocol version, if long format, else 0 [3]
+- *dst_cid*: the destination cid [4]
+- *src_cid*: the source cid, if long format, else 0  [5]
+- *token*: the retry token (see section 4.4.1)  [6]
+- *seq_num*: the packet sequence number  [7]
+- *payload*: the payload, a sequence of frames  [8]
+
+```
+object packet = {
+```
+coalesed
+```
+    ...
+
+    object quic_packet_coal_0rtt = {
+        variant this of packet = struct {
+```
+Initial packet
+```
+            ptype_i : quic_packet_type, # [2]
+            pversion_i : version, # [3]
+            dst_cid_i : cid, # [4]
+            src_cid_i : cid, # [5]
+            token_i : stream_data, # [6]
+            seq_num_i : pkt_num, # [7]
+            payload_i : quic_frame.arr, # [8]
+```
+0rtt packet
+```
+            ptype : quic_packet_type, # [2]
+            pversion : version, # [3]
+            dst_cid : cid, # [4]
+            src_cid : cid, # [5]
+            seq_num : pkt_num, # [7]
+            payload : quic_frame.arr # [8]
+        }
+
+        instance idx : unbounded_sequence
+        instance arr : array(idx,this)
+
+```
+Hamid
+```
+        instance retired_cids : array(idx, cid_seq)
+```
+Hamid
+
+```
+        action long(pkt:this) returns(res:bool) = {
+            res := pkt.ptype ~= quic_packet_type.one_rtt;
+        }
+    }
+}
+
+```
+Note: Short header are considered to have scid of 0 so it is quite important to use this value
+
+Packet protocol events
+-----------------------
+
+The packet event

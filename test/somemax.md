@@ -1,0 +1,21 @@
+
+```
+type t
+type q
+
+relation p(X:t)
+init p(X)
+
+action foo = {
+    if some x:t. p(x) maximizing x {
+	call bar(x)
+    }
+}
+
+action bar(x:t)
+
+interpret t -> bv[1]
+
+export foo
+import bar
+```

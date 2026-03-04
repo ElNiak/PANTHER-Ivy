@@ -1,0 +1,15 @@
+
+```
+include reader
+include pass_flat
+include io
+
+init {
+    var p : ivy.prog;
+    p := ivy.prog.read_file("test.ivy");
+    p := p.flat;
+    var s : str;
+    s := p.enc;
+    stdio.write(s);
+}
+```

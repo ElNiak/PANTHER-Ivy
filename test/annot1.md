@@ -1,0 +1,25 @@
+
+```
+object t = {
+    type this
+    action a(x:this)
+}
+
+object q = {
+    variant this of t = struct {
+        b : bool
+    }
+    action a(x:this) = {
+    }
+}
+
+
+
+action a(x:t) = {
+    assume true;
+    call x.a;
+    assert false
+}
+
+export a
+```

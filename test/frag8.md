@@ -1,0 +1,26 @@
+
+```
+type t
+interpret t -> int
+
+function f(X:t) : t
+
+function foo(X:t) = f(X) = X
+
+```
+definition f(X) = X
+
+```
+function g(X:t) : t
+var p : t
+
+function h(X:t) : t
+definition h(Z) =  Z
+function bar(X:t) = f(X) = h(X)
+
+var q : bool
+
+axiom  (p if q else X) = g(X)
+
+```
+result: An interpreted symbol is applied to a universally quantified variable

@@ -1,0 +1,18 @@
+
+```
+type t
+var x : t
+
+schema bar = {
+    type t
+    function y : t
+    property x = y
+}
+
+var z : t
+
+property x = z
+proof
+    apply bar<x/y>;
+    showgoals
+```

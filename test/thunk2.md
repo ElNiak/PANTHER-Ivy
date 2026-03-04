@@ -1,0 +1,24 @@
+
+```
+type t
+action run(x:t) = {}
+
+var q : bool
+
+action a = {
+    var v : bool;
+    thunk [bar] f : t := {
+        q := v
+    };
+    call f.run
+}
+
+var g : t
+
+action b = {
+    call g.run
+}
+
+export a
+export b
+```
