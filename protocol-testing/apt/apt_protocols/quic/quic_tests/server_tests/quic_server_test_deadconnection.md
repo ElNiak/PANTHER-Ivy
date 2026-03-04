@@ -59,9 +59,9 @@ export quic_frame.max_stream_data.handle
 export quic_frame.max_data.handle
 
 
-```
-relation slept
+relation slept  # provided by apt_time
 
+```
 after init {
     slept := false;
 }

@@ -604,3 +604,4 @@ To test the secondary, use these commands:
 Again, see what actions the tester is generating.  Try putting some
 errors in this example and see if they produce assertions
 failures. If not, why not?
+

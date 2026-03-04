@@ -608,7 +608,8 @@ proof {
         apply introA<_S/x>
         apply introA<_T/x>
         apply exmid with q = (_S >= _T)
-        assume gcd_symm
+        instantiate [gs1] gcd_symm with X=_S, Y=_T
+        instantiate [gs2] gcd_symm with X=_S-_T, Y=_T
         proof [pos] {
             apply exmid with q = _S > _T
             proof [pos] {
@@ -633,6 +634,7 @@ proof {
     instantiate bezout_lemma_pre with S=S,T=T,M = (S if S > T else T)
     tactic skolemize
     instantiate with A=_A,B=_B
+    showgoals
 }
 
 ```
@@ -645,6 +647,9 @@ divides `N * M` then `P` divides `M`.
 
 Proof. By Bezout's lemma, we have `gcd(T,P) = A*T - B*P`. Now assume
 that `P*_Z=N*M`. It follows that `P*(A*_Z-B*M) = M`.
+
+We had to add lem1 a below, since Z3 couldn't handle the resulting
+non-linear proof goal.
 
 ```
 theorem [coprime_product] {
@@ -660,6 +665,7 @@ proof {
     unfold with dvds_alt
     tactic skolemize
     instantiate with Z = _A * _Z - _B * M
+    property [lem1] _A * _Z * P - _B * M * P = M
 }
 
 ```
@@ -834,5 +840,4 @@ isolate sqrt2irrat_iso = {
         instantiate dvds_gcd with a=a,b=b,c=2:nat
     }
 } with nat,dvds
-
 ```

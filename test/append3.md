@@ -130,3 +130,4 @@ attribute method = mc
 To apply finite=-state model checking, use the following command:
 
     $ ivy_check append3.ivy
+

@@ -140,3 +140,4 @@ This can be done with the following command:
 Note: to run ivy on the command line in Windows, you need to first do this:
 
     > c:\ivy\scripts\activate.bat
+

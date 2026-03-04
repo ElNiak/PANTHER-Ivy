@@ -190,9 +190,10 @@ is is in the essentially uninterpreted fragment.
 
 ```
 		property disjoint(X,Y) -> cardUpTo(X,B) + cardUpTo(Y,B) <= cnt(B)
-		proof
+		proof {
                     apply ind[basis] with X = B;
                     showgoals
+                }
 	    }
 
 	}

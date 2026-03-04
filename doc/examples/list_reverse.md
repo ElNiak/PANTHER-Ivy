@@ -184,9 +184,10 @@ inconclusive result. To avoid, this, we will apply some
 tactics.
 
 ```
-        proof
+        proof {
             apply introImp;
             apply introE with witness = U - X - 1
+        }
 
 ```
 The first step is to apply the "implication introduction" rule,
@@ -327,7 +328,7 @@ The implementation just copies the array backward.
         {
             b := b.set(rt.reverse(i,a.end),a.value(i));
             i := i.next;
-        };
+        }
     }
 
 ```
@@ -373,7 +374,7 @@ of `U` that we need.
 
 ```
     proof
-        assume rt.into with U = arr.end(B)
+        assume rt.into with U = arr.end(B), X=X
 
 ```
 Here is the resulting proof goal:
@@ -454,7 +455,7 @@ conclusion `B = C`. Ivy finds this match automatically, so we don't
 need a `with` clause [2].
 
 ```
-    proof
+    proof {
         apply introImp;  # [1]
         apply arr.spec.extensionality;  # [2]
 
@@ -503,8 +504,9 @@ This leaves us with the following goals (the second being the one we deferred):
 
 The default tactic can handle these, since there are no
 unstratified quantifier alternations.
-
 ```
+    }
+
 } with this
 
 
@@ -592,17 +594,17 @@ are unchanged, while the elements outside this range are reversed.
             var i : idx := 0;
             var j := rt.reverse(i,a.end);
             while i < j
-            invariant 0 <= i & i <= a.end & a.end = (old a).end & rt.rev(a.end,i,j)
+            invariant 0 <= i & i <= a.end & a.end = old a.end & rt.rev(a.end,i,j)
             invariant forall I. (0 <= I & I < i | j < I & I < a.end)
-                                & rt.rev(a.end,I,J)-> a.value(J) = (old a).value(I)
-            invariant i <= I & I <= j -> a.value(I) = (old a).value(I)
+                                & rt.rev(a.end,I,J)-> a.value(J) = old a.value(I)
+            invariant i <= I & I <= j -> a.value(I) = old a.value(I)
             {
                 var tmp := a.value(j);
                 a := a.set(j,a.value(i));
                 a := a.set(i,tmp);
                 i := i.next;
                 j := rt.reverse(i,a.end);
-            };
+            }
         }
     }
 

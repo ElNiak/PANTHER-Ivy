@@ -26,11 +26,11 @@ Some examples of such solutions are listed below. Each item links to further inf
 
     Description: Gathering information without directly interacting with the target. This type of reconnaissance is difficult to detect.
     Examples:
-        Footprinting: Collecting information about the target’s domain, IP addresses, and network infrastructure through publicly available sources.
+        Footprinting: Collecting information about the target's domain, IP addresses, and network infrastructure through publicly available sources.
         Social Engineering: Using social manipulation to obtain confidential information from employees or other insiders.
         DNS Querying: Gathering DNS information to identify subdomains, email servers, and other DNS records.
         WHOIS Lookup: Retrieving registration details of a domain to find out ownership, contact information, and infrastructure details.
-        Web Scraping: Extracting information from the target’s website, such as contact information, software versions, and organization structure.
+        Web Scraping: Extracting information from the target's website, such as contact information, software versions, and organization structure.
 
 ```
 action launch_whois_lookup() = {}
@@ -40,12 +40,12 @@ action launch_dns_query() = {}
 ```
 2. Active Reconnaissance
 
-    Description: Directly interacting with the target’s systems to gather information. This type of reconnaissance can be more easily detected.
+    Description: Directly interacting with the target's systems to gather information. This type of reconnaissance can be more easily detected.
     Examples:
-        Port Scanning: Scanning the target’s network to identify open ports and services running on those ports.
+        Port Scanning: Scanning the target's network to identify open ports and services running on those ports.
         Network Scanning: Mapping the network topology to identify active devices, IP addresses, and their roles.
-        Service Enumeration: Identifying the services running on the target’s systems, including their versions and configurations.
-        Operating System Fingerprinting: Determining the operating system of the target’s systems through analysis of network traffic or system responses.
+        Service Enumeration: Identifying the services running on the target's systems, including their versions and configurations.
+        Operating System Fingerprinting: Determining the operating system of the target's systems through analysis of network traffic or system responses.
         Banner Grabbing: Capturing service banners to gather information about the software and version running on a server.
 
 ```
