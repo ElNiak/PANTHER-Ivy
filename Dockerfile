@@ -176,7 +176,7 @@ ARG Z3_SOURCE="local"
 WORKDIR /opt/panther_ivy/
 
 # Copy ONLY what Z3 needs (ordered by change frequency)
-ADD build_submodules.py setup.py /opt/panther_ivy/
+ADD build_submodules.py setup.py pyproject.toml /opt/panther_ivy/
 ADD patches /opt/panther_ivy/patches/
 ADD submodules/z3 /opt/panther_ivy/submodules/z3/
 
@@ -208,7 +208,7 @@ ENV PYTHONPATH="/opt/panther_ivy/:${PYTHONPATH}"
 WORKDIR /opt/panther_ivy/
 
 # Copy application files (order: stable first, volatile last)
-ADD setup.py build_submodules.py /opt/panther_ivy/
+ADD setup.py build_submodules.py pyproject.toml /opt/panther_ivy/
 ADD patches /opt/panther_ivy/patches/
 ADD submodules /opt/panther_ivy/submodules/
 ADD ivy /opt/panther_ivy/ivy/
@@ -280,7 +280,7 @@ RUN BUILD_MODE=${BUILD_MODE} python3.10 build_submodules.py --skip-z3 && \
             fi; \
         fi ; \
     fi && \
-    sudo python3.10 setup.py install && \
+    sudo python3.10 -m pip install . && \
     python3.10 -c "import z3; print('Python Z3 version:', z3.get_version_string())" && \
     if [ "$Z3_SOURCE" = "local" ]; then \
         # C++ linking: make libz3.so discoverable by the dynamic linker \

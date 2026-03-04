@@ -14,7 +14,7 @@ from panther.core.command_processor.builders import ServiceCommandBuilder
 from panther.core.command_processor.models.shell_command import ShellCommand
 from panther.core.command_processor.utils import CommandUtils
 
-from panther_ivy._shared import oppose_role
+from ._shared import oppose_role
 
 
 class IvyCommandMixin:
@@ -461,10 +461,11 @@ class IvyCommandMixin:
         """Build Ivy tool update commands."""
         commands = [
             "echo 'Updating Ivy tool...' >> /app/logs/compile/ivy_setup.log",
-            # "cd /opt/panther_ivy && sudo python3.10 setup.py develop >> /app/logs/compile/ivy_setup.log 2>&1",
-            "cd /opt/panther_ivy && sudo python3.10 setup.py install >> /app/logs/compile/ivy_setup.log 2>&1",
+            "cd /opt/panther_ivy && sudo python3.10 -m pip install . >> /app/logs/compile/ivy_setup.log 2>&1",
             "cd /opt/panther_ivy && if [ -f lib/libz3.so ]; then cp lib/libz3.so /opt/panther_ivy/ivy/z3/ && echo 'Copied libz3.so to ivy/z3/'; else echo 'No local libz3.so (z3_source=pip), skipping copy'; fi >> /app/logs/compile/ivy_setup.log 2>&1",
-            'echo "Copying updated Ivy files (from $PYTHON_IVY_DIR/ivy/include/1.7/) into /opt/panther_ivy/ivy/include/1.7/." >> /app/logs/compile/ivy_setup.log',
+            # Ensure target directories exist in the site-packages install
+            "mkdir -p \"$PYTHON_IVY_DIR/ivy/include/1.7\" \"$PYTHON_IVY_DIR/ivy/lib\" >> /app/logs/compile/ivy_setup.log 2>&1",
+            'echo "Copying updated Ivy files (from /opt/panther_ivy/ivy/include/1.7/) into $PYTHON_IVY_DIR/ivy/include/1.7/." >> /app/logs/compile/ivy_setup.log',
             # Initialize copied files list for cleanup tracking
             "echo '' > /app/logs/compile/copied_ivy_files.list",
             "find '/opt/panther_ivy/ivy/include/1.7/' -type f -name '*.ivy' -exec echo {} ';' >> '/app/logs/compile/copied_ivy_files.list' 2>> /app/logs/compile/ivy_setup.log",
