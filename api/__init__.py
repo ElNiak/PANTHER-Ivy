@@ -1,9 +1,9 @@
 """Public API for panther_ivy standalone operations.
 
 Usage:
-    from panther_ivy.api import generate_compile_commands, detect_from_path, list_tests
-    from panther_ivy.api import IvyExecutor
-    from panther_ivy.api.types import CompileResult, DiagnosticItem, TestInfo
+    from api import generate_compile_commands, detect_from_path, list_tests
+    from api import IvyExecutor
+    from api.types import CompileResult, DiagnosticItem, TestInfo
 """
 from .compiler import generate_compile_commands, parse_compile_output
 from .discovery import detect_from_path, list_tests

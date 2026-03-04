@@ -45,7 +45,7 @@ from panther.plugins.services.testers.tester_service_manager_mixin import (
     TesterServiceManagerMixin,
 )
 
-from panther_ivy._shared import oppose_role
+from ._shared import oppose_role
 
 if TYPE_CHECKING:
     from panther.plugins.plugin_manager import PluginManager

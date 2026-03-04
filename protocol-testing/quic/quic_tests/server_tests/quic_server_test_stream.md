@@ -1,0 +1,7 @@
+
+```
+include quic_server_test
+
+attribute frame.crypto.handle.weight = "5"
+attribute frame.path_response.handle.weight = "5"
+```

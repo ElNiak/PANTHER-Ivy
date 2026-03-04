@@ -333,6 +333,4 @@ As always, we have to export actions we want to verify.
 export w.append
 export w.read
 export w.trim
-
-
 ```

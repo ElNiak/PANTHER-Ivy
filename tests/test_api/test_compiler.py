@@ -3,11 +3,11 @@ from pathlib import Path
 
 import pytest
 
-from panther_ivy.api.compiler import (
+from api.compiler import (
     generate_compile_commands,
     parse_compile_output,
 )
-from panther_ivy.api.types import CommandResult, CompileResult, DiagnosticItem
+from api.types import CommandResult, CompileResult, DiagnosticItem
 
 
 SUBMODULE_ROOT = Path(__file__).resolve().parents[2]
@@ -213,22 +213,22 @@ class TestExtractTestDirectory:
     """Tests for _extract_test_directory helper."""
 
     def test_client_test(self):
-        from panther_ivy.api.compiler import _extract_test_directory
+        from api.compiler import _extract_test_directory
 
         assert _extract_test_directory("quic_client_test_stream") == "client_tests"
 
     def test_server_test(self):
-        from panther_ivy.api.compiler import _extract_test_directory
+        from api.compiler import _extract_test_directory
 
         assert _extract_test_directory("quic_server_test_stream") == "server_tests"
 
     def test_mim_test(self):
-        from panther_ivy.api.compiler import _extract_test_directory
+        from api.compiler import _extract_test_directory
 
         assert _extract_test_directory("quic_mim_test_stream") == "mim_tests"
 
     def test_unknown_returns_empty(self):
-        from panther_ivy.api.compiler import _extract_test_directory
+        from api.compiler import _extract_test_directory
 
         assert _extract_test_directory("quic_test_stream") == ""
 

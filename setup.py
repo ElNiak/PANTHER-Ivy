@@ -1,7 +1,7 @@
 import os
 import shutil
 
-from setuptools import setup
+from setuptools import setup, find_packages
 from setuptools.command.build_py import build_py
 from setuptools.command.develop import develop
 from setuptools.dist import Distribution
@@ -87,6 +87,7 @@ if not os.environ.get("PURE_PYTHON_BUILD"):
     kwargs["distclass"] = BinaryDistribution
 
 setup(
+    packages=find_packages(include=["ivy", "ivy.*"]),
     cmdclass={
         "build_py": BuildPyWithPicotls,
         "develop": DevelopWithPicotls,

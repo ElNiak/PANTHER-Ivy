@@ -40,8 +40,10 @@ export packet_event
 export client_send_event
 export tls_recv_event
 
-relation slept
+```
+relation slept  # provided by apt_time
 
+```
 after init {
     slept := false;
 }
