@@ -175,6 +175,12 @@ class PantherIvyConfig(ServiceConfig):
         description="Protocol configuration",
     )
 
+    # Typed version (loaded from version_configs/)
+    version: PantherIvyVersion = Field(
+        default_factory=lambda: PantherIvyConfig.load_version(),
+        description="Version configuration",
+    )
+
     test: str = Field(default="", description="Test name for testers")
     use_system_models: bool = Field(
         default=False, description="Use system models for the test"
