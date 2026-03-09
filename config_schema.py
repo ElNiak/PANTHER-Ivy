@@ -3,7 +3,6 @@ import os
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from omegaconf import OmegaConf
 from panther.config.core.models.plugin import ServicePluginConfig
 from panther.config.core.models.service import ImplementationType, VersionBase
 from pydantic import BaseModel, Field
@@ -119,7 +118,47 @@ class PantherIvyVersion(VersionBase):
 
 
 class PantherIvyConfig(ServicePluginConfig):
-    """Configuration for Panther Ivy tester service."""
+    """Panther-Ivy formal verification tester configuration.
+
+    Integration with Microsoft's Ivy formal verification tool for
+    specification-based protocol testing. Ivy generates test traffic from
+    formal protocol models and verifies implementation compliance.
+
+    Warning:
+        Ivy integration requires formal protocol specifications and is
+        intended for advanced users familiar with formal verification.
+        First build takes ~30 minutes due to Z3 compilation.
+
+    Z3 Build Modes (``z3_source``):
+        - **local** -- builds Z3 from submodule (~30 min), full compatibility
+        - **pip** -- uses ``pip install z3-solver`` (faster, limited features)
+
+    Compilation Modes (``build_mode``):
+        - **(empty)** -- original method, Shadow NS compatible
+        - **debug-asan** -- AddressSanitizer (``-O1 -g -fsanitize=address``)
+        - **rel-lto** -- Link Time Optimization (``-O3 -flto``)
+        - **release-static-pgo** -- PGO + static linking (``-fprofile-use``)
+
+    Language: C/C++ + Python | Source: panther_ivy submodule
+    Build time: ~30 min (first build) | Docker image: ~1GB
+
+    Inherited from ServicePluginConfig / BasePluginConfig:
+        enabled (bool): Whether the plugin is enabled. Default: True.
+
+    Example YAML::
+
+        services:
+          tester:
+            implementation:
+              name: panther_ivy
+              type: testers
+            protocol:
+              name: quic
+              version: rfc9000
+              role: server
+    """
+
+    VERSION_CLASS = PantherIvyVersion
 
     name: str = Field(default="panther_ivy", description="Implementation name")
     type: ImplementationType = Field(
@@ -196,136 +235,16 @@ class PantherIvyConfig(ServicePluginConfig):
         description="Optimization level for the Ivy binary (O0, O1, O2, O3) - O0 recommended for debugging",
     )
 
-    @staticmethod
-    def load_versions_from_files(
-        version_configs_dir: str = f"{Path(os.path.dirname(__file__))}/version_configs/",
-        protocol: str = "quic",
-        version: Optional[str] = None,
-        protocol_version_override: str = None,
-    ) -> PantherIvyVersion:
-        """Load version configurations dynamically from YAML files.
-
-        Args:
-            version_configs_dir: Directory containing version configs (auto-detected if None)
-            protocol: Protocol name for version directory (default: quic)
-            version: Specific version to load (loads first found if None)
-
-        Returns:
-            PantherIvyVersion configuration
-        """
-        import logging
-
-        logging.debug(
-            "Loading PantherIvy versions with protocol: %s, version: %s",
-            protocol,
-            version,
-        )
-        version = (
-            version if not protocol_version_override else protocol_version_override
-        )
-        if version_configs_dir is None:
-            # Auto-detect based on protocol
-            base_dir = Path(os.path.dirname(__file__)) / "version_configs"
-            version_configs_dir = str(base_dir / protocol)
-            logging.debug("Using version configs directory: %s", version_configs_dir)
-        # Fallback to base directory if protocol-specific directory doesn't exist
-        if not os.path.exists(version_configs_dir):
-            logging.warning(
-                f"Protocol-specific directory {version_configs_dir} not found, trying base directory"
-            )
-            version_configs_dir = str(
-                Path(os.path.dirname(__file__)) / "version_configs"
-            )
-
-        if not os.path.exists(version_configs_dir):
-            logging.warning(
-                f"Version configs directory {version_configs_dir} not found, using defaults"
-            )
-            return PantherIvyVersion()
-
-        logging.debug("Loading PantherIvy versions from %s", version_configs_dir)
-
-        # Find version files
-        version_files = [
-            f for f in os.listdir(version_configs_dir) if f.endswith(".yaml")
-        ]
-        if not version_files:
-            logging.warning(
-                f"No version files found in {version_configs_dir}, using defaults"
-            )
-            return PantherIvyVersion()
-
-        # Select specific version or first available
-        target_file = None
-        if version:
-            target_file = f"{version}.yaml"
-            if target_file not in version_files:
-                logging.warning(
-                    f"Requested version {version} not found, using first available"
-                )
-                target_file = None
-
-        if target_file is None:
-            target_file = sorted(version_files)[
-                0
-            ]  # Use first available, sorted for determinism
-
-        version_path = os.path.join(version_configs_dir, target_file)
-        raw_version_config = OmegaConf.load(version_path)
-        logging.debug("Loaded raw PantherIvy version config: %s", raw_version_config)
-
-        # Create default instance and convert to dict for merging
-        default_version = PantherIvyVersion()
-        try:
-            # Try Pydantic v2 method first
-            default_dict = default_version.model_dump()
-        except AttributeError:
-            # Fall back to Pydantic v1 method
-            default_dict = default_version.dict()
-
-        merged_config = OmegaConf.merge(default_dict, raw_version_config)
-
-        # Ensure client and server are in the config before conversion
-        if "client" not in merged_config or merged_config.client is None:
-            merged_config.client = {}
-        if "server" not in merged_config or merged_config.server is None:
-            merged_config.server = {}
-
-        # Convert OmegaConf to dict and create proper Pydantic model
-        version_dict = OmegaConf.to_container(merged_config, resolve=True)
-        version_config = PantherIvyVersion(**version_dict)
-
-        logging.debug(
-            "Loaded PantherIvy version %s from %s",
-            version_config.version if hasattr(version_config, "version") else "unknown",
-            target_file,
-        )
-        return version_config
-
     @classmethod
-    def create_with_protocol_context(cls, protocol=None):
-        """Create PantherIvyConfig instance with optional protocol context.
-
-        # TODO refactor duplicated code
-
-        If protocol version is provided, loads version-specific configuration.
-        Otherwise creates standard instance.
-
-        Args:
-            protocol: Optional protocol configuration containing version info
-
-        Returns:
-            PantherIvyConfig instance with appropriate version configuration
-        """
-        logging.debug("Creating PantherIvyConfig with protocol context")
-        if protocol and hasattr(protocol, "version") and protocol.version:
-            try:
-                version_config = cls.load_versions_from_files(
-                    protocol_version_override=protocol.version
-                )
-                return cls(version=version_config)
-            except (FileNotFoundError, ValueError) as e:
-                raise ValueError(
-                    f"Could not load protocol version {protocol.version}: {e}"
-                ) from e
-        return cls()
+    def load_version(
+        cls,
+        version_configs_dir: Optional[str] = None,
+        version: Optional[str] = None,
+        protocol_version_override: Optional[str] = None,
+    ):
+        """Override to look in ``version_configs/quic/`` subdirectory."""
+        if version_configs_dir is None:
+            quic_dir = Path(os.path.dirname(__file__)) / "version_configs" / "quic"
+            if quic_dir.exists():
+                version_configs_dir = str(quic_dir)
+        return super().load_version(version_configs_dir, version, protocol_version_override)
