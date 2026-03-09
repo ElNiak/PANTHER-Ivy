@@ -1,11 +1,17 @@
 import logging
 import os
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import ClassVar, Dict, List, Optional
 
-from panther.config.core.models.plugin import ServicePluginConfig
-from panther.config.core.models.service import ImplementationType, VersionBase
 from pydantic import BaseModel, Field
+
+from panther.config.core.models.service import (
+    ImplementationConfig,
+    ImplementationType,
+    ProtocolConfig,
+    ServiceConfig,
+    VersionBase,
+)
 
 
 class AvailableTests(BaseModel):
@@ -117,7 +123,7 @@ class PantherIvyVersion(VersionBase):
     )
 
 
-class PantherIvyConfig(ServicePluginConfig):
+class PantherIvyConfig(ServiceConfig):
     """Panther-Ivy formal verification tester configuration.
 
     Integration with Microsoft's Ivy formal verification tool for
@@ -142,9 +148,6 @@ class PantherIvyConfig(ServicePluginConfig):
     Language: C/C++ + Python | Source: panther_ivy submodule
     Build time: ~30 min (first build) | Docker image: ~1GB
 
-    Inherited from ServicePluginConfig / BasePluginConfig:
-        enabled (bool): Whether the plugin is enabled. Default: True.
-
     Example YAML::
 
         services:
@@ -158,31 +161,24 @@ class PantherIvyConfig(ServicePluginConfig):
               role: server
     """
 
-    VERSION_CLASS = PantherIvyVersion
+    VERSION_CLASS: ClassVar[Optional[type]] = PantherIvyVersion
 
-    name: str = Field(default="panther_ivy", description="Implementation name")
-    type: ImplementationType = Field(
-        default=ImplementationType.TESTERS, description="Implementation type"
+    # Override required fields with plugin-specific defaults
+    implementation: ImplementationConfig = Field(
+        default_factory=lambda: ImplementationConfig(
+            name="panther_ivy", type="testers"
+        ),
+        description="Implementation configuration",
     )
+    protocol: ProtocolConfig = Field(
+        default_factory=lambda: ProtocolConfig(name="quic", role="server"),
+        description="Protocol configuration",
+    )
+
     test: str = Field(default="", description="Test name for testers")
     use_system_models: bool = Field(
         default=False, description="Use system models for the test"
     )
-    shadow_compatible: bool = Field(
-        default=True, description="Whether compatible with Shadow network simulator"
-    )
-    gperf_compatible: bool = Field(
-        default=True, description="Whether compatible with gperf profiling"
-    )
-
-    # protocol: str = Field(
-    #     default="quic",
-    #     description="Protocol tested by the implementation"
-    # )
-    # version: PantherIvyVersion = Field(
-    #     default_factory=lambda: PantherIvyConfig.load_versions_from_files(),
-    #     description="Version configuration"
-    # )
 
     environment: Dict[str, str] = Field(
         default_factory=lambda: DEFAULT_ENVIRONMENT_VARIABLES.copy(),
