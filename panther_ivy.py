@@ -143,8 +143,7 @@ class PantherIvyServiceManager(
 
         self.outputs = {}
 
-        # Cache plugin config for easy access
-        self._plugin_config = None
+        # Plugin config cache removed — fields now live on service_config_to_test directly
 
     def get_build_mode(self) -> str:
         """
@@ -157,24 +156,8 @@ class PantherIvyServiceManager(
         Returns:
             Build mode string: '', 'debug-asan', 'rel-lto', or 'release-static-pgo'
         """
-        # Check plugin_config first (only if key actually exists)
-        if (
-            hasattr(self, "service_config_to_test")
-            and hasattr(self.service_config_to_test, "plugin_config")
-            and isinstance(self.service_config_to_test.plugin_config, dict)
-            and "build_mode" in self.service_config_to_test.plugin_config
-        ):
-            build_mode = self.service_config_to_test.plugin_config["build_mode"]
-            if build_mode:
-                return build_mode
-
-        # Fallback to implementation config (where YAML extras go via setattr)
-        if hasattr(self, "service_config_to_test") and hasattr(
-            self.service_config_to_test, "implementation"
-        ):
-            build_mode = getattr(
-                self.service_config_to_test.implementation, "build_mode", None
-            )
+        if hasattr(self, "service_config_to_test"):
+            build_mode = getattr(self.service_config_to_test, "build_mode", None)
             if build_mode:
                 return build_mode
 
@@ -186,24 +169,8 @@ class PantherIvyServiceManager(
         Controls whether Z3 is built from the local submodule ('local')
         or installed only via pip z3-solver ('pip').
         """
-        # Check plugin_config first (only if key actually exists)
-        if (
-            hasattr(self, "service_config_to_test")
-            and hasattr(self.service_config_to_test, "plugin_config")
-            and isinstance(self.service_config_to_test.plugin_config, dict)
-            and "z3_source" in self.service_config_to_test.plugin_config
-        ):
-            z3_source = self.service_config_to_test.plugin_config["z3_source"]
-            if z3_source:
-                return z3_source
-
-        # Fallback to implementation config (where YAML extras go via setattr)
-        if hasattr(self, "service_config_to_test") and hasattr(
-            self.service_config_to_test, "implementation"
-        ):
-            z3_source = getattr(
-                self.service_config_to_test.implementation, "z3_source", None
-            )
+        if hasattr(self, "service_config_to_test"):
+            z3_source = getattr(self.service_config_to_test, "z3_source", None)
             if z3_source:
                 return z3_source
 
@@ -225,18 +192,14 @@ class PantherIvyServiceManager(
         # Set test configuration -> use comprehensive multi-level checking
         test_name = ""
 
-        # Priority order: test_parameters  plugin_config  implementation  direct attribute
+        # Priority order: test_parameters -> direct attribute -> implementation fallback
         if (
             hasattr(service_config_to_test, "test_parameters")
             and service_config_to_test.test_parameters
         ):
             test_name = service_config_to_test.test_parameters.get("test", "")
-        elif (
-            hasattr(service_config_to_test, "plugin_config")
-            and service_config_to_test.plugin_config
-        ):
-            # Check plugin_config dict for test -> this is where it actually is!
-            test_name = service_config_to_test.plugin_config.get("test", "")
+        elif hasattr(service_config_to_test, "test") and service_config_to_test.test:
+            test_name = service_config_to_test.test
         elif hasattr(service_config_to_test, "implementation"):
             # Check if the implementation is a dict with 'test' key
             if (
@@ -247,12 +210,6 @@ class PantherIvyServiceManager(
             # Check if implementation has test attribute
             elif hasattr(service_config_to_test.implementation, "test"):
                 test_name = service_config_to_test.implementation.test
-        elif hasattr(service_config_to_test, "test"):
-            # Check if service_config has test attribute directly
-            test_name = service_config_to_test.test
-        else:
-            # Final fallback to direct attribute access
-            test_name = getattr(service_config_to_test, "test", "")
 
         # Validate test_to_compile to prevent shell injection via config
         _SAFE_TEST_NAME = re.compile(r"^[a-zA-Z0-9_\-]*$")
@@ -770,42 +727,6 @@ class PantherIvyServiceManager(
             self.logger.debug(
                 "Docker attributes already initialized, skipping duplicate setup"
             )
-
-    # def _get_plugin_config(self) -> Optional[PantherIvyConfig]:
-    #     """
-    #     Get plugin config for ServiceManagerDockerMixin integration.
-
-    #     This method provides the plugin configuration needed by the Docker mixin
-    #     for container setup and volume mapping.
-
-    #     Returns:
-    #         PantherIvyConfig: The service configuration object
-    #     """
-    #     # Cache the plugin config to avoid repeated access
-    #     if self._plugin_config is None:
-    #         try:
-    #             self._plugin_config = self.service_config_to_test.get_plugin_config(PantherIvyConfig)
-    #         except Exception as e:
-    #             self.logger.debug(f"Could not get plugin config, using defaults: {e}")
-    #             # Create default config
-    #             self._plugin_config = PantherIvyConfig()
-
-    #     self.logger.debug(f"Loaded plugin config: {self._plugin_config}")
-
-    #     # Get protocol version for version-specific configuration loading
-    #     protocol_version = getattr(self.service_config_to_test.protocol, 'version', None)
-    #     protocol_name = self._get_protocol_name()
-
-    #     self.logger.info(
-    #         f"Loading version config for {self.implementation_name}: "
-    #         f"protocol={protocol_name}, version={protocol_version}"
-    #     )
-
-    #     self._plugin_config.load_versions_from_files(
-    #         protocol=protocol_name,
-    #         version=protocol_version,
-    #     )
-    #     return self._plugin_config
 
     def _do_prepare(self, plugin_manager: Optional["PluginManager"] = None):
         """Implementation of abstract _do_prepare method from IServiceManager."""
