@@ -17,8 +17,6 @@ ENV VERSION=${VERSION}
 RUN printf "Building Panther-Ivy version: %s - Dependencies: %s\n" "${VERSION}" "${DEPENDENCIES}"
 
 RUN apt update && \
-    add-apt-repository --yes ppa:deadsnakes/ppa && \
-    apt update && \
     apt --fix-missing -y install \
     build-essential \
     python3-ply \
