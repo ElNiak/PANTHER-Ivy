@@ -1,11 +1,13 @@
 # Panther Ivy Tester
 
-!!! info "Plugin Information"
-    **Plugin Type**: Service (Tester)
-    **Source Location**: `plugins/services/testers/panther_ivy/`
+> [!NOTE]
+> "Plugin Information"
+> **Plugin Type**: Service (Tester)
+> **Source Location**: `plugins/services/testers/panther_ivy/`
 
-!!! warning "Advanced Testing Tool"
-    Ivy integration requires formal protocol specifications and is intended for advanced users familiar with formal verification methods. For basic protocol testing, consider using standard IUT plugins first.
+> [!WARNING]
+> "Advanced Testing Tool"
+> Ivy integration requires formal protocol specifications and is intended for advanced users familiar with formal verification methods. For basic protocol testing, consider using standard IUT plugins first.
 
 IVy is a research tool intended to allow interactive development of
 protocols and their proofs of correctness and to provide a platform

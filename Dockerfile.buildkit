@@ -56,7 +56,6 @@ RUN --mount=type=cache,target=/var/cache/apt-${TARGETPLATFORM},sharing=locked \
     --mount=type=cache,target=/var/lib/apt-${TARGETPLATFORM},sharing=locked \
     apt update && \
     apt install -y software-properties-common && \
-    add-apt-repository --yes ppa:deadsnakes/ppa && \
     apt update && \
     apt --fix-missing -y install \
     build-essential python3-ply alien iptables iproute2 iputils-ping \
