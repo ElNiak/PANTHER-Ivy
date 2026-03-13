@@ -101,7 +101,7 @@ DEFAULT_ENVIRONMENT_VARIABLES = {
 
 
 class PantherIvyVersion(VersionBase):
-    """Version information for PantherIvy following PANTHER standards. (TODO not used)"""
+    """Version information for PantherIvy following PANTHER standards."""
 
     # Provide defaults for required base fields
     version: str = Field(default="", description="Version string")
