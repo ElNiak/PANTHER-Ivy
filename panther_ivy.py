@@ -136,7 +136,7 @@ class PantherIvyServiceManager(
         self._initialize_ivy_attributes(service_config_to_test, protocol)
 
         # Override default output patterns with Ivy-specific patterns
-        self._output_patterns = self._get_ivy_output_patterns()
+        self._output_patterns = self.get_output_patterns()
 
         # Set up Ivy-specific Docker volumes
         self._setup_volumes()
@@ -231,7 +231,7 @@ class PantherIvyServiceManager(
         self._protocol_name_cache = None
 
         # Initialize protocol-specific data directory for flexible template system
-        protocol_name = self._get_protocol_name_from_service_config()
+        protocol_name = self.get_protocol_name()
         self.ivy_protocol_data_dir = protocol_name  # e.g., "quic" for QUIC protocol
 
         self.env_protocol_model_path = self.get_protocol_model_path(
@@ -280,7 +280,7 @@ class PantherIvyServiceManager(
             use_system_models: Whether using system models (APT architecture)
         """
         path_resolver = get_global_resolver()
-        protocol_name = self._get_protocol_name_from_service_config()
+        protocol_name = self.get_protocol_name()
 
         # Create context for path resolution
         context = path_resolver.create_architecture_context(
@@ -323,109 +323,6 @@ class PantherIvyServiceManager(
         #         resolved_value = path_resolver.resolve_template(value, context)
         #         env_vars[key] = resolved_value
         #         self.logger.debug(f"Resolved template {key}: '{value}' -> '{resolved_value}'")
-
-    def _get_ivy_output_patterns(self) -> List[Tuple[str, str]]:
-        """Get Ivy-specific output patterns using phase-based directory structure.
-
-        Returns patterns matching the Docker container directory layout created
-        by entrypoint.sh.jinja, where each execution phase writes to its own
-        subdirectory (pre-compile/, compile/, runtime/, test/).
-        """
-        patterns = [
-            # Ivy-specific root-level log
-            ("ivy_log", "ivy_{service_name}.log"),
-            # Phase-based stdout/stderr
-            ("pre_compile_stdout", "pre-compile/stdout.log"),
-            ("pre_compile_stderr", "pre-compile/stderr.log"),
-            ("compile_stdout", "compile/stdout.log"),
-            ("compile_stderr", "compile/stderr.log"),
-            ("compile_log", "compile/ivy_compile.log"),
-            ("compile_status", "compile/compilation_status.txt"),
-            ("runtime_stdout", "runtime/stdout.log"),
-            ("runtime_stderr", "runtime/stderr.log"),
-            ("test_stdout", "test/stdout.log"),
-            ("test_stderr", "test/stderr.log"),
-            ("test_results", "test/test_results.json"),
-            # Artifacts
-            ("pcap", "{service_name}.pcap"),
-            ("sslkeylog", "sslkeylogfile.txt"),
-        ]
-
-        if self._get_protocol_name() == "quic":
-            patterns.extend(
-                [
-                    ("qlog", "*.qlog"),
-                    ("keys", "*keys.log"),
-                ]
-            )
-
-        return patterns
-
-    def get_output_patterns(self) -> List[Tuple[str, str]]:
-        """Override to ensure Ivy phase-based patterns are used.
-
-        Prevents MRO shadowing where IServiceManager.get_output_patterns()
-        (returning self._output_patterns) would be resolved before
-        IvyOutputPatternMixin.get_output_patterns().
-        """
-        return self._output_patterns
-
-    def _get_protocol_name(self):
-        """Helper method to safely get protocol name."""
-        if hasattr(self, "_protocol_name_cache") and self._protocol_name_cache:
-            return self._protocol_name_cache
-
-        protocol_name = getattr(self.protocol, "name", None)
-        if protocol_name is None:
-            if isinstance(self.protocol, str):
-                protocol_name = self.protocol
-            else:
-                protocol_name = "unknown"
-                self.logger.error(
-                    "Unexpected protocol type: %s", type(self.protocol).__name__
-                )
-
-        self._protocol_name_cache = protocol_name
-        return protocol_name
-
-    def _get_protocol_name_from_service_config(self):
-        """Helper method to get protocol name from service config during initialization."""
-        # Try multiple sources for protocol name to improve robustness
-
-        # First, try the mixin's protocol detection (which checks self.protocol)
-        if hasattr(self, "get_protocol_name"):
-            protocol_name = self.get_protocol_name()
-            if protocol_name and protocol_name != "unknown":
-                self.logger.debug(f"Got protocol name from mixin: {protocol_name}")
-                return protocol_name
-
-        # Second, try service config protocol
-        if hasattr(self.service_config_to_test, "protocol") and hasattr(
-            self.service_config_to_test.protocol, "name"
-        ):
-            protocol_name = getattr(
-                self.service_config_to_test.protocol, "name", "unknown"
-            )
-            if protocol_name and protocol_name != "unknown":
-                self.logger.debug(
-                    f"Got protocol name from service config: {protocol_name}"
-                )
-                return protocol_name
-
-        # Third, try the protocol parameter passed to constructor
-        if hasattr(self, "protocol") and self.protocol:
-            if hasattr(self.protocol, "name"):
-                protocol_name = getattr(self.protocol, "name", "unknown")
-                if protocol_name and protocol_name != "unknown":
-                    self.logger.debug(
-                        f"Got protocol name from constructor protocol: {protocol_name}"
-                    )
-                    return protocol_name
-
-        self.logger.warning(
-            "Could not determine protocol name from any source, using 'unknown'"
-        )
-        return "unknown"
 
     def _setup_volumes(self):
         """
@@ -833,7 +730,7 @@ class PantherIvyServiceManager(
 
         working_dir = (
             self.env_protocol_model_path
-            or f"/opt/panther_ivy/protocol-testing/{self._get_protocol_name()}/"
+            or f"/opt/panther_ivy/protocol-testing/{self.get_protocol_name()}/"
         )
 
         self.logger.debug(
@@ -873,22 +770,6 @@ class PantherIvyServiceManager(
         )
 
         return commands
-
-    def build_tests(self, test_name=None) -> List[str]:
-        """Generate test building commands using mixin integration."""
-        try:
-            # Use mixin method directly to build test compilation commands
-            return self._build_test_compilation_commands()
-
-        except Exception as e:
-            self.handle_error(
-                e,
-                "build tests",
-                reraise=True,
-                category=ErrorCategory.TEST_FRAMEWORK,
-                severity=ErrorSeverity.HIGH,
-            )
-            raise  # re-raise if handle_error did not (e.g. fast-fail disabled)
 
     def generate_deployment_commands(self) -> str:
         """Generate deployment commands using mixin integration."""
