@@ -1,0 +1,113 @@
+#lang ivy1.7
+
+# =============================================================================
+# Pattern:     parameterized_module_template
+# Source:      QUIC quic_protection.ivy
+# Description: Parametric module pattern for reusable protocol components.
+#              Uses Ivy's `module` keyword with type parameters, enabling
+#              the same logic to be instantiated with different type bindings.
+#              Contains struct types, action specs with returns, implement
+#              blocks, instance declarations, and inline C++ (<<<>>>).
+#
+# Placeholders:
+#   {prot}         - protocol name, lowercase (e.g., "quic", "tls")
+#   {PROT}         - protocol name, UPPERCASE
+#   {module_name}  - name of this module (e.g., "protection", "crypto")
+#   {param1_type}  - first type parameter name (e.g., "tls_id")
+#   {param2_type}  - second type parameter name (e.g., "tls")
+#
+# Cross-references:
+#   - Instantiated in: shim files or entity files
+#     e.g., `instance prot : {prot}_{module_name}(tls_api.id, tls_api)`
+#   - May depend on: protocol type definitions, byte_stream, collections
+#
+# Decision points:
+#   1. Type parameters: what gets parameterized (crypto backend, id type, etc.)
+#   2. Struct types: internal data structures used by the module
+#   3. Action signatures: what operations the module provides
+#   4. Inline C++: low-level operations that cannot be expressed in Ivy
+# =============================================================================
+
+
+# --- Include dependencies ---
+# TODO: adjust includes for your module's needs
+# include byte_stream
+# include {prot}_types
+# include collections
+
+
+# --- Parameterized module definition ---
+# The module takes type parameters that are bound at instantiation time.
+# This allows the same logic to work with different type bindings.
+module {prot}_{module_name}({param1_type}, {param2_type}) = {
+
+    # --- Internal index and array types ---
+    # instance idx : unbounded_sequence
+    # instance arr : array(idx, stream_data)
+
+    # --- Internal struct types ---
+    # Define data structures used internally by this module.
+    # type info = struct {
+    #     field_a : bool,
+    #     field_b : stream_pos,
+    #     field_c : stream_data
+    # }
+
+    # --- Action specifications ---
+    # Declare the module's public interface.
+    # Each action may have parameters and return values.
+
+    # Primary operation (e.g., encrypt, process, transform)
+    # action process(c:{param1_type}, seq:pkt_num, data:stream_data) returns (data:stream_data)
+
+    # Secondary operation (e.g., reverse operation)
+    # action reverse(c:{param1_type}, seq:pkt_num, data:stream_data) returns (res:result_type)
+
+    # Import actions for debugging/logging
+    # import action show_debug(l:stream_data)
+
+    # --- Implement blocks ---
+    # Provide implementations for the declared actions.
+
+    # implement process {
+    #     # Step 1: extract metadata
+    #     # var h := get_info(data);
+    #
+    #     # Step 2: transform data
+    #     # var transformed := {param2_type}.some_operation(c, data);
+    #
+    #     # Step 3: return result
+    #     # data := transformed;
+    # }
+
+    # implement reverse {
+    #     # Reverse of the primary operation
+    #     # res := {param2_type}.reverse_operation(c, data);
+    # }
+
+    # --- Helper actions ---
+    # Internal utilities used by the implement blocks.
+
+    # action get_info(data:stream_data) returns (h:info) = {
+    #     # Parse header/metadata from data
+    #     # h.field_a := bvand(0x80, data.value(0)) ~= 0;
+    # }
+
+    # --- Inline C++ actions ---
+    # Low-level operations that require direct C++ implementation.
+    # Use sparingly; prefer Ivy-native logic where possible.
+
+    # action byte_xor(x:byte, y:byte) returns (z:byte) = {
+    #     <<<
+    #     z = x ^ y;
+    #     >>>
+    # }
+
+    # action bytes_to_id(bytes:stream_data) returns (val:{param1_type}) = {
+    #     <<<
+    #     val.val = 0;
+    #     for (unsigned i = 0; i < bytes.size(); i++)
+    #         val.val = (val.val << 8) + bytes[i];
+    #     >>>
+    # }
+}

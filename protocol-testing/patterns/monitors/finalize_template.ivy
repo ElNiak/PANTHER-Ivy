@@ -1,0 +1,84 @@
+#lang ivy1.7
+
+# =============================================================================
+# Pattern:     finalize_template
+# Source:      BGP bgp_speaker_test_join.ivy, QUIC quic_server_test_*.ivy
+# Description: Test finalization pattern using the `_finalize` export action.
+#              When the Ivy test harness completes, it calls `_finalize` to
+#              perform end-of-test assertions (e.g., verify data was exchanged,
+#              check protocol violation flags, validate state invariants).
+#
+# Placeholders:
+#   {prot}   - protocol name, lowercase (e.g., "bgp", "quic", "ping")
+#   {PROT}   - protocol name, UPPERCASE
+#
+# Cross-references:
+#   - Used in:   test files ({prot}_test_*.ivy)
+#   - Depends on: shim and behavior files for state variables
+#   - Complements: export_weight_template.ivy (same test file)
+#
+# Decision points:
+#   1. What to assert at test end (data received? connection closed? error seen?)
+#   2. Whether to make _finalize empty (permissive) or strict (require invariants)
+#   3. Whether to add advice (additional `before _finalize` in other files)
+# =============================================================================
+
+
+# --- Include the protocol shim and behavior ---
+# These provide the state variables and actions used in test files.
+# TODO: adjust includes for your protocol
+# include order
+# include file
+# include {prot}_shim
+# include ivy_{prot}_behavior
+
+
+# --- Test initialization ---
+# Set up the initial connection/socket state for the test.
+# after init {
+#     # TODO: protocol-specific initialization
+#     # For UDP: sock := net.open(endpoint_id.client, client.ep);
+#     # For TCP: getsock(impl.ep.addr) := net.connect(ivy_instance.id, impl.id, impl.ep.addr);
+# }
+
+
+# --- Before monitors for generated messages ---
+# Each message type gets a before monitor with `if _generating` guard.
+# These can be empty (permissive) or constrained (strict).
+
+# before {prot}_type_a_event(src:{id_type}, dst:{id_type}, msg:{prot}_type_a) {
+#     if _generating {
+#         # Empty: no extra constraints beyond the behavior file
+#     }
+# }
+
+# before {prot}_type_b_event(src:{id_type}, dst:{id_type}, msg:{prot}_type_b) {
+#     if _generating {
+#         # Empty: no extra constraints beyond the behavior file
+#     }
+# }
+
+
+# --- Export actions ---
+# List the actions the test harness may generate.
+# Each `export` tells Ivy that this action can be called from the environment.
+
+# export {prot}_{variant_name}_event
+# export {prot}_type_a_event
+# export {prot}_type_b_event
+
+
+# --- Finalize action ---
+# Called at test completion. Add assertions to verify the test achieved
+# its goals (e.g., at least one message was exchanged, no errors occurred).
+
+export action _finalize = {
+    # TODO: add end-of-test assertions
+    #
+    # Examples:
+    #   require is_protocol_violation;           # test expected a protocol error
+    #   require data_received_count > 0;         # ensure data was exchanged
+    #   require connection_established;           # ensure handshake completed
+    #
+    # Leave empty for permissive tests that only check runtime invariants:
+}

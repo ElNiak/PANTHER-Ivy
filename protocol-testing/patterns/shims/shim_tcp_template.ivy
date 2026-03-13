@@ -1,0 +1,164 @@
+#lang ivy1.7
+
+# =============================================================================
+# Pattern:     shim_tcp_template
+# Source:      BGP bgp_shim.ivy
+# Description: TCP shim layer connecting the Ivy model to the network.
+#              Handles TCP-specific concerns: connection state tracking
+#              (isup/pend relations), connect/accept callbacks, stream-based
+#              receive, and serialization of outgoing messages via after
+#              monitors on event actions.
+#
+# Placeholders:
+#   {prot}           - protocol name, lowercase (e.g., "bgp", "smtp")
+#   {PROT}           - protocol name, UPPERCASE
+#   {id_type}        - endpoint identifier type (e.g., "bgp_id", "smtp_id")
+#   {variant_name}   - top-level message name (e.g., "header_message")
+#   {msg_type_enum}  - message type enum (e.g., "bgp_message_type")
+#   {messages_mod}   - messages module instance name (e.g., "bm")
+#
+# Cross-references:
+#   - Depends on: binary_ser_template.ivy + binary_deser_template.ivy
+#   - Depends on: variant_frame_template.ivy (message struct + dispatch)
+#   - Depends on: entity_symmetric_template.ivy (speaker behavior)
+#   - Included by: test files
+#
+# Decision points:
+#   1. Connection model: connect vs connect_accept vs accept-only
+#   2. How many serdes instances (one per sub-message type)
+#   3. After monitor logic: serialize + send on _generating
+# =============================================================================
+
+
+# --- Include dependencies ---
+include byte_stream
+include ip
+
+# TODO: include time module if needed
+# include {prot}_time
+
+# Base serialization framework
+include deserializer
+include serdes
+
+# Protocol-specific serializers and deserializers
+# TODO: include one ser/deser pair per sub-message type
+include {prot}_deser
+include {prot}_ser
+# include {prot}_deser_type_a
+# include {prot}_ser_type_a
+# include {prot}_deser_type_b
+# include {prot}_ser_type_b
+
+# Protocol protection/crypto layer (optional)
+# include {prot}_protection
+
+# Messages module instance for TCP stream framing
+instance {messages_mod} : {prot}_messages
+
+# Entity and behavior includes
+# include {prot}_speaker
+# include ivy_{prot}_speaker
+# include ivy_{prot}_speaker_behavior
+
+# Protocol types and message definitions
+include {prot}_type
+include {prot}_application
+# include {prot}_{variant_name}
+# include {prot}_type_a
+# include {prot}_type_b
+
+
+# --- TCP connection state ---
+# Track which connections are established and which are pending.
+relation isup(A:ip.addr)
+function getsock(A:ip.addr) : net.socket
+relation pend(A:ip.addr)
+
+
+# --- TCP connect callback ---
+# Called when an outgoing TCP connection is established.
+implement net.connected(src:{id_type}, s:net.socket) {
+    call show_connected(src, s);
+    # Mark the remote endpoint as connected
+    pend(endpoint_to_other_addr(src)) := false;
+    isup(endpoint_to_other_addr(src)) := true;
+    isup(endpoint_to_addr(src))       := true;
+}
+
+import action show_connected(src:{id_type}, s:net.socket)
+
+
+# --- TCP accept callback ---
+# Called when an incoming TCP connection is accepted.
+implement net.accept(src:{id_type}, s:net.socket, other:{id_type}) {
+    call show_tcp_accepted;
+}
+
+import action show_tcp_accepted
+
+
+# --- TCP receive callback ---
+# Called when data arrives on a TCP connection.
+# Dispatches to the entity's behavior handler.
+implement net.recv(src:{id_type}, s:net.socket, pkts:{messages_mod}.arr) {
+    # TODO: dispatch to the correct entity instance
+    # call {prot}_ivy_instance.behavior(s, src, pkts);
+}
+
+import action undefined_host_error(host:endpoint_id, s:net.socket, src:{id_type})
+
+
+# --- State for tracking inter-event message construction ---
+function header_payload : stream_data
+function header_length  : stream_pos
+function header_type    : {msg_type_enum}
+
+
+# --- After monitor: top-level message event ---
+# When Ivy generates (sends) a top-level message, serialize and transmit it.
+# after {prot}_{variant_name}_event(src:{id_type}, dst:{id_type}, msg:{prot}_{variant_name}) {
+#     if _generating {
+#         var spkt := {prot}_message_serdes.to_bytes(msg);
+#         var pkts := {messages_mod}.arr.empty;
+#         pkts := pkts.append(spkt);
+#         var ok := net.send(src, endpoint_to_socket(src), dst, pkts);
+#         header_payload := stream_data.empty;
+#         header_length  := 0;
+#         call send_{prot}_{variant_name}(src, dst, msg);
+#     }
+# }
+#
+# import action send_{prot}_{variant_name}(src:{id_type}, dst:{id_type}, msg:{prot}_{variant_name})
+
+
+# --- After monitor: sub-message type A ---
+# Serialize the sub-message payload for inclusion in the outer frame.
+# after {prot}_type_a_event(src:{id_type}, dst:{id_type}, msg:{prot}_type_a) {
+#     if _generating {
+#         var spkt := {prot}_type_a_serdes.to_bytes(msg);
+#         header_payload := spkt;
+#         call send_{prot}_type_a(src, dst, msg);
+#     }
+# }
+#
+# import action send_{prot}_type_a(src:{id_type}, dst:{id_type}, msg:{prot}_type_a)
+
+
+# --- After monitor: sub-message type B ---
+# after {prot}_type_b_event(src:{id_type}, dst:{id_type}, msg:{prot}_type_b) {
+#     if _generating {
+#         var spkt := {prot}_type_b_serdes.to_bytes(msg);
+#         header_payload := spkt;
+#         call send_{prot}_type_b(src, dst, msg);
+#     }
+# }
+#
+# import action send_{prot}_type_b(src:{id_type}, dst:{id_type}, msg:{prot}_type_b)
+
+
+# --- Serdes instances ---
+# One per message type. Parameters: (message_type, byte_stream, serializer, deserializer)
+# instance {prot}_message_serdes  : serdes({prot}_{variant_name}, stream_data, {prot}_ser, {prot}_deser)
+# instance {prot}_type_a_serdes   : serdes({prot}_type_a, stream_data, {prot}_ser_type_a, {prot}_deser_type_a)
+# instance {prot}_type_b_serdes   : serdes({prot}_type_b, stream_data, {prot}_ser_type_b, {prot}_deser_type_b)

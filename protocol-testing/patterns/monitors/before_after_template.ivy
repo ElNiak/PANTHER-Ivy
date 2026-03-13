@@ -1,0 +1,121 @@
+#lang ivy1.7
+
+# =============================================================================
+# Pattern:     before_after_template
+# Source:      BGP ivy_bgp_speaker_behavior.ivy
+# Description: Before/after monitor pattern for constraining generated messages.
+#              Uses `if _generating` guards to apply constraints only when Ivy
+#              is the sender (test generator), not when processing received msgs.
+#              Defines per-message-type before monitors and helper actions.
+#
+# Placeholders:
+#   {prot}             - protocol name, lowercase (e.g., "bgp", "quic")
+#   {PROT}             - protocol name, UPPERCASE
+#   {id_type}          - identifier type for endpoints (e.g., "bgp_id", "cid")
+#   {variant_name}     - top-level message name (e.g., "header_message")
+#   {msg_type_enum}    - enum for message types (e.g., "bgp_message_type")
+#   {ivy_instance}     - Ivy-side instance name (e.g., "bgp_ivy_instance")
+#   {impl_instance}    - impl-side instance name (e.g., "bgp_impl_instance")
+#
+# Cross-references:
+#   - Constrains:  variant_frame_template.ivy events
+#   - Included by: test files (e.g., {prot}_test_*.ivy)
+#   - Depends on:  shim file for helper actions and state variables
+#
+# Decision points:
+#   1. Which fields to constrain via `require` in each before monitor
+#   2. Which fields to assign via `:=` (fixing values vs constraining)
+#   3. Whether to track cumulative state (e.g., header_length, header_payload)
+# =============================================================================
+
+# --- Include dependencies ---
+# TODO: adjust includes for your protocol
+# include order
+# include {prot}_infer
+# include file
+# include random_value
+
+# --- Helper actions ---
+# Utility actions for endpoint resolution.
+# TODO: implement these for your protocol's endpoint addressing scheme.
+
+# action endpoint_to_pid(src:{id_type}) returns (pid:endpoint_id) = {
+#     pid := endpoint_id.speaker;
+# }
+
+# action socket_endpoint(s:net.socket) returns (src:{id_type}) = {
+#     src := {impl_instance}.{prot}id;
+# }
+
+
+# --- State variables for tracking message construction ---
+# These accumulate sub-message payloads across event boundaries.
+
+# function header_payload : stream_data
+# function header_length  : stream_pos
+# function header_type    : {msg_type_enum}
+
+
+# --- Before monitor: top-level message event ---
+# Constrain the top-level framing when Ivy is generating (sending).
+# before {prot}_{variant_name}_event(src:{id_type}, dst:{id_type}, msg:{prot}_{variant_name}) {
+#     if _generating {
+#         # Require Ivy sends FROM the Ivy instance TO the implementation
+#         require src = {ivy_instance}.{prot}id;
+#         require dst = {impl_instance}.{prot}id;
+#         # Require sub-message payload has been prepared
+#         require header_length > 0;
+#         # Fix the message type to the current header_type
+#         require msg.{prot}_type = header_type;
+#     }
+# }
+
+
+# --- Before monitor: sub-message type A ---
+# Constrain fields of sub-message type A when generating.
+# before {prot}_type_a_event(src:{id_type}, dst:{id_type}, msg:{prot}_type_a) {
+#     if _generating {
+#         # Set the header type for the outer framing
+#         header_type := {msg_type_enum}.type_a;
+#         require header_length = 0;
+#         require src = {ivy_instance}.{prot}id;
+#         require dst = {impl_instance}.{prot}id;
+#         # TODO: constrain sub-message fields
+#         # require msg.version = 4;
+#         # require msg.some_field = expected_value;
+#         # Update header_length for framing
+#         # header_length := 29;
+#     }
+# }
+
+
+# --- Before monitor: sub-message type B ---
+# before {prot}_type_b_event(src:{id_type}, dst:{id_type}, msg:{prot}_type_b) {
+#     if _generating {
+#         require header_length = 0;
+#         require src = {ivy_instance}.{prot}id;
+#         require dst = {impl_instance}.{prot}id;
+#         # TODO: constrain sub-message fields
+#         header_type := {msg_type_enum}.type_b;
+#         # header_length := <computed_length>;
+#     }
+# }
+
+
+# --- Send event with around block ---
+# Optional: constrain a higher-level send event for the protocol.
+# action {prot}_send_event(src:{id_type}, dst:{id_type}, end:stream_pos)
+#
+# around {prot}_send_event {
+#     require src = {ivy_instance}.{prot}id;
+#     require dst = {impl_instance}.{prot}id;
+#     ...
+#     require dst = {impl_instance}.{prot}id;
+# }
+
+
+# --- Interpretation and attributes ---
+# TODO: set bit-vector widths and cardinality constraints
+# attribute radix=16
+# interpret version -> bv[32]
+# attribute stream_pos.cardinality = 4

@@ -1,0 +1,162 @@
+#lang ivy1.7
+
+# =============================================================================
+# Pattern:     json_ser_template
+# Source:      NEW -- no existing reference model; designed for text/JSON
+#              protocols such as Mark/MASFAD or HTTP-based protocols.
+# Description: JSON serializer using C++ state machine.
+#              Builds a JSON string representation from Ivy-generated values
+#              instead of binary wire format.
+#
+# Placeholders:
+#   {prot}   - protocol name, lowercase (e.g., "mark", "http", "masfad")
+#   {PROT}   - protocol name, UPPERCASE (e.g., "MARK", "HTTP", "MASFAD")
+#
+# Cross-references:
+#   - Pair with: json_deser_template.ivy (deserializer counterpart)
+#   - Used by:   shim_tcp_template.ivy or shim_udp_template.ivy
+#                via `instance {prot}_packet_serdes : serdes(...)`
+#   - Requires:  ivy_binary_ser_128 base class (output goes to byte buffer,
+#                but we write ASCII/UTF-8 characters)
+#
+# Decision points:
+#   1. Field names: map Ivy variant tags to JSON key strings
+#   2. Nesting: track object/array depth for correct comma/bracket placement
+#   3. Encoding: decide string vs number vs boolean for each field type
+# =============================================================================
+
+# Declare the serializer object (empty Ivy object; implementation is in C++)
+object {prot}_json_ser = {}
+
+# C++ class forward declaration
+<<< member
+
+    class `{prot}_json_ser`;
+
+>>>
+
+# C++ implementation of the JSON serializer
+<<< impl
+
+    class `{prot}_json_ser` : public ivy_binary_ser_128 {
+        // State machine states
+        // {prot}_js_init:    before any output
+        // {prot}_js_object:  inside a JSON object (emitting key:value pairs)
+        // {prot}_js_array:   inside a JSON array
+        // {prot}_js_value:   emitting a scalar value
+        enum {{prot}_js_init,
+              {prot}_js_object,
+              {prot}_js_array,
+              {prot}_js_value} state;
+
+        int depth;              // nesting depth for objects/arrays
+        bool need_comma;        // true if a comma is needed before next element
+        std::string current_key;
+
+        // Helper: write a raw string to the output buffer
+        void emit(const std::string &s) {
+            for (char c : s) {
+                int128_t val = (unsigned char)c;
+                setn(val, 1);
+            }
+        }
+
+        // Helper: emit comma separator if needed
+        void emit_separator() {
+            if (need_comma) {
+                emit(",");
+            }
+            need_comma = true;
+        }
+
+    public:
+        {prot}_json_ser() : state({prot}_js_init), depth(0), need_comma(false) {
+        }
+
+        // set() is called for each scalar value.
+        // Emit the value as a JSON number.
+        virtual void set(int128_t res) {
+            switch (state) {
+            case {prot}_js_init:
+            {
+                state = {prot}_js_object;
+            }
+            break;
+            case {prot}_js_value:
+            case {prot}_js_object:
+            {
+                // Emit as JSON number
+                // TODO: for string fields, wrap in quotes instead
+                std::string val = std::to_string((long long)res);
+                emit(val);
+                state = {prot}_js_object;
+            }
+            break;
+            case {prot}_js_array:
+            {
+                emit_separator();
+                std::string val = std::to_string((long long)res);
+                emit(val);
+            }
+            break;
+            default:
+                std::cerr << "{PROT}_json_ser: unexpected state in set()\n";
+                throw deser_err();
+            }
+        }
+
+        // open_tag() maps Ivy variant tags to JSON key names.
+        // Emits "key": before the value.
+        virtual void open_tag(int tag, const std::string &name) {
+            if (state == {prot}_js_object || state == {prot}_js_init) {
+                emit_separator();
+                // TODO: map tag indices to JSON field names for your protocol
+                std::string key;
+                if (tag == 0) {
+                    key = "type";
+                } else if (tag == 1) {
+                    key = "payload";
+                } else if (tag == 2) {
+                    key = "sequence";
+                } else {
+                    key = "field_" + std::to_string(tag);
+                }
+                emit("\"" + key + "\":");
+                current_key = key;
+                state = {prot}_js_value;
+                return;
+            }
+            std::cerr << "{PROT}_json_ser: open_tag in wrong state\n";
+            throw deser_err();
+        }
+
+        virtual void open_list_elem() {
+            if (state == {prot}_js_array) {
+                emit_separator();
+            }
+        }
+
+        void open_list(int len) {
+            emit("[");
+            state = {prot}_js_array;
+            need_comma = false;
+            depth++;
+        }
+
+        void close_list() {
+            emit("]");
+            depth--;
+            need_comma = true;
+            state = (depth > 0) ? {prot}_js_object : {prot}_js_init;
+        }
+
+        void close_list_elem() {}
+
+        virtual void close_tag() {
+            state = {prot}_js_object;
+        }
+
+        ~{prot}_json_ser() {}
+    };
+
+>>>

@@ -1,0 +1,180 @@
+#lang ivy1.7
+
+# =============================================================================
+# Pattern:     entity_role_pair_template
+# Source:      MiniP ping_endpoint.ivy
+# Description: Asymmetric client/server entity with separate modules for each
+#              role. Each role is defined as a parameterized module (taking
+#              address and port) with its own variant of the endpoint type,
+#              its own behavior action, and its own import actions.
+#
+# Placeholders:
+#   {prot}       - protocol name, lowercase (e.g., "ping", "coap")
+#   {PROT}       - protocol name, UPPERCASE
+#   {net_module} - network module name (e.g., "minip_net", "coap_net")
+#   {msg_type}   - message/packet type (e.g., "ping_packet", "coap_message")
+#   {pkt_type}   - datagram array type (e.g., "pingd", "coapd")
+#
+# Cross-references:
+#   - Used by:    shim_udp_template.ivy (behavior called from recv handler)
+#   - Depends on: serdes instance for deserialization in behavior
+#   - Instantiated in: {prot}_server.ivy, {prot}_client.ivy
+#     e.g., `instance server : {prot}_endpoint.server_ep(server_addr, server_port)`
+#     e.g., `instance client : {prot}_endpoint.client_ep(client_addr, client_port)`
+#
+# Decision points:
+#   1. Role differences: what each role does differently in behavior()
+#   2. Endpoint addressing: UDP vs TCP, loopback vs external interface
+#   3. Per-role state: what individual variables each role maintains
+#   4. Event handling: which events each role triggers on packet receive
+# =============================================================================
+
+
+# --- Endpoint identifier enum ---
+# Distinguishes client from server at the Ivy type level.
+object endpoint_id = {
+    type this = {client, server}
+}
+
+# --- Endpoint address resolution ---
+# Maps an endpoint_id to its network address.
+# TODO: adjust protocol (udp/tcp), address source, and port source.
+action endpoint_id_addr(ep_id:endpoint_id) returns (ep:ip.endpoint) = {
+    ep.protocol := ip.udp;   # TODO: change to ip.tcp for TCP protocols
+    ep.addr := server_addr if ep_id = endpoint_id.server
+               else client_addr;
+    ep.port := client_port if ep_id = endpoint_id.client
+               else server_port;
+}
+
+# --- Global state ---
+# TODO: add protocol-specific global state needed across both roles
+# relation initial_response
+# after init {
+#     initial_response := false;
+# }
+
+
+# --- Endpoint object with role modules ---
+object {prot}_endpoint = {
+    type this
+
+    # =================================================================
+    # Client role module
+    # Parameterized by address and port for flexible instantiation.
+    # =================================================================
+    module client_ep(address:ip.addr, port:ip.port) = {
+        variant this of {prot}_endpoint = struct { }
+
+        individual ep     : ip.endpoint
+        individual tls_id : tls_api.id
+
+        after init {
+            ep.protocol := ip.udp;  # TODO: change for TCP protocols
+            ep.addr := address;
+            ep.port := port;
+            if ep.addr = 0x7f000001 {
+                ep.interface := ip.lo;
+            } else {
+                ep.interface := ip.ivy;
+            }
+        }
+
+        action set_ep(e:ip.endpoint) = {
+            ep := e;
+        }
+
+        action set_tls_id(e:tls_api.id) = {
+            tls_id := e;
+        }
+
+        # Client behavior: called when this endpoint receives a packet.
+        # Typically receives responses and triggers response events.
+        action behavior(host:endpoint_id, s:{net_module}.socket, src:ip.endpoint, pkts:{pkt_type}.arr) = {
+            var dst := socket_endpoint(host, s);
+            var idx := pkts.begin;
+            while idx < pkts.end {
+                var ppkt := pkts.value(idx);
+                var pkt := {prot}_packet_serdes.from_bytes(ppkt);
+                # TODO: trigger protocol-specific receive event
+                # call recv_{prot}_response(host, src, dst, pkt);
+                # TODO: handle sub-frames/payload items
+                # var jdx := pkt.payload.begin;
+                # while jdx < pkt.payload.end {
+                #     var f := pkt.payload.value(jdx);
+                #     call f.handle();
+                #     jdx := jdx.next;
+                # };
+                # Trigger the top-level packet event
+                # call {prot}_packet_event(src, dst, pkt);
+                idx := idx.next;
+            };
+        }
+
+        # import action show_data_received(s:stream_pos)
+        # import action show_data_sent(s:stream_pos)
+    }
+
+    # =================================================================
+    # Server role module
+    # Same structure as client, but with server-specific behavior.
+    # =================================================================
+    module server_ep(address:ip.addr, port:ip.port) = {
+        variant this of {prot}_endpoint = struct { }
+
+        individual ep     : ip.endpoint
+        individual tls_id : tls_api.id
+
+        after init {
+            ep.protocol := ip.udp;  # TODO: change for TCP protocols
+            ep.addr := address;
+            ep.port := port;
+            if ep.addr = 0x7f000001 {
+                ep.interface := ip.lo;
+            } else {
+                ep.interface := ip.ivy;
+            }
+        }
+
+        action set_ep(e:ip.endpoint) = {
+            ep := e;
+        }
+
+        action set_tls_id(e:tls_api.id) = {
+            tls_id := e;
+        }
+
+        # Server behavior: called when this endpoint receives a packet.
+        # Typically receives requests and triggers request events.
+        action behavior(host:endpoint_id, s:{net_module}.socket, src:ip.endpoint, pkts:{pkt_type}.arr) = {
+            var dst := socket_endpoint(host, s);
+            var idx := pkts.begin;
+            # TODO: handle first-contact initialization if needed
+            # if ~initial_response {
+            #     call show_set_client_ep(src);
+            #     client.set_ep(src);
+            #     initial_response := true;
+            # }
+            while idx < pkts.end {
+                var ppkt := pkts.value(idx);
+                var pkt := {prot}_packet_serdes.from_bytes(ppkt);
+                # TODO: trigger protocol-specific receive event
+                # call recv_{prot}_request(host, src, dst, pkt);
+                # TODO: handle sub-frames/payload items
+                # var jdx := pkt.payload.begin;
+                # while jdx < pkt.payload.end {
+                #     var f := pkt.payload.value(jdx);
+                #     call f.handle();
+                #     jdx := jdx.next;
+                # };
+                # Trigger the top-level packet event
+                # call {prot}_packet_event(src, dst, pkt);
+                idx := idx.next;
+            };
+        }
+
+        # import action show_data_received(s:stream_pos)
+        # import action show_data_sent(s:stream_pos)
+        # import action show_set_client_ep(s:ip.endpoint)
+    }
+}
