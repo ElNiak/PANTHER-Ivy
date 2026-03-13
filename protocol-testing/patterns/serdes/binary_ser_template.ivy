@@ -1,0 +1,137 @@
+#lang ivy1.7
+
+# =============================================================================
+# Pattern:     binary_ser_template
+# Source:      MiniP ping_ser.ivy
+# Description: Binary serializer using C++ state machine.
+#              Inherits from ivy_binary_ser_128 to produce wire-format bytes
+#              from Ivy-generated values.
+#
+# Placeholders:
+#   {prot}   - protocol name, lowercase (e.g., "ping", "coap", "quic")
+#   {PROT}   - protocol name, UPPERCASE (e.g., "PING", "COAP", "QUIC")
+#
+# Cross-references:
+#   - Pair with: binary_deser_template.ivy (deserializer counterpart)
+#   - Used by:   shim_udp_template.ivy or shim_tcp_template.ivy
+#                via `instance {prot}_packet_serdes : serdes(...)`
+#   - Requires:  ivy_binary_ser_128 from Ivy runtime
+#
+# Decision points:
+#   1. State enum: add one state per wire-format field type
+#      (e.g., {prot}_s_frame for fixed-width, {prot}_s_payload for variable)
+#   2. open_tag: map Ivy variant tags (0, 1, 2, ...) to wire frame_type codes
+#   3. set(): encode field value using setn(res, byte_count) per state
+# =============================================================================
+
+# Declare the serializer object (empty Ivy object; implementation is in C++)
+object {prot}_ser = {}
+
+# C++ class forward declaration
+<<< member
+
+    class `{prot}_ser`;
+
+>>>
+
+# C++ implementation of the binary serializer
+<<< impl
+
+    class `{prot}_ser` : public ivy_binary_ser_128 {
+        // State machine states -- add one per field encoding type
+        // {prot}_s_init:    initial state before serialization begins
+        // {prot}_s_frame:   encoding a fixed-width frame type or tag field
+        // {prot}_s_payload: encoding the top-level payload container
+        // TODO: add protocol-specific states (e.g., {prot}_s_timestamp, {prot}_s_length)
+        enum {{prot}_s_init,
+              {prot}_s_frame,
+              {prot}_s_payload} state;
+
+        long frame_type;
+
+    public:
+        {prot}_ser() : state({prot}_s_init) {
+        }
+
+        // set() is called by Ivy for each scalar value in the structure.
+        // The current state determines how many bytes to write.
+        virtual void set(int128_t res) {
+            switch (state) {
+            case {prot}_s_init:
+            {
+                // Transition to payload -- no bytes emitted for the root object
+                state = {prot}_s_payload;
+            }
+            break;
+            case {prot}_s_frame:
+            {
+                // Encode a fixed-width field
+                // TODO: adjust byte count per field (1, 2, 4, 8, ...)
+                setn(res, 1);
+            }
+            break;
+            // TODO: add cases for protocol-specific states
+            // case {prot}_s_timestamp:
+            // {
+            //     setn(res, 8);
+            // }
+            // break;
+            default:
+                std::cerr << "{PROT}_ser: unexpected state in set()\n";
+                throw deser_err();
+            }
+        }
+
+        // open_tag() is called when Ivy begins serializing a variant member.
+        // The tag integer identifies which variant arm is being serialized.
+        // Map each tag to the corresponding wire-format frame_type code.
+        virtual void open_tag(int tag, const std::string &) {
+            if (state == {prot}_s_payload || state == {prot}_s_init) {
+                int sz = 1;  // byte width of the frame_type field on the wire
+                // TODO: map tag values to wire frame_type codes
+                if (tag == 0) {
+                    frame_type = 0x01;
+                    state = {prot}_s_frame;
+                }
+                else if (tag == 1) {
+                    frame_type = 0x02;
+                    state = {prot}_s_frame;
+                }
+                // TODO: add more tag mappings as needed
+                // else if (tag == 2) {
+                //     frame_type = 0x03;
+                //     state = {prot}_s_timestamp;
+                // }
+                else {
+                    std::cerr << "{PROT}_ser: unknown tag " << tag << "\n";
+                    throw deser_err();
+                }
+                setn(frame_type, sz);
+                return;
+            }
+            std::cerr << "{PROT}_ser: open_tag in wrong state " << state << "\n";
+            throw deser_err();
+        }
+
+        virtual void open_list_elem() {
+        }
+
+        void open_list(int len) {
+        }
+
+        void close_list() {
+            if (state == {prot}_s_payload) {
+                state = {prot}_s_init;
+            }
+        }
+
+        void close_list_elem() {}
+
+        virtual void close_tag() {
+            state = {prot}_s_payload;
+        }
+
+        ~{prot}_ser() {}
+    };
+
+>>>

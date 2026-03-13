@@ -1,0 +1,129 @@
+#lang ivy1.7
+
+# =============================================================================
+# Pattern:     entity_symmetric_template
+# Source:      BGP bgp_speaker.ivy + ivy_bgp_speaker.ivy
+# Description: Symmetric single-role entity with unified behavior.
+#              Both the Ivy instance and the implementation instance use
+#              the same module definition. Differences are expressed through
+#              parameterization (address, id, AS number, etc.) rather than
+#              separate role modules.
+#
+# Placeholders:
+#   {prot}           - protocol name, lowercase (e.g., "bgp", "ospf")
+#   {PROT}           - protocol name, UPPERCASE
+#   {role}           - role name (e.g., "speaker", "peer", "node")
+#   {id_type}        - identifier type (e.g., "bgp_id", "ospf_id")
+#   {messages_mod}   - messages module instance (e.g., "bm")
+#   {variant_name}   - top-level message name (e.g., "header_message")
+#
+# Cross-references:
+#   - Used by:      shim_tcp_template.ivy (behavior called from recv handler)
+#   - Depends on:   serdes instance for deserialization
+#   - Instantiated: in a separate file (ivy_{prot}_{role}.ivy)
+#     e.g., `instance {prot}_ivy_instance  : {prot}_{role}.{role}(addr, id, as)`
+#     e.g., `instance {prot}_impl_instance : {prot}_{role}.{role}(addr, id, as)`
+#
+# Decision points:
+#   1. Module parameters: what distinguishes instances (address, id, role-config)
+#   2. Behavior logic: how received packets are processed (same for both sides)
+#   3. Per-instance state: individual variables maintained by each instance
+# =============================================================================
+
+
+# --- Include protocol types ---
+# include {prot}_type
+
+
+# --- Endpoint identifier enum ---
+# For symmetric protocols, there is typically one role name.
+object endpoint_id = {
+    type this = {{role}}
+}
+
+
+# --- Entity object with role module ---
+object {prot}_{role} = {
+
+    type this
+
+    # =================================================================
+    # Role module -- instantiated once per protocol participant
+    # Parameters define the identity and addressing of this instance.
+    # =================================================================
+    module {role}(address:ip.addr, id:{id_type}) = {
+        # TODO: add more parameters as needed (e.g., as_number, version)
+
+        variant this of {prot}_{role} = struct { }
+
+        individual ep         : ip.endpoint
+        individual {prot}id   : {id_type}
+        # TODO: add protocol-specific per-instance state
+        # individual config_val : some_type
+
+        after init {
+            ep.protocol := ip.tcp;   # TODO: change to ip.udp for UDP protocols
+            ep.addr := address;
+            ep.port := 179;          # TODO: set protocol default port
+            {prot}id := id;
+            # config_val := initial_value;
+
+            if ep.addr = 0x7f000001 {
+                ep.interface := ip.lo;
+            } else {
+                ep.interface := ip.ivy;
+            }
+        }
+
+        action set_ep(e:ip.endpoint) = {
+            ep := e;
+        }
+
+        # Behavior: called when this entity receives data on a TCP connection.
+        # The same logic runs for both the Ivy instance and the impl instance.
+        action behavior(s:net.socket, src:{id_type}, pkts:{messages_mod}.arr) = {
+            var dst := socket_endpoint(s);
+            var idx := pkts.begin;
+            while idx < pkts.end {
+                var ppkt := pkts.value(idx);
+                # TODO: add debug/logging callbacks
+                # call show_packet(s, src, dst, ppkt);
+                # call is_generating(_generating);
+
+                # Deserialize the wire-format packet into Ivy type
+                var pkt := {prot}_message_serdes.from_bytes(ppkt);
+
+                # Trigger the top-level message event for processing/dispatch
+                call {prot}_{variant_name}_event(dst, src, pkt);
+
+                idx := idx.next;
+            };
+        }
+
+        # import action show_packet(s:net.socket, src:{id_type}, dst:{id_type}, ppkt:stream_data)
+        # import action is_generating(b:bool)
+    }
+}
+
+
+# =============================================================================
+# Instance file pattern (typically in a separate file: ivy_{prot}_{role}.ivy)
+#
+# This file instantiates the entity module with concrete parameters for
+# both the Ivy tester and the implementation under test.
+#
+# include {prot}_shim
+#
+# # Network parameters (overridable via command line)
+# parameter {role}_addr      : ip.addr = 0x0a000001
+# parameter {role}_id        : {id_type} = 0x0a000001
+#
+# parameter {role}_impl_addr : ip.addr = 0x0a000003
+# parameter {role}_impl_id   : {id_type} = 0x0a000003
+#
+# # Instantiate Ivy-side entity (the formal model / test generator)
+# instance {prot}_ivy_instance  : {prot}_{role}.{role}({role}_addr, {role}_id)
+#
+# # Instantiate impl-side entity (represents the implementation under test)
+# instance {prot}_impl_instance : {prot}_{role}.{role}({role}_impl_addr, {role}_impl_id)
+# =============================================================================

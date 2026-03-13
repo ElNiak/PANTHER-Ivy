@@ -1,0 +1,784 @@
+rfc: RFC9000
+title: 'QUIC: A UDP-Based Multiplexed and Secure Transport'
+requirements:
+  'rfc9000:4.1':
+    text: |-
+      Data Flow Control
+
+      * senders MUST NOT send data in excess of either limit.
+    section: '4.1'
+    level: MUST NOT
+    layer: 'flow-control'
+    testable: true
+  'rfc9000:4.6':
+    text: |-
+      If either is received, the connection MUST be closed
+      immediately with a connection error of type TRANSPORT_PARAMETER_ERROR
+      if the offending value was received in a transport parameter or of
+      type FRAME_ENCODING_ERROR if it was received in a frame; see
+      Section 10.
+    section: '4.6'
+    level: MUST
+    layer: 'flow-control'
+    testable: true
+  'rfc9000:5.1.1':
+    text: 'An endpoint that initiates migration and requires non-zero-length connection IDs SHOULD ensure that the pool of
+      connection IDs available to its peer allows the peer to use a new connection ID on migration, as the peer will be unable
+      to respond if the pool is exhausted.'
+    section: 5.1.1
+    level: SHOULD
+    layer: connection
+    testable: true
+  'rfc9000:5.2':
+    text: 'Invalid packets that lack strong integrity protection, such as Initial, Retry, or Version Negotiation, MAY be discarded.'
+    section: '5.2'
+    level: MAY
+    layer: connection
+    testable: true
+  'rfc9000:5.2.2':
+    text: An endpoint MUST generate a connection error if processing the contents of a packet prior to authentication results
+      in an error.
+    section: '5.2'
+    level: MUST
+    layer: connection
+    testable: true
+  'rfc9000:5.2.3':
+    text: An endpoint MUST generate a connection error if processing the contents of a packet prior to authentication results
+      in an error.
+    section: '5.2'
+    level: MUST
+    layer: connection
+    testable: true
+  'rfc9000:5.2.1':
+    text: 'If a client receives a packet that uses a different version than it initially selected, it MUST discard that packet.'
+    section: 5.2.1
+    level: MUST
+    layer: connection
+    testable: true
+  'rfc9000:5.2.1.2':
+    text: 'initially selected, it MUST discard that packet.'
+    section: 5.2.1
+    level: MUST
+    layer: connection
+    testable: true
+  'rfc9000:6':
+    text: Clients that support multiple QUIC versions SHOULD ensure that the first UDP datagram they send is sent to the largest
+      of the minimum datagram sizes across all versions they support.
+    section: '6'
+    level: SHOULD
+    layer: 'version-negotiation'
+    testable: true
+  'rfc9000:7.3':
+    text: The values provided by a peer for these transport parameters MUST match the values that an endpoint used in the
+      Destination and Source Connection ID fields of Initial packets that it sent.
+    section: '7.3'
+    level: MUST
+    layer: handshake
+    testable: true
+  'rfc9000:7.3.2':
+    text: Endpoints MUST validate that received transport parameters match received connection ID values.
+    section: '7.3'
+    level: MUST
+    layer: handshake
+    testable: true
+  'rfc9000:7.4.1':
+    text: 'Remembered transport parameters apply to the new connection until the handshake completes and the client starts
+      sending. A server MUST specify whether they MUST, MAY, or MUST NOT be stored for 0-RTT.'
+    section: 7.4.1
+    level: MUST
+    layer: handshake
+    testable: true
+  'rfc9000:7.4.1.2':
+    text: 'A new transport parameter definition MUST specify whether storing the transport parameter for 0-RTT is mandatory,
+      optional, or prohibited.'
+    section: 7.4.1
+    level: MUST
+    layer: handshake
+    testable: true
+  'rfc9000:7.4.1.3':
+    text: |-
+      A server MAY store and recover the previously sent values of the
+      max_idle_timeout, max_udp_payload_size, and disable_active_migration
+      parameters and reject 0-RTT if it selects smaller values.
+    section: 7.4.1
+    level: MAY
+    layer: handshake
+    testable: true
+  'rfc9000:7.4.1.4':
+    text: 'A server MUST reject 0-RTT data if the restored values for transport parameters cannot be supported.'
+    section: 7.4.1
+    level: MUST
+    layer: handshake
+    testable: true
+  'rfc9000:8':
+    text: 'Prior to validating the client address, servers MUST NOT send more than three times as many bytes as the number
+      of bytes they have received. When the client address is not yet validated, an endpoint MUST limit the amount of data
+      it sends.'
+    section: '8'
+    level: MUST
+    layer: 'address-validation'
+    testable: true
+  'rfc9000:8.1':
+    text: |-
+      Address Validation during Connection Establishment
+
+      Additionally, an endpoint MAY consider the peer address validated if
+      the peer uses a connection ID chosen by the endpoint and the
+      connection ID contains at least 64 bits of entropy.
+    section: '8.1'
+    level: MAY
+    layer: 'address-validation'
+    testable: true
+  'rfc9000:8.1.4':
+    text: |-
+      Address Validation Token Integrity
+
+      An address validation token MUST be difficult to guess.
+    section: 8.1.4
+    level: MUST
+    layer: 'address-validation'
+    testable: true
+  'rfc9000:8.1.4.2':
+    text: An address validation token MUST be difficult to guess.
+    section: 8.1.4
+    level: MUST
+    layer: 'address-validation'
+    testable: true
+  'rfc9000:8.1.4.3':
+    text: Servers MUST ensure that replay of tokens is prevented or limited.
+    section: 8.1.4
+    level: MUST
+    layer: 'address-validation'
+    testable: true
+  'rfc9000:8.1.4.4':
+    text: 'To protect against such attacks, servers MUST ensure that tokens sent in Retry packets are only accepted for a
+      short time.'
+    section: 8.1.4
+    level: MUST
+    layer: 'address-validation'
+    testable: true
+  'rfc9000:8.1.4.5':
+    text: 'Servers SHOULD ensure that tokens sent in NEW_TOKEN frames are not accepted indefinitely, though allowing tokens
+      with longer validity periods is acceptable.'
+    section: 8.1.4
+    level: SHOULD
+    layer: 'address-validation'
+    testable: true
+  'rfc9000:8.1.4.6':
+    text: 'Tokens sent in Retry packets are only accepted for a short time, as they are returned immediately by clients.'
+    section: 8.1.4
+    level: MAY
+    layer: 'address-validation'
+    testable: true
+  'rfc9000:8.1.4.7':
+    text: Tokens sent in NEW_TOKEN frames need to be valid for longer but SHOULD NOT be accepted multiple times.
+    section: 8.1.4
+    level: SHOULD NOT
+    layer: 'address-validation'
+    testable: true
+  'rfc9000:8.1.4.8':
+    text: 'Servers are encouraged to allow tokens to be used only once, if possible; tokens MAY include additional information
+      about clients to further narrow applicability or reuse.'
+    section: 8.1.4
+    level: MAY
+    layer: 'address-validation'
+    testable: true
+  'rfc9000:8.2.1':
+    text: 'An endpoint MUST expand datagrams that contain a PATH_CHALLENGE frame to at least the smallest allowed maximum
+      datagram size of 1200 bytes, unless the anti-amplification limit for the path does not permit sending a datagram of
+      this size.'
+    section: 8.2.1
+    level: MUST
+    layer: 'address-validation'
+    testable: false
+  'rfc9000:8.2.1.2':
+    text: |-
+      To ensure that the path MTU is large enough, the endpoint
+      MUST perform a second path validation by sending a PATH_CHALLENGE
+      frame in a datagram of at least 1200 bytes.
+    section: 8.2.1
+    level: MUST
+    layer: 'address-validation'
+    testable: true
+  'rfc9000:8.2.1.3':
+    text: |-
+      Unlike other cases where datagrams are expanded, endpoints MUST NOT
+      discard datagrams that appear to be too small when they contain
+      PATH_CHALLENGE or PATH_RESPONSE.
+    section: 8.2.1
+    level: MUST NOT
+    layer: 'address-validation'
+    testable: true
+  'rfc9000:8.2.2':
+    text: |-
+      Path Validation Responses
+
+      On receiving a PATH_CHALLENGE frame, an endpoint MUST respond by
+      echoing the data contained in the PATH_CHALLENGE frame in a
+      PATH_RESPONSE frame.
+    section: 8.2.2
+    level: MUST
+    layer: 'address-validation'
+    testable: true
+  'rfc9000:8.2.2.2':
+    text: An endpoint MUST NOT delay transmission of a packet containing a PATH_RESPONSE frame unless constrained by congestion
+      control.
+    section: 8.2.2
+    level: MUST NOT
+    layer: 'address-validation'
+    testable: true
+  'rfc9000:8.2.2.3':
+    text: A PATH_RESPONSE frame MUST be sent on the network path where the PATH_CHALLENGE frame was received.
+    section: 8.2.2
+    level: MUST
+    layer: 'address-validation'
+    testable: false
+  'rfc9000:8.2.2.4':
+    text: |-
+      This requirement MUST NOT be enforced by the endpoint that initiates
+      path validation, as that would enable an attack on migration; see
+      Section 9.
+    section: 8.2.2
+    level: MUST NOT
+    layer: 'address-validation'
+    testable: true
+  'rfc9000:8.2.2.5':
+    text: |-
+      An endpoint MUST expand datagrams that contain a PATH_RESPONSE frame
+      to at least the smallest allowed maximum datagram size of 1200 bytes.
+    section: 8.2.2
+    level: MUST
+    layer: 'address-validation'
+    testable: true
+  'rfc9000:8.2.2.6':
+    text: |-
+      However, an endpoint MUST NOT expand the
+      datagram containing the PATH_RESPONSE if the resulting data exceeds
+      the anti-amplification limit.
+    section: 8.2.2
+    level: MUST NOT
+    layer: 'address-validation'
+    testable: true
+  'rfc9000:8.2.3':
+    text: 'However, the endpoint MUST initiate another path validation with an expanded datagram to verify that the path supports
+      the required MTU.'
+    section: 8.2.3
+    level: MUST
+    layer: 'address-validation'
+    testable: true
+  'rfc9000:8.2.4':
+    text: 'An endpoint that has no valid network path to its peer MAY signal this using the NO_VIABLE_PATH connection error,
+      noting that this is only possible if the network path exists but does not support the required MTU (Section 14).'
+    section: 8.2.4
+    level: MAY
+    layer: 'address-validation'
+    testable: true
+  'rfc9000:9.2':
+    text: |-
+      An endpoint MAY defer path
+      validation until after a peer sends the next non-probing frame to its
+      new address.
+    section: '9.2'
+    level: MAY
+    layer: migration
+    testable: true
+  'rfc9000:9.3':
+    text: |-
+      Responding to Connection Migration
+
+      If the recipient permits the migration, it MUST send subsequent
+      packets to the new peer address and MUST initiate path validation
+      (Section 8.
+    section: '9.3'
+    level: MUST
+    layer: migration
+    testable: true
+  'rfc9000:9.6.2':
+    text: |-
+      Migration to a Preferred Address
+
+      A client that migrates to a preferred address MUST validate the
+      address it chooses before migrating; see Section 21.
+    section: 9.6.2
+    level: MUST
+    layer: migration
+    testable: true
+  'rfc9000:10.1':
+    text: |-
+      Idle Timeout
+
+      To avoid excessively small idle timeout periods, endpoints MUST
+      increase the idle timeout period to be at least three times the
+      current Probe Timeout (PTO).
+    section: '10.1'
+    level: MUST
+    layer: termination
+    testable: true
+  'rfc9000:10.2':
+    text: |-
+      frame SHOULD respond to any incoming packet that can be decrypted
+      with another packet containing a CONNECTION_CLOSE frame.
+    section: '10.2'
+    level: SHOULD
+    layer: termination
+    testable: true
+  'rfc9000:10.2.2':
+    text: An immediate close can be used after an application protocol has arranged to close a connection. Such an endpoint
+      SHOULD limit the number of packets it generates containing a CONNECTION_CLOSE frame.
+    section: '10.2'
+    level: SHOULD
+    layer: termination
+    testable: true
+  'rfc9000:10.2.3':
+    text: 'These states SHOULD persist for at least three times the current PTO interval as defined in [QUIC-RECOVERY].'
+    section: '10.2'
+    level: SHOULD
+    layer: termination
+    testable: true
+  'rfc9000:10.2.4':
+    text: 'Endpoints that have some alternative means to ensure that late-arriving packets do not induce a response, such
+      as those that are able to close the UDP socket, MAY end these states earlier to allow for faster resource recovery.'
+    section: '10.2'
+    level: MAY
+    layer: termination
+    testable: true
+  'rfc9000:10.2.5':
+    text: Servers that retain an open socket for accepting new connections SHOULD NOT end the closing or draining state early.
+    section: '10.2'
+    level: SHOULD NOT
+    layer: termination
+    testable: true
+  'rfc9000:10.2.6':
+    text: 'Once its closing or draining state ends, an endpoint SHOULD discard all connection state.'
+    section: '10.2'
+    level: SHOULD
+    layer: termination
+    testable: true
+  'rfc9000:10.2.7':
+    text: The endpoint MAY send a Stateless Reset in response to any further incoming packets belonging to this connection.
+    section: '10.2'
+    level: MAY
+    layer: termination
+    testable: true
+  'rfc9000:10.2.1':
+    text: |-
+      An endpoint MAY drop packet protection keys when entering the closing
+      state and send a packet containing a CONNECTION_CLOSE frame in
+      response to any UDP datagram that is received.
+    section: 10.2.1
+    level: MAY
+    layer: termination
+    testable: true
+  'rfc9000:10.2.1.2':
+    text: |-
+      To avoid being used for an amplification attack,
+      such endpoints MUST limit the cumulative size of packets it sends to
+      three times the cumulative size of the packets that are received and
+      attributed to the connection.
+    section: 10.2.1
+    level: MUST
+    layer: termination
+    testable: true
+  'rfc9000:10.2.1.3':
+    text: |-
+      To minimize the state that an endpoint
+      maintains for a closing connection, endpoints MAY send the exact same
+      packet in response to any received packet.
+    section: 10.2.1
+    level: MAY
+    layer: termination
+    testable: true
+  'rfc9000:11.1':
+    text: |-
+      As the AEAD for Initial packets does not provide strong
+      authentication, an endpoint MAY discard an invalid Initial packet.
+    section: '11.1'
+    level: MAY
+    layer: error
+    testable: true
+  'rfc9000:12.4':
+    text: 'The payload of a packet that contains frames MUST contain at least one frame, and MAY contain multiple frames and
+      multiple frame types.'
+    section: '12.4'
+    level: MUST
+    layer: packet
+    testable: true
+  'rfc9000:12.4.2':
+    text: 'one frame, and MAY contain multiple frames and multiple frame types.'
+    section: '12.4'
+    level: MAY
+    layer: packet
+    testable: true
+  'rfc9000:12.4.3':
+    text: An endpoint MUST treat receipt of a packet containing no frames as a connection error of type PROTOCOL_VIOLATION.
+    section: '12.4'
+    level: MUST
+    layer: packet
+    testable: true
+  'rfc9000:12.4.4':
+    text: |-
+      The
+      rules here generalize those of TLS, in that frames associated with
+      establishing the connection can usually appear in packets in any
+      packet number space, whereas those associated with transferring data
+      can only appear in the application data packet number space:
+
+      *  PADDING, PING, and CRYPTO frames MAY appear in any packet number
+         space.
+    section: '12.4'
+    level: MAY
+    layer: packet
+    testable: true
+  'rfc9000:12.4.5':
+    text: |-
+      *  CONNECTION_CLOSE frames signaling errors at the QUIC layer (type
+         0x1c) MAY appear in any packet number space.
+    section: '12.4'
+    level: MAY
+    layer: packet
+    testable: true
+  'rfc9000:12.4.6':
+    text: |-
+      CONNECTION_CLOSE
+         frames signaling application errors (type 0x1d) MUST only appear
+         in the application data packet number space.
+    section: '12.4'
+    level: MUST
+    layer: packet
+    testable: true
+  'rfc9000:12.4.7':
+    text: |-
+      *  ACK frames MAY appear in any packet number space but can only
+         acknowledge packets that appeared in that packet number space.
+    section: '12.4'
+    level: MAY
+    layer: packet
+    testable: true
+  'rfc9000:12.4.8':
+    text: |-
+      *  All other frame types MUST only be sent in the application data
+         packet number space.
+    section: '12.4'
+    level: MUST
+    layer: packet
+    testable: true
+  'rfc9000:12.4.9':
+    text: |-
+      A server MAY treat receipt
+      of these frames in 0-RTT packets as a connection error of type
+      PROTOCOL_VIOLATION.
+    section: '12.4'
+    level: MAY
+    layer: packet
+    testable: true
+  'rfc9000:13.2.1':
+    text: |-
+      Sending ACK Frames
+
+      An endpoint MUST acknowledge all ack-eliciting Initial and Handshake
+      packets immediately and all ack-eliciting 0-RTT and 1-RTT packets
+      within its advertised max_ack_delay, with the following exception.
+    section: 13.2.1
+    level: MUST
+    layer: 'loss-recovery'
+    testable: true
+  'rfc9000:13.2.1.2':
+    text: |-
+      An endpoint SHOULD
+      send an ACK frame with other frames when there are new ack-eliciting
+      packets to acknowledge.
+    section: 13.2.1
+    level: SHOULD
+    layer: 'loss-recovery'
+    testable: true
+  'rfc9000:13.2.1.3':
+    text: |-
+      When only non-ack-eliciting packets need to
+      be acknowledged, an endpoint MAY choose not to send an ACK frame with
+      outgoing frames until an ack-eliciting packet has been received.
+    section: 13.2.1
+    level: MAY
+    layer: 'loss-recovery'
+    testable: true
+  'rfc9000:13.2.1.4':
+    text: |-
+      In
+      that case, an endpoint MUST NOT send an ack-eliciting frame in all
+      packets that would otherwise be non-ack-eliciting, to avoid an
+      infinite feedback loop of acknowledgments.
+    section: 13.2.1
+    level: MUST NOT
+    layer: 'loss-recovery'
+    testable: true
+  'rfc9000:13.2.1.5':
+    text: 'In order to assist loss detection at the sender, an endpoint SHOULD generate and send an ACK frame without delay
+      when it receives an ack-eliciting packet that is out of order.'
+    section: 13.2.1
+    level: SHOULD
+    layer: 'loss-recovery'
+    testable: false
+  'rfc9000:13.2.1.6':
+    text: 'The endpoint SHOULD NOT continue sending ACK frames immediately unless more ack-eliciting packets are received
+      out of order.'
+    section: 13.2.1
+    level: SHOULD NOT
+    layer: 'loss-recovery'
+    testable: true
+  'rfc9000:13.2.1.7':
+    text: 'If every subsequent ack-eliciting packet arrives out of order, then an ACK frame SHOULD be sent immediately for
+      every received ack-eliciting packet.'
+    section: 13.2.1
+    level: SHOULD
+    layer: 'loss-recovery'
+    testable: true
+  'rfc9000:13.2.5':
+    text: |-
+      An endpoint MUST NOT include delays that it
+      does not control when populating the ACK Delay field in an ACK frame.
+    section: 13.2.5
+    level: MUST NOT
+    layer: 'loss-recovery'
+    testable: true
+  'rfc9000:13.2.5.2':
+    text: |-
+      However, endpoints SHOULD include buffering delays caused by
+      unavailability of decryption keys, since these delays can be large
+      and are likely to be non-repeating.
+    section: 13.2.5
+    level: SHOULD
+    layer: 'loss-recovery'
+    testable: true
+  'rfc9000:13.2.5.3':
+    text: |-
+      When the measured acknowledgment delay is larger than its
+      max_ack_delay, an endpoint SHOULD report the measured delay.
+    section: 13.2.5
+    level: SHOULD
+    layer: 'loss-recovery'
+    testable: true
+  'rfc9000:13.3':
+    text: |-
+      Retransmission of Information
+
+      A sender SHOULD avoid retransmitting information from packets once
+      they are acknowledged.
+    section: '13.3'
+    level: SHOULD
+    layer: 'loss-recovery'
+    testable: true
+  'rfc9000:14':
+    text: QUIC MUST NOT be used if the network path cannot support a maximum datagram size of at least 1200 bytes.
+    section: '14'
+    level: MUST NOT
+    layer: 'datagram-size'
+    testable: true
+  'rfc9000:14.2':
+    text: |-
+      Therefore, an endpoint MUST NOT close a connection
+      when it receives a datagram that does not meet size constraints; the
+      endpoint MAY discard such datagrams.
+    section: '14'
+    level: MUST NOT
+    layer: 'datagram-size'
+    testable: true
+  'rfc9000:14.1':
+    text: A client MUST expand the payload of all UDP datagrams carrying Initial packets to at least the smallest allowed
+      maximum datagram size of 1200 bytes by adding PADDING frames to the Initial packet or by coalescing the Initial packet;
+      see Section 12.2.
+    section: '14.1'
+    level: MUST
+    layer: 'datagram-size'
+    testable: true
+  'rfc9000:14.1.2':
+    text: 'Similarly, a server MUST expand the payload of all UDP datagrams carrying Initial packets to at least the smallest
+      allowed maximum datagram size of 1200 bytes.'
+    section: '14.1'
+    level: MUST
+    layer: 'datagram-size'
+    testable: true
+  'rfc9000:14.1.3':
+    text: Datagrams containing Initial packets MAY exceed 1200 bytes if the sender believes that the network path and peer
+      both support the size that it chooses.
+    section: '14.1'
+    level: MAY
+    layer: 'datagram-size'
+    testable: true
+  'rfc9000:17.1':
+    text: 'Prior to receiving an acknowledgment for a packet number space, the full packet number MUST be included. The sender
+      MUST use a packet number size able to represent more than twice as large a range as the difference between the largest
+      acknowledged packet number and the packet number being sent.'
+    section: '17.1'
+    level: MUST
+    layer: 'packet-format'
+    testable: true
+  'rfc9000:17.1.2':
+    text: An endpoint SHOULD use a large enough packet number encoding to allow the packet number to be recovered even if
+      the packet arrives after packets that are sent afterwards.
+    section: '17.1'
+    level: SHOULD
+    layer: 'packet-format'
+    testable: true
+  'rfc9000:17.1.3':
+    text: An endpoint SHOULD use a large enough packet number encoding to allow the packet number to be recovered even if
+      the packet arrives after packets that are sent afterwards.
+    section: '17.1'
+    level: SHOULD
+    layer: 'packet-format'
+    testable: true
+  'rfc9000:17.2':
+    text: Packets containing a zero value for the version field are not valid packets in this version and MUST be discarded.
+    section: '17.2'
+    level: MUST
+    layer: 'packet-format'
+    testable: true
+  'rfc9000:17.2.2':
+    text: Packets where the value of the Fixed Bit field is not correct for this version are not valid packets in this version
+      and MUST be discarded.
+    section: '17.2'
+    level: MUST
+    layer: 'packet-format'
+    testable: true
+  'rfc9000:17.2.3':
+    text: 'A client SHOULD attempt to resend data in 0-RTT packets after it sends a new Initial packet, as the 0-RTT packets
+      might have been lost or discarded by the server.'
+    section: 17.2.3
+    level: SHOULD
+    layer: 'packet-format'
+    testable: true
+  'rfc9000:17.2.3.2':
+    text: |-
+      A client SHOULD attempt
+      to resend data in 0-RTT packets after it sends a new Initial packet.
+    section: 17.2.3
+    level: SHOULD
+    layer: 'packet-format'
+    testable: true
+  'rfc9000:17.2.3.3':
+    text: 'New packet numbers MUST be used for any new packets that are sent; as described in Section 17.2.5.3, a client MUST
+      NOT reset the packet number it uses for 0-RTT packets.'
+    section: 17.2.3
+    level: MUST
+    layer: 'packet-format'
+    testable: true
+  'rfc9000:17.2.3.4':
+    text: |-
+      Therefore, in
+      determining the length of the packet number encoding for 0-RTT
+      packets, a client MUST assume that all packets up to the current
+      packet number are in flight, starting from a packet number of 0.
+    section: 17.2.3
+    level: MUST
+    layer: 'packet-format'
+    testable: true
+  'rfc9000:17.2.4':
+    text: 'Handshake packets MAY contain PING, PADDING, or ACK frames.'
+    section: 17.2.4
+    level: MAY
+    layer: 'packet-format'
+    testable: true
+  'rfc9000:17.2.4.2':
+    text: |-
+      Handshake packets MAY contain
+      CONNECTION_CLOSE frames of type 0x1c.
+    section: 17.2.4
+    level: MAY
+    layer: 'packet-format'
+    testable: true
+  'rfc9000:17.2.4.3':
+    text: Endpoints MUST treat receipt of Handshake packets with other frames as a connection error.
+    section: 17.2.4
+    level: MUST
+    layer: 'packet-format'
+    testable: true
+  'rfc9000:17.2.4.4':
+    text: |-
+      Endpoints MUST treat receipt
+      of Handshake packets with other frames as a connection error.
+    section: 17.2.4
+    level: MUST
+    layer: 'packet-format'
+    testable: true
+  'rfc9000:17.2.5.3':
+    text: 'A client MUST use the same cryptographic handshake message it includes in this packet, with the same restrictions
+      as the first Initial packet.'
+    section: 17.2.5.3
+    level: MUST
+    layer: 'packet-format'
+    testable: true
+  'rfc9000:17.2.5.3.2':
+    text: |-
+      A client MUST use the same
+      cryptographic handshake message it includes in this packet.
+    section: 17.2.5.3
+    level: MUST
+    layer: 'packet-format'
+    testable: true
+  'rfc9000:17.2.5.3.3':
+    text: A server MAY treat a packet that contains a different cryptographic handshake message as a connection error or discard
+      it.
+    section: 17.2.5.3
+    level: MAY
+    layer: 'packet-format'
+    testable: true
+  'rfc9000:17.2.5.3.4':
+    text: 'A client MAY attempt 0-RTT after receiving a Retry packet by sending 0-RTT packets to the connection ID provided
+      by the server.'
+    section: 17.2.5.3
+    level: MAY
+    layer: 'packet-format'
+    testable: true
+  'rfc9000:17.2.5.3.5':
+    text: |-
+      MUST NOT change the cryptographic handshake message it sends in
+      response to receiving a Retry.
+    section: 17.2.5.3
+    level: MUST NOT
+    layer: 'packet-format'
+    testable: true
+  'rfc9000:17.2.5.3.6':
+    text: A client MUST NOT reset the packet number for any packet number space after processing a Retry packet; Section 17.2.5.3.
+    section: 17.2.5.3
+    level: MUST NOT
+    layer: 'packet-format'
+    testable: true
+  'rfc9000:17.2.5.3.7':
+    text: A server MAY abort the connection if it detects that the client reset the packet number.
+    section: 17.2.5.3
+    level: MAY
+    layer: 'packet-format'
+    testable: true
+  'rfc9000:17.2.5.3.8':
+    text: The connection IDs used in Initial and Retry packets exchanged between client and server are copied to the transport
+      parameters and validated as described in Section 7.3.
+    section: 17.2.5.3
+    level: MUST
+    layer: 'packet-format'
+    testable: true
+  'rfc9000:17.2.5.3.9':
+    text: |-
+      A client MUST treat a failed validation as a connection
+      error of type PROTOCOL_VIOLATION.
+    section: 17.2.5.3
+    level: MUST
+    layer: 'packet-format'
+    testable: true
+  'rfc9000:19.11':
+    text: An endpoint MUST NOT open more streams than permitted by the current stream limit set by its peer.
+    section: '19.11'
+    level: MUST NOT
+    layer: frame
+    testable: true
+  'rfc9000:19.11.2':
+    text: An endpoint MUST terminate a connection with an error of type STREAM_LIMIT_ERROR if a peer opens more streams than
+      was permitted.
+    section: '19.11'
+    level: MUST
+    layer: frame
+    testable: true
+  'rfc9000:19.11.3':
+    text: An endpoint MUST terminate a connection with an error of type STREAM_LIMIT_ERROR if a peer opens more streams than
+      was permitted.
+    section: '19.11'
+    level: MUST
+    layer: frame
+    testable: true

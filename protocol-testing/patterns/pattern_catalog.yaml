@@ -1,0 +1,113 @@
+# Pattern Catalog — Machine-readable registry of formal model patterns
+# Used by ivy_pattern_analysis MCP tool and /nct-add-pattern command
+#
+# Each pattern entry defines:
+#   description: Human-readable purpose
+#   layer: Which layer(s) of the 14-layer architecture this belongs to
+#   depends_on: Other patterns that must exist first
+#   templates: Map of variant names to template file paths (relative to patterns/)
+#   detection: How to find this pattern in existing models
+#     file_pattern: Glob pattern for matching files
+#     markers: Regex patterns that indicate this pattern
+#   validation: Cross-reference validation rule (prose, implemented in pattern_library.py)
+
+patterns:
+  serdes:
+    description: "C++ state machine for wire-format serialization/deserialization"
+    layer: 13
+    depends_on: [variants]
+    templates:
+      binary_ser: serdes/binary_ser_template.ivy
+      binary_deser: serdes/binary_deser_template.ivy
+      json_ser: serdes/json_ser_template.ivy
+      json_deser: serdes/json_deser_template.ivy
+    detection:
+      file_pattern: "*_ser.ivy"
+      markers:
+        - "<<< impl"
+        - "ivy_binary_ser"
+        - "ivy_binary_deser"
+    validation: "every variant of frame must have a corresponding ser/deser state"
+
+  variants:
+    description: "Object variant hierarchy for PDU types (message/frame/packet)"
+    layer: 4
+    depends_on: []
+    templates:
+      frame: variants/variant_frame_template.ivy
+    detection:
+      file_pattern: "*_frame.ivy"
+      markers:
+        - "variant this of"
+        - "type this = struct"
+    validation: "every variant should define a .handle action or dispatch path"
+
+  monitors:
+    description: "Before/after behavioral constraints on actions"
+    layer: 11
+    depends_on: [variants]
+    templates:
+      before_after: monitors/before_after_template.ivy
+      finalize: monitors/finalize_template.ivy
+      export_weight: monitors/export_weight_template.ivy
+    detection:
+      file_pattern: "*_behavior.ivy"
+      markers:
+        - "^before "
+        - "^after "
+        - "^around "
+    validation: "every exported action should have a before or after monitor"
+
+  shim:
+    description: "Bridge between formal spec and network I/O (socket layer)"
+    layer: 12
+    depends_on: [serdes, entities]
+    templates:
+      udp: shims/shim_udp_template.ivy
+      tcp: shims/shim_tcp_template.ivy
+    detection:
+      file_pattern: "*_shim*.ivy"
+      markers:
+        - "<<< impl"
+        - "\\bsocket\\b"
+        - "implement.*\\.recv"
+        - "implement.*\\.send"
+    validation: "every entity role should have a shim dispatch branch"
+
+  module:
+    description: "Parameterized modules for reusable protocol components"
+    layer: 6
+    depends_on: []
+    templates:
+      parameterized: modules/parameterized_module_template.ivy
+    detection:
+      file_pattern: null
+      markers:
+        - "^\\s*module\\s+\\w+\\s*\\(.*\\)\\s*="
+    validation: "every module definition should have at least one instance declaration"
+
+  entity:
+    description: "Protocol participant instances (endpoints, speakers, peers)"
+    layer: 10
+    depends_on: []
+    templates:
+      asymmetric: entities/entity_role_pair_template.ivy
+      symmetric: entities/entity_symmetric_template.ivy
+    detection:
+      file_pattern: "*_endpoint.ivy"
+      markers:
+        - "variant this of"
+        - "module.*\\(.*address.*\\)"
+        - "action behavior"
+    validation: "every entity should define a behavior action and after init block"
+
+  include_chain:
+    description: "Layer composition via include ordering"
+    layer: all
+    depends_on: []
+    templates: {}
+    detection:
+      file_pattern: null
+      markers:
+        - "^include "
+    validation: "include chains must follow layer ordering (lower layers first)"
