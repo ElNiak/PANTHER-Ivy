@@ -118,6 +118,24 @@ def oppose_role(role: str) -> str:
     return "client" if role == "server" else "server"
 
 
+def classify_endpoint_type(test_name: str, role_name: str) -> str:
+    """Classify a test into its endpoint type for directory-based filtering.
+
+    Returns 'server', 'client', or 'mim' based on the test name.
+    Falls back to oppose_role() when the name doesn't contain a clear indicator.
+    """
+    test_lower = test_name.lower()
+    if "mim" in test_lower:
+        return "mim"
+    if "client" in test_lower:
+        return "client"
+    if "server" in test_lower:
+        return "server"
+    if "attacker" in test_lower:
+        return "server"  # attacker tests live in server_tests/
+    return oppose_role(role_name)
+
+
 def detect_role(test_name: str) -> str:
     """Infer role from test name convention: *_server_* or *_client_*."""
     if "_server_" in test_name or test_name.endswith("_server"):
