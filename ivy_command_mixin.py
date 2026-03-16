@@ -8,7 +8,7 @@ to follow standard PANTHER architecture patterns.
 import os
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Protocol, Union
+from typing import Any, Dict, List, Optional, Union
 
 from panther.core.command_processor.builders import ServiceCommandBuilder
 from panther.core.command_processor.models.shell_command import ShellCommand
@@ -517,10 +517,10 @@ class IvyCommandMixin:
 
         Copies all non-test subdirectories (always needed), then copies only the
         relevant test subdirectory based on the endpoint type derived from the
-        current test name and role.  This avoids copying unrelated test files
-        (e.g. client_tests when compiling a server test) while keeping full
-        backwards compatibility — the set of copied files is a strict subset of
-        the previous flat-copy approach.
+        current test name and role.  When the expected subdirectory exists, the
+        copied files are a strict subset of the previous flat-copy approach.
+        When it does not exist, falls back to copying all test files (identical
+        to the old approach) and logs a WARNING inside the container.
         """
         if not hasattr(self, "env_protocol_model_path"):
             self.logger.warning(
@@ -631,14 +631,12 @@ class IvyCommandMixin:
         ]
 
     def _extract_test_directory_from_name(self, test_name: str, role_name: str) -> str:
-        """Extract test directory from test name."""
-        if "client" in test_name.lower():
-            return "client_tests"
-        elif "server" in test_name.lower():
-            return "server_tests"
-        else:
-            # Fallback to opposite role
-            return f"{oppose_role(role_name)}_tests"
+        """Extract test directory from test name.
+
+        Delegates to classify_endpoint_type() to ensure consistent
+        mim/attacker/server/client handling across setup and compilation.
+        """
+        return f"{classify_endpoint_type(test_name, role_name)}_tests"
 
     def _get_build_dir(self) -> str:
         """Get build directory from configuration with robust extraction."""

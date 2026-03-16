@@ -151,3 +151,14 @@ class TestClassifyEndpointType:
         assert classify_endpoint_type("QUIC_SERVER_TEST_STREAM", "client") == "server"
         assert classify_endpoint_type("QUIC_CLIENT_TEST_STREAM", "server") == "client"
         assert classify_endpoint_type("QUIC_MIM_TEST_STREAM", "server") == "mim"
+
+    def test_empty_test_name_falls_back(self):
+        # Empty string should fall back to oppose_role, not crash
+        assert classify_endpoint_type("", "server") == "client"
+
+    def test_mim_takes_precedence_over_client(self):
+        assert classify_endpoint_type("quic_mim_client_test", "server") == "mim"
+
+    def test_attacker_without_server_keyword(self):
+        # Pure "attacker" name (no "server"/"client") -> server
+        assert classify_endpoint_type("quic_attacker_replay", "client") == "server"

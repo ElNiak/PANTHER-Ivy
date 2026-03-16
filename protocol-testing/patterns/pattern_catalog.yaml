@@ -56,6 +56,7 @@ patterns:
         - "^before "
         - "^after "
         - "^around "
+      note: "Markers match instantiated models, not templates (templates have commented-out examples)"
     validation: "every exported action should have a before or after monitor"
 
   shim:
@@ -96,7 +97,6 @@ patterns:
     detection:
       file_pattern: "*_endpoint.ivy"
       markers:
-        - "variant this of"
         - "module.*\\(.*address.*\\)"
         - "action behavior"
     validation: "every entity should define a behavior action and after init block"
