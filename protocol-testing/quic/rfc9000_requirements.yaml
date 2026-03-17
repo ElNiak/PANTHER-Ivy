@@ -42,13 +42,6 @@ requirements:
     level: MUST
     layer: connection
     testable: true
-  'rfc9000:5.2.3':
-    text: An endpoint MUST generate a connection error if processing the contents of a packet prior to authentication results
-      in an error.
-    section: '5.2'
-    level: MUST
-    layer: connection
-    testable: true
   'rfc9000:5.2.1':
     text: 'If a client receives a packet that uses a different version than it initially selected, it MUST discard that packet.'
     section: 5.2.1
@@ -618,13 +611,6 @@ requirements:
     level: SHOULD
     layer: 'packet-format'
     testable: true
-  'rfc9000:17.1.3':
-    text: An endpoint SHOULD use a large enough packet number encoding to allow the packet number to be recovered even if
-      the packet arrives after packets that are sent afterwards.
-    section: '17.1'
-    level: SHOULD
-    layer: 'packet-format'
-    testable: true
   'rfc9000:17.2':
     text: Packets containing a zero value for the version field are not valid packets in this version and MUST be discarded.
     section: '17.2'
@@ -686,14 +672,6 @@ requirements:
     testable: true
   'rfc9000:17.2.4.3':
     text: Endpoints MUST treat receipt of Handshake packets with other frames as a connection error.
-    section: 17.2.4
-    level: MUST
-    layer: 'packet-format'
-    testable: true
-  'rfc9000:17.2.4.4':
-    text: |-
-      Endpoints MUST treat receipt
-      of Handshake packets with other frames as a connection error.
     section: 17.2.4
     level: MUST
     layer: 'packet-format'
@@ -769,13 +747,6 @@ requirements:
     layer: frame
     testable: true
   'rfc9000:19.11.2':
-    text: An endpoint MUST terminate a connection with an error of type STREAM_LIMIT_ERROR if a peer opens more streams than
-      was permitted.
-    section: '19.11'
-    level: MUST
-    layer: frame
-    testable: true
-  'rfc9000:19.11.3':
     text: An endpoint MUST terminate a connection with an error of type STREAM_LIMIT_ERROR if a peer opens more streams than
       was permitted.
     section: '19.11'
