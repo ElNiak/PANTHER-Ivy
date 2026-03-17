@@ -538,6 +538,14 @@ class IvyCommandMixin:
         role_name = role.name if hasattr(role, "name") else str(role) if role else "server"
         test_name = getattr(self, "test_to_compile", "")
         endpoint_type = classify_endpoint_type(test_name, role_name)
+        # Log when no keyword matched and inference was used
+        _parts = test_name.lower().split("_")
+        _pre_test = _parts[: _parts.index("test")] if "test" in _parts else _parts
+        if not {"mim", "client", "server", "attacker"}.intersection(_pre_test):
+            self.logger.warning(
+                f"No endpoint keyword in test name '{test_name}'; "
+                f"inferred '{endpoint_type}' from role '{role_name}'"
+            )
         target_test_subdir = f"{endpoint_type}_tests"
 
         commands = [
@@ -546,7 +554,7 @@ class IvyCommandMixin:
             f"echo 'Updating include path from {model_path}' >> /app/logs/compile/ivy_setup.log",
             # Step 1: Copy all .ivy files OUTSIDE the {protocol}_tests/ directory
             # This covers: {prot}_stack/, {prot}_shims/, {prot}_utils/, etc.
-            f"find '{model_path}' -path '{tests_path}' -prune -o -type f -name '*.ivy' -print"
+            f"find '{model_path}' -path '{tests_path}' -prune -o -type f -name '*.ivy'"
             f" -exec echo {{}} ';' >> '/app/logs/compile/copied_ivy_files.list' 2>> /app/logs/compile/ivy_setup.log",
             f"find '{model_path}' -path '{tests_path}' -prune -o -type f -name '*.ivy' -print"
             f" -exec cp -f {{}} $PYTHON_IVY_DIR/ivy/include/1.7/ ';' >> /app/logs/compile/ivy_setup.log 2>&1",
@@ -766,7 +774,7 @@ class IvyCommandMixin:
             # The process_commands returns a list of dicts with command info
             return processed
 
-        except Exception as e:
+        except (AttributeError, TypeError) as e:
             self.logger.error(
                 f"Command processing failed for phase '{phase}': {e}. "
                 f"Falling back to raw commands (error detection may be impaired).",
