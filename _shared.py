@@ -121,21 +121,37 @@ def oppose_role(role: str) -> str:
 def classify_endpoint_type(test_name: str, role_name: str) -> str:
     """Classify a test into its endpoint type for directory-based filtering.
 
+    Uses the naming convention ``{protocol}_{endpoint}_test_{scenario}`` to
+    extract the endpoint.  Only underscore-delimited segments **before** the
+    first ``test`` segment are considered keywords.  This prevents scenario
+    words like ``mim`` in ``quic_client_test_0rtt_mim_replay`` from causing
+    a misclassification.
+
     Checks keywords in priority order: mim > client > server > attacker.
     First match wins. Falls back to oppose_role() when no keyword matches.
 
     Returns 'mim', 'client', or 'server'. The 'attacker' keyword maps to
     'server' because attacker tests live in server_tests/.
     """
-    test_lower = test_name.lower()
-    if "mim" in test_lower:
-        return "mim"
-    if "client" in test_lower:
-        return "client"
-    if "server" in test_lower:
-        return "server"
-    if "attacker" in test_lower:
-        return "server"  # attacker tests live in server_tests/
+    segments = test_name.lower().split("_")
+
+    # Identify endpoint segments: everything before the first "test" segment.
+    # E.g., quic_client_test_0rtt_mim_replay -> segments before "test" = {quic, client}
+    try:
+        test_idx = segments.index("test")
+        endpoint_segments = set(segments[:test_idx])
+    except ValueError:
+        # No "test" segment found; fall back to checking all segments.
+        endpoint_segments = set(segments)
+
+    for keyword, result in [
+        ("mim", "mim"),
+        ("client", "client"),
+        ("server", "server"),
+        ("attacker", "server"),
+    ]:
+        if keyword in endpoint_segments:
+            return result
     return oppose_role(role_name)
 
 

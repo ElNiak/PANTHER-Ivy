@@ -162,3 +162,18 @@ class TestClassifyEndpointType:
     def test_attacker_without_server_keyword(self):
         # Pure "attacker" name (no "server"/"client") -> server
         assert classify_endpoint_type("quic_attacker_replay", "client") == "server"
+
+    def test_client_test_with_mim_in_scenario_name(self):
+        """Client test about MIM scenario should classify as client, not mim."""
+        assert classify_endpoint_type("quic_client_test_0rtt_mim_replay", "server") == "client"
+
+    def test_client_test_with_mim_modify(self):
+        assert classify_endpoint_type("quic_client_test_mim_modify", "server") == "client"
+
+    def test_server_test_with_mim_suffix(self):
+        """Server test about MIM should classify as server, not mim."""
+        assert classify_endpoint_type("quic_server_test_mim", "client") == "server"
+
+    def test_actual_mim_test(self):
+        """Real MIM tests use quic_mim_test_* naming convention."""
+        assert classify_endpoint_type("quic_mim_test_forward", "server") == "mim"
