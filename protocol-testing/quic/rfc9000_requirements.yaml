@@ -38,7 +38,7 @@ requirements:
   'rfc9000:5.2.2':
     text: An endpoint MUST generate a connection error if processing the contents of a packet prior to authentication results
       in an error.
-    section: '5.2'
+    section: '5.2.2'
     level: MUST
     layer: connection
     testable: true
@@ -50,7 +50,7 @@ requirements:
     testable: true
   'rfc9000:5.2.1.2':
     text: 'initially selected, it MUST discard that packet.'
-    section: 5.2.1
+    section: '5.2.1.2'
     level: MUST
     layer: connection
     testable: true
@@ -70,7 +70,7 @@ requirements:
     testable: true
   'rfc9000:7.3.2':
     text: Endpoints MUST validate that received transport parameters match received connection ID values.
-    section: '7.3'
+    section: '7.3.2'
     level: MUST
     layer: handshake
     testable: true
@@ -318,7 +318,7 @@ requirements:
   'rfc9000:10.2.2':
     text: An immediate close can be used after an application protocol has arranged to close a connection. Such an endpoint
       SHOULD limit the number of packets it generates containing a CONNECTION_CLOSE frame.
-    section: '10.2'
+    section: '10.2.2'
     level: SHOULD
     layer: termination
     testable: true
@@ -570,7 +570,7 @@ requirements:
       Therefore, an endpoint MUST NOT close a connection
       when it receives a datagram that does not meet size constraints; the
       endpoint MAY discard such datagrams.
-    section: '14'
+    section: '14.2'
     level: MUST NOT
     layer: 'datagram-size'
     testable: true
@@ -728,7 +728,7 @@ requirements:
   'rfc9000:17.2.5.3.8':
     text: The connection IDs used in Initial and Retry packets exchanged between client and server are copied to the transport
       parameters and validated as described in Section 7.3.
-    section: 17.2.5.3
+    section: '17.2.5.3.8'
     level: MUST
     layer: 'packet-format'
     testable: true
