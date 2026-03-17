@@ -227,10 +227,26 @@ class TestExtractTestDirectory:
 
         assert _extract_test_directory("quic_mim_test_stream") == "mim_tests"
 
-    def test_unknown_returns_empty(self):
+    def test_attacker_maps_to_server(self):
         from api.compiler import _extract_test_directory
 
-        assert _extract_test_directory("quic_test_stream") == ""
+        assert _extract_test_directory("quic_attacker_replay") == "server_tests"
+
+    def test_mim_precedence_over_client(self):
+        from api.compiler import _extract_test_directory
+
+        assert _extract_test_directory("quic_client_mim_test") == "mim_tests"
+
+    def test_unknown_falls_back_to_oppose_role(self):
+        from api.compiler import _extract_test_directory
+
+        # Default role_name="server", oppose_role("server") = "client"
+        assert _extract_test_directory("quic_test_stream") == "client_tests"
+
+    def test_unknown_with_client_role(self):
+        from api.compiler import _extract_test_directory
+
+        assert _extract_test_directory("quic_test_stream", role_name="client") == "server_tests"
 
 
 class TestPostCompileCommands:
