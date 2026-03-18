@@ -46,7 +46,7 @@ include network_controler
 
 instance net_prot : quic_protection(tls_api.id,tls_api.upper)
 
-include endpoint
+include apt_quic_endpoint
 include quic_locale
 
 include quic_loss_recovery
@@ -85,7 +85,6 @@ function client_initial_version : version
 
 relation client_non_zero_scil
 
-relation zero_rtt_allowed
 relation zero_rtt_sent
 relation send_connection_close # TODO, send co_close at end of test or not
 

@@ -5,10 +5,10 @@
   "workspace_layers": [
     {"id": "quic", "include_paths": ["protocol-testing/quic"], "priority": 1},
     {"id": "minip", "include_paths": ["protocol-testing/minip"], "priority": 2},
-    {"id": "apt", "include_paths": ["protocol-testing/apt"], "priority": 3},
+    {"id": "apt", "include_paths": ["protocol-testing/apt"], "priority": 3, "depends_on": ["quic", "minip"]},
     {"id": "bgp", "include_paths": ["protocol-testing/bgp"], "priority": 4},
-    {"id": "coap", "include_paths": ["protocol-testing/coap"], "priority": 5},
+    {"id": "coap", "include_paths": ["protocol-testing/coap"], "priority": 5, "depends_on": ["quic"]},
     {"id": "scaffolds", "include_paths": ["protocol-testing/new_prot", "protocol-testing/http"], "priority": 6}
   ],
-  "exclude_paths": ["doc/examples", "examples/ivy", "test", "notebooks", "patches"]
+  "exclude_paths": ["doc", "examples", "test", "notebooks", "patches", "submodules", "ivy"]
 }

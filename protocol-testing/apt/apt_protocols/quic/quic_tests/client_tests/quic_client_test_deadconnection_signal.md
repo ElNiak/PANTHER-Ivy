@@ -17,7 +17,7 @@ parameters should be selected randomly by some event.
 
 ```
 include ivy_quic_server_standard_tp
-include apt_time
+include quic_time
 
 after init {
     call time_api.c_timer.start;

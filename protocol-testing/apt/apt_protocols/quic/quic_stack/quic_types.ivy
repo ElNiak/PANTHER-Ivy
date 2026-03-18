@@ -103,6 +103,8 @@ interpret ipv6 -> bv[16]
 
 # Packet type, also determines encryption keys
 
+relation zero_rtt_allowed
+
 object quic_packet_type = {
     type this = {initial,zero_rtt,handshake, one_rtt, version_negociation, retry} #, retry, version_negociation
 

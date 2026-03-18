@@ -9,7 +9,7 @@ include apt_byte_stream
 
 include apt_packet
 
-include apt_time
+include quic_time
 include tls_api
 
 include quic_protection
