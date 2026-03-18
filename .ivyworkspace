@@ -1,7 +1,10 @@
 {
-  "version": 2,
-  "include_paths": ["protocol-testing"],
-  "exclude_paths": ["doc/examples", "examples/ivy", "test", "notebooks", "patches"],
+  "version": 3,
   "standard_library": "ivy/include/1.7",
-  "scope_detection": "auto"
+  "scope_detection": "auto",
+  "workspace_layers": [
+    {"id": "standard", "include_paths": ["protocol-testing/quic", "protocol-testing/minip"], "priority": 1},
+    {"id": "apt", "include_paths": ["protocol-testing/apt"], "priority": 2}
+  ],
+  "exclude_paths": ["doc/examples", "examples/ivy", "test", "notebooks", "patches"]
 }
