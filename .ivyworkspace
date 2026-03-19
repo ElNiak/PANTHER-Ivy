@@ -3,12 +3,50 @@
   "standard_library": "ivy/include/1.7",
   "scope_detection": "auto",
   "workspace_layers": [
-    {"id": "quic", "include_paths": ["protocol-testing/quic"], "priority": 1},
-    {"id": "minip", "include_paths": ["protocol-testing/minip"], "priority": 2},
-    {"id": "apt", "include_paths": ["protocol-testing/apt"], "priority": 3, "depends_on": ["quic", "minip"]},
-    {"id": "bgp", "include_paths": ["protocol-testing/bgp"], "priority": 4},
-    {"id": "coap", "include_paths": ["protocol-testing/coap"], "priority": 5, "depends_on": ["quic"]},
-    {"id": "scaffolds", "include_paths": ["protocol-testing/new_prot", "protocol-testing/http"], "priority": 6}
+    {"id": "quic", "include_paths": [
+      "protocol-testing/quic/quic_stack",
+      "protocol-testing/quic/quic_utils",
+      "protocol-testing/quic/tls_stack",
+      "protocol-testing/quic/quic_shims",
+      "protocol-testing/quic/quic_config",
+      "protocol-testing/quic/quic_entities",
+      "protocol-testing/quic/quic_entities_behavior",
+      "protocol-testing/quic/quic_extensions",
+      "protocol-testing/quic/quic_fsm",
+      "protocol-testing/quic/quic_recovery"
+    ], "priority": 1},
+    {"id": "quic_tests", "include_paths": [
+      "protocol-testing/quic/quic_tests",
+      "protocol-testing/quic/quic_attacks_stack"
+    ], "priority": 2, "depends_on": ["quic"]},
+    {"id": "minip", "include_paths": ["protocol-testing/minip"], "priority": 3},
+    {"id": "apt_core", "include_paths": [
+      "protocol-testing/apt/apt_entities",
+      "protocol-testing/apt/apt_entities_behavior",
+      "protocol-testing/apt/apt_lifecycle",
+      "protocol-testing/apt/apt_network",
+      "protocol-testing/apt/apt_shims",
+      "protocol-testing/apt/apt_stack",
+      "protocol-testing/apt/apt_utils"
+    ], "priority": 4, "depends_on": ["quic", "minip"]},
+    {"id": "apt_quic_fork", "include_paths": [
+      "protocol-testing/apt/apt_protocols/quic"
+    ], "priority": 5, "depends_on": ["apt_core"]},
+    {"id": "apt_minip_fork", "include_paths": [
+      "protocol-testing/apt/apt_protocols/minip"
+    ], "priority": 6, "depends_on": ["apt_core"]},
+    {"id": "apt_tls_fork", "include_paths": [
+      "protocol-testing/apt/apt_protocols/tls"
+    ], "priority": 7, "depends_on": ["apt_core"]},
+    {"id": "apt_tests", "include_paths": [
+      "protocol-testing/apt/apt_tests"
+    ], "priority": 8, "depends_on": ["apt_core", "apt_quic_fork", "apt_minip_fork", "apt_tls_fork"]},
+    {"id": "bgp", "include_paths": ["protocol-testing/bgp"], "priority": 9},
+    {"id": "coap", "include_paths": ["protocol-testing/coap"], "priority": 10, "depends_on": ["quic"]},
+    {"id": "scaffolds", "include_paths": ["protocol-testing/new_prot", "protocol-testing/http"], "priority": 11}
   ],
-  "exclude_paths": ["doc", "examples", "test", "notebooks", "patches", "submodules", "ivy"]
+  "exclude_paths": ["doc", "examples", "test", "notebooks", "patches", "submodules", "ivy",
+                   "protocol-testing/apt/apt_protocols/dns",
+                   "protocol-testing/apt/apt_protocols/http",
+                   "protocol-testing/apt/apt_protocols/smtp"]
 }
