@@ -1,5 +1,7 @@
 #lang ivy1.7
 
+include ping_byte_stream
+
 action minip_app_send_event(src:ip.endpoint, dst:ip.endpoint, data : stream_data, pos : stream_pos, close : bool)
 
 function ping_data : stream_data

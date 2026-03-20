@@ -291,6 +291,35 @@ import action on_purpose_lost_packet_event(host:endpoint_id,src:ip.endpoint,pkt:
 #
 #
 # TLS send event shim
+# ===================
+#
+# When a TLS instance in the locale sends message data, we generate a
+# `tls_send_event`. This causes the data to be recorded in the
+# appropriate abstract crypto stream, and later to be transmitted via
+# a generated crypto frame event.
+
+
+# TODO mvfst no helloretry
+# mvfst  &ptls_openssl_x25519,&ptls_openssl_secp256r1
+# other   &ptls_openssl_secp256r1, &ptls_openssl_x25519 TODO
+
+#TODO merge shim for client
+
+implement tls_api.lower.send(tls_id:tls_api.id, bytes:stream_data, lev:tls_api.lower.level) {
+    #if dst_is_generated_tls(tls_id_to_src(tls_id)) { # For MiM agent, we dont wont for now TLS events
+        var early_data_end := stream_data.empty; # TODO global -> quic-go crash if not global
+        call show_biatch_debug_event(tls_id_to_dst(tls_id));
+        early_data_end := early_data_end.append(0xff);
+        early_data_end := early_data_end.append(0xff);
+        early_data_end := early_data_end.append(0xff);
+        early_data_end := early_data_end.append(0xff);
+        var e := quic_packet_type.initial if lev = 0
+                else (quic_packet_type.handshake if lev = 2 else quic_packet_type.zero_rtt);
+        if(bytes.value(0) = 0x4 & bytes.segment(bytes.end-4,bytes.end) = early_data_end) {
+            e := quic_packet_type.one_rtt; # TODO
+        };
+
+        var scid := tls_id_to_cid(tls_id);
         call tls_send_event(tls_id_to_src(tls_id), tls_id_to_dst(tls_id), scid,
                             dcid, bytes,crypto_data_end(scid,e),e, tls_id);
 
@@ -346,7 +375,7 @@ import action on_purpose_lost_packet_event(host:endpoint_id,src:ip.endpoint,pkt:
         #     # extns := extns.append(make_transport_parameters);
         #     # call tls_api.upper.create(client_current_connection_id,false,extns);
         # }
-    }
+    #}
 }
 
 # The following is just for debugging purposes.call show_tls_send_event
