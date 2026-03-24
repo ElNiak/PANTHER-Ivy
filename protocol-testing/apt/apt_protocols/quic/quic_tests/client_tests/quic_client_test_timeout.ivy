@@ -13,34 +13,34 @@ include ivy_quic_server_behavior
 #
 
 include ivy_quic_server_standard_tp
-include quic_time
+include apt_time
 
 after init {
     call time_api.c_timer.start;
     call time_api.c_timer.start;
 }
 # Note, we don't need a tester precondition for packet protocol
-# events, since the quic_frame queue for the server end will always be
+# events, since the frame queue for the server end will always be
 # empty. This is because server frames are only inferred in response to
 # a server packet event, which immediately dequeues them.
 
-export quic_frame.ack.handle
-export quic_frame.stream.handle
-export quic_frame.crypto.handle
-export quic_frame.path_response.handle #challenge ?
-export quic_frame.handshake_done.handle
-#attribute quic_frame.handshake_done.handle.weight = "0.02"
+export frame.ack.handle
+export frame.stream.handle
+export frame.crypto.handle
+export frame.path_response.handle #challenge ?
+export frame.handshake_done.handle
+#attribute frame.handshake_done.handle.weight = "0.02"
 export packet_event
 export client_send_event
 export tls_recv_event
 
-# relation slept  # provided by apt_time
+# relation slept  # provided by quic_time
 
 after init {
     slept := false;
 }
 
-before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
+before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     if ~_generating {
         if last_pkt_num(the_cid,quic_packet_type.one_rtt) > 5  & ~slept & handshake_done_send{  #
             var idle_timeout_forced := max_idle_timeout_used;
@@ -63,7 +63,7 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
 
 export send_ack_eliciting_handshake_packet
 export send_ack_eliciting_initial_packet
-export quic_frame.ping.handle
+export frame.ping.handle
 
 export action _finalize = {
     # chris TODO

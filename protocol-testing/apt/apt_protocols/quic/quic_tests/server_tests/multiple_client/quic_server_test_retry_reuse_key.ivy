@@ -5,7 +5,20 @@ include quic_infer
 include file
 include ivy_quic_shim_client
 include quic_locale
-include ivy_quic_n_clients_behavior
+include ivy_quic_two_clients_behavior
+
+after init {
+    the_cid := 0x1; # 0x0;
+    server_cid := 0x2; # 0x1;
+
+    the_cid_alt := 0x3; # 0x0;
+    server_cid_alt := 0x4; # 0x1;
+    the_cids := the_cids.append(the_cid);
+    the_cids := the_cids.append(the_cid_alt);
+
+    server_cids := server_cids.append(server_cid);
+    server_cids := server_cids.append(server_cid_alt);
+}
 
 #
 # We fix the initial transport parameters here. TODO: In principle these
@@ -23,16 +36,6 @@ include ivy_quic_client_standard_tp
 
 # Mandatory for longbv else truncated
 
-var the_cid_alt : cid
-var server_cid_alt : cid
-
-after init {
-    # the_cid := 0x1; # 0x0;
-    # server_cid := 0x2; # 0x1;
-    the_cid_alt := 0x3; # 0x0;
-    server_cid_alt := 0x4; # 0x1;
-}
-
 after init {
     client_vn := endpoint_id_addr(endpoint_id.client_vn);
 }
@@ -45,15 +48,16 @@ after init {
 
 # import second_client
 # import second_server
+# TODO     {"quic_transport_parameters", 0xffa5}, //DRAFTversion: 0xffa5 -> TODO test 0x39 - TODO RETRY VULN
 
 after init {
-    sock := quic_net.open(endpoint_id.client,client.ep);
-    sock_alt := quic_net.open(endpoint_id.client_alt,second_client.ep);
-    sock_vn := sock; #quic_net.open(endpclientoint_id.client_vn,client_vn);
-    client.set_tls_id(1);
+    sock := net.open(endpoint_id.client,client.ep);
+    sock_alt := net.open(endpoint_id.client_alt,second_client.ep);
+    sock_vn := sock; #net.open(endpclientoint_id.client_vn,client_vn);
+    client.set_tls_id(0);
     second_client.set_tls_id(2); # TODO
     # call clients.init_tls_ids;
-    server.set_tls_id(0);
+    server.set_tls_id(1);
     second_server.set_tls_id(3);
     # call servers.init_tls_ids;
     var extns := tls_extensions.empty;
@@ -142,7 +146,7 @@ after init {
 #    Connection ID field of the Retry packet in the Destination Connection
 #    ID field of subsequent packets that it sends.
 
-before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
+before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     if _generating {
         require src = client.ep | src = second_client.ep;
         #require (pkt.ptype = quic_packet_type.initial & src = client.ep -> pkt.dst_cid = server_cid) & (pkt.ptype = quic_packet_type.initial & src = second_client.ep -> pkt.dst_cid = server_cid_alt);
@@ -167,14 +171,14 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
             # pkt.token := expected_token;
             #require pkt.token = retry_token_recv;
             # if src = second_client.ep {
-            #     var expected_token := tls_api.upper.get_old_new_token(2); ## TODO RETRY token ??
-            #     pkt.token := expected_token;
+                var expected_token := tls_api.upper.get_old_new_token; ## TODO RETRY token ??
+                pkt.token := expected_token;
             # } else {
             #     var expected_token := tls_api.upper.get_old_new_token(0);
             #     pkt.token := expected_token;
             # };
-            var expected_token := tls_api.upper.get_old_retry_token;
-            pkt.token := expected_token;
+            # var expected_token := tls_api.upper.get_old_retry_token;
+            # pkt.token := expected_token;
         } else {
             require pkt.token.end = 0;
         };
@@ -202,16 +206,16 @@ import action show_token_retry(v:stream_data)
 # To restrict the generated events, we use the built-in predicate
 # "_generating" that is true if this is a generated event.
 #
-# This is the mirror constraint for the stream quic_frameframeframe protocol. We add
+# This is the mirror constraint for the stream frame protocol. We add
 # some requirements to make the tests more interesting. In particular,
 # we don't want the tester to produce lots of tiny frames (or empty
-# ones) so we require that a stream quic_frameframeframe send all of the available
+# ones) so we require that a stream frame send all of the available
 # stream data.
 #
 # TODO: We reuquire tje `off` and `len` bits to be true. Maybe these should
 # determined in the low-level packet encoding stage.
 
-before quic_frameframeframe.streamquic_framequic_framequic_frame.stream,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
+before frame.stream.handle(f:frame.stream,scid:cid,dcid:cid,e:quic_packet_type) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
         require (connected(the_cid) & dcid = connected_to(the_cid)) | (connected(the_cid_alt) & dcid = connected_to(the_cid_alt));
@@ -225,7 +229,7 @@ before quic_frameframeframe.streamquic_framequic_framequic_frame.stream,scid:cid
 
 # We have something similar for crypto frames
 
-before quic_frameframeframe.cryptoquic_framequic_framequic_frame.crypto,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
+before frame.crypto.handle(f:frame.crypto,scid:cid,dcid:cid,e:quic_packet_type) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
         require f.length > 0;
@@ -246,7 +250,7 @@ before quic_frameframeframe.cryptoquic_framequic_framequic_frame.crypto,scid:cid
 # ACK's to have at least on previously unacked sequenc number. There
 # should be a better way to do this.
 
-before quic_frameframeframe.ackquic_framequic_framequic_frame.ack,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
+before frame.ack.handle(f:frame.ack,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
         force_new_ack := true;
@@ -256,7 +260,7 @@ before quic_frameframeframe.ackquic_framequic_framequic_frame.ack,scid:cid,dcid:
 
 # Generate rst_stream frames only for the environment process(es).
 
-before quic_frameframeframe.rst_streamquic_framequic_framequic_frame.rst_stream,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
+before frame.rst_stream.handle(f:frame.rst_stream,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
         require f.id = 4;
@@ -265,7 +269,7 @@ before quic_frameframeframe.rst_streamquic_framequic_framequic_frame.rst_stream,
 
 # Generate stop_sending frames only for the environment process(es).
 
-before quic_frameframeframe.stop_sendingquic_framequic_framequic_frame.stop_sending,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
+before frame.stop_sending.handle(f:frame.stop_sending,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
         require f.id = 4;
@@ -274,20 +278,20 @@ before quic_frameframeframe.stop_sendingquic_framequic_framequic_frame.stop_send
 
 # Generate max_streams frames only for the environment process(es).
 
-before quic_frameframeframe.max_streamsquic_framequic_framequic_frame.max_streams,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
+before frame.max_streams.handle(f:frame.max_streams,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
     }
 }
 
-before quic_frameframeframe.new_connection_idquic_framequic_framequic_frame.new_connection_id,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
+before frame.new_connection_id.handle(f:frame.new_connection_id,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
     }
 }
 
 
-before quic_frameframeframe.retire_connection_idquic_framequic_framequic_frame.retire_connection_id,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
+before frame.retire_connection_id.handle(f:frame.retire_connection_id,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
     }
@@ -299,7 +303,7 @@ before quic_frameframeframe.retire_connection_idquic_framequic_framequic_frame.r
 # Note: requiring the `err_code` is zero on non-generated frames means that
 # we stop the test if the peer reports a protocol error.
 
-before quic_frameframeframe.connection_closequic_framequic_framequic_frame.connection_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
+before frame.connection_close.handle(f:frame.connection_close,scid:cid,dcid:cid) {
     if _generating {
         require (scid = the_cid & conn_total_data(the_cid) > 100) & (scid = the_cid_alt & conn_total_data(the_cid_alt) > 100);
         require f.err_code = 0;
@@ -311,7 +315,7 @@ before quic_frameframeframe.connection_closequic_framequic_framequic_frame.conne
 
 # Generate application_close frames only for the environment process(es).
 
-before quic_frameframeframe.application_closequic_framequic_framequic_frame.application_close,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
+before frame.application_close.handle(f:frame.application_close,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
         require (conn_total_data(the_cid) > 30) & (conn_total_data(the_cid_alt) > 30); # tricks
@@ -325,7 +329,7 @@ before quic_frameframeframe.application_closequic_framequic_framequic_frame.appl
 # Generate max_stream_data frames only for the environment process(es), and only for
 # a restricted range of frames (so we don't throttle all of the data).
 
-before quic_frameframeframe.max_stream_dataquic_framequic_framequic_frame.max_stream_data,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
+before frame.max_stream_data.handle(f:frame.max_stream_data,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
         require 4 <= f.id & f.id <= 16;
@@ -333,9 +337,9 @@ before quic_frameframeframe.max_stream_dataquic_framequic_framequic_frame.max_st
 }
 
 # Generate stream_data_blocked frames only for the environment process(es).
-# We restrict the quic_frameframeframe id.
+# We restrict the frame id.
 
-before quic_frameframeframe.stream_data_blockedquic_framequic_framequic_frame.stream_data_blocked,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
+before frame.stream_data_blocked.handle(f:frame.stream_data_blocked,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
         require f.id = 4;
@@ -346,7 +350,7 @@ before quic_frameframeframe.stream_data_blockedquic_framequic_framequic_frame.st
 # non-generated frames, we check that the max_data value doesn't decrease.
 # This is not forbidden, but it seems like a good thing to check.
 
-before quic_frameframeframe.max_dataquic_framequic_framequic_frame.max_data,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
+before frame.max_data.handle(f:frame.max_data,scid:cid,dcid:cid) {
     if _generating {
         require scid = the_cid | scid = the_cid_alt;
         require f.pos = 4000;
@@ -391,8 +395,8 @@ around client_send_event {
         end := end.next
     };
     var data := http_request.segment(stream_length(dcid,s),end);
-#    call quic_app_send_event(src,dst,dcid,s,data,end = http_request.end);
-    call quic_app_send_event(src,dst,dcid,s,data,stream_length(dcid,s),true);
+#    call app_send_event(src,dst,dcid,s,data,end = http_request.end);
+    call app_send_event(src,dst,dcid,s,data,stream_length(dcid,s),true);
     current_stream := current_stream + 4;
 }
 
@@ -401,22 +405,22 @@ around client_send_event {
 # Note: some of these are commented out. They are added in other files
 # that include this one.
 
-export quic_frameframeframe.ack.handle
-export quic_frameframeframe.stream.handle
-export quic_frameframeframe.crypto.handle
-export quic_frameframeframe.path_response.handle
+export frame.ack.handle
+export frame.stream.handle
+export frame.crypto.handle
+export frame.path_response.handle
 export packet_event
 export client_send_event
 export tls_recv_event
-#export quic_frameframeframe.new_connection_id.handle
-#export quic_frameframeframe.retire_connection_id.handle
-#export quic_frameframeframe.rst_stream.handle
-#export quic_frameframeframe.max_stream_id.handle
-export quic_frameframeframe.connection_close.handle
-#export quic_frameframeframe.max_stream_data.handle
-#export quic_frameframeframe.max_data.handle
-attribute quic_frameframeframe.crypto.handle.weight = "5"
-attribute quic_frameframeframe.path_response.handle.weight = "5"
+#export frame.new_connection_id.handle
+#export frame.retire_connection_id.handle
+#export frame.rst_stream.handle
+#export frame.max_stream_id.handle
+export frame.connection_close.handle
+#export frame.max_stream_data.handle
+#export frame.max_data.handle
+attribute frame.crypto.handle.weight = "5"
+attribute frame.path_response.handle.weight = "5"
 
 # Final check
 #

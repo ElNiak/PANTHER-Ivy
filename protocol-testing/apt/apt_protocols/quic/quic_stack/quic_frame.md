@@ -1,0 +1,281 @@
+
+```
+include collections
+include order
+include quic_stream
+```
+include quic_fsm_sending
+include quic_fsm_receiving
+```
+include quic_transport_error_code
+```
+include quic_loss_recovery
+include quic_congestion_control
+
+The quic_frame protocol
+```
+            data : stream_data                    # the token
+        }
+    }
+
+```
+(0x08 -> 0x0f)
+```
+    object stream = {
+
+```
+Stream frames are a variant of quic_frame
+
+```
+        variant this of quic_frame = struct {
+            off : bool,        # is there an offset field
+            len : bool,        # is there a length field
+            fin : bool,        # is this the final offset
+
+            id : stream_id,            # the stream ID
+            offset : stream_pos,       # the stream offset (zero if ~off)
+            length : stream_pos,       # length of the data
+            data : stream_data         # the stream data
+        }
+    }
+
+```
+(0x10) The MAX_DATA quic_frame is used in flow control to inform the
+peer of the maximum amount of data that can be sent on the connection
+as a whole.
+```
+    object max_data = {
+```
+Max data frames are a variant of quic_frame.
+```
+        variant this of quic_frame = struct {
+            pos               : stream_pos  # max number of bytes
+        }
+    }
+
+
+```
+(0x11) The MAX_STREAM_DATA quic_frame is used in flow control to
+inform a peer of the maximum amount of data that can be sent on a
+stream
+```
+	object max_stream_data = {
+```
+Max stream data frames are a variant of quic_frame.
+```
+        variant this of quic_frame = struct {
+            id                : stream_id,  # the stream id
+            pos               : stream_pos  # max number of bytes
+        }
+    }
+
+```
+(0x12)
+```
+    object max_streams = {  # TODO: handle cases of MAX_STREAMS for bidi and uni
+```
+max_streams frames are a variant of quic_frame.
+```
+        variant this of quic_frame = struct {
+            id              : stream_id  # maximum stream id
+        }
+    }
+
+```
+(0x13)
+```
+    object max_streams_bidi = {  # TODO: handle cases of MAX_STREAMS for bidi and uni
+```
+max_streams frames are a variant of quic_frame.
+```
+        variant this of quic_frame = struct {
+            id              : stream_id  # maximum stream id
+        }
+    }
+
+
+```
+(0x14) DATA_BLOCKED FRAME
+```
+    object data_blocked = {
+```
+data_blocked frames are a variant of quic_frame.
+```
+        variant this of quic_frame = struct {
+            pos               : stream_pos  # max number of bytes
+        }
+    }
+
+```
+(0x15) STREAM_DATA_BLOCKED
+```
+    object stream_data_blocked = {
+```
+Stream blocked frames are a variant of quic_frame.
+```
+        variant this of quic_frame = struct {
+            id                : stream_id,  # the stream id
+            pos               : stream_pos  # max number of bytes
+        }
+    }
+
+```
+(0x16)
+```
+    object streams_blocked = { # TODO: handle bidi and uni cases => create streams_blocked_uni and streams_blocked_bidi + serializer
+```
+Stream id blocked frames are a variant of quic_frame.
+```
+        variant this of quic_frame = struct {
+            id                : cid  # the stream id (we use cid for the 16 bytes)
+        }
+    }
+
+```
+(0x17)
+```
+    object streams_blocked_bidi = { # TODO: handle bidi and uni cases => create streams_blocked_uni and streams_blocked_bidi + serializer
+```
+Stream id blocked frames are a variant of quic_frame.
+```
+        variant this of quic_frame = struct {
+            id                : cid  # the stream id (we use cid for the 16 bytes)
+        }
+    }
+
+```
+(0x18)
+```
+    object new_connection_id = {
+
+```
+New connection id frames are a variant of quic_frame.
+
+```
+        variant this of quic_frame = struct {
+            seq_num                : cid_seq,     # the sequence number of the new cid
+            retire_prior_to        : cid_seq,     # retire seq nums prior to this
+            length                 : cid_length,  # the length of the new cid in bytes
+            scid                   : cid,         # the new cid
+            token                  : reset_token  # the stateless reset token
+        }
+
+    }
+
+```
+(0x19)
+```
+    object retire_connection_id = {
+
+```
+Retire connection id frames are a variant of quic_frame.
+
+```
+        variant this of quic_frame = struct {
+            seq_num                : cid_seq     # the sequence number of the new cid
+        }
+
+    }
+
+```
+(0x1a)
+```
+    object path_challenge = {
+```
+Path challenge frames are a variant of quic_frame.
+```
+        variant this of quic_frame = struct {
+            data : stream_data                    # 8-byte payload
+        }
+    }
+
+```
+(0x1b)
+```
+    object path_response = {
+```
+Path response frames are a variant of quic_frame.
+```
+        variant this of quic_frame = struct {
+            data : stream_data                    # 8-byte payload
+        }
+    }
+
+```
+(0x1c or 0x1d)
+```
+    object connection_close = {
+```
+Connection close frames are a variant of quic_frame.
+```
+        variant this of quic_frame = struct {
+            err_code               : error_code, # the error code
+            frame_type             : error_code, # TODO: not the real type
+            reason_phrase_length   : stream_pos, # number of bytes in reason phrase
+            reason_phrase          : stream_data # bytes of reason phrase
+        }
+    }
+
+
+
+```
+(0x1d) NOT PRESENT ANYMORE TOCHECK IF CAN BE REMOVED TODO
+```
+    object application_close = {
+```
+Application close frames are a variant of quic_frame.
+```
+        variant this of quic_frame = struct {
+            err_code               : error_code, # the error code
+            reason_phrase_length   : stream_pos, # number of bytes in reason phrase
+            reason_phrase          : stream_data # bytes of reason phrase
+        }
+    }
+
+
+```
+(0x1e) HANDSHAKE_DONE
+```
+    object handshake_done = {
+```
+HANDSHAKE_DONE frames are a variant of quic_frame.
+```
+        variant this of quic_frame = struct {
+
+        }
+    }
+
+```
+TODO EXTENSION Frames
+
+
+(0x42)
+```
+    object unknown_frame = {
+```
+unknown_frame  quic_frame frames are a varianquic_framequic_frame and contains nothing
+```
+        variant this of quic_frame = struct {
+        }
+    }
+
+
+
+```
+(0x00) implicit in parsing
+object padding = {
+PADDING quic_frame frames are a varianquic_framequic_frame and contains nothing
+1 byte quic_frame to increase the size of a packet
+   variant this of quic_frame = struct {
+
+   }
+}
+
+
+```
+    instance idx : unbounded_sequence
+    instance arr : array(idx,this)
+}
+
+```
+Generic event
