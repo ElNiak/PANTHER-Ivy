@@ -2,6 +2,15 @@
   "version": 3,
   "standard_library": "ivy/include/1.7",
   "scope_detection": "auto",
+  "workspace_groups": {
+    "quic": ["quic", "quic_tests"],
+    "apt": ["apt_core", "apt_quic_fork", "apt_minip_fork", "apt_tls_fork", "apt_tests"],
+    "apt_quic": ["apt_core", "apt_quic_fork", "apt_tests"],
+    "minip": ["minip"],
+    "bgp": ["bgp"],
+    "coap": ["coap"],
+    "scaffolds": ["scaffolds"]
+  },
   "workspace_layers": [
     {"id": "quic", "include_paths": [
       "protocol-testing/quic/quic_stack",
@@ -28,7 +37,7 @@
       "protocol-testing/apt/apt_shims",
       "protocol-testing/apt/apt_stack",
       "protocol-testing/apt/apt_utils"
-    ], "priority": 4, "depends_on": ["quic", "minip"]},
+    ], "priority": 4},
     {"id": "apt_quic_fork", "include_paths": [
       "protocol-testing/apt/apt_protocols/quic"
     ], "priority": 5, "depends_on": ["apt_core"]},
