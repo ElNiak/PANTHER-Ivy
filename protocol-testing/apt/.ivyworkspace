@@ -5,30 +5,33 @@
   "protocol_id": "apt",
   "workspace_root_offset": "../..",
   "workspace_layers": [
-    {"id": "apt_core", "include_paths": [
-      "protocol-testing/apt/apt_entities",
-      "protocol-testing/apt/apt_entities_behavior",
-      "protocol-testing/apt/apt_lifecycle",
-      "protocol-testing/apt/apt_network",
-      "protocol-testing/apt/apt_shims",
-      "protocol-testing/apt/apt_stack",
-      "protocol-testing/apt/apt_utils"
-    ], "priority": 1},
-    {"id": "apt_quic_fork", "include_paths": [
-      "protocol-testing/apt/apt_protocols/quic"
-    ], "priority": 2, "depends_on": ["apt_core"]},
-    {"id": "apt_minip_fork", "include_paths": [
-      "protocol-testing/apt/apt_protocols/minip"
-    ], "priority": 3, "depends_on": ["apt_core"]},
-    {"id": "apt_tls_fork", "include_paths": [
-      "protocol-testing/apt/apt_protocols/tls"
-    ], "priority": 4, "depends_on": ["apt_core"]},
-    {"id": "apt_tests", "include_paths": [
-      "protocol-testing/apt/apt_tests"
-    ], "priority": 5, "depends_on": ["apt_core", "apt_quic_fork", "apt_minip_fork", "apt_tls_fork"]}
+    {
+      "id": "apt",
+      "include_paths": [
+        "protocol-testing/apt/apt_entities",
+        "protocol-testing/apt/apt_entities_behavior",
+        "protocol-testing/apt/apt_lifecycle",
+        "protocol-testing/apt/apt_network",
+        "protocol-testing/apt/apt_shims",
+        "protocol-testing/apt/apt_stack",
+        "protocol-testing/apt/apt_utils",
+        "protocol-testing/apt/apt_protocols/quic",
+        "protocol-testing/apt/apt_protocols/minip",
+        "protocol-testing/apt/apt_protocols/tls"
+      ],
+      "priority": 1
+    },
+    {
+      "id": "apt_tests",
+      "include_paths": ["protocol-testing/apt/apt_tests"],
+      "priority": 2,
+      "depends_on": ["apt"]
+    }
   ],
-  "exclude_paths": ["doc", "examples", "test",
+  "exclude_paths": [
+    "doc", "examples", "test", "notebooks", "patches", "submodules", "ivy",
     "protocol-testing/apt/apt_protocols/dns",
     "protocol-testing/apt/apt_protocols/http",
-    "protocol-testing/apt/apt_protocols/smtp"]
+    "protocol-testing/apt/apt_protocols/smtp"
+  ]
 }
