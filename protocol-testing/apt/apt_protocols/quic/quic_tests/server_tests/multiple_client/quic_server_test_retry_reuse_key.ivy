@@ -5,20 +5,7 @@ include quic_infer
 include file
 include ivy_quic_shim_client
 include quic_locale
-include ivy_quic_two_clients_behavior
-
-after init {
-    the_cid := 0x1; # 0x0;
-    server_cid := 0x2; # 0x1;
-
-    the_cid_alt := 0x3; # 0x0;
-    server_cid_alt := 0x4; # 0x1;
-    the_cids := the_cids.append(the_cid);
-    the_cids := the_cids.append(the_cid_alt);
-
-    server_cids := server_cids.append(server_cid);
-    server_cids := server_cids.append(server_cid_alt);
-}
+include ivy_quic_n_clients_behavior
 
 #
 # We fix the initial transport parameters here. TODO: In principle these
@@ -36,6 +23,16 @@ include ivy_quic_client_standard_tp
 
 # Mandatory for longbv else truncated
 
+var the_cid_alt : cid
+var server_cid_alt : cid
+
+after init {
+    # the_cid := 0x1; # 0x0;
+    # server_cid := 0x2; # 0x1;
+    the_cid_alt := 0x3; # 0x0;
+    server_cid_alt := 0x4; # 0x1;
+}
+
 after init {
     client_vn := endpoint_id_addr(endpoint_id.client_vn);
 }
@@ -48,7 +45,6 @@ after init {
 
 # import second_client
 # import second_server
-# TODO     {"quic_transport_parameters", 0xffa5}, //DRAFTversion: 0xffa5 -> TODO test 0x39 - TODO RETRY VULN
 
 after init {
     sock := net.open(endpoint_id.client,client.ep);
@@ -171,14 +167,14 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
             # pkt.token := expected_token;
             #require pkt.token = retry_token_recv;
             # if src = second_client.ep {
-                var expected_token := tls_api.upper.get_old_new_token; ## TODO RETRY token ??
-                pkt.token := expected_token;
+            #     var expected_token := tls_api.upper.get_old_new_token(2); ## TODO RETRY token ??
+            #     pkt.token := expected_token;
             # } else {
             #     var expected_token := tls_api.upper.get_old_new_token(0);
             #     pkt.token := expected_token;
             # };
-            # var expected_token := tls_api.upper.get_old_retry_token;
-            # pkt.token := expected_token;
+            var expected_token := tls_api.upper.get_old_retry_token;
+            pkt.token := expected_token;
         } else {
             require pkt.token.end = 0;
         };

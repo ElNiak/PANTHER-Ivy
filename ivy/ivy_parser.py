@@ -589,6 +589,7 @@ def p_top_module_atom_eq_lcb_top_rcb(p):
     'top : top MODULE modulestart modcat atom optwith EQ LCB top RCB moduleend'
     p[0] = p[1]
     d = Definition(app_to_atom(p[5]),p[9])
+    d.lineno = get_lineno(p, 5)
     p[0].declare(ModuleDecl(d))
     if p[4] == "isolate":
         this = Atom(This())
@@ -2064,6 +2065,7 @@ def p_top_aliase_symbol_eq_callatom(p):
     'top : top ALIAS SYMBOL EQ callatom'
     d = AliasDecl(Definition(Atom(p[3]),p[5]))
     d.lineno = get_lineno(p,3)
+    d.args[0].lineno = d.lineno
     p[0] = p[1]
     p[0].declare(d)
 

@@ -5,22 +5,41 @@
   "protocol_id": "quic",
   "workspace_root_offset": "../..",
   "workspace_layers": [
-    {"id": "quic", "include_paths": [
-      "protocol-testing/quic/quic_stack",
-      "protocol-testing/quic/quic_utils",
-      "protocol-testing/quic/tls_stack",
-      "protocol-testing/quic/quic_shims",
-      "protocol-testing/quic/quic_config",
-      "protocol-testing/quic/quic_entities",
-      "protocol-testing/quic/quic_entities_behavior",
-      "protocol-testing/quic/quic_extensions",
-      "protocol-testing/quic/quic_fsm",
-      "protocol-testing/quic/quic_recovery"
-    ], "priority": 1},
-    {"id": "quic_tests", "include_paths": [
-      "protocol-testing/quic/quic_tests",
-      "protocol-testing/quic/quic_attacks_stack"
-    ], "priority": 2, "depends_on": ["quic"]}
+    {
+      "id": "quic",
+      "include_paths": [
+        "protocol-testing/quic/quic_stack",
+        "protocol-testing/quic/quic_utils",
+        "protocol-testing/quic/tls_stack",
+        "protocol-testing/quic/quic_shims",
+        "protocol-testing/quic/quic_config",
+        "protocol-testing/quic/quic_entities",
+        "protocol-testing/quic/quic_entities_behavior",
+        "protocol-testing/quic/quic_extensions",
+        "protocol-testing/quic/quic_fsm",
+        "protocol-testing/quic/quic_recovery"
+      ],
+      "priority": 1
+    },
+    {
+      "id": "quic_tests",
+      "include_paths": [
+        "protocol-testing/quic/quic_tests",
+        "protocol-testing/quic/quic_attacks_stack"
+      ],
+      "priority": 2,
+      "depends_on": [
+        "quic"
+      ]
+    }
   ],
-  "exclude_paths": ["doc", "examples", "test"]
+  "exclude_paths": [
+    "doc",
+    "examples",
+    "test",
+    "notebooks",
+    "patches",
+    "submodules",
+    "ivy"
+  ]
 }

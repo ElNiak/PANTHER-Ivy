@@ -5,7 +5,21 @@
   "protocol_id": "bgp",
   "workspace_root_offset": "../..",
   "workspace_layers": [
-    {"id": "bgp", "include_paths": ["protocol-testing/bgp"], "priority": 1}
+    {
+      "id": "bgp",
+      "include_paths": [
+        "protocol-testing/bgp"
+      ],
+      "priority": 9
+    }
   ],
-  "exclude_paths": ["doc", "examples", "test"]
+  "exclude_paths": [
+    "doc",
+    "examples",
+    "test",
+    "notebooks",
+    "patches",
+    "submodules",
+    "ivy"
+  ]
 }

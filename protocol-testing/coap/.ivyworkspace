@@ -5,7 +5,21 @@
   "protocol_id": "coap",
   "workspace_root_offset": "../..",
   "workspace_layers": [
-    {"id": "coap", "include_paths": ["protocol-testing/coap"], "priority": 1, "depends_on": ["quic"]}
+    {
+      "id": "coap",
+      "include_paths": [
+        "protocol-testing/coap"
+      ],
+      "priority": 10
+    }
   ],
-  "exclude_paths": ["doc", "examples", "test"]
+  "exclude_paths": [
+    "doc",
+    "examples",
+    "test",
+    "notebooks",
+    "patches",
+    "submodules",
+    "ivy"
+  ]
 }
