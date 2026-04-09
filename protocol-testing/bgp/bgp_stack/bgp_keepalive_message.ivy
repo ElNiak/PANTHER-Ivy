@@ -25,7 +25,7 @@ object bgp_keepalive_message = {
 action bgp_keepalive_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_keepalive_message) = {}
 
 around  bgp_keepalive_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_keepalive_message) {
-    require isup(bgpid_to_endpoint(src));
+    require isup(bgpid_to_endpoint(src)); # [rfc4271:4.4]
     require open_message_recv(src) & open_message_recv(dst);
     ...
     require isup(bgpid_to_endpoint(src))

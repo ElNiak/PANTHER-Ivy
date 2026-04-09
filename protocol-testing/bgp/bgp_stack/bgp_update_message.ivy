@@ -110,7 +110,7 @@ relation bgp_update_event
 around  bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_message) {
     require isup(bgpid_to_endpoint(src));
     require open_message_recv(src) & open_message_recv(dst);
-    require origin_present(src);
+    require origin_present(src); # [rfc4271:4.3]
     require num_queued_path_attr(src) >= 0;
     call show_path_attr_size(path_attr_size(src));
     require bgp_message.total_path_attr_len = path_attr_size(src);
