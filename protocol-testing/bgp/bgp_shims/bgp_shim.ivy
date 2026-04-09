@@ -42,10 +42,10 @@ relation isup(A:ip.addr)
 function getsock(A:ip.addr) : net.socket
 relation pend(A:ip.addr)
 
-# after init {
-#     isup(A) := false;
-#     pend(A) := false;
-# }
+after init {
+    isup(A) := false;
+    pend(A) := false;
+}
 
 implement net.connected(src:bgp_id, s:net.socket) {
     call show_connected(src,s);
