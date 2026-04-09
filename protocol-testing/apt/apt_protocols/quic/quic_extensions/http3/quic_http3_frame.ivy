@@ -43,7 +43,7 @@ object http3_frame = {
         object setting = {
             # SETTINGS_MAX_FIELD_SECTION_SIZE (0x06): The default value is unlimited. See Section 4.2.2 for usage.
             variant this of setting = struct {
-                identifier : stream_data
+                identifier : stream_data,
                 value : stream_data
             }
             instance idx : unbounded_sequence

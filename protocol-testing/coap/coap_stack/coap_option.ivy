@@ -25,7 +25,7 @@
 #                           Figure 8: Option Format
 
 object coap_option_type = {
-    type this = {
+    type this = struct {
         critical : bool,   # [C] Critical
         unsafe : bool,     # [U] Unsafe
         nocachekey : bool, # [N] NoCacheKey

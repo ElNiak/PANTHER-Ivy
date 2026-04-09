@@ -156,7 +156,8 @@ action on_ack_sent(src:ip.endpoint,dst:ip.endpoint, msg:message, sent_bytes:stre
 
     #      ACK_TIMEOUT * ((2 ** MAX_RETRANSMIT) - 1) * ACK_RANDOM_FACTOR
 
-    max_transmit_span := ack_timeout * ((2 ** 4) - 1) * ack_random_factor;
+    # 2^4 = 16
+    max_transmit_span := ack_timeout * (16 - 1) * ack_random_factor;
 
 
     #   o  MAX_TRANSMIT_WAIT is the maximum time from the first transmission
@@ -166,7 +167,8 @@ action on_ack_sent(src:ip.endpoint,dst:ip.endpoint, msg:message, sent_bytes:stre
     #   seconds, or more generally:
 
     #      ACK_TIMEOUT * ((2 ** (MAX_RETRANSMIT + 1)) - 1) * ACK_RANDOM_FACTOR
-    max_transmit_wait := ack_timeout * ((2 ** (4 + 1)) - 1) * ack_random_factor;
+    # 2^5 = 32
+    max_transmit_wait := ack_timeout * (32 - 1) * ack_random_factor;
 
     #    o  EXCHANGE_LIFETIME is the time from starting to send a Confirmable
     #   message to the time when an acknowledgement is no longer expected,
