@@ -97,3 +97,14 @@ object bgp_error_subcode = {
         }
     }
 }
+
+# Connect error detection to NOTIFICATION path [rfc4271:6.6]
+after bgp_error_subcode.type_bgp_header_error_subcode.handle(f, src, dst) {
+    is_errored(src) := true;
+}
+after bgp_error_subcode.type_bgp_open_error_subcode.handle(f, src, dst) {
+    is_errored(src) := true;
+}
+after bgp_error_subcode.type_bgp_update_error_subcode.handle(f, src, dst) {
+    is_errored(src) := true;
+}
