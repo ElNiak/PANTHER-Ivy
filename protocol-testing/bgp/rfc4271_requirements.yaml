@@ -1,0 +1,89 @@
+rfc: RFC4271
+title: 'A Border Gateway Protocol 4 (BGP-4)'
+requirements:
+  'rfc4271:4.2':
+    text: >-
+      The first message sent by each side is an OPEN message.
+    section: '4.2'
+    level: MUST
+    layer: handshake
+    testable: true
+  'rfc4271:4.2.2':
+    text: >-
+      The Hold Time MUST be either zero or at least three seconds.
+    section: '4.2'
+    level: MUST
+    layer: handshake
+    testable: true
+  'rfc4271:4.3':
+    text: >-
+      UPDATE messages are used to transfer routing information between
+      BGP peers.
+    section: '4.3'
+    level: MUST
+    layer: update
+    testable: true
+  'rfc4271:4.4':
+    text: >-
+      If the negotiated Hold Time interval is zero, then periodic
+      KEEPALIVE messages MUST NOT be sent.
+    section: '4.4'
+    level: MUST NOT
+    layer: keepalive
+    testable: true
+  'rfc4271:6.6':
+    text: >-
+      Any error detected by the BGP Finite State Machine (e.g., receipt of
+      an unexpected event) is indicated by sending the NOTIFICATION message
+      with the Error Code Finite State Machine Error.
+    section: '6.6'
+    level: MUST
+    layer: error
+    testable: true
+  'rfc4271:8.2.1':
+    text: >-
+      BGP MUST maintain a separate FSM for each configured peer.
+    section: '8.2.1'
+    level: MUST
+    layer: fsm
+    testable: true
+  'rfc4271:8.2.2:opensent':
+    text: >-
+      When a valid OPEN message is received in OpenSent, the local system
+      sends a KEEPALIVE, starts timers, and transitions to OpenConfirm.
+    section: '8.2.2'
+    level: MUST
+    layer: fsm
+    testable: true
+  'rfc4271:8.2.2:openconfirm':
+    text: >-
+      If a KEEPALIVE is received in OpenConfirm, the local system
+      transitions to Established.
+    section: '8.2.2'
+    level: MUST
+    layer: fsm
+    testable: true
+  'rfc4271:8.2.2:holdtimer':
+    text: >-
+      If the HoldTimer expires, the local system sends NOTIFICATION
+      with Hold Timer Expired and transitions to Idle.
+    section: '8.2.2'
+    level: MUST
+    layer: fsm
+    testable: true
+  'rfc4271:9':
+    text: >-
+      An UPDATE message may be received only in the Established state.
+      Receiving an UPDATE message in any other state is an error.
+    section: '9'
+    level: MUST
+    layer: update
+    testable: true
+  'rfc4271:10':
+    text: >-
+      If the negotiated Hold Time value is non-zero, the Keepalive Time
+      is set to one-third of the Hold Time.
+    section: '10'
+    level: MUST
+    layer: timer
+    testable: true
