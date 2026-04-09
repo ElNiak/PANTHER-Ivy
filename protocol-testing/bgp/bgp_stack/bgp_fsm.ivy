@@ -1,0 +1,62 @@
+#lang ivy1.7
+
+# BGP Connection Finite State Machine [rfc4271:8]
+
+object bgp_connection_state = {
+    type this = {idle, connect, active, open_sent, open_confirm, established}
+}
+
+# Per-speaker connection state [rfc4271:8.2.1]
+function conn_state(C:bgp_id) : bgp_connection_state
+
+after init {
+    conn_state(C) := bgp_connection_state.idle;
+}
+
+# Idle -> OpenSent on TCP success [rfc4271:8.2.2]
+# Collapses Idle -> Connect -> OpenSent (ConnectRetryTimer deferred)
+after net.connected {
+    if conn_state(src) = bgp_connection_state.idle {
+        conn_state(src) := bgp_connection_state.open_sent;
+    }
+}
+
+# OPEN only valid in OpenSent [rfc4271:8.2.2]
+before bgp_open_message_event {
+    require conn_state(src) = bgp_connection_state.open_sent;
+    # [rfc4271:8.2.2:opensent]
+}
+
+# OpenSent -> OpenConfirm on valid OPEN [rfc4271:8.2.2]
+after bgp_open_message_event {
+    conn_state(src) := bgp_connection_state.open_confirm;
+}
+
+# KEEPALIVE valid in OpenConfirm or Established [rfc4271:8.2.2]
+before bgp_keepalive_message_event {
+    require conn_state(src) = bgp_connection_state.open_confirm
+          | conn_state(src) = bgp_connection_state.established;
+    # [rfc4271:8.2.2:openconfirm]
+}
+
+# OpenConfirm -> Established on KEEPALIVE [rfc4271:8.2.2]
+after bgp_keepalive_message_event {
+    if conn_state(src) = bgp_connection_state.open_confirm {
+        conn_state(src) := bgp_connection_state.established;
+    }
+}
+
+# UPDATE only in Established [rfc4271:9]
+before bgp_update_message_event {
+    require conn_state(src) = bgp_connection_state.established;
+    # [rfc4271:9]
+}
+
+# NOTIFICATION -> both peers to Idle [rfc4271:8.2.2]
+after bgp_notification_message_event {
+    conn_state(src) := bgp_connection_state.idle;
+    conn_state(dst) := bgp_connection_state.idle;
+}
+
+# HoldTimer expiry -> Idle [rfc4271:8.2.2]
+# Deferred until hold_timer_expired is defined in bgp_time.ivy (Task 8)

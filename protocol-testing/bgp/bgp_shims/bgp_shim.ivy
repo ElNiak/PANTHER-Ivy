@@ -37,6 +37,7 @@ include bgp_keepalive_message
 include bgp_notification_message
 include bgp_update_message
 include bgp_open_message
+include bgp_fsm
 
 relation isup(A:ip.addr)
 function getsock(A:ip.addr) : net.socket
