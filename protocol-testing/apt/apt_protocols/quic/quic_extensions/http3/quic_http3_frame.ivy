@@ -108,7 +108,7 @@ object http3_frame = {
         require num_queued_frames(scid) > 0 -> e = queued_level(scid);
         require ~conn_closed(scid);  # [8]
         require conn_seen(scid);  # [9]
-        ...
+        # ...
         call enqueue_http3_frame(scid,f,e,false,seq_num);
     }
 }
@@ -127,7 +127,7 @@ object http3_frame = {
         require num_queued_frames(scid) > 0 -> e = queued_level(scid);
         require ~conn_closed(scid);  # [8]
         require conn_seen(scid);  # [9]
-        ...
+        # ...
         call enqueue_http3_frame(scid,f,e,false,seq_num);
     }
 }
@@ -146,7 +146,7 @@ object http3_frame = {
         require num_queued_frames(scid) > 0 -> e = queued_level(scid);
         require ~conn_closed(scid);  # [8]
         require conn_seen(scid);  # [9]
-        ...
+        # ...
         call enqueue_http3_frame(scid,f,e,false,seq_num);
     }
 }
@@ -165,7 +165,7 @@ object http3_frame = {
         require num_queued_frames(scid) > 0 -> e = queued_level(scid);
         require ~conn_closed(scid);  # [8]
         require conn_seen(scid);  # [9]
-        ...
+        # ...
         call enqueue_http3_frame(scid,f,e,false,seq_num);
     }
 }
@@ -184,7 +184,7 @@ object http3_frame = {
         require num_queued_frames(scid) > 0 -> e = queued_level(scid);
         require ~conn_closed(scid);  # [8]
         require conn_seen(scid);  # [9]
-        ...
+        # ...
         call enqueue_http3_frame(scid,f,e,false,seq_num);
     }
 }
@@ -203,7 +203,7 @@ object http3_frame = {
         require num_queued_frames(scid) > 0 -> e = queued_level(scid);
         require ~conn_closed(scid);  # [8]
         require conn_seen(scid);  # [9]
-        ...
+        # ...
         call enqueue_http3_frame(scid,f,e,false,seq_num);
     }
 }
@@ -222,7 +222,7 @@ object http3_frame = {
         require num_queued_frames(scid) > 0 -> e = queued_level(scid);
         require ~conn_closed(scid);  # [8]
         require conn_seen(scid);  # [9]
-        ...
+        # ...
         call enqueue_http3_frame(scid,f,e,false,seq_num);
     }
 }
