@@ -1,0 +1,13 @@
+#lang ivy1.7
+
+# BGP Routing Information Base [rfc4271:3.2]
+
+relation adj_rib_in(peer:bgp_id, r:bgp_route)
+relation loc_rib(r:bgp_route)
+relation adj_rib_out(peer:bgp_id, r:bgp_route)
+
+after init {
+    adj_rib_in(P, R) := false;
+    loc_rib(R) := false;
+    adj_rib_out(P, R) := false;
+}
