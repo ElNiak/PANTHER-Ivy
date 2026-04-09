@@ -38,19 +38,19 @@ object option_name = {
 
     object if_match = { # [1] If-Match
         variant this of option_name = struct {
-            opaque : stream_data, # opaque
+            opaque : stream_data  # opaque
         }
     }
 
     object uri_host = { # [3] Uri-Host
         variant this of option_name = struct {
-            string : stream_data, # string
+            string : stream_data  # string
         }
     }
 
     object etag = { # [4] ETag
         variant this of option_name = struct {
-            opaque : stream_data, # opaque
+            opaque : stream_data  # opaque
         }
     }
 
@@ -67,13 +67,13 @@ object option_name = {
 
     object location_path = { # [8] Location-Path
         variant this of option_name = struct {
-            string : stream_data, # string
+            string : stream_data  # string
         }
     }
 
     object uri_path = { # [11] Uri-Path
         variant this of option_name = struct {
-            string : stream_data, # string
+            string : stream_data  # string
         }
     }
 
@@ -91,7 +91,7 @@ object option_name = {
 
     object uri_query = { # [15] Uri-Query
         variant this of option_name = struct {
-            string : stream_data, # string
+            string : stream_data  # string
         }
     }
 
@@ -103,19 +103,19 @@ object option_name = {
 
     object location_query = { # [20] Location-Query
         variant this of option_name = struct {
-            string : stream_data, # string
+            string : stream_data  # string
         }
     }
 
     object proxy_uri = { # [35] Proxy-Uri
         variant this of option_name = struct {
-            string : stream_data, # string
+            string : stream_data  # string
         }
     }
 
     object proxy_scheme = { # [39] Proxy-Scheme
         variant this of option_name = struct {
-            string : stream_data, # string
+            string : stream_data  # string
         }
     }
 

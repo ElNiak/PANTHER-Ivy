@@ -58,9 +58,9 @@ object message_method = {
 
     object request = {
         variant this of message_method = struct {
-            req_type : coap_message_method
-            res_id   : stream_data
-            payload  : stream_data
+            req_type : coap_message_method,
+            res_id   : stream_data,
+            payload  : stream_data,
             metadata : stream_data
         }
     }
@@ -95,8 +95,8 @@ object message_method = {
 #       request.
     object response = {
         variant this of message_method = struct {
-            code_class   : coap_message_code_class
-            code_detail  : coap_message_code_definition
+            code_class   : coap_message_code_class,
+            code_detail  : coap_message_code_definition,
             payload      : stream_data
         }
     }

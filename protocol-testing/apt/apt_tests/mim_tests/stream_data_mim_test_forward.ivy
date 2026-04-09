@@ -35,7 +35,7 @@ object packet = {
         ...
         before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
 
-            if _generating {;
+            if _generating {
                 require pkt.payload = malicious_stream_data_packet_received_last_round(dst).payload;
             }
         }

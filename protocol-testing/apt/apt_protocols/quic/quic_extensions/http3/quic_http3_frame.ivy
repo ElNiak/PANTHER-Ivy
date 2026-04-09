@@ -58,7 +58,7 @@ object http3_frame = {
     # Type (i) = 0x05,
     object push_promise = {
         variant this of http3_frame = struct {
-            push_id : stream_data
+            push_id : stream_data,
             encoded_field_section : stream_data
         }
     }
@@ -66,8 +66,8 @@ object http3_frame = {
     # Type (i) = 0x07,
     object goaway = {
         variant this of http3_frame = struct {
-            stream_id : stream_data
-            error_code : stream_data
+            stream_id : stream_data,
+            error_code : stream_data,
             reason : stream_data
         }
     }
