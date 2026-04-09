@@ -43,9 +43,13 @@ export bgp_open_message_event
 export bgp_update_message_event
 export bgp_keepalive_message_event
 export bgp_notification_message_event
+export hold_timer_expired
+export keepalive_timer_expired
 
 export speaker_send_event
 
 export action _finalize = {
-
+    require conn_state(bgp_impl_instance.bgpid) = bgp_connection_state.established
+          | conn_state(bgp_impl_instance.bgpid) = bgp_connection_state.idle;
+    require open_message_recv(bgp_impl_instance.bgpid);
 }
