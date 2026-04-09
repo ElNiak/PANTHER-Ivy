@@ -1,1 +1,80 @@
 #lang ivy1.7
+
+# BGP Timers [rfc4271:10]
+
+# Negotiated hold time per peer (seconds). 0 = no timer.
+function hold_time(C:bgp_id) : seconds
+# Keepalive interval = hold_time / 3 [rfc4271:10]
+function keepalive_time(C:bgp_id) : seconds
+
+# Timer liveness state
+relation hold_timer_running(C:bgp_id)
+relation keepalive_timer_running(C:bgp_id)
+
+after init {
+    hold_time(C) := 180;
+    keepalive_time(C) := 60;
+    hold_timer_running(C) := false;
+    keepalive_timer_running(C) := false;
+}
+
+# Start timers on entering OpenConfirm [rfc4271:8.2.2]
+after bgp_open_message_event {
+    if hold_time(src) ~= 0 {
+        hold_timer_running(src) := true;
+        keepalive_timer_running(src) := true;
+    }
+}
+
+# Reset HoldTimer on KEEPALIVE receipt [rfc4271:8.2.2]
+after bgp_keepalive_message_event {
+    if hold_time(src) ~= 0 {
+        hold_timer_running(src) := true;
+    }
+}
+
+# Reset HoldTimer on UPDATE receipt [rfc4271:8.2.2]
+after bgp_update_message_event {
+    if hold_time(src) ~= 0 {
+        hold_timer_running(src) := true;
+    }
+}
+
+# HoldTimer expiry action [rfc4271:8.2.2]
+action hold_timer_expired(src:bgp_id)
+
+before hold_timer_expired {
+    require hold_timer_running(src);
+    require conn_state(src) = bgp_connection_state.open_sent
+          | conn_state(src) = bgp_connection_state.open_confirm
+          | conn_state(src) = bgp_connection_state.established;
+    # [rfc4271:8.2.2:holdtimer]
+}
+
+after hold_timer_expired {
+    hold_timer_running(src) := false;
+    keepalive_timer_running(src) := false;
+    is_errored(src) := true;
+}
+
+# KeepaliveTimer expiry action [rfc4271:8.2.2]
+action keepalive_timer_expired(src:bgp_id)
+
+before keepalive_timer_expired {
+    require keepalive_timer_running(src);
+    require conn_state(src) = bgp_connection_state.open_confirm
+          | conn_state(src) = bgp_connection_state.established;
+    # [rfc4271:10]
+}
+
+after keepalive_timer_expired {
+    keepalive_timer_running(src) := true;
+}
+
+# Stop all timers on NOTIFICATION (session teardown) [rfc4271:8.2.2]
+after bgp_notification_message_event {
+    hold_timer_running(src) := false;
+    hold_timer_running(dst) := false;
+    keepalive_timer_running(src) := false;
+    keepalive_timer_running(dst) := false;
+}

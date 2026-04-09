@@ -59,4 +59,7 @@ after bgp_notification_message_event {
 }
 
 # HoldTimer expiry -> Idle [rfc4271:8.2.2]
-# Deferred until hold_timer_expired is defined in bgp_time.ivy (Task 8)
+# (hold_timer_expired action defined in bgp_time.ivy)
+after hold_timer_expired {
+    conn_state(src) := bgp_connection_state.idle;
+}
