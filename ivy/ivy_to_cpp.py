@@ -1826,12 +1826,22 @@ def _detect_openssl_prefix():
 
 def get_lib_dirs(with_z3=True):
     import platform
+    import subprocess
     def file_dir_path(x):
         return os.path.dirname(os.path.abspath(x))
     files = [__file__]
-#    if sys.version_info[0] >= 3 and with_z3:
-#        files.append(z3.__file__)
     dirs = [file_dir_path(x) for x in files]
+    if with_z3:
+        try:
+            z3_pkg_dir = subprocess.check_output(
+                [sys.executable, "-c",
+                 "import z3, os; print(os.path.dirname(os.path.abspath(z3.__file__)))"],
+                text=True, stderr=subprocess.DEVNULL
+            ).strip()
+            if z3_pkg_dir and os.path.isdir(os.path.join(z3_pkg_dir, "include")):
+                dirs.append(z3_pkg_dir)
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            pass
     if platform.system() == 'Darwin':
         dirs.append(_detect_openssl_prefix())
     if with_z3 and 'Z3DIR' in os.environ:
