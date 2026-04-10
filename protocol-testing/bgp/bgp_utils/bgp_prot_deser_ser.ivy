@@ -1,16 +1,16 @@
 #lang ivy1.7
 
-object bgp_prot_ser = {}
+object bgp_raw_ser = {}
 
 <<< member
 
-    class `bgp_prot_ser`;
+    class `bgp_raw_ser`;
 
 >>>
 
 <<< impl
 
-    class `bgp_prot_ser` : public ivy_binary_ser_128 {
+    class `bgp_raw_ser` : public ivy_binary_ser_128 {
     public:
 
         void open_list(int) {
@@ -29,20 +29,20 @@ object bgp_prot_ser = {}
 # This is a bit redundant with the above code, however this can't be helped as
 # there is no way for the deserializer to have access to the ivy object.
 
-object bgp_prot_deser = {}
+object bgp_raw_deser = {}
 
 <<< member
 
-    class `bgp_prot_deser`;
+    class `bgp_raw_deser`;
 
 >>>
 
 <<< impl
 
-    class `bgp_prot_deser` : public ivy_binary_deser_128 {
+    class `bgp_raw_deser` : public ivy_binary_deser_128 {
         int data_remaining;
     public:
-        bgp_prot_deser(const std::vector<char> &inp) : ivy_binary_deser_128(inp) {
+        bgp_raw_deser(const std::vector<char> &inp) : ivy_binary_deser_128(inp) {
             data_remaining = inp.size();
         }
 
