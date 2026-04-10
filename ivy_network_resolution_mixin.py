@@ -255,6 +255,20 @@ class IvyNetworkResolutionMixin:
             "cache_size": len(self._network_placeholder_cache),
         }
 
+    @staticmethod
+    def _format_ip_hex(ip_str: str) -> str:
+        """Convert dotted-decimal IP to 0x-prefixed hex for Ivy models.
+
+        Example: '10.0.0.1' -> '0x0a000001'
+        """
+        import ipaddress
+
+        try:
+            addr = ipaddress.ip_address(ip_str)
+            return f"0x{int(addr):08x}"
+        except (ValueError, TypeError):
+            return ip_str
+
     def preprocess_template_context_with_network_resolution(
         self, context: Dict[str, Any]
     ) -> Dict[str, Any]:

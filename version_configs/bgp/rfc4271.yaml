@@ -1,0 +1,42 @@
+version: "rfc4271"
+env:
+  PROTOCOL_TESTED: "bgp"
+parameters:
+  speaker_addr:
+    value: "@{client_service:ip:hex}"
+    description: "Ivy speaker IP address (hex format for Ivy model)"
+  speaker_id:
+    value: "@{client_service:ip:hex}"
+    description: "Ivy speaker BGP identifier (hex)"
+  speaker_as:
+    value: "1"
+    description: "Ivy speaker AS number"
+  speaker_impl_addr:
+    value: "@{server_service:ip:hex}"
+    description: "IUT speaker IP address (hex)"
+  speaker_impl_id:
+    value: "@{server_service:ip:hex}"
+    description: "IUT speaker BGP identifier (hex)"
+  speaker_impl_as:
+    value: "2"
+    description: "IUT speaker AS number"
+server:
+  binary:
+    dir: "PANTHER_IVY_INSTALL_DIR/protocol-testing/"
+    name: ""
+  speaker_addr: "@{server_service:ip:hex}"
+  speaker_id: "@{server_service:ip:hex}"
+  speaker_as: "1"
+  speaker_impl_addr: "@{client_service:ip:hex}"
+  speaker_impl_id: "@{client_service:ip:hex}"
+  speaker_impl_as: "2"
+client:
+  binary:
+    dir: "PANTHER_IVY_INSTALL_DIR/protocol-testing/"
+    name: ""
+  speaker_addr: "@{client_service:ip:hex}"
+  speaker_id: "@{client_service:ip:hex}"
+  speaker_as: "1"
+  speaker_impl_addr: "@{server_service:ip:hex}"
+  speaker_impl_id: "@{server_service:ip:hex}"
+  speaker_impl_as: "2"
