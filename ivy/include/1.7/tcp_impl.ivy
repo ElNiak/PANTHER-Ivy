@@ -43,6 +43,7 @@ module tcp_impl(addr,pkt,me,ip_addr, port_base,ser,des) = {
 
 <<< header
 
+    #include <iostream>
     #include <netinet/tcp.h>
     #include <list>
     #include <semaphore.h>
@@ -57,6 +58,10 @@ module tcp_impl(addr,pkt,me,ip_addr, port_base,ser,des) = {
 
     class tcp_config {
     public:
+        unsigned long default_addr;
+        tcp_config() : default_addr(INADDR_ANY) {}
+        tcp_config(unsigned long a) : default_addr(a) {}
+
         // get the address and port from the endpoint id
         virtual void get(int id, unsigned long &inetaddr, unsigned long &inetport);
 
@@ -225,8 +230,7 @@ module tcp_impl(addr,pkt,me,ip_addr, port_base,ser,des) = {
             inetaddr = ntohl(inet_addr("127.0.0.1")); // can't send to INADDR_ANY in windows
 #else
             std::cerr << "WARNING: using default TCP configuration\n";
-            //std::cerr << `ip_addr`;
-            inetaddr =  0x0a000001; //INADDR_ANY; //TODO
+            inetaddr = default_addr;
 #endif
             inetport = `port_base`; //+ id;
     }
@@ -283,11 +287,13 @@ module tcp_impl(addr,pkt,me,ip_addr, port_base,ser,des) = {
     int make_tcp_socket() {
         int sock = ::socket(AF_INET, SOCK_STREAM, 0);
         char * dev = strdup("ivy"); //strdup("lo"); //TODO
+#ifdef __linux__
         struct ifreq ifr;
         memset(&ifr, 0, sizeof(struct ifreq));
         ifr.ifr_flags = false;
         snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "lo");
         ioctl(sock, SIOCGIFINDEX, &ifr);
+#endif
         /*if (addr.interface == `ip.ivy`) {
             dev = strdup("ivy");
         }*/
@@ -738,7 +744,8 @@ object impl = {
 
     <<< init
 
-        the_tcp_config = 0;
+        if (!the_tcp_config)
+            the_tcp_config = new tcp_config(`ip_addr`);
 
         // Create the callbacks. In a parameterized instance, this creates
         // one set of callbacks for each endpoint id. When you put an
