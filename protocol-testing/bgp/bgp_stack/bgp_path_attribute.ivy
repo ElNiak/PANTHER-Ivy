@@ -238,10 +238,15 @@ object path_attr = {
     }
 }
 
-action as_idx_to_stream_pos(c:autonomous_system.idx) returns(res:stream_pos) = {
-    <<<
-    res = c;
-    >>>
+action as_idx_to_stream_pos(c:autonomous_system.idx) returns(res:stream_pos)
+
+object as_idx_cast = {
+    implement as_idx_to_stream_pos(c:autonomous_system.idx) returns(res:stream_pos) {
+        <<<
+        res = c;
+        >>>
+    }
+    trusted isolate iso = this
 }
 
 object path_attr = {
