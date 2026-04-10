@@ -12,9 +12,21 @@ include ip
 # If the environment does not set up a configuration, the the endpoint has IP address 127.0.0.1
 # and port number port_base + me.
 
-module tcp_impl(pkt,me,ip_addr, port_base,ser,des) = {
+module tcp_impl(addr,pkt,me,ip_addr, port_base,ser,des) = {
 
-    # type socket
+    type socket
+
+    # Client-initiated actions
+    action close(self:addr, s:socket)
+    action connect(self:addr, other:addr, other_ip:ip.addr) returns (s:socket)
+    action connect_accept(self:addr, other:addr, other_ip:ip.addr) returns (s:socket)
+    action send(self:addr, s:socket, other:addr, p:pkt) returns (ok:bool)
+
+    # Callbacks from TCP layer — implemented by the protocol shim
+    action accept(self:addr, s:socket, other:addr)
+    action recv(self:addr, s:socket, p:pkt)
+    action failed(self:addr, s:socket)
+    action connected(self:addr, s:socket)
 
 # These empty objects are used to hold C++ values.
 
@@ -746,7 +758,7 @@ object impl = {
     # These actions are handlers for the callbacks. They just insert the endpoint's id
     # and call the corresponding callback action.
 
-    action handle_accept(s:socket, other:bgp_id) = {
+    action handle_accept(s:socket, other:addr) = {
         call show_handle_accept(s,other);
         call accept(me,s,other)
     }
@@ -766,14 +778,14 @@ object impl = {
         call connected(me,s)
     }
 
-    # implement connected(self:bgp_id, s:socket) {
+    # implement connected(self:addr, s:socket) {
     #     <<< impure
     #         std::cerr << "CONNECTED " << s << std::endl;
     #         //`rdr`->read();
     #     >>>
     # }
 
-    action show_handle_accept(s:socket, other:bgp_id) = {
+    action show_handle_accept(s:socket, other:addr) = {
         <<< impure
             std::cerr << "handle ACCEPTED " << s << std::endl;
         >>>
@@ -803,7 +815,7 @@ object impl = {
 
     # close the socket
 
-    implement close(self:bgp_id, s:socket) {
+    implement close(self:addr, s:socket) {
         <<< impure
             std::cerr << "CLOSING " << s << std::endl;
             // We don't want to close a socket when there is another thread
@@ -831,7 +843,7 @@ object impl = {
     # connect creates a socket and then installs a connector task
     # to establish the connection asynchronously.
 
-    implement connect(self:bgp_id, other:bgp_id, other_ip:ip.addr) returns (s:socket) {
+    implement connect(self:addr, other:addr, other_ip:ip.addr) returns (s:socket) {
         <<< impure
             s = make_tcp_socket();
             std::cerr << "SOCKET " << s << std::endl;
@@ -855,7 +867,7 @@ object impl = {
         >>>
     }
 
-    implement connect_accept(self:bgp_id, other:bgp_id, other_ip:ip.addr) returns (s:socket) {
+    implement connect_accept(self:addr, other:addr, other_ip:ip.addr) returns (s:socket) {
         <<< impure
             s = make_tcp_socket();
             std::cerr << "SOCKET " << s << std::endl;
@@ -886,7 +898,7 @@ object impl = {
     # ordered semantics, we will need to have an additional return code indicating
     # the packet could not be queued (analogous to EAGAIN).
 
-    implement send(self:bgp_id, s:socket,other:bgp_id, p:pkt) returns (ok:bool) {
+    implement send(self:addr, s:socket,other:addr, p:pkt) returns (ok:bool) {
         <<< impure
                 //ivy_binary_ser sr;
                 //ivy_binary_ser_128 sr;
