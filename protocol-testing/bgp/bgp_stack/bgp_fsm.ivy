@@ -1,5 +1,7 @@
 #lang ivy1.7
 
+include bgp_type
+
 # BGP Connection Finite State Machine [rfc4271:8]
 
 object bgp_connection_state = {
@@ -62,4 +64,16 @@ after bgp_notification_message_event {
 # (hold_timer_expired action defined in bgp_time.ivy)
 after hold_timer_expired {
     conn_state(src) := bgp_connection_state.idle;
+}
+
+# FSM guards for timer actions (avoid circular include with bgp_time.ivy)
+before hold_timer_expired {
+    require conn_state(src) = bgp_connection_state.open_sent
+          | conn_state(src) = bgp_connection_state.open_confirm
+          | conn_state(src) = bgp_connection_state.established;
+}
+
+before keepalive_timer_expired {
+    require conn_state(src) = bgp_connection_state.open_confirm
+          | conn_state(src) = bgp_connection_state.established;
 }

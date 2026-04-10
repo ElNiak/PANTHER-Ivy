@@ -7,7 +7,3 @@ relation update_processed(src:bgp_id, dst:bgp_id)
 after init {
     update_processed(S, D) := false;
 }
-
-after bgp_update_message_event {
-    update_processed(src, dst) := true;
-}

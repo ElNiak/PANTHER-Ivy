@@ -1,5 +1,7 @@
 #lang ivy1.7
 
+include bgp_type
+
 # BGP Timers [rfc4271:10]
 
 # Negotiated hold time per peer (seconds). 0 = no timer.
@@ -45,9 +47,6 @@ action hold_timer_expired(src:bgp_id)
 
 before hold_timer_expired {
     require hold_timer_running(src);
-    require conn_state(src) = bgp_connection_state.open_sent
-          | conn_state(src) = bgp_connection_state.open_confirm
-          | conn_state(src) = bgp_connection_state.established;
     # [rfc4271:8.2.2:holdtimer]
 }
 
@@ -62,8 +61,6 @@ action keepalive_timer_expired(src:bgp_id)
 
 before keepalive_timer_expired {
     require keepalive_timer_running(src);
-    require conn_state(src) = bgp_connection_state.open_confirm
-          | conn_state(src) = bgp_connection_state.established;
     # [rfc4271:10]
 }
 

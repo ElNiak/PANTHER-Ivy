@@ -125,3 +125,7 @@ around  bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_me
 }
 
 import action show_path_attr_size(s:stream_pos)
+
+after bgp_update_message_event {
+    update_processed(src, dst) := true;
+}
