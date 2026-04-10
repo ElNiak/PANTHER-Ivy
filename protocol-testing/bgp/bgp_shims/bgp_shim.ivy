@@ -3,7 +3,6 @@
 include byte_stream
 include ip
 
-include bgp_time
 include deserializer
 
 include serdes
@@ -29,8 +28,7 @@ include ivy_bgp_speaker
 include ivy_bgp_speaker_behavior
 include bgp_network
 
-include bgp_type # should be change
-include bgp_application
+include bgp_type
 include bgp_community
 include bgp_header_message
 include bgp_keepalive_message
@@ -38,6 +36,8 @@ include bgp_notification_message
 include bgp_update_message
 include bgp_rib
 include bgp_open_message
+include bgp_time
+include bgp_application
 include bgp_fsm
 
 relation isup(A:ip.addr)

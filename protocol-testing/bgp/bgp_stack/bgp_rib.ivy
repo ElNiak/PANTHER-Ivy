@@ -5,9 +5,9 @@ include bgp_route
 
 # BGP Routing Information Base [rfc4271:3.2]
 
-relation adj_rib_in(peer:bgp_id, r:bgp_route)
-relation loc_rib(r:bgp_route)
-relation adj_rib_out(peer:bgp_id, r:bgp_route)
+relation adj_rib_in(P:bgp_id, R:bgp_route)
+relation loc_rib(R:bgp_route)
+relation adj_rib_out(P:bgp_id, R:bgp_route)
 
 after init {
     adj_rib_in(P, R) := false;
