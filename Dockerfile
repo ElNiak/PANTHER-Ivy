@@ -101,6 +101,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     uuid-dev
 
 # Install pyenv (skip if already exists from base image)
+# Use bash explicitly — pyenv init outputs bash-specific syntax that dash cannot parse
+SHELL ["/bin/bash", "-c"]
 RUN if [ -d "$HOME/.pyenv" ]; then \
         echo "pyenv already installed, configuring environment..."; \
     else \
@@ -125,6 +127,7 @@ RUN if [ -d "$HOME/.pyenv" ]; then \
     ln -sf "$(pyenv which python3.10)" /usr/local/bin/python3.10 && \
     ln -sf "$(pyenv which python)"     /usr/local/bin/python && \
     python3.10 -V && which python3.10 && python -V && which python
+SHELL ["/bin/sh", "-c"]
 
 # Build external dependencies
 RUN cd /opt && \
