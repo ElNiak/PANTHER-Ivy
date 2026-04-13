@@ -26,7 +26,7 @@ include bgp_autonomous_system
 include bgp_speaker
 include ivy_bgp_speaker
 include ivy_bgp_speaker_behavior
-include bgp_network
+include bgp_locale
 
 include bgp_type
 include bgp_community
@@ -44,10 +44,11 @@ relation isup(A:ip.addr)
 function getsock(A:ip.addr) : net.socket
 relation pend(A:ip.addr)
 
-after init {
-    isup(A) := false;
-    pend(A) := false;
-}
+# Relations default to false in Ivy — explicit init over bv[32] compiles to a 4B-iteration loop
+# after init {
+#     isup(A) := false;
+#     pend(A) := false;
+# }
 
 implement net.connected(src:bgp_id, s:net.socket) {
     call show_connected(src,s);
@@ -78,8 +79,11 @@ import action show_connected(src:bgp_id, s:net.socket)
 # }
 
 implement net.accept(src:bgp_id,s:net.socket,other:bgp_id) {
-    # we ignore accept events
     call show_tcp_accepted;
+    pend(bgpid_to_other_endpoint(src)) := false;
+    isup(bgpid_to_other_endpoint(src)) := true;
+    isup(bgpid_to_endpoint(src))       := true;
+    getsock(bgpid_to_other_endpoint(src)) := s;
 }
 
 import action show_tcp_accepted

@@ -23,6 +23,13 @@ after net.connected {
     }
 }
 
+# Idle -> OpenSent on incoming TCP accept [rfc4271:8.2.2]
+after net.accept {
+    if conn_state(self) = bgp_connection_state.idle {
+        conn_state(self) := bgp_connection_state.open_sent;
+    }
+}
+
 # OPEN only valid in OpenSent [rfc4271:8.2.2]
 before bgp_open_message_event {
     require conn_state(src) = bgp_connection_state.open_sent;

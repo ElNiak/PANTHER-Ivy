@@ -48,6 +48,7 @@ object bgp_raw_deser = {}
 
         void  get(int128_t &res) {
             getn(res,1);
+            data_remaining--;
         }
 
         unsigned char peek(unsigned p) {
@@ -59,14 +60,7 @@ object bgp_raw_deser = {}
         }
 
         bool open_list_elem() {
-            /*
-            if (!more(1)) {
-                return false;
-            }
-            */
-            bool res = data_remaining--> = 0;
-            //if(data_remaining == 0) pos++;
-            return res;
+            return data_remaining > 0;
         }
         void close_list_elem() {
         }

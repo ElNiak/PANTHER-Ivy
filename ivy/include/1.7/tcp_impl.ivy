@@ -45,6 +45,7 @@ module tcp_impl(addr,pkt,me,ip_addr, port_base,ser,des) = {
 
     #include <iostream>
     #include <netinet/tcp.h>
+    #include <netinet/in.h>
     #include <list>
     #include <semaphore.h>
     #include <sys/ioctl.h>
@@ -413,7 +414,17 @@ module tcp_impl(addr,pkt,me,ip_addr, port_base,ser,des) = {
 
                 ivy->__lock();
                 ivy->_generating = false;
-                cb.rcb(sock,pkt);
+                try {
+                    cb.rcb(sock,pkt);
+                }
+                catch (deser_err &){
+                    std::cerr << "DESER ERROR IN PROTOCOL CALLBACK\n";
+                    ivy->__unlock();
+                    cb.fcb(sock);
+                    close(sock);
+                    sock = -1;
+                    return;
+                }
                 ivy->__unlock();
             }
             std::cerr << "RECEIVING finsh\n";
@@ -433,8 +444,8 @@ module tcp_impl(addr,pkt,me,ip_addr, port_base,ser,des) = {
         tcp_queue *queue;
         bool connected;
       public:
-        tcp_writer(int my_id, int sock, tcp_queue *queue, const tcp_callbacks &cb, ivy_class *ivy)
-            : tcp_task(my_id,sock,cb,ivy), queue(queue), connected(false) {
+        tcp_writer(int my_id, int sock, tcp_queue *queue, const tcp_callbacks &cb, ivy_class *ivy, bool initially_connected = false)
+            : tcp_task(my_id,sock,cb,ivy), queue(queue), connected(initially_connected) {
         }
 
         virtual int fdes() {
@@ -719,7 +730,7 @@ object impl = {
 
     <<< member
 
-        tcp_config *the_tcp_config;  // the current configurations
+        tcp_config *the_tcp_config = nullptr;  // the current configurations
 
         // Get the current TCP configuration. If none, create a default one.
 
@@ -765,8 +776,23 @@ object impl = {
     # These actions are handlers for the callbacks. They just insert the endpoint's id
     # and call the corresponding callback action.
 
+    action ensure_send_queue(s:socket, other:addr) = {
+        <<< impure
+            if (`send_queue`.find(s) == `send_queue`.end()) {
+                std::cerr << "CREATING SEND QUEUE FOR ACCEPTED SOCKET " << s << std::endl;
+                tcp_queue *queue = new tcp_queue(other, 0);
+                `send_queue`[s] = queue;
+                install_thread(new tcp_writer(`me`, s, queue, *`cb`, this, true));
+            } else {
+                std::cerr << "REOPENING SEND QUEUE FOR ACCEPTED SOCKET " << s << std::endl;
+                `send_queue`[s] -> set_open(other);
+            }
+        >>>
+    }
+
     action handle_accept(s:socket, other:addr) = {
         call show_handle_accept(s,other);
+        call ensure_send_queue(s, other);
         call accept(me,s,other)
     }
 

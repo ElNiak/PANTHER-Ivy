@@ -7,7 +7,7 @@ include ivy_bgp_speaker_behavior
 
 relation slept_bgp
 
-after init { #getsock(bgp_impl_instance.ep.addr)
+after init {
     getsock(bgp_impl_instance.ep.addr) :=  net.connect(bgp_ivy_instance.bgpid, bgp_impl_instance.bgpid, bgp_impl_instance.ep.addr);
     pend(bgp_impl_instance.ep.addr) := true;
     slept_bgp := false;
