@@ -32,11 +32,13 @@ after net.accept {
     }
 }
 
-# OPEN valid when either side is in OpenSent [rfc4271:8.2.2]
-# Disjunctive: src=local sending OR dst=local receiving
+# OPEN valid in OpenSent or OpenConfirm [rfc4271:8.2.2]
+# OpenConfirm needed because FRR sends OPEN before the tester generates Ivy's
 before bgp_open_message_event {
     require conn_state(src) = bgp_connection_state.open_sent
-          | conn_state(dst) = bgp_connection_state.open_sent;
+          | conn_state(src) = bgp_connection_state.open_confirm
+          | conn_state(dst) = bgp_connection_state.open_sent
+          | conn_state(dst) = bgp_connection_state.open_confirm;
 }
 
 # OpenSent -> OpenConfirm on receiving OPEN [rfc4271:8.2.2]

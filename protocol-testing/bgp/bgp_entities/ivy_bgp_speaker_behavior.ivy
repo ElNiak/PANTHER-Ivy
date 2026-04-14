@@ -128,10 +128,10 @@ before bgp_keepalive_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_keepali
 before bgp_notification_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_notification_message){
     if _generating {
         require header_length = 0;
-        require src = bgp_ivy_instance.bgpid; # TODO message is not sent
+        require src = bgp_ivy_instance.bgpid;
         require dst = bgp_impl_instance.bgpid;
         require header_payload.end = 0;
-        require bgp_message.data = stream_data.empty;
+        require bgp_message.data.end = 0;
         header_type   := bgp_message_type.notification_mess;
         header_length := 21;
     }
