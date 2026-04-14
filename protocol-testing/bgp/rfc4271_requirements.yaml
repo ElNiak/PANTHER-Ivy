@@ -166,12 +166,12 @@ requirements:
     level: MUST
     layer: update
     testable: true
-  'rfc4271:9.2':
+  'rfc4271:9.1.2':
     text: >-
       A BGP speaker MUST NOT advertise a route from the Adj-RIBs-In
       of a peer to that same peer (no hairpin).  All feasible routes
       in the Adj-RIBs-In are candidates for the Decision Process.
-    section: '9.2'
+    section: '9.1.2'
     level: MUST NOT
     layer: update
     testable: true
@@ -192,6 +192,7 @@ requirements:
     level: MUST
     layer: packet-format
     testable: true
+    note: Code annotation is on generator-side constraint (header_length > 0), weaker than RFC minimum of 19 due to stream_pos abstraction
   'rfc4271:4.1:length_min':
     text: >-
       The Length field MUST have the smallest value required, given
@@ -212,6 +213,7 @@ requirements:
     level: SHOULD NOT
     layer: update
     testable: true
+    note: Code annotation covers ORIGIN presence in established session, not value immutability
   'rfc4271:5.1.2':
     text: >-
       AS_PATH is a well-known mandatory attribute that identifies
@@ -221,6 +223,7 @@ requirements:
     level: MUST
     layer: update
     testable: true
+    note: Level MUST covers attribute existence (well-known mandatory); prepend behavior is SHOULD (see 5.1.2:external)
   'rfc4271:5.1.2:internal':
     text: >-
       When a given BGP speaker advertises the route to an internal

@@ -110,7 +110,7 @@ action bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_mes
 relation bgp_update_event
 around  bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_message) {
     require isup(bgpid_to_endpoint(src));
-    require open_message_recv(src) & open_message_recv(dst); # [rfc4271:9.1]
+    require open_message_recv(src) & open_message_recv(dst); # [rfc4271:9]
     require origin_present(src); # [rfc4271:4.3]
     require num_queued_path_attr(src) >= 0;
     call show_path_attr_size(path_attr_size(src));
@@ -127,7 +127,7 @@ around  bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_me
 
 import action show_path_attr_size(s:stream_pos)
 
-# Feasible routes from Adj-RIBs-In are candidates for Decision Process [rfc4271:9.2]
+# Feasible routes from Adj-RIBs-In are candidates for Decision Process [rfc4271:9.1.2]
 after bgp_update_message_event {
-    update_processed(src, dst) := true; # [rfc4271:9.2]
+    update_processed(src, dst) := true; # [rfc4271:9.1.2]
 }
