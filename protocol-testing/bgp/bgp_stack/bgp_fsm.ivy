@@ -18,15 +18,17 @@ after init {
 # Idle -> OpenSent on TCP success [rfc4271:8.2.2]
 # Collapses Idle -> Connect -> OpenSent (ConnectRetryTimer deferred)
 after net.connected {
-    if conn_state(self) = bgp_connection_state.idle {
-        conn_state(self) := bgp_connection_state.open_sent;
+    var bid := net_ep_to_bgpid(self);
+    if conn_state(bid) = bgp_connection_state.idle {
+        conn_state(bid) := bgp_connection_state.open_sent;
     }
 }
 
 # Idle -> OpenSent on incoming TCP accept [rfc4271:8.2.2]
 after net.accept {
-    if conn_state(self) = bgp_connection_state.idle {
-        conn_state(self) := bgp_connection_state.open_sent;
+    var bid := net_ep_to_bgpid(self);
+    if conn_state(bid) = bgp_connection_state.idle {
+        conn_state(bid) := bgp_connection_state.open_sent;
     }
 }
 

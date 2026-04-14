@@ -1,8 +1,8 @@
 #lang ivy1.7
 
-include tcp_impl
+include network_implementation
 
 # BGP transport locale — binds the Ivy speaker to TCP port 179 [rfc4271:4.2]
-instance net : tcp_impl(bgp_id, bm.arr, bgp_ivy_instance.bgpid, speaker_addr, 179, bgp_prot_ser, bgp_prot_deser)
+instance net : network_implementation(endpoint_id, bm.arr, bgp_prot_ser, bgp_prot_deser, 179, speaker_addr)
 
 var sock : net.socket

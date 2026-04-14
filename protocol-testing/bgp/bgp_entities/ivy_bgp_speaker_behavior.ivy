@@ -6,7 +6,22 @@ include file
 include random_value
 
 action endpoint_to_pid(src:bgp_id) returns (pid:endpoint_id) = {
-    pid := endpoint_id.speaker;
+    if src = bgp_ivy_instance.bgpid {
+        pid := endpoint_id.ivy_speaker;
+    } else {
+        pid := endpoint_id.impl_speaker;
+    }
+}
+
+# Mapping functions for network_implementation host type (endpoint_id)
+function net_ep_to_bgpid(E:endpoint_id) : bgp_id
+function net_ep_to_addr(E:endpoint_id) : ip.addr
+
+after init {
+    net_ep_to_bgpid(endpoint_id.ivy_speaker)  := bgp_ivy_instance.bgpid;
+    net_ep_to_bgpid(endpoint_id.impl_speaker) := bgp_impl_instance.bgpid;
+    net_ep_to_addr(endpoint_id.ivy_speaker)   := bgp_ivy_instance.ep.addr;
+    net_ep_to_addr(endpoint_id.impl_speaker)  := bgp_impl_instance.ep.addr;
 }
 
 action socket_endpoint(s:net.socket) returns (src:bgp_id) = {

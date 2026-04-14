@@ -50,13 +50,12 @@ relation pend(A:ip.addr)
 #     pend(A) := false;
 # }
 
-implement net.connected(src:bgp_id, s:net.socket) {
-    call show_connected(src,s);
-    # if some(other:ip.addr) pend(other) & getsock(other) = s {
-    pend(bgpid_to_other_endpoint(src)) := false;
-    isup(bgpid_to_other_endpoint(src)) := true;
-    isup(bgpid_to_endpoint(src))       := true;
-    # }
+implement net.connected(src:endpoint_id, s:net.socket) {
+    var bid := net_ep_to_bgpid(src);
+    call show_connected(bid,s);
+    pend(bgpid_to_other_endpoint(bid)) := false;
+    isup(bgpid_to_other_endpoint(bid)) := true;
+    isup(bgpid_to_endpoint(bid))       := true;
 }
 
 import action show_connected(src:bgp_id, s:net.socket)
@@ -78,19 +77,24 @@ import action show_connected(src:bgp_id, s:net.socket)
 #     }
 # }
 
-implement net.accept(src:bgp_id,s:net.socket,other:bgp_id) {
+implement net.accept(src:endpoint_id,s:net.socket,other:endpoint_id) {
     call show_tcp_accepted;
-    pend(bgpid_to_other_endpoint(src)) := false;
-    isup(bgpid_to_other_endpoint(src)) := true;
-    isup(bgpid_to_endpoint(src))       := true;
-    getsock(bgpid_to_other_endpoint(src)) := s;
+    var bid := net_ep_to_bgpid(src);
+    pend(bgpid_to_other_endpoint(bid)) := false;
+    isup(bgpid_to_other_endpoint(bid)) := true;
+    isup(bgpid_to_endpoint(bid))       := true;
+    getsock(bgpid_to_other_endpoint(bid)) := s;
 }
 
 import action show_tcp_accepted
 
-implement net.recv(src:bgp_id, s:net.socket, pkts:bm.arr) {
-    call bgp_ivy_instance.behavior(s,src,pkts); # TODO manage multiple speakers
+implement net.recv_tcp(src:endpoint_id, s:net.socket, pkts:bm.arr) {
+    call show_net_recv_bgp;
+    var bid := net_ep_to_bgpid(src);
+    call bgp_ivy_instance.behavior(s,bid,pkts); # TODO manage multiple speakers
 }
+
+import action show_net_recv_bgp
 
 import action undefined_host_error(host:endpoint_id, s:net.socket, src:bgp_id)
 
@@ -103,7 +107,7 @@ after bgp_header_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_header_mess
         var spkt := bgp_message_serdes.to_bytes(bgp_message);
         var pkts := bm.arr.empty;
         pkts := pkts.append(spkt);
-        var ok := net.send(src,endpoint_to_socket(src),dst,pkts);
+        var ok := net.send_tcp(endpoint_to_pid(src),endpoint_to_socket(src),endpoint_to_pid(dst),pkts);
         header_payload := stream_data.empty;
         #sheader_payload.end := 0;
         header_length  := 0;
