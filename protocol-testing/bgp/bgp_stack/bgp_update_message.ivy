@@ -105,6 +105,7 @@ object bgp_update_message = {
     instance arr : array(idx,this)
 }
 
+# UPDATE advertises a single route with path attributes and NLRI [rfc4271:9.1]
 action bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_message) = {}
 relation bgp_update_event
 around  bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_message) {
@@ -126,6 +127,7 @@ around  bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_me
 
 import action show_path_attr_size(s:stream_pos)
 
+# Feasible routes from Adj-RIBs-In are candidates for Decision Process [rfc4271:9.2]
 after bgp_update_message_event {
     update_processed(src, dst) := true;
 }

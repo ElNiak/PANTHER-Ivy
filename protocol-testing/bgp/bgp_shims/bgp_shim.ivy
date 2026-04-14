@@ -50,6 +50,7 @@ relation pend(A:ip.addr)
 #     pend(A) := false;
 # }
 
+# TCP transport for BGP peering [rfc4271:8.1]
 implement net.connected(src:endpoint_id, s:net.socket) {
     var bid := net_ep_to_bgpid(src);
     call show_connected(bid,s);
@@ -77,6 +78,7 @@ import action show_connected(src:bgp_id, s:net.socket)
 #     }
 # }
 
+# TCP accept for BGP peering [rfc4271:8.1]
 implement net.accept(src:endpoint_id,s:net.socket,other:endpoint_id) {
     call show_tcp_accepted;
     var bid := net_ep_to_bgpid(src);

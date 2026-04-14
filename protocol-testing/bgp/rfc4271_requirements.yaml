@@ -148,3 +148,30 @@ requirements:
     level: MUST
     layer: fsm
     testable: false
+  'rfc4271:8.1':
+    text: >-
+      BGP uses TCP as its transport protocol, on port 179, for
+      establishing peer-to-peer sessions.
+    section: '8.1'
+    level: MUST
+    layer: transport
+    testable: true
+  'rfc4271:9.1':
+    text: >-
+      An UPDATE message may advertise a single route to a peer by
+      including the route's destination, path attributes, and NLRI.
+      The decision process selects routes for advertisement by applying
+      policies to routes in the Loc-RIB.
+    section: '9.1'
+    level: MUST
+    layer: update
+    testable: true
+  'rfc4271:9.2':
+    text: >-
+      A BGP speaker MUST NOT advertise a route from the Adj-RIBs-In
+      of a peer to that same peer (no hairpin).  All feasible routes
+      in the Adj-RIBs-In are candidates for the Decision Process.
+    section: '9.2'
+    level: MUST NOT
+    layer: update
+    testable: true
