@@ -341,7 +341,7 @@ object path_attr = {
         action handle(f:path_attr.atomic_aggregate, src:bgp_id, dst:bgp_id)
 
         around handle {
-            require open_message_recv(src) & open_message_recv(dst);
+            require open_message_recv(src) & open_message_recv(dst); # [rfc4271:5.1.6]
             ...
             path_attr_size(src) := path_attr_size(src) + 2 +1 + 1 + 1 +  4;
             call enqueue_path_attr(src,f);

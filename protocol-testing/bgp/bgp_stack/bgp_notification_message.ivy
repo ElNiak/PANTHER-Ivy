@@ -92,7 +92,7 @@ around bgp_notification_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_noti
             bgp_message.error_code = bgp_error_code.update_mess_error   |
             bgp_message.error_code = bgp_error_code.hold_timer_expire   |
             bgp_message.error_code = bgp_error_code.fsm_error   |
-            bgp_message.error_code = bgp_error_code.cease_error;
+            bgp_message.error_code = bgp_error_code.cease_error; # [rfc4271:6.7]
 
     # TODO modify the deser/ser
     # require bgp_message.error_code =  bgp_error_code.header_mess_error ->

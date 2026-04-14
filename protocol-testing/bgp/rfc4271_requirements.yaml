@@ -302,3 +302,61 @@ requirements:
     level: MAY
     layer: update
     testable: false
+
+  # --- Message Length Requirements ---
+  'rfc4271:4.2:min_length':
+    text: >-
+      The minimum length of the OPEN message is 29 octets (including
+      the message header).
+    section: '4.2'
+    level: MUST
+    layer: handshake
+    testable: true
+  'rfc4271:4.3:min_length':
+    text: >-
+      The minimum length of the UPDATE message is 23 octets -- 19
+      octets for the fixed header + 2 octets for the Withdrawn Routes
+      Length + 2 octets for the Total Path Attribute Length.
+    section: '4.3'
+    level: MUST
+    layer: update
+    testable: true
+  'rfc4271:4.4:length':
+    text: >-
+      A KEEPALIVE message consists of only the message header and has
+      a length of 19 octets.
+    section: '4.4'
+    level: MUST
+    layer: keepalive
+    testable: true
+
+  # --- Additional Path Attributes ---
+  'rfc4271:5.1.6':
+    text: >-
+      ATOMIC_AGGREGATE is a well-known discretionary attribute of
+      length 0.
+    section: '5.1.6'
+    level: SHOULD
+    layer: update
+    testable: true
+  'rfc4271:5.1.7':
+    text: >-
+      AGGREGATOR is an optional transitive attribute of length 6
+      containing the last AS number that formed the aggregate route
+      and the IP address of the BGP speaker that formed it.
+    section: '5.1.7'
+    level: MAY
+    layer: update
+    testable: false
+    note: Variant defined but no handler implementation exists
+
+  # --- Section 6.7: Cease ---
+  'rfc4271:6.7':
+    text: >-
+      In the absence of any fatal errors, a BGP peer MAY choose at
+      any given time to close its BGP connection by sending the
+      NOTIFICATION message with the Error Code Cease.
+    section: '6.7'
+    level: MAY
+    layer: error
+    testable: true
