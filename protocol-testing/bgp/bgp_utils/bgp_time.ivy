@@ -33,24 +33,24 @@ after bgp_open_message_event {
     } else {
         keepalive_time(dst) := 0;
     };
-    # Start sender's timers on entering OpenConfirm
-    if hold_time(src) ~= 0 {
-        hold_timer_running(src) := true;
-        keepalive_timer_running(src) := true;
+    # Start receiver's timers on entering OpenConfirm [rfc4271:8.2.2]
+    if hold_time(dst) ~= 0 {
+        hold_timer_running(dst) := true;
+        keepalive_timer_running(dst) := true;
     }
 }
 
 # Reset HoldTimer on KEEPALIVE receipt [rfc4271:8.2.2]
 after bgp_keepalive_message_event {
-    if hold_time(src) ~= 0 {
-        hold_timer_running(src) := true;
+    if hold_time(dst) ~= 0 {
+        hold_timer_running(dst) := true;
     }
 }
 
 # Reset HoldTimer on UPDATE receipt [rfc4271:8.2.2]
 after bgp_update_message_event {
-    if hold_time(src) ~= 0 {
-        hold_timer_running(src) := true;
+    if hold_time(dst) ~= 0 {
+        hold_timer_running(dst) := true;
     }
 }
 
