@@ -1876,14 +1876,27 @@ def isolate_component(mod,isolate_name,extra_with=[],extra_strip=None,after_init
 
 
     # check that native code does not occur in an untrusted isolate
+    # Skip NativeActions belonging to trusted sub-isolates: their C++ code
+    # is expected and should not block verification of unrelated isolates.
 
     if type(isolate) == ivy_ast.IsolateDef and isolate_mode.get() == 'check':
-        for action in list(mod.actions.values()):
-            if isinstance(action,ia.NativeAction):
-                raise iu.IvyError(action,'trusted code used in untrusted isolate')
+        trusted_prefixes = set()
+        for iso_name, iso_def in mod.isolates.items():
+            if isinstance(iso_def, ivy_ast.TrustedIsolateDef):
+                parent, _ = iu.parent_child_name(iso_name)
+                if parent:
+                    trusted_prefixes.add(parent + '.')
+        def _in_trusted(name):
+            bare = name[4:] if name.startswith('ext:') else name
+            return any(bare.startswith(tp) for tp in trusted_prefixes)
+        for actname, action in list(mod.actions.items()):
+            if isinstance(action, ia.NativeAction) and not _in_trusted(actname):
+                raise iu.IvyError(action, 'trusted code used in untrusted isolate')
         for ldf in mod.definitions:
-            if isinstance(ldf.formula.args[1],ivy_ast.NativeExpr):
-                raise iu.IvyError(action,'trusted code used in untrusted isolate')
+            if isinstance(ldf.formula.args[1], ivy_ast.NativeExpr):
+                defname = ldf.formula.args[0].rep if hasattr(ldf.formula.args[0], 'rep') else ''
+                if not _in_trusted(defname):
+                    raise iu.IvyError(ldf, 'trusted code used in untrusted isolate')
 
 
     # TODO: need a better way to filter signature
