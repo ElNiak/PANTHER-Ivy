@@ -11,5 +11,6 @@ after init {
 }
 
 after bgp_update_message_event {
+    require true; # [rfc4271:9]
     update_processed(src, dst) := true;
 }

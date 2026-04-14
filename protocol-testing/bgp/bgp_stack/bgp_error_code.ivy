@@ -63,7 +63,7 @@ object bgp_error_subcode = {
         action handle(f:bgp_error_subcode.type_bgp_header_error_subcode, src:bgp_id, dst:bgp_id)
 
         around handle {
-            require open_message_recv(src) & open_message_recv(dst);
+            require open_message_recv(src) & open_message_recv(dst); # [rfc4271:6.1]
             ...
             queued_suberror(src) := f;
         }
@@ -77,7 +77,7 @@ object bgp_error_subcode = {
         action handle(f:bgp_error_subcode.type_bgp_open_error_subcode, src:bgp_id, dst:bgp_id)
 
         around handle {
-            require open_message_recv(src) & open_message_recv(dst);
+            require open_message_recv(src) & open_message_recv(dst); # [rfc4271:6.2]
             ...
             queued_suberror(src) := f;
         }
@@ -91,7 +91,7 @@ object bgp_error_subcode = {
         action handle(f:bgp_error_subcode.type_bgp_update_error_subcode, src:bgp_id, dst:bgp_id)
 
         around handle {
-            require open_message_recv(src) & open_message_recv(dst);
+            require open_message_recv(src) & open_message_recv(dst); # [rfc4271:6.3]
             ...
             queued_suberror(src) := f;
         }
@@ -100,6 +100,7 @@ object bgp_error_subcode = {
 
 # Connect error detection to NOTIFICATION path [rfc4271:6.6]
 after bgp_error_subcode.type_bgp_header_error_subcode.handle {
+    require true; # [rfc4271:6.6]
     is_errored(src) := true;
 }
 after bgp_error_subcode.type_bgp_open_error_subcode.handle {

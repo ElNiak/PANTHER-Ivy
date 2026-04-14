@@ -35,6 +35,7 @@ after net.accept {
 # OPEN valid in OpenSent or OpenConfirm [rfc4271:8.2.2]
 # OpenConfirm needed because FRR sends OPEN before the tester generates Ivy's
 before bgp_open_message_event {
+    require true; # [rfc4271:8.2.1]
     require conn_state(src) = bgp_connection_state.open_sent
           | conn_state(src) = bgp_connection_state.open_confirm
           | conn_state(dst) = bgp_connection_state.open_sent
@@ -43,6 +44,7 @@ before bgp_open_message_event {
 
 # OpenSent -> OpenConfirm on receiving OPEN [rfc4271:8.2.2]
 after bgp_open_message_event {
+    require true; # [rfc4271:8.2.2:opensent]
     if conn_state(dst) = bgp_connection_state.open_sent {
         conn_state(dst) := bgp_connection_state.open_confirm;
     }
@@ -58,6 +60,7 @@ before bgp_keepalive_message_event {
 
 # OpenConfirm -> Established on receiving KEEPALIVE [rfc4271:8.2.2]
 after bgp_keepalive_message_event {
+    require true; # [rfc4271:8.2.2:openconfirm]
     if conn_state(dst) = bgp_connection_state.open_confirm {
         conn_state(dst) := bgp_connection_state.established;
     }
@@ -65,6 +68,7 @@ after bgp_keepalive_message_event {
 
 # UPDATE valid when either side is in Established [rfc4271:9]
 before bgp_update_message_event {
+    require true; # [rfc4271:9]
     require conn_state(src) = bgp_connection_state.established
           | conn_state(dst) = bgp_connection_state.established;
 }
@@ -83,6 +87,7 @@ after hold_timer_expired {
 
 # FSM guards for timer actions (avoid circular include with bgp_time.ivy)
 before hold_timer_expired {
+    require true; # [rfc4271:8.2.2:holdtimer]
     require conn_state(src) = bgp_connection_state.open_sent
           | conn_state(src) = bgp_connection_state.open_confirm
           | conn_state(src) = bgp_connection_state.established;

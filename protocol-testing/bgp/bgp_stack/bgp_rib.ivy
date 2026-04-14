@@ -10,6 +10,7 @@ relation loc_rib(R:bgp_route)
 relation adj_rib_out(P:bgp_id, R:bgp_route)
 
 after init {
+    require true; # [rfc4271:3.2]
     adj_rib_in(P, R) := false;
     loc_rib(R) := false;
     adj_rib_out(P, R) := false;

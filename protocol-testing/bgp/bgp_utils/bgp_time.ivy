@@ -46,8 +46,7 @@ after bgp_update_message_event {
 action hold_timer_expired(src:bgp_id)
 
 before hold_timer_expired {
-    require hold_timer_running(src);
-    # [rfc4271:8.2.2:holdtimer]
+    require hold_timer_running(src); # [rfc4271:8.2.2:holdtimer, rfc4271:6.5]
 }
 
 after hold_timer_expired {
@@ -60,8 +59,7 @@ after hold_timer_expired {
 action keepalive_timer_expired(src:bgp_id)
 
 before keepalive_timer_expired {
-    require keepalive_timer_running(src);
-    # [rfc4271:10]
+    require keepalive_timer_running(src); # [rfc4271:10]
 }
 
 after keepalive_timer_expired {
