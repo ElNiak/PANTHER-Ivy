@@ -32,35 +32,39 @@ after net.accept {
     }
 }
 
-# OPEN only valid in OpenSent [rfc4271:8.2.2]
+# OPEN valid when either side is in OpenSent [rfc4271:8.2.2]
+# Disjunctive: src=local sending OR dst=local receiving
 before bgp_open_message_event {
-    require conn_state(src) = bgp_connection_state.open_sent;
-    # [rfc4271:8.2.2:opensent]
+    require conn_state(src) = bgp_connection_state.open_sent
+          | conn_state(dst) = bgp_connection_state.open_sent;
 }
 
-# OpenSent -> OpenConfirm on valid OPEN [rfc4271:8.2.2]
+# OpenSent -> OpenConfirm on receiving OPEN [rfc4271:8.2.2]
 after bgp_open_message_event {
-    conn_state(src) := bgp_connection_state.open_confirm;
-}
-
-# KEEPALIVE valid in OpenConfirm or Established [rfc4271:8.2.2]
-before bgp_keepalive_message_event {
-    require conn_state(src) = bgp_connection_state.open_confirm
-          | conn_state(src) = bgp_connection_state.established;
-    # [rfc4271:8.2.2:openconfirm]
-}
-
-# OpenConfirm -> Established on KEEPALIVE [rfc4271:8.2.2]
-after bgp_keepalive_message_event {
-    if conn_state(src) = bgp_connection_state.open_confirm {
-        conn_state(src) := bgp_connection_state.established;
+    if conn_state(dst) = bgp_connection_state.open_sent {
+        conn_state(dst) := bgp_connection_state.open_confirm;
     }
 }
 
-# UPDATE only in Established [rfc4271:9]
+# KEEPALIVE valid when either side is in OpenConfirm or Established [rfc4271:8.2.2]
+before bgp_keepalive_message_event {
+    require conn_state(src) = bgp_connection_state.open_confirm
+          | conn_state(src) = bgp_connection_state.established
+          | conn_state(dst) = bgp_connection_state.open_confirm
+          | conn_state(dst) = bgp_connection_state.established;
+}
+
+# OpenConfirm -> Established on receiving KEEPALIVE [rfc4271:8.2.2]
+after bgp_keepalive_message_event {
+    if conn_state(dst) = bgp_connection_state.open_confirm {
+        conn_state(dst) := bgp_connection_state.established;
+    }
+}
+
+# UPDATE valid when either side is in Established [rfc4271:9]
 before bgp_update_message_event {
-    require conn_state(src) = bgp_connection_state.established;
-    # [rfc4271:9]
+    require conn_state(src) = bgp_connection_state.established
+          | conn_state(dst) = bgp_connection_state.established;
 }
 
 # NOTIFICATION -> both peers to Idle [rfc4271:8.2.2]
