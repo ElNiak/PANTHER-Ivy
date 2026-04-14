@@ -47,8 +47,45 @@ module network_implementation(host,pkt,ser,des, port_base, ip_addr) = {
 			#include <arpa/inet.h>
 			#include <sys/ioctl.h>
 			#include <net/if.h>
+			#ifdef __linux__
 			#include <linux/if_packet.h>
 			#include <linux/if_ether.h>
+			#else
+			// macOS compatibility stubs for Linux-only raw socket types
+			#ifndef ETH_ALEN
+			#define ETH_ALEN 6
+			#endif
+			struct ethhdr {
+				unsigned char h_dest[ETH_ALEN];
+				unsigned char h_source[ETH_ALEN];
+				unsigned short h_proto;
+			};
+			struct iphdr {
+				unsigned int ihl:4, version:4;
+				uint8_t tos;
+				uint16_t tot_len, id, frag_off;
+				uint8_t ttl, protocol;
+				uint16_t check;
+				uint32_t saddr, daddr;
+			};
+			#ifndef SOL_IP
+			#define SOL_IP IPPROTO_IP
+			#endif
+			#ifndef IP_FREEBIND
+			#define IP_FREEBIND 15
+			#endif
+			#ifndef IP_TRANSPARENT
+			#define IP_TRANSPARENT 19
+			#endif
+			#ifndef SO_BINDTODEVICE
+			#define SO_BINDTODEVICE 25
+			#endif
+			#ifndef SIOCGIFHWADDR
+			#define SIOCGIFHWADDR 0x8927
+			#endif
+			// BSD tcphdr uses th_off instead of doff
+			#define doff th_off
+			#endif
 			#include <netinet/ip.h>
 			#include <netinet/tcp.h>
 			#include <iomanip>
@@ -220,6 +257,7 @@ module network_implementation(host,pkt,ser,des, port_base, ip_addr) = {
 					return;
 				}
 
+			#ifdef __linux__
 				if (eavesdrop)
 				{
 					// Process the packet
@@ -505,6 +543,9 @@ module network_implementation(host,pkt,ser,des, port_base, ip_addr) = {
 						std::cerr << "RECEIVING NOT UDP NOR TCP\n";
 					}
 				}
+			#else
+				if (false) {} // eavesdrop not supported on non-Linux
+			#endif
 				else
 				{
 					buf.resize(bytes);
@@ -1393,6 +1434,7 @@ module network_implementation(host,pkt,ser,des, port_base, ip_addr) = {
 
 		action eavesdrop(dst:ip.endpoint) returns (s:socket) = {
 			<<< impure
+			#ifdef __linux__
 				std::cerr << "eavesdrop SOCKET " << dst.addr << std::endl;
 				char *dev = strdup("lo"); //TODO
 				int port;
@@ -1476,6 +1518,10 @@ module network_implementation(host,pkt,ser,des, port_base, ip_addr) = {
 				eavesdrop = true;
 
 				install_reader(new udp_reader(`me`,s, *`udp_cb`, this));
+			#else
+				std::cerr << "eavesdrop not supported on this platform" << std::endl;
+				s = -1;
+			#endif
 			>>>
 		}
 
@@ -1617,6 +1663,7 @@ module network_implementation(host,pkt,ser,des, port_base, ip_addr) = {
 			std::cerr << "source port number " << ntohs(sin.sin_port) << std::endl;
 		}
 
+	#ifdef __linux__
 		if (eavesdrop) {
 			// Eavesdrop
 			//close(s); //causes error
@@ -1845,7 +1892,11 @@ module network_implementation(host,pkt,ser,des, port_base, ip_addr) = {
 				std::cerr << "socket error: " << strerror(error) << std::endl;
 			}
 			close(raw_sock);
-		} else {
+		}
+	#else
+		if (false) {} // eavesdrop not supported on non-Linux
+	#endif
+		else {
 			std::cerr << "not eavesdrop" << std::endl;
 			int error = 0;
 			socklen_t lsen = sizeof(error);

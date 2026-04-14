@@ -18,7 +18,9 @@ module packet_wrapper(pkt,ifnum,macaddr) = {
     >>>
 
     <<< impl
+        #ifdef __linux__
         #include <linux/if_packet.h>
+        #endif
         #include <net/ethernet.h>
 
         class packet_reader : public reader {
