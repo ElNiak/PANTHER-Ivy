@@ -175,3 +175,127 @@ requirements:
     level: MUST NOT
     layer: update
     testable: true
+
+  # --- Section 4.1: Message Header Format ---
+  'rfc4271:4.1:marker':
+    text: >-
+      The 16-octet Marker field MUST be set to all ones.
+    section: '4.1'
+    level: MUST
+    layer: packet-format
+    testable: true
+  'rfc4271:4.1:length':
+    text: >-
+      The value of the Length field MUST always be at least 19 and no
+      greater than 4096.
+    section: '4.1'
+    level: MUST
+    layer: packet-format
+    testable: true
+  'rfc4271:4.1:length_min':
+    text: >-
+      The Length field MUST have the smallest value required, given
+      the rest of the message.  Padding of extra data after the
+      message is not allowed.
+    section: '4.1'
+    level: MUST
+    layer: packet-format
+    testable: false
+    note: Requires wire-level length tracking not in current model abstraction
+
+  # --- Section 5.1: Path Attributes ---
+  'rfc4271:5.1.1':
+    text: >-
+      ORIGIN is a well-known mandatory attribute.  Its value SHOULD
+      NOT be changed by any other speaker.
+    section: '5.1.1'
+    level: SHOULD NOT
+    layer: update
+    testable: true
+  'rfc4271:5.1.2':
+    text: >-
+      AS_PATH is a well-known mandatory attribute that identifies
+      the autonomous systems through which routing information has
+      passed.
+    section: '5.1.2'
+    level: MUST
+    layer: update
+    testable: true
+  'rfc4271:5.1.2:internal':
+    text: >-
+      When a given BGP speaker advertises the route to an internal
+      peer, the advertising speaker SHALL NOT modify the AS_PATH
+      attribute associated with the route.
+    section: '5.1.2'
+    level: MUST NOT
+    layer: update
+    testable: false
+    note: Requires iBGP/eBGP peer distinction not in current 2-speaker model
+  'rfc4271:5.1.2:external':
+    text: >-
+      When a given BGP speaker advertises the route to an external
+      peer, it prepends its own AS number to the AS_PATH.
+    section: '5.1.2'
+    level: MUST
+    layer: update
+    testable: false
+    note: Requires iBGP/eBGP peer distinction not in current 2-speaker model
+  'rfc4271:5.1.3':
+    text: >-
+      NEXT_HOP is a well-known mandatory attribute that defines the
+      IP address of the router that SHOULD be used as the next hop
+      to the destinations listed in the UPDATE message.
+    section: '5.1.3'
+    level: SHOULD
+    layer: update
+    testable: true
+  'rfc4271:5.1.4':
+    text: >-
+      MULTI_EXIT_DISC is an optional non-transitive attribute that
+      MAY be used by a BGP speaker's Decision Process to discriminate
+      among multiple entry points to a neighboring autonomous system.
+    section: '5.1.4'
+    level: MAY
+    layer: update
+    testable: true
+
+  # --- Section 5: Attribute Flags ---
+  'rfc4271:5:transitive':
+    text: >-
+      For well-known attributes, the Transitive bit MUST be set to 1.
+    section: '5'
+    level: MUST
+    layer: update
+    testable: false
+    note: Model uses variant types not raw attribute flags
+  'rfc4271:5:partial':
+    text: >-
+      For well-known attributes and for optional non-transitive
+      attributes, the Partial bit MUST be set to 0.
+    section: '5'
+    level: MUST
+    layer: update
+    testable: false
+    note: Model uses variant types not raw attribute flags
+
+  # --- Section 6.4: NOTIFICATION Error Handling ---
+  'rfc4271:6.4':
+    text: >-
+      If a peer sends a NOTIFICATION message and the receiver detects
+      an error in that message, the error SHOULD be logged locally.
+    section: '6.4'
+    level: SHOULD
+    layer: error
+    testable: false
+
+  # --- Section 9.3: Route Selection Criteria ---
+  'rfc4271:9.3':
+    text: >-
+      The Decision Process selects routes for subsequent advertisement
+      by applying policies in the context of the BGP speaker's
+      configuration.  The local policy MAY further restrict the set
+      of routes to be advertised.
+    section: '9.3'
+    level: MAY
+    layer: update
+    testable: false

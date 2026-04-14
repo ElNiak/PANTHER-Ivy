@@ -71,11 +71,11 @@ before bgp_header_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_header_mes
         # TODO make more general
         require src = bgp_ivy_instance.bgpid;
         require dst = bgp_impl_instance.bgpid;
-        require header_length > 0;
+        require header_length > 0; # [rfc4271:4.1:length]
         require header_payload.end > 0;
         # 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
         # require bgp_message.marker = 0xffffffffffffffff;
-        bgp_message.marker := 0xffffffffffffffff; #0xffffffffffffffffffffffffffffffff;
+        bgp_message.marker := 0xffffffffffffffff; # [rfc4271:4.1:marker]
         require bgp_message.bgp_type = header_type;
         require bgp_message.length = header_length;
         require bgp_message.payload = header_payload;

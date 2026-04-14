@@ -1,0 +1,22 @@
+workflow: build
+protocol: bgp
+methodology: nct
+started: "2026-04-14T15:28:00Z"
+tracks:
+  track1_annotations:
+    status: pending
+    description: Fix coverage annotations in 12 files for 21 existing requirements
+  track2_extensions:
+    status: pending
+    description: Extend manifest + model with new RFC 4271 sections (4.1, 5.1.1-3, 6.4, 9.3)
+layers:
+  bgp_fsm: { status: exists, file: bgp_stack/bgp_fsm.ivy }
+  bgp_error_code: { status: exists, file: bgp_stack/bgp_error_code.ivy }
+  bgp_path_attribute: { status: exists, file: bgp_stack/bgp_path_attribute.ivy }
+  bgp_header_message: { status: exists, file: bgp_stack/bgp_header_message.ivy }
+  bgp_rib: { status: exists, file: bgp_stack/bgp_rib.ivy }
+  bgp_route: { status: exists, file: bgp_stack/bgp_route.ivy }
+decisions:
+  - All 14 layers present - extend existing files only
+  - Track 1 before Track 2 to establish coverage baseline
+  - "New sections: 4.1, 5.1.1-3, 6.4, 9.3"

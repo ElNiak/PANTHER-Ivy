@@ -55,7 +55,7 @@ implement net.connected(src:endpoint_id, s:net.socket) {
     var bid := net_ep_to_bgpid(src);
     call show_connected(bid,s);
     pend(bgpid_to_other_endpoint(bid)) := false;
-    isup(bgpid_to_other_endpoint(bid)) := true;
+    isup(bgpid_to_other_endpoint(bid)) := true; # [rfc4271:8.1]
     isup(bgpid_to_endpoint(bid))       := true;
 }
 
