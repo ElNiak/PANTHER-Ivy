@@ -114,7 +114,7 @@ around  bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_me
     require origin_present(src); # [rfc4271:4.3]
     require num_queued_path_attr(src) >= 0;
     call show_path_attr_size(path_attr_size(src));
-    require bgp_message.total_path_attr_len = path_attr_size(src);
+    require bgp_message.total_path_attr_len = path_attr_size(src); # [rfc4271:9.1]
     require bgp_message.path_attrs = queued_path_attr(src);
     bgp_update_event := true;
     ...
