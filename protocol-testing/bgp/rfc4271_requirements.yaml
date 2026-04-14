@@ -87,3 +87,64 @@ requirements:
     level: MUST
     layer: timer
     testable: true
+  'rfc4271:3.2':
+    text: >-
+      The Routing Information Base contains Adj-RIBs-In, Loc-RIB, and
+      Adj-RIBs-Out for each peer.
+    section: '3.2'
+    level: MUST
+    layer: update
+    testable: true
+  'rfc4271:6.1':
+    text: >-
+      If the Length field of the message header is less than 19 or
+      greater than 4096, or not correct for the type, send NOTIFICATION
+      with Message Header Error and Bad Message Length subcode.
+    section: '6.1'
+    level: MUST
+    layer: error
+    testable: true
+  'rfc4271:6.2':
+    text: >-
+      If the Hold Time field is unacceptable (non-zero and less than
+      three seconds), send NOTIFICATION with OPEN Message Error and
+      Unacceptable Hold Time subcode.
+    section: '6.2'
+    level: MUST
+    layer: error
+    testable: true
+  'rfc4271:6.2:version':
+    text: >-
+      If the version number in the OPEN message is not supported, send
+      NOTIFICATION with OPEN Message Error and Unsupported Version
+      Number subcode.
+    section: '6.2'
+    level: MUST
+    layer: handshake
+    testable: true
+  'rfc4271:6.3':
+    text: >-
+      If any well-known mandatory attribute is not recognized or not
+      present in an UPDATE, send NOTIFICATION with UPDATE Message Error
+      and Missing Well-known Attribute subcode.
+    section: '6.3'
+    level: MUST
+    layer: error
+    testable: true
+  'rfc4271:6.5':
+    text: >-
+      If a system does not receive successive KEEPALIVE, UPDATE, or
+      NOTIFICATION messages within the negotiated Hold Time, it sends
+      NOTIFICATION with Hold Timer Expired Error Code.
+    section: '6.5'
+    level: MUST
+    layer: error
+    testable: true
+  'rfc4271:6.8':
+    text: >-
+      If a pair of BGP speakers try simultaneously to establish a
+      connection, one connection is closed by comparing BGP Identifiers.
+    section: '6.8'
+    level: MUST
+    layer: fsm
+    testable: false
