@@ -20,8 +20,20 @@ after init {
     keepalive_timer_running(C) := false;
 }
 
-# Start timers on entering OpenConfirm [rfc4271:8.2.2]
+# Negotiate hold time and start timers [rfc4271:8.2.2]
 after bgp_open_message_event {
+    # Negotiate: receiver uses min of local and received hold time
+    if bgp_message.hold_time < hold_time(dst) {
+        require true; # [rfc4271:4.2.2]
+        hold_time(dst) := bgp_message.hold_time;
+    };
+    # Update keepalive to 1/3 of negotiated hold time [rfc4271:10]
+    if hold_time(dst) ~= 0 {
+        keepalive_time(dst) := hold_time(dst) / 3;
+    } else {
+        keepalive_time(dst) := 0;
+    };
+    # Start sender's timers on entering OpenConfirm
     if hold_time(src) ~= 0 {
         hold_timer_running(src) := true;
         keepalive_timer_running(src) := true;
