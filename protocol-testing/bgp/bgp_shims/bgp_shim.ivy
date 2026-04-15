@@ -104,6 +104,24 @@ function header_payload : stream_data
 function header_length  : stream_pos
 function header_type    : bgp_message_type
 
+# Auto-send: wrap payload in BGP header, serialize, send on wire, reset state.
+# Called from each specific message event's after-block to make generation atomic
+# (one event = one message on the wire, no separate header event needed).
+action send_wrapped_message(src:bgp_id, dst:bgp_id) = {
+    var hdr : bgp_header_message;
+    hdr.marker := 0xffffffffffffffff;
+    hdr.bgp_type := header_type;
+    hdr.length := header_length;
+    hdr.payload := header_payload;
+    var spkt := bgp_message_serdes.to_bytes(hdr);
+    var pkts := bm.arr.empty;
+    pkts := pkts.append(spkt);
+    var ok := net.send_tcp(endpoint_to_pid(src),endpoint_to_socket(src),endpoint_to_pid(dst),pkts);
+    header_payload := stream_data.empty;
+    header_length  := 0;
+    call send_bgp_header_message(src,dst,hdr);
+}
+
 after bgp_header_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_header_message){
     if _generating {
         var spkt := bgp_message_serdes.to_bytes(bgp_message);
@@ -111,7 +129,6 @@ after bgp_header_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_header_mess
         pkts := pkts.append(spkt);
         var ok := net.send_tcp(endpoint_to_pid(src),endpoint_to_socket(src),endpoint_to_pid(dst),pkts);
         header_payload := stream_data.empty;
-        #sheader_payload.end := 0;
         header_length  := 0;
         call send_bgp_header_message(src,dst,bgp_message);
     }
@@ -124,6 +141,7 @@ after bgp_open_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_open_message)
         var spkt := bgp_open_message_serdes.to_bytes(bgp_message);
         header_payload := spkt;
         call send_bgp_open_message(src,dst,bgp_message);
+        call send_wrapped_message(src, dst);
     }
 }
 
@@ -134,6 +152,7 @@ after bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_mess
         var spkt := bgp_update_message_serdes.to_bytes(bgp_message);
         header_payload := spkt;
         call send_bgp_update_message(src,dst,bgp_message);
+        call send_wrapped_message(src, dst);
     }
     bgp_update_event := false;
 }
@@ -145,6 +164,7 @@ after bgp_keepalive_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_keepaliv
         var spkt := bgp_keepalive_message_serdes.to_bytes(bgp_message);
         header_payload := spkt;
         call send_bgp_keepalive_message(src,dst,bgp_message);
+        call send_wrapped_message(src, dst);
     }
 }
 
@@ -155,6 +175,7 @@ after bgp_notification_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_notif
         var spkt := bgp_notification_message_serdes.to_bytes(bgp_message);
         header_payload := spkt;
         call send_bgp_notification_message(src,dst,bgp_message);
+        call send_wrapped_message(src, dst);
     }
 }
 

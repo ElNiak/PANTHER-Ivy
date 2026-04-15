@@ -86,7 +86,7 @@ around bgp_header_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_header_mes
                 while idx < update_mess.path_attrs.end {
                     var f := update_mess.path_attrs.value(idx);
                     call infer_path_attr(src,dst,f);
-                    call f.handle(src,dst);
+                    call f.handle(src,dst,header_type);
                     idx := idx.next
                 }
                 call bgp_update_message_event(src, dst, update_mess);

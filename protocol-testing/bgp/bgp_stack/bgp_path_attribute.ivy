@@ -221,7 +221,7 @@ object path_attr = {
 
 object path_attr = {
     ...
-    action handle(f:this, src:bgp_id, dst:bgp_id) = {
+    action handle(f:this, src:bgp_id, dst:bgp_id, e:bgp_message_type) = {
         require false; # this generic action should never be called
     }
 }
@@ -252,15 +252,15 @@ object path_attr = {
     ...
     object origin = {
         ...
-        action handle(f:path_attr.origin, src:bgp_id, dst:bgp_id)
+        action handle(f:path_attr.origin, src:bgp_id, dst:bgp_id, e:bgp_message_type)
 
         around handle {
+            require e = bgp_message_type.update_mess;
             require f.transitive;  # [rfc4271:5:transitive]
             require ~f.optional;   # well-known
             require ~f.partial;    # [rfc4271:5:partial]
             require open_message_recv(src) & open_message_recv(dst); # [rfc4271:5.1.1]
             require ~origin_present(src);
-            require header_type = bgp_message_type.update_mess;
             # [rfc4271:5.1.1] ORIGIN value SHOULD NOT be changed by any other speaker
             if has_received_origin(src) {
                 require f.value = received_origin_value(src);
@@ -298,16 +298,16 @@ object path_attr = {
     ...
     object as_path = {
         ...
-        action handle(f:path_attr.as_path, src:bgp_id, dst:bgp_id)
+        action handle(f:path_attr.as_path, src:bgp_id, dst:bgp_id, e:bgp_message_type)
 
         around handle {
+            require e = bgp_message_type.update_mess;
             require f.transitive;  # [rfc4271:5:transitive]
             require ~f.optional;   # well-known
             require ~f.partial;    # [rfc4271:5:partial]
             var idx : path_attr.as_path.as_path_segment.idx := 0;
             require open_message_recv(src) & open_message_recv(dst); # [rfc4271:5.1.2]
             require f.path.end > 0; # & f.path.end = num_queued_as_path(src);
-            require header_type = bgp_message_type.update_mess;
             while idx < f.path.end {
                 var aspath := f.path.value(idx);
                 if ~_generating {
@@ -364,9 +364,10 @@ object path_attr = {
     ...
     object next_hop = {
         ...
-        action handle(f:path_attr.next_hop, src:bgp_id, dst:bgp_id)
+        action handle(f:path_attr.next_hop, src:bgp_id, dst:bgp_id, e:bgp_message_type)
 
         around handle {
+            require e = bgp_message_type.update_mess;
             require f.transitive;  # [rfc4271:5:transitive]
             require ~f.optional;   # well-known
             require ~f.partial;    # [rfc4271:5:partial]
@@ -382,9 +383,10 @@ object path_attr = {
     ...
     object multi_exit_disc = {
         ...
-        action handle(f:path_attr.multi_exit_disc, src:bgp_id, dst:bgp_id)
+        action handle(f:path_attr.multi_exit_disc, src:bgp_id, dst:bgp_id, e:bgp_message_type)
 
         around handle {
+            require e = bgp_message_type.update_mess;
             require f.optional;    # optional attribute
             require ~f.transitive; # non-transitive
             require ~f.partial;    # [rfc4271:5:partial]
@@ -400,9 +402,10 @@ object path_attr = {
     ...
     object local_pref = {
         ...
-        action handle(f:path_attr.local_pref, src:bgp_id, dst:bgp_id)
+        action handle(f:path_attr.local_pref, src:bgp_id, dst:bgp_id, e:bgp_message_type)
 
         around handle {
+            require e = bgp_message_type.update_mess;
             require f.transitive;  # [rfc4271:5:transitive]
             require ~f.optional;   # well-known
             require ~f.partial;    # [rfc4271:5:partial]
@@ -418,9 +421,10 @@ object path_attr = {
     ...
     object atomic_aggregate = {
         ...
-        action handle(f:path_attr.atomic_aggregate, src:bgp_id, dst:bgp_id)
+        action handle(f:path_attr.atomic_aggregate, src:bgp_id, dst:bgp_id, e:bgp_message_type)
 
         around handle {
+            require e = bgp_message_type.update_mess;
             require f.transitive;  # [rfc4271:5:transitive]
             require ~f.optional;   # well-known discretionary
             require ~f.partial;    # [rfc4271:5:partial]
@@ -436,14 +440,14 @@ object path_attr = {
     ...
     object aggregator = {
         ...
-        action handle(f:path_attr.aggregator, src:bgp_id, dst:bgp_id)
+        action handle(f:path_attr.aggregator, src:bgp_id, dst:bgp_id, e:bgp_message_type)
 
         around handle {
+            require e = bgp_message_type.update_mess;
             require f.optional;    # optional attribute [rfc4271:5.1.7]
             require f.transitive;  # [rfc4271:5:transitive]
             require ~f.partial;    # [rfc4271:5:partial]
             require open_message_recv(src) & open_message_recv(dst);
-            require header_type = bgp_message_type.update_mess;
             ...
             path_attr_size(src) := path_attr_size(src) + 1 + 1 + 1 + 2 + 4;
             call enqueue_path_attr(src,f);
