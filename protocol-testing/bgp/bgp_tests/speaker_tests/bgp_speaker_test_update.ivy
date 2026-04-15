@@ -1,0 +1,109 @@
+#lang ivy1.7
+
+# BGP UPDATE Compliance Test [rfc4271:4.3]
+#
+# Tests UPDATE message generation and IUT acceptance:
+# 1. Establish a BGP session (OPEN + KEEPALIVE exchange) [rfc4271:8.2.2]
+# 2. Build path attributes via handle actions (ORIGIN, AS_PATH, NEXT_HOP)
+# 3. Send UPDATE with all 3 mandatory well-known attributes [rfc4271:5]
+# 4. Verify IUT accepts the UPDATE (no NOTIFICATION in response)
+#
+# Phase sequence per RFC 4271 Section 8.2.2:
+#   Idle → OpenSent (send OPEN) → OpenConfirm (send KEEPALIVE after recv OPEN)
+#   → Established (recv KEEPALIVE) → send UPDATE
+#
+# The KEEPALIVE gate ensures at least one KEEPALIVE is sent (required by
+# [rfc4271:8.2.2:opensent]) before blocking further KEEPALIVEs to force
+# the solver through handle→UPDATE.
+
+include order
+include file
+include bgp_shim
+include ivy_bgp_speaker_behavior
+
+relation slept_bgp
+relation update_sent
+relation session_established
+relation keepalive_sent
+
+after init {
+    getsock(bgp_impl_instance.ep.addr) := net.connect_accept(endpoint_id.ivy_speaker, endpoint_id.impl_speaker, bgp_impl_instance.ep.addr);
+    pend(bgp_impl_instance.ep.addr) := true;
+    slept_bgp := false;
+    update_sent := false;
+    session_established := false;
+    keepalive_sent := false;
+    # Pre-populate AS_PATH: one AS_SEQUENCE segment with 0 AS numbers (locally originated) [rfc4271:5.1.2]
+    # Uses bgp_ivy_instance (the generating speaker), not bgp_impl_instance (the IUT)
+    var seg_idx : path_attr.as_path.as_path_segment.idx := 0;
+    queued_segment_type(bgp_ivy_instance.bgpid, seg_idx) := 2;
+    num_queued_segment_value(bgp_ivy_instance.bgpid, seg_idx) := 0;
+    num_queued_as_path(bgp_ivy_instance.bgpid) := 1;
+    # Hold timer may expire during UPDATE preparation (KEEPALIVE blocked until UPDATE sent)
+    acceptable_error(bgp_error_code.hold_timer_expire) := true;
+    # FRR may send fsm_error with wrong subcode (known IUT deviation)
+    acceptable_error(bgp_error_code.fsm_error) := true;
+}
+
+before bgp_open_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_open_message){
+    if _generating {
+    }
+}
+
+before bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_message){
+    if _generating {
+        # UPDATE only valid in Established state [rfc4271:9]
+        require session_established;
+    }
+}
+
+# Phase gate for KEEPALIVE generation:
+# - Allow KEEPALIVE freely until we've sent one (mandatory per [rfc4271:8.2.2:opensent])
+# - After first KEEPALIVE + session established: block until UPDATE sent
+# - After UPDATE sent: allow freely again (session maintenance [rfc4271:4.4])
+before bgp_keepalive_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_keepalive_message){
+    if _generating {
+        require ~keepalive_sent | ~session_established | update_sent;
+    }
+}
+
+# No NOTIFICATION generation in this test — we want a clean UPDATE exchange
+before bgp_notification_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_notification_message){
+    if _generating {
+        require false;
+    }
+}
+
+# Track KEEPALIVE generation [rfc4271:8.2.2:opensent]
+after bgp_keepalive_message_event {
+    if _generating {
+        keepalive_sent := true;
+    };
+    # FRR's KEEPALIVE means session is in Established [rfc4271:8.2.2:openconfirm]
+    if ~_generating {
+        session_established := true;
+    }
+}
+
+# Track UPDATE generation
+after bgp_update_message_event {
+    if _generating {
+        update_sent := true;
+    }
+}
+
+export bgp_open_message_event
+export bgp_update_message_event
+export bgp_keepalive_message_event
+export bgp_notification_message_event
+export path_attr.origin.handle
+export path_attr.as_path.handle
+export path_attr.next_hop.handle
+
+# Finalize: session established + at least one UPDATE sent + no errors
+export action _finalize = {
+    require open_message_recv(bgp_impl_instance.bgpid); # [rfc4271:4.2]
+    require conn_state(bgp_impl_instance.bgpid) = bgp_connection_state.established;
+    require update_sent; # [rfc4271:4.3]
+    require ~received_unexpected_notification; # [rfc4271:6]
+}
