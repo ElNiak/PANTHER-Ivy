@@ -54,7 +54,9 @@ object bgp_error_subcode = {
     }
 }
 
+# Queued error state: handle blocks set these, NOTIFICATION generation requires matching
 function queued_suberror(C:bgp_id) : bgp_error_subcode
+function queued_error(C:bgp_id) : bgp_error_code
 
 object bgp_error_subcode = {
     ...
@@ -102,10 +104,13 @@ object bgp_error_subcode = {
 after bgp_error_subcode.type_bgp_header_error_subcode.handle {
     require true; # [rfc4271:6.6]
     is_errored(src) := true;
+    queued_error(src) := bgp_error_code.header_mess_error;
 }
 after bgp_error_subcode.type_bgp_open_error_subcode.handle {
     is_errored(src) := true;
+    queued_error(src) := bgp_error_code.open_mess_error;
 }
 after bgp_error_subcode.type_bgp_update_error_subcode.handle {
     is_errored(src) := true;
+    queued_error(src) := bgp_error_code.update_mess_error;
 }

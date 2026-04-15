@@ -25,7 +25,9 @@ type milliseconds
 type marker_id
 interpret marker_id -> longbv[1][16][16]
 
+# AS_PATH segment type: 1-octet field (1=AS_SET, 2=AS_SEQUENCE) [rfc4271:5.1.2]
 type segmenttype
+interpret segmenttype -> bv[8]
 
 # iBGP (same AS) vs eBGP (different AS) peering [rfc4271:5.1.2]
 object peer_type = {

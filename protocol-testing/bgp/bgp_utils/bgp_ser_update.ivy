@@ -284,14 +284,14 @@ object bgp_ser_update = {}
                 path_attr_type = tag;
                 std::cerr << "ser open_tag path_attr_type = " << path_attr_type << "\n";
 
-                // Write attribute type code (1 byte): Ivy tag 0=ORIGIN(1), 1=AS_PATH(2), 2=NEXT_HOP(3), etc.
-                int128_t type_code = tag + 1;
-                setn(type_code, 1);
-
-                // RFC 4271 Section 5 flag bytes per attribute class
+                // RFC 4271 Section 5: Flags (1 byte), then Type Code (1 byte)
                 int flag_values[] = {0x40, 0x40, 0x40, 0x80, 0x40, 0x40, 0xC0};
                 int128_t flag_byte = (tag >= 0 && tag <= 6) ? flag_values[tag] : 0x40;
                 setn(flag_byte, 1);
+
+                // Attribute type code (1 byte): Ivy tag 0=ORIGIN(1), 1=AS_PATH(2), 2=NEXT_HOP(3), etc.
+                int128_t type_code = tag + 1;
+                setn(type_code, 1);
 
                 // Write attribute length (1 byte) — computed from type
                 int attr_lengths[] = {1, 0, 4, 4, 4, 0, 6}; // origin, as_path(var), next_hop, med, local_pref, atomic_agg, aggregator

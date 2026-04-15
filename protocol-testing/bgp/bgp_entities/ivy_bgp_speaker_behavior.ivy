@@ -182,6 +182,7 @@ attribute radix=16       # print in hex
 
 interpret version -> bv[32]
 
-attribute path_attr.idx.cardinality = 1
+# RFC 4271 Section 5 requires ORIGIN + AS_PATH + NEXT_HOP (3 mandatory) + optional attrs
+attribute path_attr.idx.cardinality = 4
 attribute path_attr.as_path.as_path_segment.idx.cardinality = 1
 attribute stream_pos.cardinality = 4
