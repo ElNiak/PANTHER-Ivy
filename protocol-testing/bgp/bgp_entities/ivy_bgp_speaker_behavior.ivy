@@ -108,7 +108,8 @@ before bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_mes
         require bgp_message.withdraw_routes_len = 0;
         require bgp_message.withdraw_routes.end = 0;
         header_type   := bgp_message_type.update_mess;
-        header_length := 19 + path_attr_size(src) + 1 + 2 + 4 # [rfc4271:4.3:min_length]
+        # 19 (header) + 2 (withdraw_len) + 2 (path_attr_len) + attrs + 1 (NLRI len) + 3 (NLRI /24 prefix)
+        header_length := 27 + path_attr_size(src) # [rfc4271:4.3:min_length]
         # require total_path_attr_len
     }
 }
