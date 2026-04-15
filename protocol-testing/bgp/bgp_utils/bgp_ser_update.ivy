@@ -70,7 +70,7 @@ object bgp_ser_update = {}
     public:
         bgp_ser_update() : state(bgp_s_wr_len) {
         }
-        virtual void  set(int128_t &res) {
+        virtual void  set(int128_t res) {
             switch (state) {
             case bgp_s_wr_len:
             {
@@ -278,6 +278,40 @@ object bgp_ser_update = {}
             return (byte & (1 << i)) != 0;
         }
 
+       // Serialization path: Ivy calls open_tag(int, string) with the variant tag
+        virtual void open_tag(int tag, const std::string &name) {
+             if (state == bgp_s_path_attr) {
+                path_attr_type = tag;
+                std::cerr << "ser open_tag path_attr_type = " << path_attr_type << "\n";
+
+                // Write attribute type code (1 byte): Ivy tag 0=ORIGIN(1), 1=AS_PATH(2), 2=NEXT_HOP(3), etc.
+                int128_t type_code = tag + 1;
+                setn(type_code, 1);
+
+                // RFC 4271 Section 5 flag bytes per attribute class
+                int flag_values[] = {0x40, 0x40, 0x40, 0x80, 0x40, 0x40, 0xC0};
+                int128_t flag_byte = (tag >= 0 && tag <= 6) ? flag_values[tag] : 0x40;
+                setn(flag_byte, 1);
+
+                // Write attribute length (1 byte) — computed from type
+                int attr_lengths[] = {1, 0, 4, 4, 4, 0, 6}; // origin, as_path(var), next_hop, med, local_pref, atomic_agg, aggregator
+                int128_t computed_len = (tag >= 0 && tag <= 6) ? attr_lengths[tag] : 0;
+                setn(computed_len, 1);
+                attr_len = computed_len;
+                std::cerr << "ser attr_len = " << attr_len << "\n";
+
+                if (tag == 0) { saved_attr_payload_state = bgp_s_path_attr_origin; state = bgp_s_attr_flag_optional; return; }
+                if (tag == 1) { saved_attr_payload_state = bgp_s_path_attr_as_path_segment_type; state = bgp_s_attr_flag_optional; return; }
+                if (tag == 2) { saved_attr_payload_state = bgp_s_path_attr_next_hop; state = bgp_s_attr_flag_optional; return; }
+                if (tag == 3) { saved_attr_payload_state = bgp_s_path_attr_multi_exit_disc; state = bgp_s_attr_flag_optional; return; }
+                if (tag == 4) { saved_attr_payload_state = bgp_s_path_attr_local_pref; state = bgp_s_attr_flag_optional; return; }
+                if (tag == 5) { saved_attr_payload_state = bgp_s_path_attr_atomic_aggregate; state = bgp_s_attr_flag_optional; return; }
+                if (tag == 6) { saved_attr_payload_state = bgp_s_path_attr_aggregator; state = bgp_s_attr_flag_optional; return; }
+            }
+            std::cerr << "ser open_tag unhandled state=" << state << " tag=" << tag << "\n";
+        }
+
+       // Deserialization path: reads variant tag from stream
        virtual int open_tag(const std::vector<std::string> &tags) {
              if (state == bgp_s_path_attr) {
                 int128_t ft;
@@ -387,10 +421,11 @@ object bgp_ser_update = {}
         }
 
         void open_list(int len) {
-
+            // Override base class: do NOT write array length to output.
+            // BGP UPDATE format handles field boundaries via the state machine.
         }
         void close_list() {
-            std::cerr << "closing list\n";
+            std::cerr << "closing list state=" << state << "\n";
             if (state == bgp_s_wr_l) {
                 state = bgp_s_path_len;
             }
