@@ -16,7 +16,13 @@ layers:
   bgp_header_message: { status: exists, file: bgp_stack/bgp_header_message.ivy }
   bgp_rib: { status: exists, file: bgp_stack/bgp_rib.ivy }
   bgp_route: { status: exists, file: bgp_stack/bgp_route.ivy }
+  track3_testable_false:
+    status: in_progress
+    description: Make 8 testable:false requirements testable (Groups B,A,C,E; D deferred)
 decisions:
   - All 14 layers present - extend existing files only
   - Track 1 before Track 2 to establish coverage baseline
   - "New sections: 4.1, 5.1.1-3, 6.4, 9.3"
+  - "Track 3: Group D (6.8 collision) deferred to dedicated test scenario"
+  - "Track 3: Group A peer_type is configurable (ibgp/ebgp)"
+  - "Track 3: Implementation order B -> E -> C -> A"

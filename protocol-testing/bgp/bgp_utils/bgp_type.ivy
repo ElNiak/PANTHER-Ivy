@@ -27,6 +27,11 @@ interpret marker_id -> longbv[1][16][16]
 
 type segmenttype
 
+# iBGP (same AS) vs eBGP (different AS) peering [rfc4271:5.1.2]
+object peer_type = {
+    type this = {ibgp, ebgp}
+}
+
 
 
 type prefix

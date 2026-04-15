@@ -17,18 +17,30 @@ after init {
 
 # Idle -> OpenSent on TCP success [rfc4271:8.2.2]
 # Collapses Idle -> Connect -> OpenSent (ConnectRetryTimer deferred)
+# Both sides transition: the local speaker and the remote peer,
+# since the IUT behind Docker doesn't trigger a separate callback.
 after net.connected {
     var bid := net_ep_to_bgpid(self);
     if conn_state(bid) = bgp_connection_state.idle {
         conn_state(bid) := bgp_connection_state.open_sent;
+    };
+    var remote := bgpid_to_other_bgpid(bid);
+    if conn_state(remote) = bgp_connection_state.idle {
+        conn_state(remote) := bgp_connection_state.open_sent;
     }
 }
 
 # Idle -> OpenSent on incoming TCP accept [rfc4271:8.2.2]
+# Both sides transition: the acceptor (self) and the remote peer (other),
+# since net.connected doesn't fire for the IUT behind Docker.
 after net.accept {
     var bid := net_ep_to_bgpid(self);
     if conn_state(bid) = bgp_connection_state.idle {
         conn_state(bid) := bgp_connection_state.open_sent;
+    };
+    var remote := net_ep_to_bgpid(other);
+    if conn_state(remote) = bgp_connection_state.idle {
+        conn_state(remote) := bgp_connection_state.open_sent;
     }
 }
 

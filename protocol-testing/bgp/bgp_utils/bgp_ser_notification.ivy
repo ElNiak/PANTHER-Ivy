@@ -53,15 +53,13 @@ object bgp_ser_notification = {}
 
 
         virtual void open_tag(int tag, const std::string &) {
-           if (state == bgp_s_payload) {
-                int128_t ft;
-                setn(ft,1); // could be bigger ivy_binary_deser_128::
-                frame_type = ft;
-                std::cerr << "recv frame_type = " << frame_type << "\n";
-                //std::cerr << "saw tag " << ft << "\n";
+           if (state == bgp_s_error_subcode) {
+                // Variant dispatch for error subcode — tag selects the subcode variant.
+                // No bytes to write here; the subcode value is written by set() in bgp_s_error_subcode state.
+                std::cerr << "bgp_ser_notification open_tag: subcode variant " << tag << "\n";
+                return;
             }
-            std::cerr << "deser_err 43 " << tag << "\n";
-            std::cerr << "deser_err 43 " << state << "\n";
+            std::cerr << "bgp_ser_notification: unexpected open_tag in state " << state << " tag " << tag << "\n";
             throw deser_err();
         }
 

@@ -8,10 +8,12 @@ include bgp_route
 relation adj_rib_in(P:bgp_id, R:bgp_route)
 relation loc_rib(R:bgp_route)
 relation adj_rib_out(P:bgp_id, R:bgp_route)
+relation route_policy_applied(P:bgp_id) # [rfc4271:9.3]
 
 after init {
     require true; # [rfc4271:3.2]
     adj_rib_in(P, R) := false;
     loc_rib(R) := false;
     adj_rib_out(P, R) := false;
+    route_policy_applied(P) := false; # [rfc4271:9.3]
 }

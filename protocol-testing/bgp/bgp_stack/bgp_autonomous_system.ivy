@@ -23,6 +23,17 @@ object autonomous_system = {
 }
 
 
+# Derived peer type: iBGP if same AS, eBGP if different [rfc4271:5.1.2]
+function derived_peer_type : peer_type
+
+after init {
+    if speaker_as = speaker_impl_as {
+        derived_peer_type := peer_type.ibgp;
+    } else {
+        derived_peer_type := peer_type.ebgp;
+    }
+}
+
 action as_event(src:bgp_id, dst:bgp_id, as: autonomous_system) = {}
 action as_path_event(src:bgp_id,dst:bgp_id,ases:autonomous_system.arr) = {}
 

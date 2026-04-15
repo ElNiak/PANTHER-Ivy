@@ -130,4 +130,5 @@ import action show_path_attr_size(s:stream_pos)
 # Feasible routes from Adj-RIBs-In are candidates for Decision Process [rfc4271:9.1.2]
 after bgp_update_message_event {
     update_processed(src, dst) := true; # [rfc4271:9.1.2]
+    route_policy_applied(dst) := true;  # [rfc4271:9.3]
 }

@@ -37,7 +37,11 @@ object bgp_ser_update = {}
               bgp_s_path_attr_aggregator_ip_addr,
 
               bgp_s_net_info,
-              bgp_s_net_info_pref} state;
+              bgp_s_net_info_pref,
+
+              bgp_s_attr_flag_optional,
+              bgp_s_attr_flag_transitive,
+              bgp_s_attr_flag_partial} state;
         int token_length = 4;
         long path_attr_type;
         int fence=0;
@@ -59,6 +63,7 @@ object bgp_ser_update = {}
         int debug = 0;
 
         int next_state = 0;
+        enum bgp_state saved_attr_payload_state = bgp_s_path_attr;
 
 
 
@@ -236,6 +241,22 @@ object bgp_ser_update = {}
                 route_prefix_len_2 -= 8; //todo prefix is ip prefix, here we only support multiple of 8
             }
             break;
+            case bgp_s_attr_flag_optional:
+            {
+                // Consume bool from struct, don't write — flag byte already in open_tag
+                state = bgp_s_attr_flag_transitive;
+            }
+            break;
+            case bgp_s_attr_flag_transitive:
+            {
+                state = bgp_s_attr_flag_partial;
+            }
+            break;
+            case bgp_s_attr_flag_partial:
+            {
+                state = saved_attr_payload_state;
+            }
+            break;
             default:
                 std::cerr << "bgp_deser_update 3\n";
                 throw deser_err();
@@ -259,82 +280,68 @@ object bgp_ser_update = {}
 
        virtual int open_tag(const std::vector<std::string> &tags) {
              if (state == bgp_s_path_attr) {
-                int128_t ft_flag;
-                setn(ft_flag,1); // could be bigger
-                int flag = ft_flag;
-                std::cerr << "recv flag = " << flag << "\n";
-                optional_bit = checkBit(flag, 7);
-                transitive_bit = checkBit(flag, 6);
-                partial_bit = checkBit(flag, 5);
-                extended_length_bit = checkBit(flag, 4);
-                std::cerr << "optional_bit = " << optional_bit << "\n";
-                std::cerr << "transitive_bit = " << transitive_bit << "\n";
-                std::cerr << "partial_bit = " << partial_bit << "\n";
-                std::cerr << "extended_length_bit = " << extended_length_bit << "\n";
+                int128_t ft;
+                setn(ft,1);
+                path_attr_type = ft;
+                std::cerr << "ser path_attr_type = " << path_attr_type << "\n";
 
+                // RFC 4271 Section 5 flag bytes per attribute class [rfc4271:5:transitive] [rfc4271:5:partial]
+                // Well-known mandatory/discretionary: 0x40, Optional non-transitive: 0x80, Optional transitive: 0xC0
+                int flag_values[] = {0x40, 0x40, 0x40, 0x80, 0x40, 0x40, 0xC0};
+                int128_t flag_byte = (path_attr_type >= 0 && path_attr_type <= 6)
+                    ? flag_values[path_attr_type] : 0x40;
+                setn(flag_byte, 1);
+                std::cerr << "ser flag_byte = " << (int)flag_byte << "\n";
 
                 total_path_attr_len -= 1;
-                int128_t ft;
-                setn(ft,1); // could be bigger
-                //long long ft;
-                //ivy_binary_deser::setn(ft,1); // could be bigger
-                //total_path_attr_len -= 1;
+
                 int128_t len_res;
                 std::cerr << "bgp_s_path_attr_len 1\n";
+                extended_length_bit = false;
                 int get = 1;
                 if(extended_length_bit)
                     get = 2;
                 setn(len_res,get);
                 attr_len = len_res;
                 std::cerr << "attr_len = " << attr_len << "\n";
-                //attr_len = reverse_bytes_int(attr_len);
                 total_path_attr_len -= 1;
                 std::cerr << "attr_len = " << attr_len << "\n";
 
-
-                /*
-                TODO we should get varint and then parse in consequence like in tls_deser_ser
-                */
                 std::cerr << "total_path_attr_len = " << total_path_attr_len << "\n";
-                path_attr_type = ft;
-                //state = bgp_s_path_attr_len;
-                std::cerr << "recv path_attr_type = " << path_attr_type << "\n";
                 if (path_attr_type == 0) {
-                    //total_path_attr_len -= 1;
-                    state =  bgp_s_path_attr_origin;
-
+                    saved_attr_payload_state = bgp_s_path_attr_origin;
+                    state = bgp_s_attr_flag_optional;
                     std::cerr << "state = " << bgp_s_path_attr_origin << "\n";
-                    std::cerr << "state = " << state << "\n";
                     return 0x01;
                 }
-                if (path_attr_type == 1) { //JF
-                    //total_path_attr_len -= 1;
-                    state =  bgp_s_path_attr_as_path_segment_type; // bgp_s_path_attr_as_path;
+                if (path_attr_type == 1) {
+                    saved_attr_payload_state = bgp_s_path_attr_as_path_segment_type;
+                    state = bgp_s_attr_flag_optional;
                     return 0x02;
                 }
                 if (path_attr_type == 2) {
-                    //total_path_attr_len -= 1;
-                    state =  bgp_s_path_attr_next_hop;
+                    saved_attr_payload_state = bgp_s_path_attr_next_hop;
+                    state = bgp_s_attr_flag_optional;
                     return 0x03;
                 }
                 if (path_attr_type == 3) {
-                    //total_path_attr_len -= 1;
-                    state =  bgp_s_path_attr_multi_exit_disc;
+                    saved_attr_payload_state = bgp_s_path_attr_multi_exit_disc;
+                    state = bgp_s_attr_flag_optional;
                     return 0x04;
                 }
                 if (path_attr_type == 4) {
-                    //total_path_attr_len -= 1;
-                    state =  bgp_s_path_attr_local_pref;  // stream_blocked equivalent to this
+                    saved_attr_payload_state = bgp_s_path_attr_local_pref;
+                    state = bgp_s_attr_flag_optional;
                     return 0x05;
                 }
                 if (path_attr_type == 5) {
-                    //total_path_attr_len -= 1;
-                    state =  bgp_s_path_attr_atomic_aggregate;
+                    saved_attr_payload_state = bgp_s_path_attr_atomic_aggregate;
+                    state = bgp_s_attr_flag_optional;
                     return 0x06;
                 }
-                if (path_attr_type == 6) {  // new token frame
-                    //total_path_attr_len -= 1;
-                    state =  bgp_s_path_attr_aggregator;  // new token equivalent to this
+                if (path_attr_type == 6) {
+                    saved_attr_payload_state = bgp_s_path_attr_aggregator;
+                    state = bgp_s_attr_flag_optional;
                     return 0x07;
                 }
                 //std::cerr << "saw tag " << ft << "\n";
@@ -345,40 +352,36 @@ object bgp_ser_update = {}
         }
 
          virtual void open_list_elem() {
-            std::cerr << "open_list_elem tag\n";
+            std::cerr << "ser open_list_elem state=" << state << "\n";
             if (state == bgp_s_path_attr_as_path_segment_type) {
-                std::cerr << "bgp_s_path_attr_as_path bgp_deser_update 2\n";
-                // return  attr_len > 0;
+                std::cerr << "ser open_list_elem: as_path_segment_type\n";
+                return;
             }
             if (state == bgp_s_wr_l) {
-                std::cerr << "bgp_s_wr_l bgp_deser_update 2\n";
-                // return  withdraw_routes_len > 0;
+                std::cerr << "ser open_list_elem: wr_l\n";
+                return;
             }
             if (state == bgp_s_wr_prefix) {
-                std::cerr << "bgp_s_wr_prefix bgp_deser_update 2\n";
+                std::cerr << "ser open_list_elem: wr_prefix route_prefix_len=" << route_prefix_len << " withdraw_routes_len=" << withdraw_routes_len << "\n";
                 route_prefix_len -= 1;
                 withdraw_routes_len -= 1;
-                // return  route_prefix_len > 0;
+                return;
             }
-            //// return  more(1);
-            if ( state == bgp_s_path_attr) {
-                std::cerr << "bgp_s_path_attr bgp_deser_update 2\n";
-                std::cerr <<   total_path_attr_len << "\n";
+            if (state == bgp_s_path_attr) {
+                std::cerr << "ser open_list_elem: path_attr total_path_attr_len=" << total_path_attr_len << "\n";
                 if(total_path_attr_len-1 <= 0) state = bgp_s_net_info;
-                // return  total_path_attr_len-->0;
+                return;
             }
-            if(state == bgp_s_path_attr_as_path_segment_value){
-                std::cerr << "bgp_s_path_attr_as_path_segment_value bgp_deser_update 2\n";
+            if (state == bgp_s_path_attr_as_path_segment_value) {
+                std::cerr << "ser open_list_elem: as_path_segment_value total_path_attr_len=" << total_path_attr_len << "\n";
                 total_path_attr_len -= 1;
-                // return  segment_len-->0;
+                return;
             }
-            if(state == bgp_s_net_info_pref || state == bgp_s_net_info) {
-                std::cerr << "bgp_s_net_info_pref bgp_deser_update 2\n";
-                // return  route_prefix_len_2 > 0;
+            if (state == bgp_s_net_info_pref || state == bgp_s_net_info) {
+                std::cerr << "ser open_list_elem: net_info\n";
+                return;
             }
-
-            std::cerr << "bgp_deser_update 1\n";
-            throw deser_err();
+            std::cerr << "ser open_list_elem: unhandled state=" << state << "\n";
         }
 
         void open_list(int len) {
