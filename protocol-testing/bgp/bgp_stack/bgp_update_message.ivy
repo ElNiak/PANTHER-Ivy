@@ -121,6 +121,8 @@ around  bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_me
     require isup(bgpid_to_endpoint(src));
 
     origin_present(src) := false;
+    as_path_present(src) := false;
+    next_hop_present(src) := false;
     queued_path_attr(src) := path_attr.arr.empty;
     num_queued_path_attr(src) := 0;
 }
