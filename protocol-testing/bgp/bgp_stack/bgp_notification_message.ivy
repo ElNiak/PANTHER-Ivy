@@ -83,9 +83,13 @@ object bgp_notification_message = {
 action   bgp_notification_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_notification_message) = {}
 relation is_errored(C:bgp_id)
 relation notification_error_logged(C:bgp_id) # [rfc4271:6.4]
+relation acceptable_error(E:bgp_error_code)
+relation received_unexpected_notification
 
 after init {
     notification_error_logged(C) := false;
+    acceptable_error(E) := false;
+    received_unexpected_notification := false;
 }
 
 around bgp_notification_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_notification_message) {
@@ -119,5 +123,8 @@ around bgp_notification_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_noti
     # # require bgp_message.error_code = 3 -> (bgp_message.error_subcode >= 1 & bgp_message.error_subcode <= 11);
     ...
     require isup(bgpid_to_endpoint(src));
+    if ~_generating {
+        require acceptable_error(bgp_message.error_code); # [rfc4271:6]
+    };
     notification_error_logged(dst) := true; # [rfc4271:6.4]
 }

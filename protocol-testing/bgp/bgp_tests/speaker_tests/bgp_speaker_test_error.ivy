@@ -22,6 +22,9 @@ after init {
     pend(bgp_impl_instance.ep.addr) := true;
     slept_bgp := false;
     notification_sent := false;
+    acceptable_error(bgp_error_code.cease_error) := true;
+    acceptable_error(bgp_error_code.header_mess_error) := true;
+    acceptable_error(bgp_error_code.fsm_error) := true;
 }
 
 before bgp_open_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_open_message){

@@ -51,4 +51,5 @@ export action _finalize = {
     require conn_state(bgp_impl_instance.bgpid) = bgp_connection_state.established
           | conn_state(bgp_impl_instance.bgpid) = bgp_connection_state.idle;
     require open_message_recv(bgp_impl_instance.bgpid);
+    require ~received_unexpected_notification; # [rfc4271:6]
 }

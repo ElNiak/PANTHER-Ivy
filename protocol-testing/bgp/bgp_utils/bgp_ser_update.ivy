@@ -368,8 +368,7 @@ object bgp_ser_update = {}
                 return;
             }
             if (state == bgp_s_path_attr) {
-                std::cerr << "ser open_list_elem: path_attr total_path_attr_len=" << total_path_attr_len << "\n";
-                if(total_path_attr_len-1 <= 0) state = bgp_s_net_info;
+                std::cerr << "ser open_list_elem: path_attr\n";
                 return;
             }
             if (state == bgp_s_path_attr_as_path_segment_value) {
@@ -379,6 +378,9 @@ object bgp_ser_update = {}
             }
             if (state == bgp_s_net_info_pref || state == bgp_s_net_info) {
                 std::cerr << "ser open_list_elem: net_info\n";
+                return;
+            }
+            if (state == bgp_s_wr_len) {
                 return;
             }
             std::cerr << "ser open_list_elem: unhandled state=" << state << "\n";
@@ -401,6 +403,9 @@ object bgp_ser_update = {}
                         state = bgp_s_wr_l;
                     }
                 }
+            }
+            if (state == bgp_s_path_attr) {
+                state = bgp_s_net_info;
             }
             if(state == bgp_s_path_attr_as_path_segment_value){
                 std::cerr << "state == bgp_s_path_attr_as_path_segment_value "<< segment_len << " " << total_path_attr_len <<"\n";
