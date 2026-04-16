@@ -45,6 +45,21 @@ after init {
     acceptable_error(bgp_error_code.fsm_error) := true;
 }
 
+# Pre-constrain AS_PATH parameter for Z3: bypass while-loop reasoning [rfc4271:5.1.2]
+# Z3 cannot solve as_path.handle's while-loop constraints over segment arrays.
+# These direct constraints on f give the solver a concrete shape to satisfy.
+before path_attr.as_path.handle(f:path_attr.as_path, src:bgp_id, dst:bgp_id, e:bgp_message_type) {
+    if _generating {
+        require f.path.end = 1;
+        require f.path.value(0).segment_type = 2;
+        require f.path.value(0).segment_len = 0;
+        require f.path.value(0).segment_value.end = 0;
+        require f.transitive;
+        require ~f.optional;
+        require ~f.partial;
+    }
+}
+
 before bgp_open_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_open_message){
     if _generating {
     }
@@ -54,6 +69,8 @@ before bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_mes
     if _generating {
         # UPDATE only valid in Established state [rfc4271:9]
         require session_established;
+        # Pre-constrain NLRI for Z3: /24 prefix needs exactly 3 octets [rfc4271:4.3]
+        require bgp_message.network_layer_reach_infos.route_prefix.end = 3;
     }
 }
 

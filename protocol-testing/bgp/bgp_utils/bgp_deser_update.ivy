@@ -321,8 +321,7 @@ object bgp_deser_update = {}
                     get = 2;
                 getn(len_res,get);
                 attr_len = len_res;
-                std::cerr << "attr_len = " << attr_len << "\n";
-                total_path_attr_len -= 1;
+                total_path_attr_len -= 1 + get;  // type code (1) + length field (1 or 2)
                 std::cerr << "attr_len = " << attr_len << "\n";
 
                 std::cerr << "total_path_attr_len = " << total_path_attr_len << "\n";
