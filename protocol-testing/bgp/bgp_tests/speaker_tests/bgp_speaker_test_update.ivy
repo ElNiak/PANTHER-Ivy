@@ -69,8 +69,13 @@ before bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_mes
     if _generating {
         # UPDATE only valid in Established state [rfc4271:9]
         require session_established;
-        # Pre-constrain NLRI for Z3: /24 prefix needs exactly 3 octets [rfc4271:4.3]
+        # Pre-constrain NLRI for Z3: 192.168.1.0/24 prefix [rfc4271:4.3]
+        # Z3 cannot construct arrays to a target length; provide concrete values.
+        require bgp_message.network_layer_reach_infos.len = 24;
         require bgp_message.network_layer_reach_infos.route_prefix.end = 3;
+        require bgp_message.network_layer_reach_infos.route_prefix.value(0) = 192;
+        require bgp_message.network_layer_reach_infos.route_prefix.value(1) = 168;
+        require bgp_message.network_layer_reach_infos.route_prefix.value(2) = 1;
     }
 }
 
