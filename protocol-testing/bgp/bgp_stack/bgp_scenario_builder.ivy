@@ -74,12 +74,24 @@ implement _build_announce_single {
     origin_attr.value := 0;
     call path_attr.origin.handle(origin_attr, src, dst, bgp_message_type.update_mess);
 
-    # AS_PATH=empty AS_SEQUENCE (locally originated) [rfc4271:5.1.2]
+    # AS_PATH = [AS_SEQUENCE: speaker_as] — locally originated route to eBGP peer.
+    # Per [rfc4271:5.1.2]: "the originating speaker includes its own AS number
+    # in a path segment, of type AS_SEQUENCE, in the AS_PATH attribute of all
+    # UPDATE messages sent to an external peer. In this case, the AS number of
+    # the originating speaker's autonomous system will be the only entry the
+    # path segment, and this path segment will be the only segment in the
+    # AS_PATH attribute." An empty AS_PATH is only valid for iBGP per §5.1.2:b.
+    var own_as : autonomous_system;
+    own_as.id := speaker_as;
+    var seg_values : autonomous_system.arr;
+    seg_values := autonomous_system.arr.empty;
+    seg_values := seg_values.append(own_as);
+
     # Pre-populate queued segment state — as_path.handle's while loop reads it
     var seg_idx : path_attr.as_path.as_path_segment.idx := 0;
     queued_segment_type(src, seg_idx) := 2;
-    num_queued_segment_value(src, seg_idx) := 0;
-    queued_segment_value(src, seg_idx) := autonomous_system.arr.empty;
+    num_queued_segment_value(src, seg_idx) := 1;
+    queued_segment_value(src, seg_idx) := seg_values;
     num_queued_as_path(src) := 1;
 
     var as_path_attr : path_attr.as_path;
@@ -88,8 +100,8 @@ implement _build_announce_single {
     as_path_attr.partial := false;
     var seg : path_attr.as_path.as_path_segment;
     seg.segment_type := 2;
-    seg.segment_len := 0;
-    seg.segment_value := autonomous_system.arr.empty;
+    seg.segment_len := 1;
+    seg.segment_value := seg_values;
     as_path_attr.path := path_attr.as_path.as_path_segment.arr.empty;
     as_path_attr.path := as_path_attr.path.append(seg);
     call path_attr.as_path.handle(as_path_attr, src, dst, bgp_message_type.update_mess);
