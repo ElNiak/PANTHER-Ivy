@@ -43,12 +43,16 @@ before bgp_open_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_open_message
 }
 
 # Phase gate for KEEPALIVE generation:
-# - Allow KEEPALIVE freely until we've sent one (mandatory per [rfc4271:8.2.2:opensent])
-# - After first KEEPALIVE + session established: block until UPDATE sent
-# - After UPDATE sent: allow freely again (session maintenance [rfc4271:4.4])
+# - Allow exactly one KEEPALIVE (mandatory per [rfc4271:8.2.2:opensent] to
+#   advance FRR's FSM from OpenConfirm to Established).
+# - Then block until update_sent. This prevents Z3 from looping on KEEPALIVE
+#   generation before yielding to the TCP read loop — without the cap, the
+#   tester starves FRR's KEEPALIVE reception (TCP ACK starvation observed in
+#   runs 3 and 8), so conn_state on the Ivy side never reaches Established.
+# - After UPDATE sent: allow freely again (session maintenance [rfc4271:4.4]).
 before bgp_keepalive_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_keepalive_message){
     if _generating {
-        require ~keepalive_sent | ~session_established | update_sent;
+        require ~keepalive_sent | update_sent;
     }
 }
 
