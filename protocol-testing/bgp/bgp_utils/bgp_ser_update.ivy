@@ -65,6 +65,12 @@ object bgp_ser_update = {}
         int next_state = 0;
         enum bgp_state saved_attr_payload_state = bgp_s_path_attr;
 
+        // Offset into res buffer where AS_PATH length byte was written as
+        // placeholder at open_tag; close_tag patches it with the actual count
+        // of bytes emitted for the AS_PATH value. -1 means not currently
+        // inside an AS_PATH attribute. [rfc4271:4.3]
+        int as_path_len_patch_offset = -1;
+
 
 
     public:
@@ -293,7 +299,23 @@ object bgp_ser_update = {}
                 int128_t type_code = tag + 1;
                 setn(type_code, 1);
 
-                // Write attribute length (1 byte) — computed from type
+                // Attribute length byte.
+                //
+                // AS_PATH (tag 1) is variable-length, so we write a placeholder
+                // byte now and patch it in close_tag() once the AS_PATH value
+                // bytes have been emitted. All other path attributes have a
+                // fixed length we know up front. [rfc4271:4.3]
+                if (tag == 1) {
+                    as_path_len_patch_offset = (int)res.size();
+                    setn((int128_t)0, 1); // placeholder, patched at close_tag
+                    attr_len = 0;
+                    std::cerr << "ser AS_PATH length placeholder at offset "
+                              << as_path_len_patch_offset << "\n";
+                    saved_attr_payload_state = bgp_s_path_attr_as_path_segment_type;
+                    state = bgp_s_attr_flag_optional;
+                    return;
+                }
+
                 int attr_lengths[] = {1, 0, 4, 4, 4, 0, 6}; // origin, as_path(var), next_hop, med, local_pref, atomic_agg, aggregator
                 int128_t computed_len = (tag >= 0 && tag <= 6) ? attr_lengths[tag] : 0;
                 setn(computed_len, 1);
@@ -301,7 +323,6 @@ object bgp_ser_update = {}
                 std::cerr << "ser attr_len = " << attr_len << "\n";
 
                 if (tag == 0) { saved_attr_payload_state = bgp_s_path_attr_origin; state = bgp_s_attr_flag_optional; return; }
-                if (tag == 1) { saved_attr_payload_state = bgp_s_path_attr_as_path_segment_type; state = bgp_s_attr_flag_optional; return; }
                 if (tag == 2) { saved_attr_payload_state = bgp_s_path_attr_next_hop; state = bgp_s_attr_flag_optional; return; }
                 if (tag == 3) { saved_attr_payload_state = bgp_s_path_attr_multi_exit_disc; state = bgp_s_attr_flag_optional; return; }
                 if (tag == 4) { saved_attr_payload_state = bgp_s_path_attr_local_pref; state = bgp_s_attr_flag_optional; return; }
@@ -458,6 +479,18 @@ object bgp_ser_update = {}
 
         virtual void close_tag() {
             std::cerr << "closing tag\n";
+            // Patch the AS_PATH length byte with the actual number of value
+            // bytes emitted since the placeholder was written.
+            // Value = segments * (seg_type + seg_len) + AS bytes, all of
+            // which landed in res between (offset+1) and res.size(). [rfc4271:4.3]
+            if (as_path_len_patch_offset >= 0) {
+                int value_len = (int)res.size() - (as_path_len_patch_offset + 1);
+                res[as_path_len_patch_offset] = (char)value_len;
+                std::cerr << "ser AS_PATH length patched at offset "
+                          << as_path_len_patch_offset
+                          << " value_len=" << value_len << "\n";
+                as_path_len_patch_offset = -1;
+            }
             if(state == bgp_s_net_info_pref)
             state = bgp_s_net_info_pref;
             else

@@ -322,11 +322,15 @@ object path_attr = {
                 require aspath.segment_type  = queued_segment_type(src,idx);
                 require aspath.segment_len   = num_queued_segment_value(src,idx);
                 require aspath.segment_value = queued_segment_value(src,idx);
-                path_attr_size(src) := path_attr_size(src) + 1 + 2 * as_idx_to_stream_pos(aspath.segment_len);
+                # Each AS path segment on the wire is: segment_type(1) +
+                # segment_length(1) + segment_value(2 bytes per AS). [rfc4271:5.1.2]
+                path_attr_size(src) := path_attr_size(src) + 1 + 1 + 2 * as_idx_to_stream_pos(aspath.segment_len);
                 idx := idx.next;
             };
             ...
-            path_attr_size(src) := path_attr_size(src) + 1 + 1 + 2 + 1;
+            # Attribute header overhead = flags(1) + type(1) + length(1 byte
+            # for non-extended attrs). [rfc4271:4.3]
+            path_attr_size(src) := path_attr_size(src) + 1 + 1 + 1;
             var jdx : path_attr.as_path.as_path_segment.idx := 0;
             while jdx < num_queued_as_path(src) {
                 queued_segment_type(src,jdx) := 0;
