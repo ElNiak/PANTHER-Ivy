@@ -41,6 +41,11 @@ implement generate_update {
     if scen = announce_multihop {
         call _build_announce_multihop(src, dst);
     };
+    # withdraw_single needs no path-attribute handles — per [rfc4271:4.3]:
+    # "An UPDATE message might advertise only routes that are to be
+    # withdrawn from service, in which case the message will not include
+    # path attributes or Network Layer Reachability Information."
+    # Reset above already cleared path_attr state; nothing more to queue.
 
     # Construct the UPDATE message from the populated state
     var msg : bgp_update_message;
@@ -48,6 +53,8 @@ implement generate_update {
     msg.withdraw_routes := withdraw_route.arr.empty;
     msg.total_path_attr_len := path_attr_size(src);
     msg.path_attrs := queued_path_attr(src);
+    msg.network_layer_reach_infos.len := 0;
+    msg.network_layer_reach_infos.route_prefix := stream_data.empty;
 
     if scen = announce_single {
         # NLRI=192.168.1.0/24 [rfc4271:4.3]
@@ -69,6 +76,27 @@ implement generate_update {
         mh_bytes := mh_bytes.append(0);
         mh_bytes := mh_bytes.append(0);
         msg.network_layer_reach_infos.route_prefix := mh_bytes;
+    };
+    if scen = withdraw_single {
+        # Withdraw 192.168.1.0/24 [rfc4271:4.3]
+        # Wire encoding per §4.3: <length=24 bits, prefix=[192,168,1]>
+        # = 1 octet length + 3 octets prefix = 4 octets total.
+        # "Withdrawn Routes Length ... indicates the total length of the
+        # Withdrawn Routes field in octets." So wr_len_field = 4.
+        var wr : withdraw_route;
+        wr.len := 24;
+        var wr_bytes : stream_data;
+        wr_bytes := stream_data.empty;
+        wr_bytes := wr_bytes.append(192);
+        wr_bytes := wr_bytes.append(168);
+        wr_bytes := wr_bytes.append(1);
+        wr.route_prefix := wr_bytes;
+        var wr_arr : withdraw_route.arr;
+        wr_arr := withdraw_route.arr.empty;
+        wr_arr := wr_arr.append(wr);
+        msg.withdraw_routes := wr_arr;
+        msg.withdraw_routes_len := 4;
+        # NLRI stays empty (already set above) — withdraw-only message.
     };
 
     # Fire the original event — around block validates and after block tracks

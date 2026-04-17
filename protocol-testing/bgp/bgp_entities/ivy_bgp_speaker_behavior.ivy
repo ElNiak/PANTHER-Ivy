@@ -105,12 +105,24 @@ before bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_mes
         require src = bgp_ivy_instance.bgpid;
         require dst = bgp_impl_instance.bgpid;
         require header_payload.end = 0;
-        require bgp_message.withdraw_routes_len = 0;
-        require bgp_message.withdraw_routes.end = 0;
         header_type   := bgp_message_type.update_mess;
-        # 19 (header) + 2 (withdraw_len) + 2 (path_attr_len) + attrs + 1 (NLRI len) + 3 (NLRI /24 prefix)
-        header_length := 27 + path_attr_size(src) # [rfc4271:4.3:min_length]
-        # require total_path_attr_len
+        # [rfc4271:4.3] UPDATE total length formula:
+        #   19 (fixed header) + 2 (Withdrawn Routes Length field)
+        # + withdraw_routes_len (value = total octets of Withdrawn Routes field)
+        # + 2 (Total Path Attribute Length field) + path_attr_size + nlri_bytes
+        #
+        # Per [rfc4271:4.3]: "An UPDATE message might advertise only routes
+        # that are to be withdrawn from service, in which case the message
+        # will not include path attributes or Network Layer Reachability
+        # Information."  Withdraw-only → nlri=0, path_attr_size=0.
+        #
+        # NLRI bytes when present: 1 (length octet) + L/8 prefix octets
+        # where L = NLRI length in bits (multiple of 8). See [rfc4271:4.3]
+        # NLRI encoding: "Each IP address prefix is encoded as <length,prefix>".
+        header_length := 19 + 2 + bgp_message.withdraw_routes_len + 2 + path_attr_size(src);
+        if bgp_message.network_layer_reach_infos.len > 0 {
+            header_length := header_length + 1 + bgp_message.network_layer_reach_infos.route_prefix.end;
+        };
     }
 }
 
