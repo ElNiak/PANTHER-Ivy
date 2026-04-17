@@ -120,8 +120,11 @@ around  bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_me
     require bgp_message.total_path_attr_len = path_attr_size(src); # [rfc4271:9.1]
     require bgp_message.path_attrs = queued_path_attr(src);
     # Constrain NLRI to valid IPv4 /24 prefix [rfc4271:4.3]
-    require bgp_message.network_layer_reach_infos.len = 24;
-    require bgp_message.network_layer_reach_infos.route_prefix.end = 3;
+    # Guard: builder constructs NLRI directly; only validate on receive side
+    if ~_generating {
+        require bgp_message.network_layer_reach_infos.len = 24;
+        require bgp_message.network_layer_reach_infos.route_prefix.end = 3;
+    };
     bgp_update_event := true;
     ...
     require isup(bgpid_to_endpoint(src));

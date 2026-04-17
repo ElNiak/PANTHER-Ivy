@@ -1,0 +1,104 @@
+#lang ivy1.7
+
+# BGP scenario builder — deterministic message construction for Z3 [rfc4271:4.3]
+#
+# Z3 picks a scenario from a finite enum (update_scenario -> bv[3]); this
+# module constructs the full message deterministically. Eliminates per-test
+# solver hints for array-based constraints (NLRI, AS_PATH segments).
+#
+# Soundness:
+# - The builder calls the original handle actions (origin/as_path/next_hop),
+#   so their around blocks fire and populate path_attr_size + queued_path_attr.
+# - The builder calls bgp_update_message_event, so its around block fires
+#   and triggers all monitors and serialization.
+# - Receive-side validation in bgp_update_message.ivy is preserved by the
+#   `if ~_generating` guard added in Task 2.
+
+include bgp_scenario
+
+# ── UPDATE Builder ──────────────────────────────────────────────
+
+action generate_update(src:bgp_id, dst:bgp_id, scen:update_scenario)
+
+implement generate_update {
+    # FSM preconditions — the only thing Z3 must solve [rfc4271:8.2.2:established]
+    require conn_state(src) = bgp_connection_state.established;
+    require open_message_recv(src) & open_message_recv(dst);
+    require src = bgp_ivy_instance.bgpid;
+    require dst = bgp_impl_instance.bgpid;
+
+    # Reset attr-present flags and queued state so handles see a clean slate
+    origin_present(src) := false;
+    as_path_present(src) := false;
+    next_hop_present(src) := false;
+    queued_path_attr(src) := path_attr.arr.empty;
+    num_queued_path_attr(src) := 0;
+    path_attr_size(src) := 0;
+
+    if scen = announce_single {
+        call _build_announce_single(src, dst);
+    };
+
+    # Construct the UPDATE message from the populated state
+    var msg : bgp_update_message;
+    msg.withdraw_routes_len := 0;
+    msg.withdraw_routes := withdraw_route.arr.empty;
+    msg.total_path_attr_len := path_attr_size(src);
+    msg.path_attrs := queued_path_attr(src);
+
+    if scen = announce_single {
+        # NLRI=192.168.1.0/24 [rfc4271:4.3]
+        msg.network_layer_reach_infos.len := 24;
+        var route_bytes : stream_data;
+        route_bytes := stream_data.empty;
+        route_bytes := route_bytes.append(192);
+        route_bytes := route_bytes.append(168);
+        route_bytes := route_bytes.append(1);
+        msg.network_layer_reach_infos.route_prefix := route_bytes;
+    };
+
+    # Fire the original event — around block validates and after block tracks
+    call bgp_update_message_event(src, dst, msg);
+}
+
+# ── Private scenario helpers ───────────────────────────────────
+
+action _build_announce_single(src:bgp_id, dst:bgp_id)
+
+implement _build_announce_single {
+    # ORIGIN=IGP (0) [rfc4271:5.1.1]
+    var origin_attr : path_attr.origin;
+    origin_attr.transitive := true;
+    origin_attr.optional := false;
+    origin_attr.partial := false;
+    origin_attr.value := 0;
+    call path_attr.origin.handle(origin_attr, src, dst, bgp_message_type.update_mess);
+
+    # AS_PATH=empty AS_SEQUENCE (locally originated) [rfc4271:5.1.2]
+    # Pre-populate queued segment state — as_path.handle's while loop reads it
+    var seg_idx : path_attr.as_path.as_path_segment.idx := 0;
+    queued_segment_type(src, seg_idx) := 2;
+    num_queued_segment_value(src, seg_idx) := 0;
+    queued_segment_value(src, seg_idx) := autonomous_system.arr.empty;
+    num_queued_as_path(src) := 1;
+
+    var as_path_attr : path_attr.as_path;
+    as_path_attr.transitive := true;
+    as_path_attr.optional := false;
+    as_path_attr.partial := false;
+    var seg : path_attr.as_path.as_path_segment;
+    seg.segment_type := 2;
+    seg.segment_len := 0;
+    seg.segment_value := autonomous_system.arr.empty;
+    as_path_attr.path := path_attr.as_path.as_path_segment.arr.empty;
+    as_path_attr.path := as_path_attr.path.append(seg);
+    call path_attr.as_path.handle(as_path_attr, src, dst, bgp_message_type.update_mess);
+
+    # NEXT_HOP=0.0.0.0 (self, resolved at runtime) [rfc4271:5.1.3]
+    var next_hop_attr : path_attr.next_hop;
+    next_hop_attr.transitive := true;
+    next_hop_attr.optional := false;
+    next_hop_attr.partial := false;
+    next_hop_attr.next_hop := 0;
+    call path_attr.next_hop.handle(next_hop_attr, src, dst, bgp_message_type.update_mess);
+}

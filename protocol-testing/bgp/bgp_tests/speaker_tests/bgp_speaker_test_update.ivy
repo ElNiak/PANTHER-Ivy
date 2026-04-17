@@ -2,26 +2,25 @@
 
 # BGP UPDATE Compliance Test [rfc4271:4.3]
 #
-# Tests UPDATE message generation and IUT acceptance:
+# Tests UPDATE message generation via the scenario builder and IUT acceptance:
 # 1. Establish a BGP session (OPEN + KEEPALIVE exchange) [rfc4271:8.2.2]
-# 2. Build path attributes via handle actions (ORIGIN, AS_PATH, NEXT_HOP)
-# 3. Send UPDATE with all 3 mandatory well-known attributes [rfc4271:5]
-# 4. Verify IUT accepts the UPDATE (no NOTIFICATION in response)
+# 2. Generate a complete UPDATE via generate_update(scenario)
+# 3. Verify IUT accepts the UPDATE (no NOTIFICATION in response)
 #
 # Phase sequence per RFC 4271 Section 8.2.2:
 #   Idle → OpenSent (send OPEN) → OpenConfirm (send KEEPALIVE after recv OPEN)
-#   → Established (recv KEEPALIVE) → send UPDATE
+#   → Established (recv KEEPALIVE) → generate_update
 #
-# The KEEPALIVE gate ensures at least one KEEPALIVE is sent (required by
-# [rfc4271:8.2.2:opensent]) before blocking further KEEPALIVEs to force
-# the solver through handle→UPDATE.
+# The scenario builder absorbs former per-test Z3 hints (NLRI bytes, AS_PATH
+# segment shape) into the model. Z3 only needs to choose a scenario from a
+# 3-bit enum, eliminating array-construction and while-loop blockers.
 
 include order
 include file
 include bgp_shim
 include ivy_bgp_speaker_behavior
+include bgp_scenario_builder
 
-relation slept_bgp
 relation update_sent
 relation session_established
 relation keepalive_sent
@@ -29,53 +28,17 @@ relation keepalive_sent
 after init {
     getsock(bgp_impl_instance.ep.addr) := net.connect_accept(endpoint_id.ivy_speaker, endpoint_id.impl_speaker, bgp_impl_instance.ep.addr);
     pend(bgp_impl_instance.ep.addr) := true;
-    slept_bgp := false;
     update_sent := false;
     session_established := false;
     keepalive_sent := false;
-    # Pre-populate AS_PATH: one AS_SEQUENCE segment with 0 AS numbers (locally originated) [rfc4271:5.1.2]
-    # Uses bgp_ivy_instance (the generating speaker), not bgp_impl_instance (the IUT)
-    var seg_idx : path_attr.as_path.as_path_segment.idx := 0;
-    queued_segment_type(bgp_ivy_instance.bgpid, seg_idx) := 2;
-    num_queued_segment_value(bgp_ivy_instance.bgpid, seg_idx) := 0;
-    num_queued_as_path(bgp_ivy_instance.bgpid) := 1;
     # Hold timer may expire during UPDATE preparation (KEEPALIVE blocked until UPDATE sent)
     acceptable_error(bgp_error_code.hold_timer_expire) := true;
     # FRR may send fsm_error with wrong subcode (known IUT deviation)
     acceptable_error(bgp_error_code.fsm_error) := true;
 }
 
-# Pre-constrain AS_PATH parameter for Z3: bypass while-loop reasoning [rfc4271:5.1.2]
-# Z3 cannot solve as_path.handle's while-loop constraints over segment arrays.
-# These direct constraints on f give the solver a concrete shape to satisfy.
-before path_attr.as_path.handle(f:path_attr.as_path, src:bgp_id, dst:bgp_id, e:bgp_message_type) {
-    if _generating {
-        require f.path.end = 1;
-        require f.path.value(0).segment_type = 2;
-        require f.path.value(0).segment_len = 0;
-        require f.path.value(0).segment_value.end = 0;
-        require f.transitive;
-        require ~f.optional;
-        require ~f.partial;
-    }
-}
-
 before bgp_open_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_open_message){
     if _generating {
-    }
-}
-
-before bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_message){
-    if _generating {
-        # UPDATE only valid in Established state [rfc4271:9]
-        require session_established;
-        # Pre-constrain NLRI for Z3: 192.168.1.0/24 prefix [rfc4271:4.3]
-        # Z3 cannot construct arrays to a target length; provide concrete values.
-        require bgp_message.network_layer_reach_infos.len = 24;
-        require bgp_message.network_layer_reach_infos.route_prefix.end = 3;
-        require bgp_message.network_layer_reach_infos.route_prefix.value(0) = 192;
-        require bgp_message.network_layer_reach_infos.route_prefix.value(1) = 168;
-        require bgp_message.network_layer_reach_infos.route_prefix.value(2) = 1;
     }
 }
 
@@ -107,20 +70,18 @@ after bgp_keepalive_message_event {
     }
 }
 
-# Track UPDATE generation
-after bgp_update_message_event {
+# Track UPDATE generation via the scenario builder
+after generate_update {
     if _generating {
         update_sent := true;
     }
 }
 
+# 4 exports (was 7) — Z3 action space reduced from 7 to 4
 export bgp_open_message_event
-export bgp_update_message_event
 export bgp_keepalive_message_event
 export bgp_notification_message_event
-export path_attr.origin.handle
-export path_attr.as_path.handle
-export path_attr.next_hop.handle
+export generate_update
 
 # Finalize: session established + at least one UPDATE sent + no errors
 export action _finalize = {
