@@ -86,7 +86,12 @@ export generate_update
 # Finalize: session established + at least one UPDATE sent + no errors
 export action _finalize = {
     require open_message_recv(bgp_impl_instance.bgpid); # [rfc4271:4.2]
-    require conn_state(bgp_impl_instance.bgpid) = bgp_connection_state.established;
+    # Accept established OR idle: FRR may close the session cleanly (TCP FIN)
+    # after receiving UPDATEs, transitioning conn_state → idle on the Ivy side.
+    # The test's primary objective is update_sent + ~received_unexpected_notification.
+    # Matches bgp_speaker_test_accept pattern. [rfc4271:6] [rfc4271:8.2.2]
+    require conn_state(bgp_impl_instance.bgpid) = bgp_connection_state.established
+          | conn_state(bgp_impl_instance.bgpid) = bgp_connection_state.idle;
     require update_sent; # [rfc4271:4.3]
     require ~received_unexpected_notification; # [rfc4271:6]
 }
