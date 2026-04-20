@@ -21,7 +21,6 @@ after init {
     update_sent := false;
     session_established := false;
     keepalive_sent := false;
-    acceptable_error(bgp_error_code.hold_timer_expire) := true;
     acceptable_error(bgp_error_code.fsm_error) := true;
 }
 
