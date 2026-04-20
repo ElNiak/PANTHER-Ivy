@@ -1,14 +1,9 @@
 #lang ivy1.7
 
-# BGP UPDATE Withdraw Compliance Test [rfc4271:4.3]
-#
-# Restricted variant of bgp_speaker_test_update that forces the scenario
-# to `withdraw_single`. Exercises withdrawal of a previously-advertised
-# route without any NLRI or path attributes.
-#
-# Per [rfc4271:4.3]: "An UPDATE message might advertise only routes that
-# are to be withdrawn from service, in which case the message will not
-# include path attributes or Network Layer Reachability Information."
+# Discriminator variant — forces scen=announce_single under the same
+# variant-guard pattern used by withdraw and replace. Purpose: isolate
+# whether the replace_route failure is (variant_guard × handle_chain)
+# structural, or replace_route-specific.
 
 include order
 include file
@@ -47,12 +42,12 @@ before bgp_notification_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_noti
     }
 }
 
-# Restrict scenario to withdraw_single — isolated validation of withdraw path.
 before generate_update(src:bgp_id, dst:bgp_id, scen:update_scenario) {
     if _generating {
-        require scen = withdraw_single;
-        # [rfc4271:8.2.2] FRR must reach Established (receives Ivy's KEEPALIVE)
-        # before UPDATE; otherwise rejects with FSM Error 5/2.
+        require scen = announce_single;
+        # [rfc4271:8.2.2] Ivy must send its own KEEPALIVE before UPDATE so FRR's
+        # FSM transitions from OpenConfirm → Established. Without this ordering,
+        # FRR rejects with FSM Error 5/2 "Receive Unexpected Message in OpenConfirm".
         require keepalive_sent;
     }
 }

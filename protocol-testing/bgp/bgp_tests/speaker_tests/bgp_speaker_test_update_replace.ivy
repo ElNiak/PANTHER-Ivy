@@ -1,14 +1,16 @@
 #lang ivy1.7
 
-# BGP UPDATE Withdraw Compliance Test [rfc4271:4.3]
+# BGP UPDATE Replace-Route Compliance Test [rfc4271:9.1.2]
 #
 # Restricted variant of bgp_speaker_test_update that forces the scenario
-# to `withdraw_single`. Exercises withdrawal of a previously-advertised
-# route without any NLRI or path attributes.
+# to `replace_route`. Advertises NLRI 192.168.1.0/24 with ORIGIN=INCOMPLETE
+# to exercise implicit-withdraw / attribute-replacement semantics in the
+# IUT's Adj-RIB-In.
 #
-# Per [rfc4271:4.3]: "An UPDATE message might advertise only routes that
-# are to be withdrawn from service, in which case the message will not
-# include path attributes or Network Layer Reachability Information."
+# Per [rfc4271:9.1.2]: "If the route is learned from an external peer,
+# the local BGP speaker MUST replace the NEXT_HOP attribute and the MED
+# attribute of the existing route with the values of the corresponding
+# attributes of the newly received route..."
 
 include order
 include file
@@ -47,13 +49,13 @@ before bgp_notification_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_noti
     }
 }
 
-# Restrict scenario to withdraw_single — isolated validation of withdraw path.
+# Restrict scenario to replace_route — isolated validation of implicit-withdraw.
 before generate_update(src:bgp_id, dst:bgp_id, scen:update_scenario) {
     if _generating {
-        require scen = withdraw_single;
         # [rfc4271:8.2.2] FRR must reach Established (receives Ivy's KEEPALIVE)
         # before UPDATE; otherwise rejects with FSM Error 5/2.
         require keepalive_sent;
+        require scen = replace_route;
     }
 }
 

@@ -41,6 +41,9 @@ implement generate_update {
     if scen = announce_multihop {
         call _build_announce_multihop(src, dst);
     };
+    if scen = replace_route {
+        call _build_replace_route(src, dst);
+    };
     # withdraw_single needs no path-attribute handles — per [rfc4271:4.3]:
     # "An UPDATE message might advertise only routes that are to be
     # withdrawn from service, in which case the message will not include
@@ -98,6 +101,22 @@ implement generate_update {
         msg.withdraw_routes_len := 4;
         # NLRI stays empty (already set above) — withdraw-only message.
     };
+    if scen = replace_route {
+        # Same NLRI=192.168.1.0/24 as announce_single, but with differing
+        # path attributes (ORIGIN=INCOMPLETE instead of IGP) to exercise
+        # implicit-withdraw / route-replace semantics [rfc4271:9.1.2]:
+        # "If the route is learned from an external peer, the local BGP
+        # speaker MUST replace the NEXT_HOP attribute and the MED attribute
+        # of the existing route with the values of the corresponding
+        # attributes of the newly received route..."
+        msg.network_layer_reach_infos.len := 24;
+        var rr_bytes : stream_data;
+        rr_bytes := stream_data.empty;
+        rr_bytes := rr_bytes.append(192);
+        rr_bytes := rr_bytes.append(168);
+        rr_bytes := rr_bytes.append(1);
+        msg.network_layer_reach_infos.route_prefix := rr_bytes;
+    };
 
     # Fire the original event — around block validates and after block tracks
     call bgp_update_message_event(src, dst, msg);
@@ -116,54 +135,15 @@ implement _build_announce_single {
     origin_attr.value := 0;
     call path_attr.origin.handle(origin_attr, src, dst, bgp_message_type.update_mess);
 
-    # AS_PATH = [AS_SEQUENCE: speaker_as] — locally originated route to eBGP peer.
-    # Per [rfc4271:5.1.2]: "the originating speaker includes its own AS number
-    # in a path segment, of type AS_SEQUENCE, in the AS_PATH attribute of all
-    # UPDATE messages sent to an external peer. In this case, the AS number of
-    # the originating speaker's autonomous system will be the only entry the
-    # path segment, and this path segment will be the only segment in the
-    # AS_PATH attribute." An empty AS_PATH is only valid for iBGP per §5.1.2:b.
+    # AS_PATH = [AS_SEQUENCE: speaker_as] — single-call API, parameter-only requires
     var own_as : autonomous_system;
     own_as.id := speaker_as;
-    var seg_values : autonomous_system.arr;
-    seg_values := autonomous_system.arr.empty;
-    seg_values := seg_values.append(own_as);
+    var as_list : autonomous_system.arr;
+    as_list := autonomous_system.arr.empty;
+    as_list := as_list.append(own_as);
+    call commit_as_sequence(src, dst, as_list, true, false, false);
 
-    # Pre-populate queued segment state — as_path.handle's while loop reads it
-    var seg_idx : path_attr.as_path.as_path_segment.idx := 0;
-    queued_segment_type(src, seg_idx) := 2;
-    num_queued_segment_value(src, seg_idx) := 1;
-    queued_segment_value(src, seg_idx) := seg_values;
-    num_queued_as_path(src) := 1;
-
-    var as_path_attr : path_attr.as_path;
-    as_path_attr.transitive := true;
-    as_path_attr.optional := false;
-    as_path_attr.partial := false;
-    var seg : path_attr.as_path.as_path_segment;
-    seg.segment_type := 2;
-    seg.segment_len := 1;
-    seg.segment_value := seg_values;
-    as_path_attr.path := path_attr.as_path.as_path_segment.arr.empty;
-    as_path_attr.path := as_path_attr.path.append(seg);
-    call path_attr.as_path.handle(as_path_attr, src, dst, bgp_message_type.update_mess);
-
-    # NEXT_HOP = Ivy tester's interface IP on the shared subnet with FRR.
-    # Per [rfc4271:5.1.3]: "When sending a message to an external peer, X,
-    # and the peer is one IP hop away from the speaker: ... if the external
-    # peer to which the route is being advertised shares a common subnet with
-    # one of the interfaces of the announcing BGP speaker, the speaker MAY
-    # use the IP address associated with such an interface in the NEXT_HOP
-    # attribute. This is known as a 'first party' NEXT_HOP attribute."
-    # Also [rfc4271:5.1.3]: "A route originated by a BGP speaker SHALL NOT
-    # be advertised to a peer using an address of that peer as NEXT_HOP."
-    # 0.0.0.0 is syntactically valid but semantically invalid — FRR rejects
-    # with update_mess_error/invalid_next_hop_attribute per [rfc4271:6.3].
-    #
-    # Test-config note: version_configs/bgp/rfc4271.yaml binds
-    # bgp_impl_instance.ep.addr to the Ivy tester's wire interface IP
-    # (addresses are swapped vs. naming convention); use it here so the
-    # advertised NEXT_HOP matches the wire source IP FRR observes.
+    # NEXT_HOP [rfc4271:5.1.3]
     var next_hop_attr : path_attr.next_hop;
     next_hop_attr.transitive := true;
     next_hop_attr.optional := false;
@@ -198,39 +178,65 @@ implement _build_announce_multihop {
 
     # AS_PATH = [AS_SEQUENCE: 1, 65001, 65002] — Ivy prepended own AS per
     # [rfc4271:5.1.2:b:1]. 3 ASes fits in 2-octet encoding (all <65536), so
-    # no AS_TRANS / RFC 6793 handling needed.
+    # no AS_TRANS / RFC 6793 handling needed. Single-call API, param-only requires.
     var own_as : autonomous_system;
     own_as.id := speaker_as;
-    var upstream1 : autonomous_system;
-    upstream1.id := 65001;
-    var upstream2 : autonomous_system;
-    upstream2.id := 65002;
-    var seg_values : autonomous_system.arr;
-    seg_values := autonomous_system.arr.empty;
-    seg_values := seg_values.append(own_as);
-    seg_values := seg_values.append(upstream1);
-    seg_values := seg_values.append(upstream2);
+    var up1 : autonomous_system;
+    up1.id := 65001;
+    var up2 : autonomous_system;
+    up2.id := 65002;
+    var as_list : autonomous_system.arr;
+    as_list := autonomous_system.arr.empty;
+    as_list := as_list.append(own_as);
+    as_list := as_list.append(up1);
+    as_list := as_list.append(up2);
+    call commit_as_sequence(src, dst, as_list, true, false, false);
 
-    var seg_idx : path_attr.as_path.as_path_segment.idx := 0;
-    queued_segment_type(src, seg_idx) := 2;
-    num_queued_segment_value(src, seg_idx) := 3;
-    queued_segment_value(src, seg_idx) := seg_values;
-    num_queued_as_path(src) := 1;
+    # NEXT_HOP = Ivy tester's wire interface IP [rfc4271:5.1.3]
+    var next_hop_attr : path_attr.next_hop;
+    next_hop_attr.transitive := true;
+    next_hop_attr.optional := false;
+    next_hop_attr.partial := false;
+    next_hop_attr.next_hop := bgp_impl_instance.ep.addr;
+    call path_attr.next_hop.handle(next_hop_attr, src, dst, bgp_message_type.update_mess);
+}
 
-    var as_path_attr : path_attr.as_path;
-    as_path_attr.transitive := true;
-    as_path_attr.optional := false;
-    as_path_attr.partial := false;
-    var seg : path_attr.as_path.as_path_segment;
-    seg.segment_type := 2;
-    seg.segment_len := 3;
-    seg.segment_value := seg_values;
-    as_path_attr.path := path_attr.as_path.as_path_segment.arr.empty;
-    as_path_attr.path := as_path_attr.path.append(seg);
-    call path_attr.as_path.handle(as_path_attr, src, dst, bgp_message_type.update_mess);
+# ── replace_route ──────────────────────────────────────────────
+#
+# Re-advertises the same NLRI as announce_single (192.168.1.0/24) but with a
+# different ORIGIN attribute (INCOMPLETE=2 instead of IGP=0). Exercises
+# implicit-withdraw / route-replace semantics in the IUT's Adj-RIB-In
+# per [rfc4271:9.1.2]: "If the route is learned from an external peer,
+# the local BGP speaker MUST replace the NEXT_HOP attribute and the MED
+# attribute of the existing route with the values of the corresponding
+# attributes of the newly received route..." Same AS_PATH and NEXT_HOP
+# keep the diff focused on ORIGIN semantics.
 
-    # NEXT_HOP = Ivy tester's interface IP on the shared subnet with FRR,
-    # same rationale as announce_single. [rfc4271:5.1.3]
+action _build_replace_route(src:bgp_id, dst:bgp_id)
+
+implement _build_replace_route {
+    # ORIGIN=INCOMPLETE (2) [rfc4271:5.1.1]
+    # Per [rfc4271:5.1.1]: "INCOMPLETE - Network Layer Reachability
+    # Information learned by some other means."  Distinct from
+    # announce_single's IGP=0 so the IUT sees a genuine attribute change.
+    var origin_attr : path_attr.origin;
+    origin_attr.transitive := true;
+    origin_attr.optional := false;
+    origin_attr.partial := false;
+    origin_attr.value := 2;
+    call path_attr.origin.handle(origin_attr, src, dst, bgp_message_type.update_mess);
+
+    # AS_PATH = [AS_SEQUENCE: speaker_as] — identical to announce_single.
+    # Per [rfc4271:5.1.2] the originating speaker includes its own AS in
+    # AS_SEQUENCE when advertising to an external peer. Single-call API.
+    var own_as : autonomous_system;
+    own_as.id := speaker_as;
+    var as_list : autonomous_system.arr;
+    as_list := autonomous_system.arr.empty;
+    as_list := as_list.append(own_as);
+    call commit_as_sequence(src, dst, as_list, true, false, false);
+
+    # NEXT_HOP = Ivy tester's wire interface IP [rfc4271:5.1.3]
     var next_hop_attr : path_attr.next_hop;
     next_hop_attr.transitive := true;
     next_hop_attr.optional := false;

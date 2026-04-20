@@ -235,6 +235,16 @@ function queued_segment_value(C:bgp_id,I:path_attr.as_path.as_path_segment.idx) 
 function num_queued_segment_value(C:bgp_id,I:path_attr.as_path.as_path_segment.idx) : autonomous_system.idx
 function num_queued_as_path(C:bgp_id)                                               : path_attr.as_path.as_path_segment.idx
 
+# ── P3 send-side queue state ──────────────────────────────────────
+# Per-segment builder accumulator used by begin_as_segment / enqueue_as_value /
+# end_as_segment / commit_as_path. Straight-line state model — no indexed
+# 3-tuple functions, so Z3 doesn't hit ∃∀ alternation during generation.
+# [rfc4271:5.1.2]
+relation as_segment_open(C:bgp_id)
+function cur_segment_type(C:bgp_id)   : segmenttype
+function cur_segment_values(C:bgp_id) : autonomous_system.arr
+function pending_as_path(C:bgp_id)    : path_attr.as_path.as_path_segment.arr
+
 # ORIGIN is a well-known mandatory attribute that defines the origin of the path information.
 relation origin_present(C:bgp_id)
 relation as_path_present(C:bgp_id)
@@ -248,6 +258,10 @@ relation has_received_origin(C:bgp_id)
 
 after init {
     has_received_origin(C) := false;
+    as_segment_open(C) := false;
+    cur_segment_type(C) := 0;
+    cur_segment_values(C) := autonomous_system.arr.empty;
+    pending_as_path(C) := path_attr.as_path.as_path_segment.arr.empty;
 }
 
 object path_attr = {
@@ -468,4 +482,132 @@ object path_attr = {
 action enqueue_path_attr(src:bgp_id, f:path_attr) = {
     queued_path_attr(src)     := queued_path_attr(src).append(f);
     num_queued_path_attr(src) := queued_path_attr(src).end;
+}
+
+# ── P3 AS_PATH send-side queue actions [rfc4271:5.1.2] ────────────
+#
+# These four straight-line actions replace the monolithic
+# path_attr.as_path.handle on the SEND path. The scenario builder calls
+# them in sequence to construct an RFC-compliant AS_PATH without ever
+# invoking the while-loop handle — eliminating the ∃∀ quantifier
+# alternation that blocked Z3 in the announce/replace variant tests.
+#
+# Receive path remains untouched: the deserializer still calls
+# path_attr.as_path.handle with a fully-constructed struct, whose
+# around-block validates incoming wire bytes as before.
+#
+# Builder call sequence per UPDATE:
+#   begin_as_segment(src, dst, 2)          # AS_SEQUENCE (or 1 for AS_SET)
+#   enqueue_as_value(src, dst, speaker_as) # one call per AS number
+#   end_as_segment(src, dst)               # closes the segment
+#   commit_as_path(src, dst, T, F, F)      # well-known flags, finalize
+
+# Open a new segment accumulator. Callers choose AS_SET=1 or AS_SEQUENCE=2
+# per [rfc4271:5.1.2]: "The path segment type is a 1-octet length field
+# with the following values defined: 1=AS_SET, 2=AS_SEQUENCE."
+action begin_as_segment(src:bgp_id, dst:bgp_id, seg_type:segmenttype) = {
+    require seg_type = 1 | seg_type = 2;                     # [rfc4271:5.1.2]
+    require ~as_segment_open(src);                           # no re-entrant segment
+    require open_message_recv(src) & open_message_recv(dst); # [rfc4271:5.1.2] session up
+    as_segment_open(src)    := true;
+    cur_segment_type(src)   := seg_type;
+    cur_segment_values(src) := autonomous_system.arr.empty;
+}
+
+# Append one AS number to the currently-open segment.
+action enqueue_as_value(src:bgp_id, dst:bgp_id, as_id:as_number) = {
+    require as_segment_open(src);                            # begin_as_segment must precede
+    var new_as : autonomous_system;
+    new_as.id := as_id;
+    cur_segment_values(src) := cur_segment_values(src).append(new_as);
+}
+
+# Close the open segment and flush it to the pending AS_PATH accumulator.
+# Also accumulates wire-byte size: 1 (type) + 1 (length) + 2 * n (AS values)
+# per [rfc4271:5.1.2]. AS number encoding is 2 octets.
+action end_as_segment(src:bgp_id, dst:bgp_id) = {
+    require as_segment_open(src);                            # must have an open segment
+    require cur_segment_values(src).end > 0;                 # [rfc4271:5.1.2] non-empty
+    var seg : path_attr.as_path.as_path_segment;
+    seg.segment_type  := cur_segment_type(src);
+    seg.segment_len   := cur_segment_values(src).end;
+    seg.segment_value := cur_segment_values(src);
+    pending_as_path(src) := pending_as_path(src).append(seg);
+    path_attr_size(src) := path_attr_size(src) + 1 + 1
+                           + 2 * as_idx_to_stream_pos(cur_segment_values(src).end);
+    as_segment_open(src)    := false;
+    cur_segment_values(src) := autonomous_system.arr.empty;
+}
+
+# ── Single-call AS_PATH (parameter-only requires — Z3-friendly) ─────
+#
+# Replaces the begin/enqueue/end/commit queue chain, whose state-dependent
+# `require` clauses (e.g. `cur_segment_values(src).end > 0`, `pending_as_path(src).end > 0`)
+# caused Z3 to return UNSAT at generator level across all exported actions
+# (not just AS_PATH-carrying ones) — see `bgp-as-path-solver-blocker.md`.
+#
+# Takes the full AS list as a parameter so Z3 only has to reason about the
+# immediate parameter's `.end`, not about global state mutated across action
+# boundaries. RFC invariants are preserved:
+#   - require as_values.end > 0   # [rfc4271:5.1.2] non-empty AS_SEQUENCE segment
+#   - require transitive          # [rfc4271:5] well-known MUST be transitive
+#   - require ~optional           # [rfc4271:5] well-known = not optional
+#   - require ~partial            # [rfc4271:5] MUST NOT be partial for well-known
+#
+# Constructs a single AS_SEQUENCE segment (the only segment type originators
+# produce per [rfc4271:5.1.2]).
+action commit_as_sequence(src:bgp_id, dst:bgp_id,
+                         as_values:autonomous_system.arr,
+                         transitive:bool, optional:bool, partial:bool) = {
+    require as_values.end > 0;                       # [rfc4271:5.1.2]
+    require transitive;                              # [rfc4271:5]
+    require ~optional;                               # [rfc4271:5]
+    require ~partial;                                # [rfc4271:5]
+    var seg : path_attr.as_path.as_path_segment;
+    seg.segment_type  := 2;                          # AS_SEQUENCE [rfc4271:5.1.2]
+    seg.segment_len   := as_values.end;
+    seg.segment_value := as_values;
+    var path_segs : path_attr.as_path.as_path_segment.arr;
+    path_segs := path_attr.as_path.as_path_segment.arr.empty;
+    path_segs := path_segs.append(seg);
+    var f : path_attr.as_path;
+    f.transitive := transitive;
+    f.optional   := optional;
+    f.partial    := partial;
+    f.path       := path_segs;
+    # Wire-size per [rfc4271:4.3] & [rfc4271:5.1.2]:
+    # attr-flags(1) + type-code(1) + length-field(1) + segment-type(1)
+    # + segment-length(1) + 2*N (2-octet AS values each)
+    path_attr_size(src) := path_attr_size(src) + 5 + 2 * as_idx_to_stream_pos(as_values.end);
+    as_path_present(src) := true;
+    call enqueue_path_attr(src, f);
+}
+
+# ── Legacy queue actions (kept as dead code pending removal) ──────────
+# The begin/enqueue/end/commit chain is retained only so pre-existing
+# includes/callers still compile. No active test uses these anymore.
+
+# Finalize the AS_PATH attribute, enqueue it for serialization, and reset
+# pending state so subsequent generate_update calls start clean. Enforces
+# the well-known-attribute flag requirements per [rfc4271:5]:
+# "For well-known attributes, the Transitive bit MUST be set to 1 ...
+#  For well-known attributes ... the Partial bit MUST be set to 0."
+action commit_as_path(src:bgp_id, dst:bgp_id,
+                     transitive:bool, optional:bool, partial:bool) = {
+    require ~as_path_present(src);                   # [rfc4271:5] exactly one AS_PATH per UPDATE
+    require ~as_segment_open(src);                   # all segments must be closed
+    require pending_as_path(src).end > 0;            # [rfc4271:5.1.2] >= 1 segment
+    require transitive;                              # [rfc4271:5] well-known MUST be transitive
+    require ~optional;                               # [rfc4271:5] well-known = not optional
+    require ~partial;                                # [rfc4271:5] MUST NOT be partial for well-known
+    var f : path_attr.as_path;
+    f.transitive := transitive;
+    f.optional   := optional;
+    f.partial    := partial;
+    f.path       := pending_as_path(src);
+    # Attribute header overhead: flags(1) + type-code(1) + length-field(1) [rfc4271:4.3]
+    path_attr_size(src) := path_attr_size(src) + 1 + 1 + 1;
+    as_path_present(src) := true;
+    call enqueue_path_attr(src, f);
+    pending_as_path(src) := path_attr.as_path.as_path_segment.arr.empty;
 }
