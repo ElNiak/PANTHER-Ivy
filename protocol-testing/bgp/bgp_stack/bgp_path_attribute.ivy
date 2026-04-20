@@ -248,6 +248,7 @@ relation has_received_origin(C:bgp_id)
 
 after init {
     has_received_origin(C) := false;
+    received_origin_value(C) := 0;
 }
 
 object path_attr = {
