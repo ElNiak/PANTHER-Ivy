@@ -67,8 +67,8 @@ around bgp_header_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_header_mes
     if ~_generating {
         # After NOTIFICATION, both peers go idle. Ignore in-flight TCP
         # messages from the IUT (TCP buffer may still have queued data).
-        if ~(conn_state(src) = bgp_connection_state.idle
-             & conn_state(dst) = bgp_connection_state.idle) {
+        if ~(conn_state(src, dst) = bgp_connection_state.idle
+             & conn_state(dst, src) = bgp_connection_state.idle) {
             # [rfc4271:4.1:length_min] Length MUST be the smallest value required
             require bgp_message.length >= 19;
             if bgp_message.bgp_type = bgp_message_type.open_mess {

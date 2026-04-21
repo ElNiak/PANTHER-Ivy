@@ -140,14 +140,58 @@ requirements:
     level: MUST
     layer: error
     testable: true
-  'rfc4271:6.8':
+  'rfc4271:6.8.1':
     text: >-
-      If a pair of BGP speakers try simultaneously to establish a
-      connection, one connection is closed by comparing BGP Identifiers.
+      In the event of connection collision, one of the connections MUST be
+      closed.
     section: '6.8'
     level: MUST
     layer: fsm
-    testable: false
+    testable: true
+  'rfc4271:6.8.2':
+    text: >-
+      The convention is to compare the BGP Identifiers of the peers
+      involved in the collision and to retain only the connection
+      initiated by the BGP speaker with the higher-valued BGP Identifier.
+      Comparing BGP Identifiers is done by converting them to host byte
+      order and treating them as 4-octet unsigned integers. If the value
+      of the local BGP Identifier is less than the remote one, the local
+      system closes the BGP connection that already exists (the one that
+      is already in the OpenConfirm state), and accepts the BGP connection
+      initiated by the remote system. Otherwise, the local system closes
+      the newly created BGP connection (the one associated with the newly
+      received OPEN message), and continues to use the existing one (the
+      one that is already in the OpenConfirm state).
+    section: '6.8'
+    level: MUST
+    layer: fsm
+    testable: true
+  'rfc4271:6.8.3':
+    text: >-
+      Upon receipt of an OPEN message, the local system MUST examine all
+      of its connections that are in the OpenConfirm state.
+    section: '6.8'
+    level: MUST
+    layer: fsm
+    testable: true
+  'rfc4271:6.8.4':
+    text: >-
+      Unless allowed via configuration, a connection collision with an
+      existing BGP connection that is in the Established state causes
+      closing of the newly created connection.
+    section: '6.8'
+    level: MUST
+    layer: fsm
+    testable: true
+  'rfc4271:6.8.5':
+    text: >-
+      Closing the BGP connection (that results from the collision
+      resolution procedure) is accomplished by sending the NOTIFICATION
+      message with the Error Code Cease.
+    section: '6.8'
+    level: MUST
+    layer: fsm
+    testable: true
   'rfc4271:8.1':
     text: >-
       BGP uses TCP as its transport protocol, on port 179, for

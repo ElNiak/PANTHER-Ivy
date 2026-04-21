@@ -22,7 +22,7 @@ action generate_update(src:bgp_id, dst:bgp_id, scen:update_scenario)
 
 implement generate_update {
     # FSM preconditions — the only thing Z3 must solve [rfc4271:8.2.2:established]
-    require conn_state(src) = bgp_connection_state.established;
+    require conn_state(src, dst) = bgp_connection_state.established;
     require open_message_recv(src) & open_message_recv(dst);
     require src = bgp_ivy_instance.bgpid;
     require dst = bgp_impl_instance.bgpid;

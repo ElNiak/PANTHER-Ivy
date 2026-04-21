@@ -8,11 +8,14 @@ object bgp_connection_state = {
     type this = {idle, connect, active, open_sent, open_confirm, established}
 }
 
-# Per-speaker connection state [rfc4271:8.2.1]
-function conn_state(C:bgp_id) : bgp_connection_state
+# Per-connection state, keyed by (local, remote) bgp_id pair [rfc4271:8.2.1]
+# Generalized from conn_state(C:bgp_id) to support RFC 4271 §6.8 collision
+# detection (Scenario 1: OpenConfirm with multiple peers; Scenario 2:
+# Established collision handled ephemerally inside collision_detect action).
+function conn_state(C:bgp_id, D:bgp_id) : bgp_connection_state
 
 after init {
-    conn_state(C) := bgp_connection_state.idle;
+    conn_state(C, D) := bgp_connection_state.idle;
 }
 
 # Idle -> OpenSent on TCP success [rfc4271:8.2.2]
@@ -21,12 +24,12 @@ after init {
 # since the IUT behind Docker doesn't trigger a separate callback.
 after net.connected {
     var bid := net_ep_to_bgpid(self);
-    if conn_state(bid) = bgp_connection_state.idle {
-        conn_state(bid) := bgp_connection_state.open_sent;
-    };
     var remote := bgpid_to_other_bgpid(bid);
-    if conn_state(remote) = bgp_connection_state.idle {
-        conn_state(remote) := bgp_connection_state.open_sent;
+    if conn_state(bid, remote) = bgp_connection_state.idle {
+        conn_state(bid, remote) := bgp_connection_state.open_sent;
+    };
+    if conn_state(remote, bid) = bgp_connection_state.idle {
+        conn_state(remote, bid) := bgp_connection_state.open_sent;
     }
 }
 
@@ -35,77 +38,81 @@ after net.connected {
 # since net.connected doesn't fire for the IUT behind Docker.
 after net.accept {
     var bid := net_ep_to_bgpid(self);
-    if conn_state(bid) = bgp_connection_state.idle {
-        conn_state(bid) := bgp_connection_state.open_sent;
-    };
     var remote := net_ep_to_bgpid(other);
-    if conn_state(remote) = bgp_connection_state.idle {
-        conn_state(remote) := bgp_connection_state.open_sent;
+    if conn_state(bid, remote) = bgp_connection_state.idle {
+        conn_state(bid, remote) := bgp_connection_state.open_sent;
+    };
+    if conn_state(remote, bid) = bgp_connection_state.idle {
+        conn_state(remote, bid) := bgp_connection_state.open_sent;
     }
 }
 
 # OPEN valid in OpenSent or OpenConfirm [rfc4271:8.2.2]
 # OpenConfirm needed because FRR sends OPEN before the tester generates Ivy's
+# Dual-purpose event: src/dst semantics flip between send and recv paths
+# (see feedback_ivy_event_semantics), so guards use disjunctive (src,dst)|(dst,src).
 before bgp_open_message_event {
     require true; # [rfc4271:8.2.1]
-    require conn_state(src) = bgp_connection_state.open_sent
-          | conn_state(src) = bgp_connection_state.open_confirm
-          | conn_state(dst) = bgp_connection_state.open_sent
-          | conn_state(dst) = bgp_connection_state.open_confirm;
+    require conn_state(src, dst) = bgp_connection_state.open_sent
+          | conn_state(src, dst) = bgp_connection_state.open_confirm
+          | conn_state(dst, src) = bgp_connection_state.open_sent
+          | conn_state(dst, src) = bgp_connection_state.open_confirm;
 }
 
 # OpenSent -> OpenConfirm on receiving OPEN [rfc4271:8.2.2]
 after bgp_open_message_event {
     require true; # [rfc4271:8.2.2:opensent]
-    if conn_state(dst) = bgp_connection_state.open_sent {
-        conn_state(dst) := bgp_connection_state.open_confirm;
+    if conn_state(dst, src) = bgp_connection_state.open_sent {
+        conn_state(dst, src) := bgp_connection_state.open_confirm;
     }
 }
 
 # KEEPALIVE valid when either side is in OpenConfirm or Established [rfc4271:8.2.2]
 before bgp_keepalive_message_event {
-    require conn_state(src) = bgp_connection_state.open_confirm
-          | conn_state(src) = bgp_connection_state.established
-          | conn_state(dst) = bgp_connection_state.open_confirm
-          | conn_state(dst) = bgp_connection_state.established;
+    require conn_state(src, dst) = bgp_connection_state.open_confirm
+          | conn_state(src, dst) = bgp_connection_state.established
+          | conn_state(dst, src) = bgp_connection_state.open_confirm
+          | conn_state(dst, src) = bgp_connection_state.established;
 }
 
 # OpenConfirm -> Established on receiving KEEPALIVE [rfc4271:8.2.2]
 after bgp_keepalive_message_event {
     require true; # [rfc4271:8.2.2:openconfirm]
-    if conn_state(dst) = bgp_connection_state.open_confirm {
-        conn_state(dst) := bgp_connection_state.established;
+    if conn_state(dst, src) = bgp_connection_state.open_confirm {
+        conn_state(dst, src) := bgp_connection_state.established;
     }
 }
 
 # UPDATE valid when either side is in Established [rfc4271:9]
 before bgp_update_message_event {
     require true; # [rfc4271:9]
-    require conn_state(src) = bgp_connection_state.established
-          | conn_state(dst) = bgp_connection_state.established;
+    require conn_state(src, dst) = bgp_connection_state.established
+          | conn_state(dst, src) = bgp_connection_state.established;
 }
 
 # NOTIFICATION -> both peers to Idle [rfc4271:8.2.2]
 after bgp_notification_message_event {
-    conn_state(src) := bgp_connection_state.idle;
-    conn_state(dst) := bgp_connection_state.idle;
+    conn_state(src, dst) := bgp_connection_state.idle;
+    conn_state(dst, src) := bgp_connection_state.idle;
 }
 
-# HoldTimer expiry -> Idle [rfc4271:8.2.2]
-# (hold_timer_expired action defined in bgp_time.ivy)
+# HoldTimer expiry -> Idle for all of src's connections [rfc4271:8.2.2]
+# (hold_timer_expired action defined in bgp_time.ivy, signature: (src:bgp_id))
+# Timer is per-speaker, so expiry drops ALL of src's sessions; the unbound D
+# in the assignment is universally quantified.
 after hold_timer_expired {
-    conn_state(src) := bgp_connection_state.idle;
+    conn_state(src, D) := bgp_connection_state.idle;
 }
 
-# FSM guards for timer actions (avoid circular include with bgp_time.ivy)
+# FSM guards for timer actions (avoid circular include with bgp_time.ivy).
+# Timer-running gate lives in bgp_time.ivy:61 (hold_timer_running(src)) and
+# bgp_time.ivy:74 (keepalive_timer_running(src)); those guards already ensure
+# the timer only fires when an active connection exists, so the FSM-layer
+# state check is redundant and is relaxed to `require true` under 2-arity.
 before hold_timer_expired {
-    require true; # [rfc4271:8.2.2:holdtimer]
-    require conn_state(src) = bgp_connection_state.open_sent
-          | conn_state(src) = bgp_connection_state.open_confirm
-          | conn_state(src) = bgp_connection_state.established;
+    require true; # [rfc4271:8.2.2:holdtimer] -- state check via bgp_time.ivy:61
 }
 
 before keepalive_timer_expired {
-    require conn_state(src) = bgp_connection_state.open_confirm
-          | conn_state(src) = bgp_connection_state.established;
+    require true; # [rfc4271:10] -- state check via bgp_time.ivy:74
 }
