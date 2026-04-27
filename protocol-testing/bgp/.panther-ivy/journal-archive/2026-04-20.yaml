@@ -1,0 +1,702 @@
+- payload:
+    away_from: build
+    reason: 'user intent matched: verify'
+  phase: null
+  ts: '2026-04-15T15:10:41.933829+00:00'
+  type: context_switch
+  workflow: workflow-build
+- payload:
+    away_from: build
+    reason: 'user intent matched: verify'
+  phase: null
+  ts: '2026-04-15T15:38:14.545112+00:00'
+  type: context_switch
+  workflow: workflow-build
+- payload:
+    away_from: build
+    reason: 'user intent matched: review'
+  phase: verified
+  ts: '2026-04-15T16:33:15.963516+00:00'
+  type: context_switch
+  workflow: workflow-build
+- payload:
+    from: verified
+    to: init
+  phase: init
+  ts: '2026-04-15T16:33:21.911784+00:00'
+  type: phase_transition
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: verify'
+  phase: init
+  ts: '2026-04-15T18:44:19.511114+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    resumed_from: init
+    stale_cleared: true
+  phase: init
+  ts: '2026-04-15T18:45:12.019437+00:00'
+  type: session_start
+  workflow: workflow-review
+- payload:
+    from: init
+    to: executed
+  phase: executed
+  ts: '2026-04-15T18:48:43.917750+00:00'
+  type: phase_transition
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: executed
+  phase: executed
+  ts: '2026-04-15T18:52:30.654572+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: triage'
+  phase: executed
+  ts: '2026-04-15T18:52:45.817933+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: executed
+  phase: executed
+  ts: '2026-04-15T18:54:03.286718+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: executed
+  phase: executed
+  ts: '2026-04-15T19:23:21.124368+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: executed
+  phase: executed
+  ts: '2026-04-15T19:37:43.006342+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: verify'
+  phase: executed
+  ts: '2026-04-15T20:03:21.741455+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: verify'
+  phase: executed
+  ts: '2026-04-15T20:03:21.793800+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: triage'
+  phase: executed
+  ts: '2026-04-15T20:03:21.846947+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: verify'
+  phase: executed
+  ts: '2026-04-15T20:03:22.092535+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: verify'
+  phase: executed
+  ts: '2026-04-15T20:03:22.144375+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: verify'
+  phase: executed
+  ts: '2026-04-15T20:17:32.124224+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: executed
+  phase: executed
+  ts: '2026-04-15T20:18:59.263673+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: executed
+  phase: executed
+  ts: '2026-04-15T20:30:28.116371+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    resumed_from: executed
+  phase: executed
+  ts: '2026-04-15T20:31:36.144291+00:00'
+  type: session_start
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: triage'
+  phase: executed
+  ts: '2026-04-15T20:31:44.577692+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: executed
+  phase: executed
+  ts: '2026-04-15T20:56:46.282464+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    detail: mcp-fix-verification-test
+  phase: executed
+  ts: '2026-04-15T20:58:12.282579+00:00'
+  type: progress
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: executed
+  phase: executed
+  ts: '2026-04-16T06:25:24.908625+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: executed
+  phase: executed
+  ts: '2026-04-16T06:52:15.324806+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: executed
+  phase: executed
+  ts: '2026-04-16T07:10:57.394608+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    resumed_from: executed
+    stale_cleared: true
+  phase: executed
+  ts: '2026-04-16T07:12:34.596597+00:00'
+  type: session_start
+  workflow: workflow-review
+- payload:
+    resumed_from: null
+  phase: null
+  ts: '2026-04-16T07:26:30.733332+00:00'
+  type: session_start
+  workflow: null
+- payload:
+    resumed_from: null
+  phase: null
+  ts: '2026-04-16T09:03:46.952243+00:00'
+  type: session_start
+  workflow: null
+- payload:
+    from: preflight
+    to: context-scan
+  phase: context-scan
+  ts: '2026-04-16T09:06:30.591864+00:00'
+  type: phase_transition
+  workflow: workflow-navigate
+- payload:
+    clean: true
+    phase_at_exit: context-scan
+  phase: context-scan
+  ts: '2026-04-16T09:06:46.929093+00:00'
+  type: session_end
+  workflow: workflow-navigate
+- payload:
+    away_from: navigate
+    reason: 'user intent matched: triage'
+  phase: context-scan
+  ts: '2026-04-16T09:07:38.388735+00:00'
+  type: context_switch
+  workflow: workflow-navigate
+- payload:
+    clean: true
+    phase_at_exit: context-scan
+  phase: context-scan
+  ts: '2026-04-16T09:08:59.519887+00:00'
+  type: session_end
+  workflow: workflow-navigate
+- payload:
+    from: context-scan
+    to: resume
+  phase: resume
+  ts: '2026-04-16T09:10:22.711590+00:00'
+  type: phase_transition
+  workflow: workflow-build
+- payload:
+    from: resume
+    to: init
+  phase: init
+  ts: '2026-04-16T09:10:33.087168+00:00'
+  type: phase_transition
+  workflow: workflow-build
+- payload:
+    from: init
+    to: resume-assess
+  phase: resume-assess
+  ts: '2026-04-16T09:10:47.348752+00:00'
+  type: phase_transition
+  workflow: workflow-build
+- payload:
+    clean: true
+    phase_at_exit: resume-assess
+  phase: resume-assess
+  ts: '2026-04-16T09:12:15.479099+00:00'
+  type: session_end
+  workflow: workflow-build
+- payload:
+    detail: 'Build-state reconciled: Tracks 1-5 all marked complete based on committed
+      code (3fd91537..039aa0f7). Open items: AS_PATH solver, Group D deferred, submodule
+      pointer.'
+  phase: resume-assess
+  ts: '2026-04-16T09:13:47.490898+00:00'
+  type: progress
+  workflow: workflow-build
+- payload:
+    clean: true
+    phase_at_exit: resume-assess
+  phase: resume-assess
+  ts: '2026-04-16T09:14:46.576951+00:00'
+  type: session_end
+  workflow: workflow-build
+- payload:
+    context: Build-state reconciled against git history. No uncommitted BGP changes
+      remain.
+    summary: "Build workflow closed \u2014 all 5 tracks complete and committed. Transitioning\
+      \ to review for coverage audit, then AS_PATH solver investigation."
+  phase: resume-assess
+  ts: '2026-04-16T09:16:30.695804+00:00'
+  type: decision
+  workflow: workflow-build
+- payload:
+    from: resume-assess
+    to: init
+  phase: init
+  ts: '2026-04-16T09:16:34.250903+00:00'
+  type: phase_transition
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T09:20:37.096750+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    detail: 'AS_PATH solver fix: added before block with direct Z3 constraints in
+      bgp_speaker_test_update.ivy. All 3 test files compile cleanly. Needs IUT test
+      to confirm UPDATE generation end-to-end.'
+  phase: init
+  ts: '2026-04-16T09:29:24.443207+00:00'
+  type: progress
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T09:29:41.822466+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T09:47:54.119958+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T10:37:53.829555+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    detail: AS_PATH solver fix CONFIRMED WORKING. Z3 generates UPDATE with all 3 mandatory
+      attrs. NLRI route_prefix constraint added. Deserializer byte-accounting fix
+      applied locally but Docker rebuild blocked by Ubuntu mirror outage. IUT test
+      blocked on Docker rebuild only.
+  phase: init
+  ts: '2026-04-16T11:02:27.301912+00:00'
+  type: progress
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T11:02:39.027996+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T11:25:52.574598+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: verify'
+  phase: init
+  ts: '2026-04-16T11:25:52.984144+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T11:26:12.770479+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: verify'
+  phase: init
+  ts: '2026-04-16T11:35:43.014506+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T11:37:59.463843+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: triage'
+  phase: init
+  ts: '2026-04-16T11:40:45.051978+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T11:41:19.970615+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: build'
+  phase: init
+  ts: '2026-04-16T11:47:52.552986+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: build'
+  phase: init
+  ts: '2026-04-16T12:01:16.801464+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T12:01:43.471356+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: triage'
+  phase: init
+  ts: '2026-04-16T12:11:39.437755+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T12:12:00.825240+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T12:20:32.702771+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: triage'
+  phase: init
+  ts: '2026-04-16T12:20:33.064958+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T12:20:44.068559+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T13:03:50.816605+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: verify'
+  phase: init
+  ts: '2026-04-16T13:04:02.360125+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T13:05:09.369547+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: verify'
+  phase: init
+  ts: '2026-04-16T13:05:43.480753+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T13:06:07.610191+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: verify'
+  phase: init
+  ts: '2026-04-16T13:06:43.464626+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T13:06:47.774324+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: verify'
+  phase: init
+  ts: '2026-04-16T13:07:43.484960+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T13:07:48.086440+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: verify'
+  phase: init
+  ts: '2026-04-16T13:08:43.589440+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T13:08:47.547720+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T13:10:04.137000+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: verify'
+  phase: init
+  ts: '2026-04-16T13:10:43.486592+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T13:10:48.353582+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: verify'
+  phase: init
+  ts: '2026-04-16T13:11:43.548690+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T13:11:47.796025+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: verify'
+  phase: init
+  ts: '2026-04-16T13:12:43.504878+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T13:12:47.963989+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T13:13:03.475416+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: verify'
+  phase: init
+  ts: '2026-04-16T13:13:43.674821+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T13:13:47.844673+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: verify'
+  phase: init
+  ts: '2026-04-16T13:14:43.653016+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T13:14:51.555864+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: verify'
+  phase: init
+  ts: '2026-04-16T13:15:43.604239+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T13:15:47.533759+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: verify'
+  phase: init
+  ts: '2026-04-16T13:16:43.636576+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T13:18:24.568188+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: verify'
+  phase: init
+  ts: '2026-04-16T13:18:43.655046+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T13:18:52.878168+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T13:20:33.798986+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: triage'
+  phase: init
+  ts: '2026-04-16T13:20:34.069808+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T13:20:41.204294+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: verify'
+  phase: init
+  ts: '2026-04-16T13:20:43.662833+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T13:20:49.128029+00:00'
+  type: session_end
+  workflow: workflow-review
+- payload:
+    away_from: review
+    reason: 'user intent matched: verify'
+  phase: init
+  ts: '2026-04-16T13:30:29.341971+00:00'
+  type: context_switch
+  workflow: workflow-review
+- payload:
+    clean: true
+    phase_at_exit: init
+  phase: init
+  ts: '2026-04-16T13:34:23.091569+00:00'
+  type: session_end
+  workflow: workflow-review

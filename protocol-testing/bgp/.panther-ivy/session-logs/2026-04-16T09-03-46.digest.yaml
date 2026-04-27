@@ -1,0 +1,50 @@
+timestamp: "2026-04-16T09:03:46+00:00"
+event_log: "2026-04-16T09-03-46.json"
+workflow: workflow-review
+protocol: bgp
+phases_reached: [navigate, review, build, iut-test, design-spec]
+files_modified:
+  - bgp_tests/speaker_tests/bgp_speaker_test_update.ivy
+  - bgp_utils/bgp_deser_update.ivy
+  - experiment-config/protocols/bgp/experiment_config_bgp_update_only.yaml
+  - panther/core/docker_builder/docker_builder.py
+  - panther/plugins/services/Dockerfile.buildkit
+  - panther/plugins/services/testers/panther_ivy/Dockerfile.buildkit
+errors:
+  - type: docker_build_error
+    file: Dockerfile.buildkit
+    error: "Docker QEMU emulation extremely slow on ARM64 Mac; apt mirror unreachable"
+    resolution: "Added apt retry + use of local Docker mirror; Rosetta suggestion explored"
+  - type: compile_error
+    file: bgp_speaker_test_update.ivy
+    error: "git add blocked by .gitignore on docs/ directory"
+    resolution: "Used git add -f to force-add"
+patterns_applied:
+  - "auto-send pattern for UPDATE message generation"
+  - "re-entry guards on exported handles"
+  - "NLRI /24 prefix constraint for FRR acceptance"
+verification_outcomes:
+  - file: bgp_tests/speaker_tests/bgp_speaker_test_update.ivy
+    result: pass
+    attempts: 3
+knowledge_candidates:
+  - category: bug-pattern
+    content: "Docker apt mirror failures on ARM64 Mac: apt-get hangs when Docker mirrors are unreachable during cross-platform builds. Fix: add retry flags (Acquire::Retries) and use --no-install-recommends to reduce download surface."
+    status: pending
+    target: ".claude/rules/debugging.md"
+  - category: bug-pattern
+    content: "Docker QEMU vs Rosetta for cross-platform builds: QEMU emulation is orders of magnitude slower than Rosetta for linux/amd64 builds on Apple Silicon. When target_platform is linux/amd64, Docker Desktop's Rosetta emulation should be enabled in settings for acceptable build times."
+    status: pending
+    target: ".claude/rules/debugging.md"
+  - category: workflow
+    content: "BGP scenario builder design: scenario-driven test generation eliminates Z3 solver starvation by pre-defining message sequences rather than relying on random exported action selection."
+    status: pending
+    target: ".claude/rules/nct-methodology.md"
+  - category: architecture
+    content: "Dedicated UPDATE-only test spec (bgp_speaker_test_update.ivy) separates UPDATE compliance testing from the base KEEPALIVE-capable test, allowing targeted verification of UPDATE message generation and processing."
+    status: pending
+    target: ".claude/rules/nct-methodology.md"
+  - category: emergent
+    content: "[cross-cutting] The docs/ directory is in .gitignore but design specs and implementation plans need to be committed there. Using git add -f is required for any file under docs/."
+    status: pending
+    target: ".claude/rules/insights.md"

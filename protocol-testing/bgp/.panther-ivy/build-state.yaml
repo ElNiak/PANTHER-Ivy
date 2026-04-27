@@ -1,28 +1,159 @@
-workflow: build
-protocol: bgp
+decisions:
+- All 14 layers present - extend existing files only
+- Track 1 before Track 2 to establish coverage baseline
+- 'New sections: 4.1, 5.1.1-3, 6.4, 9.3'
+- 'Track 3: Group D (6.8 collision) deferred to dedicated test scenario'
+- 'Track 3: Group A peer_type is configurable (ibgp/ebgp)'
+- 'Track 3: Implementation order B -> E -> C -> A'
+- 'Generator starvation: timer export removal + auto-send atomic pattern'
+- 'UPDATE generation: re-entry guards + serializer base class overrides'
+- NLRI constrained to /24 prefix for FRR acceptance
+- Dedicated UPDATE compliance test spec added
+- 'Group D topology: 3-speaker (FRR IUT as A; Ivy tester plays B and C). Honors original
+  Track 3 deferral.'
+- 'Group D clauses: all 5 MUST clauses in scope'
+- 'Group D YAML granularity: split rfc4271:6.8 into 6.8.1..6.8.5 sub-requirements'
+- 'Group D state shape: generalize conn_state(C:bgp_id) to conn_state(C:bgp_id, D:bgp_id);
+  no new bgp_connection.ivy layer'
+- 'Group D hardening: test spec asserts NOTIFICATION Cease frame on IUT pcap, not
+  just Ivy collision_resolved event'
+- 'Group D Scenario 1 (OpenConfirm collision, MUSTs #1/#2/#3/#5): A has OpenConfirm
+  with B AND with C; A receives new OPEN from B; A scans OpenConfirm (N=2), matches
+  B by bgp_id, sends Cease on B leg only, preserves C session.'
+- 'Group D Scenario 2 (Established collision, MUSTs #4/#5): A in Established with
+  B (KEEPALIVE exchanged); A receives new OPEN from B on a second TCP connection;
+  A MUST close the newly-created connection regardless of bgp_id comparison; NOTIFICATION
+  Cease emitted on the new leg; original Established session preserved.'
+- 'Group D dependency order: YAML split -> FSM generalize -> FSM OpenConfirm scan
+  branch -> FSM Established branch -> shim 3-identity edit -> scenario-builder 3-speaker
+  -> test spec with two scenarios -> experiment config 3-endpoint'
+layers:
+  bgp_deser_update:
+    file: bgp_utils/bgp_deser_update.ivy
+    status: exists
+  bgp_error_code:
+    file: bgp_stack/bgp_error_code.ivy
+    status: exists
+  bgp_fsm:
+    file: bgp_stack/bgp_fsm.ivy
+    note: generalize conn_state to (src,dst); add collision_detect/collision_resolved/close-Cease;
+      scan ALL OpenConfirm; add Established-collision branch that closes new regardless
+      of bgp_id
+    status: needs_extension_group_d
+  bgp_header_message:
+    file: bgp_stack/bgp_header_message.ivy
+    status: exists
+  bgp_keepalive_message:
+    file: bgp_stack/bgp_keepalive_message.ivy
+    status: exists
+  bgp_notification_message:
+    file: bgp_stack/bgp_notification_message.ivy
+    status: exists
+  bgp_open_message:
+    file: bgp_stack/bgp_open_message.ivy
+    status: exists
+  bgp_path_attribute:
+    file: bgp_stack/bgp_path_attribute.ivy
+    status: exists
+  bgp_rib:
+    file: bgp_stack/bgp_rib.ivy
+    status: exists
+  bgp_route:
+    file: bgp_stack/bgp_route.ivy
+    status: exists
+  bgp_scenario_builder:
+    file: bgp_stack/bgp_scenario_builder.ivy
+    note: 'add 3-speaker topology constructor: FRR=A, tester=B+C'
+    status: needs_edit_group_d
+  bgp_ser_notification:
+    file: bgp_utils/bgp_ser_notification.ivy
+    status: exists
+  bgp_ser_update:
+    file: bgp_utils/bgp_ser_update.ivy
+    status: exists
+  bgp_shim:
+    file: bgp_shim/bgp_shim.ivy
+    note: extend to resolve 3 distinct bgp_id identities on Ivy tester side
+    status: needs_edit_group_d
+  bgp_speaker_test_collision:
+    file: bgp_tests/speaker_tests/bgp_speaker_test_collision.ivy
+    note: 'NEW: two scenarios: (1) OpenConfirm x OpenConfirm N=2 scan + match-by-bgp-id;
+      (2) Established collision closes NEW regardless of bgp_id. Both assert wire-observable
+      NOTIFICATION Cease on the closed leg.'
+    status: planned
+  bgp_speaker_test_update:
+    file: bgp_tests/speaker_tests/bgp_speaker_test_update.ivy
+    status: exists
+  bgp_type:
+    file: bgp_utils/bgp_type.ivy
+    status: exists
+  bgp_update_message:
+    file: bgp_stack/bgp_update_message.ivy
+    status: exists
 methodology: nct
-started: "2026-04-14T15:28:00Z"
+open_items:
+- Group D 3-speaker; re-entering G1 cycle 4 with Scenario 2 added
+- Submodule pointer in PANTHER parent not yet updated
+protocol: bgp
+started: '2026-04-14T15:28:00Z'
 tracks:
   track1_annotations:
     status: complete
-    description: Fix coverage annotations in 12 files for 21 existing requirements
   track2_extensions:
     status: complete
-    description: Extend manifest + model with new RFC 4271 sections (4.1, 5.1.1-3, 6.4, 9.3)
-layers:
-  bgp_fsm: { status: exists, file: bgp_stack/bgp_fsm.ivy }
-  bgp_error_code: { status: exists, file: bgp_stack/bgp_error_code.ivy }
-  bgp_path_attribute: { status: exists, file: bgp_stack/bgp_path_attribute.ivy }
-  bgp_header_message: { status: exists, file: bgp_stack/bgp_header_message.ivy }
-  bgp_rib: { status: exists, file: bgp_stack/bgp_rib.ivy }
-  bgp_route: { status: exists, file: bgp_stack/bgp_route.ivy }
   track3_testable_false:
-    status: in_progress
-    description: Make 8 testable:false requirements testable (Groups B,A,C,E; D deferred)
-decisions:
-  - All 14 layers present - extend existing files only
-  - Track 1 before Track 2 to establish coverage baseline
-  - "New sections: 4.1, 5.1.1-3, 6.4, 9.3"
-  - "Track 3: Group D (6.8 collision) deferred to dedicated test scenario"
-  - "Track 3: Group A peer_type is configurable (ibgp/ebgp)"
-  - "Track 3: Implementation order B -> E -> C -> A"
+    status: complete
+  track4_generator_starvation:
+    status: complete
+  track5_update_generation:
+    status: complete
+  track6_group_d_collision:
+    dependency_order:
+    - 1. YAML split
+    - 2. FSM generalize conn_state
+    - 3. FSM OpenConfirm-scan branch
+    - 4. FSM Established-collision branch
+    - 5. entity-behavior audit
+    - 6. shim 3-identity edit
+    - 7. scenario-builder 3-speaker
+    - 8. test spec with two scenarios
+    - 9. experiment config 3-endpoint
+    description: "RFC 4271 \xA76.8 BGP Connection Collision Detection: 3-speaker topology,\
+      \ all 5 MUSTs, split YAML 6.8.1..6.8.5, two test scenarios (OpenConfirm-collision\
+      \ + Established-collision), wire-observable Cease, N=2 OpenConfirm iteration"
+    gate_history:
+    - cycle: 1
+      gate: G1
+      reason: '2-speaker under-covers MUST #3'
+      verdict: UNSOUND
+    - cycle: 2
+      gate: G1
+      reason: 2-speaker N=1 OpenConfirm; iteration vacuous
+      verdict: UNSOUND
+    - cycle: 3
+      gate: G1
+      reason: '3-speaker resolves MUST #3; MUST #4 Established-collision had no explicit
+        scenario witness'
+      verdict: UNSOUND
+    planned_artifacts:
+    - rfc4271_requirements.yaml (split 6.8 into 6.8.1..6.8.5, all testable:true)
+    - 'bgp_stack/bgp_fsm.ivy (extend: conn_state generalize + OpenConfirm-scan branch
+      + Established-collision branch)'
+    - bgp_entities/ivy_bgp_speaker_behavior.ivy (audit + adjust for multi-peer state)
+    - 'bgp_shim/bgp_shim.ivy (edit: 3 tester bgp_id identities)'
+    - 'bgp_stack/bgp_scenario_builder.ivy (edit: 3-speaker constructor)'
+    - 'bgp_tests/speaker_tests/bgp_speaker_test_collision.ivy (new: two scenarios;
+      OpenConfirm-collision with N=2 scan; Established-collision closes new)'
+    - 'experiment-config/protocols/bgp/experiment_config_bgp_collision.yaml (new:
+      3 endpoints)'
+    scenario_to_must_mapping:
+      scenario_1_openconfirm:
+      - 6.8.1 close-one
+      - 6.8.2 higher-ID-wins
+      - 6.8.3 scan-all-OpenConfirm (N=2 witness)
+      - 6.8.5 Cease
+      scenario_2_established:
+      - 6.8.4 Established-collision-closes-new
+      - 6.8.5 Cease (on new leg)
+    status: blueprint-done-revise-3
+workflow: workflow-build
