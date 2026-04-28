@@ -2,15 +2,24 @@ version: "rfc4271"
 env:
   PROTOCOL_TESTED: "bgp"
 parameters:
-  speaker_addr:
+  speaker_b_addr:
     value: "@{client_service:ip:hex}"
-    description: "Ivy speaker IP address (hex format for Ivy model)"
-  speaker_id:
+    description: "Ivy speaker B IP address (primary tester leg, hex format)"
+  speaker_b_id:
     value: "@{client_service:ip:hex}"
-    description: "Ivy speaker BGP identifier (hex)"
-  speaker_as:
+    description: "Ivy speaker B BGP identifier (hex)"
+  speaker_b_as:
     value: "1"
-    description: "Ivy speaker AS number"
+    description: "Ivy speaker B AS number"
+  speaker_c_addr:
+    value: "0x0a000002"
+    description: "Ivy speaker C IP address (second tester leg for §6.8 collision; static for now, no Docker alias)"
+  speaker_c_id:
+    value: "0x0a000002"
+    description: "Ivy speaker C BGP identifier (hex; static)"
+  speaker_c_as:
+    value: "1"
+    description: "Ivy speaker C AS number"
   speaker_impl_addr:
     value: "@{server_service:ip:hex}"
     description: "IUT speaker IP address (hex)"
@@ -24,9 +33,12 @@ server:
   binary:
     dir: "PANTHER_IVY_INSTALL_DIR/protocol-testing/"
     name: ""
-  speaker_addr: "@{server_service:ip:hex}"
-  speaker_id: "@{server_service:ip:hex}"
-  speaker_as: "1"
+  speaker_b_addr: "@{server_service:ip:hex}"
+  speaker_b_id: "@{server_service:ip:hex}"
+  speaker_b_as: "1"
+  speaker_c_addr: "0x0a000002"
+  speaker_c_id: "0x0a000002"
+  speaker_c_as: "1"
   speaker_impl_addr: "@{client_service:ip:hex}"
   speaker_impl_id: "@{client_service:ip:hex}"
   speaker_impl_as: "2"
@@ -34,9 +46,12 @@ client:
   binary:
     dir: "PANTHER_IVY_INSTALL_DIR/protocol-testing/"
     name: ""
-  speaker_addr: "@{client_service:ip:hex}"
-  speaker_id: "@{client_service:ip:hex}"
-  speaker_as: "1"
+  speaker_b_addr: "@{client_service:ip:hex}"
+  speaker_b_id: "@{client_service:ip:hex}"
+  speaker_b_as: "1"
+  speaker_c_addr: "0x0a000002"
+  speaker_c_id: "0x0a000002"
+  speaker_c_as: "1"
   speaker_impl_addr: "@{server_service:ip:hex}"
   speaker_impl_id: "@{server_service:ip:hex}"
   speaker_impl_as: "2"

@@ -3,7 +3,11 @@
 include bgp_type
 
 object endpoint_id = {
-    type this = {ivy_speaker, impl_speaker}
+    # Three endpoints support the RFC 4271 §6.8 collision-detection 3-speaker
+    # topology (FRR=A=impl_speaker, tester=B+C=ivy_speaker+ivy_speaker_c).
+    # ivy_speaker is the legacy/primary tester leg (= speaker B);
+    # ivy_speaker_c is the additional leg added in Phase C.
+    type this = {ivy_speaker, ivy_speaker_c, impl_speaker}
 }
 
 #    BGP speaker

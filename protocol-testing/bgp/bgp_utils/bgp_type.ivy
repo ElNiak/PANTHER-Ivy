@@ -5,8 +5,21 @@
 #       the sender of BGP messages.  A given BGP speaker sets the value of
 #       its BGP Identifier to an IP address assigned to that BGP speaker.
 #       The value of the BGP Identifier is determined upon startup and is
-#       the same for every local interface and BGP peer.
+#       the same for every local interface and BGP peer. [rfc4271:1.1]
+# bv[32] grounds the < ordering used by collision_detect at bgp_fsm.ivy:112
+# for §6.8.2 higher-ID-wins arbitration.
 type bgp_id
+
+# §6.8.2 higher-ID-wins arbitration needs a total order on bgp_id without
+# concrete enumeration: `interpret bgp_id -> bv[32]` would force the Ivy
+# compiler to emit 4B-iteration loops over the bv[32] domain in the C++
+# test driver. Instead, declare a relation with total-order axioms — Z3
+# reasons symbolically over the 3 concrete instances (B, C, A) used at
+# runtime, no enumeration loops emitted.
+relation bgp_id_lt(X:bgp_id, Y:bgp_id)
+axiom forall X:bgp_id. ~bgp_id_lt(X, X)
+axiom forall X:bgp_id, Y:bgp_id. bgp_id_lt(X, Y) | bgp_id_lt(Y, X) | X = Y
+axiom forall X:bgp_id, Y:bgp_id, Z:bgp_id. bgp_id_lt(X, Y) & bgp_id_lt(Y, Z) -> bgp_id_lt(X, Z)
 
 # The type `version` represents a protocol version as a 8-bit unsigned number.
 

@@ -27,7 +27,7 @@ object autonomous_system = {
 function derived_peer_type : peer_type
 
 after init {
-    if speaker_as = speaker_impl_as {
+    if speaker_b_as = speaker_impl_as {
         derived_peer_type := peer_type.ibgp;
     } else {
         derived_peer_type := peer_type.ebgp;
@@ -38,7 +38,7 @@ action as_event(src:bgp_id, dst:bgp_id, as: autonomous_system) = {}
 action as_path_event(src:bgp_id,dst:bgp_id,ases:autonomous_system.arr) = {}
 
 before as_event(src:bgp_id,dst:bgp_id,as:autonomous_system) {
-    require as.id = speaker_impl_as | as.id = speaker_as;
+    require as.id = speaker_impl_as | as.id = speaker_b_as;
     require open_message_recv(src) & open_message_recv(dst);
     call show_connected_open(open_message_recv(src));
     call show_connected_open(open_message_recv(dst));

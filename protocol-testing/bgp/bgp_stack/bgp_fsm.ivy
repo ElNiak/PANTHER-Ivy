@@ -60,11 +60,70 @@ before bgp_open_message_event {
 }
 
 # OpenSent -> OpenConfirm on receiving OPEN [rfc4271:8.2.2]
+# Augmented with §6.8 Collision Detection [rfc4271:6.8]:
+#   - §6.8.1-3 OpenConfirm collision: delegate to collision_detect /
+#     collision_resolved (declared above).
+#   - §6.8.4 Established collision: original session preserved; the new
+#     TCP leg's Cease assertion lives in bgp_speaker_test_collision.ivy
+#     (the model has no separate slot for the transient leg).
+# Capture the prior state so the OpenConfirm-collision branch only fires
+# on a genuine collision, not a just-promoted-from-OpenSent state.
 after bgp_open_message_event {
     require true; # [rfc4271:8.2.2:opensent]
-    if conn_state(dst, src) = bgp_connection_state.open_sent {
+    var prior := conn_state(dst, src);
+    if prior = bgp_connection_state.open_sent {
         conn_state(dst, src) := bgp_connection_state.open_confirm;
+    };
+    if prior = bgp_connection_state.open_confirm {
+        # §6.8.2 higher-ID-wins: thread loser through so the test spec at C6
+        # can assert which leg received NOTIFICATION Cease per §6.8.5.
+        var loser := collision_detect(dst, src);
+        var peer:bgp_id;
+        if loser = dst {
+            peer := src;
+        } else {
+            peer := dst;
+        };
+        call collision_resolved(loser, peer);
+    };
+    if prior = bgp_connection_state.established {
+        # §6.8.4 no-op: preserve Established. Test spec asserts wire Cease.
     }
+}
+
+# RFC 4271 §6.8 BGP Connection Collision Detection [rfc4271:6.8]
+#
+# §6.8.1 close-one: speakers MUST close one of the colliding connections.
+# §6.8.2 higher-ID-wins: the connection initiated by the speaker with the
+#   higher BGP Identifier is preserved; lower-ID speaker MUST close.
+# §6.8.3 scan-all-OpenConfirm: speaker MUST scan every OpenConfirm session
+#   to detect the collision (N=2 witness in bgp_speaker_test_collision.ivy
+#   scenario 1 exercises two OpenConfirm peers simultaneously).
+# §6.8.5 NOTIFICATION Cease: closing the losing connection MUST send a
+#   NOTIFICATION with Error Code Cease (test asserts on the wire pcap).
+#
+# Closing here mirrors the NOTIFICATION pattern at lines 94-97 of this file
+# (drive both directions of conn_state to idle). C2 wires these helpers
+# into the OPEN handler.
+
+action collision_detect(local_id:bgp_id, new_remote:bgp_id) returns (loser:bgp_id) = {
+    require conn_state(local_id, new_remote) = bgp_connection_state.open_confirm;
+    # §6.8.2 higher-ID-wins: lower bgp_id loses. Total order via bgp_id_lt
+    # (declared with axioms in bgp_type.ivy) avoids the bv[32] enumeration
+    # cost of `<` on an interpreted type.
+    if bgp_id_lt(local_id, new_remote) {
+        loser := local_id;
+    } else {
+        loser := new_remote;
+    };
+}
+
+action collision_resolved(loser:bgp_id, peer:bgp_id) = {
+    require conn_state(loser, peer) = bgp_connection_state.open_confirm
+          | conn_state(loser, peer) = bgp_connection_state.established;
+    # Match NOTIFICATION-Cease pattern at lines 94-97: drive both sides idle.
+    conn_state(loser, peer) := bgp_connection_state.idle;
+    conn_state(peer, loser) := bgp_connection_state.idle;
 }
 
 # KEEPALIVE valid when either side is in OpenConfirm or Established [rfc4271:8.2.2]

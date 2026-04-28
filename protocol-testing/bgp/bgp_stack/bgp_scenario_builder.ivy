@@ -24,7 +24,7 @@ implement generate_update {
     # FSM preconditions — the only thing Z3 must solve [rfc4271:8.2.2:established]
     require conn_state(src, dst) = bgp_connection_state.established;
     require open_message_recv(src) & open_message_recv(dst);
-    require src = bgp_ivy_instance.bgpid;
+    require src = bgp_ivy_instance_b.bgpid;
     require dst = bgp_impl_instance.bgpid;
 
     # Reset attr-present flags and queued state so handles see a clean slate
@@ -135,9 +135,9 @@ implement _build_announce_single {
     origin_attr.value := 0;
     call path_attr.origin.handle(origin_attr, src, dst, bgp_message_type.update_mess);
 
-    # AS_PATH = [AS_SEQUENCE: speaker_as] — single-call API, parameter-only requires
+    # AS_PATH = [AS_SEQUENCE: speaker_b_as] — single-call API, parameter-only requires
     var own_as : autonomous_system;
-    own_as.id := speaker_as;
+    own_as.id := speaker_b_as;
     var as_list : autonomous_system.arr;
     as_list := autonomous_system.arr.empty;
     as_list := as_list.append(own_as);
@@ -180,7 +180,7 @@ implement _build_announce_multihop {
     # [rfc4271:5.1.2:b:1]. 3 ASes fits in 2-octet encoding (all <65536), so
     # no AS_TRANS / RFC 6793 handling needed. Single-call API, param-only requires.
     var own_as : autonomous_system;
-    own_as.id := speaker_as;
+    own_as.id := speaker_b_as;
     var up1 : autonomous_system;
     up1.id := 65001;
     var up2 : autonomous_system;
@@ -226,11 +226,11 @@ implement _build_replace_route {
     origin_attr.value := 2;
     call path_attr.origin.handle(origin_attr, src, dst, bgp_message_type.update_mess);
 
-    # AS_PATH = [AS_SEQUENCE: speaker_as] — identical to announce_single.
+    # AS_PATH = [AS_SEQUENCE: speaker_b_as] — identical to announce_single.
     # Per [rfc4271:5.1.2] the originating speaker includes its own AS in
     # AS_SEQUENCE when advertising to an external peer. Single-call API.
     var own_as : autonomous_system;
-    own_as.id := speaker_as;
+    own_as.id := speaker_b_as;
     var as_list : autonomous_system.arr;
     as_list := autonomous_system.arr.empty;
     as_list := as_list.append(own_as);

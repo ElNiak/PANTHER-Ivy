@@ -5,9 +5,21 @@ include bgp_infer
 include file
 include random_value
 
+# RFC 4271 §6.8 collision-detection 3-speaker support: tester is bgp_ivy_instance_b
+# (legacy primary leg) and bgp_ivy_instance_c (added in Phase C). The IUT is
+# bgp_impl_instance. Helpers below treat B and C symmetrically so the FSM and
+# generator guards work across either tester leg.
+
+# True if `id` is one of the tester's two legs (B or C).
+action is_ivy_tester(id:bgp_id) returns (res:bool) = {
+    res := id = bgp_ivy_instance_b.bgpid | id = bgp_ivy_instance_c.bgpid;
+}
+
 action endpoint_to_pid(src:bgp_id) returns (pid:endpoint_id) = {
-    if src = bgp_ivy_instance.bgpid {
+    if src = bgp_ivy_instance_b.bgpid {
         pid := endpoint_id.ivy_speaker;
+    } else if src = bgp_ivy_instance_c.bgpid {
+        pid := endpoint_id.ivy_speaker_c;
     } else {
         pid := endpoint_id.impl_speaker;
     }
@@ -18,10 +30,12 @@ function net_ep_to_bgpid(E:endpoint_id) : bgp_id
 function net_ep_to_addr(E:endpoint_id) : ip.addr
 
 after init {
-    net_ep_to_bgpid(endpoint_id.ivy_speaker)  := bgp_ivy_instance.bgpid;
-    net_ep_to_bgpid(endpoint_id.impl_speaker) := bgp_impl_instance.bgpid;
-    net_ep_to_addr(endpoint_id.ivy_speaker)   := bgp_ivy_instance.ep.addr;
-    net_ep_to_addr(endpoint_id.impl_speaker)  := bgp_impl_instance.ep.addr;
+    net_ep_to_bgpid(endpoint_id.ivy_speaker)    := bgp_ivy_instance_b.bgpid;
+    net_ep_to_bgpid(endpoint_id.ivy_speaker_c)  := bgp_ivy_instance_c.bgpid;
+    net_ep_to_bgpid(endpoint_id.impl_speaker)   := bgp_impl_instance.bgpid;
+    net_ep_to_addr(endpoint_id.ivy_speaker)     := bgp_ivy_instance_b.ep.addr;
+    net_ep_to_addr(endpoint_id.ivy_speaker_c)   := bgp_ivy_instance_c.ep.addr;
+    net_ep_to_addr(endpoint_id.impl_speaker)    := bgp_impl_instance.ep.addr;
 }
 
 action socket_endpoint(s:net.socket) returns (src:bgp_id) = {
@@ -29,47 +43,57 @@ action socket_endpoint(s:net.socket) returns (src:bgp_id) = {
 }
 
 action bgpid_to_endpoint(src:bgp_id) returns (pid:ip.addr) = {
-    if src = bgp_ivy_instance.bgpid {
-        pid := bgp_ivy_instance.ep.addr;
+    if src = bgp_ivy_instance_b.bgpid {
+        pid := bgp_ivy_instance_b.ep.addr;
+    } else if src = bgp_ivy_instance_c.bgpid {
+        pid := bgp_ivy_instance_c.ep.addr;
     } else {
         pid := bgp_impl_instance.ep.addr;
     }
 }
 
+# §6.8 3-speaker resolution: returning a single "other" requires a convention.
+# The tester legs B/C peer with the IUT (impl), so other(B) = impl, other(C) = impl.
+# The IUT peers with the primary tester leg by default; if a test needs the C leg
+# as the impl's "other", it sets it explicitly via the scenario builder.
 action bgpid_to_other_endpoint(src:bgp_id) returns (pid:ip.addr) = {
-    if src = bgp_ivy_instance.bgpid {
+    if src = bgp_ivy_instance_b.bgpid {
+        pid := bgp_impl_instance.ep.addr;
+    } else if src = bgp_ivy_instance_c.bgpid {
         pid := bgp_impl_instance.ep.addr;
     } else {
-        pid := bgp_ivy_instance.ep.addr;
+        pid := bgp_ivy_instance_b.ep.addr;
     }
 }
 
 action bgpid_to_other_bgpid(src:bgp_id) returns (pid:bgp_id) = {
-    if src = bgp_ivy_instance.bgpid {
+    if src = bgp_ivy_instance_b.bgpid {
+        pid := bgp_impl_instance.bgpid;
+    } else if src = bgp_ivy_instance_c.bgpid {
         pid := bgp_impl_instance.bgpid;
     } else {
-        pid := bgp_ivy_instance.bgpid;
+        pid := bgp_ivy_instance_b.bgpid;
     }
 }
 
 
 action endpoint_to_socket(src:bgp_id) returns (socket:net.socket) = {
-    if src ~= bgp_ivy_instance.bgpid {
-        socket := getsock(bgp_ivy_instance.ep.addr);
+    var ivy := is_ivy_tester(src);
+    if ~ivy {
+        socket := getsock(bgp_ivy_instance_b.ep.addr);
     } else {
         socket := getsock(bgp_impl_instance.ep.addr);
     }
 }
 
 action dst_is_generated(dst:bgp_id) returns (res:bool) = {
-    res := dst = bgp_ivy_instance.bgpid;
+    res := is_ivy_tester(dst);
 }
 
 
 before bgp_header_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_header_message){
     if _generating {
-        # TODO make more general
-        require src = bgp_ivy_instance.bgpid;
+        require is_ivy_tester(src);
         require dst = bgp_impl_instance.bgpid;
         require header_length > 0; # [rfc4271:4.1:length]
         require header_payload.end > 0;
@@ -86,13 +110,16 @@ before bgp_open_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_open_message
     if _generating {
         header_type   := bgp_message_type.open_mess;
         require header_length = 0;
-        require src = bgp_ivy_instance.bgpid; # TODO message is not sent
+        require is_ivy_tester(src);
         require dst = bgp_impl_instance.bgpid;
         require header_payload.end = 0;
         require bgp_message.pversion = 4; # [rfc4271:6.2:version]
-        require bgp_message.my_as_number = bgp_ivy_instance.bas_number;
+        # AS number is per-tester-leg; both legs use B's AS (same AS) by default;
+        # for distinct ASNs per leg, the scenario builder overrides this.
+        require bgp_message.my_as_number = bgp_ivy_instance_b.bas_number;
         require bgp_message.hold_time = 180;
-        require bgp_message.bgp_identifier = bgp_ivy_instance.bgpid;
+        # bgp_identifier MUST match the sending leg's bgp_id [rfc4271:4.2]
+        require bgp_message.bgp_identifier = src;
         require bgp_message.opt_parm_len = queued_opt_param_len;
         require bgp_message.opt_params = queued_opt_param;
         header_length := 29; # [rfc4271:4.2:min_length]
@@ -102,7 +129,7 @@ before bgp_open_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_open_message
 before bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_message){
     if _generating {
         require header_length = 0;
-        require src = bgp_ivy_instance.bgpid;
+        require is_ivy_tester(src);
         require dst = bgp_impl_instance.bgpid;
         require header_payload.end = 0;
         header_type   := bgp_message_type.update_mess;
@@ -129,7 +156,7 @@ before bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_mes
 before bgp_keepalive_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_keepalive_message){
     if _generating {
         require header_length = 0;
-        require src = bgp_ivy_instance.bgpid;
+        require is_ivy_tester(src);
         require dst = bgp_impl_instance.bgpid;
         require header_payload.end = 0;
         header_type   := bgp_message_type.keepalive_mess;
@@ -141,7 +168,7 @@ before bgp_keepalive_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_keepali
 before bgp_notification_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_notification_message){
     if _generating {
         require header_length = 0;
-        require src = bgp_ivy_instance.bgpid;
+        require is_ivy_tester(src);
         require dst = bgp_impl_instance.bgpid;
         require header_payload.end = 0;
         require bgp_message.data.end = 0;
@@ -152,21 +179,21 @@ before bgp_notification_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_noti
 
 before path_attr.origin.handle(f:path_attr.origin, src:bgp_id, dst:bgp_id, e:bgp_message_type) {
     if _generating {
-        require src = bgp_ivy_instance.bgpid;
+        require is_ivy_tester(src);
         require dst = bgp_impl_instance.bgpid;
     }
 }
 
 before path_attr.as_path.handle(f:path_attr.as_path, src:bgp_id, dst:bgp_id, e:bgp_message_type) {
     if _generating {
-        require src = bgp_ivy_instance.bgpid;
+        require is_ivy_tester(src);
         require dst = bgp_impl_instance.bgpid;
     }
 }
 
 before path_attr.next_hop.handle(f:path_attr.next_hop, src:bgp_id, dst:bgp_id, e:bgp_message_type) {
     if _generating {
-        require src = bgp_ivy_instance.bgpid;
+        require is_ivy_tester(src);
         require dst = bgp_impl_instance.bgpid;
     }
 }
@@ -174,7 +201,7 @@ before path_attr.next_hop.handle(f:path_attr.next_hop, src:bgp_id, dst:bgp_id, e
 action speaker_send_event(src:bgp_id, dst:bgp_id, end : stream_pos)
 
 around speaker_send_event {
-    require src = bgp_ivy_instance.bgpid;
+    require is_ivy_tester(src);
     require dst = bgp_impl_instance.bgpid;
     # require bgp_length = ping_packet_end;
     # require bgp_length < end & end <= http_response.end;

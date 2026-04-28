@@ -93,7 +93,13 @@ import action show_tcp_accepted
 implement net.recv_tcp(src:endpoint_id, s:net.socket, pkts:bm.arr) {
     call show_net_recv_bgp;
     var bid := net_ep_to_bgpid(src);
-    call bgp_ivy_instance.behavior(s,bid,pkts); # TODO manage multiple speakers
+    # §6.8 3-speaker dispatch: route incoming bytes to the right tester leg by bid.
+    # Impl (FRR) has no model-side behavior — its bytes are observed via pcap only.
+    if bid = bgp_ivy_instance_b.bgpid {
+        call bgp_ivy_instance_b.behavior(s,bid,pkts);
+    } else if bid = bgp_ivy_instance_c.bgpid {
+        call bgp_ivy_instance_c.behavior(s,bid,pkts);
+    }
 }
 
 import action show_net_recv_bgp
