@@ -47,8 +47,9 @@ export path_attr.as_path.handle
 export path_attr.next_hop.handle
 
 export action _finalize = {
-    require conn_state(bgp_impl_instance.bgpid) = bgp_connection_state.established
-          | conn_state(bgp_impl_instance.bgpid) = bgp_connection_state.idle;
+    require conn_state(bgp_impl_instance.bgpid, bgp_ivy_instance_b.bgpid) = bgp_connection_state.established
+          | conn_state(bgp_impl_instance.bgpid, bgp_ivy_instance_b.bgpid) = bgp_connection_state.idle;
+    # C-leg dormant outside §6.8; collision test exercises C [rfc4271:6.8]
     require open_message_recv(bgp_impl_instance.bgpid);
     require ~received_unexpected_notification; # [rfc4271:6]
 }

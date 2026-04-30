@@ -94,8 +94,9 @@ export action _finalize = {
     # after receiving UPDATEs, transitioning conn_state → idle on the Ivy side.
     # The test's primary objective is update_sent + ~received_unexpected_notification.
     # Matches bgp_speaker_test_accept pattern. [rfc4271:6] [rfc4271:8.2.2]
-    require conn_state(bgp_impl_instance.bgpid) = bgp_connection_state.established
-          | conn_state(bgp_impl_instance.bgpid) = bgp_connection_state.idle;
+    require conn_state(bgp_impl_instance.bgpid, bgp_ivy_instance_b.bgpid) = bgp_connection_state.established
+          | conn_state(bgp_impl_instance.bgpid, bgp_ivy_instance_b.bgpid) = bgp_connection_state.idle;
+    # C-leg dormant outside §6.8; collision test exercises C [rfc4271:6.8]
     require update_sent; # [rfc4271:4.3]
     require ~received_unexpected_notification; # [rfc4271:6]
 }
