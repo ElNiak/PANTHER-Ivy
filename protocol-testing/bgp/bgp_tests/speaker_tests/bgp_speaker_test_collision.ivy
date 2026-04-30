@@ -85,6 +85,6 @@ export action _finalize = {
           | conn_state(bgp_impl_instance.bgpid, bgp_ivy_instance_b.bgpid) = bgp_connection_state.idle;
     require conn_state(bgp_impl_instance.bgpid, bgp_ivy_instance_c.bgpid) = bgp_connection_state.established
           | conn_state(bgp_impl_instance.bgpid, bgp_ivy_instance_c.bgpid) = bgp_connection_state.idle;
-    require open_message_recv(bgp_impl_instance.bgpid);
+    require open_message_recv(bgp_impl_instance.bgpid); # [rfc4271:4.2]
     require ~received_unexpected_notification; # [rfc4271:6]
 }
