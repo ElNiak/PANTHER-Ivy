@@ -815,7 +815,7 @@ class IvyCommandMixin:
 
         # Check for malformed placeholders - updated to handle service names with valid characters
         valid_placeholder_pattern = (
-            r"@\{[a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*\}"
+            r"@\{[a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*(?:\[[a-zA-Z_][a-zA-Z0-9_]*\])?:[a-zA-Z_][a-zA-Z0-9_]*\}"
         )
         all_placeholders = re.findall(r"@\{[^}]+\}", cmd_args)
         if malformed := [

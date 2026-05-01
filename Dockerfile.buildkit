@@ -56,7 +56,7 @@ RUN bash -c '\
 RUN --mount=type=cache,target=/var/cache/apt-${TARGETPLATFORM},sharing=locked \
     --mount=type=cache,target=/var/lib/apt-${TARGETPLATFORM},sharing=locked \
     printf 'Acquire::Retries "3";\nAcquire::http::Timeout "120";\nAcquire::https::Timeout "120";\n' > /etc/apt/apt.conf.d/99-retries && \
-    sed -i 's|archive.ubuntu.com|fr.archive.ubuntu.com|g' /etc/apt/sources.list && \
+    sed -i 's|://archive.ubuntu.com|://fr.archive.ubuntu.com|g' /etc/apt/sources.list && \
     apt-get update --fix-missing  -y && apt upgrade -y && \
     apt-get install -y --no-install-recommends \
     software-properties-common build-essential make gcc g++ curl \
