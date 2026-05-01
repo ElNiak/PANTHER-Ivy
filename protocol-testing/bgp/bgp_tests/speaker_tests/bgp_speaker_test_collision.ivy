@@ -26,13 +26,24 @@ include ivy_bgp_speaker_behavior
 relation slept_bgp
 
 after init {
-    # Single-leg deployment: only B↔A TCP socket established.
-    # C leg's connect_accept is omitted because Docker bridge allocates only
-    # one IP per container, and C's static bgp_id IP (0x0a000002) is not on
-    # any local interface. Full 3-speaker IUT validation requires plugin /
-    # Docker work to allocate a second IP or attach a second network.
-    # In this single-leg deployment §6.8.4 (Established collision via reconnect)
-    # is exercisable; §6.8.1-3 OpenConfirm-collision needs the second peer.
+    # Historical single-leg deployment note (kept for git-blame context):
+    # This test originally only opened the B↔A TCP socket. C leg's
+    # connect_accept was omitted because the Docker bridge allocated only
+    # one IP per container and C's static bgp_id IP (0x0a000002) was not
+    # on any local interface, so §6.8.1-3 OpenConfirm-collision could
+    # not be exercised non-trivially.
+    #
+    # §6.8.3 follow-up — UNBLOCKED by Path α (2026-05-01):
+    # The auxiliary-network mechanism in panther's docker_compose plugin
+    # now puts the C-leg IP (10.0.0.2) on a second NIC of the ivy_tester
+    # container via the panther_aux_network bridge. To exercise "examine
+    # all OpenConfirm connections" (RFC 4271 §6.8.3) non-trivially, add a
+    # second `connect_accept(endpoint_id.ivy_speaker_c, endpoint_id.impl_speaker, ...)`
+    # call after the line below, targeting the C leg's secondary IP.
+    # Cross-reference: outer-worktree memory `bgp-collision-c-leg-connect-accept.md`.
+    #
+    # §6.8.4 (Established collision via reconnect) was already exercisable
+    # in the single-leg deployment and remains so.
     getsock(bgp_impl_instance.ep.addr) := net.connect_accept(endpoint_id.ivy_speaker, endpoint_id.impl_speaker, bgp_impl_instance.ep.addr);
     pend(bgp_impl_instance.ep.addr) := true;
     slept_bgp := false;
