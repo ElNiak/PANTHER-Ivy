@@ -15,7 +15,7 @@ include ivy_quic_server_behavior
 include ivy_quic_server_ext_min_ack_tp
 
 
-include apt_time
+include quic_time
 
 after init {
     call time_api.c_timer.start;
@@ -26,7 +26,7 @@ after init {
 # Note: some of these are commented out. They are added in other files
 # that include this one.
 
-before quic_frame.ack_frequency.handle(f:quic_frame.ack_frequency,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
+before frame.ack_frequency.handle(f:frame.ack_frequency,scid:cid,dcid:cid) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;
@@ -35,7 +35,7 @@ before quic_frame.ack_frequency.handle(f:quic_frame.ack_frequency,scid:cid,dcid:
 }
 
 
-before quic_frame.immediate_ack.handle(f:quic_frame.immediate_ack,scid:cid,dcid:cid,e:quic_packet_type,seq_num:pkt_num, src:ip.endpoint) {
+before frame.immediate_ack.handle(f:frame.immediate_ack,scid:cid,dcid:cid) {
     if _generating {
         require client.ep.addr ~= 0;
         require scid = the_cid;
@@ -44,26 +44,26 @@ before quic_frame.immediate_ack.handle(f:quic_frame.immediate_ack,scid:cid,dcid:
 }
 
 
-export quic_frame.ack.handle
-export quic_frame.ack_frequency.handle
-# export quic_frame.immediate_ack.handle
-export quic_frame.stream.handle
-export quic_frame.handshake_done.handle
-export quic_frame.crypto.handle
-export quic_frame.path_response.handle
+export frame.ack.handle
+export frame.ack_frequency.handle
+# export frame.immediate_ack.handle
+export frame.stream.handle
+export frame.handshake_done.handle
+export frame.crypto.handle
+export frame.path_response.handle
 export packet_event
 export client_send_event
 export tls_recv_event
 
-#export quic_frame.retire_connection_id.handle
-#export quic_frame.rst_stream.handle
-#export quic_frame.max_stream_id.handle
-#export quic_frame.connection_close.handle
-#export quic_frame.max_stream_data.handle
+#export frame.retire_connection_id.handle
+#export frame.rst_stream.handle
+#export frame.max_stream_id.handle
+#export frame.connection_close.handle
+#export frame.max_stream_data.handle
 
 # export send_ack_eliciting_handshake_packet
 # export send_ack_eliciting_initial_packet
-# export quic_frame.ping.handle
+# export frame.ping.handle
 
 # Final check
 #

@@ -1,0 +1,102 @@
+#lang ivy1.7
+
+# BGP UPDATE Compliance Test [rfc4271:4.3]
+#
+# Tests UPDATE message generation via the scenario builder and IUT acceptance:
+# 1. Establish a BGP session (OPEN + KEEPALIVE exchange) [rfc4271:8.2.2]
+# 2. Generate a complete UPDATE via generate_update(scenario)
+# 3. Verify IUT accepts the UPDATE (no NOTIFICATION in response)
+#
+# Phase sequence per RFC 4271 Section 8.2.2:
+#   Idle → OpenSent (send OPEN) → OpenConfirm (send KEEPALIVE after recv OPEN)
+#   → Established (recv KEEPALIVE) → generate_update
+#
+# The scenario builder absorbs former per-test Z3 hints (NLRI bytes, AS_PATH
+# segment shape) into the model. Z3 only needs to choose a scenario from a
+# 3-bit enum, eliminating array-construction and while-loop blockers.
+
+include order
+include file
+include bgp_shim
+include ivy_bgp_speaker_behavior
+include bgp_scenario_builder
+
+relation update_sent
+relation session_established
+relation keepalive_sent
+
+after init {
+    getsock(bgp_impl_instance.ep.addr) := net.connect_accept(endpoint_id.ivy_speaker, endpoint_id.impl_speaker, bgp_impl_instance.ep.addr);
+    pend(bgp_impl_instance.ep.addr) := true;
+    update_sent := false;
+    session_established := false;
+    keepalive_sent := false;
+    # Hold timer may expire during UPDATE preparation (KEEPALIVE blocked until UPDATE sent)
+    acceptable_error(bgp_error_code.hold_timer_expire) := true;
+    # FRR may send fsm_error with wrong subcode (known IUT deviation)
+    acceptable_error(bgp_error_code.fsm_error) := true;
+}
+
+before bgp_open_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_open_message){
+    if _generating {
+    }
+}
+
+# Phase gate for KEEPALIVE generation:
+# - Allow exactly one KEEPALIVE (mandatory per [rfc4271:8.2.2:opensent] to
+#   advance FRR's FSM from OpenConfirm to Established).
+# - Then block until update_sent. This prevents Z3 from looping on KEEPALIVE
+#   generation before yielding to the TCP read loop — without the cap, the
+#   tester starves FRR's KEEPALIVE reception (TCP ACK starvation observed in
+#   runs 3 and 8), so conn_state on the Ivy side never reaches Established.
+# - After UPDATE sent: allow freely again (session maintenance [rfc4271:4.4]).
+before bgp_keepalive_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_keepalive_message){
+    if _generating {
+        require ~keepalive_sent | update_sent;
+    }
+}
+
+# No NOTIFICATION generation in this test — we want a clean UPDATE exchange
+before bgp_notification_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_notification_message){
+    if _generating {
+        require false;
+    }
+}
+
+# Track KEEPALIVE generation [rfc4271:8.2.2:opensent]
+after bgp_keepalive_message_event {
+    if _generating {
+        keepalive_sent := true;
+    };
+    # FRR's KEEPALIVE means session is in Established [rfc4271:8.2.2:openconfirm]
+    if ~_generating {
+        session_established := true;
+    }
+}
+
+# Track UPDATE generation via the scenario builder
+after generate_update {
+    if _generating {
+        update_sent := true;
+    }
+}
+
+# 4 exports (was 7) — Z3 action space reduced from 7 to 4
+export bgp_open_message_event
+export bgp_keepalive_message_event
+export bgp_notification_message_event
+export generate_update
+
+# Finalize: session established + at least one UPDATE sent + no errors
+export action _finalize = {
+    require open_message_recv(bgp_impl_instance.bgpid); # [rfc4271:4.2]
+    # Accept established OR idle: FRR may close the session cleanly (TCP FIN)
+    # after receiving UPDATEs, transitioning conn_state → idle on the Ivy side.
+    # The test's primary objective is update_sent + ~received_unexpected_notification.
+    # Matches bgp_speaker_test_accept pattern. [rfc4271:6] [rfc4271:8.2.2]
+    require conn_state(bgp_impl_instance.bgpid, bgp_ivy_instance_b.bgpid) = bgp_connection_state.established
+          | conn_state(bgp_impl_instance.bgpid, bgp_ivy_instance_b.bgpid) = bgp_connection_state.idle;
+    # C-leg dormant outside §6.8; collision test exercises C [rfc4271:6.8]
+    require update_sent; # [rfc4271:4.3]
+    require ~received_unexpected_notification; # [rfc4271:6]
+}

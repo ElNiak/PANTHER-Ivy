@@ -52,35 +52,30 @@ RUN bash -c '\
   ls /etc/apt/sources.list.d || true'
 
 # APT package installation with cache mounts for Ubuntu 20.04 + Deadsnakes PPA
+# All system dependencies in single RUN to maximize cache hit
 RUN --mount=type=cache,target=/var/cache/apt-${TARGETPLATFORM},sharing=locked \
     --mount=type=cache,target=/var/lib/apt-${TARGETPLATFORM},sharing=locked \
-    apt update && \
-    apt install -y software-properties-common && \
-    apt update && \
-    apt --fix-missing -y install \
-    build-essential python3-ply alien iptables iproute2 iputils-ping \
-    tzdata curl tar gcc g++ cmake tix pkg-config libssl-dev lsof \
-    graphviz graphviz-dev doxygen faketime libscope-guard-perl \
-    libtest-tcp-perl libbrotli-dev libev-dev libhttp-parser-dev \
-    libbsd-dev snapd rand binutils binutils-dev autoconf automake \
-    autotools-dev libtool libjemalloc-dev libboost-all-dev libboost-dev \
-    ca-certificates mime-support libevent-dev libdouble-conversion-dev \
-    libgflags-dev libgoogle-glog-dev libiberty-dev liblz4-dev liblzma-dev \
-    libsnappy-dev zlib1g-dev libsodium-dev libffi-dev cargo libunwind-dev \
-    radare2 strace bridge-utils libreadline-dev tk libgv-tcl libgraphviz-dev \
-    libdevil1c2 libgts-0.7-5 liblasi0 tcl-dev tcl libgmp-dev dsniff sudo jq ninja-build \
-    libomp-dev git clang clang-tidy clang-format
-
-
-# 0) System toolchain + CPython feature headers (bz2, sqlite, zlib, ssl, tk, etc.)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential make gcc g++ curl ca-certificates git \
-    zlib1g-dev libbz2-dev liblzma-dev \
-    libsqlite3-dev libssl-dev libffi-dev libreadline-dev \
-    tk-dev tcl-dev libncursesw5-dev libgdbm-dev libnss3-dev libedit-dev \
-    uuid-dev
+    printf 'Acquire::Retries "3";\nAcquire::http::Timeout "120";\nAcquire::https::Timeout "120";\n' > /etc/apt/apt.conf.d/99-retries && \
+    sed -i 's|://archive.ubuntu.com|://fr.archive.ubuntu.com|g' /etc/apt/sources.list && \
+    apt-get update --fix-missing  -y && apt upgrade -y && \
+    apt-get install -y --no-install-recommends \
+    software-properties-common build-essential make gcc g++ curl \
+    python3-ply alien iptables iproute2 iputils-ping tzdata tar \
+    cmake tix pkg-config libssl-dev lsof graphviz graphviz-dev doxygen faketime \
+    libscope-guard-perl libtest-tcp-perl libbrotli-dev libev-dev libhttp-parser-dev \
+    libbsd-dev snapd rand binutils binutils-dev autoconf automake autotools-dev libtool \
+    libjemalloc-dev libboost-all-dev libboost-dev ca-certificates mime-support \
+    libevent-dev libdouble-conversion-dev libgflags-dev libgoogle-glog-dev libiberty-dev \
+    liblz4-dev liblzma-dev libsnappy-dev zlib1g-dev libbz2-dev libsqlite3-dev \
+    libffi-dev libreadline-dev cargo libunwind-dev radare2 strace bridge-utils \
+    tk libgv-tcl libgraphviz-dev libdevil1c2 libgts-0.7-5 liblasi0 tcl-dev tcl \
+    libgmp-dev dsniff sudo jq ninja-build libomp-dev git clang clang-tidy clang-format \
+    tk-dev libncursesw5-dev libgdbm-dev libnss3-dev libedit-dev uuid-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install pyenv (skip if already present from base image)
+# Use bash explicitly — pyenv init outputs bash-specific syntax that dash cannot parse
+SHELL ["/bin/bash", "-c"]
 RUN if [ ! -d "$HOME/.pyenv" ]; then \
         curl https://pyenv.run | bash && \
         echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc && \
@@ -100,13 +95,14 @@ RUN if [ ! -d "$HOME/.pyenv" ]; then \
     ln -sf "$(pyenv which python3.10)" /usr/local/bin/python3.10 && \
     ln -sf "$(pyenv which python)"     /usr/local/bin/python  && \
     python3.10 -V && which python3.10 && python -V && which python
+SHELL ["/bin/sh", "-c"]
 
 # Install pip with Python cache mount
-RUN --mount=type=cache,target=/root/.cache-${TARGETPLATFORM}/pip \
+RUN --mount=type=cache,target=/root/.cache-${TARGETPLATFORM}/pip,id=pip-bootstrap-${TARGETPLATFORM} \
     curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
 
 # Python packages with pip cache
-RUN --mount=type=cache,target=/root/.cache-${TARGETPLATFORM}/pip \
+RUN --mount=type=cache,target=/root/.cache-${TARGETPLATFORM}/pip,id=pip-deps-${TARGETPLATFORM} \
     python3.10 -m pip install \
     pexpect chardet pandas scandir ply pygraphviz pydot progressbar2
 
@@ -239,8 +235,8 @@ RUN --mount=type=cache,target=/var/cache/apt,id=toolchain-$TARGETPLATFORM,sharin
 # BUILD_MODE passed as env var (not as layer ENV) to avoid invalidating COPY layers.
 # NOTE: When Z3_SOURCE=local, both Python bindings and C++ test binaries
 #   use Z3 4.7.1 from the submodule. When Z3_SOURCE=pip, Python uses 4.13.4.0.
-RUN --mount=type=cache,target=/root/.cache/pip-$TARGETPLATFORM,sharing=locked \
-    --mount=type=cache,target=/tmp/python-build-$TARGETPLATFORM,sharing=locked \
+RUN --mount=type=cache,target=/root/.cache/pip,id=pip-build-${TARGETPLATFORM} \
+    --mount=type=cache,target=/tmp/python-build-${TARGETPLATFORM},id=pybuild-${TARGETPLATFORM} \
     BUILD_MODE=${BUILD_MODE} python3.10 build_submodules.py --skip-z3 && \
     if [ "$Z3_SOURCE" = "local" ]; then \
         # Install locally-built Z3 Python bindings as the system 'z3' package. \
@@ -299,6 +295,16 @@ RUN --mount=type=cache,target=/root/.cache/pip-$TARGETPLATFORM,sharing=locked \
         fi; \
     fi
 
+# =============================================================================
+# STAGE 4: Z3-VERIFY - Isolated Z3 verification (only runs on Z3 changes)
+# Does NOT depend on ivy/ or protocol-testing, so changes to those files
+# don't invalidate this cached stage.
+# =============================================================================
+
+FROM base AS z3-verify
+
+ARG Z3_SOURCE
+
 # Verify egg has the z3_shim fix (catches pyenv egg caching stale code)
 RUN python3.10 -c "\
 import importlib.util, pathlib; \
@@ -329,15 +335,12 @@ assert 'Z3_MINOR_VERSION >= 12' in src, \
     'STALE: ivy_to_cpp.py missing Z3 4.12 version guard for mk_enum/mk_decl'; \
 print('OK: ivy_to_cpp.py uses Python-based Z3 version macros with 4.12 guards')"
 
-# Add protocol testing files (last to optimize layer caching)
-COPY protocol-testing /opt/panther_ivy/protocol-testing/
-
 # =============================================================================
 # FINAL STAGE: Runtime configuration with platform metadata
 # =============================================================================
 
-# Target platform runtime stage (inherits platform from base)
-FROM base AS final
+# Target platform runtime stage (inherits platform from z3-verify)
+FROM z3-verify AS final
 
 # Platform and build metadata for debugging and compliance
 ARG BUILDPLATFORM
@@ -363,6 +366,9 @@ LABEL build.syntax="docker/dockerfile:1"
 # Health check for runtime validation
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python3.10 --version && echo "IVY tester runtime healthy" || exit 1
+
+# Add protocol testing files (last to optimize layer caching)
+COPY protocol-testing /opt/panther_ivy/protocol-testing/
 
 # Set working directory
 WORKDIR /opt/panther_ivy

@@ -46,7 +46,7 @@ include network_controler
 
 instance net_prot : quic_protection(tls_api.id,tls_api.upper)
 
-include endpoint
+include apt_quic_endpoint
 include quic_locale
 
 include quic_loss_recovery
@@ -85,7 +85,6 @@ function client_initial_version : version
 
 relation client_non_zero_scil
 
-relation zero_rtt_allowed
 relation zero_rtt_sent
 relation send_connection_close # TODO, send co_close at end of test or not
 
@@ -148,7 +147,7 @@ after init {
     # the_cids :=
 }
 
- RTT config
+# RTT config
 
 # var early_data_end : stream_data
 # after init {
@@ -161,7 +160,7 @@ after init {
 #     early_data_end := early_data_end.append(0xff);
 # }
 
- Padding-only packet management
+# Padding-only packet management
 
 function last_packet_type(C:cid) : quic_packet_type
 function last_packet_length(C:cid) : stream_pos
@@ -176,7 +175,7 @@ after init {
     total_data_sent := 0;
 }
 
- Version (negociation) config
+# Version (negociation) config
 
 parameter iversion : stream_pos = 0x1
 parameter vnversion : stream_pos = 0x1 # TODO

@@ -27,7 +27,7 @@ include bgp_autonomous_system
 include bgp_speaker
 include ivy_bgp_speaker
 include ivy_bgp_speaker_behavior
-include bgp_network
+include bgp_locale
 
 include bgp_type # should be change
 include bgp_application

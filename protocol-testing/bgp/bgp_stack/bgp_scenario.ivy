@@ -1,0 +1,8 @@
+#lang ivy1.7
+
+# BGP test scenario types for Z3-friendly message generation [rfc4271:4.3]
+#
+# Each scenario represents an RFC-valid message template. Z3 picks a
+# scenario (finite enum); the builder constructs the message deterministically.
+
+type update_scenario = {announce_single, announce_multihop, withdraw_single, replace_route, empty_update}

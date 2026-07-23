@@ -1,16 +1,16 @@
 #lang ivy1.7
 
-object ping_prot_ser = {}
+object bgp_raw_ser = {}
 
 <<< member
 
-    class `ping_prot_ser`;
+    class `bgp_raw_ser`;
 
 >>>
 
 <<< impl
 
-    class `ping_prot_ser` : public ivy_binary_ser_128 {
+    class `bgp_raw_ser` : public ivy_binary_ser_128 {
     public:
 
         void open_list(int) {
@@ -29,25 +29,26 @@ object ping_prot_ser = {}
 # This is a bit redundant with the above code, however this can't be helped as
 # there is no way for the deserializer to have access to the ivy object.
 
-object ping_prot_deser = {}
+object bgp_raw_deser = {}
 
 <<< member
 
-    class `ping_prot_deser`;
+    class `bgp_raw_deser`;
 
 >>>
 
 <<< impl
 
-    class `ping_prot_deser` : public ivy_binary_deser_128 {
+    class `bgp_raw_deser` : public ivy_binary_deser_128 {
         int data_remaining;
     public:
-        ping_prot_deser(const std::vector<char> &inp) : ivy_binary_deser_128(inp) {
+        bgp_raw_deser(const std::vector<char> &inp) : ivy_binary_deser_128(inp) {
             data_remaining = inp.size();
         }
 
         void  get(int128_t &res) {
             getn(res,1);
+            data_remaining--;
         }
 
         unsigned char peek(unsigned p) {
@@ -59,14 +60,7 @@ object ping_prot_deser = {}
         }
 
         bool open_list_elem() {
-            /*
-            if (!more(1)) {
-                return false;
-            }
-            */
-            bool res = data_remaining--> = 0;
-            //if(data_remaining == 0) pos++;
-            return res;
+            return data_remaining > 0;
         }
         void close_list_elem() {
         }

@@ -8,13 +8,13 @@ to follow standard PANTHER architecture patterns.
 import os
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Protocol, Union
+from typing import Any, Dict, List, Optional, Union
 
 from panther.core.command_processor.builders import ServiceCommandBuilder
 from panther.core.command_processor.models.shell_command import ShellCommand
 from panther.core.command_processor.utils import CommandUtils
 
-from ._shared import oppose_role
+from ._shared import classify_endpoint_type, oppose_role
 
 
 class IvyCommandMixin:
@@ -513,22 +513,65 @@ class IvyCommandMixin:
         return commands
 
     def _build_ivy_model_setup_commands(self) -> List[str]:
-        """Build Ivy model setup commands."""
+        """Build Ivy model setup commands with endpoint-type-aware file assembly.
+
+        Copies all non-test subdirectories (always needed), then copies only the
+        relevant test subdirectory based on the endpoint type derived from the
+        current test name and role.  When the expected subdirectory exists, the
+        copied files are a strict subset of the previous flat-copy approach.
+        When it does not exist, falls back to copying all test files (identical
+        to the old approach) and logs a WARNING inside the container.
+        """
         if not hasattr(self, "env_protocol_model_path"):
             self.logger.warning(
                 "env_protocol_model_path is not set — skipping Ivy model setup commands"
             )
             return []
 
+        model_path = self.env_protocol_model_path
+        protocol_name = self.get_protocol_name()
+        tests_dir = f"{protocol_name}_tests"
+        tests_path = f"{model_path}/{tests_dir}"
+
+        # Determine endpoint type for selective test-directory copy
+        role = getattr(self, "role", None)
+        role_name = role.name if hasattr(role, "name") else str(role) if role else "server"
+        test_name = getattr(self, "test_to_compile", "")
+        endpoint_type = classify_endpoint_type(test_name, role_name)
+        # Log when no keyword matched and inference was used
+        _parts = test_name.lower().split("_")
+        _pre_test = _parts[: _parts.index("test")] if "test" in _parts else _parts
+        if not {"mim", "client", "server", "attacker"}.intersection(_pre_test):
+            self.logger.warning(
+                f"No endpoint keyword in test name '{test_name}'; "
+                f"inferred '{endpoint_type}' from role '{role_name}'"
+            )
+        target_test_subdir = f"{endpoint_type}_tests"
+
         commands = [
-            "echo 'Setting up Ivy model...' >> /app/logs/compile/ivy_setup.log",
-            f"echo 'Updating include path from {self.env_protocol_model_path}' >> /app/logs/compile/ivy_setup.log",
-            "find '"
-            + self.env_protocol_model_path
-            + "' -type f -name '*.ivy' -exec echo {} ';' >> '/app/logs/compile/copied_ivy_files.list' 2>> /app/logs/compile/ivy_setup.log",
-            "find '"
-            + self.env_protocol_model_path
-            + "' -type f -name '*.ivy' -exec cp -f {} $PYTHON_IVY_DIR/ivy/include/1.7/ ';' >> /app/logs/compile/ivy_setup.log 2>&1",
+            "echo 'Setting up Ivy model (endpoint-type-aware)...' >> /app/logs/compile/ivy_setup.log",
+            f"echo 'Protocol: {protocol_name}, endpoint type: {endpoint_type}, test subdir: {target_test_subdir}' >> /app/logs/compile/ivy_setup.log",
+            f"echo 'Updating include path from {model_path}' >> /app/logs/compile/ivy_setup.log",
+            # Step 1: Copy all .ivy files OUTSIDE the {protocol}_tests/ directory
+            # This covers: {prot}_stack/, {prot}_shims/, {prot}_utils/, etc.
+            f"find '{model_path}' -path '{tests_path}' -prune -o -type f -name '*.ivy'"
+            f" -exec echo {{}} ';' >> '/app/logs/compile/copied_ivy_files.list' 2>> /app/logs/compile/ivy_setup.log",
+            f"find '{model_path}' -path '{tests_path}' -prune -o -type f -name '*.ivy' -print"
+            f" -exec cp -f {{}} $PYTHON_IVY_DIR/ivy/include/1.7/ ';' >> /app/logs/compile/ivy_setup.log 2>&1",
+            f"echo 'Copied non-test .ivy files from {model_path}' >> /app/logs/compile/ivy_setup.log",
+            # Step 2: Copy only the relevant test subdirectory
+            f"if [ -d '{tests_path}/{target_test_subdir}' ]; then "
+            f"find '{tests_path}/{target_test_subdir}' -type f -name '*.ivy'"
+            f" -exec echo {{}} ';' >> '/app/logs/compile/copied_ivy_files.list' 2>> /app/logs/compile/ivy_setup.log && "
+            f"find '{tests_path}/{target_test_subdir}' -type f -name '*.ivy'"
+            f" -exec cp -f {{}} $PYTHON_IVY_DIR/ivy/include/1.7/ ';' >> /app/logs/compile/ivy_setup.log 2>&1 && "
+            f"echo 'Copied test files from {tests_path}/{target_test_subdir}' >> /app/logs/compile/ivy_setup.log; "
+            f"else echo 'WARNING: test subdir {tests_path}/{target_test_subdir} not found — falling back to full tests copy' >> /app/logs/compile/ivy_setup.log && "
+            f"find '{tests_path}' -type f -name '*.ivy'"
+            f" -exec echo {{}} ';' >> '/app/logs/compile/copied_ivy_files.list' 2>> /app/logs/compile/ivy_setup.log && "
+            f"find '{tests_path}' -type f -name '*.ivy'"
+            f" -exec cp -f {{}} $PYTHON_IVY_DIR/ivy/include/1.7/ ';' >> /app/logs/compile/ivy_setup.log 2>&1; "
+            f"fi",
             "ls -l $PYTHON_IVY_DIR/ivy/include/1.7/ >> /app/logs/compile/ivy_setup.log",
         ]
 
@@ -596,14 +639,12 @@ class IvyCommandMixin:
         ]
 
     def _extract_test_directory_from_name(self, test_name: str, role_name: str) -> str:
-        """Extract test directory from test name."""
-        if "client" in test_name.lower():
-            return "client_tests"
-        elif "server" in test_name.lower():
-            return "server_tests"
-        else:
-            # Fallback to opposite role
-            return f"{oppose_role(role_name)}_tests"
+        """Extract test directory from test name.
+
+        Delegates to classify_endpoint_type() to ensure consistent
+        mim/attacker/server/client handling across setup and compilation.
+        """
+        return f"{classify_endpoint_type(test_name, role_name)}_tests"
 
     def _get_build_dir(self) -> str:
         """Get build directory from configuration with robust extraction."""
@@ -733,7 +774,7 @@ class IvyCommandMixin:
             # The process_commands returns a list of dicts with command info
             return processed
 
-        except Exception as e:
+        except (AttributeError, TypeError) as e:
             self.logger.error(
                 f"Command processing failed for phase '{phase}': {e}. "
                 f"Falling back to raw commands (error detection may be impaired).",
@@ -774,7 +815,7 @@ class IvyCommandMixin:
 
         # Check for malformed placeholders - updated to handle service names with valid characters
         valid_placeholder_pattern = (
-            r"@\{[a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*\}"
+            r"@\{[a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*(?:\[[a-zA-Z_][a-zA-Z0-9_]*\])?:[a-zA-Z_][a-zA-Z0-9_]*\}"
         )
         all_placeholders = re.findall(r"@\{[^}]+\}", cmd_args)
         if malformed := [

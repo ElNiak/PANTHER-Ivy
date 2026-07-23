@@ -22,19 +22,16 @@ _SEVERITY_PREFIX = re.compile(r"^(error|warning):\s*")
 _DEFAULT_DOCKER_IVY_INCLUDE_DIR = "$PYTHON_IVY_DIR/ivy/include/1.7"
 
 
-def _extract_test_directory(test_name: str) -> str:
+def _extract_test_directory(test_name: str, role_name: str = "server") -> str:
     """Extract test subdirectory from test name.
 
-    Mirrors ivy_command_mixin.py:597-605 logic for nested test directories.
+    Delegates to classify_endpoint_type() for consistent behavior
+    with ivy_command_mixin._extract_test_directory_from_name().
     """
-    lower = test_name.lower()
-    if "client" in lower:
-        return "client_tests"
-    elif "server" in lower:
-        return "server_tests"
-    elif "mim" in lower:
-        return "mim_tests"
-    return ""
+    from ._shared import classify_endpoint_type
+
+    endpoint = classify_endpoint_type(test_name, role_name)
+    return f"{endpoint}_tests"
 
 
 def _detect_ivy_include_dir() -> str:

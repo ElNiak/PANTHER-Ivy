@@ -1,6 +1,54 @@
 {
-  "version": 1,
-  "include_paths": ["protocol-testing"],
-  "exclude_paths": ["doc/examples", "examples/ivy", "test", "notebooks", "patches"],
-  "standard_library": "ivy/include/1.7"
+  "version": 3,
+  "standard_library": "ivy/include/1.7",
+  "scope_detection": "auto",
+  "workspace_groups": {
+    "quic": ["quic", "quic_tests"],
+    "apt": ["apt", "apt_tests"],
+    "minip": ["minip"],
+    "bgp": ["bgp"],
+    "coap": ["coap"],
+    "scaffolds": ["scaffolds"]
+  },
+  "workspace_layers": [
+    {"id": "quic", "include_paths": [
+      "protocol-testing/quic/quic_stack",
+      "protocol-testing/quic/quic_utils",
+      "protocol-testing/quic/tls_stack",
+      "protocol-testing/quic/quic_shims",
+      "protocol-testing/quic/quic_config",
+      "protocol-testing/quic/quic_entities",
+      "protocol-testing/quic/quic_entities_behavior",
+      "protocol-testing/quic/quic_extensions",
+      "protocol-testing/quic/quic_fsm",
+      "protocol-testing/quic/quic_recovery",
+      "protocol-testing/quic/quic_attacks_stack"
+    ], "priority": 1},
+    {"id": "quic_tests", "include_paths": [
+      "protocol-testing/quic/quic_tests"
+    ], "priority": 2, "depends_on": ["quic"]},
+    {"id": "minip", "include_paths": ["protocol-testing/minip"], "priority": 3},
+    {"id": "apt", "include_paths": [
+      "protocol-testing/apt/apt_entities",
+      "protocol-testing/apt/apt_entities_behavior",
+      "protocol-testing/apt/apt_lifecycle",
+      "protocol-testing/apt/apt_network",
+      "protocol-testing/apt/apt_shims",
+      "protocol-testing/apt/apt_stack",
+      "protocol-testing/apt/apt_utils",
+      "protocol-testing/apt/apt_protocols/quic",
+      "protocol-testing/apt/apt_protocols/minip",
+      "protocol-testing/apt/apt_protocols/tls"
+    ], "priority": 4},
+    {"id": "apt_tests", "include_paths": [
+      "protocol-testing/apt/apt_tests"
+    ], "priority": 5, "depends_on": ["apt"]},
+    {"id": "bgp", "include_paths": ["protocol-testing/bgp"], "priority": 6},
+    {"id": "coap", "include_paths": ["protocol-testing/coap"], "priority": 7},
+    {"id": "scaffolds", "include_paths": ["protocol-testing/new_prot", "protocol-testing/http"], "priority": 8}
+  ],
+  "exclude_paths": ["doc", "examples", "test", "notebooks", "patches", "submodules", "ivy",
+                   "protocol-testing/apt/apt_protocols/dns",
+                   "protocol-testing/apt/apt_protocols/http",
+                   "protocol-testing/apt/apt_protocols/smtp"]
 }

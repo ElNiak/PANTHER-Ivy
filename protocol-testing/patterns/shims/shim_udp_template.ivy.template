@@ -1,0 +1,86 @@
+#lang ivy1.7
+
+# =============================================================================
+# Pattern:     shim_udp_template
+# Source:      MiniP ping_shim.ivy
+# Description: UDP shim layer connecting the Ivy model to the network.
+#              Implements the network receive callback, dispatches incoming
+#              packets to the correct role-specific behavior handler based on
+#              endpoint_id, and instantiates serdes for wire encoding/decoding.
+#
+# Placeholders:
+#   {prot}       - protocol name, lowercase (e.g., "ping", "coap")
+#   {PROT}       - protocol name, UPPERCASE
+#   {net_module} - network module name (e.g., "minip_net", "coap_net")
+#   {pkt_type}   - packet/datagram type (e.g., "pingd", "coapd")
+#   {msg_type}   - message struct type (e.g., "ping_packet", "coap_message")
+#
+# Cross-references:
+#   - Depends on: binary_ser_template.ivy + binary_deser_template.ivy (serdes)
+#   - Depends on: entity_role_pair_template.ivy (server/client behaviors)
+#   - Included by: test files and entity instance files
+#
+# Decision points:
+#   1. Endpoint dispatch: add one branch per endpoint_id variant
+#   2. Serdes instance: choose binary or JSON serializer pair
+#   3. Import actions: define callbacks for each received message type
+# =============================================================================
+
+
+# --- Include dependencies ---
+# Protocol types and definitions
+include {prot}_types
+include {prot}_application
+include {prot}_packet
+
+# TODO: include time module if protocol has timestamps
+# include {prot}_time
+
+# Base networking and serialization framework
+include deserializer
+include ip
+include serdes
+
+# Protocol-specific serializer/deserializer
+include {prot}_deser
+include {prot}_ser
+
+# Role-specific behavior modules
+include {prot}_server
+include {prot}_client
+
+
+# --- Network receive handler ---
+# Called by the Ivy network layer when a UDP datagram arrives.
+# Dispatches to the correct role's behavior based on endpoint_id.
+implement {net_module}.recv(host:endpoint_id, s:{net_module}.socket, src:ip.endpoint, pkts:{pkt_type}.arr) {
+    # Dispatch based on which endpoint received the packet
+    if host = endpoint_id.server {
+        # Server received a packet (for client tests: tested impl = client, Ivy = server)
+        call server.behavior(host, s, src, pkts);
+    } else if host = endpoint_id.client {
+        # Client received a packet (for server tests: tested impl = server, Ivy = client)
+        call client.behavior(host, s, src, pkts);
+    } else {
+        # Unknown endpoint -- error
+        call undefined_host_error(host, s, src);
+    };
+}
+
+
+# --- Import actions for message reception callbacks ---
+# These are implemented on the C++ side for logging/recording.
+# TODO: add one import per message type your protocol handles
+
+# import action recv_{prot}_request(host:endpoint_id, src:ip.endpoint, dst:ip.endpoint, pkt:{msg_type})
+# import action recv_{prot}_response(host:endpoint_id, src:ip.endpoint, dst:ip.endpoint, pkt:{msg_type})
+
+# Error callback for unknown endpoints
+import action undefined_host_error(host:endpoint_id, s:{net_module}.socket, src:ip.endpoint)
+
+
+# --- Serdes instantiation ---
+# Create the serializer/deserializer instance that converts between
+# Ivy message types and wire-format byte streams.
+# Parameters: (message_type, byte_stream_type, serializer, deserializer)
+instance {prot}_packet_serdes : serdes({msg_type}, stream_data, {prot}_ser, {prot}_deser)

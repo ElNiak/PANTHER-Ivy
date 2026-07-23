@@ -6,7 +6,8 @@ include file
 
 include ivy_minip_mim
 include ivy_minip_target
-include ivy_minip_attacker
+include ivy_minip_attacker_client
+include ivy_minip_attacker_server
 
 include ivy_minip_shim
 include ivy_minip_shim_mim
@@ -35,7 +36,7 @@ object packet = {
         ...
         before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.ping_packet) {
 
-            if _generating {;
+            if _generating {
                 require pkt.payload = ping_packet_received_at_round(dst,
                                                                     coal_packet_forwarded_at_round(dst,current_forwarding_round(dst)),
                                                                     current_forwarding_round(dst)).payload;

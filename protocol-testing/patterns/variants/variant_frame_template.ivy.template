@@ -1,0 +1,85 @@
+#lang ivy1.7
+
+# =============================================================================
+# Pattern:     variant_frame_template
+# Source:      BGP bgp_header_message.ivy
+# Description: Variant frame dispatch pattern. Defines a top-level message
+#              struct with a type discriminator, an event action, an `around`
+#              block for variant dispatch (deserializing sub-messages based on
+#              the type field), and import actions for callbacks.
+#
+# Placeholders:
+#   {prot}           - protocol name, lowercase (e.g., "bgp", "coap")
+#   {PROT}           - protocol name, UPPERCASE
+#   {variant_name}   - name of the variant/frame (e.g., "header_message")
+#   {id_type}        - identifier type for endpoints (e.g., "bgp_id", "endpoint_id")
+#   {msg_type_enum}  - enum type for message types (e.g., "bgp_message_type")
+#
+# Cross-references:
+#   - Used by:    shim_tcp_template.ivy or shim_udp_template.ivy
+#   - Depends on: serdes instances for each sub-message type
+#   - Monitored:  before_after_template.ivy (before monitors constrain events)
+#
+# Decision points:
+#   1. Struct fields: define the wire layout of the top-level frame
+#   2. around block: add if/else dispatch for each message type variant
+#   3. import actions: one per sub-message type for callback/logging
+# =============================================================================
+
+
+# --- Top-level frame struct ---
+# TODO: define the fields that appear in every message header
+object {prot}_{variant_name} = {
+    type this = struct {
+        # TODO: add protocol-specific header fields
+        # marker:  marker_id,       # e.g., fixed marker for framing
+        # length:  stream_pos,      # total message length
+        {prot}_type : {msg_type_enum},  # message type discriminator
+        payload: stream_data            # raw payload for sub-message
+    }
+}
+
+
+# --- Event action ---
+# This action is called (or generated) when a {variant_name} is sent or received.
+action {prot}_{variant_name}_event(src:{id_type}, dst:{id_type}, msg:{prot}_{variant_name}) = {}
+
+
+# --- Variant dispatch (around block) ---
+# The around block wraps the event to:
+#   1. Check preconditions (require isup, etc.)
+#   2. On receive (~_generating): dispatch to sub-message deserializers
+#   3. On send (_generating): the `...` placeholder runs the default body
+around {prot}_{variant_name}_event(src:{id_type}, dst:{id_type}, msg:{prot}_{variant_name}) {
+    # TODO: add preconditions
+    # require isup(endpoint_addr(src));
+    ...
+    # require isup(endpoint_addr(src));
+
+    # Dispatch on receive: deserialize payload based on type discriminator
+    if ~_generating {
+        # TODO: add one branch per message type variant
+        # if msg.{prot}_type = {msg_type_enum}.type_a {
+        #     var sub_msg := {prot}_type_a_serdes.from_bytes(msg.payload);
+        #     call recv_{prot}_type_a(src, dst, sub_msg, msg);
+        #     call {prot}_type_a_event(src, dst, sub_msg);
+        # } else if msg.{prot}_type = {msg_type_enum}.type_b {
+        #     var sub_msg := {prot}_type_b_serdes.from_bytes(msg.payload);
+        #     call recv_{prot}_type_b(src, dst, sub_msg, msg);
+        #     call {prot}_type_b_event(src, dst, sub_msg);
+        # } else {
+        #     call unknown_{prot}_message(src, dst, msg);
+        # };
+    }
+}
+
+
+# --- Import actions for callbacks ---
+# These are implemented by the test environment (C++ side) for logging/recording.
+
+# Called when an unrecognized message type is received
+import action unknown_{prot}_message(src:{id_type}, dst:{id_type}, head:{prot}_{variant_name})
+
+# TODO: add one recv import per sub-message type
+# import action recv_{prot}_type_a(src:{id_type}, dst:{id_type}, mess:{prot}_type_a, header:{prot}_{variant_name})
+# import action recv_{prot}_type_b(src:{id_type}, dst:{id_type}, mess:{prot}_type_b, header:{prot}_{variant_name})

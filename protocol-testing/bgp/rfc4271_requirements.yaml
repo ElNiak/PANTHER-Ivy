@@ -1,0 +1,546 @@
+rfc: RFC4271
+title: 'A Border Gateway Protocol 4 (BGP-4)'
+requirements:
+  'rfc4271:4.2':
+    text: >-
+      The first message sent by each side is an OPEN message.
+    section: '4.2'
+    level: MUST
+    layer: handshake
+    testable: true
+  'rfc4271:4.2.2':
+    text: >-
+      The Hold Time MUST be either zero or at least three seconds.
+    section: '4.2'
+    level: MUST
+    layer: handshake
+    testable: true
+  'rfc4271:4.3':
+    text: >-
+      UPDATE messages are used to transfer routing information between
+      BGP peers.
+    section: '4.3'
+    level: MUST
+    layer: update
+    testable: true
+  'rfc4271:4.4':
+    text: >-
+      If the negotiated Hold Time interval is zero, then periodic
+      KEEPALIVE messages MUST NOT be sent.
+    section: '4.4'
+    level: MUST NOT
+    layer: keepalive
+    testable: true
+  'rfc4271:6.6':
+    text: >-
+      Any error detected by the BGP Finite State Machine (e.g., receipt of
+      an unexpected event) is indicated by sending the NOTIFICATION message
+      with the Error Code Finite State Machine Error.
+    section: '6.6'
+    level: MUST
+    layer: error
+    testable: true
+  'rfc4271:8.2.1':
+    text: >-
+      BGP MUST maintain a separate FSM for each configured peer.
+    section: '8.2.1'
+    level: MUST
+    layer: fsm
+    testable: true
+  'rfc4271:8.2.2:opensent':
+    text: >-
+      When a valid OPEN message is received in OpenSent, the local system
+      sends a KEEPALIVE, starts timers, and transitions to OpenConfirm.
+    section: '8.2.2'
+    level: MUST
+    layer: fsm
+    testable: true
+  'rfc4271:8.2.2:openconfirm':
+    text: >-
+      If a KEEPALIVE is received in OpenConfirm, the local system
+      transitions to Established.
+    section: '8.2.2'
+    level: MUST
+    layer: fsm
+    testable: true
+  'rfc4271:8.2.2:holdtimer':
+    text: >-
+      If the HoldTimer expires, the local system sends NOTIFICATION
+      with Hold Timer Expired and transitions to Idle.
+    section: '8.2.2'
+    level: MUST
+    layer: fsm
+    testable: true
+  'rfc4271:9':
+    text: >-
+      An UPDATE message may be received only in the Established state.
+      Receiving an UPDATE message in any other state is an error.
+    section: '9'
+    level: MUST
+    layer: update
+    testable: true
+  'rfc4271:10':
+    text: >-
+      If the negotiated Hold Time value is non-zero, the Keepalive Time
+      is set to one-third of the Hold Time.
+    section: '10'
+    level: MUST
+    layer: timer
+    testable: true
+  'rfc4271:3.2':
+    text: >-
+      The Routing Information Base contains Adj-RIBs-In, Loc-RIB, and
+      Adj-RIBs-Out for each peer.
+    section: '3.2'
+    level: MUST
+    layer: update
+    testable: true
+  'rfc4271:6.1':
+    text: >-
+      If the Length field of the message header is less than 19 or
+      greater than 4096, or not correct for the type, send NOTIFICATION
+      with Message Header Error and Bad Message Length subcode.
+    section: '6.1'
+    level: MUST
+    layer: error
+    testable: true
+  'rfc4271:6.2':
+    text: >-
+      If the Hold Time field is unacceptable (non-zero and less than
+      three seconds), send NOTIFICATION with OPEN Message Error and
+      Unacceptable Hold Time subcode.
+    section: '6.2'
+    level: MUST
+    layer: error
+    testable: true
+  'rfc4271:6.2:version':
+    text: >-
+      If the version number in the OPEN message is not supported, send
+      NOTIFICATION with OPEN Message Error and Unsupported Version
+      Number subcode.
+    section: '6.2'
+    level: MUST
+    layer: handshake
+    testable: true
+  'rfc4271:6.3':
+    text: >-
+      If any well-known mandatory attribute is not recognized or not
+      present in an UPDATE, send NOTIFICATION with UPDATE Message Error
+      and Missing Well-known Attribute subcode.
+    section: '6.3'
+    level: MUST
+    layer: error
+    testable: true
+  'rfc4271:6.5':
+    text: >-
+      If a system does not receive successive KEEPALIVE, UPDATE, or
+      NOTIFICATION messages within the negotiated Hold Time, it sends
+      NOTIFICATION with Hold Timer Expired Error Code.
+    section: '6.5'
+    level: MUST
+    layer: error
+    testable: true
+  'rfc4271:6.8.1':
+    text: >-
+      In the event of connection collision, one of the connections MUST be
+      closed.
+    section: '6.8'
+    level: MUST
+    layer: fsm
+    testable: true
+  'rfc4271:6.8.2':
+    text: >-
+      The convention is to compare the BGP Identifiers of the peers
+      involved in the collision and to retain only the connection
+      initiated by the BGP speaker with the higher-valued BGP Identifier.
+      Comparing BGP Identifiers is done by converting them to host byte
+      order and treating them as 4-octet unsigned integers. If the value
+      of the local BGP Identifier is less than the remote one, the local
+      system closes the BGP connection that already exists (the one that
+      is already in the OpenConfirm state), and accepts the BGP connection
+      initiated by the remote system. Otherwise, the local system closes
+      the newly created BGP connection (the one associated with the newly
+      received OPEN message), and continues to use the existing one (the
+      one that is already in the OpenConfirm state).
+    section: '6.8'
+    level: MUST
+    layer: fsm
+    testable: true
+  'rfc4271:6.8.3':
+    text: >-
+      Upon receipt of an OPEN message, the local system MUST examine all
+      of its connections that are in the OpenConfirm state.
+    section: '6.8'
+    level: MUST
+    layer: fsm
+    testable: true
+  'rfc4271:6.8.4':
+    text: >-
+      Unless allowed via configuration, a connection collision with an
+      existing BGP connection that is in the Established state causes
+      closing of the newly created connection.
+    section: '6.8'
+    level: MUST
+    layer: fsm
+    testable: true
+  'rfc4271:6.8.5':
+    text: >-
+      Closing the BGP connection (that results from the collision
+      resolution procedure) is accomplished by sending the NOTIFICATION
+      message with the Error Code Cease.
+    section: '6.8'
+    level: MUST
+    layer: fsm
+    testable: true
+  'rfc4271:8.1':
+    text: >-
+      BGP uses TCP as its transport protocol, on port 179, for
+      establishing peer-to-peer sessions.
+    section: '8.1'
+    level: MUST
+    layer: transport
+    testable: true
+  'rfc4271:9.1':
+    text: >-
+      An UPDATE message may advertise a single route to a peer by
+      including the route's destination, path attributes, and NLRI.
+      The decision process selects routes for advertisement by applying
+      policies to routes in the Loc-RIB.
+    section: '9.1'
+    level: MUST
+    layer: update
+    testable: true
+  'rfc4271:9.1.2':
+    text: >-
+      A BGP speaker MUST NOT advertise a route from the Adj-RIBs-In
+      of a peer to that same peer (no hairpin).  All feasible routes
+      in the Adj-RIBs-In are candidates for the Decision Process.
+    section: '9.1.2'
+    level: MUST NOT
+    layer: update
+    testable: true
+
+  # --- Section 4.1: Message Header Format ---
+  'rfc4271:4.1:marker':
+    text: >-
+      The 16-octet Marker field MUST be set to all ones.
+    section: '4.1'
+    level: MUST
+    layer: packet-format
+    testable: true
+  'rfc4271:4.1:length':
+    text: >-
+      The value of the Length field MUST always be at least 19 and no
+      greater than 4096.
+    section: '4.1'
+    level: MUST
+    layer: packet-format
+    testable: true
+    note: Code annotation is on generator-side constraint (header_length > 0), weaker than RFC minimum of 19 due to stream_pos abstraction
+  'rfc4271:4.1:length_min':
+    text: >-
+      The Length field MUST have the smallest value required, given
+      the rest of the message.  Padding of extra data after the
+      message is not allowed.
+    section: '4.1'
+    level: MUST
+    layer: packet-format
+    testable: true
+    note: Per-type minimum length checks on receive path in bgp_header_message.ivy
+
+  # --- Section 5.1: Path Attributes ---
+  'rfc4271:5.1.1':
+    text: >-
+      ORIGIN is a well-known mandatory attribute.  Its value SHOULD
+      NOT be changed by any other speaker.
+    section: '5.1.1'
+    level: SHOULD NOT
+    layer: update
+    testable: true
+    note: Code annotation covers ORIGIN presence in established session, not value immutability
+  'rfc4271:5.1.2':
+    text: >-
+      AS_PATH is a well-known mandatory attribute that identifies
+      the autonomous systems through which routing information has
+      passed.
+    section: '5.1.2'
+    level: MUST
+    layer: update
+    testable: true
+    note: Level MUST covers attribute existence (well-known mandatory); prepend behavior is SHOULD (see 5.1.2:external)
+  'rfc4271:5.1.2:internal':
+    text: >-
+      When a given BGP speaker advertises the route to an internal
+      peer, the advertising speaker SHALL NOT modify the AS_PATH
+      attribute associated with the route.
+    section: '5.1.2'
+    level: MUST NOT
+    layer: update
+    testable: true
+    note: Configurable peer_type derived from AS numbers; iBGP AS_PATH mutation check in as_path.handle
+  'rfc4271:5.1.2:external':
+    text: >-
+      When a given BGP speaker advertises the route to an external
+      peer, it prepends its own AS number to the AS_PATH.
+    section: '5.1.2'
+    level: MUST
+    layer: update
+    testable: true
+    note: Configurable peer_type derived from AS numbers; eBGP AS prepend check in as_path.handle
+  'rfc4271:5.1.3':
+    text: >-
+      NEXT_HOP is a well-known mandatory attribute that defines the
+      IP address of the router that SHOULD be used as the next hop
+      to the destinations listed in the UPDATE message.
+    section: '5.1.3'
+    level: SHOULD
+    layer: update
+    testable: true
+  'rfc4271:5.1.4':
+    text: >-
+      MULTI_EXIT_DISC is an optional non-transitive attribute that
+      MAY be used by a BGP speaker's Decision Process to discriminate
+      among multiple entry points to a neighboring autonomous system.
+    section: '5.1.4'
+    level: MAY
+    layer: update
+    testable: true
+
+  # --- Section 5: Attribute Flags ---
+  'rfc4271:5:transitive':
+    text: >-
+      For well-known attributes, the Transitive bit MUST be set to 1.
+    section: '5'
+    level: MUST
+    layer: update
+    testable: true
+    note: Bool flag fields in variant structs; require statements in each handle action; deser populates from wire
+  'rfc4271:5:partial':
+    text: >-
+      For well-known attributes and for optional non-transitive
+      attributes, the Partial bit MUST be set to 0.
+    section: '5'
+    level: MUST
+    layer: update
+    testable: true
+    note: Bool flag fields in variant structs; require statements in each handle action; deser populates from wire
+
+  # --- Section 6.4: NOTIFICATION Error Handling ---
+  'rfc4271:6.4':
+    text: >-
+      If a peer sends a NOTIFICATION message and the receiver detects
+      an error in that message, the error SHOULD be logged locally.
+    section: '6.4'
+    level: SHOULD
+    layer: error
+    testable: true
+    note: notification_error_logged relation set on NOTIFICATION receipt in bgp_notification_message.ivy
+
+  # --- Section 9.3: Route Selection Criteria ---
+  'rfc4271:9.3':
+    text: >-
+      The Decision Process selects routes for subsequent advertisement
+      by applying policies in the context of the BGP speaker's
+      configuration.  The local policy MAY further restrict the set
+      of routes to be advertised.
+    section: '9.3'
+    level: MAY
+    layer: update
+    testable: true
+    note: route_policy_applied relation tracked in bgp_rib.ivy, set after UPDATE processing
+
+  # --- Message Length Requirements ---
+  'rfc4271:4.2:min_length':
+    text: >-
+      The minimum length of the OPEN message is 29 octets (including
+      the message header).
+    section: '4.2'
+    level: MUST
+    layer: handshake
+    testable: true
+  'rfc4271:4.3:min_length':
+    text: >-
+      The minimum length of the UPDATE message is 23 octets -- 19
+      octets for the fixed header + 2 octets for the Withdrawn Routes
+      Length + 2 octets for the Total Path Attribute Length.
+    section: '4.3'
+    level: MUST
+    layer: update
+    testable: true
+  'rfc4271:4.4:length':
+    text: >-
+      A KEEPALIVE message consists of only the message header and has
+      a length of 19 octets.
+    section: '4.4'
+    level: MUST
+    layer: keepalive
+    testable: true
+
+  # --- Additional Path Attributes ---
+  'rfc4271:5.1.6':
+    text: >-
+      ATOMIC_AGGREGATE is a well-known discretionary attribute of
+      length 0.
+    section: '5.1.6'
+    level: SHOULD
+    layer: update
+    testable: true
+  'rfc4271:5.1.7':
+    text: >-
+      AGGREGATOR is an optional transitive attribute of length 6
+      containing the last AS number that formed the aggregate route
+      and the IP address of the BGP speaker that formed it.
+    section: '5.1.7'
+    level: MAY
+    layer: update
+    testable: true
+    note: Handler with flag validation in bgp_path_attribute.ivy aggregator.handle
+
+  # --- Section 6.7: Cease ---
+  'rfc4271:6.7':
+    text: >-
+      In the absence of any fatal errors, a BGP peer MAY choose at
+      any given time to close its BGP connection by sending the
+      NOTIFICATION message with the Error Code Cease.
+    section: '6.7'
+    level: MAY
+    layer: error
+    testable: true
+
+  # --- Section 6.3: UPDATE Message Error Subcodes (RFC 4271) ---
+  'rfc4271:6.3:malformed_attribute_list':
+    text: >-
+      If the Withdrawn Routes Length or Total Attribute Length is too
+      large (i.e., if Withdrawn Routes Length + Total Attribute Length
+      + 23 exceeds the message Length), then the Error Subcode MUST be
+      set to Malformed Attribute List. Also: if any attribute appears
+      more than once.
+    section: '6.3'
+    level: MUST
+    layer: error
+    testable: true
+    note: Detect at bgp_update_message_event after-block
+  'rfc4271:6.3:unrecognized_well_known_attribute':
+    text: >-
+      If any of the well-known mandatory attributes are not recognized,
+      then the Error Subcode MUST be set to Unrecognized Well-known
+      Attribute. The Data field MUST contain the unrecognized attribute.
+    section: '6.3'
+    level: MUST
+    layer: error
+    testable: true
+    note: Deferred — annotation skeleton only; detection requires deserializer extension
+  'rfc4271:6.3:attribute_flags_error':
+    text: >-
+      If any recognized attribute has Attribute Flags that conflict with
+      the Attribute Type Code, then the Error Subcode MUST be set to
+      Attribute Flags Error.
+    section: '6.3'
+    level: MUST
+    layer: error
+    testable: true
+    note: Deferred — current per-attribute around-block requires (f.transitive & ~f.optional & ~f.partial) gate ill-flagged messages out; needs receive-side parallel path or deserializer extension
+  'rfc4271:6.3:attribute_length_error':
+    text: >-
+      If any recognized attribute has an Attribute Length that conflicts
+      with the expected length (based on the attribute type code), then
+      the Error Subcode MUST be set to Attribute Length Error.
+    section: '6.3'
+    level: MUST
+    layer: error
+    testable: true
+    note: Deferred — annotation skeleton only
+  'rfc4271:6.3:invalid_origin_attribute':
+    text: >-
+      If the ORIGIN attribute has an undefined value, then the Error
+      Subcode MUST be set to Invalid Origin Attribute. The Data field
+      MUST contain the attribute (type, length, and value).
+    section: '6.3'
+    level: MUST
+    layer: error
+    testable: true
+    note: Worked detection at path_attr.origin.handle after-block (f.value > 2)
+  'rfc4271:6.3:invalid_next_hop_attribute_syntactic':
+    text: >-
+      If the NEXT_HOP attribute field is syntactically incorrect, then
+      the Error Subcode MUST be set to Invalid NEXT_HOP Attribute.
+    section: '6.3'
+    level: MUST
+    layer: error
+    testable: true
+    note: Worked detection at path_attr.next_hop.handle after-block (Phase 5 prereq-gated; downgrades to annotation-only if a value-bound require excludes the violation)
+  'rfc4271:6.3:invalid_next_hop_attribute_semantic':
+    text: >-
+      The IP address in the NEXT_HOP MUST meet semantic criteria:
+      (a) MUST NOT be the IP address of the receiving speaker;
+      (b) for eBGP one-hop, MUST be sender's connecting IP or share a
+      subnet with receiver. On semantic error, error SHOULD be logged
+      and route SHOULD be ignored; NOTIFICATION SHOULD NOT be sent and
+      connection SHOULD NOT be closed.
+    section: '6.3'
+    level: SHOULD
+    layer: error
+    testable: true
+    note: Deferred — non-NOTIFICATION path, requires prefix_ignored relation
+  'rfc4271:6.3:malformed_as_path':
+    text: >-
+      The AS_PATH attribute is checked for syntactic correctness. If the
+      path is syntactically incorrect, then the Error Subcode MUST be
+      set to Malformed AS_PATH.
+    section: '6.3'
+    level: MUST
+    layer: error
+    testable: true
+    note: Deferred — current as_path around-block requires (line 322 segment_type ∈ {1,2}, line 314 f.path.end > 0) gate malformed paths out; needs receive-side parallel path
+  'rfc4271:6.3:malformed_as_path_leftmost_as':
+    text: >-
+      If the UPDATE message is received from an external peer, the
+      local system MAY check whether the leftmost AS in the AS_PATH
+      attribute is equal to the autonomous system number of the peer
+      that sent the message. If not, the Error Subcode MUST be set to
+      Malformed AS_PATH.
+    section: '6.3'
+    level: MAY
+    layer: error
+    testable: true
+    note: Deferred — annotation only; check is OPTIONAL per RFC
+  'rfc4271:6.3:optional_attribute_error':
+    text: >-
+      If an optional attribute is recognized, then the value of this
+      attribute MUST be checked. If an error is detected, the attribute
+      MUST be discarded, and the Error Subcode MUST be set to Optional
+      Attribute Error.
+    section: '6.3'
+    level: MUST
+    layer: error
+    testable: true
+    note: Deferred — annotation skeleton only
+  'rfc4271:6.3:invalid_network_field':
+    text: >-
+      The NLRI field in the UPDATE message is checked for syntactic
+      validity. If the field is syntactically incorrect, then the Error
+      Subcode MUST be set to Invalid Network Field.
+    section: '6.3'
+    level: MUST
+    layer: error
+    testable: true
+    note: Deferred — annotation skeleton only
+  'rfc4271:6.3:nlri_semantic_error':
+    text: >-
+      If a prefix in the NLRI field is semantically incorrect (e.g.,
+      unexpected multicast IP address), an error SHOULD be logged
+      locally, and the prefix SHOULD be ignored.
+    section: '6.3'
+    level: SHOULD
+    layer: error
+    testable: true
+    note: Deferred — non-NOTIFICATION path
+  'rfc4271:6.3:no_nlri_valid_update':
+    text: >-
+      An UPDATE message that contains correct path attributes, but no
+      NLRI, SHALL be treated as a valid UPDATE message.
+    section: '6.3'
+    level: MUST
+    layer: update
+    testable: true
+    note: Already permitted by bgp_update_message_event around-block (no require on NLRI presence); annotation only

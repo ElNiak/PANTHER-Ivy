@@ -54,7 +54,9 @@ object bgp_error_subcode = {
     }
 }
 
+# Queued error state: handle blocks set these, NOTIFICATION generation requires matching
 function queued_suberror(C:bgp_id) : bgp_error_subcode
+function queued_error(C:bgp_id) : bgp_error_code
 
 object bgp_error_subcode = {
     ...
@@ -63,7 +65,7 @@ object bgp_error_subcode = {
         action handle(f:bgp_error_subcode.type_bgp_header_error_subcode, src:bgp_id, dst:bgp_id)
 
         around handle {
-            require open_message_recv(src) & open_message_recv(dst);
+            require open_message_recv(src) & open_message_recv(dst); # [rfc4271:6.1]
             ...
             queued_suberror(src) := f;
         }
@@ -77,7 +79,7 @@ object bgp_error_subcode = {
         action handle(f:bgp_error_subcode.type_bgp_open_error_subcode, src:bgp_id, dst:bgp_id)
 
         around handle {
-            require open_message_recv(src) & open_message_recv(dst);
+            require open_message_recv(src) & open_message_recv(dst); # [rfc4271:6.2]
             ...
             queued_suberror(src) := f;
         }
@@ -91,9 +93,24 @@ object bgp_error_subcode = {
         action handle(f:bgp_error_subcode.type_bgp_update_error_subcode, src:bgp_id, dst:bgp_id)
 
         around handle {
-            require open_message_recv(src) & open_message_recv(dst);
+            require open_message_recv(src) & open_message_recv(dst); # [rfc4271:6.3]
             ...
             queued_suberror(src) := f;
         }
     }
+}
+
+# Connect error detection to NOTIFICATION path [rfc4271:6.6]
+after bgp_error_subcode.type_bgp_header_error_subcode.handle {
+    require true; # [rfc4271:6.6]
+    is_errored(src) := true;
+    queued_error(src) := bgp_error_code.header_mess_error;
+}
+after bgp_error_subcode.type_bgp_open_error_subcode.handle {
+    is_errored(src) := true;
+    queued_error(src) := bgp_error_code.open_mess_error;
+}
+after bgp_error_subcode.type_bgp_update_error_subcode.handle {
+    is_errored(src) := true;
+    queued_error(src) := bgp_error_code.update_mess_error;
 }

@@ -1,0 +1,162 @@
+#lang ivy1.7
+
+# =============================================================================
+# Pattern:     binary_deser_template
+# Source:      MiniP ping_deser.ivy
+# Description: Binary deserializer using C++ state machine.
+#              Inherits from ivy_binary_deser_128 to parse wire-format bytes
+#              back into Ivy-typed values.
+#
+# Placeholders:
+#   {prot}   - protocol name, lowercase (e.g., "ping", "coap", "quic")
+#   {PROT}   - protocol name, UPPERCASE (e.g., "PING", "COAP", "QUIC")
+#
+# Cross-references:
+#   - Pair with: binary_ser_template.ivy (serializer counterpart)
+#   - Used by:   shim_udp_template.ivy or shim_tcp_template.ivy
+#                via `instance {prot}_packet_serdes : serdes(...)`
+#   - Requires:  ivy_binary_deser_128 from Ivy runtime
+#
+# Decision points:
+#   1. State enum: must mirror the serializer states exactly
+#   2. open_tag: read frame_type byte(s) from wire, return matching Ivy tag index
+#   3. get(): decode field value using getn(res, byte_count) per state
+#   4. open_list_elem: control iteration over variable-length payloads
+# =============================================================================
+
+# Declare the deserializer object (empty Ivy object; implementation is in C++)
+object {prot}_deser = {}
+
+# C++ class forward declaration
+<<< member
+
+    class `{prot}_deser`;
+
+>>>
+
+# C++ implementation of the binary deserializer
+<<< impl
+
+    class `{prot}_deser` : public ivy_binary_deser_128 {
+        // State machine states -- must mirror {prot}_ser states
+        enum {{prot}_s_init,
+              {prot}_s_frame,
+              {prot}_s_payload} state;
+
+        long frame_type;
+        int fence = 0;
+        // TODO: add protocol-specific tracking variables
+        // int payload_length = 0;   // remaining bytes in payload
+        // int current_count = 0;    // items deserialized so far
+
+    public:
+        {prot}_deser(const std::vector<char> &inp)
+            : ivy_binary_deser_128(inp), state({prot}_s_init) {
+        }
+
+        // get() is called by Ivy to read each scalar value from the wire.
+        // The current state determines how many bytes to consume.
+        virtual void get(int128_t &res) {
+            switch (state) {
+            case {prot}_s_init:
+            {
+                // Transition to payload -- no bytes consumed for the root
+                state = {prot}_s_payload;
+            }
+            break;
+            case {prot}_s_frame:
+            {
+                // Read a fixed-width field
+                // TODO: adjust byte count per field (1, 2, 4, 8, ...)
+                getn(res, 1);
+            }
+            break;
+            // TODO: add cases for protocol-specific states
+            // case {prot}_s_timestamp:
+            // {
+            //     int128_t res_inter = 0;
+            //     getn(res_inter, 8);
+            //     res = reverse_bytes(res_inter);  // if network byte order
+            // }
+            // break;
+            default:
+                std::cerr << "{PROT}_deser: unexpected state in get()\n";
+                throw deser_err();
+            }
+        }
+
+        // Utility: reverse byte order for multi-byte fields (network order)
+        // Uncomment if your protocol uses big-endian wire encoding.
+        // int128_t reverse_bytes(int128_t bytes) {
+        //     int128_t aux = 0;
+        //     uint8_t byte;
+        //     for (int i = 0; i < 128; i += 8) {
+        //         byte = (bytes >> i) & 0xff;
+        //         aux |= byte << (128 - 8 - i);
+        //     }
+        //     return aux;
+        // }
+
+        // open_tag() is called when Ivy needs to determine which variant arm
+        // to deserialize. Read the frame_type byte(s) from wire and return
+        // the matching Ivy tag index.
+        virtual int open_tag(const std::vector<std::string> &tags) {
+            if (state == {prot}_s_payload || state == {prot}_s_init) {
+                int128_t ft;
+                // Read the frame_type discriminator from wire
+                // TODO: adjust byte count if frame_type is wider than 1 byte
+                ivy_binary_deser_128::getn(ft, 1);
+                frame_type = ft;
+                // TODO: map wire frame_type codes to Ivy tag indices
+                if (frame_type == 0x01) {
+                    state = {prot}_s_frame;
+                    return 0;
+                }
+                if (frame_type == 0x02) {
+                    state = {prot}_s_frame;
+                    return 1;
+                }
+                // if (frame_type == 0x03) {
+                //     state = {prot}_s_timestamp;
+                //     return 2;
+                // }
+            }
+            std::cerr << "{PROT}_deser: unknown frame_type or wrong state\n";
+            throw deser_err();
+        }
+
+        // open_list_elem() controls iteration over array/list fields.
+        // Return true if there are more elements to deserialize.
+        virtual bool open_list_elem() {
+            if (state == {prot}_s_payload) {
+                // TODO: implement length-based or sentinel-based termination
+                // return payload_length-- > 0;
+                return more(1);  // default: consume until input exhausted
+            }
+            if (state == {prot}_s_frame || state == {prot}_s_init) {
+                // TODO: implement element count or size-based termination
+                return more(1);
+            }
+            std::cerr << "{PROT}_deser: open_list_elem in wrong state\n";
+            throw deser_err();
+        }
+
+        void open_list() {
+        }
+
+        void close_list() {
+            if (state == {prot}_s_payload) {
+                state = {prot}_s_init;
+            }
+        }
+
+        void close_list_elem() {}
+
+        virtual void close_tag() {
+            state = {prot}_s_payload;
+        }
+
+        ~{prot}_deser() {}
+    };
+
+>>>

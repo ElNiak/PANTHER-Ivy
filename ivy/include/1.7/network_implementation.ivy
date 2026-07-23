@@ -12,16 +12,21 @@ include ip
 #     des  : the packet deserializer
 #
 
-module network_implementation(host,pkt,ser,des, port_base) = {
+module network_implementation(host,pkt,ser,des, port_base, ip_addr) = {
 
 	# The type of socket descriptors
 
     type socket
 
+    # TCP callbacks — implemented by the protocol shim
+    action accept(self:host, s:socket, other:host)
+    action recv_tcp(self:host, s:socket, p:pkt)
+    action failed(self:host, s:socket)
+    action connected(self:host, s:socket)
+
 	# TCP objects:
 
 	object rdr = {}         # the listener object
-    object rdra = {}        # the listener object
     object tcp_cb = {}      # struct holding the callbacks
     object send_queue = {}  # queues of outgoing packets
 
@@ -42,8 +47,45 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 			#include <arpa/inet.h>
 			#include <sys/ioctl.h>
 			#include <net/if.h>
+			#ifdef __linux__
 			#include <linux/if_packet.h>
 			#include <linux/if_ether.h>
+			#else
+			// macOS compatibility stubs for Linux-only raw socket types
+			#ifndef ETH_ALEN
+			#define ETH_ALEN 6
+			#endif
+			struct ethhdr {
+				unsigned char h_dest[ETH_ALEN];
+				unsigned char h_source[ETH_ALEN];
+				unsigned short h_proto;
+			};
+			struct iphdr {
+				unsigned int ihl:4, version:4;
+				uint8_t tos;
+				uint16_t tot_len, id, frag_off;
+				uint8_t ttl, protocol;
+				uint16_t check;
+				uint32_t saddr, daddr;
+			};
+			#ifndef SOL_IP
+			#define SOL_IP IPPROTO_IP
+			#endif
+			#ifndef IP_FREEBIND
+			#define IP_FREEBIND 15
+			#endif
+			#ifndef IP_TRANSPARENT
+			#define IP_TRANSPARENT 19
+			#endif
+			#ifndef SO_BINDTODEVICE
+			#define SO_BINDTODEVICE 25
+			#endif
+			#ifndef SIOCGIFHWADDR
+			#define SIOCGIFHWADDR 0x8927
+			#endif
+			// BSD tcphdr uses th_off instead of doff
+			#define doff th_off
+			#endif
 			#include <netinet/ip.h>
 			#include <netinet/tcp.h>
 			#include <iomanip>
@@ -57,11 +99,13 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 
 		// A tcp_config maps endpoint ids to IP addresses and ports.
 		class tcp_listener;          // class of threads that listen for connections
-		class tcp_listener_accept;   // class of threads that listen for connections
 		class tcp_callbacks;         // class holding callbacks to ivy
 
 		class tcp_config {
 		public:
+			unsigned long default_addr;
+			tcp_config() : default_addr(INADDR_ANY) {}
+			tcp_config(unsigned long a) : default_addr(a) {}
 			// get the address and port from the endpoint id
 			virtual void get(int id, unsigned long &inetaddr, unsigned long &inetport);
 
@@ -213,6 +257,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 					return;
 				}
 
+			#ifdef __linux__
 				if (eavesdrop)
 				{
 					// Process the packet
@@ -498,6 +543,9 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 						std::cerr << "RECEIVING NOT UDP NOR TCP\n";
 					}
 				}
+			#else
+				if (false) {} // eavesdrop not supported on non-Linux
+			#endif
 				else
 				{
 					buf.resize(bytes);
@@ -706,7 +754,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 			#else
 				std::cerr << "WARNING: using default TCP configuration\n";
 				//std::cerr << `ip_addr`;
-				inetaddr =  0x0a000001; //INADDR_ANY; //TODO
+				inetaddr = default_addr;
 			#endif
 				inetport = `port_base`; //+ id;
 		}
@@ -763,11 +811,13 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 		{
 			int sock = ::socket(AF_INET, SOCK_STREAM, 0);
 			char *dev = strdup("ivy"); // strdup("lo"); //TODO
+#ifdef __linux__
 			struct ifreq ifr;
 			memset(&ifr, 0, sizeof(struct ifreq));
 			ifr.ifr_flags = false;
 			snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "lo");
 			ioctl(sock, SIOCGIFINDEX, &ifr);
+#endif
 			/*if (addr.interface == `ip.ivy`) {
 				dev = strdup("ivy");
 			}*/
@@ -925,8 +975,8 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 			bool connected;
 
 		public:
-			tcp_writer(`host` my_id, int sock, tcp_queue *queue, const tcp_callbacks &tcp_cb, ivy_class *ivy)
-				: tcp_task(my_id, sock, tcp_cb, ivy), queue(queue), connected(false)
+			tcp_writer(`host` my_id, int sock, tcp_queue *queue, const tcp_callbacks &tcp_cb, ivy_class *ivy, bool initially_connected = false)
+				: tcp_task(my_id, sock, tcp_cb, ivy), queue(queue), connected(initially_connected)
 			{
 			}
 
@@ -962,8 +1012,9 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 
 				if (qclosed)
 				{
-					std::cerr << "CLOSING " << sock << std::endl;
+					std::cerr << " |~ CLOSING (queue closed) " << sock << std::endl;
 					::close(sock);
+					sock = -1;
 					connected = false;
 					return;
 				}
@@ -1025,15 +1076,12 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 
 			void fail_close()
 			{
-				queue->set_closed(false); // close queue synchronously
-
-				// make sure socket is closed before fail callback, since this
-				// might open another socket, and we don't want to build up
-				// zombie sockets.
-
-				std::cerr << "CLOSING ON FAILURE " << sock << std::endl;
-				::close(sock);
-				tcp_cb.fcb(my_id,sock);
+				queue->set_closed(false);
+				int old_sock = sock;
+				std::cerr << " |~ CLOSING ON FAILURE " << old_sock << std::endl;
+				::close(old_sock);
+				sock = -1;
+				tcp_cb.fcb(my_id, old_sock);
 				connected = false;
 			}
 		};
@@ -1127,100 +1175,6 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 			}
 		};
 
-		class tcp_listener_accept : public tcp_task
-		{
-		public:
-			// The constructor creates a socket to listen on.
-
-			tcp_listener_accept(`host` my_id, const tcp_callbacks &tcp_cb, ivy_class *ivy)
-				: tcp_task(my_id, 0, tcp_cb, ivy)
-			{
-				sock = make_tcp_socket();
-			}
-
-			virtual int fdes()
-			{
-				std::cerr << "tcp_listener_accept fdes " << sock << std::endl;
-				return sock;
-			}
-
-			// The bind method is called by the runtime once, after initialization.
-			// This allows us to query the configuration for our address and bind the socket.
-
-			virtual void bind()
-			{
-				// ivy->__lock();
-				std::cerr << "tcp_listener_accept ACCEPTING\n";
-
-				// Call accept to get an incoming connection request. May block.
-				sockaddr_in other_addr;
-				socklen_t addrlen = sizeof(other_addr);
-				int new_sock = accept(sock, (sockaddr *)&other_addr, &addrlen);
-
-				// If this fails, something is very wrong: fail stop.
-				if (new_sock < 0)
-				{
-					std::cerr << "cannot accept connection\n";
-					perror("accept failed");
-					exit(1);
-				}
-
-				// Get the endpoint id of the other from its address.
-				`host` other = get_tcp_id(ivy, other_addr);
-				std::cerr << "ACCEPTED " << new_sock << " " << other << std::endl;
-
-				// Run the "accept" callback. Since it's async, we must lock.
-				ivy->__lock();
-				tcp_cb.acb(my_id,new_sock, other);
-				ivy->__unlock();
-
-				// Install a reader task to read messages from the new socket.
-				std::cerr << "INSTALLING READER tcp_reader tcp_listener_accept" << std::endl;
-				ivy->install_reader(new tcp_reader(my_id, new_sock, tcp_cb, ivy));
-				// ivy->__unlock();
-			}
-
-			// After binding, the thread calls read in a loop. In this case, we don't read,
-			// we try accepting a connection. BUG: We should first call select to wait for a connection
-			// to be available, then call accept while holding the ivy lock. This is needed to
-			// guarantee the "accepted" appears to occur before "connected" which is required by
-			// the the tcp interface specification.
-
-			virtual void read()
-			{
-				// ivy->__lock();
-				// TODO
-				std::cerr << "tcp_listener ACCEPTING\n";
-
-				// Call accept to get an incoming connection request. May block.
-				sockaddr_in other_addr;
-				socklen_t addrlen = sizeof(other_addr);
-				int new_sock = accept(sock, (sockaddr *)&other_addr, &addrlen);
-
-				// If this fails, something is very wrong: fail stop.
-				if (new_sock < 0)
-				{
-					std::cerr << "cannot accept connection\n";
-					perror("accept failed");
-					exit(1);
-				}
-
-				// Get the endpoint id of the other from its address.
-				`host` other = get_tcp_id(ivy, other_addr);
-				std::cerr << "ACCEPTED " << new_sock << " " << other << std::endl;
-
-				// Run the "accept" callback. Since it's async, we must lock.
-				ivy->__lock();
-				tcp_cb.acb(my_id,new_sock, other);
-				ivy->__unlock();
-
-				// Install a reader task to read messages from the new socket.
-				std::cerr << "INSTALLING READER tcp_reader" << std::endl;
-				ivy->install_reader(new tcp_reader(my_id, new_sock, tcp_cb, ivy));
-				// ivy->__unlock();
-			}
-		};
-
 	>>>
 
 
@@ -1239,7 +1193,6 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 			udp_callbacks *`udp_cb`;             // the callbacks to ivy
 
 			tcp_listener *`rdr`;                 // the listener task
-			tcp_listener_accept *`rdra`;         // the listener task
 			tcp_callbacks *`tcp_cb`;             // the callbacks to ivy
 			hash_space::hash_map<int,tcp_queue *> `send_queue`;   // queues of blocked packets, per socket
 
@@ -1282,40 +1235,32 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 			`udp_cb` = new udp_callbacks(`handle_recv`);
 
 
-			the_tcp_config = 0;
-
-			// Create the callbacks. In a parameterized instance, this creates
-			// one set of callbacks for each endpoint id. When you put an
-			// action in anti-quotes it creates a function object (a "thunk")
-			// that captures the instance environment, in this case including
-			// the instance's endpoint id "me".
+			the_tcp_config = new tcp_config(`ip_addr`);
+			`rdr` = nullptr;
 
 			`tcp_cb` = new tcp_callbacks(`handle_accept`,`handle_recv_tcp`,`handle_fail`,`handle_connected`);
-
-			// Install a listener task for this endpoint. If parameterized, this creates
-			// one for each endpoint.
-			// TODO
-			//std::cerr << "INSTALLING LISTENER tcp_listener" <<std::endl;
-			//this->install_reader(`rdr` = new tcp_listener(`me`,*`tcp_cb`,this));
 
 		>>>
 
 		# These actions are handlers for the callbacks. They just insert the endpoint's id
 		# and call the corresponding callback action.
 
-		action accept(self:host,s:socket,other:host)
-
-		action recv_tcp(self:host,s:socket,p:pkt)
-
-		action failed(self:host,s:socket)
-
-		action connected(self:host,s:socket)
-
-		# These actions are handlers for the callbacks. They just insert the endpoint's id
-		# and call the corresponding callback action.
+		action ensure_send_queue(me:host, s:socket, other:host) = {
+			<<< impure
+				if (`send_queue`.find(s) != `send_queue`.end()) {
+					std::cerr << " |~ Replacing stale send queue for socket " << s << std::endl;
+					`send_queue`[s] -> set_closed(true);
+				}
+				std::cerr << " |~ Creating send queue for accepted socket " << s << std::endl;
+				tcp_queue *queue = new tcp_queue(other, 0);
+				`send_queue`[s] = queue;
+				install_thread(new tcp_writer(me, s, queue, *`tcp_cb`, this, true));
+			>>>
+		}
 
 		action handle_accept(me:host, s:socket, other:host) = {
 			call show_handle_accept(s,other);
+			call ensure_send_queue(me, s, other);
 			call accept(me,s,other)
 		}
 
@@ -1489,6 +1434,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 
 		action eavesdrop(dst:ip.endpoint) returns (s:socket) = {
 			<<< impure
+			#ifdef __linux__
 				std::cerr << "eavesdrop SOCKET " << dst.addr << std::endl;
 				char *dev = strdup("lo"); //TODO
 				int port;
@@ -1572,6 +1518,10 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 				eavesdrop = true;
 
 				install_reader(new udp_reader(`me`,s, *`udp_cb`, this));
+			#else
+				std::cerr << "eavesdrop not supported on this platform" << std::endl;
+				s = -1;
+			#endif
 			>>>
 		}
 
@@ -1713,6 +1663,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 			std::cerr << "source port number " << ntohs(sin.sin_port) << std::endl;
 		}
 
+	#ifdef __linux__
 		if (eavesdrop) {
 			// Eavesdrop
 			//close(s); //causes error
@@ -1941,7 +1892,11 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 				std::cerr << "socket error: " << strerror(error) << std::endl;
 			}
 			close(raw_sock);
-		} else {
+		}
+	#else
+		if (false) {} // eavesdrop not supported on non-Linux
+	#endif
+		else {
 			std::cerr << "not eavesdrop" << std::endl;
 			int error = 0;
 			socklen_t lsen = sizeof(error);
@@ -2001,6 +1956,10 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 
 	action connect(self:host, other:host, other_ip:ip.addr) returns (s:socket) = {
 		<<< impure
+			if (`rdr` == nullptr) {
+				std::cerr << " |~ Installing TCP listener (lazy)" << std::endl;
+				this->install_reader(`rdr` = new tcp_listener(self, *`tcp_cb`, this));
+			}
 			s = make_tcp_socket();
 			std::cerr << " |~ TCP connecting to " << other << std::endl;
 
@@ -2012,7 +1971,7 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 			if (`send_queue`.find(s) == `send_queue`.end()) {
 				`send_queue`[s] = queue = new tcp_queue(other, other_ip);
 				std::cerr << " |~ Installing WRITER tcp_writer" <<std::endl;
-				install_thread(new tcp_writer(`me`,s,queue,*`tcp_cb`,this));
+				install_thread(new tcp_writer(self,s,queue,*`tcp_cb`,this));
 			} else{
 				std::cerr << " |~ Opening TCP queue " << s << std::endl;
 				`send_queue`[s] -> set_open(other);
@@ -2022,24 +1981,11 @@ module network_implementation(host,pkt,ser,des, port_base) = {
 
 	action connect_accept(self:host, other:host, other_ip:ip.addr) returns (s:socket) = {
 		<<< impure
-			s = make_tcp_socket();
-			install_reader(`rdra` = new tcp_listener_accept(`me`,*`tcp_cb`,this));
-
-			std::cerr << " |~ TCP connecting & accepting to " << other << std::endl;
-
-			// create a send queue for this socket, if needed, along with
-			// its thread. if the queue exists, it must be closed, so
-			// we open it.
-
-			tcp_queue *queue;
-			if (`send_queue`.find(s) == `send_queue`.end()) {
-				std::cerr << " |~ Installing WRITER tcp_writer" <<std::endl;
-				`send_queue`[s] = queue = new tcp_queue(other, other_ip);
-				install_thread(new tcp_writer(`me`,s,queue,*`tcp_cb`,this));
-			} else{
-				std::cerr << " |~ Opening TCP queue " << s << std::endl;
-				`send_queue`[s] -> set_open(other);
+			if (`rdr` == nullptr) {
+				std::cerr << " |~ Installing TCP listener (lazy, accept)" << std::endl;
+				this->install_reader(`rdr` = new tcp_listener(self, *`tcp_cb`, this));
 			}
+			s = -1;
 		>>>
 	}
 

@@ -12,9 +12,21 @@ include ip
 # If the environment does not set up a configuration, the the endpoint has IP address 127.0.0.1
 # and port number port_base + me.
 
-module tcp_impl(pkt,me,ip_addr, port_base,ser,des) = {
+module tcp_impl(addr,pkt,me,ip_addr, port_base,ser,des) = {
 
-    # type socket
+    type socket
+
+    # Client-initiated actions
+    action close(self:addr, s:socket)
+    action connect(self:addr, other:addr, other_ip:ip.addr) returns (s:socket)
+    action connect_accept(self:addr, other:addr, other_ip:ip.addr) returns (s:socket)
+    action send(self:addr, s:socket, other:addr, p:pkt) returns (ok:bool)
+
+    # Callbacks from TCP layer — implemented by the protocol shim
+    action accept(self:addr, s:socket, other:addr)
+    action recv(self:addr, s:socket, p:pkt)
+    action failed(self:addr, s:socket)
+    action connected(self:addr, s:socket)
 
 # These empty objects are used to hold C++ values.
 
@@ -31,7 +43,9 @@ module tcp_impl(pkt,me,ip_addr, port_base,ser,des) = {
 
 <<< header
 
+    #include <iostream>
     #include <netinet/tcp.h>
+    #include <netinet/in.h>
     #include <list>
     #include <semaphore.h>
     #include <sys/ioctl.h>
@@ -45,6 +59,10 @@ module tcp_impl(pkt,me,ip_addr, port_base,ser,des) = {
 
     class tcp_config {
     public:
+        unsigned long default_addr;
+        tcp_config() : default_addr(INADDR_ANY) {}
+        tcp_config(unsigned long a) : default_addr(a) {}
+
         // get the address and port from the endpoint id
         virtual void get(int id, unsigned long &inetaddr, unsigned long &inetport);
 
@@ -213,8 +231,7 @@ module tcp_impl(pkt,me,ip_addr, port_base,ser,des) = {
             inetaddr = ntohl(inet_addr("127.0.0.1")); // can't send to INADDR_ANY in windows
 #else
             std::cerr << "WARNING: using default TCP configuration\n";
-            //std::cerr << `ip_addr`;
-            inetaddr =  0x0a000001; //INADDR_ANY; //TODO
+            inetaddr = default_addr;
 #endif
             inetport = `port_base`; //+ id;
     }
@@ -271,11 +288,13 @@ module tcp_impl(pkt,me,ip_addr, port_base,ser,des) = {
     int make_tcp_socket() {
         int sock = ::socket(AF_INET, SOCK_STREAM, 0);
         char * dev = strdup("ivy"); //strdup("lo"); //TODO
+#ifdef __linux__
         struct ifreq ifr;
         memset(&ifr, 0, sizeof(struct ifreq));
         ifr.ifr_flags = false;
         snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "lo");
         ioctl(sock, SIOCGIFINDEX, &ifr);
+#endif
         /*if (addr.interface == `ip.ivy`) {
             dev = strdup("ivy");
         }*/
@@ -395,7 +414,17 @@ module tcp_impl(pkt,me,ip_addr, port_base,ser,des) = {
 
                 ivy->__lock();
                 ivy->_generating = false;
-                cb.rcb(sock,pkt);
+                try {
+                    cb.rcb(sock,pkt);
+                }
+                catch (deser_err &){
+                    std::cerr << "DESER ERROR IN PROTOCOL CALLBACK\n";
+                    ivy->__unlock();
+                    cb.fcb(sock);
+                    close(sock);
+                    sock = -1;
+                    return;
+                }
                 ivy->__unlock();
             }
             std::cerr << "RECEIVING finsh\n";
@@ -415,8 +444,8 @@ module tcp_impl(pkt,me,ip_addr, port_base,ser,des) = {
         tcp_queue *queue;
         bool connected;
       public:
-        tcp_writer(int my_id, int sock, tcp_queue *queue, const tcp_callbacks &cb, ivy_class *ivy)
-            : tcp_task(my_id,sock,cb,ivy), queue(queue), connected(false) {
+        tcp_writer(int my_id, int sock, tcp_queue *queue, const tcp_callbacks &cb, ivy_class *ivy, bool initially_connected = false)
+            : tcp_task(my_id,sock,cb,ivy), queue(queue), connected(initially_connected) {
         }
 
         virtual int fdes() {
@@ -701,7 +730,7 @@ object impl = {
 
     <<< member
 
-        tcp_config *the_tcp_config;  // the current configurations
+        tcp_config *the_tcp_config = nullptr;  // the current configurations
 
         // Get the current TCP configuration. If none, create a default one.
 
@@ -726,7 +755,8 @@ object impl = {
 
     <<< init
 
-        the_tcp_config = 0;
+        if (!the_tcp_config)
+            the_tcp_config = new tcp_config(`ip_addr`);
 
         // Create the callbacks. In a parameterized instance, this creates
         // one set of callbacks for each endpoint id. When you put an
@@ -746,8 +776,23 @@ object impl = {
     # These actions are handlers for the callbacks. They just insert the endpoint's id
     # and call the corresponding callback action.
 
-    action handle_accept(s:socket, other:bgp_id) = {
+    action ensure_send_queue(s:socket, other:addr) = {
+        <<< impure
+            if (`send_queue`.find(s) == `send_queue`.end()) {
+                std::cerr << "CREATING SEND QUEUE FOR ACCEPTED SOCKET " << s << std::endl;
+                tcp_queue *queue = new tcp_queue(other, 0);
+                `send_queue`[s] = queue;
+                install_thread(new tcp_writer(`me`, s, queue, *`cb`, this, true));
+            } else {
+                std::cerr << "REOPENING SEND QUEUE FOR ACCEPTED SOCKET " << s << std::endl;
+                `send_queue`[s] -> set_open(other);
+            }
+        >>>
+    }
+
+    action handle_accept(s:socket, other:addr) = {
         call show_handle_accept(s,other);
+        call ensure_send_queue(s, other);
         call accept(me,s,other)
     }
 
@@ -766,14 +811,14 @@ object impl = {
         call connected(me,s)
     }
 
-    # implement connected(self:bgp_id, s:socket) {
+    # implement connected(self:addr, s:socket) {
     #     <<< impure
     #         std::cerr << "CONNECTED " << s << std::endl;
     #         //`rdr`->read();
     #     >>>
     # }
 
-    action show_handle_accept(s:socket, other:bgp_id) = {
+    action show_handle_accept(s:socket, other:addr) = {
         <<< impure
             std::cerr << "handle ACCEPTED " << s << std::endl;
         >>>
@@ -803,7 +848,7 @@ object impl = {
 
     # close the socket
 
-    implement close(self:bgp_id, s:socket) {
+    implement close(self:addr, s:socket) {
         <<< impure
             std::cerr << "CLOSING " << s << std::endl;
             // We don't want to close a socket when there is another thread
@@ -831,7 +876,7 @@ object impl = {
     # connect creates a socket and then installs a connector task
     # to establish the connection asynchronously.
 
-    implement connect(self:bgp_id, other:bgp_id, other_ip:ip.addr) returns (s:socket) {
+    implement connect(self:addr, other:addr, other_ip:ip.addr) returns (s:socket) {
         <<< impure
             s = make_tcp_socket();
             std::cerr << "SOCKET " << s << std::endl;
@@ -855,7 +900,7 @@ object impl = {
         >>>
     }
 
-    implement connect_accept(self:bgp_id, other:bgp_id, other_ip:ip.addr) returns (s:socket) {
+    implement connect_accept(self:addr, other:addr, other_ip:ip.addr) returns (s:socket) {
         <<< impure
             s = make_tcp_socket();
             std::cerr << "SOCKET " << s << std::endl;
@@ -886,7 +931,7 @@ object impl = {
     # ordered semantics, we will need to have an additional return code indicating
     # the packet could not be queued (analogous to EAGAIN).
 
-    implement send(self:bgp_id, s:socket,other:bgp_id, p:pkt) returns (ok:bool) {
+    implement send(self:addr, s:socket,other:addr, p:pkt) returns (ok:bool) {
         <<< impure
                 //ivy_binary_ser sr;
                 //ivy_binary_ser_128 sr;

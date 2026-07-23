@@ -15,13 +15,13 @@ include ivy_quic_client_behavior
 include ivy_quic_client_standard_tp
 
 after init {
-    sock := quic_net.open(endpoint_id.client,client.ep);
-    sock_alt := quic_net.open(endpoint_id.client_alt,client_alt);
-    sock_vn := sock; # quic_net.open(endpoint_id.client_vn,client_vn);
-    client.set_tls_id(1);
-    second_client.set_tls_id(1); # TODO to avoid error
-    server.set_tls_id(0);
-    # second_client.set_tls_id(1);
+    sock := net.open(endpoint_id.client,client.ep);
+    sock_alt := net.open(endpoint_id.client_alt,client_alt);
+    sock_vn := sock; # net.open(endpoint_id.client_vn,client_vn);
+    client.set_tls_id(0);
+    second_client.set_tls_id(0); # TODO to avoid error
+    server.set_tls_id(1);
+    # second_client.set_tls_id(0);
     var extns := tls_extensions.empty;
     extns := extns.append(make_transport_parameters);
     call tls_api.upper.create(0,false,extns);  # false means this instance of tls is not a server
@@ -66,7 +66,7 @@ after init {
 #    Connection ID field of the Retry packet in the Destination Connection
 #    ID field of subsequent packets that it sends.
 
-before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
+before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     if _generating {
         if pkt.ptype = quic_packet_type.initial {
             pkt.dst_cid := server_cid; # TODO
@@ -79,22 +79,22 @@ before packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:packet.quic_packet) {
 # Note: some of these are commented out. They are added in other files
 # that include this one.
 
-export quic_frame.ack.handle
-export quic_frame.stream.handle
-export quic_frame.crypto.handle
-export quic_frame.path_response.handle
+export frame.ack.handle
+export frame.stream.handle
+export frame.crypto.handle
+export frame.path_response.handle
 export packet_event
 export client_send_event
 export tls_recv_event
-#export quic_frame.new_connection_id.handle
-#export quic_frame.retire_connection_id.handle
-#export quic_frame.rst_stream.handle
-#export quic_frame.max_stream_id.handle
-export quic_frame.connection_close.handle
-#export quic_frame.max_stream_data.handle
-#export quic_frame.max_data.handle
-attribute quic_frame.crypto.handle.weight = "5"
-attribute quic_frame.path_response.handle.weight = "5"
+#export frame.new_connection_id.handle
+#export frame.retire_connection_id.handle
+#export frame.rst_stream.handle
+#export frame.max_stream_id.handle
+export frame.connection_close.handle
+#export frame.max_stream_data.handle
+#export frame.max_data.handle
+attribute frame.crypto.handle.weight = "5"
+attribute frame.path_response.handle.weight = "5"
 
 # Final check
 #

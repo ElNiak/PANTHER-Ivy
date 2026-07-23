@@ -7,6 +7,7 @@ from ._shared import (
     VERDICT_NON_COMPLIANT,
     VERDICT_TESTER_CRASH,
     VERDICT_UNKNOWN,
+    classify_endpoint_type,
     detect_role,
     determine_verdict,
     oppose_role,
@@ -117,3 +118,62 @@ class TestDetectRole:
 
     def test_server_suffix(self):
         assert detect_role("test_server") == "server"
+
+
+class TestClassifyEndpointType:
+    def test_server_in_name(self):
+        assert classify_endpoint_type("quic_server_test_xxx", "client") == "server"
+
+    def test_client_in_name(self):
+        assert classify_endpoint_type("quic_client_test_xxx", "server") == "client"
+
+    def test_mim_in_name(self):
+        assert classify_endpoint_type("quic_mim_test_xxx", "server") == "mim"
+
+    def test_attacker_maps_to_server(self):
+        assert classify_endpoint_type("quic_server_test_attacker_xxx", "client") == "server"
+
+    def test_attacker_only_maps_to_server(self):
+        # Attacker without server/client in the name should still return server
+        assert classify_endpoint_type("quic_attacker_test_xxx", "client") == "server"
+
+    def test_unknown_with_role_server_falls_back_to_client(self):
+        assert classify_endpoint_type("quic_test_unknown", "server") == "client"
+
+    def test_unknown_with_role_client_falls_back_to_server(self):
+        assert classify_endpoint_type("quic_test_unknown", "client") == "server"
+
+    def test_mim_takes_precedence_over_server(self):
+        # "mim" checked before "server" in the name
+        assert classify_endpoint_type("quic_mim_server_test", "client") == "mim"
+
+    def test_case_insensitive(self):
+        assert classify_endpoint_type("QUIC_SERVER_TEST_STREAM", "client") == "server"
+        assert classify_endpoint_type("QUIC_CLIENT_TEST_STREAM", "server") == "client"
+        assert classify_endpoint_type("QUIC_MIM_TEST_STREAM", "server") == "mim"
+
+    def test_empty_test_name_falls_back(self):
+        # Empty string should fall back to oppose_role, not crash
+        assert classify_endpoint_type("", "server") == "client"
+
+    def test_mim_takes_precedence_over_client(self):
+        assert classify_endpoint_type("quic_mim_client_test", "server") == "mim"
+
+    def test_attacker_without_server_keyword(self):
+        # Pure "attacker" name (no "server"/"client") -> server
+        assert classify_endpoint_type("quic_attacker_replay", "client") == "server"
+
+    def test_client_test_with_mim_in_scenario_name(self):
+        """Client test about MIM scenario should classify as client, not mim."""
+        assert classify_endpoint_type("quic_client_test_0rtt_mim_replay", "server") == "client"
+
+    def test_client_test_with_mim_modify(self):
+        assert classify_endpoint_type("quic_client_test_mim_modify", "server") == "client"
+
+    def test_server_test_with_mim_suffix(self):
+        """Server test about MIM should classify as server, not mim."""
+        assert classify_endpoint_type("quic_server_test_mim", "client") == "server"
+
+    def test_actual_mim_test(self):
+        """Real MIM tests use quic_mim_test_* naming convention."""
+        assert classify_endpoint_type("quic_mim_test_forward", "server") == "mim"

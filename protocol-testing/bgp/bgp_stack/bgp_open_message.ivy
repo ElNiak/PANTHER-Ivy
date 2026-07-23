@@ -112,7 +112,8 @@ action bgp_open_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_open_message
 
 around bgp_open_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_open_message) {
     require isup(bgpid_to_endpoint(src));
-    require ~open_message_recv(src);
+    require ~open_message_recv(src); # [rfc4271:4.2]
+    require bgp_message.hold_time = 0 | bgp_message.hold_time >= 3; # [rfc4271:4.2.2]
     ...
     require isup(bgpid_to_endpoint(src));
     open_message_recv(src) := true;

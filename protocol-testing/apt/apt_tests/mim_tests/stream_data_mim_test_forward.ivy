@@ -6,7 +6,8 @@ include file
 
 include ivy_stream_data_mim
 include ivy_stream_data_target
-include ivy_stream_data_attacker
+include ivy_stream_data_attacker_client
+include ivy_stream_data_attacker_server
 
 include ivy_stream_data_shim
 include ivy_stream_data_shim_mim
@@ -34,7 +35,7 @@ object packet = {
         ...
         before replay_to_client(src:ip.endpoint,dst:ip.endpoint,pkt:packet.malicious_stream_data_packet) {
 
-            if _generating {;
+            if _generating {
                 require pkt.payload = malicious_stream_data_packet_received_last_round(dst).payload;
             }
         }

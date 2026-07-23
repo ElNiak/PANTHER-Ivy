@@ -67,6 +67,7 @@ object bgp_prot_deser = {}
 
         void  get(int128_t &res) {
             getn(res,1);
+            data_remaining--;
             std::cerr << "bgp_prot_deser data_remaining = " << data_remaining << "\n";
         }
 
@@ -79,9 +80,7 @@ object bgp_prot_deser = {}
         }
 
         bool open_list_elem() {
-            bool res = data_remaining--> = 0;
-            std::cerr << "bgp_prot_deser data_remaining = " << data_remaining << "\n";
-            return res;
+            return data_remaining > 0;
         }
         void close_list_elem() {
         }

@@ -3,7 +3,6 @@
 include byte_stream
 include ip
 
-include bgp_time
 include deserializer
 
 include serdes
@@ -27,33 +26,37 @@ include bgp_autonomous_system
 include bgp_speaker
 include ivy_bgp_speaker
 include ivy_bgp_speaker_behavior
-include bgp_network
+include bgp_locale
 
-include bgp_type # should be change
-include bgp_application
+include bgp_type
 include bgp_community
 include bgp_header_message
 include bgp_keepalive_message
 include bgp_notification_message
 include bgp_update_message
+include bgp_rib
 include bgp_open_message
+include bgp_time
+include bgp_application
+include bgp_fsm
 
 relation isup(A:ip.addr)
 function getsock(A:ip.addr) : net.socket
 relation pend(A:ip.addr)
 
+# Relations default to false in Ivy — explicit init over bv[32] compiles to a 4B-iteration loop
 # after init {
 #     isup(A) := false;
 #     pend(A) := false;
 # }
 
-implement net.connected(src:bgp_id, s:net.socket) {
-    call show_connected(src,s);
-    # if some(other:ip.addr) pend(other) & getsock(other) = s {
-    pend(bgpid_to_other_endpoint(src)) := false;
-    isup(bgpid_to_other_endpoint(src)) := true;
-    isup(bgpid_to_endpoint(src))       := true;
-    # }
+# TCP transport for BGP peering [rfc4271:8.1]
+implement net.connected(src:endpoint_id, s:net.socket) {
+    var bid := net_ep_to_bgpid(src);
+    call show_connected(bid,s);
+    pend(bgpid_to_other_endpoint(bid)) := false;
+    isup(bgpid_to_other_endpoint(bid)) := true; # [rfc4271:8.1]
+    isup(bgpid_to_endpoint(bid))       := true;
 }
 
 import action show_connected(src:bgp_id, s:net.socket)
@@ -75,16 +78,31 @@ import action show_connected(src:bgp_id, s:net.socket)
 #     }
 # }
 
-implement net.accept(src:bgp_id,s:net.socket,other:bgp_id) {
-    # we ignore accept events
+# TCP accept for BGP peering [rfc4271:8.1]
+implement net.accept(src:endpoint_id,s:net.socket,other:endpoint_id) {
     call show_tcp_accepted;
+    var bid := net_ep_to_bgpid(src);
+    pend(bgpid_to_other_endpoint(bid)) := false;
+    isup(bgpid_to_other_endpoint(bid)) := true;
+    isup(bgpid_to_endpoint(bid))       := true;
+    getsock(bgpid_to_other_endpoint(bid)) := s;
 }
 
 import action show_tcp_accepted
 
-implement net.recv(src:bgp_id, s:net.socket, pkts:bm.arr) {
-    call bgp_ivy_instance.behavior(s,src,pkts); # TODO manage multiple speakers
+implement net.recv_tcp(src:endpoint_id, s:net.socket, pkts:bm.arr) {
+    call show_net_recv_bgp;
+    var bid := net_ep_to_bgpid(src);
+    # §6.8 3-speaker dispatch: route incoming bytes to the right tester leg by bid.
+    # Impl (FRR) has no model-side behavior — its bytes are observed via pcap only.
+    if bid = bgp_ivy_instance_b.bgpid {
+        call bgp_ivy_instance_b.behavior(s,bid,pkts);
+    } else if bid = bgp_ivy_instance_c.bgpid {
+        call bgp_ivy_instance_c.behavior(s,bid,pkts);
+    }
 }
+
+import action show_net_recv_bgp
 
 import action undefined_host_error(host:endpoint_id, s:net.socket, src:bgp_id)
 
@@ -92,14 +110,31 @@ function header_payload : stream_data
 function header_length  : stream_pos
 function header_type    : bgp_message_type
 
+# Auto-send: wrap payload in BGP header, serialize, send on wire, reset state.
+# Called from each specific message event's after-block to make generation atomic
+# (one event = one message on the wire, no separate header event needed).
+action send_wrapped_message(src:bgp_id, dst:bgp_id) = {
+    var hdr : bgp_header_message;
+    hdr.marker := 0xffffffffffffffff;
+    hdr.bgp_type := header_type;
+    hdr.length := header_length;
+    hdr.payload := header_payload;
+    var spkt := bgp_message_serdes.to_bytes(hdr);
+    var pkts := bm.arr.empty;
+    pkts := pkts.append(spkt);
+    var ok := net.send_tcp(endpoint_to_pid(src),endpoint_to_socket(src),endpoint_to_pid(dst),pkts);
+    header_payload := stream_data.empty;
+    header_length  := 0;
+    call send_bgp_header_message(src,dst,hdr);
+}
+
 after bgp_header_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_header_message){
     if _generating {
         var spkt := bgp_message_serdes.to_bytes(bgp_message);
         var pkts := bm.arr.empty;
         pkts := pkts.append(spkt);
-        var ok := net.send(src,endpoint_to_socket(src),dst,pkts);
+        var ok := net.send_tcp(endpoint_to_pid(src),endpoint_to_socket(src),endpoint_to_pid(dst),pkts);
         header_payload := stream_data.empty;
-        #sheader_payload.end := 0;
         header_length  := 0;
         call send_bgp_header_message(src,dst,bgp_message);
     }
@@ -112,6 +147,7 @@ after bgp_open_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_open_message)
         var spkt := bgp_open_message_serdes.to_bytes(bgp_message);
         header_payload := spkt;
         call send_bgp_open_message(src,dst,bgp_message);
+        call send_wrapped_message(src, dst);
     }
 }
 
@@ -122,6 +158,7 @@ after bgp_update_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_update_mess
         var spkt := bgp_update_message_serdes.to_bytes(bgp_message);
         header_payload := spkt;
         call send_bgp_update_message(src,dst,bgp_message);
+        call send_wrapped_message(src, dst);
     }
     bgp_update_event := false;
 }
@@ -133,6 +170,7 @@ after bgp_keepalive_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_keepaliv
         var spkt := bgp_keepalive_message_serdes.to_bytes(bgp_message);
         header_payload := spkt;
         call send_bgp_keepalive_message(src,dst,bgp_message);
+        call send_wrapped_message(src, dst);
     }
 }
 
@@ -143,6 +181,7 @@ after bgp_notification_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_notif
         var spkt := bgp_notification_message_serdes.to_bytes(bgp_message);
         header_payload := spkt;
         call send_bgp_notification_message(src,dst,bgp_message);
+        call send_wrapped_message(src, dst);
     }
 }
 

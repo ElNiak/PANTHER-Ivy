@@ -16,7 +16,7 @@ instance prot : coap_protection(tls_api.id, tls_api.upper)
 include coap_endpoint
 include coap_locale
 
-include ivv_coap_server
+include ivy_coap_server
 include ivy_coap_client
 
 ```

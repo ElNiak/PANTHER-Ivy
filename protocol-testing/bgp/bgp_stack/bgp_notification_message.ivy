@@ -82,32 +82,37 @@ object bgp_notification_message = {
 
 action   bgp_notification_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_notification_message) = {}
 relation is_errored(C:bgp_id)
+relation notification_error_logged(C:bgp_id) # [rfc4271:6.4]
+relation acceptable_error(E:bgp_error_code)
+relation received_unexpected_notification
+
+after init {
+    notification_error_logged(C) := false;
+    acceptable_error(E) := false;
+    received_unexpected_notification := false;
+    queued_error(C) := bgp_error_code.not_a_mess;
+}
 
 around bgp_notification_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_notification_message) {
     require isup(bgpid_to_endpoint(src));
-    require open_message_recv(src) & open_message_recv(dst);
-    require is_errored(src);
+    # NOTIFICATION may arrive before OPEN completes (e.g., OPEN Message Error,
+    # Hold Timer Expired, or Cease). Only require OPEN on the generate side.
+    if _generating {
+        require open_message_recv(src) & open_message_recv(dst);
+        require is_errored(src); # [rfc4271:6.6]
+        require bgp_message.error_code = queued_error(src); # [rfc4271:6.1, rfc4271:6.2, rfc4271:6.3]
+        require bgp_message.error_subcode = queued_suberror(src);
+    };
     require bgp_message.error_code = bgp_error_code.header_mess_error |
             bgp_message.error_code = bgp_error_code.open_mess_error   |
             bgp_message.error_code = bgp_error_code.update_mess_error   |
             bgp_message.error_code = bgp_error_code.hold_timer_expire   |
             bgp_message.error_code = bgp_error_code.fsm_error   |
-            bgp_message.error_code = bgp_error_code.cease_error;
-
-    # TODO modify the deser/ser
-    # require bgp_message.error_code =  bgp_error_code.header_mess_error ->
-    #     (bgp_message.error_subcode = bgp_error_subcode.type_bgp_header_error_subcode.code.connection_not_synchronized |
-    #      bgp_message.error_subcode = bgp_error_subcode.type_bgp_header_error_subcode.code.bad_message_length |
-    #      bgp_message.error_subcode = bgp_error_subcode.type_bgp_header_error_subcode.code.bad_message_type);
-
-    # require bgp_message.error_code =  bgp_error_code.open_mess_error ->
-    #     (bgp_message.error_subcode = bgp_open_error_subcode.unsupported_version_number |
-    #      bgp_message.error_subcode = bgp_open_error_subcode.bad_peer_as |
-    #      bgp_message.error_subcode = bgp_open_error_subcode.bad_bgp_identifier |
-    #      bgp_message.error_subcode = bgp_open_error_subcode.unsupported_optional_parameter |
-    #      bgp_message.error_subcode = bgp_open_error_subcode.unacceptable_hold_time |
-    #      bgp_message.error_subcode = bgp_open_error_subcode.unsupported_capability);
-    # # require bgp_message.error_code = 3 -> (bgp_message.error_subcode >= 1 & bgp_message.error_subcode <= 11);
+            bgp_message.error_code = bgp_error_code.cease_error; # [rfc4271:6.7]
     ...
     require isup(bgpid_to_endpoint(src));
+    if ~_generating {
+        require acceptable_error(bgp_message.error_code); # [rfc4271:6]
+    };
+    notification_error_logged(dst) := true; # [rfc4271:6.4]
 }

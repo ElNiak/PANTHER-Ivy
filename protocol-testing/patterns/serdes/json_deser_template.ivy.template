@@ -1,0 +1,196 @@
+#lang ivy1.7
+
+# =============================================================================
+# Pattern:     json_deser_template
+# Source:      NEW -- no existing reference model; designed for text/JSON
+#              protocols such as Mark/MASFAD or HTTP-based protocols.
+# Description: JSON deserializer using C++ state machine.
+#              Parses a JSON byte stream back into Ivy-typed values.
+#
+# Placeholders:
+#   {prot}   - protocol name, lowercase (e.g., "mark", "http", "masfad")
+#   {PROT}   - protocol name, UPPERCASE (e.g., "MARK", "HTTP", "MASFAD")
+#
+# Cross-references:
+#   - Pair with: json_ser_template.ivy (serializer counterpart)
+#   - Used by:   shim_tcp_template.ivy or shim_udp_template.ivy
+#                via `instance {prot}_packet_serdes : serdes(...)`
+#   - Requires:  ivy_binary_deser_128 base class (input is byte buffer
+#                containing ASCII/UTF-8 JSON)
+#
+# Decision points:
+#   1. Key-to-tag mapping: map JSON key strings back to Ivy tag indices
+#   2. Value parsing: decide how to parse numbers, strings, booleans
+#   3. Nesting: handle nested objects and arrays
+# =============================================================================
+
+# Declare the deserializer object (empty Ivy object; implementation is in C++)
+object {prot}_json_deser = {}
+
+# C++ class forward declaration
+<<< member
+
+    class `{prot}_json_deser`;
+
+>>>
+
+# C++ implementation of the JSON deserializer
+<<< impl
+
+    class `{prot}_json_deser` : public ivy_binary_deser_128 {
+        // State machine states
+        enum {{prot}_js_init,
+              {prot}_js_object,
+              {prot}_js_array,
+              {prot}_js_value} state;
+
+        int depth;
+        std::string current_key;
+
+        // Helper: peek at current byte without consuming
+        char peek_char() {
+            if (!more(1)) return '\0';
+            return (char)inp[pos];
+        }
+
+        // Helper: consume one byte and return it
+        char read_char() {
+            if (!more(1)) throw deser_err();
+            return (char)inp[pos++];
+        }
+
+        // Helper: skip whitespace characters
+        void skip_ws() {
+            while (more(1)) {
+                char c = (char)inp[pos];
+                if (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
+                    pos++;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        // Helper: read a JSON string (after opening quote), return contents
+        std::string read_json_string() {
+            std::string result;
+            // Opening quote already consumed or about to be consumed
+            if (peek_char() == '"') read_char();
+            while (more(1)) {
+                char c = read_char();
+                if (c == '"') break;
+                if (c == '\\') {
+                    if (!more(1)) throw deser_err();
+                    c = read_char();  // escaped character
+                }
+                result += c;
+            }
+            return result;
+        }
+
+        // Helper: read a JSON number, return as long long
+        long long read_json_number() {
+            std::string numstr;
+            while (more(1)) {
+                char c = peek_char();
+                if (c == '-' || c == '+' || (c >= '0' && c <= '9')) {
+                    numstr += read_char();
+                } else {
+                    break;
+                }
+            }
+            if (numstr.empty()) throw deser_err();
+            return std::stoll(numstr);
+        }
+
+    public:
+        {prot}_json_deser(const std::vector<char> &inp_data)
+            : ivy_binary_deser_128(inp_data), state({prot}_js_init), depth(0) {
+        }
+
+        // get() reads the next scalar value from the JSON stream.
+        virtual void get(int128_t &res) {
+            skip_ws();
+            switch (state) {
+            case {prot}_js_init:
+            {
+                state = {prot}_js_object;
+            }
+            break;
+            case {prot}_js_value:
+            case {prot}_js_object:
+            case {prot}_js_array:
+            {
+                // Parse a JSON number value
+                // TODO: handle string values differently if needed
+                res = (int128_t)read_json_number();
+                skip_ws();
+                if (peek_char() == ',') read_char();  // consume separator
+            }
+            break;
+            default:
+                std::cerr << "{PROT}_json_deser: unexpected state in get()\n";
+                throw deser_err();
+            }
+        }
+
+        // open_tag() reads the next JSON key and maps it to an Ivy tag index.
+        virtual int open_tag(const std::vector<std::string> &tags) {
+            skip_ws();
+            if (peek_char() == '{') read_char();  // consume opening brace
+            skip_ws();
+            if (peek_char() == ',') read_char();  // consume separator
+            skip_ws();
+
+            // Read the key name
+            current_key = read_json_string();
+            skip_ws();
+            if (peek_char() == ':') read_char();  // consume colon
+            skip_ws();
+
+            // TODO: map JSON key strings to Ivy tag indices for your protocol
+            if (current_key == "type")     { state = {prot}_js_value; return 0; }
+            if (current_key == "payload")  { state = {prot}_js_value; return 1; }
+            if (current_key == "sequence") { state = {prot}_js_value; return 2; }
+
+            std::cerr << "{PROT}_json_deser: unknown key '" << current_key << "'\n";
+            throw deser_err();
+        }
+
+        // open_list_elem() controls iteration over JSON arrays.
+        virtual bool open_list_elem() {
+            skip_ws();
+            if (peek_char() == ']') {
+                return false;
+            }
+            if (peek_char() == ',') read_char();
+            skip_ws();
+            return more(1) && peek_char() != ']';
+        }
+
+        void open_list() {
+            skip_ws();
+            if (peek_char() == '[') read_char();
+            state = {prot}_js_array;
+            depth++;
+        }
+
+        void close_list() {
+            skip_ws();
+            if (peek_char() == ']') read_char();
+            depth--;
+            state = (depth > 0) ? {prot}_js_object : {prot}_js_init;
+        }
+
+        void close_list_elem() {}
+
+        virtual void close_tag() {
+            skip_ws();
+            if (peek_char() == '}') read_char();
+            state = {prot}_js_object;
+        }
+
+        ~{prot}_json_deser() {}
+    };
+
+>>>

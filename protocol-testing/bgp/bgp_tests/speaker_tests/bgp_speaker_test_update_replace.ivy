@@ -1,0 +1,89 @@
+#lang ivy1.7
+
+# BGP UPDATE Replace-Route Compliance Test [rfc4271:9.1.2]
+#
+# Restricted variant of bgp_speaker_test_update that forces the scenario
+# to `replace_route`. Advertises NLRI 192.168.1.0/24 with ORIGIN=INCOMPLETE
+# to exercise implicit-withdraw / attribute-replacement semantics in the
+# IUT's Adj-RIB-In.
+#
+# Per [rfc4271:9.1.2]: "If the route is learned from an external peer,
+# the local BGP speaker MUST replace the NEXT_HOP attribute and the MED
+# attribute of the existing route with the values of the corresponding
+# attributes of the newly received route..."
+
+include order
+include file
+include bgp_shim
+include ivy_bgp_speaker_behavior
+include bgp_scenario_builder
+
+relation update_sent
+relation session_established
+relation keepalive_sent
+
+after init {
+    getsock(bgp_impl_instance.ep.addr) := net.connect_accept(endpoint_id.ivy_speaker, endpoint_id.impl_speaker, bgp_impl_instance.ep.addr);
+    pend(bgp_impl_instance.ep.addr) := true;
+    update_sent := false;
+    session_established := false;
+    keepalive_sent := false;
+    acceptable_error(bgp_error_code.hold_timer_expire) := true;
+    acceptable_error(bgp_error_code.fsm_error) := true;
+}
+
+before bgp_open_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_open_message){
+    if _generating {
+    }
+}
+
+before bgp_keepalive_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_keepalive_message){
+    if _generating {
+        require ~keepalive_sent | update_sent;
+    }
+}
+
+before bgp_notification_message_event(src:bgp_id,dst:bgp_id,bgp_message:bgp_notification_message){
+    if _generating {
+        require false;
+    }
+}
+
+# Restrict scenario to replace_route — isolated validation of implicit-withdraw.
+before generate_update(src:bgp_id, dst:bgp_id, scen:update_scenario) {
+    if _generating {
+        # [rfc4271:8.2.2] FRR must reach Established (receives Ivy's KEEPALIVE)
+        # before UPDATE; otherwise rejects with FSM Error 5/2.
+        require keepalive_sent;
+        require scen = replace_route;
+    }
+}
+
+after bgp_keepalive_message_event {
+    if _generating {
+        keepalive_sent := true;
+    };
+    if ~_generating {
+        session_established := true;
+    }
+}
+
+after generate_update {
+    if _generating {
+        update_sent := true;
+    }
+}
+
+export bgp_open_message_event
+export bgp_keepalive_message_event
+export bgp_notification_message_event
+export generate_update
+
+export action _finalize = {
+    require open_message_recv(bgp_impl_instance.bgpid); # [rfc4271:4.2]
+    require conn_state(bgp_impl_instance.bgpid, bgp_ivy_instance_b.bgpid) = bgp_connection_state.established
+          | conn_state(bgp_impl_instance.bgpid, bgp_ivy_instance_b.bgpid) = bgp_connection_state.idle;
+    # C-leg dormant outside §6.8; collision test exercises C [rfc4271:6.8]
+    require update_sent; # [rfc4271:4.3]
+    require ~received_unexpected_notification; # [rfc4271:6]
+}

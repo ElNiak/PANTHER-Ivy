@@ -118,7 +118,7 @@ A key concept: the Ivy tester's role is the **opposite** of what it tests. Testi
 - `use_system_models`: Toggle between standard and APT model architectures
 - `log_level_events` / `log_level_binary`: Debug verbosity controls
 
-Version-specific configs are loaded from `version_configs/{protocol}/` YAML files.
+Load version-specific configs from `version_configs/{protocol}/` YAML files.
 
 ### Build Modes (Z3 Compilation)
 

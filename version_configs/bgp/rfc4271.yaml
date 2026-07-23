@@ -1,0 +1,57 @@
+version: "rfc4271"
+env:
+  PROTOCOL_TESTED: "bgp"
+parameters:
+  speaker_b_addr:
+    value: "@{client_service:ip:hex}"
+    description: "Ivy speaker B IP address (primary tester leg, hex format)"
+  speaker_b_id:
+    value: "@{client_service:ip:hex}"
+    description: "Ivy speaker B BGP identifier (hex)"
+  speaker_b_as:
+    value: "1"
+    description: "Ivy speaker B AS number"
+  speaker_c_addr:
+    value: "@{client_service:ip[bgp_c]:hex}"
+    description: "Ivy speaker C IP address (second tester leg for §6.8 collision; resolved via Path α auxiliary network on the ivy_tester container)"
+  speaker_c_id:
+    value: "@{client_service:ip[bgp_c]:hex}"
+    description: "Ivy speaker C BGP identifier (hex; matches the tester's secondary IP via Path α auxiliary network)"
+  speaker_c_as:
+    value: "1"
+    description: "Ivy speaker C AS number"
+  speaker_impl_addr:
+    value: "@{server_service:ip:hex}"
+    description: "IUT speaker IP address (hex)"
+  speaker_impl_id:
+    value: "@{server_service:ip:hex}"
+    description: "IUT speaker BGP identifier (hex)"
+  speaker_impl_as:
+    value: "2"
+    description: "IUT speaker AS number"
+server:
+  binary:
+    dir: "PANTHER_IVY_INSTALL_DIR/protocol-testing/"
+    name: ""
+  speaker_b_addr: "@{server_service:ip:hex}"
+  speaker_b_id: "@{server_service:ip:hex}"
+  speaker_b_as: "1"
+  speaker_c_addr: "@{client_service:ip[bgp_c]:hex}"
+  speaker_c_id: "@{client_service:ip[bgp_c]:hex}"
+  speaker_c_as: "1"
+  speaker_impl_addr: "@{client_service:ip:hex}"
+  speaker_impl_id: "@{client_service:ip:hex}"
+  speaker_impl_as: "2"
+client:
+  binary:
+    dir: "PANTHER_IVY_INSTALL_DIR/protocol-testing/"
+    name: ""
+  speaker_b_addr: "@{client_service:ip:hex}"
+  speaker_b_id: "@{client_service:ip:hex}"
+  speaker_b_as: "1"
+  speaker_c_addr: "@{client_service:ip[bgp_c]:hex}"
+  speaker_c_id: "@{client_service:ip[bgp_c]:hex}"
+  speaker_c_as: "1"
+  speaker_impl_addr: "@{server_service:ip:hex}"
+  speaker_impl_id: "@{server_service:ip:hex}"
+  speaker_impl_as: "2"

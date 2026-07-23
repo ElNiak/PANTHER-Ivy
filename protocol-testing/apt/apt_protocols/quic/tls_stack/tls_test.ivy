@@ -13,10 +13,11 @@ interpret byte -> bv[8]
 type cid
 
 type extens
+type hextens
 type exten_ser
 
 instance lower : tls_lower_intf(cid,bytes)
-instance upper : tls_intf(cid,idx,bytes,lower,extens,exten_ser)
+instance upper : tls_intf(cid,idx,bytes,lower,extens,hextens,exten_ser)
 
 import lower.send
 export lower.recv

@@ -90,7 +90,7 @@
 ```
 include bgp_route
 include bgp_path_attribute
-include bgp_network_layer_reachability_info
+include bgp_locale_layer_reachability_info
 
 object bgp_update_message = {
     type this = struct {

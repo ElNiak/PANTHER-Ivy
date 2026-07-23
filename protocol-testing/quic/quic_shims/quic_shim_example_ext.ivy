@@ -55,7 +55,7 @@ include quic_congestion_control
 include ivy_quic_server
 include ivy_quic_client
 include ivy_quic_client_server
-include ivy_quic_attacker_client
+include ivy_quic_attacker
 include ivy_quic_victim
 include ivy_quic_mim
 
@@ -85,7 +85,6 @@ function client_initial_version : version
 
 relation client_non_zero_scil
 
-relation zero_rtt_allowed
 relation zero_rtt_sent
 relation send_connection_close # TODO, send co_close at end of test or not
 

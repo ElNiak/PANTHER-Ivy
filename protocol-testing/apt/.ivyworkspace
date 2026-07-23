@@ -1,0 +1,37 @@
+{
+  "version": 3,
+  "standard_library": "ivy/include/1.7",
+  "scope_detection": "auto",
+  "protocol_id": "apt",
+  "workspace_root_offset": "../..",
+  "workspace_layers": [
+    {
+      "id": "apt",
+      "include_paths": [
+        "protocol-testing/apt/apt_entities",
+        "protocol-testing/apt/apt_entities_behavior",
+        "protocol-testing/apt/apt_lifecycle",
+        "protocol-testing/apt/apt_network",
+        "protocol-testing/apt/apt_shims",
+        "protocol-testing/apt/apt_stack",
+        "protocol-testing/apt/apt_utils",
+        "protocol-testing/apt/apt_protocols/quic",
+        "protocol-testing/apt/apt_protocols/minip",
+        "protocol-testing/apt/apt_protocols/tls"
+      ],
+      "priority": 1
+    },
+    {
+      "id": "apt_tests",
+      "include_paths": ["protocol-testing/apt/apt_tests"],
+      "priority": 2,
+      "depends_on": ["apt"]
+    }
+  ],
+  "exclude_paths": [
+    "doc", "examples", "test", "notebooks", "patches", "submodules", "ivy",
+    "protocol-testing/apt/apt_protocols/dns",
+    "protocol-testing/apt/apt_protocols/http",
+    "protocol-testing/apt/apt_protocols/smtp"
+  ]
+}
