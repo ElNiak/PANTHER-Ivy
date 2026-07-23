@@ -406,3 +406,141 @@ requirements:
     level: MAY
     layer: error
     testable: true
+
+  # --- Section 6.3: UPDATE Message Error Subcodes (RFC 4271) ---
+  'rfc4271:6.3:malformed_attribute_list':
+    text: >-
+      If the Withdrawn Routes Length or Total Attribute Length is too
+      large (i.e., if Withdrawn Routes Length + Total Attribute Length
+      + 23 exceeds the message Length), then the Error Subcode MUST be
+      set to Malformed Attribute List. Also: if any attribute appears
+      more than once.
+    section: '6.3'
+    level: MUST
+    layer: error
+    testable: true
+    note: Detect at bgp_update_message_event after-block
+  'rfc4271:6.3:unrecognized_well_known_attribute':
+    text: >-
+      If any of the well-known mandatory attributes are not recognized,
+      then the Error Subcode MUST be set to Unrecognized Well-known
+      Attribute. The Data field MUST contain the unrecognized attribute.
+    section: '6.3'
+    level: MUST
+    layer: error
+    testable: true
+    note: Deferred — annotation skeleton only; detection requires deserializer extension
+  'rfc4271:6.3:attribute_flags_error':
+    text: >-
+      If any recognized attribute has Attribute Flags that conflict with
+      the Attribute Type Code, then the Error Subcode MUST be set to
+      Attribute Flags Error.
+    section: '6.3'
+    level: MUST
+    layer: error
+    testable: true
+    note: Deferred — current per-attribute around-block requires (f.transitive & ~f.optional & ~f.partial) gate ill-flagged messages out; needs receive-side parallel path or deserializer extension
+  'rfc4271:6.3:attribute_length_error':
+    text: >-
+      If any recognized attribute has an Attribute Length that conflicts
+      with the expected length (based on the attribute type code), then
+      the Error Subcode MUST be set to Attribute Length Error.
+    section: '6.3'
+    level: MUST
+    layer: error
+    testable: true
+    note: Deferred — annotation skeleton only
+  'rfc4271:6.3:invalid_origin_attribute':
+    text: >-
+      If the ORIGIN attribute has an undefined value, then the Error
+      Subcode MUST be set to Invalid Origin Attribute. The Data field
+      MUST contain the attribute (type, length, and value).
+    section: '6.3'
+    level: MUST
+    layer: error
+    testable: true
+    note: Worked detection at path_attr.origin.handle after-block (f.value > 2)
+  'rfc4271:6.3:invalid_next_hop_attribute_syntactic':
+    text: >-
+      If the NEXT_HOP attribute field is syntactically incorrect, then
+      the Error Subcode MUST be set to Invalid NEXT_HOP Attribute.
+    section: '6.3'
+    level: MUST
+    layer: error
+    testable: true
+    note: Worked detection at path_attr.next_hop.handle after-block (Phase 5 prereq-gated; downgrades to annotation-only if a value-bound require excludes the violation)
+  'rfc4271:6.3:invalid_next_hop_attribute_semantic':
+    text: >-
+      The IP address in the NEXT_HOP MUST meet semantic criteria:
+      (a) MUST NOT be the IP address of the receiving speaker;
+      (b) for eBGP one-hop, MUST be sender's connecting IP or share a
+      subnet with receiver. On semantic error, error SHOULD be logged
+      and route SHOULD be ignored; NOTIFICATION SHOULD NOT be sent and
+      connection SHOULD NOT be closed.
+    section: '6.3'
+    level: SHOULD
+    layer: error
+    testable: true
+    note: Deferred — non-NOTIFICATION path, requires prefix_ignored relation
+  'rfc4271:6.3:malformed_as_path':
+    text: >-
+      The AS_PATH attribute is checked for syntactic correctness. If the
+      path is syntactically incorrect, then the Error Subcode MUST be
+      set to Malformed AS_PATH.
+    section: '6.3'
+    level: MUST
+    layer: error
+    testable: true
+    note: Deferred — current as_path around-block requires (line 322 segment_type ∈ {1,2}, line 314 f.path.end > 0) gate malformed paths out; needs receive-side parallel path
+  'rfc4271:6.3:malformed_as_path_leftmost_as':
+    text: >-
+      If the UPDATE message is received from an external peer, the
+      local system MAY check whether the leftmost AS in the AS_PATH
+      attribute is equal to the autonomous system number of the peer
+      that sent the message. If not, the Error Subcode MUST be set to
+      Malformed AS_PATH.
+    section: '6.3'
+    level: MAY
+    layer: error
+    testable: true
+    note: Deferred — annotation only; check is OPTIONAL per RFC
+  'rfc4271:6.3:optional_attribute_error':
+    text: >-
+      If an optional attribute is recognized, then the value of this
+      attribute MUST be checked. If an error is detected, the attribute
+      MUST be discarded, and the Error Subcode MUST be set to Optional
+      Attribute Error.
+    section: '6.3'
+    level: MUST
+    layer: error
+    testable: true
+    note: Deferred — annotation skeleton only
+  'rfc4271:6.3:invalid_network_field':
+    text: >-
+      The NLRI field in the UPDATE message is checked for syntactic
+      validity. If the field is syntactically incorrect, then the Error
+      Subcode MUST be set to Invalid Network Field.
+    section: '6.3'
+    level: MUST
+    layer: error
+    testable: true
+    note: Deferred — annotation skeleton only
+  'rfc4271:6.3:nlri_semantic_error':
+    text: >-
+      If a prefix in the NLRI field is semantically incorrect (e.g.,
+      unexpected multicast IP address), an error SHOULD be logged
+      locally, and the prefix SHOULD be ignored.
+    section: '6.3'
+    level: SHOULD
+    layer: error
+    testable: true
+    note: Deferred — non-NOTIFICATION path
+  'rfc4271:6.3:no_nlri_valid_update':
+    text: >-
+      An UPDATE message that contains correct path attributes, but no
+      NLRI, SHALL be treated as a valid UPDATE message.
+    section: '6.3'
+    level: MUST
+    layer: update
+    testable: true
+    note: Already permitted by bgp_update_message_event around-block (no require on NLRI presence); annotation only

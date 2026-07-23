@@ -46,6 +46,14 @@ after init {
     # in the single-leg deployment and remains so.
     getsock(bgp_impl_instance.ep.addr) := net.connect_accept(endpoint_id.ivy_speaker, endpoint_id.impl_speaker, bgp_impl_instance.ep.addr);
     pend(bgp_impl_instance.ep.addr) := true;
+    # §6.8.3 unblocked by Path α (auxiliary network puts C's IP on the second NIC):
+    # add a second connect_accept for the C leg so "examine all OpenConfirm
+    # connections" [rfc4271:6.8.3] is exercisable non-trivially with N=2 OpenConfirm
+    # peers. Key getsock/pend by C's address (not the IUT address) to avoid
+    # overwriting B's bookkeeping — both legs target the same IUT but track
+    # their own pending state.
+    getsock(bgp_ivy_instance_c.ep.addr) := net.connect_accept(endpoint_id.ivy_speaker_c, endpoint_id.impl_speaker, bgp_impl_instance.ep.addr);
+    pend(bgp_ivy_instance_c.ep.addr) := true;
     slept_bgp := false;
 }
 

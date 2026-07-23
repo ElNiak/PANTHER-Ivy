@@ -278,6 +278,15 @@ object path_attr = {
     }
 }
 
+# [rfc4271:6.3:invalid_origin_attribute] If ORIGIN value > 2 (undefined per RFC §5.1.1: 0=IGP, 1=EGP, 2=INCOMPLETE), raise Invalid Origin Attribute subcode. Reachable on first-receipt path (has_received_origin(src) = false in around-block lines 268-270 conditional).
+after path_attr.origin.handle {
+    if f.value > 2 {
+        var sub : bgp_error_subcode.type_bgp_update_error_subcode;
+        sub.code := bgp_update_error_subcode.invalid_origin_attribute;
+        call bgp_error_subcode.type_bgp_update_error_subcode.handle(sub, src, dst);
+    }
+}
+
 action as_idx_to_stream_pos(c:autonomous_system.idx) returns(res:stream_pos)
 
 object as_idx_cast = {
@@ -387,6 +396,15 @@ object path_attr = {
             next_hop_present(src) := true;
             call enqueue_path_attr(src,f);
         }
+    }
+}
+
+# [rfc4271:6.3:invalid_next_hop_attribute_syntactic] If NEXT_HOP value is the all-zeros IP address, raise Invalid NEXT_HOP Attribute subcode (RFC §6.3 syntactic-correctness — "not a valid IP host address"). Reachable: around-block (lines 387-398) imposes no value-bound require on f.next_hop.
+after path_attr.next_hop.handle {
+    if f.next_hop = 0 {
+        var sub : bgp_error_subcode.type_bgp_update_error_subcode;
+        sub.code := bgp_update_error_subcode.invalid_next_hop_attribute;
+        call bgp_error_subcode.type_bgp_update_error_subcode.handle(sub, src, dst);
     }
 }
 
