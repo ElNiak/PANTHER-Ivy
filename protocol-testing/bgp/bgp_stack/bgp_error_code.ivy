@@ -67,7 +67,13 @@ object bgp_error_subcode = {
         around handle {
             require open_message_recv(src) & open_message_recv(dst); # [rfc4271:6.1]
             ...
-            queued_suberror(src) := f;
+            # Widen through a parent-sorted temporary before storing. Assigning a variant
+            # member straight into the parameterized parent-sorted function makes
+            # mk_variant_assign_clauses emit Ite(cond, __queued_suberror_nd, queued_suberror(V0))
+            # with mismatched sorts, so ivyc raises SortError as soon as any handle is reachable.
+            var s : bgp_error_subcode;
+            s := f;
+            queued_suberror(src) := s;
         }
     }
 }
@@ -81,7 +87,13 @@ object bgp_error_subcode = {
         around handle {
             require open_message_recv(src) & open_message_recv(dst); # [rfc4271:6.2]
             ...
-            queued_suberror(src) := f;
+            # Widen through a parent-sorted temporary before storing. Assigning a variant
+            # member straight into the parameterized parent-sorted function makes
+            # mk_variant_assign_clauses emit Ite(cond, __queued_suberror_nd, queued_suberror(V0))
+            # with mismatched sorts, so ivyc raises SortError as soon as any handle is reachable.
+            var s : bgp_error_subcode;
+            s := f;
+            queued_suberror(src) := s;
         }
     }
 }
@@ -95,7 +107,13 @@ object bgp_error_subcode = {
         around handle {
             require open_message_recv(src) & open_message_recv(dst); # [rfc4271:6.3]
             ...
-            queued_suberror(src) := f;
+            # Widen through a parent-sorted temporary before storing. Assigning a variant
+            # member straight into the parameterized parent-sorted function makes
+            # mk_variant_assign_clauses emit Ite(cond, __queued_suberror_nd, queued_suberror(V0))
+            # with mismatched sorts, so ivyc raises SortError as soon as any handle is reachable.
+            var s : bgp_error_subcode;
+            s := f;
+            queued_suberror(src) := s;
         }
     }
 }
