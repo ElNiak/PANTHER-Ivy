@@ -56,7 +56,7 @@ if TYPE_CHECKING:
     name="panther_ivy",
     version="3.1.0",  # Version 3.1 reflects mixin-based refactored architecture
     description="Ivy formal verification tester using mixin-based architecture",
-    supported_protocols=["quic", "bgp"],
+    supported_protocols=["quic", "bgp", "coap", "minip"],
     external_dependencies=["z3>=4.8", "python>=3.10"],
     homepage="",
 )

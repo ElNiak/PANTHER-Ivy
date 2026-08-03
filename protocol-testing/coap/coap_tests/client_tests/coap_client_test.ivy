@@ -1,0 +1,27 @@
+#lang ivy1.7
+
+include order
+include coap_file
+include ivy_coap_shim_server
+include ivy_coap_server_behavior
+
+
+# before pong_event {
+#     if _generating {
+#         require initial_response;
+#     }
+# }
+
+before coap_message_event {
+    if ~_generating {
+
+    }
+}
+
+
+export coap_message_event
+export client_send_event
+
+export action _finalize = {
+    #
+}
