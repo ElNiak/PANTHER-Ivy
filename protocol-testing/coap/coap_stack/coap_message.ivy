@@ -2,6 +2,7 @@
 
 include coap_types
 include coap_message_method
+include coap_option
 
 # Description: Defines the CoAP message format, including headers, payload,
 # and options.
@@ -22,10 +23,10 @@ include coap_message_method
 
 object coap_message_type = {
     type this = {
-        CON,
-        NON,
-        ACK,
-        RST
+        confirmable, # CON
+        non_confirmable, # NON # TODO - Parser -> We cannot add "-" in the name, so we use "_" instead
+        acknowledgement, # ACK
+        reset # RST
     }
 }
 
@@ -35,7 +36,7 @@ object coap_message = {
         version    : stream_pos,         # [1] 2-bit unsigned integer
         mtype      : coap_message_type,  # [2] 2-bit unsigned integer: Confirmable (0), Non-confirmable (1), Acknowledgement (2), or Reset (3)
         token_len  : stream_pos,         # [3] 4-bit unsigned integer
-        code       : coap_code,          # [4] 8-bit unsigned integer, split into a 3-bit class
+        code       : coap_message_code_definition,          # [4] 8-bit unsigned integer, split into a 3-bit class
         message_id : id,                 # [5] 16-bit unsigned integer in network byte order
         ## end header
         token      : stream_data,        # [6] variable-length [0-8] bytes
@@ -65,13 +66,16 @@ after init {
 
 # Define coap_type, coap_code, coap_option, and other types as needed
 
-action coap_message_event(src:ip.endpoint,dst:ip.endpoint,pkt:coap_message) = {}
+action coap_message_event(src:ip.endpoint,dst:ip.endpoint,pkt:coap_message) 
 
-around coap_message_event(src:ip.endpoint,dst:ip.endpoint,pkt:coap_message) = {
+around coap_message_event(src:ip.endpoint,dst:ip.endpoint,pkt:coap_message) {
     # Each message contains a Message ID used to detect duplicates and for optional reliability
     # 16-bit size enables up to about 250 messages per second from one endpoint to another with default protocol parameters.
-
+    require pkt.message_id < 65536;
+    require pkt.token_len <= 8;
 
     ...
+
+    require true;
 
 }

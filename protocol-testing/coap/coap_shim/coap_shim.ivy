@@ -2,14 +2,18 @@
 
 # Global CoAP Protocol Implementation
 include coap_connection
-include coap_ser
-include coap_deser
-include coap_time
-include coap_protection
 
 include udp_impl
 include ip
 include serdes
+
+include coap_ser
+include coap_deser
+
+include coap_time
+include coap_protection
+
+include coap_random_value
 
 instance prot : coap_protection(tls_api.id, tls_api.upper)
 

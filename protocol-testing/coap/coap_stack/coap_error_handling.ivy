@@ -4,14 +4,15 @@
 include coap_message
 
 # Define CoAP error types
+# TODO: See if we can use the existing coap_message_code_definition for error handling instead of defining new error types.
 object coap_error_type = {
     type this = {
-        MALFORMED_MESSAGE,
-        COMMUNICATION_ERROR,
-        UNAUTHORIZED_ACCESS,
-        NOT_FOUND,
-        METHOD_NOT_ALLOWED,
-        UNSUPPORTED_CONTENT_FORMAT
+        malformed_message, # 4.00 Error due to malformed CoAP message
+        communication_error, # 5.00 Error due to communication issues
+        unauthorized_access, # 4.01 Error due to unauthorized access
+        not_found, # 4.04 Error when resource is not found
+        method_not_allowed, # 4.05 Error when method is not allowed
+        unsupported_content_format # 4.15 Error when content format is unsupported   
         # Add other error types as needed
     }
 }
@@ -26,14 +27,23 @@ type coap_error = struct {
 action handle_error(error:coap_error) = {
     # Logic to process different types of errors
     # This could include logging, sending error responses, etc.
-    match error.error_type {
-        case MALFORMED_MESSAGE: {
-            # Handle malformed message error
-        }
-        case COMMUNICATION_ERROR: {
-            # Handle communication error
-        }
-        # Add cases for other error types
+    if error.error_type = coap_error_type.malformed_message {
+        # Handle malformed message error
+    }
+    else if error.error_type = coap_error_type.communication_error {
+        # Handle communication error
+    }
+    else if error.error_type = coap_error_type.unauthorized_access {
+        # Handle unauthorized access error
+    }
+    else if error.error_type = coap_error_type.not_found {
+        # Handle not found error
+    }
+    else if error.error_type = coap_error_type.method_not_allowed {
+        # Handle method not allowed error
+    }
+    else if error.error_type = coap_error_type.unsupported_content_format {
+        # Handle unsupported content format error
     }
 }
 

@@ -1,10 +1,14 @@
 #lang ivy1.7
-import coap_uri
+
+include collections
+include order
+include coap_byte_stream
+include coap_uri
 
 object coap_message_method = {
     type this = {
         get,
-        post,
+        post, 
         delete,
         put
     }
@@ -12,39 +16,39 @@ object coap_message_method = {
 
 object coap_message_code_class = {
     type this = {
-        success,
-        client_error,
-        server_error
+        success, # 2
+        client_error, # 4
+        server_error # 5
     }
 }
 
 object coap_message_code_definition = {
     type this = {
         # success
-        created,
-        deleted,
-        valid,
-        changed,
-        content,
+        created, # 2.01
+        deleted, # 2.02
+        valid, # 2.03
+        changed, # 2.04
+        content, # 2.05
         # client_error
-        bad_request,
-        unauthorized,
-        bad_option,
-        forbidden,
-        not_found,
-        method_not_allowed,
-        not_acceptable,
-        request_entity_incomplete,
-        precondition_failed,
-        request_entity_too_large,
-        unsupported_content_format,
+        bad_request, # 4.00
+        unauthorized, # 4.01
+        bad_option, # 4.02
+        forbidden, # 4.03
+        not_found, # 4.04
+        method_not_allowed, # 4.05
+        not_acceptable, # 4.06
+        request_entity_incomplete, # 4.08
+        precondition_failed, # 4.12
+        request_entity_too_large, # 4.13
+        unsupported_content_format, # 4.15
         # server_error
-        internal_server_error,
-        not_implemented,
-        bad_gateway,
-        service_unavailable,
-        gateway_timeout,
-        proxying_not_supported
+        internal_server_error, # 5.00
+        not_implemented, # 5.01
+        bad_gateway, # 5.02
+        service_unavailable, # 5.03
+        gateway_timeout, # 5.04
+        proxying_not_supported # 5.05
     }
 }
 
@@ -64,35 +68,29 @@ object message_method = {
             metadata : stream_data
         }
     }
-#                               0 1 2 3 4 5 6 7
-#                              +-+-+-+-+-+-+-+-+
-#                              |class|  detail |
-#                              +-+-+-+-+-+-+-+-+
+    #                               0 1 2 3 4 5 6 7
+    #                              +-+-+-+-+-+-+-+-+
+    #                              |class|  detail |
+    #                              +-+-+-+-+-+-+-+-+
+    #                   Figure 9: Structure of a Response Code
+    #    The upper three bits of the 8-bit Response Code number define the
+    #    class of response.  The lower five bits do not have any
+    #    categorization role; they give additional detail to the overall class
+    #    (Figure 9).
+    #    As a human-readable notation for specifications and protocol
+    #    diagnostics, CoAP code numbers including the Response Code are
+    #    documented in the format "c.dd", where "c" is the class in decimal,
+    #    and "dd" is the detail as a two-digit decimal.  For example,
+    #    "Forbidden" is written as 4.03 -- indicating an 8-bit code value of
+    #    hexadecimal 0x83 (4*0x20+3) or decimal 131 (4*32+3).
+    #    There are 3 classes of Response Codes:
+    #    2 - Success:  The request was successfully received, understood, and
+    #       accepted.
+    #    4 - Client Error:  The request contains bad syntax or cannot be
+    #       fulfilled.
+    #    5 - Server Error:  The server failed to fulfill an apparently valid
+    #       request.
 
-#                   Figure 9: Structure of a Response Code
-
-#    The upper three bits of the 8-bit Response Code number define the
-#    class of response.  The lower five bits do not have any
-#    categorization role; they give additional detail to the overall class
-#    (Figure 9).
-
-#    As a human-readable notation for specifications and protocol
-#    diagnostics, CoAP code numbers including the Response Code are
-#    documented in the format "c.dd", where "c" is the class in decimal,
-#    and "dd" is the detail as a two-digit decimal.  For example,
-#    "Forbidden" is written as 4.03 -- indicating an 8-bit code value of
-#    hexadecimal 0x83 (4*0x20+3) or decimal 131 (4*32+3).
-
-#    There are 3 classes of Response Codes:
-
-#    2 - Success:  The request was successfully received, understood, and
-#       accepted.
-
-#    4 - Client Error:  The request contains bad syntax or cannot be
-#       fulfilled.
-
-#    5 - Server Error:  The server failed to fulfill an apparently valid
-#       request.
     object response = {
         variant this of message_method = struct {
             code_class   : coap_message_code_class,
@@ -101,10 +99,14 @@ object message_method = {
         }
     }
 
-    instance idx : unbounded_sequence
-    instance arr : array(idx, this)
+    instance jdx : unbounded_sequence
+    instance arr : array(jdx, this)
+}
 
-    action handle(r: this, src:ip.endpoint,dst:ip.endpoint, i:id)  = {
+object message_method = {
+    ...
+
+    action handle(r: this, src:ip.endpoint, dst:ip.endpoint, i:id)  = {
         require false;
     }
 }
@@ -118,9 +120,9 @@ object message_method = {
         action handle(r: message_method.request, src:ip.endpoint,dst:ip.endpoint, i:id)
 
         around handle {
-
-            # ...
-
+            require true;
+            ...
+            require true;
         }
     }
 }
@@ -133,9 +135,9 @@ object message_method = {
         action handle(r: message_method.response, src:ip.endpoint,dst:ip.endpoint, i:id)
 
         around handle {
-
-            # ...
-
+            require true;
+            ...
+            require true;
         }
     }
 }

@@ -1,5 +1,6 @@
 #lang ivy1.7
 
+include coap_shim
 
 # Actions for server endpoint
 action server_receive_request(client:ip.endpoint, request:coap_message) = {

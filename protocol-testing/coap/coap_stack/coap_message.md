@@ -24,7 +24,7 @@ and options.
 ```
 object coap_message_type = {
     type this = {
-        CON,
+        confirmable, # CON
         NON,
         ACK,
         RST
