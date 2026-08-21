@@ -57,10 +57,6 @@ object ping_prot_deser = {}
             getn(res,1);
         }
 
-        unsigned char peek(unsigned p) {
-            return more(p-pos+1) ? inp[p] : 0;
-        }
-
         void open_list() {
         }
 
