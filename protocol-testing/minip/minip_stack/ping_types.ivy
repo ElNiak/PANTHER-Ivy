@@ -121,25 +121,3 @@ interpret ipv4 -> bv[4]
 
 type ipv6
 interpret ipv6 -> bv[16]
-
-# Packet type, also determines encryption keys
-
-object quic_packet_type = {
-    type this = {initial,zero_rtt,handshake, one_rtt, version_negociation, retry} #, retry, version_negociation
-
-    # The `next` action computes the next packet type
-    # according to the normal sequence.
-
-    action next(e:this) returns (e:this) = {
-        if e = initial & ~zero_rtt_allowed {
-            e := handshake;
-        } else if e = initial & zero_rtt_allowed {
-            e := zero_rtt;
-        } else if e = zero_rtt {
-            e := handshake;
-        } else {
-            e := one_rtt;
-        }
-    }
-
-}

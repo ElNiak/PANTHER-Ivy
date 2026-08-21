@@ -20,8 +20,8 @@ parameters:
     value: 1
     description: "Initial version (default: 1)"
   server_addr:
-    value: 0x7F000001
-    description: "Server address (default: 0x7F000001)"
+    value: "@{server_service:ip:decimal}"
+    description: "Server address (dynamically resolved based on network environment)"
   server_cid:
     value: 0
     description: "Server connection ID (default: 0)"
@@ -32,15 +32,15 @@ parameters:
     value: 4444
     description: "Client port alternative (default: 4444)"
   client_addr:
-    value: 0x7F000001
-    description: "Client address (default: 0x7F000001)"
+    value: "@{client_service:ip:decimal}"
+    description: "Client address (dynamically resolved based on network environment)"
 
 server:
   server_port: 4443
-  server_addr: 0x7F000001
+  server_addr: "@{server_service:ip:decimal}"
   client_port: 4997
   client_port_alt: 4444
-  client_addr: 0x7F000001
+  client_addr: "@{client_service:ip:decimal}"
   binary:
     dir: "${PANTHER_IVY_INSTALL_DIR:-/opt/panther_ivy}/protocol-testing/"
     name: ""
@@ -60,10 +60,10 @@ server:
 
 client:
   server_port: 4443
-  server_addr: 0x7F000001
+  server_addr: "@{server_service:ip:decimal}"
   client_port: 4997
   client_port_alt: 4444
-  client_addr: 0x7F000001
+  client_addr: "@{client_service:ip:decimal}"
   binary:
     dir: "${PANTHER_IVY_INSTALL_DIR:-/opt/panther_ivy}/protocol-testing/"
     name: ""

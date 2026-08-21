@@ -19,7 +19,10 @@ repos:
       - id: trailing-whitespace
         exclude: ^(submodules/|__pycache__/|build/|dist/|.*\.egg-info/|protocol-testing/apt/test/)
       - id: end-of-file-fixer
-        exclude: ^(submodules/|__pycache__/|build/|dist/|.*\.egg-info/|protocol-testing/apt/test/)
+        # minip's http_request_file.txt is a wire payload, not source: a trailing
+        # newline makes it 5 bytes and `require f.data.end = 4` in ping_frame.ivy
+        # becomes unsatisfiable, so the tester generates no ping at all.
+        exclude: ^(submodules/|__pycache__/|build/|dist/|.*\.egg-info/|protocol-testing/apt/test/|protocol-testing/minip/http_request_file\.txt$)
       - id: check-yaml
         args: ['--allow-multiple-documents']
         exclude: ^(submodules/|templates/)

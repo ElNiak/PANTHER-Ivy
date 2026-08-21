@@ -1,0 +1,77 @@
+#lang ivy1.7
+
+include network_implementation
+include serdes
+include collections
+
+# This file provides the interface to the test locale: the datagram network
+# and the connection identifier space the endpoints tag themselves with.
+# MiniP runs unencrypted, so `tls_api` carries only the id type that
+# `ping_endpoint` uses to distinguish the two endpoints.
+
+object tls_api = {
+    instance id : long_unbounded_sequence
+}
+
+instance pingd : ping_array
+
+object ping_prot_ser = {}
+
+<<< member
+
+    class `ping_prot_ser`;
+
+>>>
+
+<<< impl
+
+    class `ping_prot_ser` : public ivy_binary_ser_128 {
+    public:
+
+        void open_list(int) {
+        }
+
+        virtual void  set(int128_t res) {
+            setn(res,1);
+        }
+    };
+
+>>>
+
+object ping_prot_deser = {}
+
+<<< member
+
+    class `ping_prot_deser`;
+
+>>>
+
+<<< impl
+
+    class `ping_prot_deser` : public ivy_binary_deser_128 {
+    public:
+        ping_prot_deser(const std::vector<char> &inp) : ivy_binary_deser_128(inp) {
+        }
+
+        void  get(int128_t &res) {
+            getn(res,1);
+        }
+
+        unsigned char peek(unsigned p) {
+            return more(p-pos+1) ? inp[p] : 0;
+        }
+
+        void open_list() {
+        }
+
+        bool open_list_elem() {
+            return more(1);
+        }
+
+        void close_list_elem() {
+        }
+    };
+
+>>>
+
+instance net : network_implementation(endpoint_id,pingd.arr,ping_prot_ser,ping_prot_deser, 4443, 0)

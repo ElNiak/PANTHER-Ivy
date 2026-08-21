@@ -14,7 +14,7 @@ VERDICT_IUT_CRASH = "IUT_CRASH"
 VERDICT_UNKNOWN = "UNKNOWN"
 
 # -- Pre-compiled patterns --
-ASSUMPTION_FAILED_PATTERN = re.compile(r"assumption_failed\(([^)]*)\)")
+ASSUMPTION_FAILED_PATTERN = re.compile(r"(?:assumption|assertion)_failed\(([^)]*)\)")
 TEST_COMPLETED_PATTERN = re.compile(r"test_completed")
 PROTOCOL_ACTIVITY_PATTERN = re.compile(r"^[<>]\s", re.MULTILINE)
 
@@ -40,9 +40,9 @@ def determine_verdict(stdout: str, stderr: str) -> Dict[str, object]:
     """Determine Ivy test verdict from stdout/stderr output.
 
     Verdict precedence:
-    1. assumption_failed(...) in stdout -> NON_COMPLIANT
-    2. test_completed in stdout (no assumption_failed) -> NO_VIOLATION_FOUND
-    3. Protocol activity (</>  lines, no assumption_failed) -> NO_VIOLATION_FOUND
+    1. assumption_failed(...)/assertion_failed(...) in stdout -> NON_COMPLIANT
+    2. test_completed in stdout (no failure marker) -> NO_VIOLATION_FOUND
+    3. Protocol activity (</>  lines, no failure marker) -> NO_VIOLATION_FOUND
     4. Tester crash (segfault/SIGSEGV, no markers) -> TESTER_CRASH
     5. IUT crash (connection reset/timeout, no markers) -> IUT_CRASH
     6. No output -> UNKNOWN
@@ -78,13 +78,19 @@ def determine_verdict(stdout: str, stderr: str) -> Dict[str, object]:
 
         if assumption_failures:
             verdict = VERDICT_NON_COMPLIANT
-            details.append(f"Found {len(assumption_failures)} assumption failure(s)")
+            details.append(
+                f"Found {len(assumption_failures)} assumption/assertion failure(s)"
+            )
         elif has_test_completed:
             verdict = VERDICT_NO_VIOLATION_FOUND
-            details.append("test_completed marker found, no assumption failures")
+            details.append(
+                "test_completed marker found, no assumption/assertion failures"
+            )
         elif PROTOCOL_ACTIVITY_PATTERN.search(stdout):
             verdict = VERDICT_NO_VIOLATION_FOUND
-            details.append("Protocol activity detected without assumption failures")
+            details.append(
+                "Protocol activity detected without assumption/assertion failures"
+            )
 
     # --- Check for crash indicators (only if no verdict markers found) ---
     if verdict == VERDICT_UNKNOWN:
